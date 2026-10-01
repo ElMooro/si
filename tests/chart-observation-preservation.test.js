@@ -6,10 +6,10 @@ test('whole catalog, fuse, engine and inspection modules preserve all unrelated 
 });
 test('both consumers load the exact observation parser before the existing modules and preserve remaining HTML',()=>{
  for(const p of ['chart.html','crypto/index.html']){
-  const prior=fs.readFileSync(path.join(__dirname,'fixtures/chart-observations/pre499',p+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,p),'utf8').replace('<script src="/jh-observation-cache.js?v=20261001"></script>\n','');
+  const prior=fs.readFileSync(path.join(__dirname,'fixtures/chart-observations/pre499',p+'.txt'),'utf8'),current=require('./helpers/chart-refresh-status-preservation.cjs').normalizeHtml(fs.readFileSync(path.join(R,p),'utf8').replace('/jh-khalid-sniper.js?v=20261001-user-scope','/jh-khalid-sniper.js?v=20261001-snapshot'),p).replace('<script src="/jh-observation-cache.js?v=20261001"></script>\n','');
   const added='<script src="/jh-observation-series.js?v=20261001"></script>\n';assert.equal(current.split(added).length,2);// The snapshot performance follow-up changes only these two cache keys.
   const normalized=current.replace(added,'')
-   .replace('/jh-khalid-sniper.js?v=20261001-user-scope','/jh-khalid-sniper.js?v=20261001-snapshot').replace('/jh-khalid-sniper.js?v=20261001-snapshot','/jh-khalid-sniper.js?v=20261001-qualification')
+   .replace('/jh-khalid-sniper.js?v=20261001-snapshot','/jh-khalid-sniper.js?v=20261001-qualification')
    .replace('/jh-chart-tvrail.js?v=20261001-snapshot','/jh-chart-tvrail.js?v=20260925-bottom-pump');
   assert.equal(normalized,prior);
   assert.ok(current.indexOf('jh-observation-series.js')<current.indexOf('jh-cq-fuse.js'));

@@ -119,8 +119,12 @@ qualification browser suite also passes. These are not live release acceptance.
 Independent review found three defects (unknown industry labels, native Katlin
 stale health and a malformed optional-reference exception); all were repaired with
 regressions, including browser proof that malformed scope leaves legacy visible. Exact committed
-head review is required before any release. Draft branch only: no merge, dispatch,
-AWS/vendor/private calls, schedules, orders or capital-policy changes.
+head review is required before any release. PR #48 integrates main `73996a72c`;
+the user explicitly authorized integration and deployment on 2026-10-01 at 13:47 UTC.
+The integration changes only claims and exact cache-token normalization in four
+preservation tests; accepted product sources remain unchanged. Deployment proceeds
+through the existing main workflows after exact-head review and passing gates.
+No direct AWS/vendor/private calls, schedule, order or capital-policy changes.
 
 Reproduce offline:
 

@@ -1,0 +1,408 @@
+{
+  "script": "1061_schedule_dive",
+  "read_at": "2026-10-01T12:22:29Z",
+  "upgrades_1054": {
+    "count": 15,
+    "items": [
+      {
+        "name": "1/10 FRED macro regime",
+        "verdict": "PASS",
+        "notes": "",
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "2/10 SEC 8-K enrichment",
+        "verdict": "FAIL",
+        "notes": [
+          "expected schedule not found (checked scheduler + classic rules)",
+          "zero invocations in last 3h",
+          "primary artifact missing: data/8k-filings-enriched.json",
+          "primary artifact missing: data/8k-by-ticker.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "3/10 FINRA short interest (producer)",
+        "verdict": "FAIL",
+        "notes": [
+          "Legacy rules justhodl-short-interest-6h + justhodl-short-interest-sched retained per config.",
+          "3 error(s) in window",
+          "primary artifact missing: data/short-interest-tickers.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "3/10 squeeze pre-trigger (consumer)",
+        "verdict": "PASS",
+        "notes": "",
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "3/10 microcap float squeeze (consumer)",
+        "verdict": "DEGRADED",
+        "notes": [
+          "No config.json in repo; schedule discovered by prefix scan.",
+          "code LastModified 2026-09-28T00:24:40.000+0000 predates upgrade commit 2026-09-30T00:00:00+00:00 (deploy may not have picked up the upgrade)",
+          "expected schedule not found (checked scheduler + classic rules)"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "3/10 stock screener (consumer, on-demand)",
+        "verdict": "PASS",
+        "notes": [
+          "On-demand via function URL; no schedule expected. equity_enrich is a shared module (code-only)."
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "4/10 SEC XBRL fundamentals",
+        "verdict": "FAIL",
+        "notes": [
+          "expected schedule not found (checked scheduler + classic rules)",
+          "zero invocations in last 192h",
+          "primary artifact missing: data/xbrl-fundamentals-index.json",
+          "primary artifact missing: data/xbrl-fundamentals/_state.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "5/10 CBOE options chain",
+        "verdict": "FAIL",
+        "notes": [
+          "expected schedule not found (checked scheduler + classic rules)",
+          "zero invocations in last 3h",
+          "primary artifact missing: data/cboe-options-chain.json",
+          "secondary artifact missing (tolerated): data/cboe-options-chain-history.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "6/10 FINRA TRACE bonds",
+        "verdict": "FAIL",
+        "notes": [
+          "primary artifact missing: data/trace-bond-prints.json",
+          "secondary artifact missing (tolerated): data/trace-bond-prints-history.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "7/10 corporate actions",
+        "verdict": "FAIL",
+        "notes": [
+          "expected schedule not found (checked scheduler + classic rules)",
+          "zero invocations in last 30h",
+          "primary artifact missing: data/corporate-actions-index.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "8/10 price redundancy (quote badges)",
+        "verdict": "FAIL",
+        "notes": [
+          "code LastModified 2026-09-09T03:36:24.000+0000 predates upgrade commit 2026-09-30T00:00:00+00:00 (deploy may not have picked up the upgrade)",
+          "primary artifact missing: data/quote-health.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "8/10 market tape",
+        "verdict": "PASS",
+        "notes": [
+          "No schedule in config.json; discovered by prefix scan."
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "8/10 polygon daily snapshot",
+        "verdict": "PASS",
+        "notes": "",
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "9/10 symbology master (OpenFIGI)",
+        "verdict": "PASS",
+        "notes": [
+          "bond-cusips.json is new in 9/10; may legitimately not exist until the TRACE Phase 2 queue fills.",
+          "secondary artifact missing (tolerated): data/symbology/bond-cusips.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      },
+      {
+        "name": "10/10 issuer ETF holdings",
+        "verdict": "FAIL",
+        "notes": [
+          "Pushed 2026-10-01; first scheduled run 04:00 UTC daily. Zero invocations before first run is expected.",
+          "timeout 300 != config.json 600",
+          "expected schedule not found (checked scheduler + classic rules)",
+          "zero invocations in last 30h",
+          "primary artifact missing: data/etf-issuer-holdings.json"
+        ],
+        "extra_keys": [
+          "artifacts",
+          "error_logs",
+          "function",
+          "lambda",
+          "metrics",
+          "notes",
+          "schedule",
+          "upgrade",
+          "verdict"
+        ]
+      }
+    ]
+  },
+  "legacy_schedules": {
+    "justhodl-peer-comparison-daily": {
+      "state": "ENABLED",
+      "expression": "cron(0 13 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-peer-comparison",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:10:38.162000+00:00",
+      "last_modified": "2026-05-22 01:10:38.162000+00:00"
+    },
+    "justhodl-screen-builder-universe-daily": {
+      "state": "ENABLED",
+      "expression": "cron(0 14 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-screen-builder",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:12:44.915000+00:00",
+      "last_modified": "2026-05-22 01:12:44.915000+00:00"
+    },
+    "justhodl-fedwatch-rate-probability-daily": {
+      "state": "DISABLED",
+      "expression": "cron(0 23 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fedwatch-rate-probability",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:17:46.022000+00:00",
+      "last_modified": "2026-09-20 23:26:07.389000+00:00"
+    },
+    "justhodl-sec-filing-diff-daily": {
+      "state": "ENABLED",
+      "expression": "cron(0 12 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-filing-diff",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:05:38.820000+00:00",
+      "last_modified": "2026-08-06 00:17:38.911000+00:00"
+    },
+    "justhodl-supply-chain-linkage-daily": {
+      "state": "ENABLED",
+      "expression": "cron(0 15 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-supply-chain-linkage",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:19:38.452000+00:00",
+      "last_modified": "2026-05-22 01:19:38.452000+00:00"
+    },
+    "justhodl-factor-decomposition-weekly": {
+      "state": "ENABLED",
+      "expression": "cron(0 6 ? * SUN *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-factor-decomposition",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:26:36.870000+00:00",
+      "last_modified": "2026-05-22 01:26:36.870000+00:00"
+    },
+    "justhodl-fx-decomposition-daily": {
+      "state": "ENABLED",
+      "expression": "cron(0 22 * * ? *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fx-decomposition",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:24:21.508000+00:00",
+      "last_modified": "2026-09-08 23:00:26.468000+00:00"
+    },
+    "justhodl-cftc-deep-view-fri": {
+      "state": "ENABLED",
+      "expression": "cron(0 22 ? * FRI *)",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cftc-deep-view",
+      "role_arn_set": true,
+      "created": "2026-05-22 01:22:23.388000+00:00",
+      "last_modified": "2026-07-02 14:03:18.305000+00:00"
+    }
+  },
+  "lambda_activity_7d": {
+    "justhodl-factor-decomposition": {
+      "exists": true,
+      "invocations_7d": 2,
+      "errors_7d": 0
+    },
+    "justhodl-fx-decomposition": {
+      "exists": true,
+      "invocations_7d": 8,
+      "errors_7d": 1
+    },
+    "justhodl-fedwatch-rate-probability": {
+      "exists": true,
+      "invocations_7d": 16,
+      "errors_7d": 2
+    },
+    "justhodl-cftc-deep-view": {
+      "exists": true,
+      "invocations_7d": 3,
+      "errors_7d": 0
+    },
+    "justhodl-sec-filing-diff": {
+      "exists": true,
+      "invocations_7d": 7,
+      "errors_7d": 0
+    },
+    "justhodl-transcript-query": {
+      "exists": true,
+      "invocations_7d": 0,
+      "errors_7d": 0
+    },
+    "justhodl-peer-comparison": {
+      "exists": true,
+      "invocations_7d": 7,
+      "errors_7d": 0
+    },
+    "justhodl-screen-builder": {
+      "exists": true,
+      "invocations_7d": 7,
+      "errors_7d": 0
+    },
+    "justhodl-supply-chain-linkage": {
+      "exists": true,
+      "invocations_7d": 7,
+      "errors_7d": 0
+    }
+  }
+}

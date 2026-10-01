@@ -10,7 +10,7 @@ test('old regression assertions remain with only the real new dependency and DOM
  const a='tests/chart-volume-definition.test.js',b='tests/chart-observation-axis.test.js';
  const c='tests/observation-diagnostics.test.js';
  assert.equal(fs.readFileSync(path.join(R,c),'utf8'),fs.readFileSync(path.join(D,c+'.txt'),'utf8').replace("['identifyBars','observationId','resampleToTf','klines','clearObservationFrame','observationText','paint','load']","['reportedVolume','volumeTotal','identifyBars','observationId','resampleToTf','klines','clearObservationFrame','observationText','paint','load']"));
- assert.equal(fs.readFileSync(path.join(R,a),'utf8'),fs.readFileSync(path.join(D,a+'.txt'),'utf8').replace("['rvolAt','rvolSeries','volCandlePaint','quoteUI']","['reportedVolume','rvolAt','rvolSeries','volCandlePaint','quoteUI']"));
+ assert.equal(require('./helpers/chart-html-labels-preservation.cjs').normalizeLegacyTest(fs.readFileSync(path.join(R,a),'utf8'),a),fs.readFileSync(path.join(D,a+'.txt'),'utf8').replace("['rvolAt','rvolSeries','volCandlePaint','quoteUI']","['reportedVolume','rvolAt','rvolSeries','volCandlePaint','quoteUI']"));
  assert.equal(fs.readFileSync(path.join(R,b),'utf8'),fs.readFileSync(path.join(D,b+'.txt'),'utf8').replace('const c={observationAxes:new WeakMap()};','const c={observationAxes:new WeakMap(),document:{getElementById:()=>null}};'));
 });
 test('restoring false-zero normalization or changing unrelated price logic fails preservation',()=>{

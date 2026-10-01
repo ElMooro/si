@@ -1,0 +1,23 @@
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),vm=require('node:vm'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const W=__dirname,R=path.join(W,'si-batch-improvements'),commit='8724ecc74e20d259c19af65e4317508e7f9eaf27';
+const raw=cp.execFileSync('git',['show',commit+':jh-chart-engine.js'],{cwd:R,encoding:'utf8'}),p={exports:{}};
+Function('exports','module',process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'])(p.exports,p);
+const body=p.exports.parse(raw,{ecmaVersion:'latest'}).body.find(n=>n.expression?.callee?.type==='FunctionExpression').expression.callee.body.body;
+const names=['lastPrintAgeSec','syncLivePill'],functions=Object.fromEntries(body.filter(n=>n.type==='FunctionDeclaration'&&names.includes(n.id.name)).map(n=>[n.id.name,raw.slice(n.start,n.end)]));
+const now=Date.UTC(2026,9,1,11),cases=[
+ {id:'same_symbol_recent',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:now-30000}]},liveOn:true},
+ {id:'other_symbol_recent',active:'NEW',tape:{sym:'OLD',src:'binance',prints:[{t:now-30000}]},liveOn:true},
+ {id:'future_milliseconds',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:now+60000}]},liveOn:true},
+ {id:'future_seconds',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:now/1000+60}]},liveOn:true},
+ {id:'string_timestamp',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:String(now-30000)}]},liveOn:true},
+ {id:'no_tape',active:'NEW',tape:{sym:'NEW',src:'',prints:[]},liveOn:true},
+ {id:'bar_recap_is_not_tick_tape',active:'NEW',tape:{sym:'NEW',src:'yahoo-1m',prints:[{t:now-30000}]},liveOn:true},
+ {id:'stale_print',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:now-86400000}]},liveOn:true},
+ {id:'refresh_disabled',active:'NEW',tape:{sym:'NEW',src:'binance',prints:[{t:now-30000}]},liveOn:false}
+];
+const out={scope:'Exact deployed source functions, fixed invented clock and complete invented tape states; no application/network data.',source_commit:commit,source_sha256:crypto.createHash('sha256').update(raw).digest('hex'),functions,now,cases:[]};
+for(const value of cases){const el={className:'',innerHTML:''},c={...structuredClone(value),Date:{now:()=>now},document:{getElementById:id=>{assert.equal(id,'livepill');return el;}}};vm.createContext(c);vm.runInContext(Object.values(functions).join('\n'),c);c.syncLivePill();out.cases.push({input:value,age_seconds:c.lastPrintAgeSec(),badge:el});}
+const by=Object.fromEntries(out.cases.map(v=>[v.input.id,v]));for(const id of ['other_symbol_recent','future_milliseconds','future_seconds','string_timestamp','bar_recap_is_not_tick_tape'])assert.match(by[id].badge.innerHTML,/LIVE/);
+assert.match(by.no_tape.badge.innerHTML,/EOD/);assert.match(by.refresh_disabled.badge.innerHTML,/EOD/);
+fs.writeFileSync(path.join(W,'stage509-badge-predecessor.json'),JSON.stringify(out,null,2)+'\n');
+console.log(JSON.stringify({cases:out.cases.length,confirmed:['other-symbol tape produces LIVE','future clocks produce LIVE','bar recap produces LIVE','missing evidence or disabled refresh produces EOD'],actual_network_requests:0,repository_writes:0}));

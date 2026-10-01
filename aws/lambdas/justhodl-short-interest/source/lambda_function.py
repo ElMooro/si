@@ -1,5 +1,9 @@
 """Dated original-source FINRA research. No AI, accounts or notifications.
 
+Deploy retrigger: preflight fixture (squeeze-pretrigger migration entry)
+retired after 3/10 rewire; no logic change.
+Second retrigger: equity-enrich also retired from migration fixture.
+
 Bloomberg parity 3/10: after the evidence-contract publication below, an
 additive consumer-facing layer publishes data/short-interest-tickers.json
 (per-ticker descriptive measurements). The research contract is untouched.
@@ -21,7 +25,7 @@ def publish_current(client,request):
     if not request.get('IfMatch') or request.get('CacheControl')!='no-store' or request.get('ContentType')!='application/json':raise ValueError('Conditional noncached publication required')
     return client.put_object(Key=PUBLISHED_KEY,**{k:v for k,v in request.items() if k!='Key'})
 
-def request_path(key):return isinstance(key,str) and re.fullmatch(re.escape(model.PRIVATE)+r'requests/[a-f0-9]{64}\\.json',key)
+def request_path(key):return isinstance(key,str) and re.fullmatch(re.escape(model.PRIVATE)+r'requests/[a-f0-9]{64}\.json',key)
 
 class EvidenceStorage:
     def __init__(self,client,publisher):self.client=client;self.publisher=publisher

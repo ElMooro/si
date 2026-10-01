@@ -1,0 +1,2024 @@
+{
+  "stage": 511,
+  "status": "exact_static_release_accepted_normal_data_execution_unverified",
+  "base_commit": "5c19bb91bd514a336d5fb328342e3d24ea67d2f5",
+  "source": [
+    {
+      "path": "jh-chart-engine.js",
+      "bytes": 382245,
+      "sha256": "5e8ed7c9ef9942000bc9c719746ca8f3d1a29cdd748ac0741c59f5acfe5017c2"
+    },
+    {
+      "path": "jh-chart-indux.js",
+      "bytes": 67328,
+      "sha256": "9b88fff3829f7451a7356258abf2cd335fe68522052a85a0fc5fd5bc6f3b725b"
+    }
+  ],
+  "preservation": {
+    "path": "tests/fixtures/chart-html-labels/source-delta.json",
+    "bytes": 49936,
+    "sha256": "917133e1d39535e508b59ceef7d62632cad567414e6264dcd9cb0a2d9881b99c"
+  },
+  "whole_reproductions": [
+    {
+      "path": "tests/fixtures/chart-html-labels/whole-url-predecessor.json",
+      "bytes": 111578,
+      "sha256": "6b7b8cc67666c51cbb9066fbba5f66f612c8e080b3d4d2bc57ddc74621eff694"
+    },
+    {
+      "path": "tests/fixtures/chart-html-labels/predecessor-browser.cjs.txt",
+      "bytes": 7794,
+      "sha256": "7da6131e5a78c591feabf8a497da484889e7162025398b1c681ede2eb6b00e5a"
+    },
+    {
+      "path": "tests/fixtures/chart-html-labels/negative-control.log.txt",
+      "bytes": 9950,
+      "sha256": "ba93800978922876be19032fbc0f0131ca84f9dda7c6be6088de03468e61cb0f"
+    }
+  ],
+  "browser_evidence": [
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-html-labels-offline.json",
+      "bytes": 169677,
+      "sha256": "df4b1ee18a4d2e3502c945627321b62bc3728cff8ace637fada20f119b60832d"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-offline.json",
+      "bytes": 252343,
+      "sha256": "3cac569af977ddd54342f7aa7d5e927bcf986323e2dfa617999def6162357951"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-offline.json",
+      "bytes": 95610,
+      "sha256": "b402bc528600f2b813ab2a46fb14649d9963e47af7d4228c16881b9bea842056"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-offline.json",
+      "bytes": 282244,
+      "sha256": "18d820a02a6b5e50976420fe75469859321b496447fa37f27c5fb45c6cf8b9bf"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-rejected-offline.json",
+      "bytes": 282664,
+      "sha256": "875e6a15376136ad14e74447e312d12df5ad12502d09444eb3322750c3d08c7f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-calendar-offline.json",
+      "bytes": 307800,
+      "sha256": "e9b926c7afdb6e7169d0c6ba2dc9a81bcc28e69bab17c793ba722b3470e08215"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-offline.json",
+      "bytes": 896297,
+      "sha256": "c57b96ee6008278130a933f25c3a6b1b54f0a8ae3ba741e1d30739d5d1cd9d1e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-offline.json",
+      "bytes": 703384,
+      "sha256": "9a4fde3f76ff2a020f752876e77cb4b7da233b183bfac7a20ceef9aa0d4a44a7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-offline.json",
+      "bytes": 248092,
+      "sha256": "1c5d41633d1fae994178422b6460db45cbe5dc395b4f2cf0c7570f7ddffa4376"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-offline.json",
+      "bytes": 181037,
+      "sha256": "76c83bc404b3560b742a5552325534144bdc5a0829602ed1a773b338a00ed27e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-offline.json",
+      "bytes": 671456,
+      "sha256": "716a486873b9069f14770e28fd6454e611760680963c9550e136b045ad2728d9"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-offline.json",
+      "bytes": 575667,
+      "sha256": "69addbca04e445538e9fe144f2fa8207005f7c09ed6b65b76edddf648c4231aa"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-offline.json",
+      "bytes": 915393,
+      "sha256": "4ec4c517f9ec16533c533f90cd6e49e06a16038124c6586b109bc3b027151df3"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-offline.json",
+      "bytes": 972345,
+      "sha256": "890d12a9215f68f18a6c258afa790f5e7f9ccef604622aef77b6e8cf37fe61cb"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-offline.json",
+      "bytes": 295931,
+      "sha256": "22e9f3bdd487c42a18e2a57de39a5009f8f4362d924fc0ffb15f1757614d49ba"
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-html-labels-literal-symbol-1440.png",
+      "bytes": 129124,
+      "sha256": "968384b943c631521bcc1e7decc7b15b4f0aab9799bfd69923d9a9deff117ac6"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-html-labels-literal-symbol-390.png",
+      "bytes": 73113,
+      "sha256": "8779a95df362e53404439526df4e578a29bbc795bbd2b792742664aaa5eae4a2"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-gapped-source-1440.png",
+      "bytes": 72054,
+      "sha256": "e4c700f57dba09255f170c84995dc69bd7ca103f24e4963182b28d85f0d6a643"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-navigator-1440.png",
+      "bytes": 72655,
+      "sha256": "a7419caa88ec237edc0e07fac350230b45bae39390be793840f1bffec000ed5b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-single-zero-1440.png",
+      "bytes": 71626,
+      "sha256": "0d1fdc2b14e578f51aa0854061e102e213f55bdf08e6e7116c76602cd95f2e9b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-split-single-zero-1440.png",
+      "bytes": 74965,
+      "sha256": "44937e0c19219b4947a8cd5f61dba1bf387be4a7c6c8f86d90c9b3b9811bf147"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-theme-source-units-1440.png",
+      "bytes": 75819,
+      "sha256": "98674bcbb8c254fff911c40d6ccda94e303c47327e3025d46e71bc87066ebe0c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-recovered-source-1440.png",
+      "bytes": 73092,
+      "sha256": "f1fe3d8f27861ee3655fd8a16fe7bdfefb0360ae45377373e0f9a02f5b03f157"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-exact-source-precision-1440.png",
+      "bytes": 81270,
+      "sha256": "7ad08a4a73e258b507efa3aa33a6a3a9df78570373376dc79d7037ec291a4433"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-market-unit-recovery-1440.png",
+      "bytes": 73013,
+      "sha256": "405498388d7d8a3ae2b4c7d91ce7fb638a3f18d6c55c602bf472e1c28756ed7e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-gapped-source-390.png",
+      "bytes": 43705,
+      "sha256": "842b0c542f71bb9b293f73f148e75c348b57c59f83e33fadde08cfe0aa0617b7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-navigator-390.png",
+      "bytes": 43705,
+      "sha256": "842b0c542f71bb9b293f73f148e75c348b57c59f83e33fadde08cfe0aa0617b7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-single-zero-390.png",
+      "bytes": 43453,
+      "sha256": "876d2a4aa2dd6c85c7226c4a802d62b2099e00534c262166591b003406370c8c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-split-single-zero-390.png",
+      "bytes": 43768,
+      "sha256": "22c4ffb40124365dbca07da87975dbbf11d7923b0f0e6602aec702aa1cb3cb93"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-theme-source-units-390.png",
+      "bytes": 39877,
+      "sha256": "76b3d90ccb89737e90d81748624aa78ab613bd271189ea6aa7c44997e1c6b0e5"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-recovered-source-390.png",
+      "bytes": 43667,
+      "sha256": "fb764e6baf08bf49babe1e6c2ebb3fbc391d94c02005deedca6aca1a88e2dadd"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-exact-source-precision-390.png",
+      "bytes": 49656,
+      "sha256": "641e654bb3e9236f71496870c0fb24f1a35ae982263d69c4559ef3172f1e57e6"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-resize-lifecycle-market-unit-recovery-390.png",
+      "bytes": 43461,
+      "sha256": "a9198c606ba16ab3aed8ba29e35ec08903fffa011e4332a760999de5baaa7cb5"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-initial-1440.png",
+      "bytes": 85823,
+      "sha256": "f9718e921728c207b7ed02111425296f2dc9a975b78b7fe727631f1fec77cc84"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-reported-entry-1440.png",
+      "bytes": 85849,
+      "sha256": "08b9a33d9cfe0655f8d3839bd3f1dcf5a5043bb9baf8c87a591e144d5fa7818c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-paused-1440.png",
+      "bytes": 103867,
+      "sha256": "c6ed001b4cdb71ff1eac0350e78ef592e37d0485f1f8680816e298741f188a4e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-replay-1440.png",
+      "bytes": 98072,
+      "sha256": "ce67db3bc0cb5aea8ba8aef4523a0aac2ab119447f3a6b108940d559d22e75bc"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-initial-390.png",
+      "bytes": 53633,
+      "sha256": "fa1724651a7c28af238b4c503e27367ed6388c19996f9a3f334421a2e6cd3a38"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-reported-entry-390.png",
+      "bytes": 53784,
+      "sha256": "ff0bfc4ea51f08c6b4d9450e6ad05518bf4d2bfa0816f77eb3480ba0af301f3b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-paused-390.png",
+      "bytes": 53753,
+      "sha256": "0066874f738fc4d17d6b19440193126572a369680dd0999e00e192c9802128a5"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-refresh-status-refresh-replay-390.png",
+      "bytes": 54800,
+      "sha256": "6b9cb65ac782e856b2a03b87d8c22a70f22f3627974e56c71bf2a3a689700232"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-retained-new-paint-1440.png",
+      "bytes": 74860,
+      "sha256": "e67d77427242fb9850a9876b984368bc908edbf0daf92a757ddea5b8776922fc"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-retained-new-paint-390.png",
+      "bytes": 44463,
+      "sha256": "c88e47f51005bc3fdf1c430bbdb13033470834fcc84eb5add28d19f85f42b90b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-rejected-retained-new-paint-1440.png",
+      "bytes": 74733,
+      "sha256": "8399ea0b72cccb22f31348baed757d204debde54ba2d857b843726639fd3e16a"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-rejected-retained-new-paint-390.png",
+      "bytes": 44432,
+      "sha256": "878a012af090cbee7fa531a9af677c40dd2638e39fbbd7a616a933f173d1ad64"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-calendar-retained-new-paint-1440.png",
+      "bytes": 74678,
+      "sha256": "87771eb71e142daf7d66fbb733cfec69bbd93da890c6126bce6b4fc3910607ee"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-ownership-calendar-retained-new-paint-390.png",
+      "bytes": 44674,
+      "sha256": "a6e191ec053abe188d2efc04f9c15ca955e31157ebc613dc075424f42509ff6f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-spike-1440.png",
+      "bytes": 97672,
+      "sha256": "d2c4801d03aa6c56b45db048e3b48e34737b75ee5eadeb358dc7f943929dc7a6"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-zero-1440.png",
+      "bytes": 95866,
+      "sha256": "52dcf445ef6309b7cab540da698f3910bd47af225578eaf43910d9cb7b8d14c2"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-short-1440.png",
+      "bytes": 94146,
+      "sha256": "44f1ae2e4646cd84dd0ee9035271576da5b6c4777d0167862452e1d2ad651568"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-zero_baseline-1440.png",
+      "bytes": 88613,
+      "sha256": "bb99ff6e17d1523fcf68cdb333eef6f4d2556dd8ba3934feb7a5d01c933b8176"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-missing_last-1440.png",
+      "bytes": 91309,
+      "sha256": "402c584360854c7d4fdc26e2e8c7d84bbdc798dcd798680fba7e7b66dfc58a0c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-gap-1440.png",
+      "bytes": 91614,
+      "sha256": "b91816add23211b88b8efae7122b11715cb06f9ec899e6cdb0db1ee984ba297f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-volume-candles-missing-1440.png",
+      "bytes": 91309,
+      "sha256": "98e745dd50c0f7973486d6ba2d82c13c6271eef622d8fb19ee02d03cf9d944f8"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-annotation-timing-1440.png",
+      "bytes": 139389,
+      "sha256": "90fb503b4e0ccf23f9b481ef82aa3e862bedd14f97df0ecffe95c8ff36f254f7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-full-acquisition-missing-1440.png",
+      "bytes": 80062,
+      "sha256": "140eec4f7a3bd8bc3937984006bdc75e7b32bda11f84237b44279963381604ae"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-spike-390.png",
+      "bytes": 71098,
+      "sha256": "e5898ab538d13c344f1e60df5d50e63ea2363d9b183ade05d5840f96b6ea3c5f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-zero-390.png",
+      "bytes": 69129,
+      "sha256": "0ef26e665a2fe64268a6fd719c86d2556b8572fd00b7f78ce3f28b7e440e40a1"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-short-390.png",
+      "bytes": 65986,
+      "sha256": "2440b4030819f8df11920b0fc63b5ab56cb46b1b4e8a01351b7c6c4540368ec9"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-zero_baseline-390.png",
+      "bytes": 60786,
+      "sha256": "73a58605f34df68eeb549f68621b536382c727e0c960c19d2c71917cca20936f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-missing_last-390.png",
+      "bytes": 64573,
+      "sha256": "ec33aa12a00c2c169225455578e0a8b6f5f335225b372cd2c437b13101417242"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-gap-390.png",
+      "bytes": 58091,
+      "sha256": "411970eb0ddd9520f1a4ecde2b8ed57f19ba45efe92d16d17507b6acba13576c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-volume-candles-missing-390.png",
+      "bytes": 64573,
+      "sha256": "ec33aa12a00c2c169225455578e0a8b6f5f335225b372cd2c437b13101417242"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-annotation-timing-390.png",
+      "bytes": 61804,
+      "sha256": "4dbc45b874a68d82ddb300c705c625503023301dce2d27cdf8d3aedcb241c3c2"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-market-volume-full-acquisition-missing-390.png",
+      "bytes": 50684,
+      "sha256": "949f9320597b7cbd74c324c4fd8dfcdb1ee594eacfc27d8c8d3d65a2690492d3"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-spike-1440.png",
+      "bytes": 97662,
+      "sha256": "2ccf91f9c84262931427ba4fa744488a802cdc4b77af6a2ab2116b5252821461"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-zero-1440.png",
+      "bytes": 95852,
+      "sha256": "136d414973b4c05ec854445440287b6d7b9858a9ea2105f7148dcbe73695291e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-short-1440.png",
+      "bytes": 94073,
+      "sha256": "112366f2ceb91418593d9e483715ea79b769b27599c8795d8b8e8bb208f19948"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-zero_baseline-1440.png",
+      "bytes": 88602,
+      "sha256": "a8bb413e3ef9626492eb193d6ab3a6d75993e58e364ced92e50d1b13da3e1675"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-missing_last-1440.png",
+      "bytes": 91297,
+      "sha256": "00331ceb67c39cf6a9b2626a8514c022143783c3aa5c02da2050bd90bc2956c3"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-gap-1440.png",
+      "bytes": 91626,
+      "sha256": "4c4eb377e1ec71cb12f7816700789b0a942a0b2fdf0ee5c319f4945e6a910b23"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-volume-candles-missing-1440.png",
+      "bytes": 91311,
+      "sha256": "7e76e0da00dc0232c928ff5c445e12e15826b1a6d7bc101b173eec407e7bbd18"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-annotation-timing-1440.png",
+      "bytes": 139394,
+      "sha256": "3c59d3164e81b5144062b3d4da4f67f7f967f7e9a77c81f62efc57d3a7f71b93"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-spike-390.png",
+      "bytes": 71080,
+      "sha256": "8226c7362a7408d1063540f927c72e03314023b1095fb7ea6c5e5c64b5ee9160"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-zero-390.png",
+      "bytes": 69127,
+      "sha256": "85ddfb5077141bb159acf9a0a3d6c299d358843336be5969d2e3c5ab729bca75"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-short-390.png",
+      "bytes": 65979,
+      "sha256": "75120f6826741c6371a860a7a9d21efe7308ba0d77e13c955af0ca83f05e14e6"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-zero_baseline-390.png",
+      "bytes": 60781,
+      "sha256": "58d3b7e8bd7adafdb2a2822e62c7fcaf8544ad5f37d44e793cc61272cb3482dd"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-missing_last-390.png",
+      "bytes": 64590,
+      "sha256": "4e91e0c9fb14217d985e237a711235925388894495ed7dd437b9195ec880bc5f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-gap-390.png",
+      "bytes": 58083,
+      "sha256": "a4f47e984ab985adc6f8333b70316dc2ad050922ca5dfa673fa31ec0cfa1476a"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-volume-candles-missing-390.png",
+      "bytes": 64647,
+      "sha256": "d895e51dc0f439a7bcc652723e4d6feb70e9e6185197e9ea08afdd05f888c53e"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-volume-definition-annotation-timing-390.png",
+      "bytes": 61867,
+      "sha256": "16230c9c402196248a39765159ec352e6ed63b4e39b7dd020c75e8b22cba112b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-gapped-source-1440.png",
+      "bytes": 72086,
+      "sha256": "08ece9ea64e64961610e69941181481d6fc1a2325f014b8c9a959567e8077dad"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-navigator-1440.png",
+      "bytes": 72690,
+      "sha256": "8dece40109f3d98208ee276fcdb524804e875c21c1c41ea88d3b572b90329be8"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-single-zero-1440.png",
+      "bytes": 71660,
+      "sha256": "b3ac03d2880e335a30135a997c0b8469b0be413891376596fbecfc9c1e05784b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-split-single-zero-1440.png",
+      "bytes": 74770,
+      "sha256": "9ab9ac4a9d206af5de8e6193c9b8b927a86bc25bfdb3bd02ab5596f58e5d40f7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-theme-source-units-1440.png",
+      "bytes": 72965,
+      "sha256": "a28bd96b391e243b75767b2dc305fb85dff96e9cf6011e44c9c2f0b3a98e1b11"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-recovered-source-1440.png",
+      "bytes": 73244,
+      "sha256": "2bb88ead26b7c5f72017553fe8ddc15d3a3d7332239da84e0fab1259e98ac991"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-exact-source-precision-1440.png",
+      "bytes": 81422,
+      "sha256": "b8eeafe07b601aff3c7a14932308ce46363d4f00f624d1f426fd18fe87ab6320"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-market-unit-recovery-1440.png",
+      "bytes": 73175,
+      "sha256": "285863b670536b4ad9d38c3f257c1428f99ad545ab87f51d558d7046b77ca050"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-gapped-source-390.png",
+      "bytes": 43735,
+      "sha256": "4f2ec7ebdbffd58a8176cf2ae1b38df0a1eeb1c47370fa5b4fbe8c402d659cda"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-navigator-390.png",
+      "bytes": 43735,
+      "sha256": "4f2ec7ebdbffd58a8176cf2ae1b38df0a1eeb1c47370fa5b4fbe8c402d659cda"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-single-zero-390.png",
+      "bytes": 43483,
+      "sha256": "867b787ee80221e18a9488a3225a30e70658451b92759df9c62444623d0528aa"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-split-single-zero-390.png",
+      "bytes": 43799,
+      "sha256": "e9ceee992daafa3fe3d7b84388f6d8489ac38a327a04bfbebed5b635e17ccd9d"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-theme-source-units-390.png",
+      "bytes": 41576,
+      "sha256": "03801a47224cb4ec0ac4eabd77b715fb239936a4f473b17d71cb8f25ea8e00e2"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-recovered-source-390.png",
+      "bytes": 43679,
+      "sha256": "b6d6f76fdfd96625dc44221782f22bde11e59306c1999bbfde70908ba0570268"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-exact-source-precision-390.png",
+      "bytes": 49667,
+      "sha256": "2959ff8934791adb5f644d732e143092e4c2ba500532042f5780bad2ae0b7542"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-axis-market-unit-recovery-390.png",
+      "bytes": 43462,
+      "sha256": "f91ec3c0d666294d9b1c09de0f5d8abdbf8c2499d1465ce7fdd104fe84fa64e1"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-gapped-source-1440.png",
+      "bytes": 72039,
+      "sha256": "a4bc5e0438ca3584907b5296c85b9c1b70403e332a7a93d16fa4947d337cc1a8"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-navigator-1440.png",
+      "bytes": 72643,
+      "sha256": "977e124490642db8bf2993455ca78e856a580154e643aa7bbbd62b3d431cce7c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-single-zero-1440.png",
+      "bytes": 71614,
+      "sha256": "50ecd45cd53aa7b3e6ac6cf087de9d0b91d8d6203da0bc523e63643659f0adec"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-split-single-zero-1440.png",
+      "bytes": 74723,
+      "sha256": "0ec73cdd35c9c08e85f9d07801435570168571b2e3d1423533d1b235b6a5fe1f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-recovered-source-1440.png",
+      "bytes": 73164,
+      "sha256": "f7800ab0dba1f3ebc66b7cdd1c4aef08f2a4477d5e5cf0db468838d2f8155323"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-gapped-source-390.png",
+      "bytes": 43642,
+      "sha256": "2d1ddfd0a8d583232ff641cd4b63ff390cab6f0a78cd1d7acd7d9a58a55ab704"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-navigator-390.png",
+      "bytes": 43642,
+      "sha256": "2d1ddfd0a8d583232ff641cd4b63ff390cab6f0a78cd1d7acd7d9a58a55ab704"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-single-zero-390.png",
+      "bytes": 43388,
+      "sha256": "58bef3042cfadd6a9305ddbe58aed1962bc4fb5bb89a1b27c39fbc0dadeb0622"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-split-single-zero-390.png",
+      "bytes": 43702,
+      "sha256": "9d01b47ce32308e29e08d53db76c94af9a84ea1a6b1743009949b07361dd684d"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-points-recovered-source-390.png",
+      "bytes": 43590,
+      "sha256": "ad782fe3bc78dcbda0cbf429e8921175bf1f6a5b40b32335dbb366ab017b2c5b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-source-line-1440.png",
+      "bytes": 73902,
+      "sha256": "66b64a98dc8b9088489c6dffd2a4e4d2ab9c6dda10fad8451628647937b54d99"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-inspection-1440.png",
+      "bytes": 149117,
+      "sha256": "03b086e0b195fea5549e74d802e6c29cede14b49f4666008080777c277c91a13"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-cached-failure-1440.png",
+      "bytes": 149323,
+      "sha256": "91c110a21d6c506fb484f328c1fc70c58f94e2e976232d3a23421637ef5388d8"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-NYFED-invented-1440.png",
+      "bytes": 147228,
+      "sha256": "39ad98f813b749948c6fc03a87fcd48a2a5b80b5e2c3e1e8949dabc9b6bb7af1"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-ECB-invented-1440.png",
+      "bytes": 147921,
+      "sha256": "068e3c1ffc122bf2316cc8d08b01322df0d719d6aa078319d0b28f35fe62de9a"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-FRED-invalid-1440.png",
+      "bytes": 125592,
+      "sha256": "b53a294e680b25a128a3e7657309932437786360b1fd303bf6513a849217610f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-FRED-wrong-1440.png",
+      "bytes": 126667,
+      "sha256": "fe11e5aaecf2cd28313bb16913e3c787a0cb26034ac86b0300eb674544ba169b"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-timeout-1440.png",
+      "bytes": 125576,
+      "sha256": "9cedb0bcad6ff716e1e2998033f1ce025accaadcb8f96f534e34c2357b5893a9"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-source-line-390.png",
+      "bytes": 45596,
+      "sha256": "0596218734907d4153d943f112881bafe49400ad71abd2bba25037f47093f505"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-inspection-390.png",
+      "bytes": 83687,
+      "sha256": "59dab7cfce4165a2235567ac948878041160f955225c520e7ddb17ad5261463f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-cached-failure-390.png",
+      "bytes": 83604,
+      "sha256": "daa13fcfb527d271f7adc775d07d78fefa2779d66e8c38ed62efbe1ee7aa197c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-NYFED-invented-390.png",
+      "bytes": 83078,
+      "sha256": "6974f12f8a9996dfcc4da6ebcf7c3fd0f35ea02f89eaf9a8508fa0f3c654e312"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-ECB-invented-390.png",
+      "bytes": 83971,
+      "sha256": "6946ce77b9d8837712723a7e03e5f0dfb0610e09e566f7082fc23df54139c692"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-FRED-invalid-390.png",
+      "bytes": 72299,
+      "sha256": "62e10cf53738f6084def04ee352e0faed650022d183a751899d82b5ff86a4593"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-FRED-wrong-390.png",
+      "bytes": 72050,
+      "sha256": "2050d7a502ece7b96608c42e368ca0d6d553c0f8821c109199311dd2829ace52"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-warehouse-timeout-390.png",
+      "bytes": 71398,
+      "sha256": "f63d03baa8fbf93201126dfbb353e2ede3421efb6c064252155422ad7c54bb7a"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-view-1440.png",
+      "bytes": 160559,
+      "sha256": "316f84e654fb99166f95cbd50a9e0b80d50c136e1b6d2332b8c074976af8441c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-plot-1440.png",
+      "bytes": 82310,
+      "sha256": "cf651ddf10c9f283dffe34d46e5b9d6d316e76a921abfe012aebeea7877324d9"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-view-390.png",
+      "bytes": 82393,
+      "sha256": "b0cee27cc2140ffbd4b9df904d674596285338e6ffbe2ba6a16b7b39e0d1e6f2"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-plot-390.png",
+      "bytes": 50781,
+      "sha256": "5d4dbc573e12dbd25d0ed9b2d097a8ae72e2d09ba604499111f1e0ae7cff25ea"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-view-1440.png",
+      "bytes": 160777,
+      "sha256": "c75b252cdf03f991b47e2074747d50a45d072d4298e645babc01b9304b1be5dd"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-plot-1440.png",
+      "bytes": 82382,
+      "sha256": "43c8227af0238b2bc6c0f690d79d403b9073b698a7ddc544fa012126a0a916ed"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-cached-1440.png",
+      "bytes": 160980,
+      "sha256": "bacc193b285e3ed9e5ff4c38a2ee7d224766551487fabdf6555b534f39d95bc3"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-view-390.png",
+      "bytes": 82363,
+      "sha256": "b8886a923b683a0571af8f0b02e5b09ec8f36f44e84557a9c57efbde88d52ebf"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-plot-390.png",
+      "bytes": 50855,
+      "sha256": "e3d81e5e30ca3688aa2797fa3628ff3879961be74dd287e6b205767ec6c3806f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-cache-cached-390.png",
+      "bytes": 82454,
+      "sha256": "2de502d185ac0cffc4ffe5283b617b6b794e75b3c40db211666d3fd524ad28d3"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-unknown-1440.png",
+      "bytes": 130721,
+      "sha256": "df50883a1fba9aa7d873a7a4417a7f270e9d60bc47c0b071c2ccb3035aabe1b7"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-invalid-1440.png",
+      "bytes": 129235,
+      "sha256": "413fcad5e77b714165242df79b98df732d14839e9d38bb70e3380a05010078ec"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-fortnight-1440.png",
+      "bytes": 147252,
+      "sha256": "e1b97db545944b8c7c8dd0a3ae98d81fe0f9173922e903a9dd02db01c9b161f5"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-view-1440.png",
+      "bytes": 160578,
+      "sha256": "c3cb8ac50556e9098fef0c5d66110aee86f5e4b0e8fa6835249f7219440bfe89"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-plot-1440.png",
+      "bytes": 82368,
+      "sha256": "6213dba5c705c0a18b82e10907662b3cce3f9c45a0a599811824cd09344cf2b4"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-cached-1440.png",
+      "bytes": 161087,
+      "sha256": "7e910023019af5cebfa0df6126da488acbd9caaff079c0ec9723a7f4b7191ad5"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-unknown-390.png",
+      "bytes": 71897,
+      "sha256": "a4e875d52a60a45ed87be41e46ed2f39fa91e4ade7741649923cb740230a9f20"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-invalid-390.png",
+      "bytes": 71396,
+      "sha256": "0a32a01c1137a7b54e274faf5e383a92228827b0ecb562d3cd3020e902a50eab"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-fortnight-390.png",
+      "bytes": 84601,
+      "sha256": "56a792260d1e784e5e1b0250644bb75ef8cce2a27c9184e70d18fdc0d5e0b2db"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-view-390.png",
+      "bytes": 82274,
+      "sha256": "bdb176c9226ae38b023dbeb39388194ce5f7a9c83d6d255e8eed5156375441b6"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-plot-390.png",
+      "bytes": 50787,
+      "sha256": "df14583719bb58679a2088ed8e1143f5570e45d19548ac4075411ab911332ae8"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-observation-diagnostics-cached-390.png",
+      "bytes": 82385,
+      "sha256": "3ddb74a8dd338d9a0468b29c47dab2d9fa97508b75b5ab597f1bcb6b15bcc3fa"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-flat-1440.png",
+      "bytes": 88096,
+      "sha256": "43a9dbefde948a79f7f3ee0597deea3682d439272b0d3c6061bf7f5325ab5dfd"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-mixed-1440.png",
+      "bytes": 82442,
+      "sha256": "6403a52ee2b95b29cbb489e1af0533223f0e372ed0564e5c51cb6892077e03fb"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-missing-1440.png",
+      "bytes": 92322,
+      "sha256": "2731c5f649727c19c1255d59f13e61dddd2ba7e1d72ef337a2ce22269bcddb62"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-zero-1440.png",
+      "bytes": 82560,
+      "sha256": "0c1b76a06cb348104007783c29a5283ee72834904a09ea91aecc9040fd4b899f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-anchor-1440.png",
+      "bytes": 84783,
+      "sha256": "475704eca50e8b24f6b92d4ebd6879e1fa4e8d988c9f96138bc6dfc532535134"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-recovered-frame-1440.png",
+      "bytes": 94372,
+      "sha256": "6b16d69b57629c54e53a7813ac0f64cc852b56008a949e3cff585047ce98c40f"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-flat-390.png",
+      "bytes": 64502,
+      "sha256": "0840f3205bb28af176ef27382033e7434d5291f14be4c638345412d492a3f21c"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-mixed-390.png",
+      "bytes": 53852,
+      "sha256": "d8756d77239d53470762c9efc7f268e359c1b916035d8f8d8e30bdff4a84f262"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-missing-390.png",
+      "bytes": 63740,
+      "sha256": "4f004b2d7e77263dbae90d6f3e7b27db6917a21e9d68a277117f91144cbac475"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-zero-390.png",
+      "bytes": 55591,
+      "sha256": "b630a807d2fa8bb0aee7a55a60673bd6832c4b9f390e177516d837cacf0459c1"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-anchor-390.png",
+      "bytes": 52512,
+      "sha256": "f993177fbd27545e14803ec0c6e81bc732bcf143d07a07ed5ea87b973b19e8cc"
+    },
+    {
+      "path": "docs/audit/2026-10-01/chart-html-labels-obv-recovered-frame-390.png",
+      "bytes": 68320,
+      "sha256": "b769bbcce2136f08f90b3f5478a5232212a9ce4fd44bceccf5d014782fbcd82f"
+    }
+  ],
+  "browser_proof": {
+    "source": {
+      "jh-chart-indux.js": "9b88fff3829f7451a7356258abf2cd335fe68522052a85a0fc5fd5bc6f3b725b",
+      "jh-chart-vol-events.js": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "chart.html": "6fa731de1f12b25e18216eaf71286c9ad8b069f064c3a6e89446c9efc611023e",
+      "jh-observation-series.js": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "jh-observation-cache.js": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "jh-cq-fuse.js": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "jh-chart-catalog.js": "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "jh-chart-engine.js": "5e8ed7c9ef9942000bc9c719746ca8f3d1a29cdd748ac0741c59f5acfe5017c2",
+      "jh-stock-desk-research.js": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "jh-chart-stock-desk.js": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "tests/chart-html-labels-browser-qa.cjs": "e5ed4d8b4efc8487a032b07918668f2fbec172ef2cf9cb2ad5a3e854191e08f3",
+      "tests/chart-resize-lifecycle-browser-qa.cjs": "1a843cabb176ba52ee39c7aad6ca6bed3a166d96e921cd7b343367078751def6",
+      "tests/chart-refresh-status-browser-qa.cjs": "4e58044bb563eeee887d406750baffd5ba7862990ad562fad30712e2e09e253e",
+      "tests/chart-paint-ownership-browser-qa.cjs": "3847b15e512113040aa8709192ce047348772c38293f608f58fff465a90cb0c1",
+      "tests/chart-market-volume-browser-qa.cjs": "af5c0843f6f44d971f109a5e1adbc00d4212c2055a66a7de47d07ac092618e82",
+      "tests/chart-volume-definition-browser-qa.cjs": "964f29b165786659a0bfc6b3b9de8d6a4f2e0fd06f9295297d5334221978a9dc",
+      "tests/chart-observation-axis-browser-qa.cjs": "62434179ed38c4255fea9babc0f60b45226049f9451c4778cc66bd478bdb5257",
+      "tests/chart-observation-points-browser-qa.cjs": "0024767ccb8bde951290ada6745e1fc019833138021bf13bac309061f2f228eb",
+      "tests/chart-warehouse-observations-browser-qa.cjs": "9159d50168aceb88eb9d3a2869da5b196e2249cf563dc6b5a57b727b80ad1fcd",
+      "tests/chart-observation-browser-qa.cjs": "4e41b1314454c7bc06d112806cdbf3b23e55cf8bc3a9f62645eac2d1df8e13aa",
+      "tests/chart-observation-cache-browser-qa.cjs": "5befc7563e0e495c1cd431f16fa2c535b30be8e78cd27ca3be83b3ed494e53c8",
+      "tests/chart-observation-diagnostics-browser-qa.cjs": "85ddf0165a86fe3b75373a40baf9d840443bcdbacb7994c1663723343c5030d0",
+      "tests/chart-obv-browser-qa.cjs": "e4e3745763fd0138cafd0a2653e6ab4a32baa695fa9ebb1ddcc99bdf34ba57c4"
+    },
+    "suites": 15,
+    "suite_names": [
+      "html-labels",
+      "resize-lifecycle",
+      "refresh-status",
+      "ownership",
+      "ownership-rejected",
+      "ownership-calendar",
+      "market-volume",
+      "volume-definition",
+      "axis",
+      "points",
+      "warehouse",
+      "observation",
+      "observation-cache",
+      "observation-diagnostics",
+      "obv"
+    ],
+    "widths": [
+      1440,
+      390
+    ],
+    "actual_network_data_requests": 0,
+    "pinned_drawing_library": {
+      "source_url": "https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js",
+      "bytes": 163684,
+      "sha256": "c7dda807d662a95b3d257119ed315cec669e3bdf5aaece75c480a39307f23540",
+      "purpose": "Pinned static drawing library from existing chart.html; isolated invented-data rendering only"
+    }
+  },
+  "validation": {
+    "deployment": 1018,
+    "shell": 15,
+    "frontend": 2578,
+    "new_behavior_and_preservation_cases": 13,
+    "browser_suites": 15,
+    "browser_widths": [
+      1440,
+      390
+    ],
+    "checks": [
+      "inventory-build",
+      "contracts-build",
+      "dependency-build",
+      "contracts-check",
+      "page-scripts",
+      "wiring",
+      "deployment",
+      "frontend"
+    ],
+    "source_hashes": {
+      "jh-stock-desk-research.js": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "jh-chart-indux.js": "9b88fff3829f7451a7356258abf2cd335fe68522052a85a0fc5fd5bc6f3b725b",
+      "jh-chart-vol-events.js": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "jh-observation-cache.js": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "jh-chart-tvsearch.js": "4de3f0c93e64bd2ff43081204da130de24ec15ec103f2f579cbf9a34e3cfd9ba",
+      "jh-observation-series.js": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "jh-cq-fuse.js": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "jh-chart-catalog.js": "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "jh-chart-engine.js": "5e8ed7c9ef9942000bc9c719746ca8f3d1a29cdd748ac0741c59f5acfe5017c2",
+      "jh-chart-stock-desk.js": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "chart.html": "6fa731de1f12b25e18216eaf71286c9ad8b069f064c3a6e89446c9efc611023e",
+      "crypto/index.html": "6ebe2ca761773be5a29961784636f141933d9e7ca18f3ee483c0e569577acfc0",
+      "tests/aaii-research.test.js": "4956c0df3b5fbe1c4a3e5eb541a3f6e524bf8503cddb1071f7c48eabf1154b57",
+      "tests/activity-research.test.js": "0b4c4cb41ad1ed382f7e077d260b73b1da5876f94fe161dd9acc64cc29657b15",
+      "tests/alpha-research.test.js": "c37c7bb879b836e24bb1df0ce56bc2f20907ec3a92bb73bb7bb6dcb043e7c6a5",
+      "tests/apex-evidence.test.js": "3c7196172a4809265261cd79398236860adc7734501536ae544e4d7b80006769",
+      "tests/asia-calendar.test.js": "fee98cce98ef1b39e3d55896911700cda471fd7821f521c2c9dfdf911fc88f29",
+      "tests/auction-buybacks.test.js": "293d457784b091a28c3b0ecd8c99c353e045b121bb2bd9c1b74327d04de3287f",
+      "tests/auction-calendar-source.test.js": "cda890e608c22ca6bf05256fc4b96d14d330ca54e3b284a121eb63deef95554d",
+      "tests/auction-concerns.test.js": "40f8de5001cdc9dab8d70c2af0d5af00d581043b375106987a1d3bd59ff31043",
+      "tests/auction-crisis-missingness.test.js": "86e47da58c5bcf7294b1aa1aa68a08fd70e8fab6ee547b768dc94bdbb155fa5c",
+      "tests/auction-cross-observations.test.js": "df77d179b5530998a7bdb0538121035283a280911c55e775d21849e84ab13972",
+      "tests/auction-delivery-page.test.js": "77755325ec45b597c3ab22dbd653d89c8589744c6af2af97f63146605424e300",
+      "tests/auction-delivery.test.js": "15d0205fb6f0f8c63a004ca11e498ef38809dab17640e5d19cebe5d920ac07d0",
+      "tests/auction-desk-contract.test.js": "7af996c05855e0034bcc8b10ff957197d786f1006204bdd715b6877011683b5d",
+      "tests/auction-fred-evidence.test.js": "29689999f811487d7673f61bf8c18b77379091651dbc3353c6635757b3ed1588",
+      "tests/auction-issuance.test.js": "7efa25064dd609ff43f32316151c5fcdc699cfc2b3877c4227a17fef9fca7d0c",
+      "tests/auction-originals-view.test.js": "41e33c6c4c5610d7e1b2b651a3088759ac68da034a7a00756aac81709b64ab5b",
+      "tests/auction-participation.test.js": "26e34b2f1fd7069b6f6fb8526202976194c3eedfcbceaa5f134eb1530493f163",
+      "tests/auction-reference-catalog.test.js": "c39771d6c4e4f620240547563454c7a93a2e2db08c5167eaeea0b3acbdd9fe88",
+      "tests/auction-research-display.test.js": "a8344ac643e939873fc9ea6f6dadd9d31f85300874c07d5624ae6feb7798dd59",
+      "tests/auction-score-completeness.test.js": "f51dc696069f36c9c093ee57c71e7e227be0d35531e0f1e4278b01e96a8e4f45",
+      "tests/auction-source-eligibility.test.js": "3431fe0673459f619e10c1b3a2d3087eaf6955dcbbacbf59819e4f736a22094f",
+      "tests/auction-summary.test.js": "8581b5ca492acbd74a7e549334d44bc6d25fe12963d99a6fcc72dcac90d673a3",
+      "tests/auth-entitlements.test.js": "dc60d9d43731d1822585ca74fd024db791f7e7ebffd26ec417bc63f0693132ac",
+      "tests/bls-request-validation.test.js": "7d8e7eb1a7eea8b3e02d72545bdc179f45f4f857fb12f7acd4e2d25cced1a278",
+      "tests/bond-cohorts.test.js": "2d146d3ff507e350e643102e59cb0e68dae8539d04119c610668b83c213c9c5d",
+      "tests/bond-consumer-missing-data.test.js": "73267b7d434e6e0c6bb40d249cd0b0821cd0dc084970b54b3e8855b67aa6009a",
+      "tests/bond-credit.test.js": "079651129659e6042ba5c816ba5fc944de144e4c2dc64dc47acf4f5645ebea57",
+      "tests/bond-vol-native-view.test.js": "84496e34c435f5a1a0f160540fe5ad6782568b5227ca07fad391aa34d072698b",
+      "tests/bonds-data-rendering.test.js": "63ba18562a2ee75aff8d9234db365a85ea0840bdf237f68355cdca56c3d82cdc",
+      "tests/book-fuse.test.js": "0829c62cd1f43ffe708c2702b7e9043f91f90741cb78dd3d59411f958d070fec",
+      "tests/boom-stage-review.test.js": "d5137dbd26e1bfa0961f103e4c2650c4ebab2d063bf1d338c30c81a2af70dc60",
+      "tests/brain-derived-pages.test.js": "57af807e8db8642f67cbcdec54890dd1cb4f76c7016b3b3d79259e18a414906e",
+      "tests/breadth-research.test.js": "7a4e5767b73dfd5bad98f8b9e4d59bbf76e27ce35859ab3e282ff4c86c61b9fa",
+      "tests/business-cycle-review.test.js": "4e5fb2e1a7c15e5c3f28aff923ed7c82dc58eebb00576af9d932568f9a1b47ed",
+      "tests/buyback-documents-production.test.js": "4a849ae89ce25da73afb3209801c36e83606ed205ad94797ce3b13ba5fc026f9",
+      "tests/buyback-documents.test.js": "c3abdae6443bfb9405d147719da6a1a3ec12f944d1b7ad67f67b3098ea2eb236",
+      "tests/buyback-filings.test.js": "4322f92745e51320e99749c177436f633f53fa575c85fcad19a5e4d5c30bdcc7",
+      "tests/calculator-privacy-pages.test.js": "7d9d7354777ec792e64816b2ab7c23217bfcadc8214198d5ede8f005bc374c3e",
+      "tests/calls-byte-proof.test.js": "61891349fddd11b77f7bdd2c5ab1701c67f27e810b6574e34a4bc8a0ecb019a7",
+      "tests/calls-ciss-original-evidence.test.js": "8465b8be885c711d67abbcc3833d9df082dcf93d2f3789ed07a59d5b9a5d90c5",
+      "tests/calls-clock.test.js": "7dccc742d88c219bc4cd098ee4c7cb27a940067c14d622c3e0d7b671c1b39b36",
+      "tests/calls-consumer-boundary.test.js": "f1efe63bb34d436cbf0e09b8ca791c12af3df4be81dba47876ead5c07983b5c7",
+      "tests/calls-fails-original-evidence.test.js": "23db5d03de51fd934bc407460ffd07044f28870b399e9715a181f1f4df43379f",
+      "tests/calls-history.test.js": "dcb6bd163b7e82eb7fa955653d01b4d117b8bc1aeb94b943b64dcb67a69f114e",
+      "tests/calls-original-evidence.test.js": "c088df1c919f48582eeeea7c68f74d854553d51dd9d200800ce52d6e9388f2e4",
+      "tests/calls-page.test.js": "c61f5a0c867e4d44abfb25c12ac55e1c84b10b22c4cf0070446e033fb17def8c",
+      "tests/calls-replay-page.test.js": "1435122565340ffdd413d1a5cc943879eb0906f5073721634aef7954f5133069",
+      "tests/calls-tic-original-evidence.test.js": "98855c165862a1d9bffab7038d7826147e30db21ca62a58a7d31164ddf8eaa67",
+      "tests/capex-desk.test.js": "78ab63e66066a9910eb3e208dacfa3137976309a6f1b8422f8c41ae141d5093f",
+      "tests/capex-observations.test.js": "20af5777a0747517447da247f13c521cea1554c19b8962f8130b22e5dc734e05",
+      "tests/capital-boundary.test.js": "a35d47bcd259c96ae7ceeaf809ec193e605f31e7a4f4311c43f3b667c33a82da",
+      "tests/capital-research.test.js": "1bf78443e9fefe27426dc81134e6daa9e8c5bda3cda8a763526790586c62c1e3",
+      "tests/capital-structure-context.test.js": "7eb8011ca1e30ec50d42ed4daa89267ce4d7f18470eb4b8bc0c1d0a0874a6ed8",
+      "tests/capital-structure-research.test.js": "fa7a0108068db78b599a9c1c1728b83b2bf87de0942352bc50ea60f22b83f0ac",
+      "tests/capital-view.test.js": "36dc2961c5068cfb957f0b7a0159e2953ffc4892de444f3754d12067d0811e1b",
+      "tests/cargo-review.test.js": "852f7c7df97c3fa609d810c267796a1444b2a42a6e4d1644b40d7a10970a0c1a",
+      "tests/carry-research.test.js": "d72987770e065dbf6d12df1faddee1cd517d6828f937fc47b3acf99f8b91d918",
+      "tests/cascade-evidence.test.js": "09fd523364ed1cd9f50637bbc5e9c2b15b93b4070e25b2e3d756e467a8a129d3",
+      "tests/catalyst-cluster-abstention.test.js": "b15e9c38b05a7b8ceb2e21821204a8a882c76cc1411b354403f7905cc374d232",
+      "tests/cb-browser-integrity.test.js": "8c4bfc0b299292c5a6fcd5837674998e9dfc49bac3c1fb5ddf5eafc0e8ea58ad",
+      "tests/cb-research.test.js": "3419b51084853fb05ae8ba4f6faace008d9345027af48931aaea9ddec7d0c843",
+      "tests/chart-annotation-honesty.test.js": "edf4f51b983f9e668c97f1e60367fa29a16ed48736b38dbee2cfbac947179fe9",
+      "tests/chart-audit-fix.test.js": "42aa34e2bb11311b6e7c28caf0320b746333a65a86d33df758a2a9ff0b039e15",
+      "tests/chart-bbgo.test.js": "f89f26c25b9c6d692e4f1f059a46e7b74bc0a24e19bf9c9e7ea2b2ba4aa2b6ac",
+      "tests/chart-campaign-marks.test.js": "9bbd55a30ee0b7eab8f72a58e232fdce54f11b3d212f2235523fcba024fc09c8",
+      "tests/chart-catalog-recovery.test.js": "f96bd5ff9d329b5234c34b473a51b06faa09ef319f1970ec4b3d27665a8ced14",
+      "tests/chart-compare.test.js": "759512f1e27d581495b5d8db87cd61fefd1a8d8a331e19405b06326fdb0fa27c",
+      "tests/chart-cq-fuse.test.js": "955b8eecfd4c4ce1b5c69140c4866fe989c50f553af77cde87f5ef62f8a799f3",
+      "tests/chart-crypto-history.test.js": "f90ed78d4654fa33e345837c1dd28ac3e5568b2c77994e630d5a705134b1ae94",
+      "tests/chart-detail-integrity.test.js": "9a0282de02524c759dd0d70290ccefabdaf0a4ab425bdff1027f3ebc5dedd29d",
+      "tests/chart-distribution.test.js": "40bc24954269ab0d0c10ff7b0b058b974eb9cad9b223400046af0db5d5853da2",
+      "tests/chart-etf-flow.test.js": "ab208dc3ba8a0f5d4dc96ad8c3794c94d11a249dee1cb2caca934453dc1cca95",
+      "tests/chart-help-accessibility.test.js": "874afcffd11e6b5f8eddc8ca5103747aa0021fdafe92f4502335ca0669731a5a",
+      "tests/chart-html-labels-preservation.test.js": "3e9a9800e42d96dd31f8b5a8099ba10c4752dce422921d72ad59738cdc18ff54",
+      "tests/chart-html-labels.test.js": "b830e8315cd768c82993ea6a19b9678dd2b3ac4fa5dbb9e644ed7af685f70a6b",
+      "tests/chart-identifier-integrity.test.js": "1b4b3966cac04e9dd7561d97927abee4b1d57288a8ebaed0ee777d6c54365138",
+      "tests/chart-inst.test.js": "f08bfa658f184699ed6cc12f8d7802d1e9db9de942b1c3bd69c8effedf075eca",
+      "tests/chart-market-volume-preservation.test.js": "45e02601e93d3f48149f05618d755b2fa218c1d29a869b06ea8fc5c4e76380cc",
+      "tests/chart-market-volume.test.js": "f5ad9754c068126d5991d4d3c4080243553a67b16180b10363c23634ead961b2",
+      "tests/chart-observation-axis-preservation.test.js": "876fb98cf99d98a1a628ec35b9acb88cc78c1119821aeb3c3a42d406c7f9ff46",
+      "tests/chart-observation-axis.test.js": "cd1940e7d943499e32d9494c17b4a3cfc47ee71d8b2b2c11898f0940546bfcb1",
+      "tests/chart-observation-core.test.js": "c434d7a53b5ed07c6a23a8505866d0e5b534de5e4da66e31c85867135ab5ac9d",
+      "tests/chart-observation-integration.test.js": "4aa11fe8927cc5532105ad3b10b2989b698c388ae5a9d3fa176755b3e7c648eb",
+      "tests/chart-observation-points-preservation.test.js": "4710393b015822dae96194d6d5e6348820c60e3766ef9211ff1c1971986ae882",
+      "tests/chart-observation-points.test.js": "eefd287decbd0563fe692e96b1a25580f1295bb1239e4dfec28ac1afcd152134",
+      "tests/chart-observation-preservation.test.js": "ea9f3ab6fbce7b6af8bb934ba75f1f8ecbbae6dfd3fc44cfe346b5fe0e2a982a",
+      "tests/chart-obv-preservation.test.js": "a54c63233194c53c4d489452a60e7039a806f955893d37ffcf93c6bdb310349d",
+      "tests/chart-obv.test.js": "a99becaeaf5aa16a597de88a223c768705cbb5d1dd82ae61d88cb25c62cdb91a",
+      "tests/chart-paint-ownership-preservation.test.js": "d85a8f237cbb2e4cae14686cefd473cca91ee52bb05b18d030f6faf3a124d11d",
+      "tests/chart-paint-ownership.test.js": "1512f7e90f06a77d6e09e1b9b41948ad5a4c8823f8da128a69d7a2f3878dc7d1",
+      "tests/chart-qx.test.js": "3a368b861397d8060d0f753792bb455732690f6c37e6324a16fed3210f3a3be4",
+      "tests/chart-refresh-status-preservation.test.js": "f0639ab1ede2e3ce2bb5d99d000493075bf4c6acf4f9a134a257250f6dad91e5",
+      "tests/chart-refresh-status.test.js": "9d5207ef673df46e667bb475140bb01c3aead1fb02f4c3447e78ed3ce215f628",
+      "tests/chart-resize-lifecycle.test.js": "ee0e1d1540228df4a818b12804670af16ff501d435fd228e8fca7709996c0b6c",
+      "tests/chart-search-integrity.test.js": "180af06f430306eb955391f1c685f9480fc94d7a08f9bd50ea26bde7524803a9",
+      "tests/chart-search-status.test.js": "a59449c0245a29ce337eaeb1cb987d43a6239eb41d351f0784f09ee3fc418a39",
+      "tests/chart-volume-cache.test.js": "8151576423c1a0b07f36669615afd1b369c7123b1ac345366ccc7165f33c733d",
+      "tests/chart-volume-counterexamples.test.js": "53caaf67c3a9ff1c8267ddeba955b3d8b5d77306fac178ea1ac49cd82eaaff33",
+      "tests/chart-volume-definition-preservation.test.js": "747b5f1d6aeb07a1cf8ada592f57ed23876664577b493db77bf9aa4c8eea1334",
+      "tests/chart-volume-definition.test.js": "26e32f49d5c5adbd82b688235050c9d84927ec0d5627b908ab65206735284eee",
+      "tests/chart-warehouse-routing.test.js": "3ec483dbf2c2d9eff75e273aacb22b6fae37acac1bd2b80ef2457476564ee0e3",
+      "tests/china-calendar.test.js": "8b618d435b4f7284cd2432e6d53aa3c252b453082c5ab2cc37520d1034dcf87d",
+      "tests/ciss-desk-evidence.test.js": "be8864909574d9564eac9aa146395ebc367e73adcf9c5a16a7a474db41da503e",
+      "tests/ciss-readthrough.test.js": "36fb2d7fe43533887fddeb387f08463b38e4baf76124e4cfdbf1b6caca284b52",
+      "tests/ciss-research.test.js": "c31fae11da6cc7b27133884098eb1b3100e980293c786a60a687e0fd3bf2f7e1",
+      "tests/commentary-review.test.js": "5884f1faa80203d426b10f2ffadb9e037c6597b5102f268f72a146ff509bbb32",
+      "tests/correlation-heatmap.test.js": "fec25db5b84d7c3c03862e558620776bb97bf23dcc5e9f98e5099aeaa10f15e0",
+      "tests/cot-extremes.test.js": "9a0e7903036ed8931913d046740417f7d34d5dcc54144205dad03d10c50f35d2",
+      "tests/credit-cadence.test.js": "fe8dbbfed3faaf2a0cd1550d677e5fc70ef77ff60b066884bedcaf9e823e0859",
+      "tests/credit-comparison-trace.test.js": "53bf6adba2939963859b99f6b58cf5341fcd36e37ec985a28e6cb020498a7bec",
+      "tests/credit-live-clock.test.js": "87cf925b3f9e8f7e89d6e1555c9c322d0c54740c1bcfda487e321b83d849183d",
+      "tests/credit-research.test.js": "910c2ba65b9f0cb55cf58f196c3d5be735d55c017fcaf563a871219107438a1f",
+      "tests/crisis-research.test.js": "8346814498529fe429f140c4b837fdb3f78adee663ef7d5ee5322b9b34fc200d",
+      "tests/cycle-research.test.js": "d572d4d418ebfb1c6832a5da54b5ee41e96fd2884bf741b8b4bd96341d6e20fe",
+      "tests/daily-research-page.test.js": "c4ed088840fae2fdc473263585aef3c2e9c21ac201cef2ff2f13ba9a86568f3b",
+      "tests/dealer-research.test.js": "268f6d9c398781a779ce652435c54aa3df45d24ef80dccefa3694b62efc453c8",
+      "tests/desk-engines.test.js": "12fa18d72db3f0fe8493fe051335450dfd2e4894f4968579afc41f851c7d39fc",
+      "tests/desk-table-values.test.js": "077b24d2c12f32dd15f0372485dea53dce61b4be082b6c516b675e89020f8d4d",
+      "tests/dex.test.js": "fce601d6821942ce119339ca334eb3fa89a2523ca9afb6b928f9c63525ab4047",
+      "tests/dollar-research.test.js": "18d0a3ca2558ea41f96f318e815fb11446615ce9503b202ee83afdc85406f27e",
+      "tests/domain-monitor.test.js": "ecd753e504662baa2f0dd144c8dd5603c17c74735b7c44641b190ee6fa0fc55d",
+      "tests/engine-directory-offline.test.js": "303bee3e3d82dd26a58a66b073c45fd1813b8a91db10ea0e8de87b24682b1c70",
+      "tests/entrypoint-provenance.test.js": "a377b7b79d731c97ca5f7a7ddc31a8ffbb9d7a990da65ea8d5253202cd438f14",
+      "tests/equity-flow-context.test.js": "35d73ee3fb2cecb1ea6fc901701eec8563869bf855e353957ee580ca21640d77",
+      "tests/equity-loader.test.js": "15bd060679158425bef9bec315acdc438b6b5471561dedc58656a9e754549850",
+      "tests/equity-research-context.test.js": "5d2b6479a9b6997f74567cae2f03b6411739f4b67216ea8035846c6bc7e6c403",
+      "tests/equity-secondary.test.js": "c2a07cb816645f7fd75bab121bbadb0552e659aa9a9f93b3494fb3d7ca008ebf",
+      "tests/equity-statement-context.test.js": "73765f1b87ef6b4558383193895930f998501041c3b1de614df36df10a1b3ae9",
+      "tests/etf-desk-consumers.test.js": "4be5aac3d7323c743c607352451aaf62ccd4741cf12bdd712cc67281beaf0258",
+      "tests/etf-desk-research.test.js": "da183dcb20d0913b83d8cd562caaa6c85fff03b3e86391df635ad603ad15dd1b",
+      "tests/etf-holdings.test.js": "03be7c689b05b6af58dbb570baf68520cd69a890b97b9ba377c30c0667dcee0c",
+      "tests/etf-proxy-labels.test.js": "bf2346a74e978f4e7541342b2d079365b73dd43243b28109c67fd3f8d7ce59f3",
+      "tests/etf-research.test.js": "94abf1604528f74f904b33fafe3331d4a4db79334c8cd2e883820a243dbdae9b",
+      "tests/euro-engine-page.test.js": "8e4d012b98608abbe9186a1e52eeb97d9f48a383a1f53e8bfc3a29ac1c04b7a3",
+      "tests/eurodollar-research.test.js": "48e40cb4c71f6f4f716ce02b24551b52c067675041717ad758d4154f61af0e42",
+      "tests/extremes-clock.test.js": "3b02fa2c36f8a277324a56824a9e89f2aade0c61fae70a42a0ee4ca02990a21c",
+      "tests/extremes-json.test.js": "a7f5969031e81f119b64dd88fe6cb5c850aff8db4cfe455f9058cbbedcec4e54",
+      "tests/extremes-primary-inspection.test.js": "873f7e6acec5ba14017a2b505e81396a21c4edecaaf63764e17bb2f6667dc03b",
+      "tests/extremes-research.test.js": "cea090ed2052aab113f996d2b7f805197311f73b5fe5dc2596749eef4cc93722",
+      "tests/extremes-transport.test.js": "1c6b0402daf02cad05739882ddd9e83908232aff567eec46b1572865f01ad945",
+      "tests/factory-state-integrity.test.js": "046a8011aa4a74f36b4a9bb04340030a61dcc1cf8e7f92382e2239b9d6a50617",
+      "tests/fails-research.test.js": "2e6c8d79833ea7aab7b8c7616bbd2dbf550effdb7cb04c7f272e9b2a26b70bc7",
+      "tests/fed-liquidity-page.test.js": "f079091994cf3a1f10c1913f253c7ec8325d74be051e1960786d11eca82c147f",
+      "tests/fedwatch-research.test.js": "d406e147a40b823ec50755b194d0289b88cec4abc1f4512aeec2b7bc597daff9",
+      "tests/fifx-api-browser.test.js": "f9522b279b4472ecea6bc0cb622aad0ddeaa677fedeb991a51b790e5300fcc15",
+      "tests/fifx-browser-integrity.test.js": "4401f6e69ac1b84bfe5fc4c18696c6ec4affac48fbfac01145a95c39ece2adc6",
+      "tests/fifx-native-view.test.js": "75c10437d0b24923d287000a6e0aaae438fb63eaf92cdd3e2a4f22e6fe1bc258",
+      "tests/filing-desk.test.js": "37f275d1842366fbc6679bc0012f657d8c86098348c4899ff0d9b1c8678fd1cb",
+      "tests/fleet-health-page.test.js": "5d176be47bc400b6a718e8d8b567c5de0a3712317d5c45b84ed9727bc209ed05",
+      "tests/flow-research.test.js": "65cef937719aee194cbd3062d6082b3378deee094caa6cbe8eebf72504423037",
+      "tests/flow-state-research.test.js": "fb2f68849a8e0212e067799b7895a30b6aa6182fdd438ec082a48a4c3fb52c8e",
+      "tests/fmp-page.test.js": "2f85d1da8d36c50f3948e4f2b4e2a84fdca1138438672331a6025317a02727c5",
+      "tests/fomc-research.test.js": "c91370dc31b784d6b3f76e78995de44b72da35d2bb697f5e54c0fbbb130351f8",
+      "tests/foreign-research.test.js": "180c875a0eba2a7688c95191c30a2d82e2eec29d8754cdf1e3dd5352bd4c1cd2",
+      "tests/freight-review.test.js": "1b37367b750fdc308c4544fe7d82deb0ae8ec788f6e718f7278eae5cabbbbbf3",
+      "tests/frontend-freshness.test.js": "982264d57d97fabd2c544edc65e804947b3e4e03ccdea23ebd636b6f1ac37b1c",
+      "tests/funding-research.test.js": "f67492aa252f09859305200600644b40314aab773317124ef551b827bb639959",
+      "tests/futures-research.test.js": "fde2da00724a3d0da5945849d348b11725ab9a448bb6b156f8ec5f01552b2abd",
+      "tests/fx-research.test.js": "a4e408c962333b48983f956fdd41cdb35f6591db5afdf58d5564998a17d7e377",
+      "tests/genealogy-research.test.js": "f3e11f16e995bb07e65d69a0e6ece2a4765ca85593fa3782a2aedac5f78947a4",
+      "tests/geo-review.test.js": "477398734b95870d850623772b0000ffeea2033c2ab3a9be3155889c67a155bd",
+      "tests/global-liquidity-research.test.js": "23de80034d6a9c263d69d1b26609837d08158bb983d1a5b057e96397b263bad5",
+      "tests/global-stress-research.test.js": "8e8393a89a47a9e6f3cdb819a2b47b5c55d9168c4d383a1e83510585ca88db28",
+      "tests/gold-rotation-research.test.js": "9af4a4ae4651f5b4415440e3589df3c450e90b6010ac97ace378fa1e243274b1",
+      "tests/growth-stack.test.js": "33df07b074cd0cedd70c6fedf553c5ef20637c3fb168eb6ab57c840344d7a6ec",
+      "tests/harness-mode-a-withdrawal.test.js": "79a602ec7f5d2b3cc86fe0aec416ec23a2c7a02cac7c49e9d09fc94347ec8579",
+      "tests/harvest-monitor.test.js": "24359198372fca136e3316a820f8e74048a1af71bb378d3b48b438669fce02ac",
+      "tests/holdings-boundary.test.js": "5604427ca24f30cb0e9861c5842e0535f90dbe4a06661325518d0b5ced99760c",
+      "tests/holdings-membership-heatmap.test.js": "e76a05e49c71ed9f85ec1626fb01c70e682aee270071a16a569ffad06fd903c1",
+      "tests/holdings-overlap.test.js": "5f816abebcbbff0514a79b28b1a5e86a47a2af675b217865398f479c22f3abc2",
+      "tests/holdings-research.test.js": "47db7336a58f5a923dac2a348eded4dd4a2e27ac3fe724cfd0846cc638f18d0e",
+      "tests/home-ui.test.js": "7df45025678db630480bcfdd78fc58ba50a3eba250a319a2099784149ba7be94",
+      "tests/hot-money-research.test.js": "cb78e2940f66b1309da6835d32907603c4d4566ba33693bad8b0134d68889b0f",
+      "tests/ici-research.test.js": "3652f7a958f1e5463ed21efd574fa347caf0d47199ed239719b6a810dcb20da2",
+      "tests/implied-research.test.js": "51c1f11301e08657a56cffb1df803b9b39ed610f01e8956ed5aae70acfb12b93",
+      "tests/industry-case-renderer.test.js": "7aedb888cc52aa25d24c42fbf9f7a703debb2f3e68e44c04a4dbb72347c1d92b",
+      "tests/inflection-research.test.js": "1120448c040f06d1c3d356c9f3b9515d50cf757449509810d6f50a1aadfc2ca1",
+      "tests/insider-research.test.js": "172b2cf207bea21c7804f394dd570d1173cd89265067cece08cf8a98231803a4",
+      "tests/inspector-complete-evidence.test.js": "b65d311abf508208046ccbf24aa3bed7b068b88f021ba9c4da524b3c29de6223",
+      "tests/inventory-research.test.js": "48d5a739a5d85a2adf7d497b453eb26d2d4590675de186dd172fbc95ef767435",
+      "tests/inventory-v2.test.js": "566382a598c0bfc49fbeeef6b22f8545056476cd696ee6f39bcbddf53828b7c9",
+      "tests/issuer-classifications.test.js": "21a5d854e419e5b4af10c8facd320a8cdeb06a48e878b2d6cb7be4bb55ade440",
+      "tests/ka-risk-display.test.js": "9c864020632d45febedcf4d549e0de94c1ace288d3c734613aab1b4fb0c84a19",
+      "tests/katlin-oos-render.test.js": "638d8d4327f77fa8ec4461dc24f1f23533e978d97eeeb9221d05ffc37abf0881",
+      "tests/khalid-provider-flow.test.js": "f6bc5e85f35941c46894482b4e1f4ce4abe7455e96a93769d31546b47053811e",
+      "tests/khalid-qualification.test.js": "b5ba87105444f684c1addf74199a1dd04bd987554ccfc18e31da78874a21e14c",
+      "tests/khalid-snapshot.test.js": "7be17869a460e38f13ef9f21c6f944b71a70cfcf17e429bfa6c43435d2c69208",
+      "tests/khalid-sniper.test.js": "b884240f93259e8e34e5e9e501759715b6d1a65629f031df82920f31e98c8e03",
+      "tests/khalid-ui.test.js": "e43866e6359515cf81d115ca250bf34373f5ba14443771fabc39f0cbc4c2103c",
+      "tests/khalidrisk-renderer.test.js": "7ad1c10f6c355f65fb6d97139b8711c357e068a63e852cb4abc55a4c1bd6a2a6",
+      "tests/khalidrisk-ui.test.js": "28ae1b781b189177d57012e3ad204332f954edb067b24c69a97fb98919938687",
+      "tests/lce-research-permissions.test.js": "21bb04df177a9117281686942936073aafd26a82e14c3fc5959739494e268a65",
+      "tests/liquidity-agent-native-view.test.js": "7398818631d66e730994736f469386e24bd1c8f955af583d42c5fefbcd6bcf41",
+      "tests/liquidity-credit-research-view.test.js": "6bbb5e07a90e06788eb633ea9ea6ba228c7684df975b8cc76157101dd86ad936",
+      "tests/liquidity-fails-panel.test.js": "7c64b16bf3d4619e21548d670f09b7f44f6cab1b6345d73e0f9f3bc5099167d3",
+      "tests/liquidity-legacy-quality.test.js": "eadf8aa003fa3f1c3c20fdd9ce846cfbad4e99c3d312a49faa4f51f741788acf",
+      "tests/liquidity-pulse-native-view.test.js": "b3e70c7122de9cc3d0cc0a3aa2a0e009fc70524e8dfbca3958d90b549c2b9a6f",
+      "tests/liquidity-pulse-observations.test.js": "2176e3559a0c580f9f0a192efc10f1c70ea4dcc5e07305655f94ebea8098cd77",
+      "tests/liquidity-research-page.test.js": "c67595c156f8fbbe07befa13e206ae896d963ba6baee45071e9ed5f34aafd347",
+      "tests/macro-calendar.test.js": "9a485fa874990bed66e84da6542b2a43edbf964d5c1a98d80b1571df595c650e",
+      "tests/macro-rooms-research.test.js": "5162a7248addac70042553917f37fe7c46db93eb03578e0fc70a6f4bae080a6e",
+      "tests/macro-transport.test.js": "2def21f10d1e58b6d1b0d2c383eaeef6e9ff792d3a3e3ed9e2221e5610000aeb",
+      "tests/macro_measurement_page.test.js": "045dce40425c1107f06ef9c1427f748b9da2a29d7b3a24f093bf7a9a6d0e7787",
+      "tests/market-measurements.test.js": "7c41f00171d76c0a67648fc48fe3dc9fe4311400493f01a1c6823b11944a3dfc",
+      "tests/market-tape-contract.test.js": "d296d78de005a6789887b87a1b6d18b8a57dc45917e40731a7d6e39ca7979a81",
+      "tests/massive-cross-asset.test.js": "26363c8a0271c9474063ae4586a1b177446906f87bceccdc2c64d83c76b49dbe",
+      "tests/massive-research.test.js": "3cce70b4e97bae9703b2f990d6defab1e37dca4e220a9dcb41ab44fbe1a11f74",
+      "tests/master-allocation-research.test.js": "1b31ed12ec468896d19c8048439deeaed2a12701eee941016d25d8316b368b5f",
+      "tests/materials-orders.test.js": "cd7bcb13129a120e6abf603941987a42384c0197670e4bd8f30b0bbe0b74b130",
+      "tests/money-volume.test.js": "d2e6a91634988ce3f9003b45155db72a32678e4d11566cfea75fcaa6f537b8ac",
+      "tests/nasdaq-page.test.js": "351ad052bc3431a2a8acc5f843870999addef870a47a7cfbe4b24bccbb445628",
+      "tests/navigation-focus.test.js": "a88c22f34ee529a5f12357c74a044b08980343b7bd7a6964d5d3fe9983055252",
+      "tests/navigation-titles.test.js": "1b183833e9cd91c6e6331caeb14b2fbfa7d3410b66f28571ecd16c47b9f63a00",
+      "tests/nowcast-research.test.js": "bef754df0661af43863adef4a08253fb35aeeb0c05fc4cb565b85629c347f8bd",
+      "tests/observability-page.test.js": "0eb713afacf7ccacacd1ed960be2747e88951ad7739382f9dc5450fe9929a9cf",
+      "tests/observation-cache-integration.test.js": "27c8e3f1a0d443e94957a03377faf9c198497c98adb7ed819aa2ef9e6ff5920d",
+      "tests/observation-cache-preservation.test.js": "8422788b5505146fca65e23525dc72a810c6dd156a4cb159d15672b8e0ac4250",
+      "tests/observation-cache.test.js": "d7c3d0e4b44ba63c2b399eb6831e645d5d3ffdd2e3b7114d9aeb28092decde10",
+      "tests/observation-diagnostics-preservation.test.js": "8bd263a0cbf88d13bdace56aeb18fb6b7721829f80330e48f5565518d6f65beb",
+      "tests/observation-diagnostics.test.js": "2682229ab4514f29f915beb1874bd61cad22ec3eb97ffa2e8ba4e0d6016700be",
+      "tests/offexchange-research.test.js": "da2f9005f866e7b48837d31750a50c29861301227e47d5ddf461ca066d0f7d9b",
+      "tests/official-research.test.js": "8b3a4998186788725fe76d44bc1d3e6ebb3820232b43618ee81b2399b3693c0a",
+      "tests/option-populations.test.js": "5031a1414374b559ec9220892bc15d80d79db4fc4779d7efd5e28e2defba3713",
+      "tests/option-research.test.js": "b312ce3b3da47eabb2bf2104f29f9b153add069b197ae0df726ba460d4d3be82",
+      "tests/orderbook.test.js": "ebb04a77d61f0fcdec73a3d9013b4149e468fd28c3f3077704c5ef1e4f2d7adf",
+      "tests/output-ownership-pages.test.js": "0aeb35a8e2cf5fc179df748c8493604b0bddd4a5077e7d1cb2e3cadebd2003e1",
+      "tests/ownership-summary-ui.test.js": "1bd0c4b1465f90ce4b4c5307c32b5bf77c43b4595084af32f17b2a9379c2aa6d",
+      "tests/page-data-inspector.test.js": "dab6446f43b4d585c73ecb904093593248825f63f16fcab4e1be5b292925192f",
+      "tests/page-explanation.test.js": "56893e70a4408df25a843acfa331cd7df33b17e152872c3d8d0065bda96d06eb",
+      "tests/pd-fails-strip.test.js": "1ee100e80902ed7681c93fef04f4fd76d69af1913c0e40e6388f28b7ece41092",
+      "tests/physical-trade-review.test.js": "d8721987694e453c87bc8150fdee14dc0f7791141b0db6d469805c2eb2098943",
+      "tests/plumbing-research.test.js": "937dfec548d3591e0e26ef517813e0cc76db80015dbd84b5993e6006a9656589",
+      "tests/portfolio-coherence.test.js": "608736aedd979c326dfc5921f25d6f96d63161e4589c2efab4d9392e26293f76",
+      "tests/portfolio-manager-integrity.test.js": "30b503b3816cfab2af4493273f2fd6035b5a8b243cbf05242cd31437ec64c6e8",
+      "tests/portfolio-quotes.test.js": "759c678f9daab8de1c34113a4dc938d9895e0c6fbdb4f9ae189a922e2efe2bce",
+      "tests/portfolio-research.test.js": "edd94c2b4956ed67fbe25a961a0e1098c57110e71793f2e0a5ed154ce3938d1b",
+      "tests/portfolio-risk-contract.test.js": "a371faeb5d213192235e1da739fb4e35939e87c94bda0f0c18523256b030f978",
+      "tests/portfolio-scenario.test.js": "3dee18042c482e100bac9fbf62d9fdbdfe0909e4822fcc5649d788ad0d66e769",
+      "tests/portfolio-sector-coverage.test.js": "70d19d0f738d7113845576e75d674643ab80287936871523084cc1ae87e3c4a5",
+      "tests/portfolio-watchlist.test.js": "86ebc92fcecfd8404513c823a1d5bda63f4efa0f52f3f0cd20caf502ab967bcd",
+      "tests/portwatch-review.test.js": "94e02596f83d8d774383dfa26b140cecd2b1b55bd6e0e6d1c6a5fcf95540bc31",
+      "tests/positioning-observations.test.js": "df3975835a226b89dfafa621695e7d54a5e3e808883e5df25efc89187204d9f9",
+      "tests/prepump-summary-evidence.test.js": "f27c147aa55a4dcbcc2b8f1ee58c4c29b1fd4da4714777092f40fcd625ee24c7",
+      "tests/private-artifact-fetch.test.js": "6d260f1e7e5b539254c55958a17318c89cd088f55f3de6dcb1206a991e386ba8",
+      "tests/private-pages.test.js": "dbb49aa0385cf028c297d3ffc093830a3f4fe2361fbf4a5b2d72d0c29db10d9f",
+      "tests/private-reader-integrity.test.js": "a41a4969cdfd2d0365e37ec2b04bd8ad611bf256e8470578a2f9422fabe5eeda",
+      "tests/prospective-research.test.js": "f18743104519e9ec9d7ff00bdb8e5d97f29f6af2669e40069aad5a76df5f7890",
+      "tests/provider-data.test.js": "83acbb5f694bead56c940bd032cc20ff1148391fa2d301f61a41d8e462fe6103",
+      "tests/provider-flows.test.js": "eb3ea12a368123e92fafe8c8909d7a293ea44b8978cdf1ed44e2194659857f0a",
+      "tests/public-brief-evidence.test.js": "7a5123687613dc513d80768864d06875a2202813982dac3f6a9c5390ad6dc617",
+      "tests/pump-brief-evidence.test.js": "0c42f6ea9b57263928411e6caf8311e6eb0b048a114934e166658c55099ee9c4",
+      "tests/qa-audit-2026-09-07.test.js": "5e34c2d39f66cb66b84ec8818fa99c77eec830684872a8893f76cfccd69d5d41",
+      "tests/recession-review.test.js": "502a2561c3de96e0d9a5473946e8c52e674f21e8cf4ff2f587affe9abea95f8f",
+      "tests/regime-context-display.test.js": "12380272f454354be4d4b02ef08c4829cece659315eda3f53fe1d3e4d0bc106d",
+      "tests/report-research.test.js": "09ce1e8ff44ebaa1f26b1468b5f28f9c771484d61a99bd2e8f7e3d9917f62aef",
+      "tests/research-brief.test.js": "4bb1c5b425684a6f9ba6c91d92327ba523b097e99569015adacbe6bbc746d2f6",
+      "tests/research-replay-pages.test.js": "3fce8245bf5dcd932dccd3ddcf56448008ac3a47d7f0e768759f3a84d2e38ef8",
+      "tests/restored-source-pages.test.js": "f68513a46d748263ff0b4f21bdf389c4ab48f82025ec7f1618c26241c4bcb896",
+      "tests/retail-research.test.js": "df5e7002f6b3a0eef03bd07cf778e46771eaee3885189a6d3a4bc08d7ae9c1f9",
+      "tests/reversal-research.test.js": "85653cc2da052db2d314e875dfb298f768cbd9e932f1d0bd00cd1112bda03d74",
+      "tests/reviewed-artifacts.test.js": "6d91c79e9fb27e0e2bb61acc1e12e081c26d663539737a8bd6bebd361b255d77",
+      "tests/right-rail-snapshot.test.js": "d3a62883eb819871e0f68fa9705761f3b81b14c2353d59468a5835054d1965ef",
+      "tests/risk-gate-renderer.test.js": "7ee5b0df7813963e3681140f367da44dcc67bcb0d540532667214571063a3ac2",
+      "tests/risk-gate-research.test.js": "8482662e62c2d16d0da42903e1a7e013d151de8fe61de74d37250b1c6be38320",
+      "tests/risk-regime-research.test.js": "02186ded9c95f0971967312a9ec79800ed069dd9025f32cfc87289161a584fe4",
+      "tests/scenario-replay-integrity.test.js": "746242f254f7ae16379c812e91882feffcf6554082788e603b92c9210f15b09f",
+      "tests/scorecard-permissions.test.js": "db55c8fae09d6081ebfdaf8e6a9cbe224ca7b13ce21dd9c25835405ddfefaad0",
+      "tests/sec-ftd-research.test.js": "9bcce272e730931aa8af084a2aa7ad0c84f108bdb318d3ea0984fc9df2809982",
+      "tests/section_badge_ownership.test.js": "44e3785caeafaef0b9eed289d6520c6e536f681231539f767058e85a10cbb19c",
+      "tests/sector-fusion.test.js": "73ee7358283a9909ae808d87d06a3522f159da3e10322b0dc813d2cd84f9db80",
+      "tests/sector-research.test.js": "e87cb0fcf4c3910a7dfaff4b0a1dab6100d05c85e9517a72893d180078ed5cd1",
+      "tests/short-interest-research.test.js": "fbd8bbfc1d66a002118afcb57ca8a77ae0176989094c5fa726b56e21b327a8c5",
+      "tests/short-volume-research.test.js": "db5473b8515cc1174cb32fd2c7d9c04c00c3f37bf284f3e944b5fe907cb728d0",
+      "tests/sidebar-completeness.test.js": "ef48b922604bc0677f74591330b3c6dc825834fbd011f7c07e96fcade4fe7e19",
+      "tests/signal-board-research.test.js": "891529a6a2887f5eeefc6aee3ced6a4a57d34ee47cfc6bc7942227f34cf3e2d3",
+      "tests/sniffer-pages.test.js": "6be831fe97bc9a13ac4bcc5f1b63220fe2a191ddb0453d24fa4aa01851da8829",
+      "tests/sovereign-review.test.js": "63e0b273a860b11ba2acec472a7584c6b61c83d0b4919149097cec546214ed4e",
+      "tests/spx-beaters-qualification.test.js": "0a578251d1ea52e07266155bca197955525b206374b1fcad343b1797fe4376cd",
+      "tests/statement-desk.test.js": "ef4fe77d18d9ce1381012fed22534419105482b445493e20cecb4597c42427a9",
+      "tests/statement-research.test.js": "af1bb6b66062c2942a42e535d6b3e7772ef3fe8c66d09e66e2ec3bcf8df0580b",
+      "tests/stock-desk-research.test.js": "ec3f8ed3e0ebc85b5493cc26837f4a01bd62e15d888d81b46796ff93ea44c3bf",
+      "tests/stress-research.test.js": "7fded49612f0e52e58b0c6b17a26af89a5417052b496f83acdc84ba4b73ddbbf",
+      "tests/tail-research.test.js": "7f6a978fd5f88bfee6dc8bf05b5f59a70f19ecf07d8ed5c5ba31ecb08331710e",
+      "tests/tape-reader-counts.test.js": "d99cb89b8f46ee7e4eccfad3bd405d881e4dd94696989187389602be8aff222a",
+      "tests/tape-truth-qualification.test.js": "82fc2589b4e48c6079adec83b33b1bb0e392847a60e65210f7cfd88bb567d16e",
+      "tests/tenor-research.test.js": "883121d781b1ebf2791c96f11050e03ca0ce9f4ad0ec2524e1e187822788cc7b",
+      "tests/term-premium-browser-integrity.test.js": "55e00203edf0498cdd98d6868ec9de76c8e2780dcaaa402d6d0a3baac9027974",
+      "tests/term-premium-native-view.test.js": "2222f1012a914e7a7323b20a657fa4cfb89dbc54962031ee9d757a0a0eb43e5d",
+      "tests/tic-research.test.js": "dbe28f4f22111d8db6758450de15ecac28532aaa5948e4650ff5347bda6395cd",
+      "tests/ticker-research-integrity.test.js": "bb14e04c9c4cb6639bae486eae2bc0e0c20a4117c34d53be8da8ba1284848136",
+      "tests/trade-review.test.js": "b7e97eabe0eac26bdcb1c94b0fa5f2adc44ca1b2bd5ade28067ce953e1d3a694",
+      "tests/treasury-fiscal.test.js": "d4f7bed37ec1883965eec3e8c002378f59fbcb0d658da1f0d24cb3fd2b24a28d",
+      "tests/us10y-snapshot.test.js": "d0b4aa443d8cc3aee55258f6edcab92b08ae5290a8d19851bfd877f6bb2659a6",
+      "tests/valuation-research.test.js": "94cf905a4803aec5ac0c09fd8c70d5910da4ea367da7a7b915d88f70ff2571dd",
+      "tests/verdict-header-inject.test.js": "7b0b6be18eede1abafb58c742325f07f158897224d913ca43330fd85e0cca8b2",
+      "tests/vintages.test.js": "f561c51935ce5cd59f5118bc50b4f05ccc5520beb788cad563b74fa7eca4eb13",
+      "tests/volatility-research.test.js": "1cd28780450878ac6d29fcb8a6dc45e4cb1b93a66487266dcf16876983b03649",
+      "tests/volume-observations.test.js": "311acb3a34571f361c112eef7de56bc29d64280c82ab1ad02ed45dfafac606ed",
+      "tests/vrp-research.test.js": "cd9a84ac70fcb80d7f24bc58e3a0208c10da6a3e05f8f0007cd8c8d900c638e5",
+      "tests/warehouse-observation-preservation.test.js": "9401d3aa0b4ed4877dd8a3a68741decfa3c3677febb24aec3adb339c6d62cd1b",
+      "tests/warehouse-observations.test.js": "6c82a92f11ff9408cfbdc81e941635a29e66a3e5d79c6795fb135458e1fe56ce",
+      "tests/worker-ai-bridge.test.js": "8c0bc262741333c737c1707e78acdee49d734113416117a99259c830fb9a563d",
+      "tests/worker-artifact-routing.test.js": "6e4bae0759f46ec29be13385409c74c6db22811b2a7ea5512780cff13d614cc3",
+      "tests/worker-ask-desk.test.js": "eef0875c4c889aba21f180b06364d69d7e600e20086843840e7fbabb4fd1c6ba",
+      "tests/worker-data-proxy.test.js": "9b9638d402de806d69d2bb35abd7d53efab641c4b932953a597b8df311ab5a11",
+      "tests/worker-factory.test.js": "061f811986f9e438a39156edcaa2d310f87217d0dc8cbeaa6ce7fbf2aab3a8c7",
+      "tests/worker-fusion-api.test.js": "808dc9a060ee35ca20e82ba89e1cac228d3cbbd5454c7ab66b8ea0fe2bb7b25e",
+      "tests/worker-portfolio-publication.test.js": "63ac8a65009e0574ebf028fa90978bcb816ad2407d844629c45752bad5f59ff4",
+      "tests/worker-provider-flow-aliases.test.js": "a8288418085e612bd88af9b11dcefdf3d2022b7e7a2b5e8655ad43522e5d7784",
+      "tests/worker-snapshot-ordering.test.js": "217bff6721f54d91273fed3122734ede9a73444233f06edc72c82b3b1d960281",
+      "tests/worker-snapshot-publication.test.js": "3f089b438eeb951a3a345e957423c71cc8e58b02f6771ee7e90d48b79b8c6312",
+      "tests/worker-symsearch-cache.test.js": "31ec190939c6d498eb18c19b31164c57ad12214ab6ec1212d81ebffc38b7946a",
+      "tests/worker-warehouse-ohlc.test.js": "000a3e4544711db6571a5f4b17121d479964ba73ab4ac694f7be8b55b175d95d",
+      "tests/workspace.test.js": "cf7df95a68af12ddbe0b1603d745b5752cc54b8b220860fde3e84ff394f0e10a",
+      "tests/yen-research.test.js": "df62ac6b6b6cc24d338a1f7b5fbb5775e860e1c7cc5035d95f073cc72fef27c2",
+      "tests/yield-curve-native-view.test.js": "e9466d402e3808aef68059b0e869931f598cffab1ba2bd34ee41547f4171698a",
+      "tests/yield-curve-view.test.js": "21a3804ec2befc16fbc6d36822992c4347358a3b8cc47a7fec95defc95fc096e"
+    }
+  },
+  "repairs": [
+    "Existing HTML escaping applied to 21 chart renderer functions for selected symbols, timeframe/mode, notes, watchlist labels, quoted attributes, source captions and selected command labels.",
+    "Indicator UX encodes selected-symbol/timeframe and comparison labels with one helper and three exact substitutions.",
+    "Original IDs and input values remain available to handlers. Tested query/hash entry, tab recovery, notes, alert deletion and comparison removal retain their behavior."
+  ],
+  "negative_control": {
+    "focused_cases": 8,
+    "predecessor_failed": 8,
+    "candidate_passed": 8,
+    "whole_predecessor_widths": [
+      1440,
+      390
+    ],
+    "payload": "Invented URL symbol sets only a DOM attribute; all requests intercepted."
+  },
+  "boundaries": [
+    "This is not a complete audit of other HTML sinks, pages, URLs, CSS values, annotations, plugins or dependencies.",
+    "Long crafted symbols crowd the mobile metadata; literal rendering does not establish general layout usability.",
+    "No source acquisition, calculations, cadence, native configuration/schedules, producer invocation, paid API or portfolio authority change.",
+    "All ten institutional workstreams remain OPEN."
+  ],
+  "incoming_renderer_test_fixture": {
+    "scope": "Five incoming Industry Case tests run against a wholly invented complete replacement; the captured public packet is never read. Peer test source and assertions are unchanged. This does not qualify the captured packet.",
+    "cases": 5239,
+    "industries": 149,
+    "sha256": "43e7a0fee5850cfd941dd9a5a2314f7ab25055b6109076f7e605f993e1abecaf",
+    "generator_source": "from pathlib import Path\nimport hashlib,json\nW=Path(__file__).parent\npacket={'status':'LIVE','as_of':'2026-08-18','n_cases':5239,'n_industries':149,'industries':{},'cases':{}}\nfor i in range(149):\n name='Semiconductors' if i==0 else f'Invented industry {i:03d}'\n count=105 if i==0 else 35 if i<=102 else 34\n symbols=(['NVDA','AMD']+[f'INVENTED_SEMI_{n:03d}' for n in range(103)]) if i==0 else [f'INVENTED_{i:03d}_{n:03d}' for n in range(count)]\n members=[{'t':s,'rank':n+1,'name':'Invented fixture '+s,'tier':'NICHE','share_pct':round(100/count,6),'mcap_b':1,'ret_12m_pct':None if n%7==0 else (n%11)-5} for n,s in enumerate(symbols)]\n ind={'sector':'Invented sector','n':count,'total_mcap_b':count,'hhi':10000/count,'top3_share_pct':300/count,'wtd_ret_12m_pct':0,'median_ret_12m_pct':0,'ret_coverage':sum(m['ret_12m_pct'] is not None for m in members),'members':members,'top5':members[:5],'rev_growth':{'status':'DEFERRED','why':'Invented fixture, no revenue observations.'}}\n packet['industries'][name]=ind\n for m in members:packet['cases'][m['t']]={'name':m['name'],'sector':ind['sector'],'industry':name,'mcap_b':1,'bucket':'invented','ind_rank':m['rank'],'ind_n':count,'ind_share_pct':m['share_pct'],'ret_12m_pct':m['ret_12m_pct'],'tape':{'call':'GENUINE_UP','conviction':99}}\nassert len(packet['cases'])==5239 and len(packet['industries'])==149\nout={'scope':'Wholly invented complete renderer fixture, generated without reading the incoming captured packet. Familiar symbols are fixture IDs only. No investment observations.','packet':packet}\np=W/'industry-invented-fixture.json';p.write_text(json.dumps(out,separators=(',',':'))+'\\n',encoding='utf-8');print(json.dumps({'cases':len(packet['cases']),'industries':len(packet['industries']),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}))\n",
+    "host_hook_source": "// Host-only fixture substitution: never read the peer's captured public packet.\nconst Module=require('node:module'),fs=require('node:fs'),path=require('node:path'),old=Module._load;\nModule._load=function(request,parent,isMain){\n if(request==='./fixtures/industry-case-public-20260818.json'){\n  if(!parent||!['industry-case-renderer.test.js','industry-case-browser.cjs'].includes(path.basename(parent.filename)))throw Error('Unexpected captured-packet consumer');\n  return JSON.parse(fs.readFileSync(path.join(__dirname,'industry-invented-fixture.json'),'utf8'));\n }\n return old.apply(this,arguments);\n};\n"
+  },
+  "actual_application_data_requests": 0,
+  "private_reads": 0,
+  "producer_invocations": 0,
+  "calls_authority": false,
+  "sizing_authority": false,
+  "validation_pending": [],
+  "incoming_ops_only": {
+    "base": "5c19bb91bd514a336d5fb328342e3d24ea67d2f5",
+    "head": "af6706729e42cb7c880d516801304a3d98be43be",
+    "paths": [
+      "STATE.md",
+      "aws/ops/pending/1063_schedules.py",
+      "aws/ops/pending/1064_diag.py",
+      "aws/ops/ran/1061_schedule_dive.py",
+      "aws/ops/ran/1062_finra_diag.py",
+      "aws/ops/reports/1061_schedule_dive.json",
+      "aws/ops/reports/1062_finra_diag.json",
+      "aws/ops/reports/_lastrun.log",
+      "aws/ops/reports/_ops_ledger.json",
+      "engine-manifest.json"
+    ],
+    "allowed_path_hashes": {
+      "STATE.md": "1595e0a18cc59e7e2275d0cec51c2af741c42977f9b3adf3f2c33c518474ad3c",
+      "engine-manifest.json": "9292a4f563b923cf85cb7f99f8887e2dfbc7be30803a3aa3389073290a05f2c6",
+      "aws/ops/pending/1063_schedules.py": "2b3b52fc9703ae03fd39947a19178f621e85ec9a1c857c228a42f5458cd4d2f2",
+      "aws/ops/pending/1064_diag.py": "96864ccba90111bde4c6fc6aed7f130b1a75fb6796ed8241803cac81ec96e877",
+      "aws/ops/ran/1061_schedule_dive.py": "bef2ffe0784d121170aedfb0cde656e8576d44a564526f4dd64e4e1e45428ccc",
+      "aws/ops/ran/1062_finra_diag.py": "e4297c644eee28f38d5ea6c28194959693a48c8653475846bd17705ad0eebe0a"
+    },
+    "inventory_equivalent_except_generated_at": true,
+    "tested_clock": "2026-10-01T12:20:26.557669+00:00",
+    "incoming_clock": "2026-10-01T12:27:56.306621+00:00",
+    "review": "Incoming ops source reviewed only. 1062 renamed without byte changes. 1063 creates schedules, but binding census is not fully paginated and exceptions can look absent; it is not invoked or accepted by this lane. 1064 reads logs/triggers; not invoked. 1061 and all foreign reports remain excluded as evidence. STATE/inventory only clock changes. All tested product bytes preserved."
+  },
+  "acceptance": {
+    "source_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+    "pages_run": 36862246172,
+    "workflow_results": [
+      {
+        "id": 36862246172,
+        "path": ".github/workflows/pages.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2"
+      }
+    ],
+    "static": {
+      "platform": {
+        "checked_at": "2026-10-01T12:38:00.426519+00:00",
+        "intended_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "served_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "assets": {
+          "term-premium.html": {
+            "bytes": 11311,
+            "sha256": "e1db6e68bd94531252f3c3036fe580e0aec8240c0bc36b151576fbf310f7b88c",
+            "matches_manifest": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "58bb001679b8f66c4d86874d152ff3f9dafa017b5dcb28ee15ce729c2409ed6d",
+            "matches_manifest": true,
+            "embedded_home_configuration_hashes_match_exact_served_files": true
+          },
+          "portfolio-manager.html": {
+            "bytes": 30627,
+            "sha256": "8f90d56c4162e4dc4c33e44f60a9de7e070c5dcd17ca03c4295c293bfb940f3e",
+            "matches_manifest": true
+          },
+          "portfolio/index.html": {
+            "bytes": 48475,
+            "sha256": "385978c997192731b71ee99e8e51dd8cf53fdd385cac3a2580e47f9c6f7d660f",
+            "matches_manifest": true,
+            "helper_content_version_matches_reviewed_source": true
+          },
+          "position-sizer.html": {
+            "bytes": 11687,
+            "sha256": "4a53debc14c89819712952a850214708d2c06b75734616659b8be3749c48cc08",
+            "matches_manifest": true,
+            "model_sri_matches_reviewed_source": true
+          },
+          "cb-injection.html": {
+            "bytes": 14823,
+            "sha256": "46e889ff8a816275ee6a81eda5c7e1275966c98a9f1b7a98bddc7ddff1c2f5cf",
+            "matches_manifest": true
+          },
+          "liquidity.html": {
+            "bytes": 68514,
+            "sha256": "8e2e55b9bba360b50f318a4079b80c1c75cbd1e60a0dcd7ddcc0a00bff2ed3e7",
+            "matches_manifest": true
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "1a450a4cbe2d90aef23a8693b7ed367542a9805c2fc68a5184817f41f97ba187",
+            "matches_manifest": true
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "61bfc80863800a6de13df320e0809625217456e6cb1790f6bf35b04347a61eb6",
+            "matches_manifest": true
+          },
+          "capitulation.html": {
+            "bytes": 9023,
+            "sha256": "35b997ea207445a871f5d32e2616c46cb3216dcb5d5a40c49c05792365368751",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "market-extremes.html": {
+            "bytes": 10103,
+            "sha256": "be5c00af420c5559fbd080da7fc09d443c6fcf75b1f50de44c48e548714430e1",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "jh-term-premium-research.js": {
+            "bytes": 20425,
+            "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-term-premium-research.css": {
+            "bytes": 3683,
+            "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+            "matches_manifest": true
+          },
+          "jh-portfolio-research.js": {
+            "bytes": 5693,
+            "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-research-page.js": {
+            "bytes": 7876,
+            "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes.js": {
+            "bytes": 7020,
+            "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes-page.js": {
+            "bytes": 8073,
+            "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "private-artifacts.js": {
+            "bytes": 13930,
+            "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-evidence-io.js": {
+            "bytes": 5002,
+            "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-binding.js": {
+            "bytes": 3954,
+            "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-risk-contract.js": {
+            "bytes": 11530,
+            "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario.js": {
+            "bytes": 7387,
+            "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-io.js": {
+            "bytes": 3035,
+            "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-page.js": {
+            "bytes": 9325,
+            "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-research.js": {
+            "bytes": 15703,
+            "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-page.js": {
+            "bytes": 1072,
+            "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-liquidity-research.js": {
+            "bytes": 6746,
+            "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "calls-page.js": {
+            "bytes": 13589,
+            "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-public-brief.js": {
+            "bytes": 25766,
+            "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-extremes-research.js": {
+            "bytes": 16212,
+            "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-data-inspector.js": {
+            "bytes": 34117,
+            "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "engine-manifest.json": {
+            "bytes": 3097593,
+            "sha256": "124e338e7c0a35aa18d3eade9f95d319d4859ccec4f06a2f051c3d8ec54ff307",
+            "matches_manifest": true,
+            "complete_inventory_matches_excluding_generated_at": true,
+            "inventory_replayed_from_commit_source": true,
+            "engines": 898
+          },
+          "nav-manifest.json": {
+            "bytes": 36326,
+            "sha256": "c07f85de679d52e85846701274e68c479ecff23d0767a47b8ab7e328bb2a45c7",
+            "matches_manifest": true
+          },
+          "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+            "bytes": 107761,
+            "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+            "matches_manifest": true
+          },
+          "config/home-layout.json": {
+            "bytes": 562,
+            "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+            "matches_manifest": true
+          },
+          "config/section-registry.json": {
+            "bytes": 1363678,
+            "sha256": "b2d447939ae88a6d4233b066919fe305a228659d16d426c21f2075dbd715172c",
+            "matches_manifest": true
+          },
+          "config/page-data-contracts.json": {
+            "bytes": 7715917,
+            "sha256": "7c5e322bc52bc77c3782a391fd00b3b14e32f1b91c8d6a326913321dd3ac5219",
+            "matches_manifest": true,
+            "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+            "pages": 599
+          },
+          "engines.html": {
+            "bytes": 961337,
+            "sha256": "5a3e50457df431fa363497bd5a1e58ff8ac6e38f652039e1dde06a6f271ec1d8",
+            "matches_manifest": true
+          },
+          "config/engine-registry.json": {
+            "bytes": 196073,
+            "sha256": "bb00d8649b90d38b99dcd66874254899e82558ec4a7060e5b4f549a12f203dfb",
+            "matches_manifest": true
+          }
+        },
+        "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+        "source_inventory_replay": {
+          "build_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+          "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54",
+          "whole_engine_records": 898,
+          "whole_page_contracts": 599,
+          "inventory_generated_at": "2026-10-01T12:35:30.288217+00:00",
+          "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+          "generators": {
+            "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+            "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+          },
+          "generated_repository_assets": {
+            "engine-manifest.json": "124e338e7c0a35aa18d3eade9f95d319d4859ccec4f06a2f051c3d8ec54ff307",
+            "nav-manifest.json": "c07f85de679d52e85846701274e68c479ecff23d0767a47b8ab7e328bb2a45c7"
+          },
+          "working_tree_unchanged": true
+        },
+        "generated_asset_bindings": {
+          "navigation_replayed_from_source_at_recorded_build_date": true,
+          "rows": [
+            {
+              "page": "index.html",
+              "key": "config/home-layout.json",
+              "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+              "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+            },
+            {
+              "page": "index.html",
+              "key": "config/section-registry.json",
+              "source_sha256": "908ffe507bf123b571907f8c2f4c300673aff7f4278891bf156feef8f60c3357",
+              "built_sha256": "b2d447939ae88a6d4233b066919fe305a228659d16d426c21f2075dbd715172c"
+            }
+          ]
+        },
+        "offline_build": {
+          "complete_engine_rows": 898,
+          "complete_source_registry_matches_manifest": true,
+          "all_concrete_outputs_unchecked_with_null_measurements": true,
+          "counts": {
+            "no-outs": 70,
+            "wired-unverified-feed": 670,
+            "declared-unverified": 158
+          },
+          "rails": [
+            {
+              "page": "calls.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            },
+            {
+              "page": "liquidity.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            }
+          ],
+          "source_references_are_not_runtime_health": true
+        },
+        "intended_static_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "static_sources_unchanged_between_commits": true,
+        "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54",
+        "same_build_manifest_before_after": true
+      },
+      "assets": {
+        "checked_at": "2026-10-01T12:38:00.457591+00:00",
+        "served_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "scope": "Whole China and FI/FX static HTML/script/style only, no page execution or current/private/consumer requests.",
+        "assets": {
+          "fifx-vol.html": {
+            "bytes": 11562,
+            "sha256": "06b25e646dc44e327971a62d9b5a65fc09147af5c6289bbdfeb07eee5af9b8be",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "bond-desk.html": {
+            "bytes": 30701,
+            "sha256": "f3148275925e6c8e0b9adc99d97070c1e871a7b688399c7f57db86d61b06334b",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "165dc6c39630d6310f03ff6e8bcbbeb42afd974139227b9b997a90ba5e5f1b16",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "signal-board.html": {
+            "bytes": 20200,
+            "sha256": "80f50b3b623f051ea3deeb0be8d379446ffe752f05f6dce001ed05143030e221",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.js": {
+            "bytes": 21919,
+            "sha256": "fe2ba9e5342223027fb112de6fe75ae7372f32a82fec53a4432fd988f8cde837",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.css": {
+            "bytes": 3417,
+            "sha256": "297f89dbdb5f4336012d92428efd394dc48049ab2354094cd6f0d78974549831",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "macro-leads.html": {
+            "bytes": 55965,
+            "sha256": "e1d57aa6b8eb4d7949bd0f014d6463b5733831f54e49c9057314d03437218c42",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-china-calendar.js": {
+            "bytes": 13841,
+            "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.js": {
+            "bytes": 10079,
+            "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.css": {
+            "bytes": 2372,
+            "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          }
+        },
+        "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54"
+      },
+      "navigation": {
+        "checked_at": "2026-10-01T12:38:02.262404+00:00",
+        "served_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "scope": "Static navigation/home code and complete local dependency closure, no page execution or consumer data requests",
+        "assets": {
+          "auth-config.js": {
+            "bytes": 1406,
+            "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+            "matches_source_transform_and_build": true
+          },
+          "auth.js": {
+            "bytes": 20821,
+            "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+            "matches_source_transform_and_build": true
+          },
+          "home.js": {
+            "bytes": 95417,
+            "sha256": "cb25ef27d9c3cf7ad688bcec48d6adc683f1aacddc78bcfcff20ff495747abf9",
+            "matches_source_transform_and_build": true
+          },
+          "jh-market-tape.js": {
+            "bytes": 4387,
+            "sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+            "matches_source_transform_and_build": true
+          },
+          "jh-nav-drawer.js": {
+            "bytes": 31948,
+            "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+            "matches_source_transform_and_build": true
+          },
+          "jh-theme.css": {
+            "bytes": 10031,
+            "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+            "matches_source_transform_and_build": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "58bb001679b8f66c4d86874d152ff3f9dafa017b5dcb28ee15ce729c2409ed6d",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "1a450a4cbe2d90aef23a8693b7ed367542a9805c2fc68a5184817f41f97ba187",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "165dc6c39630d6310f03ff6e8bcbbeb42afd974139227b9b997a90ba5e5f1b16",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          },
+          "macro-leads.html": {
+            "bytes": 55965,
+            "sha256": "e1d57aa6b8eb4d7949bd0f014d6463b5733831f54e49c9057314d03437218c42",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          },
+          "liquidity.html": {
+            "bytes": 68514,
+            "sha256": "8e2e55b9bba360b50f318a4079b80c1c75cbd1e60a0dcd7ddcc0a00bff2ed3e7",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "61bfc80863800a6de13df320e0809625217456e6cb1790f6bf35b04347a61eb6",
+            "matches_build": true,
+            "exact_drawer_version": "1e52a040"
+          }
+        },
+        "dependency_mode": "topo",
+        "drawer_version": "1e52a040",
+        "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54",
+        "verification_notes": [
+          "Temporary reconstruction explicitly reproduces Linux UTF-8/LF writes and the exact reskin skip rules; served bytes are never normalized.",
+          "The separate portfolio/index.html application does not declare the shared drawer; its whole static HTML is checked by platform acceptance."
+        ]
+      },
+      "chart": {
+        "checked_at": "2026-10-01T12:38:00.375392+00:00",
+        "served_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+        "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54",
+        "scope": "Whole static chart source and exact built HTML only. No browser execution, current data or provider requests.",
+        "assets": {
+          "jh-observation-series.js": {
+            "bytes": 9981,
+            "sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+            "md5": "15b1b2e23bfd849430043cdb1d6a43c4",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+            "sole_edge_script_removed": null
+          },
+          "jh-observation-cache.js": {
+            "bytes": 8235,
+            "sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+            "md5": "1a3768f8326034795ab54067ef8cf629",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+            "sole_edge_script_removed": null
+          },
+          "jh-cq-fuse.js": {
+            "bytes": 30205,
+            "sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+            "md5": "e49b7612e82afb508e2cd9f9540584fd",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-catalog.js": {
+            "bytes": 41059,
+            "sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+            "md5": "9f8e816a27ef59b58db5fcdd1672e2b6",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-engine.js": {
+            "bytes": 382245,
+            "sha256": "5e8ed7c9ef9942000bc9c719746ca8f3d1a29cdd748ac0741c59f5acfe5017c2",
+            "md5": "ef71afb8fc28addae060f9d9c2c02768",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "5e8ed7c9ef9942000bc9c719746ca8f3d1a29cdd748ac0741c59f5acfe5017c2",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-stock-desk.js": {
+            "bytes": 15423,
+            "sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+            "md5": "3d73da2c8edcae0c7e6917f004e7a0b9",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+            "sole_edge_script_removed": null
+          },
+          "jh-stock-desk-research.js": {
+            "bytes": 7111,
+            "sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+            "md5": "04e2940fff1c3fa1f4f2251e58c4f765",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-tvsearch.js": {
+            "bytes": 97927,
+            "sha256": "4de3f0c93e64bd2ff43081204da130de24ec15ec103f2f579cbf9a34e3cfd9ba",
+            "md5": "6e7e846cd670d0dcb00a88f862cd9fca",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "4de3f0c93e64bd2ff43081204da130de24ec15ec103f2f579cbf9a34e3cfd9ba",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-tvrail.js": {
+            "bytes": 29127,
+            "sha256": "f84889ea079118c0db966c8d616135fc53e255b1e84dd4d00fa71a59b8170c5a",
+            "md5": "b286acda774958fd8261994ba32f1b5d",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "f84889ea079118c0db966c8d616135fc53e255b1e84dd4d00fa71a59b8170c5a",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-vol-events.js": {
+            "bytes": 18272,
+            "sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+            "md5": "e4aa1dfa757a57086a4f6a829d5cf190",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+            "sole_edge_script_removed": null
+          },
+          "jh-chart-indux.js": {
+            "bytes": 67328,
+            "sha256": "9b88fff3829f7451a7356258abf2cd335fe68522052a85a0fc5fd5bc6f3b725b",
+            "md5": "67a3467f3f9a1f8039bb99326ee1aae5",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "9b88fff3829f7451a7356258abf2cd335fe68522052a85a0fc5fd5bc6f3b725b",
+            "sole_edge_script_removed": null
+          },
+          "jh-khalid-sniper.js": {
+            "bytes": 41455,
+            "sha256": "320d90d13dfc0ae0acdfdb331f906cb448748a9f283e1d13d416dd542c88f9ad",
+            "md5": "71d5591c0b39282a9bc3dd4582a7d8d0",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "320d90d13dfc0ae0acdfdb331f906cb448748a9f283e1d13d416dd542c88f9ad",
+            "sole_edge_script_removed": null
+          },
+          "khalid.js": {
+            "bytes": 33587,
+            "sha256": "d0888acff8933bd47263b22719a357a310df55ec382d89d12dfa80372e5da7db",
+            "md5": "636738d0cbef025a47c9645109247935",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "d0888acff8933bd47263b22719a357a310df55ec382d89d12dfa80372e5da7db",
+            "sole_edge_script_removed": null
+          },
+          "jh-enhance.js": {
+            "bytes": 11232,
+            "sha256": "e078dad716592659b4dfda9ecf9d63a28e7dce62dda99306f006c0724c0963ce",
+            "md5": "d2717d01706d816b04bf9743e013ceae",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "e078dad716592659b4dfda9ecf9d63a28e7dce62dda99306f006c0724c0963ce",
+            "sole_edge_script_removed": null
+          },
+          "jh-tape-truth.js": {
+            "bytes": 4185,
+            "sha256": "fe9c68470bba43a9d4fd33ed5d62db53db9c6cb221f41feec9e61a201d13df34",
+            "md5": "6922f08b533efbb81cfb6b4c59a7b989",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "fe9c68470bba43a9d4fd33ed5d62db53db9c6cb221f41feec9e61a201d13df34",
+            "sole_edge_script_removed": null
+          },
+          "jh-market-tape.js": {
+            "bytes": 4387,
+            "sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+            "md5": "ab34f20ded85d822040962344047488e",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+            "sole_edge_script_removed": null
+          },
+          "chart.html": {
+            "bytes": 52530,
+            "sha256": "6e8f7390fe59c1a9fa26d7557611d420af41329656092866faf1ad55d7afc42d",
+            "md5": "0964df679772b50cdd427a8c20f00e01",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "7d1cfb22d7f39c48851049478bbe5a956e49ea68d884cf5c046d877285bc5cc8",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "crypto/index.html": {
+            "bytes": 108477,
+            "sha256": "fec60af13dae491007ffaa373000d2d4690b167a18453d49757021a2eb6afa93",
+            "md5": "16f4c9583cb9b9e60c7183bf2f73ea81",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "2d4606cffbf5b5619764b40ae20a3e1adedadc8d786bc4b88b3883096958824c",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "correlation.html": {
+            "bytes": 65717,
+            "sha256": "492d4c2bdaa870b81c8e3ed6a32b801c3c1872328871528afe75a3f6588dc0e7",
+            "md5": "6afe39768002127a81ba64a95d99d89c",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "5eb3a734868f0a7f5b85b3b0658f5b3772807cd85f9d912133f90da10e22ada7",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "khalid.html": {
+            "bytes": 37470,
+            "sha256": "582879e6cfd9f045c527f4ea99b5edbab94b62ded94c7e9be87f8e129d8cad47",
+            "md5": "b7b39197eeb2374708145b23ad3a2002",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "d399c24ea23b02f20545420fdbbb11ac6303d44f7de0f5f338538f1c66e5fec6",
+            "sole_edge_script_removed": {
+              "matched_index": 1,
+              "matching_scripts_in_response": 2,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "tape-reader.html": {
+            "bytes": 20493,
+            "sha256": "5db8599c070089f5d13c33025edbcf8abb50304d63140c33ffcd74d01dfaa985",
+            "md5": "8223c445618a28dfbc89bd748280402c",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "b0176b99b75ef623b536e50890f589c9a82ca78df766ecf1c42e97d4ff2f384a",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "tape-truth.html": {
+            "bytes": 19529,
+            "sha256": "e7b38c76d3d8a76e914076c899bad3ada7810130bdcef5dd964414e482466baf",
+            "md5": "ef3babb28fe08ae4c201df488435a477",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "f3880e4eb8207c1797c6f674cd0255bfc25170b71c175e8f8db08d8eba09c28d",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "industry-case.html": {
+            "bytes": 20165,
+            "sha256": "02f7e15a96af9050e3f8d39864046543c4fdfbfdff911d25a5ba43ab5ae653f2",
+            "md5": "55ed35d0836fb6fd0177bfcb292ecdc6",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "26756ec54c75a26ebdafc7e76d926ffe51deafd7bbe24c194876ae9d0678c351",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          },
+          "why.html": {
+            "bytes": 567178,
+            "sha256": "4b8c78032ef6610c3008f497873e489a5710da81987dd8b0499865f4c544be59",
+            "md5": "ef24e73a538766698c3305d7ffa709ac",
+            "matches_exact_build": true,
+            "full_http_body_sha256": "7e9a74cbd0054077a78bd59b3b6cb9da208c17079551283f4bd0d3f985763334",
+            "sole_edge_script_removed": {
+              "matched_index": 0,
+              "matching_scripts_in_response": 1,
+              "bytes": 367,
+              "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+            }
+          }
+        }
+      }
+    },
+    "unique_static_files": 78,
+    "whole_generation_replay": {
+      "build_commit": "4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2",
+      "build_manifest_sha256": "a3c26bdc508a2159ee68c00b1c4aed3bc5e258981640723946cf6db7c84c2e54",
+      "whole_engine_records": 898,
+      "whole_page_contracts": 599,
+      "inventory_generated_at": "2026-10-01T12:35:30.288217+00:00",
+      "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+      "generators": {
+        "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+        "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+      },
+      "generated_repository_assets": {
+        "engine-manifest.json": "124e338e7c0a35aa18d3eade9f95d319d4859ccec4f06a2f051c3d8ec54ff307",
+        "nav-manifest.json": "c07f85de679d52e85846701274e68c479ecff23d0767a47b8ab7e328bb2a45c7"
+      },
+      "working_tree_unchanged": true
+    },
+    "actual_application_data_requests": 0,
+    "producer_invocations": 0,
+    "normal_data_execution_verified": false,
+    "investment_authority": false,
+    "native_release_required": false
+  },
+  "acceptance_incoming": {
+    "head": "27a9755a26e5813f5d019a41ec33fcb550870616",
+    "path": "aws/lambdas/justhodl-etf-issuer-holdings/source/lambda_function.py",
+    "sha256": "25f550f189e4b0d56b184db9c28863ca15a79a2dae348675c27b9e997eccea6d",
+    "change": "Three module-docstring lines only; executable AST unchanged. Claimed native schedule status in peer comment not accepted as evidence. No report or actual source packet read."
+  }
+}

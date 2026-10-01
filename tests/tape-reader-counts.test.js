@@ -51,7 +51,7 @@ test('missing-size rows sort last in both directions and cannot acquire size tag
 test('legacy packet clears table and summary rather than reusing unsupported scores', async () => {
   const data = structuredClone(fixture); delete data.measurement_contract;
   const p = await page(data);
-  assert.match(p.elements.tableHost.innerHTML, /Updated aggregate-activity data unavailable/);
+  assert.match(p.elements.tableHost.innerHTML, /Qualification withheld — awaiting a compatible publication/);
   assert.equal(p.elements.topScore.textContent, '—'); assert.equal(p.run('DATA'), null);
 });
 

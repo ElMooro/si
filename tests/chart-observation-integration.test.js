@@ -35,7 +35,7 @@ function engineContext(catalog){
   document:{getElementById:el},series:[],oscCharts:[],oscSeries:[],preserveView:false,ACC:'#ff9900',
   chart:{applyOptions(){},priceScale:()=>({applyOptions(){}}),addLineSeries:()=>({applyOptions(){},setData:d=>lineData.push(d)}),timeScale:()=>({fitContent(){},setVisibleLogicalRange(){}})},
   tape:{prints:[]},renderQR(){},paintMini(){},miniSeries:null,TFS:[['1d'],['1w'],['1M']],lastBars:[],lastVolShow:true,dwinOn:true};
- vm.createContext(c);vm.runInContext(['medianGap','expectedGap','barsFitTf','uniq','resampleToTf','identifyBars','klines','observationId','scalarPanel','clearObservationFrame','observationText','observationAxisFormatter','bindObservationAxis','paintObservations','quoteUI','fillTape','lastPx','countdown','renderLegend','renderDwin','loadTape','paint','load','startReplay','renderCorr'].map(n=>named[n]).join('\n'),c);
+ vm.createContext(c);vm.runInContext(['escHtml','medianGap','expectedGap','barsFitTf','uniq','resampleToTf','identifyBars','klines','observationId','scalarPanel','clearObservationFrame','observationText','observationAxisFormatter','bindObservationAxis','paintObservations','quoteUI','fillTape','lastPx','countdown','renderLegend','renderDwin','loadTape','paint','load','startReplay','renderCorr'].map(n=>named[n]).join('\n'),c);
  return {c,requests,elements,lineData,el};
 }
 test('failed or absent catalog never sends a scalar ID to market-price endpoints',async()=>{

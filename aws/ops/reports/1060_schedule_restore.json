@@ -1,0 +1,32 @@
+{
+  "script": "1060_schedule_restore",
+  "read_at": "2026-10-01T12:12:58Z",
+  "function": "justhodl-etf-issuer-holdings",
+  "rule": "justhodl-etf-issuer-holdings-daily",
+  "expression": "cron(0 4 * * ? *)",
+  "overall": "PASS",
+  "steps": {
+    "rule": {
+      "action": "created",
+      "expression": "cron(0 4 * * ? *)"
+    },
+    "permission": {
+      "action": "added"
+    },
+    "target": {
+      "action": "bound",
+      "failed_entries": 0
+    },
+    "verify": {
+      "rule_state": "ENABLED",
+      "expression": "cron(0 4 * * ? *)",
+      "targets": [
+        {
+          "id": "audit-justhodl-etf-issuer-holdings",
+          "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-issuer-holdings"
+        }
+      ],
+      "function_bound": true
+    }
+  }
+}

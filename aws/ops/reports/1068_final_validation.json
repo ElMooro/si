@@ -1,0 +1,323 @@
+{
+  "script": "1068_final_validation",
+  "read_at": "2026-10-01T13:34:04Z",
+  "upgrades": {
+    "1/10 FRED macro regime": {
+      "lambda": "justhodl-fred-macro-regime",
+      "code": {
+        "exists": false
+      },
+      "trigger": {
+        "found": false
+      },
+      "trigger_name": "justhodl-fred-macro-regime-daily",
+      "activity": {
+        "invocations": null,
+        "errors": null
+      },
+      "artifacts": {
+        "data/fred-macro-regime.json": {
+          "exists": false
+        }
+      },
+      "notes": "",
+      "verdict": "FAIL"
+    },
+    "2/10 SEC 8-K enrichment": {
+      "lambda": "justhodl-sec-8k-enrich",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-09-30T20:11:23.000+0000",
+        "timeout": 300
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(10,40 * * * ? *)"
+      },
+      "trigger_name": "justhodl-sec-8k-enrich-schedule",
+      "activity": {
+        "invocations": 3,
+        "errors": 1
+      },
+      "artifacts": {
+        "data/8k-filings-enriched.json": {
+          "exists": true,
+          "last_modified": "2026-10-01T13:10:56+00:00",
+          "size": 1108083
+        },
+        "data/8k-by-ticker.json": {
+          "exists": true,
+          "last_modified": "2026-10-01T13:10:56+00:00",
+          "size": 421383
+        }
+      },
+      "notes": "schedule created by 1063",
+      "verdict": "DEGRADED"
+    },
+    "3/10 FINRA short-interest": {
+      "lambda": "justhodl-short-interest",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-10-01T13:33:21.000+0000",
+        "timeout": 360
+      },
+      "trigger": {
+        "found": false
+      },
+      "trigger_name": "justhodl-short-interest-daily",
+      "activity": {
+        "invocations": 6,
+        "errors": 6
+      },
+      "artifacts": {
+        "data/short-interest.json": {
+          "exists": true,
+          "last_modified": "2026-09-30T12:25:16+00:00",
+          "size": 4997602
+        },
+        "data/short-interest-tickers.json": {
+          "exists": false
+        }
+      },
+      "notes": "request_path regex fixed; redeployed",
+      "verdict": "FAIL"
+    },
+    "4/10 SEC XBRL": {
+      "lambda": "justhodl-xbrl-fundamentals",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-09-30T20:50:10.000+0000",
+        "timeout": 900
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(0 6 ? * SUN *)"
+      },
+      "trigger_name": "justhodl-xbrl-fundamentals-schedule",
+      "activity": {
+        "invocations": null,
+        "errors": null
+      },
+      "artifacts": {
+        "data/xbrl-fundamentals-index.json": {
+          "exists": false
+        }
+      },
+      "notes": "schedule created by 1063",
+      "verdict": "FAIL"
+    },
+    "5/10 CBOE options": {
+      "lambda": "justhodl-cboe-options-chain",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-09-30T21:11:42.000+0000",
+        "timeout": 300
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(5,35 * * * ? *)"
+      },
+      "trigger_name": "justhodl-cboe-options-chain-schedule",
+      "activity": {
+        "invocations": 2,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/cboe-options-chain.json": {
+          "exists": true,
+          "last_modified": "2026-10-01T13:06:30+00:00",
+          "size": 25685270
+        }
+      },
+      "notes": "schedule created by 1063",
+      "verdict": "PASS"
+    },
+    "6/10 FINRA TRACE (bond)": {
+      "lambda": "justhodl-bond-trace",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-10-01T12:56:59.000+0000",
+        "timeout": 120
+      },
+      "trigger": {
+        "found": false
+      },
+      "trigger_name": "justhodl-bond-trace-daily",
+      "activity": {
+        "invocations": 2,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/bond-trace.json": {
+          "exists": true,
+          "last_modified": "2026-09-30T21:00:50+00:00",
+          "size": 750
+        }
+      },
+      "notes": "finra_trace rewired to corporateMarketBreadth; 1067 PASS",
+      "verdict": "FAIL"
+    },
+    "7/10 Corporate actions": {
+      "lambda": "justhodl-corporate-actions",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-09-30T21:59:22.000+0000",
+        "timeout": 300
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(30 6 ? * * *)"
+      },
+      "trigger_name": "justhodl-corporate-actions-schedule",
+      "activity": {
+        "invocations": null,
+        "errors": null
+      },
+      "artifacts": {
+        "data/corporate-actions-index.json": {
+          "exists": false
+        }
+      },
+      "notes": "schedule created by 1063",
+      "verdict": "FAIL"
+    },
+    "8/10 Price redundancy": {
+      "lambda": "justhodl-price-redundancy",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-10-01T12:44:53.000+0000",
+        "timeout": 300
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "rate(15 minutes)"
+      },
+      "trigger_name": "justhodl-price-redundancy-15min",
+      "activity": {
+        "invocations": 100,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/quote-health.json": {
+          "exists": true,
+          "last_modified": "2026-10-01T13:29:36+00:00",
+          "size": 6912
+        }
+      },
+      "notes": "redeployed; rule pre-existed+enabled",
+      "verdict": "PASS"
+    },
+    "9/10 Symbology/OpenFIGI": {
+      "lambda": "justhodl-symbology-master",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-10-01T01:00:32.000+0000",
+        "timeout": 120
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(15 5 * * ? *)"
+      },
+      "trigger_name": "justhodl-symbology-master-daily",
+      "activity": {
+        "invocations": 1,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/symbology-master.json": {
+          "exists": false
+        }
+      },
+      "notes": "",
+      "verdict": "DEGRADED"
+    },
+    "10/10 ETF issuer holdings": {
+      "lambda": "justhodl-etf-issuer-holdings",
+      "code": {
+        "exists": true,
+        "last_modified": "2026-10-01T12:36:13.000+0000",
+        "timeout": 600
+      },
+      "trigger": {
+        "found": true,
+        "state": "ENABLED",
+        "expression": "cron(0 4 * * ? *)"
+      },
+      "trigger_name": "justhodl-etf-issuer-holdings-daily",
+      "activity": {
+        "invocations": null,
+        "errors": null
+      },
+      "artifacts": {
+        "data/etf-issuer-holdings.json": {
+          "exists": false
+        }
+      },
+      "notes": "percent parser fixed; rule created by 1060; redeployed",
+      "verdict": "FAIL"
+    }
+  },
+  "r_engine": {
+    "justhodl-peer-comparison-daily": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 13 * * ? *)"
+    },
+    "justhodl-screen-builder-universe-daily": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 14 * * ? *)"
+    },
+    "justhodl-fedwatch-rate-probability-daily": {
+      "found": true,
+      "state": "DISABLED",
+      "expression": "cron(0 23 * * ? *)"
+    },
+    "fedwatch-rate-probability-sched": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 23 * * ? *)"
+    },
+    "justhodl-sec-filing-diff-daily": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 12 * * ? *)"
+    },
+    "justhodl-supply-chain-linkage-daily": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 15 * * ? *)"
+    },
+    "justhodl-factor-decomposition-weekly": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 6 ? * SUN *)"
+    },
+    "justhodl-fx-decomposition-daily": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 22 * * ? *)"
+    },
+    "justhodl-cftc-deep-view-fri": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(0 22 ? * FRI *)"
+    },
+    "justhodl-transcript-query-weekly": {
+      "found": true,
+      "state": "ENABLED",
+      "expression": "cron(15 7 ? * MON *)"
+    }
+  },
+  "summary": {
+    "FAIL": 6,
+    "DEGRADED": 2,
+    "PASS": 2
+  }
+}

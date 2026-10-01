@@ -1,0 +1,24 @@
+{
+  "script": "1067_finra_rewire_verify",
+  "read_at": "2026-10-01T13:11:17Z",
+  "module": {
+    "breadth_dataset": "corporateMarketBreadth",
+    "date_field": "tradeReportDate"
+  },
+  "breadth": {
+    "ok": true,
+    "tradeDate": "2026-09-30",
+    "advancing": 7888.0,
+    "declining": 17928.0,
+    "unchanged": 220.0,
+    "n_trades": 27918.0
+  },
+  "trace_aggregates": {
+    "ok": true,
+    "trade_date": "2026-09-30",
+    "n_prints": 27918,
+    "total_volume": 142472.815437,
+    "source": "corporateMarketBreadth"
+  },
+  "overall": "PASS"
+}

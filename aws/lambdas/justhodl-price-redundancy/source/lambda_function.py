@@ -1,6 +1,9 @@
 """
 justhodl-price-redundancy — Stooq + Yahoo fallback price feed
 
+Ops note: the 84533e0e (8/10) badge/latency upgrade never deployed (AWS code
+stuck at 2026-09-09); this touch retriggers the deploy pipeline.
+
 When FMP (premium, but rate-limited) returns 429 or stale data, this Lambda
 maintains a parallel price feed from two free sources:
   - Stooq (https://stooq.com/q/d/l/)        — CSV download, no key, free
