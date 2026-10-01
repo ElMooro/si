@@ -1,0 +1,4186 @@
+{
+  "stage": 526,
+  "status": "control_baseline_prepared_not_executed",
+  "source_inventory": {
+    "scope": "Checked-in code and compiler-closure inventory only. No credentials, current/provider/model/account/private packets, policy cache, native invocation or spend evidence. Literal URLs may be dormant code; variable URLs and SDK calls can be absent.",
+    "base_commit": "66afebb39c11c2ea5d8bfb89a3ce9522f6f1dd52",
+    "adapters": {
+      "anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+      "claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+      "llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+      "xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+    },
+    "functions": [
+      {
+        "function": "justhodl-a2a-bus",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-a2a-bus/source/lambda_function.py": "5917d7ecced0554d0a0e9cb5b82540d5cfb44f568a23253b74628362ba76f04e",
+          "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ab-test",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ab-test/source/lambda_function.py": "be4da771a2c6331eb760fd709dcc0b8ce24ed0c29d138f793ca85a292c1084d9",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 9,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ai-brief-router/source/lambda_function.py": "9e9ccd76df2d9d1db6eef21b6c0025fcc0735db620b052ddbdf2db59000fb19a",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/nowcast_research.py": "5580f18d6c0a1be1d137163f8b07b3cce39754e35edf6c6dac5d7ff13269a02d",
+          "aws/shared/plumbing_authority.py": "5d6008e54eb4b9f372edc7ac08b63b8ba283912e51b834ffe9ef50a61c494c9b",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ai-chat",
+        "adapters": [
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 28,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ai-chat/source/lambda_function.py": "c58da7cc402adfd0459c2b67997ca5fd55be52123979e8e0e8df5b136a2d234f",
+          "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+          "aws/shared/aaii_research.py": "c9b0321ef57bed19c6f949194df8ceb2e84819eabc910702e114f5a6129c0a88",
+          "aws/shared/ciss_readthrough.py": "996789e5c95e4fc31366e74c7edec051b001c265fdd4a7c12384d000b2af4607",
+          "aws/shared/ciss_source_model.py": "aceaa814189bc72fc914e4cd4ae7a895cb2e4aeb376b0519fb17fdc4de01313c",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/credit_collection_clock.py": "3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1",
+          "aws/shared/credit_research.py": "aed603d204c8d69acd7cace826670df50f73c76623bdf123c6790982663ed81f",
+          "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+          "aws/shared/donor_contract.py": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8",
+          "aws/shared/extremes_research.py": "691cba0c160992d51c30aeaef15640fa78ac499b95171cc8e4de4683993de864",
+          "aws/shared/fred_vintage_model.py": "18a94566ffc74cda5208dd89a4372dbfa5cee40049e83db8006b8b51ccc5b17b",
+          "aws/shared/lce_research_catalog.py": "94e446b1206391dfceb8dd5e3abbf19e7e80756bf3835720478118dd5a15866e",
+          "aws/shared/lce_research_model.py": "54854fb6962d976c935b0dde3990c00cdae34978d626f1c342e13d396afbc43c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/macro_donor_inputs.py": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+          "aws/shared/research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+          "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+          "aws/shared/sector_research.py": "b2131c339b2305fa4565467485266dbbf22fd495b7281461e460bf06c8b33123",
+          "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+          "aws/shared/tenor_research_model.py": "13ed058d105909598fc87c84af3d1e04c667323cf092b8cc96ca0981c35c3acf",
+          "aws/shared/treasury_instruments.py": "c256fd14f2f8d5da79ab6b4d10bf2147404c9a6025fe1154767a56295af7d4a6",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ai-council",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ai-council/source/lambda_function.py": "7fba14b203b409d291fb89154845bd96c92cd8f863318b0d6625f888357e163c",
+          "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ai",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 47,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ai/source/brain_dataset.py": "ba18d33b33cd7b53ba1dfb825a93162735e7b35bff583937148f80183a7980ad",
+          "aws/lambdas/justhodl-ai/source/cost_guard.py": "2a1f7642b51492f5b1522d6d08160500e524bb85ad8636e66fbd6ce67519c77a",
+          "aws/lambdas/justhodl-ai/source/deployment_gates.py": "8889a4ddf624cd8656f0fd7c9cfdb7323df028aa664a41b4e59b14f7672a1f50",
+          "aws/lambdas/justhodl-ai/source/doctrine_families.py": "9f3fc268c3df5d081db8b2662ecb86c643601d6c54584542a00b6c4c9ad44fd7",
+          "aws/lambdas/justhodl-ai/source/factory_gateway.py": "64ab1a2c02f8b550ee65311363ef72b63ebf0da61697e406f7a1c18b5fa08e01",
+          "aws/lambdas/justhodl-ai/source/factory_inference.py": "732d4596d85e8c5081a13ed00b996cc464aa8055966e61bb5d7bec13c00149d6",
+          "aws/lambdas/justhodl-ai/source/factory_status.py": "e9f7b48b2dfdb9d93ec3f3c0ecb25483c870525b58f603b2e62ffcdcbf5ae3e2",
+          "aws/lambdas/justhodl-ai/source/fleet_inputs.py": "c52fd382f21e99ca2f86dd4d064b1a0e6019f13b1028efb8d051b24c613db16a",
+          "aws/lambdas/justhodl-ai/source/gear_b.py": "63a3a472395d466c4248b7958e721beb291f52b20e5a2ac42bbcb2e4a22b4af8",
+          "aws/lambdas/justhodl-ai/source/gear_b_doctrine.py": "6f666ef2f96c38823ee352c5f2daa164aece9529c7b28ea8e81ce19bc2aec86f",
+          "aws/lambdas/justhodl-ai/source/gear_b_own.py": "3e979cc662e051f1ce62a97e61d6405d0f4126cdd7ef2473c2ab3e5757bf2d7b",
+          "aws/lambdas/justhodl-ai/source/governance_control.py": "fcda09977edea2ede24c69815f75c539d7cb6dced1ff5495ff40ec8235abf9e0",
+          "aws/lambdas/justhodl-ai/source/lambda_function.py": "390a4ac8cc685b7ec6217c1cab32fef85b00723de7a29d4bcca9c76b33973bf7",
+          "aws/lambdas/justhodl-ai/source/market_read.py": "1fdd770b7a0a2d4f13abcc0caa04f5ea479fee1171d5567dc0e6e8421f7c1ca6",
+          "aws/lambdas/justhodl-ai/source/model_governance_consumer.py": "40a4ce082156d6420ae8538ecb0bf7a9e0132bf35b5462145f54a33ebb5a61b9",
+          "aws/lambdas/justhodl-ai/source/model_registry.py": "b9d097ea3a06b526fb329e37fea8a3667ea1b935c86e4fed096873942d6730c2",
+          "aws/lambdas/justhodl-ai/source/outcome_labels.py": "fa20205bc37ccc5e104ed9baeff609179f55bacd28bbca851cbe135c756e11a9",
+          "aws/lambdas/justhodl-ai/source/pipeline.py": "88865acf981af0809599d803ecf74f97d99d852265e5b040d4c219087360c91c",
+          "aws/lambdas/justhodl-ai/source/point_in_time.py": "c23301f8e7d64d8f9113b03deff2e9e6c609d03468c9bf8639fa50c69a71931c",
+          "aws/lambdas/justhodl-ai/source/prediction_ledger.py": "348c5fe8ffc65d61b84e307d8b5745913fa72d757e6ce24651fa93bd742813bf",
+          "aws/lambdas/justhodl-ai/source/prediction_ledger_consumer.py": "d031536979429b0833d658f1894025d5b979fb8f0c22ea0018f5ed98d5711a53",
+          "aws/lambdas/justhodl-ai/source/queue_consumer_runtime.py": "30a79dafdca043a0b152c7665b5af00e9e5c1d5c627234d2e92ee98f41f26194",
+          "aws/lambdas/justhodl-ai/source/s3_event_outbox.py": "5767ab4db779d9778b2323c4e9291b6aaba508029e0ed8884cde76575b0f9e6f",
+          "aws/lambdas/justhodl-ai/source/sagemaker_feature_store.py": "79c70f4b1c2789f31273f1393bf6b76a04384c3d0ba2f84bde99f7ba9b2d09e1",
+          "aws/lambdas/justhodl-ai/source/self_improve.py": "d7e58e5d6708bcfd3f237e60e5ba8a82fd1f6d4b3f87083c9fb5a86a581e6270",
+          "aws/lambdas/justhodl-ai/source/self_improve_ext.py": "301350dae656cfa3eddd5625219038403f131f8147c9db29de416656d172d5a2",
+          "aws/lambdas/justhodl-ai/source/signal_envelope.py": "f5052d75b7714fe6c7e69db2c6509a8077a0d7235bafb1f5ee5ab6bd2aae49d3",
+          "aws/lambdas/justhodl-ai/source/signal_feature_consumer.py": "56f5494013548872f7db328d609d4721c5726a0207790fea937c87055c651919",
+          "aws/lambdas/justhodl-ai/source/sm_hub.py": "415187dfa052fff325e2196d158a055b0d8b774cc329bacf234164b8d72c6620",
+          "aws/lambdas/justhodl-ai/source/training.py": "034f182a7d079ceec4f63190e7c666204e7a8da13289903826e6a7800a2343c6",
+          "aws/lambdas/justhodl-ai/source/training_eligibility.py": "5d5863a3efda87800d43815c69f5280b3821d6cfb3fdc31a2e78c4e277a6b11f",
+          "aws/lambdas/justhodl-ai/source/validation_splits.py": "1ec6e348b99ac552bba133bc90b7559559b381ac52a59a9643fa0c4a9dc88d3d",
+          "aws/lambdas/justhodl-ai/source/wall_post.py": "f2cddd718df3b5a9b122087ed32b6c5cf4341d5e7907c30b1fc2eb64bc696307",
+          "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+          "aws/shared/deterministic_desk.py": "ee386f30b29af630c4bc05d3b3bef9eb6746b88e36ca1a081b76e2fd53097f43",
+          "aws/shared/factory_core.py": "6d05d66b1d5743342e8d69d1a12c3a3423712c2669e10d638e6c4acc36577ed4",
+          "aws/shared/factory_discipline.py": "fcd6fcee4e8f389784050669f444758aaf950dafd6d52b4e94d5122d14f44808",
+          "aws/shared/factory_doctrine.py": "0788a2b80f2b65dd188f00b5748efb2d4622afa59aaaab05a89a88db36b6c485",
+          "aws/shared/factory_evidence.py": "5523d9a62db7feaf5b2b8681095ba85c8fa2871b0bfbdea7126e0d253f500ec7",
+          "aws/shared/factory_forecast.py": "5b7279caef8fad121571d524fb2ec3cb7246e9c3618ecc58bc97b0b073feb2db",
+          "aws/shared/factory_store.py": "c8bcfb23f73b3ca889d8db8ec8d0350cc4607b17a64ee5c402df90462eb5f9cd",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-altseason",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 4,
+        "source_hashes": {
+          "aws/lambdas/justhodl-altseason/source/lambda_function.py": "77295c0fba0fbe23a90d926bc13cc90c73b330eb77240236d7b0e858741a6300",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "adapters": [
+          "anthropic_shim.py",
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 11,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ask-desk/source/lambda_function.py": "f2a06513c0d7337adf9c0a9b29df18a13217f8a1952b8808e82f5cfe73e6d13a",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/backtest_harness_authority.py": "dd3cae640caa850921dacdd825b04780793094a858d4905b79348d43e25d7ede",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/meta_labeler_authority.py": "fe51167a97e9e88bb11537ee364e9254af59e093c3c6bce7be17c1139dcd0380",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/signal_board_authority.py": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ask",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 9,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ask/source/lambda_function.py": "c7e881ed59f5a1408372e5e0ff1b198d87b94288bcb6b817268f1ce8f23f0a6e",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
+          "aws/shared/consume_brain.py": "5b5ebfe0c4c4a8678893a3755b12a6d508e8cf2bd89c218d6c8fde6d592fe6d3",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-asset-discovery",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 4,
+        "source_hashes": {
+          "aws/lambdas/justhodl-asset-discovery/source/lambda_function.py": "dce922528fce35716958bd554c63a48b1be8d69a4f7a45b9b9883999f936cc0e",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-auction-crisis-ai/source/lambda_function.py": "6398b0cadfe02953ef627a3855c7ba77cb586ea4e101b890fe8ba18713273bf5",
+          "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-auction-interpreter/source/lambda_function.py": "b1a4ac902206a2945f45acfdf1a6ecba242c4678104fdf3cd4d179dee781f53e",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/dollar_research_context.py": "490c78d24d1cd03674cf1f0d5aa660f3ca8f04946c0dc3ea8de5f31e6cde01ba",
+          "aws/shared/eurodollar_research.py": "14b09a68da4d7c5c383ffefa8ef991103acba8f3c52c88c3a09e199ded1e6247",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-bond-desk",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 18,
+        "source_hashes": {
+          "aws/lambdas/justhodl-bond-desk/source/bond_credit.py": "d89eaced734621fcd3750a44ca22754c23f00cf9a535e3cd3a803b22dbac0a98",
+          "aws/lambdas/justhodl-bond-desk/source/bond_credit_qualification.py": "d836d80f5f6e85b6321693045eee63e7d55011ea3df52301b47a9de5594e23c4",
+          "aws/lambdas/justhodl-bond-desk/source/bond_credit_store.py": "64499e9c9488d7621db668952f2d81fddf1c3cddc3d5823a5e1d1d780d18143d",
+          "aws/lambdas/justhodl-bond-desk/source/bond_flow.py": "3d58999c5e8d52209ddaeba3d7bc420ab70ec824ec68ac4f4d012bdc481ef0ed",
+          "aws/lambdas/justhodl-bond-desk/source/bond_flow_qualification.py": "43e65e42a0022566fdb8117fe2e9687aebb8ea356129f7a2d7e65b1c47d69885",
+          "aws/lambdas/justhodl-bond-desk/source/bond_flow_store.py": "516b348d7788bceb52f768b904c85927973a46c6017b1354a73fa259e4d44562",
+          "aws/lambdas/justhodl-bond-desk/source/bond_publication.py": "faddd66aaa9597f8719b2603d9056b4c560a9dce76d3d8a0548fe882cf2cb517",
+          "aws/lambdas/justhodl-bond-desk/source/lambda_function.py": "d608acd39164f5161812ccdcb8b5a4b312d02a0d4332f16ae649fdab3557196b",
+          "aws/lambdas/justhodl-bond-desk/source/required_region_composite.py": "ce1d03d451742c52e041d04834e65046cda53639d27ee47254843fb8a46a4f46",
+          "aws/lambdas/justhodl-bond-desk/source/verify_bond_credit.py": "6139fc4ccfe87bf0262b98f2248322604c4d17364f3ccd4c041362f11bdac382",
+          "aws/lambdas/justhodl-bond-desk/source/verify_bond_flow.py": "fab00fd2d52877977761655d4a241f2067c752e792f5ec2dcbc0b54ace10d7f1",
+          "aws/shared/credit_collection_clock.py": "3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/provider_flow_catalog.py": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+          "aws/shared/provider_flow_research.py": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-bottleneck-research",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-bottleneck-research/source/lambda_function.py": "3dc0e0d3bff7ecf791238cab0b7b78db172044d9e21bb4a470deceda70f679d9",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-brain-sync",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-brain-sync/source/lambda_function.py": "5cf48a8e3c1d078503fc6cc29387a13321e98060d72cb4b650b78701940133f9",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-cb-stance/source/lambda_function.py": "619a0bd7511b2d1ceee8bd64289ed30e6d5746a5664a71e31404b17dde796a44",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-chart-vision/source/lambda_function.py": "649bbf84d9d152d85bcb946df76de18fa4cc2b3131d7fb6defcf31ad7b745126",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-chat-api",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-chat-api/source/lambda_function.py": "1bace5255f1d98da1feab7c40e30b75abb7a856d3d3469dcb161cc81c2438951",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-chokepoint",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-chokepoint/source/lambda_function.py": "c481915dcb5dc6c0f883e94965da0877807b35cb1a5b3157b47a2015cab0c869",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/offexchange_context.py": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3",
+          "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-crypto-intel",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py": "9a1c4a54c120de0da0b955f7119c5925c82890e115a0a5e537bf4db0556b07db",
+          "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+          "aws/shared/ka_aliases.py": "e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-cryptoquant",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-cryptoquant/source/cryptoquant-spec.json": "66f01818d98f64cdbe02e54ebe5afc1d0ad3372f2f0ca05b6d41c0151c87f808",
+          "aws/lambdas/justhodl-cryptoquant/source/lambda_function.py": "7b4e17196ade55fd45c996d937d9b938ded56a883e28fe6d53e1e6f6c1e23242",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-cycle-clock",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 24,
+        "source_hashes": {
+          "aws/lambdas/justhodl-cycle-clock/source/cycle_research_catalog.py": "285f7d9c481109324097c6e3216a1749aa0fb125757d557d7e6e6685b57339a9",
+          "aws/lambdas/justhodl-cycle-clock/source/cycle_research_model.py": "a61d87f6721096f6cdf6c94033e04ac23399b5c96901238668ff36d806fd1f41",
+          "aws/lambdas/justhodl-cycle-clock/source/cycle_research_store.py": "8a41f7ddb311ac8cd998f872b8231ffd69a0d915b285b511fb81392513b17a76",
+          "aws/lambdas/justhodl-cycle-clock/source/lambda_function.py": "0718965f9b8de883cdd3cc5209d879582a25fa0619076eedb731976f21d4a903",
+          "aws/lambdas/justhodl-cycle-clock/source/legacy_cycle_clock.py": "eb17562c8814d2dc5578035cd45835bf9a88f71c67eaeeab4f5946c3495db097",
+          "aws/shared/aaii_research.py": "c9b0321ef57bed19c6f949194df8ceb2e84819eabc910702e114f5a6129c0a88",
+          "aws/shared/canonical_fred_replay.py": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+          "aws/shared/credit_collection_clock.py": "3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1",
+          "aws/shared/credit_research.py": "aed603d204c8d69acd7cace826670df50f73c76623bdf123c6790982663ed81f",
+          "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+          "aws/shared/evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+          "aws/shared/fedwatch_research.py": "b35f11890abb4d0c09416391b433fbafdd9562218006bb62f3e2d2f747481537",
+          "aws/shared/fomc_research.py": "c8686ee21e49ec076c2f22440b2065597625f20c211021b38bd4ae51392fe67b",
+          "aws/shared/gsi_authority.py": "c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+          "aws/shared/research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+          "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+          "aws/shared/risk_regime_authority.py": "9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642",
+          "aws/shared/tail_research.py": "b7fbbe2626931be37e93ff5ee9b3006e362c22cb805e4771315ba2cad4ef239b",
+          "aws/shared/wl_fusion.py": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-debate-engine/source/lambda_function.py": "d1096a966b2df88c28056eabcd4c2a27e48ceedd288931d8e93cc111e28a3322",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "adapters": [
+          "anthropic_shim.py",
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 10,
+        "source_hashes": {
+          "aws/lambdas/justhodl-devils-advocate/source/lambda_function.py": "6bfd59ae94f9a06683b621292149eb7f45bcdefbf2b71735129d9bd5cc7e56d3",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/consume_brain.py": "5b5ebfe0c4c4a8678893a3755b12a6d508e8cf2bd89c218d6c8fde6d592fe6d3",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-digest-trends-ai/source/lambda_function.py": "81179b2c40e28d7748026f98ea27faf41b33a3b4203ff4deda4f4304452870b4",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-dislocation-ai/source/lambda_function.py": "29e22abe6cd5971425cf92204e5b0d4ba3d09af9a5bb7a441a327cb97ebb1013",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-divergence-interpreter/source/lambda_function.py": "232d38095f339d5dd29e4630d592ea81b444a5bf001a4153a5b5d934548ba088",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/nowcast_research.py": "5580f18d6c0a1be1d137163f8b07b3cce39754e35edf6c6dac5d7ff13269a02d",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-earnings-nlp/source/lambda_function.py": "fb9f9832fbaf359db035c9e033fa81b8fa3962c0904d471cadc2ea824eb9f7e6",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-earnings-sentiment/source/lambda_function.py": "4f0d2cf951d74e257a79b893e0b084c28159ad54b859beea6423a3cb2ca45b0a",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ecb-derived/source/lambda_function.py": "de66bf9f4355f14e674e00f665fa9d516a829f25989e12f7fbd13813b28117a4",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-episode-compass/source/lambda_function.py": "753f2b7a8a21c04af9b68c796f31cd677fb5979e4a151fcbd57f8d5adde5e6f6",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-eurodollar-plumbing",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 21,
+        "source_hashes": {
+          "aws/lambdas/justhodl-eurodollar-plumbing/source/funding_original.py": "d023b6c338505fae7041c40c693e62b0505a98aa97b684058583d4a3ea466419",
+          "aws/lambdas/justhodl-eurodollar-plumbing/source/funding_research.py": "d41a9441a502113f72f125d05a5fa96e64b05b7555551432b3a0fe539c076525",
+          "aws/lambdas/justhodl-eurodollar-plumbing/source/funding_store.py": "da684ffcbd8035c88502e820d664c9f9d0bd7f98a8180f9a28819d2ff5b38cf2",
+          "aws/lambdas/justhodl-eurodollar-plumbing/source/lambda_function.py": "ec78b99af16675a930a5cc81f18ed03be4032dd128465d47f53e8588c5258b41",
+          "aws/shared/canonical_macro_sources.py": "a9d196f037fb54bbb7e6943a1ff37ba444727b4549ecf5d84a0a37e18e865262",
+          "aws/shared/ciss_readthrough.py": "996789e5c95e4fc31366e74c7edec051b001c265fdd4a7c12384d000b2af4607",
+          "aws/shared/ciss_source_model.py": "aceaa814189bc72fc914e4cd4ae7a895cb2e4aeb376b0519fb17fdc4de01313c",
+          "aws/shared/donor_contract.py": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8",
+          "aws/shared/evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+          "aws/shared/fred_vintage_model.py": "18a94566ffc74cda5208dd89a4372dbfa5cee40049e83db8006b8b51ccc5b17b",
+          "aws/shared/funding_research_catalog.py": "ed10c29a459152cce7068fd8373a52cbc8a5289e48e75849639404ee73a53c88",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/macro_donor_inputs.py": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/pd_fails_context.py": "fae6d16962c2759b1ba9b51c21761dfdc16d7307db153edbc7136fa2561f9e5a",
+          "aws/shared/report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+          "aws/shared/research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+          "aws/shared/wl_fusion.py": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "aws/shared/wl_series.py": "4de814c734052416608200511ff5946419bccabd4387f8c486aabb426c44d358",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-fed-nlp/source/lambda_function.py": "18412d7e92ff9d8d9f71b2b2d82d6692e57047cb041899ad324a8e73d0f54aae",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-fed-speak/source/lambda_function.py": "7bb56e04b9478864aa7c34af84ba663cb3611265f27e4d09316abffec3f13f73",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py": "0c0cd5f1b9000fa8ef6dc9e9370042574a7f74387eba7d9a7c4aba0149ac1fc0",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-fleet-monitor/source/lambda_function.py": "412a35c5f6dbcdcbfc29375c69d1dddf7cade1b0cb32e655d5846b9b0aaf7817",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-flows-ai-analysis",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-flows-ai-analysis/source/lambda_function.py": "bcc83270280268a52606ecc8bb54ca3b9b62ebd6247f9e1a02fa6a840ff564f9",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/provider_flow_catalog.py": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+          "aws/shared/provider_flow_research.py": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-fomc-reaction",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 13,
+        "source_hashes": {
+          "aws/lambdas/justhodl-fomc-reaction/source/fomc_research_model.py": "a6e7469d10d441e79b7b0741deaaad81df54b1453b094fc6e8bc454008ff7740",
+          "aws/lambdas/justhodl-fomc-reaction/source/fomc_research_store.py": "e999379eac6c540f3c1d2ac2c81eb7f0ec6ae3d14388ce92b990f15ab9375eae",
+          "aws/lambdas/justhodl-fomc-reaction/source/lambda_function.py": "a17332123d8c4c805e603f1f992df18cdcc7503f36089878b25b733f83f6e8e5",
+          "aws/lambdas/justhodl-fomc-reaction/source/legacy_fomc_reaction.py": "c2a293d2761dd44557d4887dde540da0274ab524e3b574da778f27546e98f9a3",
+          "aws/shared/canonical_fred_replay.py": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+          "aws/shared/evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+          "aws/shared/fedwatch_research.py": "b35f11890abb4d0c09416391b433fbafdd9562218006bb62f3e2d2f747481537",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+          "aws/shared/research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-global-flow-desk",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-global-flow-desk/source/flow_desk_catalog.py": "059e3697e7ff6f059eac534a33b600498a6feb79f78d2d5666312a377b4f7fcc",
+          "aws/lambdas/justhodl-global-flow-desk/source/flow_desk_research.py": "f68ab7f9e6a640f9a6c14031a3a5e806fef65a401772c47caf65d1a0ec5c4206",
+          "aws/lambdas/justhodl-global-flow-desk/source/flow_desk_store.py": "f406c043860c6bec39ba013b7a6bb0f5074bdb75e93b96b0a2286755516de414",
+          "aws/lambdas/justhodl-global-flow-desk/source/lambda_function.py": "275a604ba53304735b8bcfda2a8e1e9614df0844fbe23111b1cf9a304b630fa9",
+          "aws/shared/evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-hot-stocks-digest",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-hot-stocks-digest/source/lambda_function.py": "ab05506c15373c77203de753fdb742916c624f334713cbf8391bface73151d81",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-industry-case",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-industry-case/source/lambda_function.py": "240b937b11b9225c4c84259e7909bc5e31cc11972d34d1dff75ab416c9c26460",
+          "aws/lambdas/justhodl-industry-case/source/publication.py": "4db025454e0f662b9cc0cccb6588cb5873ed03e5df763ce19a1b7120607a6fef",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/tape_truth_qualification.py": "5346a77ed7b77680274ce2db2fdaaccfdedf27e7a0a0a3510b5e42a78535284b",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-institutional-footprint",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-institutional-footprint/source/lambda_function.py": "af5cc84c9f3174c40737c17a4811fbbfc53964dd69e8e133db7a71c207452b08",
+          "aws/shared/dealer_research_context.py": "96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/offexchange_context.py": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3",
+          "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+          "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-interpretation-grader",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-interpretation-grader/source/lambda_function.py": "6fafc774b41bbe00eb677e20db77d6a93a5f821e2e9c494d2c15ecf9b6f7339e",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-investor-agents/source/lambda_function.py": "bf54a72444e5bafd502a111f2f43c2a97d1922096ae55ac0525e39d3d6e58dda",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/api_auth.py": "68e847610c5c4eeac9d539bc390f82421ce7a2065c61c14aa8d7461490031da8",
+          "aws/shared/ka_aliases.py": "e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ka-metrics",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ka-metrics/source/_fred_shim.py": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428",
+          "aws/lambdas/justhodl-ka-metrics/source/lambda_function.py": "d444828cd800d0db3f04b764ee82168e51b4cc50c2f8f78488f36850e10a4893",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-khalid-metrics",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 8,
+        "source_hashes": {
+          "aws/lambdas/justhodl-khalid-metrics/source/_fred_shim.py": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428",
+          "aws/lambdas/justhodl-khalid-metrics/source/lambda_function.py": "01aa048a79012c601409c96430f254f0826916fc94fbd2a8210023fdfa08d300",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-llm-health",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-llm-health/source/lambda_function.py": "53165eee3934481de8ddd99c8da731cb1cb1a2b93dbfc8e4436d8305a2ccf557",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-meta-improver/source/lambda_function.py": "2705a7af155249b16eb3b96a9f8af1079cb62438c7c79f6fc078290ddf89e028",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-my-brief",
+        "adapters": [
+          "anthropic_shim.py",
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 10,
+        "source_hashes": {
+          "aws/lambdas/justhodl-my-brief/source/lambda_function.py": "053bd2f9b942f70ed2d06379b65a9841a2dbd3c18f5a8137842263e357d81e1d",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/consume_brain.py": "5b5ebfe0c4c4a8678893a3755b12a6d508e8cf2bd89c218d6c8fde6d592fe6d3",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-news-sentiment/source/lambda_function.py": "8e6caa671e1047b9a357f2743a57ce0db7387b0354debb4bbf963bca46e5eb78",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-news-wire",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-news-wire/source/lambda_function.py": "622da9040680dee9b2e72cc3426ca09a89ff44e071787b760a39c1552fe8459d",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "adapters": [
+          "anthropic_shim.py",
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-nobrainer-rationale/source/lambda_function.py": "e7409e8fe2dacd97f36426fee7156b29a89a912e640fe7e29bfd56b95641007c",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-notes-intel",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-notes-intel/source/lambda_function.py": "964dca89540f3b739d45ac7861d3a757d9ba62832913d7818e84186bf759a12b",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "adapters": [
+          "anthropic_shim.py",
+          "claude_compat.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 15,
+        "source_hashes": {
+          "aws/lambdas/justhodl-page-ai-commentary/source/commentary-sources.json": "9a5f9c1a4bda1fa77adcca96d09ebbe0fe09cfbb387651688c38c2ca55b959ef",
+          "aws/lambdas/justhodl-page-ai-commentary/source/commentary_store.py": "044953953abead4b2e24d147ce1dcc6acc3e5acc9eb824e0b7caa9cef2a82cef",
+          "aws/lambdas/justhodl-page-ai-commentary/source/lambda_function.py": "6c01f73d1b666981e477734d71b624b7b55e17221efecb3f6aadb0599fc3603c",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/claude_compat.py": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
+          "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+          "aws/shared/eurodollar_research.py": "14b09a68da4d7c5c383ffefa8ef991103acba8f3c52c88c3a09e199ded1e6247",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+          "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+          "aws/shared/signal_board_authority.py": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-page-ai",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-page-ai/source/lambda_function.py": "7104ceadfdd9ed558b0f25234cacb072d066b969cd4a5818b3df5c0eedabc297",
+          "aws/lambdas/justhodl-page-ai/source/page-explanation-sources.json": "4868f7748a6a438095c10a9ef1ee20c0191914fd2f934883d265cf5e3e7cce2e",
+          "aws/lambdas/justhodl-page-ai/source/page_explanation_store.py": "c5bd0314f667d2f346e31fbcb03e2084a67bee8b1ce4cb90c57afb999e84e800",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-political-ai-investigation/source/lambda_function.py": "a8de3de6dd6c325dcdad07960943dce6a71a3f557973c008622aadd71e0a9f0a",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-positioning-analog",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-positioning-analog/source/lambda_function.py": "ab193b471541517927cb39d592e04553a65c920dc7ed69abf26f04c9de873a3c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-premortem-engine",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 4,
+        "source_hashes": {
+          "aws/lambdas/justhodl-premortem-engine/source/lambda_function.py": "5c850387f5592511b44e60eab587c421d48d30633bd41414b6c3ca1d17891928",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-prompt-iterator/source/lambda_function.py": "671964a99567db53b0c919418373cbed14b70751a8be9bf85891bf842a2095bf",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-pump-earnings-nlp/source/lambda_function.py": "630dd2819e400cca13c37c008bba501c35233885435ac4549166ba0e3df7d0cd",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-research-critique",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 7,
+        "source_hashes": {
+          "aws/lambdas/justhodl-research-critique/source/lambda_function.py": "d3e104e36448c2fa3777affa47f3b4a1f15ea6ce43640ef3a9b430fdadf1d3cc",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/provider_flow_catalog.py": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+          "aws/shared/provider_flow_research.py": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-research-papers",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-research-papers/source/lambda_function.py": "182a98e9b0cc59a6f41c11148de7733a8cdd65277c03c6387b3c7de9ac6fd5af",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-rotation-radar/source/lambda_function.py": "2deb7fa1317f3e9a3b94479446a255a3788af035f0f0f50a693dacc8ab2b5256",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-sec-filing-diff/source/lambda_function.py": "b92244dfcee638c767965b432f229e769a571aa0b911f8660dd0d969c64c9dda",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-signal-backtest/source/lambda_function.py": "12d205b07d6b72ccf2fbbcd7c69584d0ca54df13988ffd763a695e46ec39e61a",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-stock-ai-research/source/lambda_function.py": "c9b32c1c5973bd24ce7de631b577db7279c06eea3ffed41ad68e9260578d66e6",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-strategist",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 9,
+        "source_hashes": {
+          "aws/lambdas/justhodl-strategist/source/lambda_function.py": "2091f8aa377e3c68cd69e97d788e14e96a73c536021d44106e9690c9917fca34",
+          "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+          "aws/shared/cycle_research.py": "983bf965bc5b633b60f5570132b02ee86239c8a2e96e79278e8e11e62bff3a9e",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/risk_regime_authority.py": "9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642",
+          "aws/shared/signal_board_authority.py": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183",
+          "aws/shared/tail_research.py": "b7fbbe2626931be37e93ff5ee9b3006e362c22cb805e4771315ba2cad4ef239b",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-telegram-bot/source/lambda_function.py": "069ff2f3a10cee6a041163e4b7fe281bd3c92d85484826254f3a88dcb983a845",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ticker-deep-research/source/lambda_function.py": "de543fc981a3838cbee9b3167929d8ae5aefda916c84ab597f1d49d6a56c6cfa",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 5,
+        "source_hashes": {
+          "aws/lambdas/justhodl-ticket-ai-rationale/source/lambda_function.py": "49d8a6e45a4bb0a50009df996a5485d8ed5ca8ff21843129b9edab0d65dc2d95",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-upside-thesis",
+        "adapters": [
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 4,
+        "source_hashes": {
+          "aws/lambdas/justhodl-upside-thesis/source/lambda_function.py": "526c80ee09c28d39af19e71364e1a807e7270afb3b4baced1967d16c61c87dd1",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-watchlist-debate/source/lambda_function.py": "efa186f5205092fb3d3683ab0a58e9c921ea28b8d3357cd222b6a0fdff175cfe",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "adapters": [
+          "anthropic_shim.py",
+          "llm_router.py",
+          "xai_voice.py"
+        ],
+        "source_count": 6,
+        "source_hashes": {
+          "aws/lambdas/justhodl-weekly-ai-review/source/lambda_function.py": "4f8df41d4b2956a90ca6fa285345a4362e016aada9e7f03c01dda81b5140a2dc",
+          "aws/shared/anthropic_shim.py": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
+          "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+          "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8"
+        }
+      }
+    ],
+    "literal_provider_references": [
+      {
+        "function": "justhodl-a2a-bus",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-a2a-bus",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ab-test",
+        "path": "aws/lambdas/justhodl-ab-test/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ab-test",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ab-test",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ab-test",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "path": "aws/lambdas/justhodl-ai-brief-router/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-brief",
+        "path": "aws/lambdas/justhodl-ai-brief/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai-chat",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai-chat",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-chat",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-council",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai-council",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai",
+        "path": "aws/lambdas/justhodl-ai/source/factory_gateway.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.openai.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai",
+        "path": "aws/lambdas/justhodl-ai/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ai",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ai",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-alpha-daily-brief",
+        "path": "aws/lambdas/justhodl-alpha-daily-brief/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-altseason",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-altseason",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "path": "aws/lambdas/justhodl-ask-desk/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ask",
+        "path": "aws/lambdas/justhodl-ask/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ask",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ask",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ask",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-asset-discovery",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-asset-discovery",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "path": "aws/lambdas/justhodl-auction-crisis-ai/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "path": "aws/lambdas/justhodl-auction-interpreter/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-bond-desk",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-bond-desk",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-bottleneck-research",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-bottleneck-research",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-brain-sync",
+        "path": "aws/lambdas/justhodl-brain-sync/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-brain-sync",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-brain-sync",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-catalyst-classifier",
+        "path": "aws/lambdas/justhodl-catalyst-classifier/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "path": "aws/lambdas/justhodl-cb-stance/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "path": "aws/lambdas/justhodl-chart-vision/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chat-api",
+        "path": "aws/lambdas/justhodl-chat-api/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-chat-api",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-chat-api",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chat-api",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chokepoint",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-chokepoint",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cost-anomaly",
+        "path": "aws/lambdas/justhodl-cost-anomaly/source/lambda_function.py",
+        "domains_in_source": [
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-crypto-intel",
+        "path": "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-crypto-intel",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-crypto-intel",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cryptoquant",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cryptoquant",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cycle-clock",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-cycle-clock",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "path": "aws/lambdas/justhodl-debate-engine/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "path": "aws/lambdas/justhodl-devils-advocate/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "path": "aws/lambdas/justhodl-digest-trends-ai/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "path": "aws/lambdas/justhodl-dislocation-ai/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "path": "aws/lambdas/justhodl-divergence-interpreter/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "path": "aws/lambdas/justhodl-earnings-nlp/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "path": "aws/lambdas/justhodl-earnings-sentiment/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-earnings",
+        "path": "aws/lambdas/justhodl-earnings/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "path": "aws/lambdas/justhodl-ecb-derived/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "path": "aws/lambdas/justhodl-episode-compass/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-eurodollar-plumbing",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-eurodollar-plumbing",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "path": "aws/lambdas/justhodl-fed-nlp/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "path": "aws/lambdas/justhodl-fed-speak/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "path": "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "path": "aws/lambdas/justhodl-fleet-monitor/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-flows-ai-analysis",
+        "path": "aws/lambdas/justhodl-flows-ai-analysis/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-flows-ai-analysis",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-flows-ai-analysis",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fomc-reaction",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-fomc-reaction",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-global-flow-desk",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-global-flow-desk",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-hot-stocks-digest",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-hot-stocks-digest",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-industry-case",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-industry-case",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-institutional-footprint",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-institutional-footprint",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-interpretation-grader",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-interpretation-grader",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "path": "aws/lambdas/justhodl-investor-agents/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ka-metrics",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ka-metrics",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ka-metrics",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-khalid-metrics",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-khalid-metrics",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-khalid-metrics",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-llm-health",
+        "path": "aws/lambdas/justhodl-llm-health/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-llm-health",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-llm-health",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-llm-health",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "path": "aws/lambdas/justhodl-meta-improver/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-my-brief",
+        "path": "aws/lambdas/justhodl-my-brief/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-my-brief",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-my-brief",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-my-brief",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-my-brief",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "path": "aws/lambdas/justhodl-news-sentiment/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-news-wire",
+        "path": "aws/lambdas/justhodl-news-wire/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-news-wire",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-news-wire",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-news-wire",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "path": "aws/lambdas/justhodl-nobrainer-rationale/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-notes-intel",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-notes-intel",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "path": "aws/lambdas/justhodl-page-ai-commentary/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "path": "aws/shared/claude_compat.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-page-ai",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "path": "aws/lambdas/justhodl-political-ai-investigation/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-positioning-analog",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-positioning-analog",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-premortem-engine",
+        "path": "aws/lambdas/justhodl-premortem-engine/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-premortem-engine",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-premortem-engine",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "path": "aws/lambdas/justhodl-prompt-iterator/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-provider-catalog",
+        "path": "aws/lambdas/justhodl-provider-catalog/source/lambda_function.py",
+        "domains_in_source": [
+          "api.perplexity.ai"
+        ]
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "path": "aws/lambdas/justhodl-pump-earnings-nlp/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-pump-radar-brief",
+        "path": "aws/lambdas/justhodl-pump-radar-brief/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-research-critique",
+        "path": "aws/lambdas/justhodl-research-critique/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.openai.com",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-research-critique",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-research-critique",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-research-critique",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-research-papers",
+        "path": "aws/lambdas/justhodl-research-papers/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-research-papers",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-research-papers",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-research-papers",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "path": "aws/lambdas/justhodl-rotation-radar/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "path": "aws/lambdas/justhodl-sec-filing-diff/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "path": "aws/lambdas/justhodl-signal-backtest/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "path": "aws/lambdas/justhodl-stock-ai-research/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-strategist",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-strategist",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "path": "aws/lambdas/justhodl-telegram-bot/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "path": "aws/lambdas/justhodl-ticker-deep-research/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "path": "aws/lambdas/justhodl-ticket-ai-rationale/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-upside-thesis",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-upside-thesis",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "path": "aws/lambdas/justhodl-watchlist-debate/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "path": "aws/lambdas/justhodl-weekly-ai-review/source/lambda_function.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "path": "aws/shared/anthropic_shim.py",
+        "domains_in_source": [
+          "api.anthropic.com"
+        ]
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "path": "aws/shared/llm_router.py",
+        "domains_in_source": [
+          "api.anthropic.com",
+          "api.perplexity.ai",
+          "api.z.ai"
+        ]
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "path": "aws/shared/xai_voice.py",
+        "domains_in_source": [
+          "api.x.ai"
+        ]
+      }
+    ],
+    "unparsed": [],
+    "deployment_verified": false,
+    "normal_publication_verified": false,
+    "paid_spend_observed": false,
+    "required_before_shared_deploy": [
+      "Review deterministic fallback of every changed adapter importer",
+      "Capture named native controls/schedules before code changes",
+      "Test transport denial with synthetic credentials and requests; never resolve real credentials",
+      "Verify complete importer closure, exact native packages/receipts and unchanged controls",
+      "Audit direct vendor/SDK calls separately; router denial alone cannot establish global no-paid enforcement"
+    ]
+  },
+  "source_call_map": {
+    "scope": "Static named adapter call locations in checked-in engine sources only. Function bodies and prompt values are not emitted; no provider/current/private/account input. Dynamic calls and indirect shared helpers require separate review.",
+    "functions": [
+      {
+        "function": "justhodl-a2a-bus",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-a2a-bus/source/lambda_function.py",
+            "line": 411,
+            "entrypoint": "llm_router.council",
+            "enclosing_function": "fanout_pending",
+            "function_first_line": 379,
+            "function_last_line": 445,
+            "function_sha256": "365383292bddfb990a61e1f39795cff2df715262be6a2cf92e94a52673d1bd80"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ab-test",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ai-brief-router",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ai-chat",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-ai-chat/source/lambda_function.py",
+            "line": 970,
+            "entrypoint": "claude_compat.messages",
+            "enclosing_function": "call_claude",
+            "function_first_line": 941,
+            "function_last_line": 971,
+            "function_sha256": "c19658bc0c152d16fa5aa1fd430d1ff3e1f3f6d64ecee2b659af0a6c6cb82f76"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ai-council",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-ai-council/source/lambda_function.py",
+            "line": 91,
+            "entrypoint": "llm_router.council",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 74,
+            "function_last_line": 139,
+            "function_sha256": "ac1a845e7a59c6521c818c5ce94564d2cc5dc0c0fb3006bf02a921a391b95059"
+          },
+          {
+            "path": "aws/lambdas/justhodl-ai-council/source/lambda_function.py",
+            "line": 67,
+            "entrypoint": "llm_router._claude",
+            "enclosing_function": "_synthesize",
+            "function_first_line": 52,
+            "function_last_line": 70,
+            "function_sha256": "f2d2d267ebef632de50a16a6cea2df9a9c18b50e9e6ddec5e556148e70651210"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ai",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-ai/source/factory_gateway.py",
+            "line": 482,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "_public_think",
+            "function_first_line": 464,
+            "function_last_line": 486,
+            "function_sha256": "c7dab7ebaf2cc2fa96ba5746f3db3f33f6dace2b36e5092628f4604f6d6cf7ca"
+          },
+          {
+            "path": "aws/lambdas/justhodl-ai/source/lambda_function.py",
+            "line": 1230,
+            "entrypoint": "llm_router._glm",
+            "enclosing_function": "_glm_complete",
+            "function_first_line": 1226,
+            "function_last_line": 1242,
+            "function_sha256": "f6264a0c31408928072f56eaf655b7e1304b7d5f9a318da7e5adca0c39d76257"
+          },
+          {
+            "path": "aws/lambdas/justhodl-ai/source/lambda_function.py",
+            "line": 941,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "action_market_read",
+            "function_first_line": 910,
+            "function_last_line": 1021,
+            "function_sha256": "4f50035a8d00fa9bbfa7aa4ecf4d6020e233b1ba05e2cd131f4a18f0d0eec17b"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-altseason",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-altseason/source/lambda_function.py",
+            "line": 769,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 206,
+            "function_last_line": 783,
+            "function_sha256": "82246ba1123174dbab47493e33b096c48d7c5a5fdb1317639c7f8c7063c533c4"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ask-desk",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-ask-desk/source/lambda_function.py",
+            "line": 57,
+            "entrypoint": "claude_compat.text",
+            "enclosing_function": "claude",
+            "function_first_line": 54,
+            "function_last_line": 78,
+            "function_sha256": "207387135baa01417217387b0ba5fb650494e8cb78247173eccd82d3498e54c6"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ask",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-asset-discovery",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-asset-discovery/source/lambda_function.py",
+            "line": 194,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 159,
+            "function_last_line": 248,
+            "function_sha256": "07506b320521388d7ff3192a17923c5bfbcaafe2e61c45411026aa3b1e49e42b"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-auction-crisis-ai",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-auction-interpreter",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-bond-desk",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-bond-desk/source/lambda_function.py",
+            "line": 487,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 236,
+            "function_last_line": 519,
+            "function_sha256": "544c8e3e2e79fc332335f4ccdc8b1a58e70c621c9a62d60768218ae2cbb9b64f"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-bottleneck-research",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-bottleneck-research/source/lambda_function.py",
+            "line": 319,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "make_thesis",
+            "function_first_line": 303,
+            "function_last_line": 331,
+            "function_sha256": "42f9cafa9c30ee7a5c8a79c361d7d0930ac66d9ebd6d9aebcf7af5489c59dbd3"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-brain-sync",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-brain-sync/source/lambda_function.py",
+            "line": 58,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "_llm",
+            "function_first_line": 48,
+            "function_last_line": 76,
+            "function_sha256": "bc3e110fc0c7e3f3fe20c859e7b390005a1eb9b9ab7a5a8c61b4180d11f10f8a"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-cb-stance",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-chart-vision",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-chat-api",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-chokepoint",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-chokepoint/source/lambda_function.py",
+            "line": 303,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "verify_irreplaceability",
+            "function_first_line": 274,
+            "function_last_line": 326,
+            "function_sha256": "4c557707e56fcb0072793043020a8560cfb659a5566bcc851a4f274ea0168b7b"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-crypto-intel",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py",
+            "line": 3374,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "gen_ai",
+            "function_first_line": 2826,
+            "function_last_line": 3395,
+            "function_sha256": "1a344a4f0420c58469ecd44d3080ca6c12730156749915174ce57276d3aa3bed"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-cryptoquant",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-cryptoquant/source/lambda_function.py",
+            "line": 575,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 297,
+            "function_last_line": 608,
+            "function_sha256": "82822f256e5c761248b53a5da7ce6b6faed7c510c5088c81b5470d1e12c1f8ea"
+          },
+          {
+            "path": "aws/lambdas/justhodl-cryptoquant/source/lambda_function.py",
+            "line": 531,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 297,
+            "function_last_line": 608,
+            "function_sha256": "82822f256e5c761248b53a5da7ce6b6faed7c510c5088c81b5470d1e12c1f8ea"
+          },
+          {
+            "path": "aws/lambdas/justhodl-cryptoquant/source/lambda_function.py",
+            "line": 418,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 297,
+            "function_last_line": 608,
+            "function_sha256": "82822f256e5c761248b53a5da7ce6b6faed7c510c5088c81b5470d1e12c1f8ea"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-cycle-clock",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-cycle-clock/source/legacy_cycle_clock.py",
+            "line": 249,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "_ai_synthesis",
+            "function_first_line": 220,
+            "function_last_line": 265,
+            "function_sha256": "838bb77d8b8a23d0947e66825d742f79a9e29fbae3e3b58350d02558dd3dcb1b"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-debate-engine",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-devils-advocate",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-devils-advocate/source/lambda_function.py",
+            "line": 47,
+            "entrypoint": "claude_compat.text",
+            "enclosing_function": "call_claude",
+            "function_first_line": 44,
+            "function_last_line": 64,
+            "function_sha256": "911ba2133012467dc30a9bea2f0bf8cf2d869fe32a6b1ef7735239a2cd840e45"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-digest-trends-ai",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-dislocation-ai",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-divergence-interpreter",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-earnings-nlp",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-earnings-sentiment",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ecb-derived",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-episode-compass",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-eurodollar-plumbing",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-eurodollar-plumbing/source/lambda_function.py",
+            "line": 530,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "ai_scan",
+            "function_first_line": 507,
+            "function_last_line": 536,
+            "function_sha256": "5a659b39d604032f0fee1434025a18974281faf7761bf15bddc1a10cc4171215"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-fed-nlp",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-fed-speak",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-financial-secretary",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-fleet-monitor",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-flows-ai-analysis",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-flows-ai-analysis/source/lambda_function.py",
+            "line": 373,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "claude_call",
+            "function_first_line": 352,
+            "function_last_line": 413,
+            "function_sha256": "2797d3cc221ac44256cd602876eaa3cd49a0a7fd573a9af9c3e823a7297ba2ce"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-fomc-reaction",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-fomc-reaction/source/legacy_fomc_reaction.py",
+            "line": 273,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "score_statement_tone",
+            "function_first_line": 240,
+            "function_last_line": 288,
+            "function_sha256": "c74e19c98b05439f8a5a9a5b97c999100663235959ed572bbf58d005504928cc"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-global-flow-desk",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-global-flow-desk/source/lambda_function.py",
+            "line": 322,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "_legacy_unvalidated_handler",
+            "function_first_line": 114,
+            "function_last_line": 361,
+            "function_sha256": "b1a031247022bf2d6e5707b66584a4af2e79d3bb282988432d5c5c76e38fd07c"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-hot-stocks-digest",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-hot-stocks-digest/source/lambda_function.py",
+            "line": 156,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "analyst_pass",
+            "function_first_line": 131,
+            "function_last_line": 161,
+            "function_sha256": "1fcab747c0d22413d09edccd0226152a94e0c409548fb1806bdd0e04519d06ea"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-industry-case",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-industry-case/source/lambda_function.py",
+            "line": 85,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "llm_case",
+            "function_first_line": 60,
+            "function_last_line": 91,
+            "function_sha256": "03847d6251f7e85d3b5c6eca9e1dcbc4fd36ae32fcb0cee63dcbec7a72ec1d4f"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-institutional-footprint",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-institutional-footprint/source/lambda_function.py",
+            "line": 352,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 123,
+            "function_last_line": 400,
+            "function_sha256": "6a4c1ba76b02ade9cbd51fcbd3a44498a9edfa3444ffa219de8b1a33cc888f91"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-interpretation-grader",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-interpretation-grader/source/lambda_function.py",
+            "line": 82,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "_llm_judge",
+            "function_first_line": 69,
+            "function_last_line": 90,
+            "function_sha256": "a91a41b0a92907458497efc15277e97851a132151ab101d35e5a2b3246b0e1c4"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-investor-agents",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ka-metrics",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-ka-metrics/source/lambda_function.py",
+            "line": 341,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "run_ai_analysis",
+            "function_first_line": 292,
+            "function_last_line": 361,
+            "function_sha256": "d1d97890184bad66959284abaf261fe7b0d7c6ab04f922e9c7cca81995ba6510"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-khalid-metrics",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-khalid-metrics/source/lambda_function.py",
+            "line": 321,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "run_ai_analysis",
+            "function_first_line": 272,
+            "function_last_line": 341,
+            "function_sha256": "84394d0c25ba73f45397271e69df18fc8b5d826d86c299828f902d5f509ed325"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-llm-health",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-meta-improver",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-my-brief",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-my-brief/source/lambda_function.py",
+            "line": 43,
+            "entrypoint": "claude_compat.text",
+            "enclosing_function": "claude",
+            "function_first_line": 40,
+            "function_last_line": 56,
+            "function_sha256": "481c029ee5fa51dbf3ba8637699c56a1beef90e03a08ddbbbed4470e0253c35c"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-news-sentiment",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-news-wire",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-nobrainer-rationale",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-nobrainer-rationale/source/lambda_function.py",
+            "line": 104,
+            "entrypoint": "claude_compat.messages",
+            "enclosing_function": "call_anthropic",
+            "function_first_line": 101,
+            "function_last_line": 134,
+            "function_sha256": "88f4970c861acf7f81dcd9cf3616f5edde26e070458d1595c189d2d090b40a27"
+          },
+          {
+            "path": "aws/lambdas/justhodl-nobrainer-rationale/source/lambda_function.py",
+            "line": 130,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "call_anthropic",
+            "function_first_line": 101,
+            "function_last_line": 134,
+            "function_sha256": "88f4970c861acf7f81dcd9cf3616f5edde26e070458d1595c189d2d090b40a27"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-notes-intel",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-notes-intel/source/lambda_function.py",
+            "line": 220,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 145,
+            "function_last_line": 279,
+            "function_sha256": "ab8a98e08639339bed8f687abf28506773c101a29b0d665004e31aac102a8918"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-page-ai-commentary",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-page-ai-commentary/source/lambda_function.py",
+            "line": 59,
+            "entrypoint": "claude_compat.text",
+            "enclosing_function": "call_claude",
+            "function_first_line": 52,
+            "function_last_line": 87,
+            "function_sha256": "85ef595d913f632effd9238d5b8a80764ebf80cae52a335da6e0d80c71076fe7"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-page-ai",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-page-ai/source/lambda_function.py",
+            "line": 117,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "gen_page_ai",
+            "function_first_line": 91,
+            "function_last_line": 132,
+            "function_sha256": "01147657c9b291e017fb09166cd0a36ab335589b62c78adc2a08e1aa3ba82337"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-political-ai-investigation",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-positioning-analog",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-positioning-analog/source/lambda_function.py",
+            "line": 214,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 137,
+            "function_last_line": 243,
+            "function_sha256": "2e0ded116db270c2eb122777e86fcde06e7b306ca76ee61368b8dd81bbee6995"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-premortem-engine",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-premortem-engine/source/lambda_function.py",
+            "line": 175,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "call_claude",
+            "function_first_line": 166,
+            "function_last_line": 183,
+            "function_sha256": "cdf9d6ca73555371d1c66be83fedbaacf3e337370cfc5a1330a9b4d3732d9f94"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-prompt-iterator",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-pump-earnings-nlp",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-research-critique",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-research-papers",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-rotation-radar",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-sec-filing-diff",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-signal-backtest",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-stock-ai-research",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-strategist",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-strategist/source/lambda_function.py",
+            "line": 393,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 258,
+            "function_last_line": 450,
+            "function_sha256": "56627c4f3b28280581dbd8d5dd9894679ba9e6ad6d558680f3248d18e2379e0e"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-telegram-bot",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ticker-deep-research",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-ticket-ai-rationale",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-upside-thesis",
+        "named_adapter_calls": [
+          {
+            "path": "aws/lambdas/justhodl-upside-thesis/source/lambda_function.py",
+            "line": 345,
+            "entrypoint": "llm_router.complete",
+            "enclosing_function": "lambda_handler",
+            "function_first_line": 97,
+            "function_last_line": 377,
+            "function_sha256": "acb6020a6fddeb8013f17d3befd447b5e4d39f81c2bb19c707ffa95cbdbedda4"
+          }
+        ],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-watchlist-debate",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      },
+      {
+        "function": "justhodl-weekly-ai-review",
+        "named_adapter_calls": [],
+        "legacy_or_dynamic_calls_not_excluded": true,
+        "whole_handler_fallback_verified": false
+      }
+    ],
+    "function_count": 73,
+    "named_call_count": 40,
+    "runtime_or_model_requests": 0
+  },
+  "baseline_operation": "aws/ops/staged/ops_6428_model_adapter_controls.py",
+  "candidate_adapter_tests": 14,
+  "candidate_control_tests": 15,
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "policy_enforcement_deployed": false,
+  "remaining": [
+    "Run exact named native control baseline before shared adapter changes",
+    "Review whole-handler absent-model behavior in all affected packages",
+    "Complete adapter regression/integration suites without private data or provider requests",
+    "Deploy and verify exact complete native closures/receipts while preserving controls",
+    "Audit direct SDK/HTTP integrations outside shared adapters separately"
+  ],
+  "baseline_validation": {
+    "invented_control_cases": 15,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass"
+  },
+  "baseline_source_hashes": {
+    "aws/ops/staged/ops_6428_model_adapter_controls.py": "ab73227d5f1cfd51c83ee929429a30e92a8ddefa4eb413e4c9e00b000ac31143",
+    "aws/ops/checks/test_model_adapter_controls.py": "37f276d71fc06f4289e5a033855ad354d2ea1d93a464a1d25b642f0cc900603c"
+  }
+}
