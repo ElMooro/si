@@ -5,7 +5,7 @@ const candidate=external?path.join(__dirname,'jh-chart-catalog.js'):path.join(ro
 async function load(master,file=candidate){
  const inputs={'/data/symbology/master.json':master,'/data/indicator-bus.json':{indicators:{}},'/data/provider-catalog.json':{providers:[]},
   'https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz':{rows:[],cols:[]},'/data/cryptoquant-series.json':{series:{}}};
- const requests=[],context={};context.window=context;
+ const requests=[],context={setTimeout,clearTimeout};context.window=context;
  context.fetch=async url=>{assert.ok(Object.hasOwn(inputs,url));requests.push(url);return {ok:true,status:200,json:async()=>JSON.parse(JSON.stringify(inputs[url]))};};
  vm.runInNewContext(fs.readFileSync(file,'utf8'),context,{filename:'/invented/catalog.js'});
  const api=context.JHChartCatalog,counts=await api.ensureIndex();assert.equal(requests.length,5);

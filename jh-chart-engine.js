@@ -4208,7 +4208,9 @@
       try { t.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) { t.scrollIntoView(true); }
     }
   }
+  var ssRequest=0, ssRemoteState=null, ssCatalogRevision=-1;
   function closeSymSearch(){
+    ssRequest++;ssYq="";ssRemoteState=null;clearTimeout(window.__jhSsDeb);
     var el=document.getElementById("symsearch"); if(el) el.className="";
     var wrap=document.getElementById("tv-symwrap"); if(wrap) wrap.classList.remove("searching");
     var top=document.getElementById("symin"); if(top) top.value="";
@@ -4227,15 +4229,9 @@
     if(inp){ inp.value=q; inp.placeholder="Ticker, CUSIP, ISIN, FIGI, SOFR, MVRV…"; inp.focus(); }
     if(top) top.value=q;
     if(bar){ if(dest==="chart") bar.classList.add("searching"); else bar.classList.remove("searching"); }
-    ssTab="all"; ssProv=""; ssSel=-1; ssChoice="";
+    ssTab="all"; ssProv=""; ssSel=-1; ssChoice="";ssRequest++;ssYq="";ssRemoteState=null;
     renderSsChips();
     renderSymSearch(inp?inp.value:q);
-    if(window.JHChartCatalog && window.JHChartCatalog.ensureIndex){
-      window.JHChartCatalog.ensureIndex().then(function(){
-        var box=document.getElementById("symsearch");
-        if(box && box.className.indexOf("on")>=0) renderSymSearch((document.getElementById("ssin")||{}).value||"");
-      }).catch(function(){});
-    }
     if(inp && !inp.dataset.bound){
       inp.oninput=function(){ ssSel=-1; ssChoice=""; renderSymSearch(inp.value); if(top) top.value=inp.value; };
       inp.onkeydown=function(e){
@@ -4343,6 +4339,8 @@
   }
   function renderSymSearch(q){
     q=(q||"").trim();
+    if(ssYq!==q+"|"+(ssProv||"")){ssRequest++;ssYq="";ssRemoteState=null;ssFacets=[];}
+    refreshSsCatalog();
     var ql=q.toLowerCase();
     var dest=document.getElementById("symsearch").dataset.dest||"chart";
     var rows=[], seen={};
@@ -4381,12 +4379,13 @@
     TABS.forEach(function(s){ push(s, s, "open tab", "tab"); });
     lists.forEach(function(L){ (L.symbols||[]).forEach(function(s){ push(s, L.name, L.name, classifySym(s)); }); });
     Object.keys(notes).forEach(function(s){ var n=noteObj(s); if(n.text) push(s, n.text.slice(0,60), "note", "note"); });
+    if(ssRemoteState && Array.isArray(ssRemoteState.rows)) ssRemoteState.rows.forEach(function(r){push(r.s,r.name,r.extra,r.type,true);});
     if(q && /^[A-Z0-9:.\-]{1,20}$/i.test(q) && (!identifierQuery(q) || (window.JHChartCatalog && window.JHChartCatalog.lookupSym(q)))) push(q.toUpperCase(), "Open "+q.toUpperCase(), "direct", classifySym(q));
     ssRows=rows.slice(0,80);
     pinBest(q);
     ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
     syncSsSelection(q);
-    document.getElementById("ssres").innerHTML=paintFacets()+paintSsList(ssRows, dest, q);
+    document.getElementById("ssres").innerHTML=paintSsStatus()+paintFacets()+paintSsList(ssRows, dest, q);
     bindSsRows(dest);
     bindFacets();
     clearTimeout(window.__jhSsDeb);
@@ -4441,77 +4440,120 @@
     }
     return html;
   }
+  function refreshSsCatalog(){
+    var catalog=window.JHChartCatalog;
+    if(!catalog || !catalog.ensureIndex) return;
+    catalog.ensureIndex().then(function(status){
+      if(!status || status.revision===ssCatalogRevision) return;
+      ssCatalogRevision=status.revision;
+      var box=document.getElementById("symsearch");
+      if(box && box.classList.contains("on")) renderSymSearch((document.getElementById("ssin")||{}).value||"");
+    }).catch(function(){});
+  }
+  function paintSsStatus(){
+    var messages=[],catalog=window.JHChartCatalog;
+    if(catalog && catalog.indexStatus){
+      var sources=catalog.indexStatus().sources||[];
+      var missing=sources.filter(function(s){return s.status==="unavailable";});
+      var cached=sources.filter(function(s){return s.status==="cached";});
+      var loading=sources.filter(function(s){return s.status==="loading";});
+      if(missing.length) messages.push("Unavailable catalogs: "+missing.map(function(s){return s.label;}).join(", ")+". Search coverage is incomplete.");
+      if(cached.length) messages.push("Using cached catalogs: "+cached.map(function(s){return s.label;}).join(", ")+".");
+      if(loading.length) messages.push("Updating catalog downloads; previously loaded entries remain available.");
+      if(sources.some(function(s){return s.status==="enrichment_unverified";})) messages.push("On-chain enrichment has no verified download check.");
+      var retry=sources.reduce(function(n,s){return Math.max(n,s.retry_after_s||0);},0);
+      if(retry) messages.push("Failed downloads retry on a search after "+retry+" seconds.");
+    }
+    var remote=ssRemoteState;
+    if(remote){
+      if(remote.loading) messages.push("Checking directory search.");
+      if(remote.unavailable) messages.push("Directory search unavailable; local and other source results may be incomplete.");
+      if(remote.checked){
+        var head=remote.checked,stamp=Date.parse(head.checked_at),age=Date.now()-stamp;
+        if(head.status!=="checked_within_interval" || !isFinite(age) || age<0 || age>=300000 || head.serving_cached_generation!==false)
+          messages.push("Directory results use a cached generation; its latest check is unavailable or overdue.");
+        else messages.push("Directory generation checked "+new Date(stamp).toISOString()+".");
+      }else if(!remote.loading && !remote.unavailable) messages.push("Directory generation check unavailable.");
+      if(remote.warehouseUnavailable) messages.push("Provider warehouse search is unavailable.");
+      if(remote.otherFailures) messages.push("Some additional search sources are unavailable.");
+    }
+    messages.push("Download checks do not verify observation freshness or security identity.");
+    return "<div class=cell role=status data-search-status style='display:block;white-space:normal;overflow-wrap:anywhere;padding:10px 14px'>"+messages.map(escHtml).join(" ")+"</div>";
+  }
+  function searchJson(url){
+    return new Promise(function(resolve,reject){
+      var controller=typeof AbortController==="function"?new AbortController():null,settled=false;
+      var timer=setTimeout(function(){if(settled)return;settled=true;if(controller)controller.abort();reject(new Error("search_timeout"));},10000);
+      Promise.resolve().then(function(){return fetch(url,{signal:controller?controller.signal:undefined});}).then(function(r){
+        if(!r.ok) throw new Error("search_unavailable");return r.json();
+      }).then(function(j){if(settled)return;settled=true;clearTimeout(timer);resolve(j);},function(e){if(settled)return;settled=true;clearTimeout(timer);reject(e);});
+    });
+  }
   var ssYq="";
   async function dirSearch(q){
     var token=q+"|"+(ssProv||"");
-    if(ssYq===token) return; ssYq=token;
-    function addRow(id, name, extra, type){
-      if(!id) return;
-      id=String(id);
-      if(/!/.test(id) || /sentinel/i.test(id+" "+(name||""))) return;
-      var s=chartId(id);
-      if(!s) s=String(id);
-      if(ssRows.some(function(r){ return String(r.s)===String(s) || String(r.s).toUpperCase()===String(s).toUpperCase(); })) return;
-      var kindType=type||classifySym(s);
-      ssRows.push({s:s, name:name||"", extra:extra||"", type:kindType, label:displayTicker(s)});
+    if(q.length<2 || ssYq===token) return;ssYq=token;
+    var request=++ssRequest;
+    function current(){return request===ssRequest && ssYq===token;}
+    ssRemoteState={loading:true,rows:[]};
+    function repaint(){
+      if(!current())return;
+      var box=document.getElementById("ssres"),wrap=document.getElementById("symsearch");
+      if(!box || !wrap || !wrap.classList.contains("on"))return;
+      var dest=wrap.dataset.dest||"chart";
+      box.innerHTML=paintSsStatus()+paintFacets()+paintSsList(ssRows,dest,q);bindSsRows(dest);bindFacets();
     }
-    if(window.JHChartCatalog && window.JHChartCatalog.search){
-      window.JHChartCatalog.search(q).forEach(function(hit){
-        addRow(hit.s, hit.name, hit.extra, hit.type);
-      });
+    function addRow(id,name,extra,type){
+      if(!current() || !id)return;id=String(id);
+      if(/!/.test(id) || /sentinel/i.test(id+" "+(name||"")))return;
+      var s=chartId(id)||id;
+      if(!ssRemoteState.rows.some(function(r){return String(r.s).toUpperCase()===String(s).toUpperCase();}))
+        ssRemoteState.rows.push({s:s,name:name||"",extra:extra||"",type:type||classifySym(s),label:displayTicker(s)});
+      if(ssRows.some(function(r){return String(r.s).toUpperCase()===String(s).toUpperCase();}))return;
+      ssRows.push({s:s,name:name||"",extra:extra||"",type:type||classifySym(s),label:displayTicker(s)});
     }
+    if(window.JHChartCatalog && window.JHChartCatalog.search) window.JHChartCatalog.search(q).forEach(function(hit){addRow(hit.s,hit.name,hit.extra,hit.type);});
+    repaint();
     try{
-      var url=PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=80"+(ssProv?("&provider="+encodeURIComponent(ssProv)):"");
-      var r=await fetch(url);
-      var j=await r.json();
-      if(ssYq!==token) return;
+      var j=await searchJson(PROXY+"/symsearch?q="+encodeURIComponent(q)+"&limit=80"+(ssProv?"&provider="+encodeURIComponent(ssProv):""));
+      if(!current())return;
+      if(!j || (!Array.isArray(j.rows) && !(j.failed===true && j.rows==null)))throw new Error("invalid_search_rows");
+      ssRemoteState.loading=false;ssRemoteState.checked=j.index_integrity && j.index_integrity.head_check || null;
+      ssRemoteState.warehouseUnavailable=!!(j.warehouse_integrity && j.warehouse_integrity.status==="unavailable");
       ssFacets=Array.isArray(j.facets)?j.facets:[];
-      var rows=(j.rows||[]).slice();
-      var sh=(j.series_hits && j.series_hits.rows)||[];
-      sh.forEach(function(x){ rows.push(x); });
+      var rows=Array.isArray(j.rows)?j.rows.slice():[],sh=j.series_hits && j.series_hits.rows;
+      if(Array.isArray(sh))rows=rows.concat(sh);
       rows.forEach(function(row){
-        var mapped=window.JHChartCatalog && window.JHChartCatalog.mapRow ? window.JHChartCatalog.mapRow(row) : null;
-        if(mapped){ addRow(mapped.s, mapped.name, mapped.extra, mapped.type); return; }
-        addRow(row.id||row.symbol||row.ticker, row.name||row.title||"", (row.provider||"")+" "+(row.kind||""), row.kind||row.type||"");
+        if(!row || typeof row!=="object" || Array.isArray(row))return;
+        var mapped=window.JHChartCatalog && window.JHChartCatalog.mapRow?window.JHChartCatalog.mapRow(row):null;
+        if(mapped){addRow(mapped.s,mapped.name,mapped.extra,mapped.type);return;}
+        addRow(row.id||row.symbol||row.ticker,row.name||row.title||"",(row.provider||"")+" "+(row.kind||""),row.kind||row.type||"");
       });
-      if(j.warehouse_more){
-        addRow("DATA:search", Number(j.total||0).toLocaleString()+" warehouse hits", "filter a provider chip · 73 sources indexed", "dataset");
-      }
-      (j.suggest||[]).forEach(function(s){ aliasHits(s).forEach(function(a){ addRow(a.s, a.name, "did you mean", a.type); }); });
+      if(j.warehouse_more)addRow("DATA:search",typeof j.total==="number" && Number.isSafeInteger(j.total) && j.total>=0?j.total.toLocaleString()+" warehouse hits":"More warehouse hits","filter a provider chip","dataset");
+      if(Array.isArray(j.suggest))j.suggest.forEach(function(s){if(typeof s==="string")aliasHits(s).forEach(function(a){addRow(a.s,a.name,"did you mean",a.type);});});
       if(j.failed){
-        var f=await fetch(PROXY+"/fred-search?text="+encodeURIComponent(q));
-        var fj=await f.json();
-        (fj.series||[]).forEach(function(s){
-          addRow("fred:"+(s.id||s.fred_id), s.title||s.id, "FRED fallback", "economy");
-        });
+        ssRemoteState.unavailable=true;
+        var fj=await searchJson(PROXY+"/fred-search?text="+encodeURIComponent(q));
+        if(!current())return;
+        if(fj && Array.isArray(fj.series))fj.series.forEach(function(s){if(s && typeof s==="object")addRow("fred:"+(s.id||s.fred_id),s.title||s.id,"FRED fallback","economy");});
       }
-    }catch(e){}
+    }catch(e){if(!current())return;ssRemoteState.loading=false;ssRemoteState.unavailable=true;}
+    repaint();
     try{
-      var r2=await fetch(PROXY+"/tv-search?text="+encodeURIComponent(q));
-      var j2=await r2.json();
-      if(ssYq!==token) return;
-      (j2.symbols||[]).forEach(function(x){
-        addRow(x.full||x.symbol, x.description||x.name||"", (x.exchange||"")+" "+(x.type||""), (x.type||"stock").toLowerCase());
-      });
-    }catch(e){}
+      var j2=await searchJson(PROXY+"/tv-search?text="+encodeURIComponent(q));
+      if(!current())return;
+      if(!j2 || !Array.isArray(j2.symbols))throw new Error("invalid_tv_rows");
+      j2.symbols.forEach(function(x){if(x && typeof x==="object")addRow(x.full||x.symbol,x.description||x.name||"",(x.exchange||"")+" "+(x.type||""),String(x.type||"stock").toLowerCase());});
+    }catch(e){if(!current())return;ssRemoteState.otherFailures=true;}
     try{
-      var r3=await fetch("/api/yahoo-search?q="+encodeURIComponent(q));
-      var j3=await r3.json();
-      if(ssYq!==token) return;
-      (j3.quotes||[]).forEach(function(x){
-        if(!x.symbol) return;
-        addRow(x.symbol, x.shortname||x.longname||x.name||"", (x.exchDisp||x.exchange||"")+" "+(x.typeDisp||x.quoteType||x.type||""), (x.typeDisp||x.quoteType||x.type||"stock").toLowerCase());
-      });
-    }catch(e){}
-    pinBest(q);
-    ssRows=ssRows.slice(0,80);
-    ssRows.forEach(function(r){ if(!r.label) r.label=displayTicker(r.s); });
-    syncSsSelection(q);
-    var box=document.getElementById("ssres"); if(!box) return;
-    var dest=document.getElementById("symsearch").dataset.dest||"chart";
-    box.innerHTML=paintFacets()+paintSsList(ssRows, dest, q);
-    bindSsRows(dest);
-    bindFacets();
+      var j3=await searchJson("/api/yahoo-search?q="+encodeURIComponent(q));
+      if(!current())return;
+      if(!j3 || !Array.isArray(j3.quotes))throw new Error("invalid_yahoo_rows");
+      j3.quotes.forEach(function(x){if(x && x.symbol)addRow(x.symbol,x.shortname||x.longname||x.name||"",(x.exchDisp||x.exchange||"")+" "+(x.typeDisp||x.quoteType||x.type||""),String(x.typeDisp||x.quoteType||x.type||"stock").toLowerCase());});
+    }catch(e){if(!current())return;ssRemoteState.otherFailures=true;}
+    if(!current())return;
+    pinBest(q);ssRows=ssRows.slice(0,80);ssRows.forEach(function(r){if(!r.label)r.label=displayTicker(r.s);});
+    syncSsSelection(q);repaint();
   }
   function numish(x){ if(typeof x==="number") return Number.isFinite(x)?x:null; if(x&&typeof x==="object"&&x.raw!=null) return numish(x.raw); if(typeof x!=="string"||!x.trim()) return null; var n=Number(x); return Number.isFinite(n)?n:null; }
   function firstNumber(a,b){var n=numish(a);return n==null?numish(b):n;}
