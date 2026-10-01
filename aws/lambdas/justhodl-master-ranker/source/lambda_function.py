@@ -1411,6 +1411,20 @@ def lambda_handler(event, context):
     ticker_ranks.sort(key=lambda r: r["score"], reverse=True)
     top_tickers = ticker_ranks[:25]
 
+    # ── Ticker-360 cross-engine enrichment: attach 360° coverage context
+    #    to each ranked ticker. Diagnostic inventory only — never another
+    #    independent vote in the conviction score. Fail-soft.
+    try:
+        from ticker_coverage_context import load as _t360_load
+        _t360_ctx = _t360_load(S3, BUCKET)
+        _t360_by = _t360_ctx.get("by_ticker", {}) if _t360_ctx else {}
+        for _tt in top_tickers:
+            _tv = _t360_by.get(_tt.get("ticker", ""))
+            _tt["t360_coverage"] = _tv["coverage_count"] if _tv else None
+            _tt["t360_domains"] = _tv["domains"] if _tv else []
+    except Exception as _t360_e:
+        print(f"[master-ranker] t360 enrichment skipped: {_t360_e}")
+
     # ── Structural-chokepoint overlay: flag ranked names the chokepoint engine marks as
     #    structurally indispensable (curated / LLM-confirmed / supply-chain hub). Context for
     #    durability, not a score change — a top rank on a chokepoint is a higher-quality rank.
@@ -1534,7 +1548,7 @@ def lambda_handler(event, context):
                            and m.get("abs_z", 0) >= 3)
 
     payload = {
-        "schema_version": "1.0",
+        "schema_version": "1.1-t360",
         "method": "master_signal_ranker_v1",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime_context": regime_ctx,
