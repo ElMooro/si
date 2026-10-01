@@ -302,160 +302,30 @@ def fetch_peer_pe():
 
 
 
-CONFIRMATION_BODY_LIMIT = 16 * 1024 * 1024
-
-
-def _confirmation_document(key):
-    """Bound one complete response and report availability without interpreting it."""
-    import hashlib
-    body = None
-    meta = {'artifact': key, 'read_status': 'unavailable', 'body_bytes': None,
-            'body_sha256': None, 'source_contract': None,
-            'original_body_retained': False, 'observation_freshness_verified': False,
-            'calls_eligible': False, 'sizing_eligible': False,
-            'execution_eligible': False, 'forecast_qualified': False}
-
-    def reject_constant(value):
-        raise ValueError('Nonfinite JSON constant')
-
-    def finite_float(value):
-        from decimal import Decimal
-        parsed = float(value)
-        if not math.isfinite(parsed) or parsed == 0 and Decimal(value) != 0:
-            raise ValueError('Unrepresentable JSON number')
-        return parsed
-
-    def unique_object(pairs):
-        result = {}
-        for name, value in pairs:
-            if name in result:
-                raise ValueError('Duplicate JSON member')
-            result[name] = value
-        return result
-
-    try:
-        response = S3.get_object(Bucket=BUCKET, Key=key)
-        body = response['Body']
-        length = response.get('ContentLength')
-        if type(length) is not int or length < 0:
-            raise ValueError('Typed complete-response length required')
-        if length > CONFIRMATION_BODY_LIMIT:
-            meta['read_status'] = 'oversize'
-            return {}, meta
-        chunks = []
-        size = 0
-        while True:
-            chunk = body.read(min(65536, CONFIRMATION_BODY_LIMIT + 1 - size))
-            if not isinstance(chunk, bytes):
-                raise ValueError('Byte stream required')
-            if not chunk:
-                break
-            size += len(chunk)
-            if size > CONFIRMATION_BODY_LIMIT:
-                meta['read_status'] = 'oversize'
-                return {}, meta
-            chunks.append(chunk)
-        if size != length:
-            raise ValueError('Incomplete or inconsistent response')
-        raw = b''.join(chunks)
-        meta.update(body_bytes=size, body_sha256=hashlib.sha256(raw).hexdigest())
-        meta['read_status'] = 'malformed'
-        document = json.loads(raw.decode('utf-8'), parse_constant=reject_constant,
-                              parse_float=finite_float,
-                              object_pairs_hook=unique_object)
-        if not isinstance(document, dict):
-            return {}, meta
-        if key == 'data/short-interest-tickers.json' and document.get('contract') == 'short-interest-tickers.v1':
-            meta['source_contract'] = 'short-interest-tickers.v1'
-        if any(document.get(field) for field in ('error', '_error')):
-            meta['read_status'] = 'reported_error'
-            return {}, meta
-        meta['read_status'] = 'parsed'
-        return document, meta
-    except Exception as exc:
-        details = getattr(exc, 'response', None)
-        error = details.get('Error') if isinstance(details, dict) else None
-        code = error.get('Code') if isinstance(error, dict) else None
-        if code in ('NoSuchKey', '404'):
-            meta['read_status'] = 'missing'
-        # No exception/provider text is included in this public metadata.
-        return {}, meta
-    finally:
-        if body is not None:
-            try:
-                body.close()
-            except Exception:
-                pass
-
-
-def load_confirmation_feeds(with_availability=False, descriptive_short_positions=False):
-    """Keep four legacy mappings; optionally append descriptive availability.
-
-    Parsed input is not a current observation, an independent confirmation or
-    replay evidence. These metadata do not restore any investment authority.
-    """
-    definitions = (
-        ('short_interest', 'data/short-interest-tickers.json', 'by_ticker'),
-        ('institutional_positions', 'data/13f-positions.json', 'aggregate_by_ticker'),
-        ('estimate_revisions', 'data/estimate-revisions-latest.json', 'fwd_rev_growth'),
-        ('rotation_chains', 'data/rotation-chains.json', 'chains'),
-    )
-    mappings = []
-    availability = {}
-    for name, key, field in definitions:
-        document, meta = _confirmation_document(key)
-        source = document.get(field)
-        meta['mapping_field'] = field
-        meta['mapping_status'] = 'object' if isinstance(source, dict) else 'unavailable'
-        meta['reported_rows'] = len(source) if isinstance(source, dict) else None
-        meta['excluded_rows'] = 0
-        clean = {}
-        for symbol, row in (source.items() if isinstance(source, dict) else []):
-            valid = isinstance(symbol, str) and bool(symbol.strip())
-            if name == 'estimate_revisions':
-                try:
-                    valid = valid and type(row) in (int, float) and math.isfinite(row)
-                except (OverflowError, TypeError, ValueError):
-                    valid = False
-            else:
-                valid = valid and isinstance(row, dict)
-            if valid:
-                clean[symbol] = row
-            else:
-                meta['excluded_rows'] += 1
-        if name == 'short_interest' and descriptive_short_positions:
-            from short_position_context import descriptive_context
-            context = descriptive_context(document)
-            clean = context['by_ticker']
-            meta.update(context_contract=context['contract'], context_status=context['status'],
-                        projected_rows=len(clean),
-                        ambiguous_ticker_count=len(context['ambiguous_symbols']),
-                        unresolved_occurrences=len(context['unresolved_occurrences']),
-                        ambiguous_symbols=context['ambiguous_symbols'],
-                        unresolved_rows=context['unresolved_occurrences'])
-            meta['excluded_rows'] = len(source) - len(clean) if isinstance(source, dict) else 0
-        availability[name] = meta
-        mappings.append(clean)
-    si, f13, fwd, chains = mappings
+def load_confirmation_feeds():
+    """Pull per-ticker confirmation signals from the wider engine fleet."""
+    def L(k):
+        try:
+            return json.loads(S3.get_object(Bucket=BUCKET, Key=k)["Body"].read())
+        except Exception:
+            return {}
+    si = (L("data/short-interest-tickers.json") or {}).get("by_ticker", {}) or {}
+    f13 = (L("data/13f-positions.json") or {}).get("aggregate_by_ticker", {}) or {}
+    fwd = (L("data/estimate-revisions-latest.json") or {}).get("fwd_rev_growth", {}) or {}
+    chains = (L("data/rotation-chains.json") or {}).get("chains", {}) or {}
     chain_idx = {}
-    for cname, chain in chains.items():
-        rows = chain.get('next_up_tickers')
-        if not isinstance(rows, list):
+    for cname, c in (chains.items() if isinstance(chains, dict) else []):
+        if not isinstance(c, dict):
             continue
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-            ticker = row.get('ticker')
-            if not isinstance(ticker, str) or not ticker.strip() or ticker in chain_idx:
-                continue
-            chain_idx[ticker] = {
-                'chain': chain.get('chain') or cname, 'role': 'next-up laggard',
-                'catchup': chain.get('expected_catchup_pct'),
-                'own_30d': row.get('own_30d_pct'), 'leader_30d': chain.get('leader_perf_30d_pct'),
-            }
-    result = (si, f13, fwd, chain_idx)
-    return result + (availability,) if with_availability else result
-
+        for nt in (c.get("next_up_tickers") or []):
+            t = nt.get("ticker")
+            if t and t not in chain_idx:
+                chain_idx[t] = {
+                    "chain": c.get("chain") or cname, "role": "next-up laggard",
+                    "catchup": c.get("expected_catchup_pct"),
+                    "own_30d": nt.get("own_30d_pct"), "leader_30d": c.get("leader_perf_30d_pct"),
+                }
+    return si, f13, fwd, chain_idx
 
 
 

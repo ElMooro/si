@@ -1,0 +1,123 @@
+{
+  "status": "candidate_not_deployed",
+  "scope": "Additive descriptive short-position contexts in Alpha and Opportunities, with bounded typed shared-feed reads; unrelated existing model and narrative behavior preserved, not qualified.",
+  "baseline": {
+    "operation": 6415,
+    "run_id": 36883788319
+  },
+  "functions": [
+    "justhodl-alpha-research",
+    "justhodl-opportunities-research",
+    "justhodl-retail-sentiment"
+  ],
+  "expected_controls": {
+    "justhodl-alpha-research": {
+      "function_name": "justhodl-alpha-research",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 600,
+      "memory_mb": 1024,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-alpha-research-6h",
+          "state": "ENABLED",
+          "expression": "rate(6 hours)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-opportunities-research": {
+      "function_name": "justhodl-opportunities-research",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 600,
+      "memory_mb": 1024,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-opportunities-research-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 14 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-retail-sentiment": {
+      "function_name": "justhodl-retail-sentiment",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 180,
+      "memory_mb": 512,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-retail-sentiment-30min",
+          "state": "ENABLED",
+          "expression": "cron(10 19 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    }
+  },
+  "native_source_counts": {
+    "justhodl-alpha-research": 8,
+    "justhodl-opportunities-research": 8,
+    "justhodl-retail-sentiment": 12
+  },
+  "reviewed_source_hashes": {
+    "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": "e0797dcba8e218d2c35b747cc45e972edf24a23bdbb886c6eb0753b37e5dabb8",
+    "aws/shared/equity_enrich.py": "f5e9080da36d52848d0535aa5e3026f6f10e86632f6b177a0933a66f9b6d4b3c",
+    "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+    "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+    "aws/shared/llm_router.py": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/shared/short_position_context.py": "f62260c04d17df94f96eff9f938272c665d1fd4d604e87d955a3eb4203996c5e",
+    "aws/shared/xai_voice.py": "bdbb4a3e47514627195f6cce8ad50ef348b6b6580eb93c4395327f386943a2c8",
+    "aws/lambdas/justhodl-opportunities-research/source/lambda_function.py": "0d290cb9b4787f40a94821ff4cc18092147fa727f8155a6debdf9014b68e7176",
+    "aws/lambdas/justhodl-retail-sentiment/source/lambda_function.py": "068cce4f6438e81cf2989df6829054c0bef284ce323195ff6eb534d766932f34",
+    "aws/lambdas/justhodl-retail-sentiment/source/legacy_retail_sentiment.py": "4039b6d46d221567277885b158cdd99dbbc91b05bfec27e102291c8a6ec3f6d9",
+    "aws/lambdas/justhodl-retail-sentiment/source/retail_research_model.py": "b140a908775982fcd6f01432e1dba6f5973220250ed5822623116c37b0ecd430",
+    "aws/lambdas/justhodl-retail-sentiment/source/retail_research_store.py": "3545f059574dc695adc441477d0617a45c6c85410db18256971c039b0b960977",
+    "aws/shared/finviz.py": "a68a6d83a70848e91dc1dbebee8a28ad5e110ce8b672d862c858e08b92346e69",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+  },
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "open_limits": [
+    "Input body digests and JSON row pointers are diagnostic; this consumer does not retain immutable source originals and does not establish point-in-time replay.",
+    "Parser and body age cannot establish observation freshness or security identity.",
+    "Existing unrelated scorecards, provider financials, 13F gaps, narrative prompts, cache age rules and learning paths remain unqualified and require their own repair.",
+    "Retail active native research is unchanged; its retained legacy module imports the shared reader and its whole native package must therefore be checked.",
+    "Squeeze-pretrigger consumer and upstream issue-identity ambiguities remain open.",
+    "All ten institutional workstreams remain OPEN."
+  ],
+  "validation": {
+    "alpha_tests": 41,
+    "opportunities_tests": 41,
+    "retail_tests": 20,
+    "native_acceptance_tests": 6,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass",
+    "actual_application_packets_read": 0,
+    "invented_cases_only": true
+  }
+}
