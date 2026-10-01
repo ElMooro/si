@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "exact_static_release_checked",
   "pages": [
     "alpha-scoreboard.html",
     "opportunities.html"
@@ -41,5 +41,47 @@
     "whole_page_preservation": true,
     "browser_scenarios": 4,
     "frontend_fixture_policy": "Host-only invented industry fixture substitute; no captured peer packet read."
+  },
+  "source_commit": "e7aae66836fb5e97bbced53679641e997f390fe7",
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-01T18:00:17.602930+00:00",
+    "source_commit": "e7aae66836fb5e97bbced53679641e997f390fe7",
+    "served_commit": "e7aae66836fb5e97bbced53679641e997f390fe7",
+    "build_manifest_sha256": "858e9797388f9792e217375c60f14012a74b2d2f083e36ea14a6dbcfcb0e1b54",
+    "asset": {
+      "path": "jh-short-position-context.js",
+      "bytes": 4483,
+      "sha256": "0539c4ad59fdba2f22cf107c38eac8710d86909dfdbe6dbf77a2ced91a377e60",
+      "content_version": "9dbf1cbb",
+      "whole_transformed_source_matches": true
+    },
+    "pages": {
+      "alpha-scoreboard.html": {
+        "bytes": 73295,
+        "sha256": "68d2ec78968d0e05a72b486148a21857d15e034302b484d4c5ef6c7ef51c151c",
+        "whole_http_body_sha256": "95a6a5f5314c69e9c007ac09b17fa7db648695149247385e527b0d06ff7caffb",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "content_version_import": "9dbf1cbb"
+      },
+      "opportunities.html": {
+        "bytes": 90162,
+        "sha256": "4636359044e84e4a1a002adc7363756faf0632751d05bd1d9c72f73de6676978",
+        "whole_http_body_sha256": "074ec713eca9bfb5276f60bbc9e8ba12ed73188c8520274fa6aca37bdc2303ad",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "content_version_import": "9dbf1cbb"
+      }
+    },
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served static HTML and shared renderer; offline drawer QA is separate. No live page execution, current/private application packet or provider request."
   }
 }
