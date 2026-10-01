@@ -7,6 +7,9 @@ Builds the pre-computed "full picture" index: for every ticker covered by
 Reads (via shared ticker_360 hub): all SOURCES domains.
 Writes: data/ticker-360.json — {generated_at, universe_size, tickers: {...}}
 
+v1.2: market-wide domains (macro-regime, dollar, futures, fx, gold-rotation,
+flow-confluence, cboe-options) enrich every ticker.
+
 Any engine or frontend page reads ONE key for the composed picture instead
 of hand-wiring N sources. The hub (ticker_360.enrich) remains available for
 on-demand per-ticker views.
@@ -26,7 +29,7 @@ import ticker_360
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/ticker-360.json"
-VERSION = "1.1"
+VERSION = "1.2"
 
 s3 = boto3.client("s3", "us-east-1")
 
