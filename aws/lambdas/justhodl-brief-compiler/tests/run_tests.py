@@ -248,6 +248,9 @@ for mode, required_key in [
         assert doc['inputs'][required_key]['freshness'] == ('EXPIRED' if ahead else 'FRESH')
         assert contract.validate_brief(doc) == []
         assert writes[-1] == doc
+        if mode == "official_stats":
+            assert doc["evidence"]["schema"] == "official-stats-evidence.v1"
+            assert doc["evidence"]["decision_fields_replaced"] is False
         checks += 1
 print(json.dumps({'packaged_compiler_cases': checks, 'future': 'EXPIRED', 'future_modes': 'all five HELD'}))
 """
@@ -255,6 +258,9 @@ print(json.dumps({'packaged_compiler_cases': checks, 'future': 'EXPIRED', 'futur
                                     cwd=tmp, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout)["packaged_compiler_cases"], 24)
+
+
+from test_official_stats_evidence import OfficialStatsEvidenceTests
 
 
 if __name__ == "__main__":
