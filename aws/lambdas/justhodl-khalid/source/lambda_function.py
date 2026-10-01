@@ -22,6 +22,7 @@ from discovery import apply_lifecycle, build_opportunity_radar
 from provider_flow_evidence import project as project_provider_flow_evidence
 from breadth import apply_breadth_confirmation
 from scoring import contract_error, number, rank_candidates, score_candidate
+from qualification import publish_qualification
 
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -1115,6 +1116,7 @@ def build_output(
         "data_quality": source_health,
     }
     output["provider_flow_research"] = project_provider_flow_evidence(None if (metas.get("capital_flow") or {}).get("error") else feeds.get("capital_flow"), now)
+    publish_qualification(output, ranked)
     output["_candidate_ledger"] = candidate_ledger
     validate_output(output)
     return output
