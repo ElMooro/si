@@ -1,0 +1,59 @@
+{
+  "script": "1089_final_verify",
+  "read_at": "2026-10-01T23:15:37Z",
+  "units": [
+    {
+      "name": "SEC 8-K enrichment",
+      "schedule_enabled": true,
+      "invocations": 22,
+      "errors": 0,
+      "artifact_exists": true,
+      "artifact_fresh": true,
+      "artifact_size": 3368592,
+      "green": true
+    },
+    {
+      "name": "FINRA short-interest",
+      "schedule_enabled": true,
+      "invocations": 1,
+      "errors": 0,
+      "artifact_exists": true,
+      "artifact_fresh": true,
+      "artifact_size": 2950,
+      "green": true
+    },
+    {
+      "name": "SEC XBRL",
+      "schedule_enabled": true,
+      "invocations": 1,
+      "errors": 0,
+      "artifact_exists": true,
+      "artifact_fresh": true,
+      "artifact_size": 907753,
+      "green": true
+    },
+    {
+      "name": "Corporate actions",
+      "schedule_enabled": true,
+      "invocations": 1,
+      "errors": 0,
+      "artifact_exists": true,
+      "artifact_fresh": true,
+      "artifact_size": 39282,
+      "green": true
+    },
+    {
+      "name": "ETF issuer holdings",
+      "schedule_enabled": true,
+      "invocations": 1,
+      "errors": 0,
+      "artifact_exists": true,
+      "artifact_fresh": true,
+      "artifact_size": 2771,
+      "green": true
+    }
+  ],
+  "green_count": 5,
+  "total": 5,
+  "status": "COMPLETE"
+}
