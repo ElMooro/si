@@ -18,6 +18,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Katlin withheld/invalid optional vote qualification and volatility vocabulary; user-approved 14:57 UTC, codex/katlin-vote-qualification; preserve funding/raw-gate holds, measurements and criticality. Independent exact-head review and scoped release required. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
+| Katlin actionable alert permission/expiry gate only in alert-router; coordinated separate codex/katlin-alert-permission; no live test sends, other alert families unchanged; independent exact-head review before parent-coordinated release. | none | S-codex#kalert1001q6 | 2026-10-01 15:00 |
 | Wyckoff Candle spread/Accumulation Katlin permission notice only; codex/wyckoff-katlin-permission; display and tests, independent exact-head review then authorized Pages release; no shared capital/chart/backend changes | none | S-codex#wkperm1001z8 | 2026-10-01 14:52 |
 | PR49 industry producer/page repair accepted ac90ff8eb; authorized code/page release via existing pinned industry-only Lambda and explicit Pages dispatch. Standard configuration reconciliation allowed; no schedules, paid activation, invokes, IAM/security policy changes or tape redeploy. Verification pending. | none | S-codex#icrepair1001q9 | 2026-10-01 |
 | Credit-before-equity missing-value unit suffix only; codex/credit-unavailable-units; preserve numeric formatting/signals, regression and independent review before release | none | S-codex#cbeunits1001m | 2026-10-01 |
