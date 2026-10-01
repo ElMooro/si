@@ -392,7 +392,7 @@
     return {seen:next,previous:prev};
   }
   function ownershipSession() {
-    let token=0,controller=null,manifest=null,cohort=null,index=0,seen=new Set(),previous=null,requests=0,bytes=0;
+    let token=0,controller=null,manifest=null,cohort=null,index=0,cursor=0,seen=new Set(),previous=null,requests=0,bytes=0;
     const cache=new Map();let cacheBytes=0;
     function cancel(){token++;controller?.abort();}
     async function read(ref,limit,fetcher,signal){summaryRef(ref,limit);if(signal.aborted)throw Error('Cancelled');
@@ -403,53 +403,65 @@
       while(cacheBytes+ref.bytes>ownershipLimits.sessionBytes&&cache.size){const [k,v]=cache.entries().next().value;cacheBytes-=v.bytes;cache.delete(k);}
       cache.set(key,{doc,bytes:ref.bytes});cacheBytes+=ref.bytes;return doc;
     }
-    return {cancel,
-      async open(p,fetcher){cancel();const generation=token;controller=new AbortController();manifest=null;cohort=null;requests=bytes=0;
+    const position=()=>({page:cursor,canPrevious:cursor>1,canNext:!!cohort&&cursor<Math.min(cohort.parts.length,ownershipLimits.sessionPages)});
+    async function move(target,view,fetcher,at){cancel();const generation=token;controller=new AbortController();
+      const error=ownershipState(manifest,cohort,view,at??Date.now());if(error)throw Error(error);
+      if(target<1)throw Error('No previous cohort page');
+      if(target>cohort.parts.length)throw Error('No more cohort pages');
+      if(target>ownershipLimits.sessionPages)throw Error('32-page browsing bound reached; use the source evidence for the remaining records.');
+      const doc=await read(cohort.parts[target-1],ownershipLimits.page,fetcher,controller.signal);
+      if(generation!==token)throw Error('Cancelled');
+      // Only extend the validated prefix forwards. Revisits use the same verified
+      // immutable reference, never re-add identities or weaken cross-page checks.
+      const extending=target>index;
+      const validated=ownershipRows(doc,cohort,target-1,extending?seen:new Set(),extending?previous:null);
+      const expired=ownershipState(manifest,cohort,view,at??Date.now());if(expired)throw Error(expired);
+      if(extending){seen=validated.seen;previous=validated.previous;index=target;}
+      cursor=target;
+      return {rows:doc.rows,...position(),from:(cursor-1)*200+1,to:(cursor-1)*200+doc.rows.length,loaded:seen.size,total:cohort.record_count,requests,bytes};
+    }
+    return {cancel,position,
+      async open(p,fetcher){cancel();const generation=token;controller=new AbortController();manifest=null;cohort=null;cursor=index=0;seen=new Set();previous=null;requests=bytes=0;
         const activeSignal=controller.signal;await verifyPacket(p,fetcher,activeSignal);
         // Metadata verifier performs its own bounded retained read (not page cache).
         const m=await ownershipManifest(p,fetcher,activeSignal);
         if(generation!==token)throw Error('Cancelled');manifest=m;return m;
       },
-      select(id){cancel();cohort=manifest?.cohorts.find(g=>g.cohort_id===id&&g.kind==='current_membership');index=0;seen=new Set();previous=null;if(!cohort)throw Error('Choose a cohort');return cohort;},
-      async next(view,fetcher,at=null){cancel();const generation=token;controller=new AbortController();
-        const error=ownershipState(manifest,cohort,view,at??Date.now());if(error)throw Error(error);
-        if(index>=cohort.parts.length)throw Error('No more cohort pages');if(index>=ownershipLimits.sessionPages)throw Error('32-page browsing bound reached; use the source evidence for the remaining records.');
-        const doc=await read(cohort.parts[index],ownershipLimits.page,fetcher,controller.signal);
-        if(generation!==token)throw Error('Cancelled');
-        const validated=ownershipRows(doc,cohort,index,seen,previous);
-        const expired=ownershipState(manifest,cohort,view,at??Date.now());if(expired)throw Error(expired);
-        seen=validated.seen;previous=validated.previous;index++;
-        return {rows:doc.rows,page:index,loaded:seen.size,total:cohort.record_count,requests,bytes};
-      }
+      select(id){cancel();cohort=manifest?.cohorts.find(g=>g.cohort_id===id&&g.kind==='current_membership');cursor=index=0;seen=new Set();previous=null;if(!cohort)throw Error('Choose a cohort');return cohort;},
+      next(view,fetcher,at=null){return move(cursor+1,view,fetcher,at);},
+      previous(view,fetcher,at=null){return move(cursor-1,view,fetcher,at);}
     };
   }
-  function ownershipPanel(){return '<section data-hd-ownership aria-label="Configured ownership cohorts"><h2>Configured-universe membership cohorts</h2><p>Rank reported memberships only within eligible funds sharing one economic date. A fresh source check does not establish current ownership. No whole-market ranking, trades or capital-flow inference.</p><button type="button" data-own-open>Load / retry summary metadata</button> <button type="button" data-own-cancel>Cancel</button><div data-own-status role="status">Not loaded. Existing publications may not yet contain a summary. No membership shards are fetched by this panel.</div><div data-own-controls hidden><label>Economic-date cohort<select data-own-cohort aria-label="Economic-date cohort"><option value="">Choose a date explicitly</option></select></label><label>Measurement<select data-own-view aria-label="Ownership measurement"><option value="qualified">Qualified memberships · eligible cohort only</option><option value="raw">Raw historical observations · unranked</option><option value="lower">Fresh known-presence lower bounds · unranked</option></select></label><button type="button" data-own-next>Load next 200 records</button></div><div data-own-coverage></div><div data-own-result></div></section>';}
+  function ownershipPanel(){return '<section data-hd-ownership aria-label="Configured ownership cohorts"><h2>Configured-universe membership cohorts</h2><p>Rank reported memberships only within eligible funds sharing one economic date. A fresh source check does not establish current ownership. No whole-market ranking, trades or capital-flow inference.</p><button type="button" data-own-open>Load / retry summary metadata</button> <button type="button" data-own-cancel>Cancel</button><div data-own-status role="status">Not loaded. Existing publications may not yet contain a summary. No membership shards are fetched by this panel.</div><div data-own-controls hidden><label>Economic-date cohort<select data-own-cohort aria-label="Economic-date cohort"><option value="">Choose a date explicitly</option></select></label><label>Measurement<select data-own-view aria-label="Ownership measurement"><option value="qualified">Qualified memberships · eligible cohort only</option><option value="raw">Raw historical observations · unranked</option><option value="lower">Fresh known-presence lower bounds · unranked</option></select></label><button type="button" data-own-previous disabled>Previous</button> <button type="button" data-own-next disabled>Next · up to 200 records</button></div><div data-own-coverage></div><div data-own-result></div></section>';}
   function ownershipCoverage(m,g,at=Date.now()){
     const excluded={};for(const f of Object.values(m.funds))if(f.qualification_exclusion)excluded[f.qualification_exclusion]=(excluded[f.qualification_exclusion]||0)+1;
+    const otherDates=Object.values(m.funds).filter(f=>f.qualification_exclusion===null&&!same(f.current_effective_dates,g.effective_dates)).length;
     const day=g.effective_dates[0],age=Math.floor((at-Date.parse(day))/86400000);
-    return '<p><b>'+g.eligible_fund_count+' eligible / '+m.configured_fund_count+' configured funds in this date cohort.</b> Economic date '+esc(day)+' · '+age+' days before this viewing date. '+(age<0?'Future economic date — not current ownership.':age>7?'Historical economic date — do not treat as current ownership.':'Reported dated observations; current ownership is not confirmed.')+'</p><p>Compiled '+esc(m.generated_at)+'. Eligible ranking expires '+esc(g.source_valid_until)+'. Fresh lower bounds separately expire '+esc(g.lower_bound_valid_until)+'.</p><p>Eligible funds: '+esc(g.eligible_funds.join(', ')||'None')+'. Other dates are separate cohorts.</p>'+table(['Global exclusion reason','Configured funds'],Object.entries(excluded),'Summary exclusions')+'<details><summary>Per-fund source clocks and exclusions</summary>'+table(['Fund','Economic dates','Source acquired','Source expires','Qualification / exclusion'],Object.entries(m.funds).map(([t,f])=>[t,f.current_effective_dates.join(', '),f.source_acquired_at,f.source_valid_until,f.qualification_exclusion||'Eligible only within its own economic-date cohort']),'Per-fund summary provenance')+'</details><p>Source classes are unverified; unknown remains unknown. Includes reported zero/short positions, cash, bonds and derivatives. No unit-qualified dollar/quantity totals, inferred asset classes, weight conversions, fund-of-funds expansion or leverage/inverse netting. Use existing inspectors for dated membership comparisons and separate quantity/weight observations.</p>';
+    return '<p><b>'+g.eligible_fund_count+' eligible / '+m.configured_fund_count+' configured funds in this date cohort.</b> Economic date '+esc(day)+' · '+age+' days before this viewing date. '+(age<0?'Future economic date — not current ownership.':age>7?'Historical economic date — do not treat as current ownership.':'Reported dated observations; current ownership is not confirmed.')+'</p><p>Compiled '+esc(m.generated_at)+'. Eligible ranking expires '+esc(g.source_valid_until)+'. Fresh lower bounds separately expire '+esc(g.lower_bound_valid_until)+'.</p><p>Eligible funds: '+esc(g.eligible_funds.join(', ')||'None')+'. '+otherDates+' funds qualified on other dates; they are not in this denominator. Other dates are separate cohorts.</p>'+table(['Global exclusion reason','Configured funds'],Object.entries(excluded),'Summary exclusions')+'<details><summary>Per-fund source clocks and exclusions</summary>'+table(['Fund','Economic dates','Source acquired','Source expires','Qualification / exclusion'],Object.entries(m.funds).map(([t,f])=>[t,f.current_effective_dates.join(', '),f.source_acquired_at,f.source_valid_until,f.qualification_exclusion||'Eligible only within its own economic-date cohort']),'Per-fund summary provenance')+'</details><p>Source classes are unverified; unknown remains unknown. Includes reported zero/short positions, cash, bonds and derivatives. No unit-qualified dollar/quantity totals, inferred asset classes, weight conversions, fund-of-funds expansion or leverage/inverse netting. Use existing inspectors for dated membership comparisons and separate quantity/weight observations.</p>';
   }
   function ownershipView(m,g,result,view,at=Date.now()){
     const error=ownershipState(m,g,view,at);if(error)return '<p>'+esc(error)+'</p>';
     const rows=view==='qualified'?result.rows:[...result.rows].sort((a,b)=>a.identity_key.localeCompare(b.identity_key));
     const title=view==='qualified'?'Qualified reported memberships within eligible date cohort':view==='raw'?'Raw historical observations · not ranked':'Fresh known-presence lower bounds · not ranked';
-    return '<p>'+title+'. Page '+result.page+'; '+result.loaded+' / '+result.total+' retained records verified. Only this page is displayed; unloaded records are not a separate universe or a new ranking. '+(view!=='qualified'?'Page membership follows the retained qualified-order pagination; this is not a top raw/lower-bound list.':'Counts and order are supplied by the verified producer for this exact cohort.')+'</p>'+table(['Reported ticker / exact identity','Source class · unverified',view==='qualified'?'Qualified funds / eligible':view==='raw'?'Raw observed funds':'Known-presence lower bound'],rows.map(r=>[(r.reported_tickers.join(' / ')||'No ticker')+' · '+r.identity_key,r.source_asset_class??'Unknown',view==='qualified'?r.qualified_fund_count+' / '+g.eligible_fund_count:view==='raw'?r.raw_observed_fund_count:r.known_presence_lower_bound]),title);
+    return '<p>'+title+'. Page '+result.page+'. Displayed records '+((result.page-1)*200+1)+'–'+((result.page-1)*200+result.rows.length)+'. The eligible-fund denominator is '+g.eligible_fund_count+', not the number of displayed records. '+result.loaded+' / '+result.total+' retained records verified. Only this page is displayed; unloaded records are not a separate universe or a new ranking. '+(view!=='qualified'?'Page membership follows the retained qualified-order pagination; this is not a top raw/lower-bound list. Raw and lower-bound counts can include ineligible funds; they are not the qualified denominator.':'Counts and order are supplied by the verified producer for this exact cohort.')+'</p>'+table(['Reported ticker / exact identity','Source class · unverified',view==='qualified'?'Qualified funds / eligible':view==='raw'?'Raw observed funds':'Known-presence lower bound'],rows.map(r=>[(r.reported_tickers.join(' / ')||'No ticker')+' · '+r.identity_key,r.source_asset_class??'Unknown',view==='qualified'?r.qualified_fund_count+' / '+g.eligible_fund_count:view==='raw'?r.raw_observed_fund_count:r.known_presence_lower_bound]),title);
   }
   function bindOwnership(panel,p,fetcher){
     const host=panel.querySelector('[data-hd-ownership]'),q=s=>host.querySelector(s),session=ownershipSession();let generation=0,m=null,g=null,result=null,timer=null;
-    const clear=()=>{generation++;session.cancel();clearTimeout(timer);result=null;q('[data-own-result]').textContent='';};
-    const paint=()=>{if(!m||!g)return;q('[data-own-coverage]').innerHTML=ownershipCoverage(m,g);if(result)q('[data-own-result]').innerHTML=ownershipView(m,g,result,q('[data-own-view]').value);
+    const navigation=()=>{const state=session.position();q('[data-own-previous]').disabled=!state.canPrevious;q('[data-own-next]').disabled=!state.canNext;};
+    const clear=()=>{generation++;session.cancel();clearTimeout(timer);result=null;q('[data-own-result]').textContent='';navigation();};
+    const paint=()=>{navigation();if(!m||!g)return;q('[data-own-coverage]').innerHTML=ownershipCoverage(m,g);if(result)q('[data-own-result]').innerHTML=ownershipView(m,g,result,q('[data-own-view]').value);
       clearTimeout(timer);const deadline=q('[data-own-view]').value==='qualified'?g.source_valid_until:q('[data-own-view]').value==='lower'?g.lower_bound_valid_until:null;
       if(deadline&&Date.parse(deadline)>Date.now())timer=setTimeout(paint,Math.min(2147483647,Date.parse(deadline)-Date.now()));};
     q('[data-own-cancel]').onclick=()=>{clear();q('[data-own-status]').textContent='Cancelled. Choose a cohort again or retry metadata.';};
     q('[data-own-open]').onclick=async()=>{clear();m=g=null;q('[data-own-controls]').hidden=true;q('[data-own-coverage]').textContent='';const token=generation;q('[data-own-status]').textContent='Verifying publication and bounded summary metadata…';
-      try{const found=await session.open(p,fetcher);if(token!==generation)return;m=found;q('[data-own-controls]').hidden=false;q('[data-own-cohort]').innerHTML='<option value="">Choose a date explicitly</option>'+m.cohorts.filter(c=>c.kind==='current_membership').sort((a,b)=>b.effective_dates[0].localeCompare(a.effective_dates[0])).map(c=>'<option value="'+c.cohort_id+'">'+esc(c.effective_dates[0])+' · '+c.eligible_fund_count+' / '+m.configured_fund_count+' eligible</option>').join('');q('[data-own-status]').textContent='Metadata verified. Choose an economic date; no date is selected automatically. Each click loads at most 200 records / 256 KiB. At most 32 page requests / 8 MiB of page bytes per attempt across all cohorts. Separate proof/metadata bounds: two objects up to 16 MiB each plus a 512 KiB summary manifest.';}
+      try{const found=await session.open(p,fetcher);if(token!==generation)return;m=found;navigation();q('[data-own-controls]').hidden=false;q('[data-own-cohort]').innerHTML='<option value="">Choose a date explicitly</option>'+m.cohorts.filter(c=>c.kind==='current_membership').sort((a,b)=>b.effective_dates[0].localeCompare(a.effective_dates[0])).map(c=>'<option value="'+c.cohort_id+'">'+esc(c.effective_dates[0])+' · '+c.eligible_fund_count+' / '+m.configured_fund_count+' eligible</option>').join('');q('[data-own-status]').textContent='Metadata verified. Choose an economic date; no date is selected automatically. Each click loads at most 200 records / 256 KiB. At most 32 page requests / 8 MiB of page bytes per attempt across all cohorts. Separate proof/metadata bounds: two objects up to 16 MiB each plus a 512 KiB summary manifest.';}
       catch(e){if(token===generation)q('[data-own-status]').textContent='Summary unavailable: '+e.message;}};
-    const select=()=>{clear();g=null;try{g=session.select(q('[data-own-cohort]').value);paint();q('[data-own-status]').textContent='Date selected; load a page explicitly.';}catch(e){q('[data-own-coverage]').textContent='';q('[data-own-status]').textContent=e.message;}};
+    const select=()=>{clear();g=null;try{g=session.select(q('[data-own-cohort]').value);paint();q('[data-own-status]').textContent='Date selected; load a page explicitly.';}catch(e){navigation();q('[data-own-coverage]').textContent='';q('[data-own-status]').textContent=e.message;}};
     q('[data-own-cohort]').onchange=select;q('[data-own-view]').onchange=select;
-    q('[data-own-next]').onclick=async()=>{const token=++generation;result=null;q('[data-own-result]').textContent='';q('[data-own-status]').textContent='Verifying next retained page…';
-      try{const r=await session.next(q('[data-own-view]').value,fetcher);if(token!==generation)return;result=r;paint();q('[data-own-status]').textContent='Verified '+r.loaded+' / '+r.total+' records; '+r.requests+' page requests / '+r.bytes+' bytes this attempt.';}
-      catch(e){if(token===generation)q('[data-own-status]').textContent='Summary page unavailable: '+e.message;}};
+    const navigate=direction=>async()=>{const token=++generation;result=null;q('[data-own-result]').textContent='';q('[data-own-status]').textContent='Verifying '+direction+' retained page…';
+      try{const r=await session[direction](q('[data-own-view]').value,fetcher);if(token!==generation)return;result=r;paint();q('[data-own-status]').textContent='Verified '+r.loaded+' / '+r.total+' records; displaying '+r.from+'–'+r.to+'. '+r.requests+' page requests / '+r.bytes+' bytes this attempt.'+(r.page===ownershipLimits.sessionPages&&r.to<r.total?' Browsing limit reached (32 pages); remaining records are not loaded.':'');}
+      catch(e){if(token===generation){navigation();q('[data-own-status]').textContent='Summary page unavailable: '+e.message;}}};
+    q('[data-own-next]').onclick=navigate('next');q('[data-own-previous]').onclick=navigate('previous');
     return clear;
   }
 
