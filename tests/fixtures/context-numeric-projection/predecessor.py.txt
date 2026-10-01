@@ -5,7 +5,6 @@ No model/provider, account discovery, notifications or downloaded code execution
 Public projection is a separately reviewed pure function.
 """
 from datetime import datetime,timezone
-from decimal import Decimal,InvalidOperation
 from pathlib import Path
 import hashlib,json,math,re,time,zlib
 
@@ -40,16 +39,9 @@ def strict(raw,encoding=''):
             if key in out:raise ValueError('Duplicate JSON key')
             out[key]=value
         return out
-    def number(token):
-        # The retained original remains exact. A float projection must round-trip
-        # its decimal token; underflow or lost digits mean unavailable, not zero.
-        if len(token)>512:raise ValueError('Context numeric token exceeds bound')
-        try:
-            exact=Decimal(token);value=float(token)
-        except (ValueError,InvalidOperation,OverflowError):
-            raise ValueError('Invalid context number') from None
-        if not exact.is_finite() or not math.isfinite(value):raise ValueError('Nonfinite context number')
-        if Decimal(str(value))!=exact:raise ValueError('Lossy context numeric projection')
+    def number(value):
+        value=float(value)
+        if not math.isfinite(value):raise ValueError('Nonfinite context number')
         return value
     def constant(_):raise ValueError('Nonfinite context JSON')
     return json.loads(decoded.decode('utf-8'),object_pairs_hook=pairs,parse_float=number,parse_constant=constant)

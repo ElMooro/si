@@ -1,0 +1,15 @@
+{
+  "target": "aws/shared/context_evidence_store.py",
+  "predecessor_sha256": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7",
+  "candidate_sha256": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+  "edits": [
+    [
+      "from datetime import datetime,timezone\n",
+      "from datetime import datetime,timezone\nfrom decimal import Decimal,InvalidOperation\n"
+    ],
+    [
+      "    def number(value):\n        value=float(value)\n        if not math.isfinite(value):raise ValueError('Nonfinite context number')\n        return value",
+      "    def number(token):\n        # The retained original remains exact. A float projection must round-trip\n        # its decimal token; underflow or lost digits mean unavailable, not zero.\n        if len(token)>512:raise ValueError('Context numeric token exceeds bound')\n        try:\n            exact=Decimal(token);value=float(token)\n        except (ValueError,InvalidOperation,OverflowError):\n            raise ValueError('Invalid context number') from None\n        if not exact.is_finite() or not math.isfinite(value):raise ValueError('Nonfinite context number')\n        if Decimal(str(value))!=exact:raise ValueError('Lossy context numeric projection')\n        return value"
+    ]
+  ]
+}

@@ -7552,3 +7552,10 @@ The expanded engine checks reproduced a dataset identity bug: consecutive builds
 
 
 The first Stage 526 runner release (36921057789, source 6b9f66f85) stopped in preflight because NumPy was absent from the CI test environment. No Lambda update step ran. The full committed failure report was inspected. The repair pins the locally tested NumPy 2.3.5 before selected engine tests, extends the dependency regression and preserves the complete prior workflow and test file. The planned recovery must cover the entire original 73-function source range; a green workflow with no detected targets is not recovery. Exact native acceptance now also pins the deployment workflow, so receipts must identify the repaired release commit. The shared numeric parser candidate remains outside production.
+
+
+### Stage 527 bounded context numeric projection candidate
+
+The previous shared parser converts `1e-1000` to zero and loses digits from `0.100000000000000000001`. The candidate bounds decimal tokens before conversion and requires their decimal representation to round-trip. A lossy token makes the whole parsed packet unavailable while its original bytes remain retained. Genuine zero, ordinary round-tripping decimals, integers and unrelated fields remain compatible. This does not assert exact binary arithmetic or economic validity.
+
+Eight invented parser cases reproduce predecessor corruption and test preservation. Four consumer cases exercise five real projection modules plus website metadata, proving unavailable evidence cannot add a vote and all-invalid inputs refuse a new projection. Existing twelve importer engine suites, full deployment checks and exact source receipt/native acceptance must pass before acceptance. Read-only operation 6430 captured all twelve original control/schedule sets twice; configured effective updates match. No producer, model, application/private/account packet or source-provider request was used. All institutional workstreams remain OPEN.
