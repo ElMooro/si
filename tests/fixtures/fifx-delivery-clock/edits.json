@@ -1,0 +1,11 @@
+{
+  "target": "aws/ops/checks/fifx_api_delivery.py",
+  "predecessor_sha256": "5c89e7dd7a2785ebad1e19107d399ea56191d6752a37eee477645f2da15f99bb",
+  "candidate_sha256": "19221c4a5f2a415d6cabb87ba4ab0600cec4e0e1803bcdfd7349a3fe136ae50f",
+  "edits": [
+    [
+      "        if not lower<=acquired or not run_clock<=acquired<=run_clock+timedelta(seconds=900) or not 0<=(acquired.date()-day).days<=1:return False",
+      "        # fifx_store.run timestamps its input packet after collect() joins all\n        # acquisitions. Receipts must precede that clock within the unchanged\n        # 900-second native execution bound, and still follow the release cutoff.\n        if not lower<=acquired or not run_clock-timedelta(seconds=900)<=acquired<=run_clock or not 0<=(acquired.date()-day).days<=1:return False"
+    ]
+  ]
+}

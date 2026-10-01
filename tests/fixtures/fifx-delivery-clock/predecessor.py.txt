@@ -29,10 +29,7 @@ def api_identity(sid,receipt,population,run_clock,lower):
         expected={'series_id':sid,'file_type':'json','realtime_start':as_of,'realtime_end':as_of,'observation_start':'1988-01-01','observation_end':as_of,'units':'lin','sort_order':'asc','limit':'50000','offset':'0','output_type':'1'}
         if query!=expected:return False
         acquired=clock(receipt['acquired_at'])
-        # fifx_store.run timestamps its input packet after collect() joins all
-        # acquisitions. Receipts must precede that clock within the unchanged
-        # 900-second native execution bound, and still follow the release cutoff.
-        if not lower<=acquired or not run_clock-timedelta(seconds=900)<=acquired<=run_clock or not 0<=(acquired.date()-day).days<=1:return False
+        if not lower<=acquired or not run_clock<=acquired<=run_clock+timedelta(seconds=900) or not 0<=(acquired.date()-day).days<=1:return False
         controls={'requested_start':'1988-01-01','requested_end':as_of,'realtime_start':as_of,'realtime_end':as_of,'offset':0,'limit':50000,'complete_requested_window':True,'full_series_history':False,'point_in_time_backtest':False}
         if any(type(population.get(k)) is not type(v) or population[k]!=v for k,v in controls.items()):return False
         if type(receipt.get('bytes')) is not int or not 0<receipt['bytes']<=8*1024*1024:return False

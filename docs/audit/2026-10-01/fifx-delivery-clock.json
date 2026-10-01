@@ -1,0 +1,23 @@
+{
+  "stage": 532,
+  "status": "tested_awaiting_workflow_acceptance",
+  "scope": "Correct only the FI/FX read-only qualification chronology. Acquisition precedes the generated input packet within the unchanged 900-second execution bound and after the release cutoff.",
+  "target": "aws/ops/checks/fifx_api_delivery.py",
+  "predecessor_sha256": "5c89e7dd7a2785ebad1e19107d399ea56191d6752a37eee477645f2da15f99bb",
+  "candidate_sha256": "19221c4a5f2a415d6cabb87ba4ab0600cec4e0e1803bcdfd7349a3fe136ae50f",
+  "producer_changed": false,
+  "existing_api_fixture_changed": false,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "current_packet_reads": 0,
+  "private_reads": 0,
+  "account_reads": 0,
+  "investment_authority": false,
+  "limits": [
+    "Does not establish why a normal original archive is absent",
+    "No schedule causation, current-pointer delivery, point-in-time or forecast qualification claim",
+    "Requires an actual complete retained original run before reporting API delivery"
+  ],
+  "deployment_tests": 1026,
+  "shell_tests": 15
+}
