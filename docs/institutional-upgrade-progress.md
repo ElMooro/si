@@ -6900,3 +6900,23 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Baseline preparation passes three focused, 987 full deployment and fifteen shell checks. Native source and page source are unchanged; the accepted equity source remains 32aed755a. Baseline dispatch and coverage repair remain pending; all ten workstreams stay OPEN.
 
 - Read-only 6401, run `36799748881`, confirms the whole 3,310-byte deployed predecessor and CodeSha256 `MCBwqgoD43tK+OnCP6USHDFy5f/AE6Z4ChIGFMNpNc4=`, with original 1024 MB / 120 seconds / 512 MB temporary storage / Python 3.12 / x86_64 and enabled daily 06:45 UTC rule unchanged before/after. Report commit `b44751606aa7db5066964c86374db58e1f4968d0`. S3 explicitly reports the predecessor receipt missing; native byte parity is accepted, old commit-bound release proof remains unavailable. Zero actual data/private/current/account/consumer reads, invocations, provider calls or native writes. Repair and 6402 acceptance remain pending.
+
+
+## Stage 492: scoped coverage inventory repair
+
+- Accepted native baseline 6401 matches the whole 3,310-byte predecessor and
+  original daily 06:45 UTC controls; its old commit-bound receipt is absent.
+  The repair replaces failure-as-zero, hardcoded CUSIP zero, invalid identifier
+  counting and unqualified broad-market percentages with typed source inventory.
+  Original metric names and inputs remain; unsupported denominators are null.
+- Whole upstream source review caught lowercase NYFed keys and failed-row flags.
+  Partial known rate slots cannot become a full-population percentage. Report
+  generation does not establish observation time, freshness or source completeness.
+- Complete acquired artifacts and compiler bytes are privately retained with
+  conditional report publication. Tests use complete invented inputs and retain
+  the whole predecessor. Final integrated checks pass: 39 native, three operation,
+  990 deployment, fifteen shell and 2,213 frontend cases; 599 page graphs and
+  143 companion wires. Source metadata preserves 898 engines and makes the direct
+  report write reachable; dynamic private archive keys remain explicitly unresolved.
+  Exact release acceptance is pending.
+  Normal publication, independent real-source replay and all ten workstreams remain OPEN.

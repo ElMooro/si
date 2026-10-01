@@ -1,6 +1,6 @@
 {
   "stage": 492,
-  "status": "baseline_accepted_repair_in_progress",
+  "status": "tested_pending_exact_release",
   "baseline": {
     "run_id": 36799748881,
     "operation_commit": "9216a8caecb41c3e780d31b40a054fed6537c704",
@@ -365,15 +365,80 @@
     }
   ],
   "checks": {
-    "baseline_focused": 3,
-    "deployment": 987,
+    "native": 39,
+    "model": 21,
+    "storage": 15,
+    "whole_native": 3,
+    "operation": 3,
+    "deployment": 990,
     "shell": 15,
-    "candidate_projection": 18,
-    "candidate_storage": 13,
-    "candidate_not_installed": true
+    "frontend": 2213,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "tested_base": "3cb37deb744a33f603cb54d30707a3169522580a",
+    "manifest": {
+      "engine_count": 898,
+      "recompiled_importers": [
+        "justhodl-coverage-gap-report"
+      ],
+      "preserved_unchanged_engine_records": 897,
+      "method": "Complete changed coverage importer compiled; other source/config/compiler inputs unchanged from accepted 898-record inventory. Latest incoming automatic manifest differs only in generated_at. Static source ownership is not deployment proof.",
+      "reviewed_peer_base": "3cb37deb744a33f603cb54d30707a3169522580a"
+    }
   },
   "normal_publication_verified": false,
   "source_replay_verified": false,
   "investment_authority": false,
-  "all_ten_workstreams": "OPEN"
+  "all_ten_workstreams": "OPEN",
+  "repair_base": "3cb37deb744a33f603cb54d30707a3169522580a",
+  "operation": 6402,
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-coverage-gap-report/source/lambda_function.py",
+      "sha256": "a6049b0395273e29d9b09989d202264c50c3d9e196af8c26f5d9eefbb4edb0dc",
+      "bytes": 2102
+    },
+    {
+      "path": "aws/lambdas/justhodl-coverage-gap-report/source/coverage_model.py",
+      "sha256": "add5bc00054096e95609b8156e8743b72fed07aeb5b6cc1dd7ed11b1ec6c04fc",
+      "bytes": 10432
+    },
+    {
+      "path": "aws/lambdas/justhodl-coverage-gap-report/source/coverage_store.py",
+      "sha256": "993c7256ba409b2f19df7155dba6c263455eccd130ddeb1b3c46fcb9d9986f69",
+      "bytes": 7016
+    }
+  ],
+  "upstream_source_review": [
+    {
+      "path": "aws/lambdas/justhodl-nyfed-full-history/source/lambda_function.py",
+      "sha256": "4595c1b06c2e2bee372acc68dff38122ff517aed99ce068a859fd71c64ebe2e8"
+    },
+    {
+      "path": "aws/lambdas/justhodl-edgar-full-index/source/lambda_function.py",
+      "sha256": "8fb94925c353a0583b6b38ec794394b5cf6e416578fd23f4567b682f81166f89"
+    },
+    {
+      "path": "aws/lambdas/justhodl-provenance-rollup/source/lambda_function.py",
+      "sha256": "deaf3b7cd59dff88aae0aad4b0e7238eb2f6cabcecd0aa3af9ef5a64aac184cc"
+    }
+  ],
+  "upstream_limitations": [
+    "NYFed uses lowercase named slots; failed rows flag data_unavailable; last-500 fallback does not prove ten-year completeness.",
+    "EDGAR summary counts parsed rows after malformed-line skips; no completeness proof.",
+    "Rollup feed attribution is heuristic and may count a feed under multiple providers; not a series census."
+  ],
+  "incoming_review": {
+    "commit": "3cb37deb744a33f603cb54d30707a3169522580a",
+    "engine_manifest_identical_except_generated_at": true,
+    "preserved_engine_count": 898,
+    "peer_reports_read": false
+  },
+  "final_review": {
+    "functional_io": "Direct native publish/read/retain calls keep the report write reachable in source analysis; dynamic private archive keys remain unresolved, never certified as exhaustive graph coverage.",
+    "config_description": "Removed unsupported Bloomberg-parity and honest-zero wording; all operational config fields preserved.",
+    "timestamp_boundaries": "Malformed extreme source UTC conversions remain reported but unparsed instead of crashing.",
+    "pre_functional_suite": "First full cycle retained separately; final integrated checks run after revised source and description."
+  },
+  "consumer_review": "Repository search finds no active reader of the coverage-gap path or compatibility metric percentages. Original keys retained; the FRED crawler mentions the legacy proxy in a source comment."
 }

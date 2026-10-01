@@ -1,8 +1,8 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-10-01T00:51:16 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-10-01T01:32:22 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `2998b1aba4d2b7f02e75b13290ddb3f6d40dabc7333e05d82d5269f09843e7a7`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `af5a9e287a1c709287ef0bc3590fda5e83acd5c33719f18db44bdaf1d4765584`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
@@ -684,7 +684,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 
 ## Engines whose every output is unreferenced by any page or engine (33)
 
-justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-coverage-gap-report, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
+justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-edgar-full-index, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
 
 ## Engines that write outputs but have no schedule in config.json and are not fan-out members (259)
 

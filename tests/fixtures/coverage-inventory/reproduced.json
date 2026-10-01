@@ -1,0 +1,252 @@
+{
+  "source_sha256": "cfe938f70fc781c211088d0ec1e60bb95043e559759d25955dfdeae7a5912258",
+  "whole_predecessor_bytes": 3310,
+  "cases": {
+    "failed_inputs_claim_measured_zeros": {
+      "inputs": {},
+      "reads": [
+        "data/symbology/master.json",
+        "data/warm/edgar-filings/latest-summary.json",
+        "data/warm/nyfed/latest-summary.json",
+        "data/audit/data-source-rollup.json"
+      ],
+      "output": {
+        "as_of": "2026-10-01T00:45:14+00:00",
+        "spec": "E11 coverage-gap report",
+        "metrics": [
+          {
+            "metric": "us_tickers",
+            "actual": null,
+            "target": 320000,
+            "pct_of_target": null,
+            "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+          },
+          {
+            "metric": "figi_ids",
+            "actual": null,
+            "target": 0,
+            "pct_of_target": null,
+            "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+          },
+          {
+            "metric": "cusips",
+            "actual": 0,
+            "target": 500000,
+            "pct_of_target": 0.0,
+            "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+          },
+          {
+            "metric": "edgar_filings_qtd",
+            "actual": null,
+            "target": null,
+            "pct_of_target": null,
+            "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+          },
+          {
+            "metric": "nyfed_reference_rates",
+            "actual": 0,
+            "target": 5,
+            "pct_of_target": 0.0,
+            "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+          },
+          {
+            "metric": "fred_feeds_in_use",
+            "actual": null,
+            "target": 45000,
+            "pct_of_target": null,
+            "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+          }
+        ],
+        "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+      },
+      "error": null
+    },
+    "declared_count_and_invalid_figi_counted": {
+      "inputs": {
+        "data/symbology/master.json": {
+          "as_of": "2001-01-01T00:00:00Z",
+          "n_tickers": 999,
+          "by_ticker": {
+            "TEST": {
+              "cik": "0000000123",
+              "figi": true,
+              "cusip": "123456789"
+            }
+          }
+        },
+        "data/warm/edgar-filings/latest-summary.json": {
+          "n_filings": 2,
+          "complete": false
+        },
+        "data/warm/nyfed/latest-summary.json": {
+          "rates": {
+            "SOFR": {
+              "n_obs": true
+            },
+            "NOT_A_RATE": {
+              "n_obs": 1
+            }
+          }
+        },
+        "data/audit/data-source-rollup.json": {
+          "global_feed_counts": {
+            "fred": true
+          }
+        }
+      },
+      "reads": [
+        "data/symbology/master.json",
+        "data/warm/edgar-filings/latest-summary.json",
+        "data/warm/nyfed/latest-summary.json",
+        "data/audit/data-source-rollup.json"
+      ],
+      "output": {
+        "as_of": "2026-10-01T00:45:14+00:00",
+        "spec": "E11 coverage-gap report",
+        "metrics": [
+          {
+            "metric": "us_tickers",
+            "actual": 999,
+            "target": 320000,
+            "pct_of_target": 0.31,
+            "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+          },
+          {
+            "metric": "figi_ids",
+            "actual": 1,
+            "target": 999,
+            "pct_of_target": 0.1,
+            "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+          },
+          {
+            "metric": "cusips",
+            "actual": 0,
+            "target": 500000,
+            "pct_of_target": 0.0,
+            "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+          },
+          {
+            "metric": "edgar_filings_qtd",
+            "actual": 2,
+            "target": null,
+            "pct_of_target": null,
+            "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+          },
+          {
+            "metric": "nyfed_reference_rates",
+            "actual": 2,
+            "target": 5,
+            "pct_of_target": 40.0,
+            "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+          },
+          {
+            "metric": "fred_feeds_in_use",
+            "actual": true,
+            "target": 45000,
+            "pct_of_target": 0.0,
+            "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+          }
+        ],
+        "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+      },
+      "error": null
+    },
+    "existing_cusip_still_zero": {
+      "inputs": {
+        "data/symbology/master.json": {
+          "n_tickers": 1,
+          "by_ticker": {
+            "TEST": {
+              "cik": "0000000123",
+              "figi": null,
+              "cusip": "123456789"
+            }
+          }
+        },
+        "data/warm/edgar-filings/latest-summary.json": {},
+        "data/warm/nyfed/latest-summary.json": {},
+        "data/audit/data-source-rollup.json": {}
+      },
+      "reads": [
+        "data/symbology/master.json",
+        "data/warm/edgar-filings/latest-summary.json",
+        "data/warm/nyfed/latest-summary.json",
+        "data/audit/data-source-rollup.json"
+      ],
+      "output": {
+        "as_of": "2026-10-01T00:45:14+00:00",
+        "spec": "E11 coverage-gap report",
+        "metrics": [
+          {
+            "metric": "us_tickers",
+            "actual": 1,
+            "target": 320000,
+            "pct_of_target": 0.0,
+            "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+          },
+          {
+            "metric": "figi_ids",
+            "actual": 0,
+            "target": 1,
+            "pct_of_target": 0.0,
+            "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+          },
+          {
+            "metric": "cusips",
+            "actual": 0,
+            "target": 500000,
+            "pct_of_target": 0.0,
+            "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+          },
+          {
+            "metric": "edgar_filings_qtd",
+            "actual": null,
+            "target": null,
+            "pct_of_target": null,
+            "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+          },
+          {
+            "metric": "nyfed_reference_rates",
+            "actual": 0,
+            "target": 5,
+            "pct_of_target": 0.0,
+            "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+          },
+          {
+            "metric": "fred_feeds_in_use",
+            "actual": null,
+            "target": 45000,
+            "pct_of_target": null,
+            "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+          }
+        ],
+        "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+      },
+      "error": null
+    },
+    "malformed_optional_row_crashes_report": {
+      "inputs": {
+        "data/symbology/master.json": {
+          "n_tickers": 1,
+          "by_ticker": {
+            "TEST": 5
+          }
+        },
+        "data/warm/edgar-filings/latest-summary.json": {},
+        "data/warm/nyfed/latest-summary.json": {},
+        "data/audit/data-source-rollup.json": {}
+      },
+      "reads": [
+        "data/symbology/master.json",
+        "data/warm/edgar-filings/latest-summary.json",
+        "data/warm/nyfed/latest-summary.json",
+        "data/audit/data-source-rollup.json"
+      ],
+      "output": null,
+      "error": "AttributeError"
+    }
+  },
+  "actual_data_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0
+}
