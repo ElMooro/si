@@ -136,29 +136,15 @@
   function seriesRow(id, ser, twin, onM, specM) {
     var label = (onM && onM.label) || (specM && specM.label) || nice(id);
     var cat = (onM && onM.category) || (specM && specM.category) || "other";
-    var unit = (onM && onM.unit) || (specM && specM.unit) || "";
-    var first = (twin && twin.d && twin.d[0]) || (ser && ser.d && ser.d[0]) || "";
-    var last = (ser && ser.d && ser.d[ser.d.length - 1]) || (twin && twin.d && twin.d[twin.d.length - 1]) || "";
-    var n = ((ser && ser.d && ser.d.length) || 0);
-    if (twin && twin.d && twin.d.length > n) n = twin.d.length;
-    var extra = "CryptoQuant EOD · " + n + " pts " + String(first).slice(0, 10) + " → " + String(last).slice(0, 10);
-    extra += (String(first).slice(0, 4) < "2025") ? " · twins+harvest" : " · harvest (not live)";
-    return {
-      id: id,
-      s: "CQ:" + id,
-      name: label,
-      category: cat,
-      unit: unit,
-      n: n,
-      first: first,
-      last: last,
-      twin: !!(twin && twin.d && twin.d.length),
-      extra: extra,
-      chartable: true,
-      type: "onchain",
-      cat: "chain",
-      blob: blobOf(id, id.replace(/_/g, " "), label, cat, unit, "cryptoquant onchain cq")
-    };
+    var doc = {series:{},twins:{}}; doc.series[id] = ser; if (twin) doc.twins[id] = twin;
+    var parsed = global.JHObservationSeries ? global.JHObservationSeries.cq(doc, "CQ:" + id) : null;
+    var bars = parsed ? parsed.d : [], records = parsed ? parsed.evidence.records.filter(function(r){return r.accepted;}) : [];
+    var dates = records.map(function(r){return r.coordinate.original_period;}).sort();
+    var unit = (ser && ser.unit) || "";
+    return { id:id, s:"CQ:"+id, name:label, category:cat, unit:unit, n:bars.length,
+      first:dates[0]||"", last:dates[dates.length-1]||"", twin:!!twin,
+      extra:parsed ? parsed.src : "Observation parser unavailable", chartable:bars.length>=8,
+      type:"onchain", cat:"chain", blob:blobOf(id,id.replace(/_/g," "),label,cat,unit,"cryptoquant onchain cq") };
   }
 
   function build(docs) {
@@ -277,6 +263,7 @@
     return {
       generated_at: onchain.generated_at || seriesDoc.generated_at || feed.generated_at || "",
       plan_note: onchain.plan_note || spec.plan_note || universe.plan_note || "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
+      source_documents: docs,
       series: series,
       twins: twins,
       btc: seriesDoc.btc || null,
@@ -403,16 +390,10 @@
 
   function klines(sym) {
     var s = String(sym || "");
-    if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return Promise.resolve(null);
     if (!/^CQ:/i.test(s)) return Promise.resolve(null);
     return load().then(function () {
-      var row = cqRow(s.replace(/^CQ:/i, ""));
-      if (!row) return null;
-      var d = dvBars(row.d, row.v);
-      if (d.length < 8) return null;
-      var src = "CryptoQuant EOD · " + d.length + " pts " + String(row.d[0]).slice(0, 10) + " → " + String(row.d[row.d.length - 1]).slice(0, 10);
-      src += (String(row.d[0]).slice(0, 4) < "2025") ? " · twins+harvest" : " · harvest (not live)";
-      return { d: d, src: src };
+      if (!global.JHObservationSeries) return {d:[],src:"Observation history unavailable: parser not loaded"};
+      return global.JHObservationSeries.cq(PACK.source_documents.series, s);
     });
   }
 

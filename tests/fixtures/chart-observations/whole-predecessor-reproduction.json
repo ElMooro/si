@@ -1,0 +1,1036 @@
+{
+  "source": [
+    {
+      "path": "jh-chart-catalog.js",
+      "bytes": 40440,
+      "sha256": "1d2ef8aac3f04665bf79e5e75137ab029dfe513d749ad913c83a69735d543ff6"
+    },
+    {
+      "path": "jh-cq-fuse.js",
+      "bytes": 27840,
+      "sha256": "de7b578f218b8234e737aac5ff49b2bdb008b4a3a8b8182680b0a1bb169b77eb"
+    }
+  ],
+  "whole_inputs": {
+    "/data/cryptoquant-series.json": {
+      "generated_at": "2026-10-01T00:00:00Z",
+      "series": {
+        "invented_metric": {
+          "d": [
+            "2026-09-01",
+            "2026-09-02",
+            "2026-09-03",
+            "2026-09-04",
+            "2026-09-05",
+            "2026-09-06",
+            "2026-09-07",
+            "2026-09-08",
+            "2026-09-09",
+            "2026-09-10",
+            "2026-09-11",
+            "2026-09-12",
+            "2026-09-13",
+            "2026-09-14"
+          ],
+          "v": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            null,
+            false,
+            "",
+            [],
+            0,
+            "0"
+          ]
+        }
+      },
+      "twins": {}
+    },
+    "/data/cryptoquant-onchain.json": {
+      "generated_at": "2026-10-01T00:00:00Z",
+      "metrics": {}
+    },
+    "/data/cq-feed.json": {
+      "metrics": {}
+    },
+    "/data/cq-catalog.json": {
+      "catalog": {}
+    },
+    "/data/config/cryptoquant-spec.json": {
+      "metrics": []
+    },
+    "/cq-universe.json": {
+      "rows": []
+    },
+    "/assets/cq-universe.json": {
+      "rows": []
+    },
+    "/data/ciss-stress.json": {
+      "series": [
+        {
+          "id": "ea",
+          "category": "ea_headline",
+          "label": "Invented composite",
+          "points": [
+            [
+              "2026-09-01",
+              1
+            ],
+            [
+              "2026-09-02",
+              2
+            ],
+            [
+              "2026-09-03",
+              3
+            ],
+            [
+              "2026-09-04",
+              4
+            ],
+            [
+              "2026-09-05",
+              5
+            ],
+            [
+              "2026-09-06",
+              6
+            ],
+            [
+              "2026-09-07",
+              7
+            ],
+            [
+              "2026-09-08",
+              8
+            ],
+            [
+              "2026-09-09",
+              null
+            ],
+            [
+              "2026-09-10",
+              false
+            ],
+            [
+              "2026-09-11",
+              ""
+            ],
+            [
+              "2026-09-12",
+              []
+            ],
+            [
+              "2026-09-13",
+              0
+            ],
+            [
+              "2026-09-14",
+              "0"
+            ]
+          ]
+        },
+        {
+          "id": "monthly_invented",
+          "key": "INVENTED.MONTHLY",
+          "category": "sovciss",
+          "freq": "M",
+          "label": "Invented monthly observations",
+          "points": [
+            [
+              "2025-01",
+              1
+            ],
+            [
+              "2025-02",
+              2
+            ],
+            [
+              "2025-03",
+              3
+            ],
+            [
+              "2025-04",
+              4
+            ],
+            [
+              "2025-05",
+              5
+            ],
+            [
+              "2025-06",
+              6
+            ],
+            [
+              "2025-07",
+              7
+            ],
+            [
+              "2025-08",
+              8
+            ],
+            [
+              "2025-09",
+              9
+            ],
+            [
+              "2025-10",
+              10
+            ],
+            [
+              "2025-11",
+              11
+            ],
+            [
+              "2025-12",
+              12
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "whole_catalog_cq_result": {
+    "d": [
+      {
+        "time": 1788220800,
+        "open": 1,
+        "high": 1,
+        "low": 1,
+        "close": 1,
+        "volume": 0
+      },
+      {
+        "time": 1788307200,
+        "open": 2,
+        "high": 2,
+        "low": 2,
+        "close": 2,
+        "volume": 0
+      },
+      {
+        "time": 1788393600,
+        "open": 3,
+        "high": 3,
+        "low": 3,
+        "close": 3,
+        "volume": 0
+      },
+      {
+        "time": 1788480000,
+        "open": 4,
+        "high": 4,
+        "low": 4,
+        "close": 4,
+        "volume": 0
+      },
+      {
+        "time": 1788566400,
+        "open": 5,
+        "high": 5,
+        "low": 5,
+        "close": 5,
+        "volume": 0
+      },
+      {
+        "time": 1788652800,
+        "open": 6,
+        "high": 6,
+        "low": 6,
+        "close": 6,
+        "volume": 0
+      },
+      {
+        "time": 1788739200,
+        "open": 7,
+        "high": 7,
+        "low": 7,
+        "close": 7,
+        "volume": 0
+      },
+      {
+        "time": 1788825600,
+        "open": 8,
+        "high": 8,
+        "low": 8,
+        "close": 8,
+        "volume": 0
+      },
+      {
+        "time": 1788912000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1788998400,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789084800,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789171200,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789257600,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789344000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      }
+    ],
+    "src": "CryptoQuant EOD · 14 pts 2026-09-01 → 2026-09-14 · harvest (not live)"
+  },
+  "whole_catalog_ciss_result": {
+    "d": [
+      {
+        "time": 1788220800,
+        "open": 1,
+        "high": 1,
+        "low": 1,
+        "close": 1,
+        "volume": 0
+      },
+      {
+        "time": 1788307200,
+        "open": 2,
+        "high": 2,
+        "low": 2,
+        "close": 2,
+        "volume": 0
+      },
+      {
+        "time": 1788393600,
+        "open": 3,
+        "high": 3,
+        "low": 3,
+        "close": 3,
+        "volume": 0
+      },
+      {
+        "time": 1788480000,
+        "open": 4,
+        "high": 4,
+        "low": 4,
+        "close": 4,
+        "volume": 0
+      },
+      {
+        "time": 1788566400,
+        "open": 5,
+        "high": 5,
+        "low": 5,
+        "close": 5,
+        "volume": 0
+      },
+      {
+        "time": 1788652800,
+        "open": 6,
+        "high": 6,
+        "low": 6,
+        "close": 6,
+        "volume": 0
+      },
+      {
+        "time": 1788739200,
+        "open": 7,
+        "high": 7,
+        "low": 7,
+        "close": 7,
+        "volume": 0
+      },
+      {
+        "time": 1788825600,
+        "open": 8,
+        "high": 8,
+        "low": 8,
+        "close": 8,
+        "volume": 0
+      },
+      {
+        "time": 1788912000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1788998400,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789084800,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789171200,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789257600,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789344000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      }
+    ],
+    "src": "ECB CISS · 14 pts  →  · Invented composite"
+  },
+  "whole_fuse_cq_result": {
+    "d": [
+      {
+        "time": 1788220800,
+        "open": 1,
+        "high": 1,
+        "low": 1,
+        "close": 1,
+        "volume": 0
+      },
+      {
+        "time": 1788307200,
+        "open": 2,
+        "high": 2,
+        "low": 2,
+        "close": 2,
+        "volume": 0
+      },
+      {
+        "time": 1788393600,
+        "open": 3,
+        "high": 3,
+        "low": 3,
+        "close": 3,
+        "volume": 0
+      },
+      {
+        "time": 1788480000,
+        "open": 4,
+        "high": 4,
+        "low": 4,
+        "close": 4,
+        "volume": 0
+      },
+      {
+        "time": 1788566400,
+        "open": 5,
+        "high": 5,
+        "low": 5,
+        "close": 5,
+        "volume": 0
+      },
+      {
+        "time": 1788652800,
+        "open": 6,
+        "high": 6,
+        "low": 6,
+        "close": 6,
+        "volume": 0
+      },
+      {
+        "time": 1788739200,
+        "open": 7,
+        "high": 7,
+        "low": 7,
+        "close": 7,
+        "volume": 0
+      },
+      {
+        "time": 1788825600,
+        "open": 8,
+        "high": 8,
+        "low": 8,
+        "close": 8,
+        "volume": 0
+      },
+      {
+        "time": 1788912000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1788998400,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789084800,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789171200,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789257600,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1789344000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      }
+    ],
+    "src": "CryptoQuant EOD · 14 pts 2026-09-01 → 2026-09-14 · harvest (not live)"
+  },
+  "unknown_queries": {
+    "catalog_cq": "CQ:invented",
+    "catalog_ciss": "CISS:ZZUNKNOWN",
+    "fuse_cq": "CQ:invented"
+  },
+  "whole_unknown_query_results": {
+    "catalog_cq": {
+      "d": [
+        {
+          "time": 1788220800,
+          "open": 1,
+          "high": 1,
+          "low": 1,
+          "close": 1,
+          "volume": 0
+        },
+        {
+          "time": 1788307200,
+          "open": 2,
+          "high": 2,
+          "low": 2,
+          "close": 2,
+          "volume": 0
+        },
+        {
+          "time": 1788393600,
+          "open": 3,
+          "high": 3,
+          "low": 3,
+          "close": 3,
+          "volume": 0
+        },
+        {
+          "time": 1788480000,
+          "open": 4,
+          "high": 4,
+          "low": 4,
+          "close": 4,
+          "volume": 0
+        },
+        {
+          "time": 1788566400,
+          "open": 5,
+          "high": 5,
+          "low": 5,
+          "close": 5,
+          "volume": 0
+        },
+        {
+          "time": 1788652800,
+          "open": 6,
+          "high": 6,
+          "low": 6,
+          "close": 6,
+          "volume": 0
+        },
+        {
+          "time": 1788739200,
+          "open": 7,
+          "high": 7,
+          "low": 7,
+          "close": 7,
+          "volume": 0
+        },
+        {
+          "time": 1788825600,
+          "open": 8,
+          "high": 8,
+          "low": 8,
+          "close": 8,
+          "volume": 0
+        },
+        {
+          "time": 1788912000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1788998400,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789084800,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789171200,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789257600,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789344000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        }
+      ],
+      "src": "CryptoQuant EOD · 14 pts 2026-09-01 → 2026-09-14 · harvest (not live)"
+    },
+    "catalog_ciss": {
+      "d": [
+        {
+          "time": 1788220800,
+          "open": 1,
+          "high": 1,
+          "low": 1,
+          "close": 1,
+          "volume": 0
+        },
+        {
+          "time": 1788307200,
+          "open": 2,
+          "high": 2,
+          "low": 2,
+          "close": 2,
+          "volume": 0
+        },
+        {
+          "time": 1788393600,
+          "open": 3,
+          "high": 3,
+          "low": 3,
+          "close": 3,
+          "volume": 0
+        },
+        {
+          "time": 1788480000,
+          "open": 4,
+          "high": 4,
+          "low": 4,
+          "close": 4,
+          "volume": 0
+        },
+        {
+          "time": 1788566400,
+          "open": 5,
+          "high": 5,
+          "low": 5,
+          "close": 5,
+          "volume": 0
+        },
+        {
+          "time": 1788652800,
+          "open": 6,
+          "high": 6,
+          "low": 6,
+          "close": 6,
+          "volume": 0
+        },
+        {
+          "time": 1788739200,
+          "open": 7,
+          "high": 7,
+          "low": 7,
+          "close": 7,
+          "volume": 0
+        },
+        {
+          "time": 1788825600,
+          "open": 8,
+          "high": 8,
+          "low": 8,
+          "close": 8,
+          "volume": 0
+        },
+        {
+          "time": 1788912000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1788998400,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789084800,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789171200,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789257600,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789344000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        }
+      ],
+      "src": "ECB CISS · 14 pts  →  · Invented composite"
+    },
+    "fuse_cq": {
+      "d": [
+        {
+          "time": 1788220800,
+          "open": 1,
+          "high": 1,
+          "low": 1,
+          "close": 1,
+          "volume": 0
+        },
+        {
+          "time": 1788307200,
+          "open": 2,
+          "high": 2,
+          "low": 2,
+          "close": 2,
+          "volume": 0
+        },
+        {
+          "time": 1788393600,
+          "open": 3,
+          "high": 3,
+          "low": 3,
+          "close": 3,
+          "volume": 0
+        },
+        {
+          "time": 1788480000,
+          "open": 4,
+          "high": 4,
+          "low": 4,
+          "close": 4,
+          "volume": 0
+        },
+        {
+          "time": 1788566400,
+          "open": 5,
+          "high": 5,
+          "low": 5,
+          "close": 5,
+          "volume": 0
+        },
+        {
+          "time": 1788652800,
+          "open": 6,
+          "high": 6,
+          "low": 6,
+          "close": 6,
+          "volume": 0
+        },
+        {
+          "time": 1788739200,
+          "open": 7,
+          "high": 7,
+          "low": 7,
+          "close": 7,
+          "volume": 0
+        },
+        {
+          "time": 1788825600,
+          "open": 8,
+          "high": 8,
+          "low": 8,
+          "close": 8,
+          "volume": 0
+        },
+        {
+          "time": 1788912000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1788998400,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789084800,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789171200,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789257600,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        },
+        {
+          "time": 1789344000,
+          "open": 0,
+          "high": 0,
+          "low": 0,
+          "close": 0,
+          "volume": 0
+        }
+      ],
+      "src": "CryptoQuant EOD · 14 pts 2026-09-01 → 2026-09-14 · harvest (not live)"
+    }
+  },
+  "monthly_query": "CISS:monthly_invented",
+  "whole_monthly_query_result": {
+    "d": [
+      {
+        "time": 1735689600,
+        "open": 1,
+        "high": 1,
+        "low": 1,
+        "close": 1,
+        "volume": 0
+      },
+      {
+        "time": 1738368000,
+        "open": 2,
+        "high": 2,
+        "low": 2,
+        "close": 2,
+        "volume": 0
+      },
+      {
+        "time": 1740787200,
+        "open": 3,
+        "high": 3,
+        "low": 3,
+        "close": 3,
+        "volume": 0
+      },
+      {
+        "time": 1743465600,
+        "open": 4,
+        "high": 4,
+        "low": 4,
+        "close": 4,
+        "volume": 0
+      },
+      {
+        "time": 1746057600,
+        "open": 5,
+        "high": 5,
+        "low": 5,
+        "close": 5,
+        "volume": 0
+      },
+      {
+        "time": 1748736000,
+        "open": 6,
+        "high": 6,
+        "low": 6,
+        "close": 6,
+        "volume": 0
+      },
+      {
+        "time": 1751328000,
+        "open": 7,
+        "high": 7,
+        "low": 7,
+        "close": 7,
+        "volume": 0
+      },
+      {
+        "time": 1754006400,
+        "open": 8,
+        "high": 8,
+        "low": 8,
+        "close": 8,
+        "volume": 0
+      },
+      {
+        "time": 1756684800,
+        "open": 9,
+        "high": 9,
+        "low": 9,
+        "close": 9,
+        "volume": 0
+      },
+      {
+        "time": 1759276800,
+        "open": 10,
+        "high": 10,
+        "low": 10,
+        "close": 10,
+        "volume": 0
+      },
+      {
+        "time": 1761955200,
+        "open": 11,
+        "high": 11,
+        "low": 11,
+        "close": 11,
+        "volume": 0
+      },
+      {
+        "time": 1764547200,
+        "open": 12,
+        "high": 12,
+        "low": 12,
+        "close": 12,
+        "volume": 0
+      }
+    ],
+    "src": "ECB CISS · 12 pts  →  · Invented monthly observations"
+  },
+  "requests": {
+    "catalog": [
+      "/data/cryptoquant-series.json",
+      "/data/ciss-stress.json"
+    ],
+    "fuse": [
+      "/data/cryptoquant-series.json",
+      "/data/cryptoquant-onchain.json",
+      "/data/cq-feed.json",
+      "/data/cq-catalog.json",
+      "/data/config/cryptoquant-spec.json",
+      "/cq-universe.json"
+    ]
+  },
+  "false_zero_ordinals": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "explicit_zero_ordinals": [
+    12,
+    13
+  ],
+  "actual_network_requests": 0,
+  "outcome": "Null, boolean, blank string and empty-array observations each become measured zero; nonexistent requested IDs silently return a different series in all three paths; monthly periods are silently anchored to their first calendar day."
+}

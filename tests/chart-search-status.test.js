@@ -22,7 +22,7 @@ const empty=url=>url.pathname==='/symsearch'?{rows:[],facets:[]}:url.pathname===
 test('complete modules preserve every existing unrelated function and outer statement',()=>{
  const cases=[['jh-chart-catalog.js','pre-browser-cache.js.txt',['ensureIndex','loadJson'],['INDEX_STATE']],['jh-chart-engine.js','pre-search-status-engine.js.txt',['openSymSearch','closeSymSearch','renderSymSearch','dirSearch'],['ssRequest']]];
  for(const [file,prior,allowed,newVars] of cases){
-  const raw=fs.readFileSync(path.join(R,file),'utf8'),old=fs.readFileSync(path.join(__dirname,'fixtures/symbol-directory',prior),'utf8'),a=top(old),b=top(raw);
+  const raw=require('./helpers/chart-observation-preservation.cjs').normalize(fs.readFileSync(path.join(R,file),'utf8'),file),old=fs.readFileSync(path.join(__dirname,'fixtures/symbol-directory',prior),'utf8'),a=top(old),b=top(raw);
   const after=new Map(b.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,raw.slice(n.start,n.end)]));
   const beforeFunctions=a.filter(n=>n.type==='FunctionDeclaration');assert.ok(beforeFunctions.length>20);
   for(const fn of beforeFunctions)if(!allowed.includes(fn.id.name))assert.equal(after.get(fn.id.name),old.slice(fn.start,fn.end),file+':'+fn.id.name);

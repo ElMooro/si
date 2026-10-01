@@ -33,7 +33,7 @@ test("engine merges Yahoo onto katlin crypto-bars only", () => {
   assert.match(klines, /polygon\+yahoo/);
 });
 
-test("catalog lists every CryptoQuant harvest id and twins merge", () => {
+test("catalog preserves every curated CryptoQuant harvest id and routes history through the strict parser", () => {
   const block = catalog.match(/var CQ_META = \[([\s\S]*?)\];/);
   assert.ok(block, "CQ_META present");
   const n = (block[1].match(/\["[a-z0-9_]+"/g) || []).length;
@@ -43,7 +43,7 @@ test("catalog lists every CryptoQuant harvest id and twins merge", () => {
   assert.match(catalog, /stablecoin_supply_total/);
   assert.match(catalog, /function cqOscSpecs/);
   assert.match(catalog, /function mergeDv/);
-  assert.match(catalog, /twins\+harvest/);
+  assert.match(catalog, /history\.cq\(await loadCQ\(\), s\)/);
   assert.match(catalog, /function cqRow/);
 });
 
@@ -77,7 +77,7 @@ test("mergeBarsPrefer keeps warehouse prints on overlap and prepends Yahoo", asy
   assert.equal(m[2].close, 11050);
 });
 
-test("catalog klines prefers harvest on overlap and twins for 2010 history", async () => {
+test("catalog klines retains the primary harvest and keeps the entire proxy history separately", async () => {
   const fetch = async (url) => {
     if (String(url).indexOf("cryptoquant-series") >= 0) {
       return {
@@ -95,16 +95,18 @@ test("catalog klines prefers harvest on overlap and twins for 2010 history", asy
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-series.js"), "utf8"), ctx);
   vm.runInContext(catalog, ctx);
   const r = await ctx.JHChartCatalog.klines("CQ:btc_mvrv");
-  assert.ok(r && r.d && r.d.length >= 10);
-  assert.equal(r.d[0].close, 0.4);
-  assert.equal(r.d[1].close, 0.5);
+  assert.equal(r.d.length, 8);
+  assert.equal(r.d[0].close, 2.1);
+  assert.equal(r.evidence.proxy_histories[0].joined, false);
+  assert.deepEqual(Array.from(r.evidence.proxy_histories[0].whole_series.v), [0.4, 0.5, 1.9]);
   const byDay = {};
   r.d.forEach(function (b) { byDay[new Date(b.time * 1000).toISOString().slice(0, 10)] = b.close; });
   assert.equal(byDay["2025-07-02"], 2.1);
   assert.equal(byDay["2025-07-09"], 2.8);
-  assert.match(r.src, /twins\+harvest/);
+  assert.match(r.src, /proxy history retained separately/);
   const specs = ctx.JHChartCatalog.cqOscSpecs();
   assert.ok(specs.length >= 54);
   assert.equal(specs[0].k, "cq");

@@ -724,39 +724,19 @@
       } catch (eWh) {}
     }
     if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return null;
-    if (/^CQ:/i.test(s)) {
-      if (global.JHCqFuse && typeof global.JHCqFuse.klines === "function") {
-        try {
-          var fuseBars = await global.JHCqFuse.klines(s);
-          if (fuseBars && fuseBars.d && fuseBars.d.length >= 8) return fuseBars;
-        } catch (eFuse) {}
+    if (/^CQ:|^CISS:/i.test(s)) {
+      var history = global.JHObservationSeries;
+      if (!history) return { d: [], src: "Observation history unavailable: parser not loaded" };
+      if (/^CQ:/i.test(s)) {
+        if (global.JHCqFuse && typeof global.JHCqFuse.klines === "function") {
+          try {
+            var fused = await global.JHCqFuse.klines(s);
+            if (fused && fused.evidence && fused.evidence.contract === history.contract && fused.d.length) return fused;
+          } catch (eFuse) {}
+        }
+        return history.cq(await loadCQ(), s);
       }
-      var doc = await loadCQ();
-      var k = cqKey(s);
-      var row = cqRow(doc, k);
-      if (!row) return null;
-      var d = dvBars(row.d, row.v);
-      if (d.length < 8) return null;
-      var src = "CryptoQuant EOD · " + d.length + " pts " + String(row.d[0]).slice(0, 10) + " → " + String(row.d[row.d.length - 1]).slice(0, 10);
-      if (String(row.d[0]).slice(0, 4) < "2025") src += " · twins+harvest";
-      else src += " · harvest (not live)";
-      return { d: d, src: src };
-    }
-    if (/^CISS:/i.test(s)) {
-      var ciss = await loadCISS();
-      var rows = ciss.series || [];
-      var want = s.split(":")[1] || "ea";
-      var hit = null;
-      for (var i = 0; i < rows.length; i++) {
-        var r = rows[i];
-        if (want === "ea" && (r.category === "ea_headline" || /headline|composite/i.test(r.label || ""))) { hit = r; break; }
-        if (String(r.id) === want || String(r.key) === want || String(r.area).toLowerCase() === want.toLowerCase()) { hit = r; break; }
-      }
-      if (!hit && rows[0]) hit = rows.filter(function (x) { return x.category === "ea_headline"; })[0] || rows[0];
-      var d2 = ptsBars(hit && hit.points);
-      if (d2.length < 8) return null;
-      var src2 = "ECB CISS · " + d2.length + " pts " + (hit.start_date || "") + " → " + (hit.latest_date || "") + " · " + (hit.label || "");
-      return { d: d2, src: src2 };
+      return history.ciss(await loadCISS(), s);
     }
     return null;
   }

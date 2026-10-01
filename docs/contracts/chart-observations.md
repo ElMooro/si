@@ -1,0 +1,13 @@
+# Chart scalar observations, version 1
+
+CQ and CISS histories are scalar measurements. The browser never substitutes a nearby ID, an exchange ticker, or unqualified proxy history. `ea` resolves only to `CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX`.
+
+Finite numeric scalars and decimal strings are accepted. Missing values, booleans, objects, arrays and blank strings stay unavailable. Zero, negative values and received numeric precision survive. Nonzero decimal strings below the numeric representation limit remain unavailable instead of underflowing to zero. Calendar labels remain attached to every original record; monthly plotting uses UTC calendar month end, which establishes no publication or availability timestamp. Equal duplicates are plotted once with every ordinal; conflicting duplicates are withheld. For a plotted series, every received record and the entire packet remain inspectable and downloadable, with proxy histories separate.
+
+Chart timeframe grouping records first/minimum/maximum/last scalar and every contributing ordinal. These are plotting coordinates, not market OHLC; trading volume is null. Pre-epoch calendars and short genuine histories remain available. Mixed-tab correlation cells involving scalar IDs, including diagonals, remain unavailable. Delayed calculations cannot overwrite another selected frame. Namespace-bound cache keys prevent similarly named measurements and securities from borrowing one another's data.
+
+The chart draws raw scalar values as a line. Market tick rounding, candle transforms, stock return/seasonality panels, paper fills and market fundamentals are unavailable for these IDs. Replay is withheld without source availability evidence. Unidentified array copies cannot inherit the current identity, and a failed selection clears the previous scalar frame.
+
+Source inspection exposes exact packet/path/ID/unit/frequency, reported clocks, all rejected records and every proxy. Source metadata is reported, not independently qualified. The contract grants no Calls vote, price-pattern qualification or sizing permission. It does not fix the separate permanent CQ/CISS caches, legacy CQ snapshot formatting, generic warehouse decoders or all separate chart plugins.
+
+Validation uses complete retained predecessors, complete invented packets, actual modules and isolated Edge at desktop/mobile sizes. All network requests are intercepted; both an inert drawing mock and the exact retained 4.2.3 drawing library are exercised. Public static acceptance must compare complete bytes with a commit-bound build manifest. No actual private/current-consumer data is required or inspected. Other separately loaded chart plugins are not qualified by these isolated tests.

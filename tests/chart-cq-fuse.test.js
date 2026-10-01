@@ -7,6 +7,7 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 const fuseSrc = fs.readFileSync(path.join(root, "jh-cq-fuse.js"), "utf8");
 const catalog = fs.readFileSync(path.join(root, "jh-chart-catalog.js"), "utf8");
+const observations = fs.readFileSync(path.join(root, "jh-observation-series.js"), "utf8");
 const engine = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
 const search = fs.readFileSync(path.join(root, "jh-chart-tvsearch.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
@@ -138,6 +139,7 @@ function loadFuse() {
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  vm.runInContext(observations, ctx);
   vm.runInContext(fuseSrc, ctx);
   return ctx;
 }
@@ -206,15 +208,16 @@ test("feed prints CDD / MVRV Z / ETH2 / lightning as live numbers — dormancy s
   assert.equal(await ctx.JHCqFuse.klines("CQDOC:discovery_path"), null);
 });
 
-test("fuse klines merges twins on overlap like catalog", async () => {
+test("fuse klines keeps unqualified proxy history separate from exact harvest", async () => {
   const ctx = loadFuse();
   const r = await ctx.JHCqFuse.klines("CQ:btc_mvrv");
   assert.ok(r && r.d && r.d.length >= 10);
-  assert.equal(r.d[0].close, 0.4);
+  assert.equal(r.d[0].close, 2.1);
+  assert.equal(r.evidence.proxy_histories[0].joined, false);
   const byDay = {};
   r.d.forEach(function (b) { byDay[new Date(b.time * 1000).toISOString().slice(0, 10)] = b.close; });
   assert.equal(byDay["2025-07-02"], 2.1);
-  assert.match(r.src, /twins\+harvest/);
+  assert.match(r.src, /proxy history retained separately/);
 });
 
 test("catalog still plots CQ without fuse and routes snapshots to the crypto desk", async () => {
@@ -228,10 +231,12 @@ test("catalog still plots CQ without fuse and routes snapshots to the crypto des
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  vm.runInContext(observations, ctx);
   vm.runInContext(catalog, ctx);
   const r = await ctx.JHChartCatalog.klines("CQ:btc_mvrv");
   assert.ok(r && r.d && r.d.length >= 10);
-  assert.equal(r.d[0].close, 0.4);
+  assert.equal(r.d[0].close, 2.1);
+  assert.equal(r.evidence.proxy_histories[0].joined, false);
   assert.equal(await ctx.JHChartCatalog.klines("CQSNAP:btc/market-indicator/sopr:a_sopr"), null);
   assert.equal(ctx.JHChartCatalog.go("CQSNAP:btc/market-indicator/sopr:a_sopr"), true);
   assert.match(ctx.location.href, /\/crypto\/\?tab=cq&snap=/);
@@ -249,6 +254,7 @@ test("catalog still plots CQ without fuse and routes snapshots to the crypto des
 
 test("catalog + fuse search is harvest-dynamic", async () => {
   const ctx = loadFuse();
+  vm.runInContext(observations, ctx);
   vm.runInContext(catalog, ctx);
   await ctx.JHCqFuse.load();
   const hits = ctx.JHChartCatalog.suggest("a_sopr", 40);

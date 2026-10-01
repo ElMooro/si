@@ -1,0 +1,234 @@
+{
+  "base_commit": "716d89e09bad5a38bc1f5374eda0ff30b160d80b",
+  "scope": "Only these whole functions and the exact chart crosshair statement change. All other statements/functions remain structurally and textually checked.",
+  "entries": {
+    "jh-chart-catalog.js": {
+      "prior": {
+        "path": "tests/fixtures/chart-observations/pre499/jh-chart-catalog.js.txt",
+        "sha256": "1d2ef8aac3f04665bf79e5e75137ab029dfe513d749ad913c83a69735d543ff6",
+        "bytes": 40440
+      },
+      "changed": [
+        {
+          "name": "klines",
+          "sha256": "f39080b431f507ae95cdfdcd4466ec0cb63662cd7fdcc3920af5593149d696b8"
+        }
+      ],
+      "added": [],
+      "outer": [],
+      "unchanged_functions": 33,
+      "whole_candidate_sha256": "fa97c3aa84998b3dd281c4da8f8836abf90d3b3a99b16775376a771753f6a2d2"
+    },
+    "jh-cq-fuse.js": {
+      "prior": {
+        "path": "tests/fixtures/chart-observations/pre499/jh-cq-fuse.js.txt",
+        "sha256": "de7b578f218b8234e737aac5ff49b2bdb008b4a3a8b8182680b0a1bb169b77eb",
+        "bytes": 27840
+      },
+      "changed": [
+        {
+          "name": "seriesRow",
+          "sha256": "81a342d8a4ba603a049696747123606848d72676a4fb160ca5e1051a0cd5e35e"
+        },
+        {
+          "name": "build",
+          "sha256": "c07df0980ae157b8b7759d8d7b73aceae43009762e71d50acdc29a02fba5b5d6"
+        },
+        {
+          "name": "klines",
+          "sha256": "27bc24937294ff406d69063d9f8dcf3800377e729a39590549fc8d985ce0627f"
+        }
+      ],
+      "added": [],
+      "outer": [],
+      "unchanged_functions": 18,
+      "whole_candidate_sha256": "c9fbfdfafce3bf2ed0c85e2a08c6298db6977f2d30daa698e1766922bfe36b01"
+    },
+    "jh-chart-engine.js": {
+      "prior": {
+        "path": "tests/fixtures/chart-observations/pre499/jh-chart-engine.js.txt",
+        "sha256": "d2303460b6ba774ed4b99fd0d12c8cc075531f1a7c639c69255ebaa40b309d74",
+        "bytes": 359611
+      },
+      "changed": [
+        {
+          "name": "identifyBars",
+          "sha256": "98b34a4af36be9e34fe38fc066e9bd051fcb22cdef9721ed8027f1431f4e10d2"
+        },
+        {
+          "name": "rightPriceFormatter",
+          "sha256": "437c6017b28cba143f7512686c81317ab3ae9b64e3d618e85e54d09a954d7b77"
+        },
+        {
+          "name": "bare",
+          "sha256": "fb200bacec074142be0d437d7c26fea2cf96a4fd83116f7e47398021375bf825"
+        },
+        {
+          "name": "resampleToTf",
+          "sha256": "7095e96b7d567c0138c52520f4029594e09b84286f16084f73ae76cdc9f8def3"
+        },
+        {
+          "name": "klines",
+          "sha256": "91fe4f6116d6e7057fe2f809433d9c8bd34742aff8a70d75306f2f22c3a6eb6e"
+        },
+        {
+          "name": "refreshHiLoVP",
+          "sha256": "1f27c734a6d48dacb6f98d0fcc2ec07e4549d65a1193b5bacad48fedcc8bb4dd"
+        },
+        {
+          "name": "paint",
+          "sha256": "ee6d7cfabdcfaece22b329ba21622f57c4b7be2a012b7f64d86cfa2794e5a672"
+        },
+        {
+          "name": "quoteUI",
+          "sha256": "6c99a724a392f3d0cf90d9ba6aa28bb635d9574d3ffca8e55933841d019e1fec"
+        },
+        {
+          "name": "drawVP",
+          "sha256": "1666d6ee79a1c820bf08c0f476d28a8b6fbdaeceab40d136287076b09ad51ef6"
+        },
+        {
+          "name": "loadTape",
+          "sha256": "e2410e202367b60a22615b241ef005fcb9b75f518e0a2ce52f85de63478a4e1b"
+        },
+        {
+          "name": "fillTape",
+          "sha256": "d8a948ab2f6ddaa3ebc6d1c38d32a3a4e252af0bfdf0d9adc4b20f484cf0f4d5"
+        },
+        {
+          "name": "load",
+          "sha256": "7748dd32246e16d200d2af0cffcc2592f042e49560621b6a6010485d0fe61cf6"
+        },
+        {
+          "name": "paintPanes",
+          "sha256": "cf54e8b75f1b4a4c7c488b732b81f606bc7d576c201725ab19857852f73a15c3"
+        },
+        {
+          "name": "renderTf",
+          "sha256": "e7c9c03c4c0c956cf8626e5a0b091ecc46a7b5c236047bedb72acf5bfe7c6a26"
+        },
+        {
+          "name": "renderLegend",
+          "sha256": "a22fcd010fea7f9e8fe1841d98bc3249227060cab694cd4d4ace24b04c0c8add"
+        },
+        {
+          "name": "renderFin",
+          "sha256": "c450a2a3a6a8850ead1a5a1bbf0de5811be7e6ab8143ff9bbee7953fea022929"
+        },
+        {
+          "name": "renderDetail",
+          "sha256": "e8cd0dcc12bbb3a679ec40c3235097806846d36e4a80bcbea7083db5935a5fe0"
+        },
+        {
+          "name": "lastPx",
+          "sha256": "75195975ae4c24d06284edd21527127928fc4feb380652ec5a8122072285843b"
+        },
+        {
+          "name": "renderTech",
+          "sha256": "883b98eea979e612a581ca64a0b8e837badfa88cc8da8298b2419bc0bd46d3cd"
+        },
+        {
+          "name": "startReplay",
+          "sha256": "ebb39a5c1ee2e177e5f0204c2f9e1fc3445b13bab68101c0a193d38631e9fb62"
+        },
+        {
+          "name": "exportCSV",
+          "sha256": "80e346f102ebf8be7466f947af0ff1d2a60a72263d4a59e633125f73a9020dac"
+        },
+        {
+          "name": "countdown",
+          "sha256": "1629276a6623490038ece2997fd2975caae529fb377b30a63fc8f675e4361ade"
+        },
+        {
+          "name": "readState",
+          "sha256": "ae68a44338f5aad22d626b17c7a66a741668df618dabde29d944e9f365d0da55"
+        },
+        {
+          "name": "paperFill",
+          "sha256": "15dce3c1ce8166a1c98e07646940e8781edeeeb531375cceeaa49e9c2cb3e7f6"
+        },
+        {
+          "name": "renderTrade",
+          "sha256": "58460a41f1c2bdbc831a59f3f4bad87cc9e30809ee9d88b0567b400cc21e38d2"
+        },
+        {
+          "name": "renderTest",
+          "sha256": "9100485c17abff15c69834b51d055be6d4566838d93e39e062fdc66c6835fada"
+        },
+        {
+          "name": "renderOver",
+          "sha256": "0e3344f3f179913b10f33464a9a2cf0002ec2d42ff051fd5fa5773b3456fe6c5"
+        },
+        {
+          "name": "renderSeason",
+          "sha256": "255461deba1953f64b19d98d066f27cd12da62bd0ec9870a81cce5987f213454"
+        },
+        {
+          "name": "renderCorr",
+          "sha256": "78655cbf236e634f24b5a035f27bd3f85899e8ce90d973420cae02505188ec41"
+        },
+        {
+          "name": "renderDwin",
+          "sha256": "fc94e1d96cbd8c43b8ac3570314e73f3486ef2cbbac1a1820b78f0248b811047"
+        }
+      ],
+      "added": [
+        {
+          "name": "observationId",
+          "sha256": "7200dd6ce5c5bead4af34f8f8f5f9b03c00109d8668b3216a31a5c412fb86ee7"
+        },
+        {
+          "name": "scalarPanel",
+          "sha256": "a0533ea75446ff337d88028ae65256270a49f6aaae79080474005dc3d397cea8"
+        },
+        {
+          "name": "clearObservationFrame",
+          "sha256": "032a499a5335616cd997ea7e31f3c31f3c08b51a57b3bb67127f1dbb9f417353"
+        },
+        {
+          "name": "observationText",
+          "sha256": "fc46bfe538335d5f0ea6f8181e1ddbee8243e87bb374b16279e8768b616aeb63"
+        },
+        {
+          "name": "paintObservations",
+          "sha256": "ea70ac636191f2364f8a2d0a05fca204d0e554e49ffdba85bdc9a2c10f41bcfd"
+        }
+      ],
+      "outer": [
+        {
+          "ordinal": 94,
+          "sha256": "e5b09212fc5c19efac1b6657227d10623a8d99cb6448aae2c4d724e297dcbc81",
+          "prior_sha256": "cfb9dc1290f0521b31d3fd2f02fd8f9ce5659cfa9389b560d8319877ec4c6ae4"
+        }
+      ],
+      "unchanged_functions": 338,
+      "whole_candidate_sha256": "810b7175e6cee54426830ff224446e79721b941919753951bc7b8becff75487d"
+    },
+    "jh-chart-stock-desk.js": {
+      "prior": {
+        "path": "tests/fixtures/chart-observations/pre499/jh-chart-stock-desk.js.txt",
+        "sha256": "6f4cbc0e23f1d62ad299932ba652e27bd96b151c301871bbbf56c0b9ca5fcc06",
+        "bytes": 8433
+      },
+      "changed": [
+        {
+          "name": "markup",
+          "sha256": "97b2f6a46c5588912f57cc9f3ceb2447df609f804c48ab2f14f82a7dc9de8561"
+        },
+        {
+          "name": "install",
+          "sha256": "f99c3d64b0ea0a933fe1609bb7b0b8d3354140c69f5ffe34652442846f2c6b4b"
+        }
+      ],
+      "added": [
+        {
+          "name": "observationMarkup",
+          "sha256": "8c7915ed85d24ef572dd7c004c3ce0bb53219640c3f48e0c175d433784133882"
+        }
+      ],
+      "outer": [],
+      "unchanged_functions": 2,
+      "whole_candidate_sha256": "bd34dad4ec7bb7325473fa80db2f97708cb6a937e561b2886f7f6d179cf0bfcd"
+    }
+  }
+}
