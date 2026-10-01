@@ -9,7 +9,8 @@ let n=0;
 for(const width of [1440,390])for(const [name,packet] of Object.entries({legacy:{n_pass:8,live_signal_types:live,rules:[{PASS:true,oos:{sr:98765}}],methodology:'VALIDATED DEPLOYABLE'},missing:null,forged:{n_pass:999,live_signal_types:live,generated_at:'2999-01-01T00:00:00Z',mode_a_qualification:{contract:'future.v999',status:'VALIDATED'}},blocked:{n_pass:0,live_signal_types:live,mode_a_qualification:{contract:'backtest-harness-mode-a-withdrawal.v1',status:'BLOCKED'}}})){
 const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 await page.route('**/*',async route=>{const url=route.request().url();if(url.includes('backtest-harness.json'))return route.fulfill({json:packet});if(url.includes('meta-labeler.json'))return route.fulfill({json:meta});if(url.endsWith('.js'))return route.fulfill({contentType:'text/javascript',body:''});if(url.endsWith('/backtests.html'))return route.fulfill({contentType:'text/html',body:html});return route.fulfill({contentType:'text/html',body:'<p>Mocked navigation destination</p>'});});
-await page.goto('https://fixture.test/backtests.html');await page.locator('#mg').getByText('TAKE',{exact:true}).waitFor();
+await page.goto('https://fixture.test/backtests.html');await page.locator('#mhero').getByText(/Meta-labeler unavailable/).waitFor();
+assert.equal(await page.locator('#mgrid').isVisible(),false);assert.equal(await page.locator('#mg').innerText(),'');
 assert.equal(await page.locator('#ta tr').count(),8);assert.equal(await page.locator('#ta .pill').allTextContents().then(x=>x.every(v=>v==='BLOCKED')),true);
 assert.doesNotMatch(await page.locator('#ta').innerText(),/PASS|FAIL|98765/);assert.match(await page.locator('#hero').innerText(),/^0/);
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${width} ${name} overflow`);
@@ -17,5 +18,5 @@ if(packet)assert.match(await page.locator('#tb').innerText(),/fixture/);
 assert.deepEqual(errors,[]);
 if(name==='legacy')await page.screenshot({path:`/tmp/harness-withdrawal-${width}.png`,fullPage:true});
 await page.getByRole('link',{name:'Board',exact:true}).click();assert.equal(page.url(),'https://fixture.test/signal-board.html');n++;await page.close();}
-await browser.close();console.log(`${n} intercepted-browser scenarios passed, 1440/390px; no external requests; Mode A blocked, Mode B and TAKE visible, Board navigation works, no page errors or horizontal overflow.`);
+await browser.close();console.log(`${n} intercepted-browser scenarios passed, 1440/390px; no external requests; Mode A blocked, Mode B retained, meta-labeler unavailable, Board navigation works, no page errors or horizontal overflow.`);
 })().catch(e=>{console.error(e);process.exit(1)});
