@@ -55,7 +55,7 @@ def test_risk_diagnostics_policy_and_entire_packet_parity():
     path=ROOT/'aws/lambdas/justhodl-khalid/source/lambda_function.py'
     current=path.read_text();line='        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n'
     assert current.count(line)==1
-    before=current.replace(line,'')
+    before=current.replace(line,'').replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', '')
     assert hashlib.sha256(before.encode()).hexdigest()=='08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798'
     tree=ast.parse(before);fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_output')
     scope=dict(handler.__dict__);exec(compile(ast.Module(body=[fn],type_ignores=[]),str(path),'exec'),scope)
@@ -66,12 +66,13 @@ def test_risk_diagnostics_policy_and_entire_packet_parity():
     for risk in cases:
         feeds={'khalid_risk':risk};meta={};snapshot=deepcopy(feeds)
         old=scope['build_output'](feeds,meta,NOW,[]);new=handler.build_output(feeds,meta,NOW,[])
-        new.pop('risk_authority_diagnostics');assert new==old;assert feeds==snapshot
+        new.pop('risk_authority_diagnostics');new.pop('user_scope_evidence');assert new==old;assert feeds==snapshot
 
 
 def test_numeric_diagnostics_never_suppress_base_publication():
     path=ROOT/'aws/lambdas/justhodl-khalid/source/lambda_function.py'
     source=path.read_text().replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n','')
+    source=source.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")
     assert hashlib.sha256(source.encode()).hexdigest()=='08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798'
     fn=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='build_output')
     scope=dict(handler.__dict__);exec(compile(ast.Module(body=[fn],type_ignores=[]),str(path),'exec'),scope)
@@ -85,7 +86,7 @@ def test_numeric_diagnostics_never_suppress_base_publication():
                 if type(value) is int:risk=json.loads(json.dumps(risk,allow_nan=False))
                 feeds={'khalid_risk':risk};old=scope['build_output'](feeds,{},NOW,[])
                 new=handler.build_output(feeds,{},NOW,[])
-                projection=new.pop('risk_authority_diagnostics');assert new==old
+                projection=new.pop('risk_authority_diagnostics');new.pop('user_scope_evidence');assert new==old
                 assert new['risk_control']['mode']=='DATA_HOLD'
                 assert new['risk_control']['allows_new_entries'] is False
                 assert new['risk_control']['exposure_cap_pct']==new['risk_control']['sizing_multiplier']==0
