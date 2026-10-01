@@ -706,7 +706,27 @@
   function cci(d,n){ n=n||20; var tp=d.map(function(b){return {time:b.time,close:(b.high+b.low+b.close)/3};}), m=sma(tp,n), o=[],i,j,map={}; for(i=0;i<m.length;i++) map[m[i].time]=m[i].value; for(i=n-1;i<d.length;i++){ var mean=map[d[i].time], md=0; for(j=0;j<n;j++) md+=Math.abs(tp[i-n+1+j].close-mean); md/=n; o.push({time:d[i].time,value:md? (tp[i].close-mean)/(0.015*md):0}); } return o; }
   function willr(d,n){ n=n||14; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var hi=-1e99,lo=1e99; for(j=i-n+1;j<=i;j++){ if(d[j].high>hi)hi=d[j].high; if(d[j].low<lo)lo=d[j].low; } o.push({time:d[i].time,value:hi===lo?0: -100*(hi-d[i].close)/(hi-lo)}); } return o; }
   function mfi(d,n){ n=n||14; var o=[],pos=[],neg=[],i; for(i=1;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3, ptp=(d[i-1].high+d[i-1].low+d[i-1].close)/3, mf=tp*d[i].volume; pos.push(tp>ptp?mf:0); neg.push(tp<ptp?mf:0); if(i>=n){ var ps=0,ng=0,j; for(j=i-n;j<i;j++){ ps+=pos[j]; ng+=neg[j]; } o.push({time:d[i].time,value:ng?100-100/(1+ps/ng):100}); } } return o; }
-  function obv(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ if(i) v+= d[i].close>=d[i-1].close? d[i].volume : -d[i].volume; o.push({time:d[i].time,value:v}); } return o; }
+  function obv(d){
+    if(!Array.isArray(d))return [];
+    var out=[],total=0,broken=false,i,b,step,next;
+    for(i=0;i<d.length;i++){
+      b=d[i];
+      if(!b||typeof b.time!=="number"||!Number.isFinite(b.time)||(i&&b.time<=d[i-1].time))return [];
+      if(typeof b.close!=="number"||!Number.isFinite(b.close))broken=true;
+      // The first point is an explicit zero anchor, not signed first-bar volume.
+      if(i&&!broken){
+        if(typeof b.volume!=="number"||!Number.isFinite(b.volume)||b.volume<0)broken=true;
+        else{
+          step=b.close>d[i-1].close?b.volume:b.close<d[i-1].close?-b.volume:0;
+          next=total+step;
+          if(!Number.isFinite(next)||(step!==0&&next===total))broken=true;
+          else total=next;
+        }
+      }
+      out.push(broken?{time:b.time}:{time:b.time,value:total});
+    }
+    return out;
+  }
   function adline(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; v+= hl? ((d[i].close-d[i].low)-(d[i].high-d[i].close))/hl*d[i].volume : 0; o.push({time:d[i].time,value:v}); } return o; }
   function cmf(d,n){ n=n||20; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var mf=0,vol=0; for(j=i-n+1;j<=i;j++){ var hl=d[j].high-d[j].low; mf+= hl? ((d[j].close-d[j].low)-(d[j].high-d[j].close))/hl*d[j].volume : 0; vol+=d[j].volume; } o.push({time:d[i].time,value:vol?mf/vol:0}); } return o; }
   function adx(d,n){ n=n||14; var tr=[],pdm=[],mdm=[],i; for(i=1;i<d.length;i++){ var up=d[i].high-d[i-1].high, dn=d[i-1].low-d[i].low; pdm.push(up>dn&&up>0?up:0); mdm.push(dn>up&&dn>0?dn:0); tr.push(Math.max(d[i].high-d[i].low, Math.abs(d[i].high-d[i-1].close), Math.abs(d[i].low-d[i-1].close))); } function wild(a,n){ var o=[],s=0,i; for(i=0;i<a.length;i++){ if(i<n){ s+=a[i]; if(i===n-1) o.push(s/n); } else { s=s-(s/n)+a[i]; o.push(s); } } return o; } var str=wild(tr,n), sp=wild(pdm,n), sm=wild(mdm,n), dx=[],o=[]; for(i=0;i<str.length;i++){ var pdi=str[i]?100*sp[i]/str[i]:0, mdi=str[i]?100*sm[i]/str[i]:0, sum=pdi+mdi; dx.push(sum?100*Math.abs(pdi-mdi)/sum:0); } var ad=wild(dx,n); for(i=0;i<ad.length;i++) o.push({time:d[i+n*2-1]&&d[i+n*2-1].time || d[d.length-1].time, value:ad[i]}); return o.filter(function(p){return p.time;}); }
@@ -2778,7 +2798,14 @@
       else if(o.id==="cci"){ addO(cci(d,20), "#26c6da"); bands(-100,100); }
       else if(o.id==="willr"){ addO(willr(d,14), "#ef6c00"); bands(-80,-20); }
       else if(o.id==="mfi"){ addO(mfi(d,14), "#00897b"); bands(o.os!=null?o.os:20, o.ob!=null?o.ob:80); }
-      else if(o.id==="obv") addO(obv(d), "#5c6bc0");
+      else if(o.id==="obv"){
+        var obPoints=obv(d),obLast=obPoints.length?obPoints[obPoints.length-1].value:null;
+        addO(obPoints,"#5c6bc0");
+        var obKnown=typeof obLast==="number"&&Number.isFinite(obLast),obLabel=head.querySelector(".osc-v");
+        if(obLabel&&!obKnown)obLabel.textContent="Unavailable";
+        head.title="Zero anchor at the first retained bar; flat closes add no volume; an incomplete cumulative chain stays unavailable. Reported volume units and source completeness unverified.";
+        if(oscSeries.length)oscSeries[oscSeries.length-1].applyOptions({lastValueVisible:obKnown,pointMarkersVisible:true,pointMarkersRadius:2});
+      }
       else if(o.id==="ad") addO(adline(d), "#6d4c41");
       else if(o.id==="cmf") addO(cmf(d,20), "#43a047");
       else if(o.id==="adx"){
