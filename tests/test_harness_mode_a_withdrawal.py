@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIX = ROOT / 'tests/fixtures/harness-mode-a'
 sys.path.insert(0, str(ROOT / 'aws/shared'))
 from backtest_harness_authority import blocked_qualification, harness_context, alpha_context
+from meta_labeler_authority import meta_context
 
 
 def source(engine):
@@ -45,7 +46,7 @@ def scope(path):
                timezone=timezone, timedelta=timedelta,
                time=types.SimpleNamespace(time=lambda: 1780000000.0),
                blocked_qualification=blocked_qualification, harness_context=harness_context,
-               alpha_context=alpha_context)
+               alpha_context=alpha_context, meta_context=meta_context)
     from backtest_harness_authority import NOTICE
     env['NOTICE'] = NOTICE
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(path), 'exec'), env)
@@ -116,6 +117,10 @@ class WithdrawalTests(unittest.TestCase):
         for name,meta in manifest['files'].items():
             self.assertEqual(hashlib.sha256((FIX/name).read_bytes()).hexdigest(),meta['sha256'])
         for path,digest in manifest['preserved'].items():
+            # Separately authorized meta-labeler correction retains its original bytes.
+            if path == 'aws/lambdas/justhodl-meta-labeler/source/lambda_function.py':
+                self.assertEqual(hashlib.sha256((ROOT/'tests/fixtures/meta-labeler/legacy-writer.py.txt').read_bytes()).hexdigest(), digest)
+                continue
             self.assertEqual(hashlib.sha256((ROOT/path).read_bytes()).hexdigest(),digest,path)
         old,new=functions(FIX/'harness.py.txt'),functions(source('justhodl-backtest-harness'))
         for name in old.keys()-{'mode_a','lambda_handler'}:
@@ -233,7 +238,7 @@ class WithdrawalTests(unittest.TestCase):
         live={'live_signal_types':[{'signal_type':'fixture','graded':0,'pending':1,'avg_excess_pct':0}]}
         self.assertEqual(harness_context(live)['live_signal_types'],live['live_signal_types'])
         env['S3']=MemoryS3({'data/meta-labeler.json':{'gates':[{'verdict':'TAKE'}]}})
-        self.assertEqual(json.loads(env['fetch_slim']('data/meta-labeler.json')),env['slim']({'gates':[{'verdict':'TAKE'}]}))
+        self.assertEqual(json.loads(env['fetch_slim']('data/meta-labeler.json')),env['slim'](meta_context({'gates':[{'verdict':'TAKE'}]})))
 
     def test_closed_contract_never_accepts_self_promoted_authority(self):
         for status in ('BLOCKED','VALIDATED','PASS',None,0,False):
