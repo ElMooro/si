@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Chart help dialog accessibility only: jh-chart-indux.js lifecycle/semantics and offline/browser tests; codex/chart-help-accessibility; draft only, content/classifiers/engine unchanged | none | S-codex#ha11001k4 | 2026-10-01 09:04 |
 | PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
