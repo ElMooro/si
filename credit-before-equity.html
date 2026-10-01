@@ -12,7 +12,11 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margi
 .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
 .sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:12px}
+#evidence{margin-bottom:14px;border-left:4px solid var(--accent);overflow-wrap:anywhere}
+#evidence h2{font-size:16px;margin:0 0 6px}#evidence p{margin:6px 0}
+.issuer-scroll{overflow-x:auto;max-width:100%}a:focus-visible,.issuer-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.row{overflow-wrap:anywhere}
 .tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
 .tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
 .big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
@@ -34,13 +38,14 @@ a{color:var(--accent)}
 <h1>🏦 Credit Before Equity</h1>
 <div class="sub">The bond desk reprices a company's risk before the equity desk does — credit analysts read covenants, maturity walls and cash flow, and they move on balance-sheet facts weeks before those facts reach an earnings headline. This board measures each issuer's credit <em>direction</em> against its own ledger and crosses it with the stock. A signal fires only when credit moves and the equity hasn't noticed. Daily 22:35 UTC.</div>
 
+<section class="card" id="evidence" aria-labelledby="evidence-title" aria-live="polite"><h2 id="evidence-title">Evidence status</h2><p>Loading the published engine packet. Source freshness has not been verified.</p></section>
 <div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
 
 <div class="sec">⚡ Leads — credit moved, equity didn't</div>
 <div id="leads"></div>
 
 <div class="sec">📋 All Issuers</div>
-<div class="card" style="overflow-x:auto"><table id="tbl"><thead><tr>
+<div class="card issuer-scroll" tabindex="0" role="region" aria-label="All issuers; scroll horizontally for all columns"><table id="tbl"><thead><tr>
 <th>Ticker</th><th>Name</th><th>DD</th><th>ΔDD</th><th>CDS bp</th><th>ΔCDS</th><th>ΔPrice</th><th>Credit</th><th>Signal</th></tr></thead><tbody id="tb"></tbody></table></div>
 
 <div class="sec">Method</div>
@@ -59,45 +64,85 @@ a{color:var(--accent)}
 (async function(){
 try{
 var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
+var esc=function(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+var text=function(v){return typeof v==='string'&&v.trim()?esc(v):'Unavailable';};
+var finite=function(v){return typeof v==='number'&&Number.isFinite(v);};
+var count=function(v){return Number.isSafeInteger(v)&&v>=0;};
+var row=function(v){return v&&typeof v==='object'&&!Array.isArray(v);};
+var strings=function(v){return Array.isArray(v)&&v.every(function(x){return typeof x==='string'&&x.trim();});};
 var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/credit-before-equity.json?t='+Date.now());
+if(!r.ok)throw new Error('HTTP '+r.status);
 var d=await r.json();
-var rows=d.names||[];
-var num=function(v,dp){return (v==null)?'—':(typeof v==='number'?v.toFixed(dp==null?2:dp):v);};
+if(!row(d))throw new Error('Expected an engine packet object');
+var rows=Array.isArray(d.names)?d.names.filter(row):[];
+var leads=Array.isArray(d.leads)?d.leads.filter(row):[];
+var issues=[];
+['n_leads','n_names','n_awaiting_history'].forEach(function(k){if(!count(d[k]))issues.push(k+' is unavailable or invalid.');});
+['names','leads'].forEach(function(k){if(!Array.isArray(d[k])||!d[k].every(row))issues.push(k+' is unavailable or contains invalid rows.');});
+['degraded','gaps'].forEach(function(k){if(!strings(d[k]))issues.push(k+' declaration is unavailable or invalid.');});
+if(count(d.n_names)&&Array.isArray(d.names)&&d.n_names!==d.names.length)issues.push('Issuer count does not match the supplied rows.');
+if(count(d.n_leads)&&Array.isArray(d.leads)&&Math.min(d.n_leads,20)!==d.leads.length)issues.push('Lead count does not match the supplied preview (maximum 20).');
+if(count(d.n_names)&&((count(d.n_leads)&&d.n_leads>d.n_names)||(count(d.n_awaiting_history)&&d.n_awaiting_history>d.n_names)))issues.push('Summary counts exceed the reported issuer count.');
+var numericFields=['distance_to_default','d_distance_to_default','synthetic_cds_bp','d_synthetic_cds_bp','d_price_pct','default_prob_5y_pct'];
+if(rows.concat(leads).some(function(x){return typeof x.ticker!=='string'||!x.ticker.trim()||typeof x.signal!=='string'||!x.signal.trim()||numericFields.some(function(k){return x[k]!=null&&!finite(x[k]);});}))issues.push('Some issuer fields are unavailable or invalid; supplied rows are retained.');
+var flat=row(d.thresholds)?d.thresholds.equity_flat_band_pct:null;
+if(!finite(flat)||flat<0)issues.push('Equity flat-band threshold is unavailable or invalid.');
+var clock=typeof d.generated_at==='string'&&Number.isFinite(Date.parse(d.generated_at));
+if(!clock)issues.push('Packet generation time is unavailable or invalid.');
+var degraded=strings(d.degraded)&&d.degraded.length>0;
+var state=degraded?'Degraded evidence':issues.length?'Incomplete packet':'Published packet received';
+var notes=(strings(d.degraded)?d.degraded:[]).concat(issues);
+document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence status: '+state+'</h2>'
++(notes.length?'<ul>'+notes.map(function(v){return '<li>'+esc(v)+'</li>';}).join('')+'</ul>':'<p>No degradation declared by the engine. This is not independent source verification.</p>')
++'<p>Packet generated: '+(clock?esc(d.generated_at):'Unavailable')+'. This is the engine output time, not the observation time of its credit or equity inputs. Input source clocks and source freshness are not supplied by this packet.</p>'
++'<p>Counts and signals below are reported by the engine. '+(degraded||issues.length?'Incomplete evidence must not be read as an absence of credit leads.':'')+'</p>';
+var num=function(v,dp){return finite(v)?v.toFixed(dp==null?2:dp):'Unavailable';};
+var countText=function(v){return count(v)?String(v):'Unavailable';};
+var sign=function(v){return finite(v)&&v>0?'+':'';};
 var sgCol=function(s){if(s==='CREDIT_LEADS_DOWN')return NEG;if(s==='CREDIT_LEADS_UP')return POS;if(s==='INSUFFICIENT_HISTORY')return MUT;return NEU;};
 var cdCol=function(c){return c==='IMPROVING'?POS:(c==='DETERIORATING'?NEG:MUT);};
 
 document.getElementById('hero').innerHTML='<div class="grid">'
-+'<div class="tile"><div class="lbl">Leads firing</div><div class="big" style="color:'+((d.n_leads||0)?ACC:MUT)+'">'+(d.n_leads||0)+'</div><div class="note">credit moved, equity flat or opposite</div></div>'
-+'<div class="tile"><div class="lbl">Issuers tracked</div><div class="big">'+(d.n_names||0)+'</div><div class="note">corporates + banks from the structural model</div></div>'
-+'<div class="tile"><div class="lbl">Awaiting history</div><div class="big" style="color:'+MUT+'">'+(d.n_awaiting_history||0)+'</div><div class="note">need a 2nd observation — ledger accretes daily</div></div>'
-+'<div class="tile"><div class="lbl">Flat band</div><div class="big">±'+((d.thresholds||{}).equity_flat_band_pct||3)+'%</div><div class="note">what counts as "equity hasn\'t noticed"</div></div>'
++'<div class="tile"><div class="lbl">Leads firing</div><div class="big" style="color:'+(count(d.n_leads)&&d.n_leads>0?ACC:MUT)+'">'+countText(d.n_leads)+'</div><div class="note">credit moved, equity flat or opposite</div></div>'
++'<div class="tile"><div class="lbl">Issuers tracked</div><div class="big">'+countText(d.n_names)+'</div><div class="note">corporates + banks from the structural model</div></div>'
++'<div class="tile"><div class="lbl">Awaiting history</div><div class="big" style="color:'+MUT+'">'+countText(d.n_awaiting_history)+'</div><div class="note">need a 2nd observation — ledger accretes daily</div></div>'
++'<div class="tile"><div class="lbl">Flat band</div><div class="big">'+(finite(flat)&&flat>=0?'±'+flat+'%':'Unavailable')+'</div><div class="note">what counts as "equity hasn\'t noticed"</div></div>'
 +'</div>';
 
-var leads=d.leads||[];
+var empty=degraded?'Lead evidence unavailable or degraded; an empty result does not establish an absence of credit leads.'
+:issues.length?'Lead evidence unavailable or incomplete; an empty result does not establish an absence of credit leads.'
+:d.n_names===0?'No issuers reported in this packet; no lead conclusion is available.'
+:d.n_awaiting_history>0?'No leads reported in this packet; '+d.n_awaiting_history+' issuers await history. This does not establish agreement across every issuer.'
+:'No leads reported by the engine for the '+d.n_names+' tracked issuers in this packet. Source freshness is unverified.';
 document.getElementById('leads').innerHTML=leads.length?leads.map(function(x){
-return '<div class="row"><div class="head"><span class="nm">'+x.ticker+' <span style="color:'+MUT+';font-weight:400;font-size:13px">'+(x.name||'')+'</span> '
-+'<span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+x.signal.replace(/_/g,' ')+'</span></span>'
-+'<span class="mono" style="color:'+cdCol(x.credit_direction)+'">credit '+(x.credit_direction||'—')+'</span></div>'
-+'<div class="meta">DD '+num(x.distance_to_default)+' ('+(x.d_distance_to_default>0?'+':'')+num(x.d_distance_to_default)+')'
-+' · CDS '+num(x.synthetic_cds_bp,1)+'bp ('+(x.d_synthetic_cds_bp>0?'+':'')+num(x.d_synthetic_cds_bp,1)+')'
-+' · price '+(x.d_price_pct>0?'+':'')+num(x.d_price_pct)+'%'
+return '<div class="row"><div class="head"><span class="nm">'+text(x.ticker)+' <span style="color:'+MUT+';font-weight:400;font-size:13px">'+text(x.name)+'</span> '
++'<span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</span></span>'
++'<span class="mono" style="color:'+cdCol(x.credit_direction)+'">credit '+text(x.credit_direction)+'</span></div>'
++'<div class="meta">DD '+num(x.distance_to_default)+' ('+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+')'
++' · CDS '+num(x.synthetic_cds_bp,1)+'bp ('+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+')'
++' · price '+sign(x.d_price_pct)+num(x.d_price_pct)+'%'
 +' · 5y PD '+num(x.default_prob_5y_pct,2)+'%'
-+' · regime '+(x.regime||'—')+' · vs '+(x.prior_obs_date||'—')+'</div></div>';}).join('')
-:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">No lead firing. Either credit and equity agree across every tracked issuer, or the ledger is still accreting its second observation — the engine reports INSUFFICIENT_HISTORY rather than inventing a direction from one snapshot.</span></div>';
++' · regime '+text(x.regime)+' · vs '+text(x.prior_obs_date)+'</div></div>';}).join('')
+:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">'+esc(empty)+'</span></div>';
 
 document.getElementById('tb').innerHTML=rows.map(function(x){
-return '<tr><td style="color:'+ACC+'">'+x.ticker+'</td><td>'+((x.name||'').slice(0,26))+'</td>'
-+'<td>'+num(x.distance_to_default)+'</td><td style="color:'+(x.d_distance_to_default>0?POS:(x.d_distance_to_default<0?NEG:MUT))+'">'+(x.d_distance_to_default>0?'+':'')+num(x.d_distance_to_default)+'</td>'
-+'<td>'+num(x.synthetic_cds_bp,1)+'</td><td style="color:'+(x.d_synthetic_cds_bp<0?POS:(x.d_synthetic_cds_bp>0?NEG:MUT))+'">'+(x.d_synthetic_cds_bp>0?'+':'')+num(x.d_synthetic_cds_bp,1)+'</td>'
-+'<td style="color:'+(x.d_price_pct>0?POS:(x.d_price_pct<0?NEG:MUT))+'">'+(x.d_price_pct>0?'+':'')+num(x.d_price_pct)+'%</td>'
-+'<td style="color:'+cdCol(x.credit_direction)+'">'+(x.credit_direction||'—')+'</td>'
-+'<td style="color:'+sgCol(x.signal)+'">'+x.signal.replace(/_/g,' ')+'</td></tr>';}).join('');
+return '<tr><td style="color:'+ACC+'">'+text(x.ticker)+'</td><td>'+text(typeof x.name==='string'?x.name.slice(0,26):null)+'</td>'
++'<td>'+num(x.distance_to_default)+'</td><td style="color:'+(finite(x.d_distance_to_default)&&x.d_distance_to_default>0?POS:(finite(x.d_distance_to_default)&&x.d_distance_to_default<0?NEG:MUT))+'">'+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+'</td>'
++'<td>'+num(x.synthetic_cds_bp,1)+'</td><td style="color:'+(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp<0?POS:(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp>0?NEG:MUT))+'">'+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+'</td>'
++'<td style="color:'+(finite(x.d_price_pct)&&x.d_price_pct>0?POS:(finite(x.d_price_pct)&&x.d_price_pct<0?NEG:MUT))+'">'+sign(x.d_price_pct)+num(x.d_price_pct)+'%</td>'
++'<td style="color:'+cdCol(x.credit_direction)+'">'+text(x.credit_direction)+'</td>'
++'<td style="color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</td></tr>';}).join('');
 
-document.getElementById('method').textContent=d.method||'';
-document.getElementById('gaps').innerHTML=((d.gaps||[]).map(function(g){return '• '+g;}).join('<br>')||'none')
-+((d.degraded&&d.degraded.length)?('<br><span style="color:'+NEG+'">degraded: '+d.degraded.join(' · ')+'</span>'):'');
-document.getElementById('foot').textContent='Feed data/credit-before-equity.json · '+(d.attribution||'')+' · v'+(d.version||'')+' · generated '+(d.generated_at||'');
-}catch(e){console.error(e);document.getElementById('hero').innerHTML='<span class="mono" style="color:#E07A6A">Feed unavailable — '+e+'</span>';}
+if(leads.length)document.getElementById('leads').insertAdjacentHTML('beforeend','<p class="note">Showing '+leads.length+' supplied leads; engine total '+countText(d.n_leads)+'. The engine caps this preview at 20; all supplied issuer rows remain below.</p>');
+document.getElementById('method').textContent=typeof d.method==='string'?d.method:'Method unavailable';
+document.getElementById('gaps').innerHTML=(strings(d.gaps)?(d.gaps.length?d.gaps.map(function(g){return '• '+esc(g);}).join('<br>'):'No gaps declared by the engine.'):'Gap declaration unavailable.')
++(degraded?('<br><span style="color:'+NEG+'">Degraded: '+d.degraded.map(esc).join(' · ')+'</span>'):'');
+document.getElementById('foot').textContent='Feed data/credit-before-equity.json · '+(typeof d.attribution==='string'?d.attribution:'Attribution unavailable')+' · v'+(typeof d.version==='string'?d.version:'Unavailable')+' · generated '+(clock?d.generated_at:'Unavailable');
+ }catch(e){console.error(e);
+document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence unavailable</h2><p>'+esc(e.message)+'. No conclusion about credit leads is available. Source freshness is unverified.</p>';
+document.getElementById('hero').textContent='Summary unavailable';
+document.getElementById('leads').textContent='Lead evidence unavailable';
+}
 })();
 </script>
 <script src="/sidebar.js" defer></script>
