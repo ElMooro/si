@@ -6884,3 +6884,17 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
   invalid identifier counting, hardcoded CUSIP zero and malformed-row crashes.
 
 - Push guard preserved another lane's 6400 binding diagnostic, report and claim at `1fdd66b8ad61f68a7e138bd84256f1d8d5f73a1a`. Only the complete diagnostic source was reviewed/compiled; no tested engine, config, workflow, test or page source changed. Our 60 native, three operation, preflight and complete page-contract checks pass on the combined revision. The full 984/fifteen shell/2,213 frontend results remain bound to `c1976489ecf63434c76bd7dec2b74c8e8accb5d1`. Peer diagnostic/report conclusions are not part of this acceptance.
+
+
+### Stage 491 exact equity identity release acceptance
+
+- Source `32aed755ab77c124ba46568f11cbf70cdf13f632` is accepted with exact public receipt and CodeSha256 `8ttwuCbnxEeT8F4oEhlHBw4YP/8h/cc4KugieaF+yUg=`. Read-only 6399, run `36799007060`, confirms all five packaged source files and unchanged 1024 MB / 120 seconds / 512 MB temporary storage / Python 3.12 / x86_64 and original daily 05:15 UTC rule, before and after inspection. Report commit: `a1b09d03591e6b481ade4097e16b3b4795f3c570`.
+- All 55 inspected static files match one exact build. The full source inventory preserves 898 engine records, 599 page contracts, 543 navigation destinations and 143 companion wires. The final source passes 60 native, three operation, 984 deployment, fifteen shell and 2,213 frontend checks. The extra exchange-code regression was incorporated before this final test cycle and deployment.
+- No actual queue, master, account, private/current consumer body, provider request or producer invocation was used. Normal new-code publication, independent source replay, the remaining CUSIP/GLEIF paths and catalog qualification remain unverified. No investment authority is granted. Four complete invented coverage-report cases establish the next repair; the former 13F guesser is unreachable from its canonical handler. All ten platform workstreams remain OPEN.
+
+
+## Stage 492: coverage inventory baseline and reproduced defects
+
+- Four whole invented source replays reproduce failed inputs becoming zeros, declared/invalid identifier counts, hardcoded CUSIP zero and malformed-row crashes. A pure source-scoped replacement and retained-input storage candidate remain outside the repository; sixteen projection and thirteen storage regressions pass. They are not deployed.
+- The exact public release receipt path returned HTTP 403, which does not prove native absence. Read-only 6401 will compare the whole native package with tracked source and inspect original resources/schedules; it allows an explicitly missing S3 predecessor receipt without calling that commit-bound proof. No actual summary, current report, private/account/consumer object, provider request or producer invocation is allowed.
+- Baseline preparation passes three focused, 987 full deployment and fifteen shell checks. Native source and page source are unchanged; the accepted equity source remains 32aed755a. Baseline dispatch and coverage repair remain pending; all ten workstreams stay OPEN.
