@@ -301,3 +301,7 @@ if __name__=='__main__':
 if __name__ == '__main__':
     import subprocess, sys
     subprocess.run([sys.executable, str(Path(__file__).with_name('test_oos_boundary.py'))], check=True)
+
+if __name__ == '__main__':
+    import subprocess, sys
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_optional_votes.py'))], check=True)

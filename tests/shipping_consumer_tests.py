@@ -92,9 +92,9 @@ class Tests(unittest.TestCase):
         new={n.name:n for n in ast.parse(source.read_text(encoding='utf-8')).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         for name,node in old.items():
             if name == 'war_room':
-                # Required funding repair has its own native matrix; bind this
+                # Funding and optional-vote repairs have native matrices; bind this
                 # exception to the exact reviewed function, not arbitrary edits.
-                self.assertEqual(hashlib.sha256(ast.dump(new[name]).encode()).hexdigest(), 'f589fc2954f248723bd00c28f21819202988966b31ad3162f5d2b7ded73780b0')
+                self.assertEqual(hashlib.sha256(ast.dump(new[name]).encode()).hexdigest(), '041c38162238b5bdab303d3e59f378d946dc3a50f6dc7baef1f6c3bc03ce7b0a')
                 continue
             if name in ('run_backtest', 'validation_summary'):
                 from katlin_oos_test_support import assert_oos_only_change
