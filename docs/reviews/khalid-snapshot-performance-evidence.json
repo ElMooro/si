@@ -1,0 +1,2926 @@
+{
+  "scope": "Offline retained real packet, actual page/controller/shared renderer/chart workspace. Unrelated scripts excluded; all requests intercepted. Clock fixed one minute after publication. No production latency claim.",
+  "baseline": "cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d",
+  "packet_sha256": "aee2c7bfc2e46c972083c531e24ff63f00bc52cb0ebc5189d1972b8f6da94ef8",
+  "packet_bytes": 20876164,
+  "candidates": 3643,
+  "runs": [
+    {
+      "label": "concurrent_with_other_gates",
+      "cases": [
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 1852,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 40.29999999888241
+            },
+            {
+              "action": "clear_search",
+              "ms": 53
+            },
+            {
+              "action": "asset_filter",
+              "ms": 38.399999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 47
+            },
+            {
+              "action": "ready_filter",
+              "ms": 34.69999999925494
+            },
+            {
+              "action": "clear_ready",
+              "ms": 50.90000000037253
+            },
+            {
+              "action": "next",
+              "ms": 62.90000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 57.399999998509884
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 39.69999999925494
+            },
+            {
+              "action": "clear_search",
+              "ms": 48.09999999962747
+            },
+            {
+              "action": "asset_filter",
+              "ms": 37.40000000037253
+            },
+            {
+              "action": "clear_asset",
+              "ms": 40.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 28.799999998882413
+            },
+            {
+              "action": "clear_ready",
+              "ms": 40.80000000074506
+            },
+            {
+              "action": "next",
+              "ms": 57.69999999925494
+            },
+            {
+              "action": "previous",
+              "ms": 70.80000000074506
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 32.29999999888241
+            },
+            {
+              "action": "clear_search",
+              "ms": 42.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 48.09999999962747
+            },
+            {
+              "action": "clear_asset",
+              "ms": 37
+            },
+            {
+              "action": "ready_filter",
+              "ms": 28.800000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 44.80000000074506
+            },
+            {
+              "action": "next",
+              "ms": 107.69999999925494
+            },
+            {
+              "action": "previous",
+              "ms": 68.59999999962747
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39988944,
+            "JSHeapTotalSize": 40673280
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1433,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 36.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 51.59999999962747
+            },
+            {
+              "action": "asset_filter",
+              "ms": 33.399999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 45.20000000111759
+            },
+            {
+              "action": "ready_filter",
+              "ms": 35.40000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 46.899999998509884
+            },
+            {
+              "action": "next",
+              "ms": 67
+            },
+            {
+              "action": "previous",
+              "ms": 59.19999999925494
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 30.90000000037253
+            },
+            {
+              "action": "clear_search",
+              "ms": 44.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 35.19999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 38.69999999925494
+            },
+            {
+              "action": "ready_filter",
+              "ms": 33.90000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 35.70000000111759
+            },
+            {
+              "action": "next",
+              "ms": 54.899999998509884
+            },
+            {
+              "action": "previous",
+              "ms": 60.30000000074506
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 30
+            },
+            {
+              "action": "clear_search",
+              "ms": 37.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 41.30000000074506
+            },
+            {
+              "action": "clear_asset",
+              "ms": 55.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29
+            },
+            {
+              "action": "clear_ready",
+              "ms": 54.399999998509884
+            },
+            {
+              "action": "next",
+              "ms": 61.600000001490116
+            },
+            {
+              "action": "previous",
+              "ms": 64.79999999888241
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39990456,
+            "JSHeapTotalSize": 40673280
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 986,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 43.59999999962747
+            },
+            {
+              "action": "clear_search",
+              "ms": 38.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 34.19999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 56.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 35.80000000074506
+            },
+            {
+              "action": "clear_ready",
+              "ms": 30.09999999962747
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 25.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 27
+            },
+            {
+              "action": "asset_filter",
+              "ms": 33.79999999888241
+            },
+            {
+              "action": "clear_asset",
+              "ms": 41.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 25
+            },
+            {
+              "action": "clear_ready",
+              "ms": 27.800000000745058
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 27.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 36.20000000111759
+            },
+            {
+              "action": "asset_filter",
+              "ms": 28.399999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 25.399999998509884
+            },
+            {
+              "action": "ready_filter",
+              "ms": 30.799999998882413
+            },
+            {
+              "action": "clear_ready",
+              "ms": 33.70000000111759
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20714060,
+            "JSHeapTotalSize": 21536768
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 1040,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 30.59999999962747
+            },
+            {
+              "action": "clear_search",
+              "ms": 35.100000001490116
+            },
+            {
+              "action": "asset_filter",
+              "ms": 29.199999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 41.40000000037253
+            },
+            {
+              "action": "ready_filter",
+              "ms": 35.69999999925494
+            },
+            {
+              "action": "clear_ready",
+              "ms": 37.80000000074506
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 26
+            },
+            {
+              "action": "clear_search",
+              "ms": 23.59999999962747
+            },
+            {
+              "action": "asset_filter",
+              "ms": 34.30000000074506
+            },
+            {
+              "action": "clear_asset",
+              "ms": 32.40000000037253
+            },
+            {
+              "action": "ready_filter",
+              "ms": 22
+            },
+            {
+              "action": "clear_ready",
+              "ms": 25.59999999962747
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0.10000000149011612
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 29.199999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 28.199999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 27.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 30.299999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 28.300000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 25.90000000037253
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20724588,
+            "JSHeapTotalSize": 21536768
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 1157,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 5.299999998882413
+            },
+            {
+              "action": "clear_search",
+              "ms": 10.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 9.400000000372529
+            },
+            {
+              "action": "clear_asset",
+              "ms": 11
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.400000000372529
+            },
+            {
+              "action": "clear_ready",
+              "ms": 9.699999999254942
+            },
+            {
+              "action": "next",
+              "ms": 50
+            },
+            {
+              "action": "previous",
+              "ms": 39.30000000074506
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.300000000745058
+            },
+            {
+              "action": "clear_search",
+              "ms": 14.899999998509884
+            },
+            {
+              "action": "asset_filter",
+              "ms": 10.900000000372529
+            },
+            {
+              "action": "clear_asset",
+              "ms": 10.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.599999999627471
+            },
+            {
+              "action": "clear_ready",
+              "ms": 9.400000000372529
+            },
+            {
+              "action": "next",
+              "ms": 25.800000000745058
+            },
+            {
+              "action": "previous",
+              "ms": 28.59999999962747
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 3.700000001117587
+            },
+            {
+              "action": "clear_search",
+              "ms": 10.799999998882413
+            },
+            {
+              "action": "asset_filter",
+              "ms": 9.600000001490116
+            },
+            {
+              "action": "clear_asset",
+              "ms": 10.299999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.5
+            },
+            {
+              "action": "clear_ready",
+              "ms": 10.200000001117587
+            },
+            {
+              "action": "next",
+              "ms": 24.399999998509884
+            },
+            {
+              "action": "previous",
+              "ms": 25.800000000745058
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23572664,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1646,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 4.599999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 17.59999999962747
+            },
+            {
+              "action": "asset_filter",
+              "ms": 20.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 18.699999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 3
+            },
+            {
+              "action": "clear_ready",
+              "ms": 10.600000001490116
+            },
+            {
+              "action": "next",
+              "ms": 37.69999999925494
+            },
+            {
+              "action": "previous",
+              "ms": 32.5
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.700000001117587
+            },
+            {
+              "action": "clear_search",
+              "ms": 12
+            },
+            {
+              "action": "asset_filter",
+              "ms": 24.90000000037253
+            },
+            {
+              "action": "clear_asset",
+              "ms": 13.099999999627471
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.799999998882413
+            },
+            {
+              "action": "clear_ready",
+              "ms": 14
+            },
+            {
+              "action": "next",
+              "ms": 34.5
+            },
+            {
+              "action": "previous",
+              "ms": 56.20000000111759
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 11.200000001117587
+            },
+            {
+              "action": "asset_filter",
+              "ms": 12.099999999627471
+            },
+            {
+              "action": "clear_asset",
+              "ms": 12.300000000745058
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.799999998882413
+            },
+            {
+              "action": "clear_ready",
+              "ms": 32.70000000111759
+            },
+            {
+              "action": "next",
+              "ms": 37.399999998509884
+            },
+            {
+              "action": "previous",
+              "ms": 42.30000000074506
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23579408,
+            "JSHeapTotalSize": 24420352
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 4228,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 129.59999999962747
+            },
+            {
+              "action": "clear_search",
+              "ms": 4.800000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.200000001117587
+            },
+            {
+              "action": "clear_asset",
+              "ms": 21.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 6.199999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 3
+            },
+            {
+              "action": "next",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 5.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 2
+            },
+            {
+              "action": "asset_filter",
+              "ms": 9.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "clear_ready",
+              "ms": 6.599999999627471
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 2.199999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 6.200000001117587
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2
+            },
+            {
+              "action": "clear_asset",
+              "ms": 12.599999999627471
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "clear_ready",
+              "ms": 2.199999999254942
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23310516,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 2038,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 4.900000000372529
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.899999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.099999999627471
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.5
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.5
+            },
+            {
+              "action": "next",
+              "ms": 0.19999999925494194
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 16.40000000037253
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.300000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2.299999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.6000000014901161
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 3
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.199999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.699999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.200000001117587
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.699999999254942
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0.10000000149011612
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23297660,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "label": "isolated_from_this_lanes_gates",
+      "cases": [
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 1938,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 37.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 47.600000001490116
+            },
+            {
+              "action": "asset_filter",
+              "ms": 38.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 57.59999999962747
+            },
+            {
+              "action": "ready_filter",
+              "ms": 48.5
+            },
+            {
+              "action": "clear_ready",
+              "ms": 69.29999999888241
+            },
+            {
+              "action": "next",
+              "ms": 59.29999999888241
+            },
+            {
+              "action": "previous",
+              "ms": 62.30000000074506
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 34.19999999925494
+            },
+            {
+              "action": "clear_search",
+              "ms": 38.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 44.69999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 47.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29.90000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 38.09999999962747
+            },
+            {
+              "action": "next",
+              "ms": 57.5
+            },
+            {
+              "action": "previous",
+              "ms": 62.20000000111759
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 30.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 38
+            },
+            {
+              "action": "asset_filter",
+              "ms": 34.19999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 39
+            },
+            {
+              "action": "ready_filter",
+              "ms": 30.300000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 38.19999999925494
+            },
+            {
+              "action": "next",
+              "ms": 56.40000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 51
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39992608,
+            "JSHeapTotalSize": 40411136
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1711,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 47.600000001490116
+            },
+            {
+              "action": "clear_search",
+              "ms": 76.19999999925494
+            },
+            {
+              "action": "asset_filter",
+              "ms": 41.90000000037253
+            },
+            {
+              "action": "clear_asset",
+              "ms": 51.69999999925494
+            },
+            {
+              "action": "ready_filter",
+              "ms": 45.19999999925494
+            },
+            {
+              "action": "clear_ready",
+              "ms": 75.69999999925494
+            },
+            {
+              "action": "next",
+              "ms": 98
+            },
+            {
+              "action": "previous",
+              "ms": 89.5
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 39.80000000074506
+            },
+            {
+              "action": "clear_search",
+              "ms": 51.09999999962747
+            },
+            {
+              "action": "asset_filter",
+              "ms": 41.600000001490116
+            },
+            {
+              "action": "clear_asset",
+              "ms": 48.09999999962747
+            },
+            {
+              "action": "ready_filter",
+              "ms": 77.19999999925494
+            },
+            {
+              "action": "clear_ready",
+              "ms": 131.09999999962747
+            },
+            {
+              "action": "next",
+              "ms": 157.40000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 142.90000000037253
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 43.20000000111759
+            },
+            {
+              "action": "clear_search",
+              "ms": 75.29999999888241
+            },
+            {
+              "action": "asset_filter",
+              "ms": 61.40000000037253
+            },
+            {
+              "action": "clear_asset",
+              "ms": 63.90000000037253
+            },
+            {
+              "action": "ready_filter",
+              "ms": 52.09999999962747
+            },
+            {
+              "action": "clear_ready",
+              "ms": 61.90000000037253
+            },
+            {
+              "action": "next",
+              "ms": 98.19999999925494
+            },
+            {
+              "action": "previous",
+              "ms": 129.5
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39990120,
+            "JSHeapTotalSize": 40673280
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 1525,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 31
+            },
+            {
+              "action": "clear_search",
+              "ms": 40.69999999925494
+            },
+            {
+              "action": "asset_filter",
+              "ms": 28.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 33.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 39.899999998509884
+            },
+            {
+              "action": "clear_ready",
+              "ms": 36.600000001490116
+            },
+            {
+              "action": "next",
+              "ms": 0.19999999925494194
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 27.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 31.100000001490116
+            },
+            {
+              "action": "asset_filter",
+              "ms": 36.09999999962747
+            },
+            {
+              "action": "clear_asset",
+              "ms": 30.300000000745058
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29.299999998882413
+            },
+            {
+              "action": "clear_ready",
+              "ms": 36.40000000037253
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 28
+            },
+            {
+              "action": "clear_search",
+              "ms": 32.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 27.300000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 27.90000000037253
+            },
+            {
+              "action": "ready_filter",
+              "ms": 27.59999999962747
+            },
+            {
+              "action": "clear_ready",
+              "ms": 30.199999999254942
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20737724,
+            "JSHeapTotalSize": 21274624
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 1197,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 42.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 44.19999999925494
+            },
+            {
+              "action": "asset_filter",
+              "ms": 28.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 40.09999999962747
+            },
+            {
+              "action": "ready_filter",
+              "ms": 28.90000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 30.5
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 31.199999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 29.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 29.699999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 28.600000001490116
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29
+            },
+            {
+              "action": "clear_ready",
+              "ms": 35.5
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 25.90000000037253
+            },
+            {
+              "action": "clear_search",
+              "ms": 30.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 27.199999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 23.800000000745058
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29.40000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 38.899999998509884
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20722332,
+            "JSHeapTotalSize": 21274624
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 2461,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 13.100000001490116
+            },
+            {
+              "action": "clear_search",
+              "ms": 53.899999998509884
+            },
+            {
+              "action": "asset_filter",
+              "ms": 28.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 32.100000001490116
+            },
+            {
+              "action": "ready_filter",
+              "ms": 6.699999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 21.40000000037253
+            },
+            {
+              "action": "next",
+              "ms": 78.09999999962747
+            },
+            {
+              "action": "previous",
+              "ms": 93.5
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 12.200000001117587
+            },
+            {
+              "action": "clear_search",
+              "ms": 29
+            },
+            {
+              "action": "asset_filter",
+              "ms": 34.29999999888241
+            },
+            {
+              "action": "clear_asset",
+              "ms": 30.100000001490116
+            },
+            {
+              "action": "ready_filter",
+              "ms": 4.700000001117587
+            },
+            {
+              "action": "clear_ready",
+              "ms": 33.79999999888241
+            },
+            {
+              "action": "next",
+              "ms": 85.30000000074506
+            },
+            {
+              "action": "previous",
+              "ms": 82
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 10.099999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 31.200000001117587
+            },
+            {
+              "action": "asset_filter",
+              "ms": 25.899999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 36.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 5.199999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 31
+            },
+            {
+              "action": "next",
+              "ms": 76.09999999962747
+            },
+            {
+              "action": "previous",
+              "ms": 80
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23578056,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1229,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 4.599999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 14.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 9.299999998882413
+            },
+            {
+              "action": "clear_asset",
+              "ms": 14.100000001490116
+            },
+            {
+              "action": "ready_filter",
+              "ms": 4.5
+            },
+            {
+              "action": "clear_ready",
+              "ms": 14.099999999627471
+            },
+            {
+              "action": "next",
+              "ms": 44.79999999888241
+            },
+            {
+              "action": "previous",
+              "ms": 73.40000000037253
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 6.100000001490116
+            },
+            {
+              "action": "clear_search",
+              "ms": 11.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 9.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 15.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.400000000372529
+            },
+            {
+              "action": "clear_ready",
+              "ms": 10.799999998882413
+            },
+            {
+              "action": "next",
+              "ms": 37.100000001490116
+            },
+            {
+              "action": "previous",
+              "ms": 32.69999999925494
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.300000000745058
+            },
+            {
+              "action": "clear_search",
+              "ms": 11.099999999627471
+            },
+            {
+              "action": "asset_filter",
+              "ms": 8.099999999627471
+            },
+            {
+              "action": "clear_asset",
+              "ms": 16.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.800000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 12.699999999254942
+            },
+            {
+              "action": "next",
+              "ms": 57.90000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 34.30000000074506
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23575888,
+            "JSHeapTotalSize": 24420352
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 1249,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 8.599999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2.800000000745058
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.199999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 2
+            },
+            {
+              "action": "next",
+              "ms": 0.10000000149011612
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 2.299999998882413
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.800000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.400000000372529
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2.099999999627471
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.19999999925494194
+            },
+            {
+              "action": "clear_ready",
+              "ms": 2.700000001117587
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 2.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.6000000014901161
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.8999999985098839
+            },
+            {
+              "action": "clear_asset",
+              "ms": 6.400000000372529
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.10000000149011612
+            },
+            {
+              "action": "clear_ready",
+              "ms": 2.299999998882413
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23297728,
+            "JSHeapTotalSize": 23896064
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 1476,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 2.299999998882413
+            },
+            {
+              "action": "clear_search",
+              "ms": 2
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.900000000372529
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.900000000372529
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 2.900000000372529
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.199999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.699999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "clear_ready",
+              "ms": 2.099999999627471
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 1.900000000372529
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 2.299999998882413
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2.700000001117587
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.199999999254942
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23310712,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "label": "final_source_bytes",
+      "source_sha256": {
+        "before": {
+          "khalid.html": "3c8cc0f7ca17d563aba1ccf22d3f242166d844f5370e83a604fc4645181aac36",
+          "chart.html": "2ea9e20d82db6ddb6a585ee24cafd395a9e75c2b5d8a0d29568604b1edb148d7",
+          "jh-khalid-sniper.js": "8562ef888927332ecf8214d2074e92091b1ffabf743df851d528eff88b334898",
+          "khalid.js": "da7d063311bd7c2e97e3362643befdeea31b23e6efce792cfb471af91131db32",
+          "jh-chart-tvrail.js": "6c341db397205a9ea7e0a824f3e95f0a1f522607b2051be73c0073d254164584"
+        },
+        "after": {
+          "khalid.html": "57640211b9a891ea894708cf4fc4c9bd15b8fc1a46dba0ffd124c847e19dbcfc",
+          "chart.html": "28e7a05f5308b867f91ef6cab0cfcee508a0e76f83b5fff68bca55e410899983",
+          "jh-khalid-sniper.js": "cd9c8049ad9a107799f84d9afb2a66c000126334181b87b0d881c767d70e3970",
+          "khalid.js": "fef8bc9fae7c43fb5e203c19ce72a5d421232cb549a155bc0663e05bff111083",
+          "jh-chart-tvrail.js": "f84889ea079118c0db966c8d616135fc53e255b1e84dd4d00fa71a59b8170c5a"
+        }
+      },
+      "cases": [
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 1761,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 32.19999999925494
+            },
+            {
+              "action": "clear_search",
+              "ms": 48.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 44.29999999888241
+            },
+            {
+              "action": "clear_asset",
+              "ms": 62.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 45
+            },
+            {
+              "action": "clear_ready",
+              "ms": 52.59999999962747
+            },
+            {
+              "action": "next",
+              "ms": 65.59999999962747
+            },
+            {
+              "action": "previous",
+              "ms": 62.20000000111759
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 35.79999999888241
+            },
+            {
+              "action": "clear_search",
+              "ms": 43.40000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 38.80000000074506
+            },
+            {
+              "action": "clear_asset",
+              "ms": 38.29999999888241
+            },
+            {
+              "action": "ready_filter",
+              "ms": 29.800000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 33.30000000074506
+            },
+            {
+              "action": "next",
+              "ms": 56.399999998509884
+            },
+            {
+              "action": "previous",
+              "ms": 50.90000000037253
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 29.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 38
+            },
+            {
+              "action": "asset_filter",
+              "ms": 31.59999999962747
+            },
+            {
+              "action": "clear_asset",
+              "ms": 37.600000001490116
+            },
+            {
+              "action": "ready_filter",
+              "ms": 31.59999999962747
+            },
+            {
+              "action": "clear_ready",
+              "ms": 34.59999999962747
+            },
+            {
+              "action": "next",
+              "ms": 55.20000000111759
+            },
+            {
+              "action": "previous",
+              "ms": 54.19999999925494
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39990256,
+            "JSHeapTotalSize": 40411136
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1317,
+          "initial": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 2,
+            "parses": 2,
+            "validations": 26
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 41.19999999925494
+            },
+            {
+              "action": "clear_search",
+              "ms": 41.30000000074506
+            },
+            {
+              "action": "asset_filter",
+              "ms": 39.69999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 49.19999999925494
+            },
+            {
+              "action": "ready_filter",
+              "ms": 40.40000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 47
+            },
+            {
+              "action": "next",
+              "ms": 59.70000000111759
+            },
+            {
+              "action": "previous",
+              "ms": 61.5
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 34.899999998509884
+            },
+            {
+              "action": "clear_search",
+              "ms": 40.600000001490116
+            },
+            {
+              "action": "asset_filter",
+              "ms": 35.29999999888241
+            },
+            {
+              "action": "clear_asset",
+              "ms": 43.20000000111759
+            },
+            {
+              "action": "ready_filter",
+              "ms": 25.40000000037253
+            },
+            {
+              "action": "clear_ready",
+              "ms": 33.79999999888241
+            },
+            {
+              "action": "next",
+              "ms": 68.20000000111759
+            },
+            {
+              "action": "previous",
+              "ms": 69
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 29.09999999962747
+            },
+            {
+              "action": "clear_search",
+              "ms": 45.69999999925494
+            },
+            {
+              "action": "asset_filter",
+              "ms": 40.70000000111759
+            },
+            {
+              "action": "clear_asset",
+              "ms": 38.899999998509884
+            },
+            {
+              "action": "ready_filter",
+              "ms": 27.800000000745058
+            },
+            {
+              "action": "clear_ready",
+              "ms": 36.09999999962747
+            },
+            {
+              "action": "next",
+              "ms": 55.20000000111759
+            },
+            {
+              "action": "previous",
+              "ms": 56.19999999925494
+            }
+          ],
+          "metrics": {
+            "Nodes": 18799,
+            "JSHeapUsedSize": 39993440,
+            "JSHeapTotalSize": 40935424
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 1005,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 46.09999999962747
+            },
+            {
+              "action": "clear_search",
+              "ms": 46.80000000074506
+            },
+            {
+              "action": "asset_filter",
+              "ms": 33.19999999925494
+            },
+            {
+              "action": "clear_asset",
+              "ms": 33.80000000074506
+            },
+            {
+              "action": "ready_filter",
+              "ms": 33.29999999888241
+            },
+            {
+              "action": "clear_ready",
+              "ms": 34.100000001490116
+            },
+            {
+              "action": "next",
+              "ms": 0.2999999988824129
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 25.100000001490116
+            },
+            {
+              "action": "clear_search",
+              "ms": 26.699999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 31.200000001117587
+            },
+            {
+              "action": "clear_asset",
+              "ms": 32.19999999925494
+            },
+            {
+              "action": "ready_filter",
+              "ms": 24.700000001117587
+            },
+            {
+              "action": "clear_ready",
+              "ms": 27.59999999962747
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 27.200000001117587
+            },
+            {
+              "action": "clear_search",
+              "ms": 45
+            },
+            {
+              "action": "asset_filter",
+              "ms": 28
+            },
+            {
+              "action": "clear_asset",
+              "ms": 25.799999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 26
+            },
+            {
+              "action": "clear_ready",
+              "ms": 25.300000000745058
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0.09999999962747097
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20724828,
+            "JSHeapTotalSize": 21536768
+          },
+          "errors": []
+        },
+        {
+          "variant": "before",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 886,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 2
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 20
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 32.20000000111759
+            },
+            {
+              "action": "clear_search",
+              "ms": 27.699999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 25.200000001117587
+            },
+            {
+              "action": "clear_asset",
+              "ms": 46.29999999888241
+            },
+            {
+              "action": "ready_filter",
+              "ms": 32.80000000074506
+            },
+            {
+              "action": "clear_ready",
+              "ms": 29.59999999962747
+            },
+            {
+              "action": "next",
+              "ms": 0.10000000149011612
+            },
+            {
+              "action": "previous",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 27
+            },
+            {
+              "action": "clear_search",
+              "ms": 26.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 34.59999999962747
+            },
+            {
+              "action": "clear_asset",
+              "ms": 37
+            },
+            {
+              "action": "ready_filter",
+              "ms": 22.59999999962747
+            },
+            {
+              "action": "clear_ready",
+              "ms": 28.700000001117587
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 29.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 28.90000000037253
+            },
+            {
+              "action": "asset_filter",
+              "ms": 27.5
+            },
+            {
+              "action": "clear_asset",
+              "ms": 25.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 30.699999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 29.700000001117587
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2058,
+            "JSHeapUsedSize": 20724988,
+            "JSHeapTotalSize": 21274624
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 1440,
+          "initial_ms": 1086,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 4.099999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 10.599999999627471
+            },
+            {
+              "action": "asset_filter",
+              "ms": 8.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 11.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.199999999254942
+            },
+            {
+              "action": "clear_ready",
+              "ms": 10.200000001117587
+            },
+            {
+              "action": "next",
+              "ms": 29.40000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 32.09999999962747
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4
+            },
+            {
+              "action": "clear_search",
+              "ms": 9.900000000372529
+            },
+            {
+              "action": "asset_filter",
+              "ms": 7.399999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 17.5
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.6000000014901161
+            },
+            {
+              "action": "clear_ready",
+              "ms": 11.399999998509884
+            },
+            {
+              "action": "next",
+              "ms": 31
+            },
+            {
+              "action": "previous",
+              "ms": 38.20000000111759
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 10.599999999627471
+            },
+            {
+              "action": "asset_filter",
+              "ms": 8.899999998509884
+            },
+            {
+              "action": "clear_asset",
+              "ms": 11.200000001117587
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.599999999627471
+            },
+            {
+              "action": "clear_ready",
+              "ms": 14.300000000745058
+            },
+            {
+              "action": "next",
+              "ms": 28.59999999962747
+            },
+            {
+              "action": "previous",
+              "ms": 34
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23575252,
+            "JSHeapTotalSize": 24420352
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "khalid.html",
+          "width": 390,
+          "initial_ms": 1151,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 4.399999998509884
+            },
+            {
+              "action": "clear_search",
+              "ms": 12.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 10.900000000372529
+            },
+            {
+              "action": "clear_asset",
+              "ms": 14
+            },
+            {
+              "action": "ready_filter",
+              "ms": 2.5
+            },
+            {
+              "action": "clear_ready",
+              "ms": 11.700000001117587
+            },
+            {
+              "action": "next",
+              "ms": 30.5
+            },
+            {
+              "action": "previous",
+              "ms": 36.29999999888241
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.899999998509884
+            },
+            {
+              "action": "clear_search",
+              "ms": 12.600000001490116
+            },
+            {
+              "action": "asset_filter",
+              "ms": 8.199999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 10.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.6000000014901161
+            },
+            {
+              "action": "clear_ready",
+              "ms": 10.699999999254942
+            },
+            {
+              "action": "next",
+              "ms": 39.90000000037253
+            },
+            {
+              "action": "previous",
+              "ms": 45.29999999888241
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 4.5
+            },
+            {
+              "action": "clear_search",
+              "ms": 11.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 11.599999999627471
+            },
+            {
+              "action": "clear_asset",
+              "ms": 11
+            },
+            {
+              "action": "ready_filter",
+              "ms": 1.900000000372529
+            },
+            {
+              "action": "clear_ready",
+              "ms": 9.900000000372529
+            },
+            {
+              "action": "next",
+              "ms": 35
+            },
+            {
+              "action": "previous",
+              "ms": 33.40000000037253
+            }
+          ],
+          "metrics": {
+            "Nodes": 18801,
+            "JSHeapUsedSize": 23580844,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 1440,
+          "initial_ms": 1247,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 1.699999999254942
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.400000000372529
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.199999999254942
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.6999999992549419
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.099999999627471
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 1.099999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.199999999254942
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.799999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.299999998882413
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 1.599999999627471
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.5
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.800000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 2
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.299999998882413
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23298700,
+            "JSHeapTotalSize": 23896064
+          },
+          "errors": []
+        },
+        {
+          "variant": "after",
+          "page": "chart.html",
+          "width": 390,
+          "initial_ms": 1205,
+          "initial": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "post": {
+            "fetches": 1,
+            "parses": 1,
+            "validations": 1
+          },
+          "timings": [
+            {
+              "action": "search_AAPL",
+              "ms": 2
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.599999999627471
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.699999999254942
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.599999999627471
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "next",
+              "ms": 0.09999999962747097
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 1.400000000372529
+            },
+            {
+              "action": "clear_search",
+              "ms": 1.299999998882413
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.400000000372529
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.19999999925494194
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            },
+            {
+              "action": "search_AAPL",
+              "ms": 1.799999998882413
+            },
+            {
+              "action": "clear_search",
+              "ms": 2.300000000745058
+            },
+            {
+              "action": "asset_filter",
+              "ms": 1.300000000745058
+            },
+            {
+              "action": "clear_asset",
+              "ms": 1.299999998882413
+            },
+            {
+              "action": "ready_filter",
+              "ms": 0.2000000011175871
+            },
+            {
+              "action": "clear_ready",
+              "ms": 1.5
+            },
+            {
+              "action": "next",
+              "ms": 0
+            },
+            {
+              "action": "previous",
+              "ms": 0
+            }
+          ],
+          "metrics": {
+            "Nodes": 2060,
+            "JSHeapUsedSize": 23297756,
+            "JSHeapTotalSize": 24158208
+          },
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Local Chromium timings, not production latency or mobile CPU guarantees",
+    "Initial load timing did not improve consistently",
+    "Chart retains roughly 2.6 MB more JS heap for the shared validated index",
+    "Backend payload remains unchanged at 20,876,164 bytes; repeated qualification fields remain a separate proposal"
+  ]
+}

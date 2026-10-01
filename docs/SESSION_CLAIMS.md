@@ -18,7 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| PR29 frontend performance follow-up: shared immutable qualification snapshot, one fetch/parse, deadline-safe bounded validation cache; khalid.js, jh-khalid-sniper.js, both script refs and tests; draft only, no backend contract/decisions/release | none | S-codex#kperf1001q7 | 2026-10-01 06:34 |
+| PR29 frontend performance follow-up: shared immutable qualification snapshot, one fetch/parse, deadline-safe bounded validation cache; khalid.js, jh-khalid-sniper.js, jh-chart-tvrail.js close cleanup, both script refs and tests; draft only, no backend contract/decisions/release | none | S-codex#kperf1001q7 | 2026-10-01 06:34 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
 | Canonical holdings qualification diagnostics only: versioned new-input counters and overlapping reasons; preserve old replay and desk supplement v1; agent/shopiz/holdings-qualification-diagnostics; draft only, no activation | none | S-shopiz#hqdiag1001g | 2026-10-01 05:10 |

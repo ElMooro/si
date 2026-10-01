@@ -103,7 +103,8 @@
     return state.sortDirection === "asc" ? result : -result;
   }
 
-  async function fetchData() {
+  async function fetchData(force) {
+    if (window.jhKhalidSnapshot) return (await window.jhKhalidSnapshot.load({force: force === true})).feed;
     var paths = ["/data/khalid.json", PROXY + "/data/khalid.json"];
     var last;
     for (var i = 0; i < paths.length; i += 1) {
@@ -456,15 +457,31 @@
     renderCommand(data); renderOpportunities(); renderAssets(data); renderRisk(data); renderMethod(data);
     if (window.JHKhalidProviderFlow) window.JHKhalidProviderFlow.render($("provider-flow-research"), data.provider_flow_research);
   }
-  async function load() {
+  var loadTicket = 0;
+  async function load(force) {
+    var ticket = ++loadTicket;
     $("loading").hidden = false; $("error").hidden = true;
-    try { render(await fetchData()); }
+    try { var data = await fetchData(force); if (ticket === loadTicket && state.data !== data) render(data); }
     catch (err) {
+      if (ticket !== loadTicket || err.name === "AbortError") return;
       $("loading").hidden = true; $("dashboard").hidden = true; $("error").hidden = false;
       set("error-copy", "Khalid could not load its decision artifact. " + err.message);
       document.querySelector(".k-live").className = "k-live bad"; set("feed-status", "OFFLINE");
     }
   }
+
+  if (window.jhKhalidSnapshot) window.jhKhalidSnapshot.subscribe(function (event) {
+    if (event.status === "ready") { render(event.snapshot.feed); return; }
+    if (event.status === "loading") ++loadTicket;
+    state.data = {};
+    $("dashboard").hidden = true;
+    $("loading").hidden = event.status !== "loading";
+    $("error").hidden = event.status !== "error";
+    if (event.status === "error") {
+      set("error-copy", "Khalid could not load its decision artifact.");
+      document.querySelector(".k-live").className = "k-live bad"; set("feed-status", "OFFLINE");
+    }
+  });
 
   document.addEventListener("click", function (ev) {
     var view = ev.target.closest("[data-view]");
@@ -513,7 +530,7 @@
       $("detail-close").focus();
     }
   });
-  $("refresh-btn").addEventListener("click", load);
-  $("retry-btn").addEventListener("click", load);
+  $("refresh-btn").addEventListener("click", function () { load(true); });
+  $("retry-btn").addEventListener("click", function () { load(true); });
   load();
 }());

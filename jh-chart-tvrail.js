@@ -204,8 +204,14 @@
     applyWatch(false);
   }
 
+  function disposeQualification(overlay) {
+    var host = overlay && overlay.querySelector("#ws-sniper");
+    if (host && host._qualificationCleanup) host._qualificationCleanup();
+    if (host) host.replaceChildren();
+  }
   window.jhOpenWorkspace = function (kind) {
     var ov = el("ws-overlay");
+    disposeQualification(ov);
     var meta = {
       macro: ["Macro & Economic Data", "/macro-economic-data.html"],
       heat: ["Universe Heatmap", "/universe-heatmap.html"],
@@ -248,8 +254,8 @@
     ov.innerHTML = "<div class=wsbox><div class=wshd><span>" + title + "</span><a href='" + href + "' target=_blank rel=noopener>Open page ↗</a><button type=button class=x id=wsx>×</button></div>" +
       (kind === "corr" ? "<div id=ws-corr></div>" : kind === "sniper" ? "<div id=ws-sniper></div>" : "<iframe src='" + href + "' title='" + title + "'></iframe>") +
       "</div>";
-    document.getElementById("wsx").onclick = function () { ov.className = ""; };
-    ov.onclick = function (e) { if (e.target === ov) ov.className = ""; };
+    document.getElementById("wsx").onclick = function () { disposeQualification(ov); ov.className = ""; };
+    ov.onclick = function (e) { if (e.target === ov) { disposeQualification(ov); ov.className = ""; } };
     if (kind === "corr") {
       var host = document.getElementById("ws-corr");
       host.style.padding = "16px";
@@ -564,7 +570,7 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         var ov = document.getElementById("ws-overlay");
-        if (ov) ov.className = "";
+        if (ov) { disposeQualification(ov); ov.className = ""; }
         var m = document.getElementById("chartm");
         if (m) m.className = "";
         if (watch() && watch().classList.contains("is-open")) dismiss();
