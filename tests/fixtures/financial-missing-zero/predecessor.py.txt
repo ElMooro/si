@@ -62,23 +62,10 @@ def key_status():
 
 
 def num(v):
-    # JSON booleans and nonfinite values are not financial measurements.
-    if type(v) not in (int, float, str) or isinstance(v, str) and len(v) > 512:
-        return None
     try:
-        value = float(v)
-        return value if math.isfinite(value) else None
-    except (ValueError, TypeError, OverflowError):
+        return float(v)
+    except Exception:
         return None
-
-
-def first_num(*values):
-    """Prefer the first available numeric observation, including genuine zero."""
-    for value in values:
-        result = num(value)
-        if result is not None:
-            return result
-    return None
 
 
 def fetch_financials(tk):
@@ -97,7 +84,7 @@ def fetch_financials(tk):
     for row in (cf if isinstance(cf, list) else []):
         yr = (row.get("calendarYear") or str(row.get("date", ""))[:4])
         fcf_by_year[yr] = num(row.get("freeCashFlow"))
-        ocf_by_year[yr] = first_num(row.get("operatingCashFlow"), row.get("netCashProvidedByOperatingActivities"))
+        ocf_by_year[yr] = num(row.get("operatingCashFlow")) or num(row.get("netCashProvidedByOperatingActivities"))
         acq_by_year[yr] = num(row.get("acquisitionsNet"))
 
     fins = []
@@ -106,10 +93,10 @@ def fetch_financials(tk):
         rev = num(row.get("revenue")); ni = num(row.get("netIncome"))
         gp = num(row.get("grossProfit")); oi = num(row.get("operatingIncome"))
         fcf = fcf_by_year.get(yr)
-        sh = first_num(row.get("weightedAverageShsOutDil"), row.get("weightedAverageShsOut"))
+        sh = num(row.get("weightedAverageShsOutDil")) or num(row.get("weightedAverageShsOut"))
         fins.append({
             "year": yr, "revenue": rev, "netIncome": ni,
-            "eps": first_num(row.get("epsdiluted"), row.get("eps")),
+            "eps": num(row.get("epsdiluted")) or num(row.get("eps")),
             "gm": round(gp / rev * 100, 1) if (rev and gp is not None) else None,
             "om": round(oi / rev * 100, 1) if (rev and oi is not None) else None,
             "nm": round(ni / rev * 100, 1) if (rev and ni is not None) else None,
@@ -174,11 +161,11 @@ def fetch_financials(tk):
     rat_hist = fmp("ratios", {"symbol": tk, "period": "annual", "limit": 15})
     pes = []
     for row in (rat_hist if isinstance(rat_hist, list) else []):
-        pv = first_num(row.get("priceToEarningsRatio"), row.get("peRatio"))
+        pv = num(row.get("priceToEarningsRatio")) or num(row.get("peRatio"))
         if pv is not None and pv > 0:
             pes.append(pv)
     pe_low = pe_high = pe_pctile = None
-    cur_pe = first_num(p.get("pe"), r.get("priceToEarningsRatioTTM"))
+    cur_pe = num(p.get("pe")) or num(r.get("priceToEarningsRatioTTM"))
     if pes:
         pe_low, pe_high = round(min(pes), 1), round(max(pes), 1)
         if cur_pe and pe_high != pe_low:
@@ -207,7 +194,7 @@ def fetch_financials(tk):
     cur_ratio = num(r.get("currentRatioTTM"))
     if cur_ratio is None:
         ca = num(bs0.get("totalCurrentAssets")); cl = num(bs0.get("totalCurrentLiabilities"))
-        cur_ratio = round(ca / cl, 2) if (ca is not None and cl is not None and cl > 0) else None
+        cur_ratio = round(ca / cl, 2) if (ca and cl) else None
     inc0 = (inc[0] if isinstance(inc, list) and inc else {}) or {}
     debt = num(bs0.get("totalDebt")); cash = num(bs0.get("cashAndCashEquivalents"))
     ebitda = num(inc0.get("ebitda"))
@@ -215,16 +202,16 @@ def fetch_financials(tk):
         _oi = num(inc0.get("operatingIncome")); _da = num(inc0.get("depreciationAndAmortization"))
         ebitda = (_oi + _da) if (_oi is not None and _da is not None) else None
     net_debt_ebitda = num(r.get("netDebtToEBITDATTM"))
-    if net_debt_ebitda is None and debt is not None and cash is not None and ebitda:
-        net_debt_ebitda = round((debt - cash) / ebitda, 2)
+    if net_debt_ebitda is None and debt is not None and ebitda:
+        net_debt_ebitda = round((debt - (cash or 0)) / ebitda, 2)
     # interest coverage = operating income / interest expense
     op_inc = num(inc0.get("operatingIncome")); int_exp = num(inc0.get("interestExpense"))
     int_cov = None
     if op_inc is not None and int_exp and abs(int_exp) > 0:
         int_cov = round(op_inc / abs(int_exp), 1)
     # --- valuation depth (EV/EBITDA, PEG) computed from statements ---
-    mc = first_num(p.get("mktCap"), p.get("marketCap"))
-    ev_ebitda = round((mc + debt - cash) / ebitda, 1) if (ebitda and mc is not None and debt is not None and cash is not None) else None
+    mc = num(p.get("mktCap") or p.get("marketCap"))
+    ev_ebitda = round((mc + (debt or 0) - (cash or 0)) / ebitda, 1) if (ebitda and mc is not None) else None
     peg = None
     _eps = [f.get("eps") for f in fins if f.get("eps") is not None]
     if cur_pe and len(_eps) >= 2 and _eps[-2] and _eps[-2] > 0 and _eps[-1] is not None:
@@ -234,7 +221,7 @@ def fetch_financials(tk):
 
     # --- inorganic-growth flag (large recent acquisitions vs revenue) ---
     acq_l = acq_by_year.get(yr_l)
-    acq_pct = round(abs(acq_l) / rev_l * 100) if (acq_l is not None and rev_l) else None
+    acq_pct = round(abs(acq_l) / rev_l * 100) if (acq_l and rev_l) else None
     acq_driven = bool(acq_pct is not None and acq_pct >= 8)
 
     # --- revenue concentration (top product-segment share) ---
@@ -266,9 +253,9 @@ def fetch_financials(tk):
         "ceo": p.get("ceo"), "employees": p.get("fullTimeEmployees"),
         "website": p.get("website"), "exchange": p.get("exchangeShortName"),
         "sector": p.get("sector"), "industry": p.get("industry"),
-        "mkt_cap": first_num(p.get("mktCap"), p.get("marketCap")),
+        "mkt_cap": p.get("mktCap") or p.get("marketCap"),
         "price": price, "range_52w": p.get("range"), "beta": num(p.get("beta")),
-        "pe": first_num(p.get("pe"), r.get("priceToEarningsRatioTTM")),
+        "pe": num(p.get("pe")) or num(r.get("priceToEarningsRatioTTM")),
         "ps": num(r.get("priceToSalesRatioTTM")),
         "pb": num(r.get("priceToBookRatioTTM")),
         "div_yield": (round(num(r.get("dividendYieldTTM")) * 100, 2)

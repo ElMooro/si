@@ -35,62 +35,6 @@
       [
         "def make_thesis(name, tk, ind, signals_block, system, max_tokens=440):\n    \"\"\"Generic plain-English thesis + bear case. Engine supplies signals_block + system prompt.\"\"\"\n    prompt = (f\"Stock: {name} ({tk}); industry: {ind}.\\n{signals_block}\\n\"\n              \"Write the plain-English thesis for why this stock could work, then the bear case.\")\n    try:\n        out = complete(prompt, tier=\"bulk\", max_tokens=max_tokens, system=system)\n        txt = (out or \"\").strip()\n        if not txt or any(x in txt for x in (\"Draft\", \"Critique\", \"Analyze the Request\", \"**\")):\n            return None, None\n        thesis, bear = txt, None\n        if \"BEAR:\" in txt:\n            a, b = txt.split(\"BEAR:\", 1)\n            thesis, bear = a, b.strip()\n        thesis = thesis.replace(\"THESIS:\", \"\").strip()\n        return (thesis or None), (bear or None)\n    except Exception as e:\n        print(f\"[enrich] thesis fail {tk}: {str(e)[:80]}\")\n        return None, None\n",
         "def narrative_status():\n    \"\"\"No provider request or cached model prose is needed to report abstention.\"\"\"\n    return {\"contract\": \"deterministic-unqualified-research.v1\", \"status\": \"unqualified\",\n            \"model_requests_enabled\": False, \"independent_investment_votes\": 0,\n            \"calls_eligible\": False, \"sizing_eligible\": False,\n            \"execution_eligible\": False, \"forecast_qualified\": False}\n\n\ndef make_thesis(name, tk, ind, signals_block, system, max_tokens=440):\n    \"\"\"Compatibility tuple for deterministic status; paid narrative is disabled.\"\"\"\n    return (\n        \"Research context only. No validated investment thesis is available from these inputs.\",\n        \"Source freshness, security identity and independent evidence require verification. \"\n        \"This context does not justify a position change or portfolio sizing.\"\n    )\n"
-      ],
-      [
-        "def num(v):\n    try:\n        return float(v)\n    except Exception:\n        return None",
-        "def num(v):\n    # JSON booleans and nonfinite values are not financial measurements.\n    if type(v) not in (int, float, str) or isinstance(v, str) and len(v) > 512:\n        return None\n    try:\n        value = float(v)\n        return value if math.isfinite(value) else None\n    except (ValueError, TypeError, OverflowError):\n        return None\n\n\ndef first_num(*values):\n    \"\"\"Prefer the first available numeric observation, including genuine zero.\"\"\"\n    for value in values:\n        result = num(value)\n        if result is not None:\n            return result\n    return None"
-      ],
-      [
-        "num(row.get(\"operatingCashFlow\")) or num(row.get(\"netCashProvidedByOperatingActivities\"))",
-        "first_num(row.get(\"operatingCashFlow\"), row.get(\"netCashProvidedByOperatingActivities\"))"
-      ],
-      [
-        "num(row.get(\"weightedAverageShsOutDil\")) or num(row.get(\"weightedAverageShsOut\"))",
-        "first_num(row.get(\"weightedAverageShsOutDil\"), row.get(\"weightedAverageShsOut\"))"
-      ],
-      [
-        "num(row.get(\"epsdiluted\")) or num(row.get(\"eps\"))",
-        "first_num(row.get(\"epsdiluted\"), row.get(\"eps\"))"
-      ],
-      [
-        "num(row.get(\"priceToEarningsRatio\")) or num(row.get(\"peRatio\"))",
-        "first_num(row.get(\"priceToEarningsRatio\"), row.get(\"peRatio\"))"
-      ],
-      [
-        "cur_pe = num(p.get(\"pe\")) or num(r.get(\"priceToEarningsRatioTTM\"))",
-        "cur_pe = first_num(p.get(\"pe\"), r.get(\"priceToEarningsRatioTTM\"))"
-      ],
-      [
-        "\"pe\": num(p.get(\"pe\")) or num(r.get(\"priceToEarningsRatioTTM\")),",
-        "\"pe\": first_num(p.get(\"pe\"), r.get(\"priceToEarningsRatioTTM\")),"
-      ],
-      [
-        "round(ca / cl, 2) if (ca and cl) else None",
-        "round(ca / cl, 2) if (ca is not None and cl is not None and cl > 0) else None"
-      ],
-      [
-        "if net_debt_ebitda is None and debt is not None and ebitda:",
-        "if net_debt_ebitda is None and debt is not None and cash is not None and ebitda:"
-      ],
-      [
-        "round((debt - (cash or 0)) / ebitda, 2)",
-        "round((debt - cash) / ebitda, 2)"
-      ],
-      [
-        "num(p.get(\"mktCap\") or p.get(\"marketCap\"))",
-        "first_num(p.get(\"mktCap\"), p.get(\"marketCap\"))"
-      ],
-      [
-        "round((mc + (debt or 0) - (cash or 0)) / ebitda, 1) if (ebitda and mc is not None) else None",
-        "round((mc + debt - cash) / ebitda, 1) if (ebitda and mc is not None and debt is not None and cash is not None) else None"
-      ],
-      [
-        "round(abs(acq_l) / rev_l * 100) if (acq_l and rev_l) else None",
-        "round(abs(acq_l) / rev_l * 100) if (acq_l is not None and rev_l) else None"
-      ],
-      [
-        "\"mkt_cap\": p.get(\"mktCap\") or p.get(\"marketCap\"),",
-        "\"mkt_cap\": first_num(p.get(\"mktCap\"), p.get(\"marketCap\")),"
       ]
     ],
     "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": [
