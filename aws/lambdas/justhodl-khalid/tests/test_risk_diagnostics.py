@@ -67,3 +67,32 @@ def test_risk_diagnostics_policy_and_entire_packet_parity():
         feeds={'khalid_risk':risk};meta={};snapshot=deepcopy(feeds)
         old=scope['build_output'](feeds,meta,NOW,[]);new=handler.build_output(feeds,meta,NOW,[])
         new.pop('risk_authority_diagnostics');assert new==old;assert feeds==snapshot
+
+
+def test_numeric_diagnostics_never_suppress_base_publication():
+    path=ROOT/'aws/lambdas/justhodl-khalid/source/lambda_function.py'
+    source=path.read_text().replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n','')
+    assert hashlib.sha256(source.encode()).hexdigest()=='08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798'
+    fn=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='build_output')
+    scope=dict(handler.__dict__);exec(compile(ast.Module(body=[fn],type_ignores=[]),str(path),'exec'),scope)
+    values=[10**400,-10**400,2**53,2**53-1,float(2**53),float(2**53-1),
+            float('inf'),float('-inf'),float('nan'),None,False,True,'0',{},[], -1,0,0.0,-0.0,0.5,1]
+    count=0
+    for name in ('risk_gate','bond_warroom','eurodollar_stress','credit_composite'):
+        for field in ('age_h','max_age_h'):
+            for value in values:
+                risk=producer();row=next(h for h in risk['source_health'] if h['name']==name);row[field]=value
+                if type(value) is int:risk=json.loads(json.dumps(risk,allow_nan=False))
+                feeds={'khalid_risk':risk};old=scope['build_output'](feeds,{},NOW,[])
+                new=handler.build_output(feeds,{},NOW,[])
+                projection=new.pop('risk_authority_diagnostics');assert new==old
+                assert new['risk_control']['mode']=='DATA_HOLD'
+                assert new['risk_control']['allows_new_entries'] is False
+                assert new['risk_control']['exposure_cap_pct']==new['risk_control']['sizing_multiplier']==0
+                projected=next(r for r in projection['rows'] if r['source_id']==name)
+                valid=type(value) in (int,float) and 0<=value<=2**53-1 and (field=='age_h' or value>0)
+                assert projected['status']==('INVALID' if valid else 'UNAVAILABLE')
+                if not valid:assert projected['authority_diagnostic'] is None
+                json.dumps(projection,allow_nan=False)
+                count+=1
+    assert count==168

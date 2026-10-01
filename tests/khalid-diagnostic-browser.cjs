@@ -7,6 +7,7 @@ const cases=[['complete',()=>{},4],['old',p=>delete p.risk_authority_diagnostics
  ['duplicate',p=>p.risk_authority_diagnostics.rows[1]=structuredClone(p.risk_authority_diagnostics.rows[0]),2],
  ['hostile',p=>p.risk_authority_diagnostics.rows[0].authority_diagnostic.explanation='<img src=x onerror=alert(1)>PRIVATE',3],
  ['oversized',p=>p.risk_authority_diagnostics.rows[0].authority_diagnostic.explanation='PRIVATE'.repeat(10000),3],
+ ['huge-age',p=>p.risk_authority_diagnostics.rows[0].age_h=1e100,3],['huge-sla',p=>p.risk_authority_diagnostics.rows[0].max_age_h=1e100,3],
  ['false',p=>p.risk_authority_diagnostics.rows[0].age_h=false,3],['zero',p=>p.risk_authority_diagnostics.rows[0].age_h=0,4],
  ['null',p=>p.risk_authority_diagnostics.rows[0].authority_diagnostic=null,3],
  ['wrong-source',p=>p.risk_authority_diagnostics.rows[0].authority_diagnostic.source_id='credit_composite',3]];

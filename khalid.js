@@ -310,8 +310,8 @@
         d.producer_contract === profile[2] && Array.isArray(d.unavailable_authority_paths) &&
         d.unavailable_authority_paths.length === profile[3].length && d.unavailable_authority_paths.every(function (v) { return typeof v === "string" && v.length <= 64; }) && JSON.stringify(d.unavailable_authority_paths) === JSON.stringify(profile[3]) &&
         d.explanation === profile[4] + suffix && clock(row.source_as_of) &&
-        typeof row.age_h === "number" && Number.isFinite(row.age_h) && row.age_h >= 0 &&
-        typeof row.max_age_h === "number" && Number.isFinite(row.max_age_h) && row.max_age_h > 0;
+        typeof row.age_h === "number" && Number.isFinite(row.age_h) && row.age_h >= 0 && row.age_h <= Number.MAX_SAFE_INTEGER &&
+        typeof row.max_age_h === "number" && Number.isFinite(row.max_age_h) && row.max_age_h > 0 && row.max_age_h <= Number.MAX_SAFE_INTEGER;
       var item = node("div", "k-line"); item.dataset.sourceId = profile[0];
       item.style.gridTemplateColumns = "1fr"; item.style.overflowWrap = "anywhere";
       item.append(node("b", "", profile[1] + (known ? " · INVALID at publication" : " · Explanation unavailable")),

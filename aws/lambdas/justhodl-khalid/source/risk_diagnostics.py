@@ -45,7 +45,8 @@ def project(artifact):
                     and h.get('producer') == 'justhodl-' + name.replace('_', '-')
                     and h.get('key') == 'data/' + name.replace('_', '-') + '.json'
                     and h.get('authority_diagnostic') == expected and clock(h.get('as_of')) is not None
-                    and all(type(n) in (int, float) and math.isfinite(n) and n >= 0 for n in numbers)
+                    # Bound before float coercion: JSON integers can exceed float range.
+                    and all(type(n) in (int, float) and 0 <= n <= 2**53 - 1 and math.isfinite(n) for n in numbers)
                     and numbers[1] > 0):
                 out.update(status='INVALID', authority_diagnostic=expected, source_as_of=h['as_of'],
                            age_h=h['age_h'], max_age_h=h['max_age_h'])
