@@ -1,0 +1,1658 @@
+{
+  "fixture_kind": "Invented prices and feature buckets; actual before/after producer and decision functions",
+  "baseline_commit": "15698384ce4b0709b37dba24968ff45436d37ac5",
+  "source_sha256": "57079c27a14bfb566e0271b4ef1a2fddec7844ecedc32cfab865017c9e7b7e86",
+  "predecessor_fixture_sha256": "8d9f3fed0c664f24a2781719c92089b0f945f99df865525715c71fd9628c3e41",
+  "fixture_definition": "60 invented stocks, 1000 invented calendar sessions, 30-session observations; deterministic exponential/sinusoidal prices in replay(); no historical-data claim",
+  "observations": 1320,
+  "observation_dates": 22,
+  "before_oos": {
+    "63s": {
+      "train_obs": 780,
+      "test_obs": 480,
+      "split_date": "2021-12-11",
+      "top_decile": {
+        "mean_excess_pct": 4.33,
+        "median_excess_pct": 5.59,
+        "hit_rate_pct": 100.0
+      },
+      "bottom_decile": {
+        "mean_excess_pct": 1.32,
+        "median_excess_pct": 1.35,
+        "hit_rate_pct": 100.0
+      },
+      "spread_pct": 3.01,
+      "corr": 0.45,
+      "below200_top_decile": {
+        "n": 48,
+        "mean_excess_pct": 4.33,
+        "median_excess_pct": 5.59,
+        "hit_rate_pct": 100.0,
+        "spread_vs_bottom_pct": 3.01
+      }
+    },
+    "126s": {
+      "train_obs": 780,
+      "test_obs": 360,
+      "split_date": "2021-12-11",
+      "top_decile": {
+        "mean_excess_pct": 14.83,
+        "median_excess_pct": 15.03,
+        "hit_rate_pct": 100.0
+      },
+      "bottom_decile": {
+        "mean_excess_pct": 2.8,
+        "median_excess_pct": 2.81,
+        "hit_rate_pct": 100.0
+      },
+      "spread_pct": 12.03,
+      "corr": 0.64,
+      "below200_top_decile": {
+        "n": 36,
+        "mean_excess_pct": 14.83,
+        "median_excess_pct": 15.03,
+        "hit_rate_pct": 100.0,
+        "spread_vs_bottom_pct": 12.03
+      }
+    }
+  },
+  "after_oos": {},
+  "after_oos_validation": {
+    "contract": "katlin-oos-boundary.v1",
+    "status": "BLOCKED",
+    "reason": "Historical label availability and decision instants are not retained; OOS statistics withheld. Session dates are not availability timestamps.",
+    "historical_availability_verified": false,
+    "validated_strategy": false,
+    "folds": {
+      "63s": {
+        "horizon_sessions": 63,
+        "split_session_index": 710,
+        "split_session_date": "2021-12-11",
+        "split_decision_at": null,
+        "entry_before_split_with_label": 780,
+        "label_endpoint_at_or_after_split": 120,
+        "nominal_label_endpoint_before_split": 660,
+        "missing_verified_label_availability": 780,
+        "eligible_training_observations": 0,
+        "test_observations_with_label": 480,
+        "status": "BLOCKED_MISSING_POINT_IN_TIME_EVIDENCE"
+      },
+      "126s": {
+        "horizon_sessions": 126,
+        "split_session_index": 710,
+        "split_session_date": "2021-12-11",
+        "split_decision_at": null,
+        "entry_before_split_with_label": 780,
+        "label_endpoint_at_or_after_split": 240,
+        "nominal_label_endpoint_before_split": 540,
+        "missing_verified_label_availability": 780,
+        "eligible_training_observations": 0,
+        "test_observations_with_label": 360,
+        "status": "BLOCKED_MISSING_POINT_IN_TIME_EVIDENCE"
+      }
+    },
+    "limitations": [
+      "Current-universe sampling is not historical membership; survivorship remains unresolved",
+      "Historical flows, fundamentals and catalysts are not reconstructed",
+      "Full-history feature statistics are retrospective priors, not OOS validation"
+    ]
+  },
+  "full_history_priors": {
+    "before_sha256": "e76c93092a522db2b3d02ae09994a77abed8ae662590c00203c86ff14a651726",
+    "after_sha256": "e76c93092a522db2b3d02ae09994a77abed8ae662590c00203c86ff14a651726",
+    "changed": false
+  },
+  "before_decisions": [
+    {
+      "ticker": "S00",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 35.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S01",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 53.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S02",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 52.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S03",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 70.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S04",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 69.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S05",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 87.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    }
+  ],
+  "after_decisions": [
+    {
+      "ticker": "S00",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 35.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S01",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 53.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S02",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 52.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S03",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 70.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S04",
+      "learned_excess_126s_pct": 3.71,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 61.1
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 69.4,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    },
+    {
+      "ticker": "S05",
+      "learned_excess_126s_pct": 9.05,
+      "pillars": {
+        "structure": 75,
+        "accumulation": 75,
+        "inflows": 75,
+        "oversold": 75,
+        "location": 75,
+        "catalyst": 75,
+        "momentum": 75,
+        "quality": 75,
+        "learned": 77.2
+      },
+      "tier": "READY",
+      "gates": {
+        "location": true,
+        "washout": true,
+        "oversold": true,
+        "accumulation": true,
+        "inflows": true,
+        "structure": true,
+        "catalyst": true,
+        "not_knife": true,
+        "quality": true,
+        "history": true
+      },
+      "composite": 87.8,
+      "conviction": 75.0,
+      "plan": {
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "target_1_label": null,
+        "target_2": null,
+        "target_2_label": null,
+        "upside_1_pct": null,
+        "upside_2_pct": null,
+        "downside_pct": 10.0,
+        "rr_1": null,
+        "rr_2": null,
+        "asymmetry": null,
+        "confirmation_trigger": null,
+        "rr_best": null
+      }
+    }
+  ],
+  "changed_decision_rows": 0,
+  "before_basket": {
+    "exposure_cap_pct": 50.0,
+    "posture": "SELECTIVE",
+    "core": [
+      {
+        "ticker": "S00",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 35.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S01",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 53.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S02",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 52.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S03",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 70.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S04",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 69.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S05",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 87.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      }
+    ],
+    "barbell": [],
+    "cash_pct": 50.2,
+    "notes": [
+      "Model basket from base rates and gates -- research, not advice. Weights are shares of the whole book; the war-room cap bounds the total.",
+      "Core: Kelly-lite (expected 6-month excess / variance), 10% of the book max per name. Barbell: equal-weight lottery tickets, 10% of the cap in total.",
+      "Expected excess is the walk-forward base rate for the name's price profile; most names in these buckets lose a little and a few double -- size the basket, not the name."
+    ],
+    "constraints_valid": true,
+    "core_pct": 49.8,
+    "barbell_pct": 0
+  },
+  "after_basket": {
+    "exposure_cap_pct": 50.0,
+    "posture": "SELECTIVE",
+    "core": [
+      {
+        "ticker": "S00",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 35.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S01",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 53.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S02",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 52.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S03",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 70.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S04",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 6.6,
+        "expected_excess_126s_pct": 3.71,
+        "vol_ann_pct": 40,
+        "composite": 69.4,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      },
+      {
+        "ticker": "S05",
+        "name": null,
+        "tier": "READY",
+        "asset_class": "stock",
+        "weight_pct": 10.0,
+        "expected_excess_126s_pct": 9.05,
+        "vol_ann_pct": 40,
+        "composite": 87.8,
+        "entry": 100,
+        "stop": 90.0,
+        "target_1": null,
+        "sniper": null,
+        "structure": "CONFIRMED",
+        "why": ""
+      }
+    ],
+    "barbell": [],
+    "cash_pct": 50.2,
+    "notes": [
+      "Model basket from base rates and gates -- research, not advice. Weights are shares of the whole book; the war-room cap bounds the total.",
+      "Core: Kelly-lite (expected 6-month excess / variance), 10% of the book max per name. Barbell: equal-weight lottery tickets, 10% of the cap in total.",
+      "Expected excess is the walk-forward base rate for the name's price profile; most names in these buckets lose a little and a few double -- size the basket, not the name."
+    ],
+    "constraints_valid": true,
+    "core_pct": 49.8,
+    "barbell_pct": 0
+  },
+  "basket_changed": false,
+  "legacy_validation_projection": {
+    "status": "walk-forward 2020-01-01..2022-09-26, 1320 obs over 22 dates (as of 2022-09-27T12:00:00Z, v2.5.1)",
+    "cohorts": {
+      "below200": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "below200+washout": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "below200+oversold": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "below200+accum": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "below200+structure": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "below200+confirmed": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "KATLIN_price_3of3": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "confirmed_bottom+accum": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      },
+      "confirmed+oversold+washout": {
+        "21s": {
+          "n": 1320,
+          "mean_excess_pct": 0.92,
+          "median_excess_pct": 0.43,
+          "hit_rate_pct": 82.0,
+          "p25_excess_pct": 0.41,
+          "p75_excess_pct": 1.9,
+          "p90_excess_pct": 3.38,
+          "payoff": 1.96,
+          "median_ret_pct": 1.57,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "63s": {
+          "n": 1260,
+          "mean_excess_pct": 2.71,
+          "median_excess_pct": 1.33,
+          "hit_rate_pct": 86.0,
+          "p25_excess_pct": 1.21,
+          "p75_excess_pct": 3.66,
+          "p90_excess_pct": 9.18,
+          "payoff": 1.89,
+          "median_ret_pct": 4.48,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "126s": {
+          "n": 1140,
+          "mean_excess_pct": 5.29,
+          "median_excess_pct": 2.76,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 8.02,
+          "p90_excess_pct": 13.84,
+          "payoff": null,
+          "median_ret_pct": 7.89,
+          "median_max_adverse_pct": -0.25,
+          "delisted": 0
+        },
+        "252s": {
+          "n": 900,
+          "mean_excess_pct": 11.52,
+          "median_excess_pct": 8.07,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 5.52,
+          "p75_excess_pct": 16.92,
+          "p90_excess_pct": 23.15,
+          "payoff": null,
+          "median_ret_pct": 16.96,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        }
+      }
+    },
+    "regime_126s": {
+      "below200": {
+        "SPY<200d": {
+          "n": 360,
+          "mean_excess_pct": 2.93,
+          "median_excess_pct": 2.78,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.68,
+          "p75_excess_pct": 3.04,
+          "p90_excess_pct": 6.33,
+          "payoff": null,
+          "median_ret_pct": 11.79,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "SPY>200d": {
+          "n": 780,
+          "mean_excess_pct": 6.38,
+          "median_excess_pct": 2.65,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 11.26,
+          "p90_excess_pct": 15.03,
+          "payoff": null,
+          "median_ret_pct": 4.14,
+          "median_max_adverse_pct": -1.2,
+          "delisted": 0
+        }
+      },
+      "below200+washout": {
+        "SPY<200d": {
+          "n": 360,
+          "mean_excess_pct": 2.93,
+          "median_excess_pct": 2.78,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.68,
+          "p75_excess_pct": 3.04,
+          "p90_excess_pct": 6.33,
+          "payoff": null,
+          "median_ret_pct": 11.79,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "SPY>200d": {
+          "n": 780,
+          "mean_excess_pct": 6.38,
+          "median_excess_pct": 2.65,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 11.26,
+          "p90_excess_pct": 15.03,
+          "payoff": null,
+          "median_ret_pct": 4.14,
+          "median_max_adverse_pct": -1.2,
+          "delisted": 0
+        }
+      },
+      "below200+confirmed": {
+        "SPY<200d": {
+          "n": 360,
+          "mean_excess_pct": 2.93,
+          "median_excess_pct": 2.78,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.68,
+          "p75_excess_pct": 3.04,
+          "p90_excess_pct": 6.33,
+          "payoff": null,
+          "median_ret_pct": 11.79,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "SPY>200d": {
+          "n": 780,
+          "mean_excess_pct": 6.38,
+          "median_excess_pct": 2.65,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 11.26,
+          "p90_excess_pct": 15.03,
+          "payoff": null,
+          "median_ret_pct": 4.14,
+          "median_max_adverse_pct": -1.2,
+          "delisted": 0
+        }
+      },
+      "KATLIN_price_3of3": {
+        "SPY<200d": {
+          "n": 360,
+          "mean_excess_pct": 2.93,
+          "median_excess_pct": 2.78,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.68,
+          "p75_excess_pct": 3.04,
+          "p90_excess_pct": 6.33,
+          "payoff": null,
+          "median_ret_pct": 11.79,
+          "median_max_adverse_pct": 0.0,
+          "delisted": 0
+        },
+        "SPY>200d": {
+          "n": 780,
+          "mean_excess_pct": 6.38,
+          "median_excess_pct": 2.65,
+          "hit_rate_pct": 100.0,
+          "p25_excess_pct": 2.46,
+          "p75_excess_pct": 11.26,
+          "p90_excess_pct": 15.03,
+          "payoff": null,
+          "median_ret_pct": 4.14,
+          "median_max_adverse_pct": -1.2,
+          "delisted": 0
+        }
+      }
+    },
+    "oos": {},
+    "oos_validation": {
+      "contract": "katlin-oos-boundary.v1",
+      "status": "BLOCKED",
+      "reason": "Historical label availability and decision instants are not retained; OOS statistics withheld. Session dates are not availability timestamps.",
+      "historical_availability_verified": false,
+      "validated_strategy": false,
+      "folds": {
+        "63s": {
+          "horizon_sessions": 63,
+          "split_session_index": null,
+          "split_session_date": null,
+          "split_decision_at": null,
+          "entry_before_split_with_label": 0,
+          "label_endpoint_at_or_after_split": 0,
+          "nominal_label_endpoint_before_split": 0,
+          "missing_verified_label_availability": 0,
+          "eligible_training_observations": 0,
+          "test_observations_with_label": 0,
+          "status": "BLOCKED_MISSING_POINT_IN_TIME_EVIDENCE"
+        },
+        "126s": {
+          "horizon_sessions": 126,
+          "split_session_index": null,
+          "split_session_date": null,
+          "split_decision_at": null,
+          "entry_before_split_with_label": 0,
+          "label_endpoint_at_or_after_split": 0,
+          "nominal_label_endpoint_before_split": 0,
+          "missing_verified_label_availability": 0,
+          "eligible_training_observations": 0,
+          "test_observations_with_label": 0,
+          "status": "BLOCKED_MISSING_POINT_IN_TIME_EVIDENCE"
+        }
+      },
+      "limitations": [
+        "Current-universe sampling is not historical membership; survivorship remains unresolved",
+        "Historical flows, fundamentals and catalysts are not reconstructed",
+        "Full-history feature statistics are retrospective priors, not OOS validation"
+      ]
+    },
+    "feature_stats_126s": {
+      "grand_mean_excess_pct": 5.29,
+      "n": 1140,
+      "buckets": {
+        "d200": {
+          "-30..-15%": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "rsi_w": {
+          "<30": {
+            "n": 570,
+            "mean_excess_pct": 2.62,
+            "median_excess_pct": 2.6,
+            "hit_rate_pct": 100.0,
+            "delta_pct": -2.67
+          },
+          "50-60": {
+            "n": 570,
+            "mean_excess_pct": 7.97,
+            "median_excess_pct": 8.02,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 2.67
+          }
+        },
+        "struct": {
+          "CONFIRMED": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "dd52": {
+          "-65..-45%": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "accum": {
+          ">70": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "mom": {
+          ">60": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "rsi_div": {
+          "no": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "tbreak": {
+          "n/a": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "vol": {
+          "25-45%": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        },
+        "mkt": {
+          "SPY<200d": {
+            "n": 360,
+            "mean_excess_pct": 2.93,
+            "median_excess_pct": 2.78,
+            "hit_rate_pct": 100.0,
+            "delta_pct": -2.36
+          },
+          "SPY>200d": {
+            "n": 780,
+            "mean_excess_pct": 6.38,
+            "median_excess_pct": 2.65,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 1.09
+          }
+        },
+        "cls": {
+          "stock": {
+            "n": 1140,
+            "mean_excess_pct": 5.29,
+            "median_excess_pct": 2.76,
+            "hit_rate_pct": 100.0,
+            "delta_pct": 0.0
+          }
+        }
+      }
+    },
+    "universe": {
+      "stocks": 60,
+      "etfs": 0,
+      "sampling": "seeded random sample of the tradable universe; point-in-time $2M ADV / $2 price"
+    },
+    "note": "point-in-time PRICE features only (no flows/fundamentals/catalysts -- they are not stored historically, so they are not backtested). Excess = asset minus SPY over the same window; MAE = worst close inside the window; delisted = exited at the last print. feature_stats are the learned prior the daily engine applies to today's names; oos = the prior fitted on the first 60% of dates and scored on the last 40% (decile spread, correlation). OOS validation unavailable: retained label availability and historical decision instants are required; legacy OOS metrics are withheld."
+  }
+}
