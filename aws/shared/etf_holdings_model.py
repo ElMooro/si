@@ -50,6 +50,9 @@ def retain_snapshot(snapshot, emit):
 
 # New inputs opt into this policy. Absence preserves the historical output bytes.
 OWNERSHIP_POLICY = 'qualified-membership.v1'
+DIAGNOSTIC_POLICY = 'qualification-diagnostics.v1'
+QUALITY_COUNTERS = ('returned_rows', 'source_row_count', 'rows_with_field_errors', 'missing_ticker_rows',
+                    'missing_identity_rows', 'duplicate_identity_rows')
 OWNERSHIP_CONTRACT = 'etf-qualified-membership-summary.v1'
 SUMMARY_MAX_RECORDS = 100000
 SUMMARY_MAX_OBSERVATIONS = 300000
@@ -81,9 +84,57 @@ def summary_reason(snapshot, at):
     return None
 
 
+def qualification_diagnostics(snapshot, at):
+    """Independent evidence flags only; summary_reason remains the decision authority."""
+    q = snapshot.get('quality', {})
+    counters = {k: q.get(k) for k in QUALITY_COUNTERS}
+    reasons = []
+    if q.get('status') != 'complete_returned_snapshot' or q.get('pagination_complete') is not True:
+        reasons.append('incomplete_returned_snapshot')
+    try:
+        acquired, expiry = clock(snapshot['source_acquired_at']), clock(snapshot['source_valid_until'])
+        if acquired > at or expiry <= acquired or at >= expiry:
+            reasons.append('source_check_not_current')
+    except (KeyError, TypeError, ValueError):
+        acquired = None
+        reasons.append('invalid_source_clocks')
+    try:
+        dates = list(snapshot['effective_dates'])
+        if len(dates) != 1 or native.day(dates[0]) > at.date():
+            reasons.append('mixed_or_future_effective_dates')
+    except (KeyError, TypeError, ValueError):
+        reasons.append('invalid_effective_dates')
+    try:
+        processed = native.day(snapshot['processed_date'])
+        if acquired is not None and processed > acquired.date(): reasons.append('future_processing_date')
+    except (KeyError, TypeError, ValueError):
+        reasons.append('invalid_processing_date')
+    for key in ('missing_identity_rows', 'duplicate_identity_rows', 'rows_with_field_errors'):
+        value = q.get(key)
+        if type(value) is not int or value < 0:
+            reasons.append(key + '_metadata_unresolved')
+        elif value > 0:
+            reasons.append(key)
+    return {'quality_counters': counters, 'exclusion_reasons': reasons}
+
+
+def comparison_date_reason(current, prior):
+    try:
+        a, b = list(current['effective_dates']), list(prior['effective_dates'])
+        if len(a) != 1 or len(b) != 1: return 'single_effective_date_pair_unavailable'
+        a, b = native.day(a[0]), native.day(b[0])
+    except (KeyError, TypeError, ValueError): return 'single_effective_date_pair_unavailable'
+    if a == b: return 'same_effective_date_revision'
+    if a < b: return 'current_effective_date_not_after_prior'
+    return None
+
+
 class OwnershipSummary:
     """Only existing reconstructed rows; never a collector or an investment vote."""
-    def __init__(self, generated_at, configured):
+    def __init__(self, generated_at, configured, diagnostic_policy=None):
+        if diagnostic_policy not in (None, DIAGNOSTIC_POLICY): raise ValueError("Unreviewed diagnostic policy")
+        self.diagnostic_policy = diagnostic_policy
+        self.diagnostics = {}
         self.at = clock(generated_at)
         self.configured = configured
         self.groups = {}
@@ -122,7 +173,7 @@ class OwnershipSummary:
         try:
             self._add(fund, current, prior, comparison, current_ref, prior_ref, comparison_ref, tags)
         except SummaryBound as exc:
-            self.failed = str(exc);self.groups.clear();self.funds.clear()
+            self.failed = str(exc);self.groups.clear();self.funds.clear();self.diagnostics.clear()
 
     def _add(self, fund, current, prior, comparison, current_ref, prior_ref, comparison_ref, tags):
         self.observations += len(current['rows']) + len(comparison['rows'])
@@ -137,6 +188,12 @@ class OwnershipSummary:
             'missing_identity_rows': current['quality'].get('missing_identity_rows'),
             'duplicate_identity_rows': current['quality'].get('duplicate_identity_rows'),
             'configured_tags_unverified': tags}
+        if self.diagnostic_policy:
+            self.diagnostics[fund] = {
+                'current': qualification_diagnostics(current, self.at),
+                'prior': qualification_diagnostics(prior, self.at),
+                'comparable_snapshots': comparison['comparable_snapshots'],
+                'comparison_date_reason': comparison_date_reason(current, prior)}
         if reason is None:
             group = self.group('current_membership', sorted(current['effective_dates']))
             self.eligible(group, fund, [current])
@@ -221,6 +278,12 @@ class OwnershipSummary:
                      'No aggregate exposure, unit conversion, inferred asset class, fund-of-funds lookthrough or leveraged/inverse netting.',
             'source_classifications_verified': False, 'corporate_actions_verified': False, 'weight_unit_certified': False, 'market_value_currency_certified': False,
             'independent_investment_votes': 0, **permissions()}
+        if self.diagnostic_policy:
+            manifest['diagnostic_policy'] = self.diagnostic_policy
+            manifest['qualification_diagnostics'] = prepare({
+                'contract': 'etf-qualification-diagnostics.v1', 'policy': self.diagnostic_policy,
+                'generated_at': self.at.isoformat(), 'configured_fund_count': self.configured,
+                'funds': self.diagnostics}, SUMMARY_MANIFEST_BYTES)
         ref = prepare(manifest, SUMMARY_MANIFEST_BYTES)
         # Preflight all bytes before a single summary PUT; overflow cannot publish a prefix as complete.
         for key, raw in pending: emit(key, raw)
@@ -232,8 +295,11 @@ def build(inputs, read, emit, previous=None):
         raise ValueError('Canonical holdings input required')
     policy = inputs.get('ownership_summary_policy')
     if 'ownership_summary_policy' in inputs and policy != OWNERSHIP_POLICY: raise ValueError('Unreviewed ownership summary policy')
+    diagnostics = inputs.get('ownership_diagnostic_policy')
+    if 'ownership_diagnostic_policy' in inputs and (not policy or diagnostics != DIAGNOSTIC_POLICY):
+        raise ValueError('Unreviewed ownership diagnostic policy')
     generated = inputs['generated_at'];stamp = clock(generated)
-    summary = OwnershipSummary(generated, len(catalog.ETF_UNIVERSE)) if policy else None
+    summary = OwnershipSummary(generated, len(catalog.ETF_UNIVERSE), diagnostics) if policy else None
     query_date = native.day(inputs['query_date'])
     if query_date > stamp.date(): raise ValueError('Query date after compilation')
     collections = inputs['collections']

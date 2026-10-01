@@ -36,6 +36,12 @@ COMPATIBLE_COMPILERS={
         'f613dd2ef7b3b284f41cb413618abb8870d29ddc24b1a498171676447f13c3e3')),
     'etf_holdings_model':frozenset(('bbf0979393fcffae1694dac56e203013d6a7cfcdb6ab059553b6b3e501995c19',)),
     'etf_holdings_store':frozenset(('d3e20272d4deac5e68fdda77df1ab030c1b88aa60fa1c991e3ef5e644fc98cbc',))}
+
+# Pre-diagnostic deployed sources; absent retained diagnostic policy preserves exact bytes.
+COMPATIBLE_COMPILERS['etf_holdings_model'] |= frozenset(('13a3cc577eac2101ad303971d7b52d04e4574b14bdc5ddd947d5b4d588487cc9',))
+COMPATIBLE_COMPILERS['etf_holdings_store'] |= frozenset(('564e975a150bbee905ba39d129960323cf0a6dc8265008d756ee686ee162b81b',))
+COMPATIBLE_COMPILERS['etf_desk_store'] |= frozenset(('3fba26e742d01f587d3e67caab15f170beb93e4a515a0d7897c85a09a7818aa1',))
+
 now=holdings_store.now
 code,missing,conflict,bounded=holdings_store.code,holdings_store.missing,holdings_store.conflict,holdings_store.bounded
 
