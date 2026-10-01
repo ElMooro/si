@@ -1,6 +1,6 @@
 {
   "stage": 532,
-  "status": "tested_awaiting_workflow_acceptance",
+  "status": "tested_verifier_executed_read_only",
   "scope": "Correct only the FI/FX read-only qualification chronology. Acquisition precedes the generated input packet within the unchanged 900-second execution bound and after the release cutoff.",
   "target": "aws/ops/checks/fifx_api_delivery.py",
   "predecessor_sha256": "5c89e7dd7a2785ebad1e19107d399ea56191d6752a37eee477645f2da15f99bb",
@@ -19,5 +19,31 @@
     "Requires an actual complete retained original run before reporting API delivery"
   ],
   "deployment_tests": 1026,
-  "shell_tests": 15
+  "shell_tests": 15,
+  "source_commit": "773f9723a35534a3e106643b55d99dd6e6357dba",
+  "workflow_acceptance": [
+    {
+      "id": 36930573187,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "773f9723a35534a3e106643b55d99dd6e6357dba",
+      "event": "push"
+    }
+  ],
+  "clock_cases": 6,
+  "engine_cases": 58,
+  "existing_qualification_cases": 8,
+  "deployment_cases": 1026,
+  "shell_cases": 15,
+  "read_only_execution": {
+    "run_id": 36930773099,
+    "operation_commit": "9c5f6b4e4cba3b98e0e48a665fa7d67e2db33b2e",
+    "verifier_sha256": "19221c4a5f2a415d6cabb87ba4ab0600cec4e0e1803bcdfd7349a3fe136ae50f",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6392_fifx_api_original_qualification.md",
+      "bytes": 133065,
+      "sha256": "ac10135aace827bc65b264ceb542b76ac13f5fabc03daddfd246a94b99d3f643"
+    }
+  }
 }
