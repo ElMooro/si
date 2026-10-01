@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Hot Money · daily foreign flows · JustHodl AI</title>
-<meta name="description" content="Daily foreign net buying in liquid markets — the fast layer, kept strictly apart from macro capital flows. Taiwan TWSE live with a 60-day ledger tape; Korea slot ready for KRX keys. Engine: justhodl-hot-money.">
+<title>Tape Truth · dated research observations · JustHodl AI</title>
+<meta name="description" content="Dated bar-CVD proxies, FINRA short-sale volume and assumed dealer gamma. Directional and participant claims withheld; freshness unknown.">
 <style>
 :root{--bg:#0a0e14;--bg-1:#0c1018;--bg-2:#0f1420;--border:#1c2433;--border-bright:#2a3550;--fg-0:#fff;--fg-1:#e1e8f4;--fg-2:#a8b3c7;--fg-3:#6f7b91;--cyan:#22d3ee;--green:#26ffaf;--violet:#a78bfa;--amber:#fbbf24;--red:#ff5577;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -36,79 +36,89 @@ tr:last-child td{border-bottom:none}
 <div class="header"><div class="wrap"><a class="logo" href="index.html">JUSTHODL<span>&middot;AI</span></a>
 <div class="nav"><a href="capital-flow.html">capital-flow</a><a href="earnings.html">earnings</a><a href="hot-money.html">hot money</a><a class="on" href="tape-truth.html">tape truth</a></div></div></div>
 <div class="wrap">
-<div class="hero"><h1>&#127902;&#65039; Tape Truth <span style="font-size:12px;color:var(--fg-2)">genuine vs manufactured moves</span></h1>
+<div class="hero"><h1>&#127902;&#65039; Tape Truth <span style="font-size:12px;color:var(--fg-2)">dated research observations</span></h1>
 <div id="sub" class="note">loading&hellip;</div>
 <div class="cards" id="idxgex"></div></div>
-<div class="sec"><h2>Verdicts &mdash; is the move real?</h2>
-<div class="note">Institutions distribute into strength (retail = exit liquidity) and shake weak hands out to accumulate. Each verdict cites the numbers it rests on: bar-approximated CVD vs price, FINRA short-volume z, dealer gamma regime. WARMING until ledgers hold &ge;5 sessions &mdash; verdicts are never guessed.</div>
-<div id="verdicts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px"></div></div>
+<div class="sec"><h2>Qualification &mdash; calls withheld</h2>
+<div class="note">These inputs do not establish aggressor direction, participant identity or intent. Directional calls and conviction are withheld even for recent observations. Publication time does not refresh an older source observation.</div>
+<div id="verdicts" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px;margin-top:10px"></div></div>
 <div class="sec"><h2>Dealer Gamma Exposure</h2>
-<div class="note">CBOE delayed chains, DTE&le;45, gamma&middot;OI&middot;100&middot;spot&sup2;&middot;1% &mdash; calls positive, puts negative under the standard dealer assumption. Positive regime: dealers fade moves (breakouts suspect, pins near walls). Negative: dealers accelerate (moves overshoot both ways). Flip is a strike-ladder crossover approximation, labeled as such.</div>
-<div id="gex"></div></div>
-<div class="sec"><h2>CVD vs Price &mdash; divergence tape</h2>
-<div class="note">Per-minute close-in-range delta v&middot;(2&middot;(c&minus;l)/(h&minus;l)&minus;1), summed per session &mdash; a bar approximation, never claimed as tick data. Green line = cumulative CVD, grey = close. Tops print when price makes highs the delta refuses to confirm.</div>
-<div id="cvd" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div></div>
+<div class="note">CBOE delayed chains, DTE&le;45, gamma&middot;OI&middot;100&middot;spot&sup2;&middot;1% &mdash; calls positive, puts negative under the standard dealer assumption. Dealer positions are assumed, not observed. The crossover is a strike-ladder approximation. A response timestamp is not proof of the individual option or open-interest observation times; feed delay is unknown.</div>
+<div id="gex" style="overflow-x:auto"></div></div>
+<div class="sec"><h2>Bar-CVD proxy vs price</h2>
+<div class="note">Per-minute close-in-range delta v&middot;(2&middot;(c&minus;l)/(h&minus;l)&minus;1), summed per session &mdash; a bar approximation, never claimed as tick data. Blue line = cumulative bar proxy, grey = close, separately scaled. Signed trade flow is not measured; the ledger session keys are not verified underlying bar timestamps.</div>
+<div id="cvd" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px"></div></div>
 <div class="sec"><h2>Short-Volume Footprint</h2>
-<div class="note" id="fnote">FINRA CNMS daily short volume &divide; total volume. Elevated z into strength = someone large is selling into the bid.</div>
-<div id="finra"></div></div>
-<div class="note">Engine: justhodl-tape-truth &middot; daily 21:10 UTC after the close. Every methodology limitation is stated where the number is shown.</div>
+<div class="note" id="fnote">FINRA CNMS daily short volume &divide; total volume. Short-sale volume is not net selling, short interest or participant intent.</div>
+<div id="finra" style="overflow-x:auto"></div></div>
+<div class="note">Engine: justhodl-tape-truth &middot; observation freshness UNKNOWN: no authoritative observation SLA. Source values are retained; calculations are research approximations.</div>
 </div>
+<script src="/jh-tape-truth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
-const cls=v=>v==null?"":(v>0?" pos":(v<0?" neg":""));
-async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
-const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
-const chip=(txt,kind)=>'<span style="font-size:10px;font-family:var(--mono);padding:1px 6px;border-radius:4px;border:1px solid var(--border-bright);margin:2px 4px 2px 0;display:inline-block;color:'+(kind==="bad"?"var(--red)":(kind==="good"?"var(--green)":"var(--fg-2)"))+'">'+txt+'</span>';
-const VCOL={SUSPECT_GENUINE_UP:"",SUSPECT_GENUINE_DOWN:"",SUSPECT_FAKE_UP_DISTRIBUTION:"bad",SUSPECT_SHAKEOUT_ACCUMULATION:"",GENUINE_UP:"good",GENUINE_DOWN:"bad",FAKE_UP_DISTRIBUTION:"bad",SHAKEOUT_ACCUMULATION:"good",NEUTRAL:"",WARMING:""};
-(async function(){
-  const d=await jget("/data/tape-truth.json");
-  if(!d||!d.symbols){document.getElementById("sub").textContent="feed "+((d&&d.status)||"unavailable")+" \u2014 "+((d&&d.why)||"");return;}
-  S_("hero",()=>{
-    document.getElementById("sub").textContent="As of "+(d.as_of||"")+" \u00b7 status "+(d.status||"")+(d.why?" \u00b7 "+d.why:"");
-    const g=d.gex_index;
-    if(g&&g.status==="LIVE")document.getElementById("idxgex").innerHTML=
-      '<div class="card"><div class="k">SPX net GEX</div><div class="v'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'bn</div><div class="s">'+g.regime.toLowerCase()+' gamma \u00b7 '+g.n_contracts_used.toLocaleString()+' contracts \u00b7 DTE\u2264'+g.dte_window+'</div></div>'+
-      '<div class="card"><div class="k">SPX flip (approx)</div><div class="v">'+(g.flip_approx==null?"\u2013":g.flip_approx.toLocaleString())+'</div><div class="s">spot '+g.spot.toLocaleString()+'</div></div>'+
-      '<div class="card"><div class="k">SPX put/call OI</div><div class="v">'+g.put_call_oi+'</div><div class="s">volume ratio '+g.put_call_vol+'</div></div>';});
-  S_("verdicts",()=>{
-    let h="";
-    for(const[t,s]of Object.entries(d.symbols)){
-      const v=s.verdict||{};const kind=VCOL[v.call]||"";
-      h+='<div class="card"><div class="k">'+t+(v.conviction!=null?' <span style="float:right;color:var(--fg-2)">conviction '+v.conviction+'</span>':'')+'</div><div class="v" style="font-size:15px;color:'+(kind==="good"?"var(--green)":(kind==="bad"?"var(--red)":"var(--fg-1)"))+'">'+(v.call||"\u2013").replace(/_/g," ")+'</div>';
-      if(v.conviction!=null)h+='<div style="height:5px;background:var(--bg-1);border-radius:3px;margin:6px 0"><div style="height:5px;width:'+v.conviction+'%;border-radius:3px;background:'+(v.conviction>=60?"var(--green)":(v.conviction<40?"var(--red)":"#c9a94a"))+'"></div></div>';
-      if(v.why)h+='<div class="s">'+v.why+'</div>';
-      for(const e of v.evidence||[])h+=chip(e, e.indexOf("exit-liquidity")>=0||e.indexOf("top-divergence")>=0?"bad":(e.indexOf("accumulation")>=0||e.indexOf("bottom-divergence")>=0?"good":""));
-      h+='</div>';}
-    document.getElementById("verdicts").innerHTML=h;});
-  S_("gex",()=>{
-    let t1='<table><tr><th>symbol</th><th>spot</th><th>net GEX $bn</th><th>regime</th><th>flip~</th><th>P/C OI</th><th>P/C vol</th><th>DTE\u22645 vol</th><th>flip dist</th><th>top wall</th></tr>';
-    for(const[t,s]of Object.entries(d.symbols)){
-      const g=s.gex;if(!g)continue;
-      if(g.status!=="LIVE"){t1+='<tr><td>'+t+'</td><td colspan="7" style="color:var(--fg-3)">'+(g.why||g.status)+'</td></tr>';continue;}
-      const w=(g.walls||[])[0];
-      t1+='<tr><td><b>'+t+'</b></td><td>'+g.spot+'</td><td class="'+cls(g.net_gex_bn)+'">'+fN(g.net_gex_bn,2)+'</td><td style="color:'+(g.regime==="POSITIVE"?"var(--green)":"var(--red)")+'">'+g.regime+'</td><td>'+(g.flip_approx==null?"\u2013":g.flip_approx)+'</td><td>'+g.put_call_oi+'</td><td>'+g.put_call_vol+'</td><td>'+(g.dte5_vol_share_pct==null?"\u2013":g.dte5_vol_share_pct+"%")+'</td><td>'+(g.dist_to_flip_pct==null?"\u2013":fN(g.dist_to_flip_pct,2)+"%")+'</td><td>'+(w?w.strike+" ("+fN(w.net_gex_bn,2)+"bn)":"\u2013")+'</td></tr>';}
-    document.getElementById("gex").innerHTML=t1+'</table>';});
-  S_("cvd",()=>{
-    let h="";
-    for(const[t,s]of Object.entries(d.symbols)){
-      const c=s.cvd||{};const ser=c.series||[];
-      if(ser.length<2){h+='<div class="card"><div class="k">'+t+'</div><div class="s">ledger accruing \u00b7 '+(c.n_days||0)+' day(s)</div></div>';continue;}
-      const W=340,H=90;
-      const px=ser.map(x=>x.close),cv=ser.map(x=>x.cum_cvd);
-      const nx=v=>{const mn=Math.min(...v),mx=Math.max(...v);return v.map(x=>mx===mn?H/2:H-6-(x-mn)/(mx-mn)*(H-16));};
-      const yp=nx(px),yc=nx(cv);
-      const pts=y=>y.map((v,i)=>((i/(y.length-1))*W).toFixed(1)+","+v.toFixed(1)).join(" ");
-      h+='<div class="card" style="padding:10px"><div class="k">'+t+' <span style="float:right;color:var(--fg-2)">'+c.n_days+'d \u00b7 5d CVD '+fN(c.cvd_5d,0)+'</span></div>'
-        +'<svg width="100%" viewBox="0 0 '+W+' '+H+'"><polyline points="'+pts(yp)+'" fill="none" stroke="#6b7688" stroke-width="1.4"/><polyline points="'+pts(yc)+'" fill="none" stroke="#26ffaf" stroke-width="1.6"/></svg>'
-        +'<div class="s">'+(c.top_divergence?chip("TOP DIVERGENCE","bad"):"")+(c.bottom_divergence?chip("BOTTOM DIVERGENCE","good"):"")+' price 5d '+fN(c.price_chg_5d_pct)+'%</div></div>';}
-    document.getElementById("cvd").innerHTML=h;});
-  S_("finra",()=>{
-    let t2='<table><tr><th>symbol</th><th>short-vol ratio</th><th>z (20d)</th><th>days</th></tr>';
-    for(const[t,s]of Object.entries(d.symbols)){
-      const f=s.short_vol;if(!f)continue;
-      t2+='<tr><td><b>'+t+'</b></td><td>'+f.ratio+'</td><td class="'+cls(f.z_20d)+'">'+(f.z_20d==null?"warming":fN(f.z_20d,2))+'</td><td>'+f.n_days+'</td></tr>';}
-    document.getElementById("finra").innerHTML=t2+'</table>';});
-})();
+const T=JHTapeTruth, N=T.fmt;
+// Text fields are strings, not arbitrary values with coercion hooks.
+const E=x=>T.esc(typeof x==='string'?x:'—');
+const sourceLink='<a href="'+PROXY+'/data/tape-truth.json">Full source JSON</a>';
+const failure=(ticker,section,table=false)=>table
+ ? '<tr><td>'+E(ticker)+'</td><td colspan="9">'+section+' display unavailable · '+sourceLink+'</td></tr>'
+ : '<div class="card">'+E(ticker)+' · '+section+' display unavailable · '+sourceLink+'</div>';
+const CHART_LIMIT=1000;
+async function loadTape(){
+ const ids=['idxgex','verdicts','gex','cvd','finra'];
+ ids.forEach(id=>document.getElementById(id).innerHTML='');
+ document.getElementById('sub').textContent='Loading dated observations…';
+ let d;
+ try{const r=await fetch(PROXY+'/data/tape-truth.json?t='+Date.now());if(r.ok)d=await r.json();}catch(e){}
+ const names=d&&d.symbols&&typeof d.symbols==='object'?Object.keys(d.symbols):[];
+ const available=t=>{try{return T.view(d,t).available;}catch(e){return false;}};
+ const valid=names.some(available)||available('_SPX');
+ if(!valid){document.getElementById('sub').textContent=T.unavailable;return;}
+ document.getElementById('sub').textContent='Published '+d.generated_at+' · dated research observations · freshness UNKNOWN. Publication time is not an observation time.';
+ try{
+ const idx=T.view(d,'_SPX'),g=idx.observations?.gex;
+ if(idx.available&&g?.status==='OBSERVATIONS')document.getElementById('idxgex').innerHTML=
+  '<div class="card"><div class="k">SPX assumed net GEX</div><div class="v">'+N(g.net_gex_bn)+' $bn</div><div class="s">'+E(T.legText(idx,'gex'))+'</div></div>'+
+  '<div class="card"><div class="k">SPX strike-ladder crossover</div><div class="v">'+N(g.flip_approx)+'</div><div class="s">Approximation · spot '+N(g.spot)+'</div></div>'+
+  '<div class="card"><div class="k">SPX put/call OI</div><div class="v">'+N(g.put_call_oi)+'</div><div class="s">volume ratio '+N(g.put_call_vol)+'</div></div>';
+ }catch(e){document.getElementById('idxgex').innerHTML=failure('_SPX','GEX');}
+ let cards='',gex='<table><tr><th>symbol / source clock</th><th>spot</th><th>assumed net GEX $bn</th><th>model sign</th><th>crossover~</th><th>P/C OI</th><th>P/C vol</th><th>DTE≤5 vol</th><th>crossover dist</th><th>top wall</th></tr>',cvd='',finra='<table><tr><th>symbol / source clock</th><th>short-vol ratio</th><th>z (20d)</th><th>days</th></tr>';
+ for(const ticker of names){
+  let v;
+  try{v=T.view(d,ticker);}catch(e){cards+=failure(ticker,'Qualification');continue;}
+  const s=v.observations||{},c=s.cvd||{},g=s.gex,f=s.short_vol;
+  try{cards+='<div class="card"><div class="k">'+E(ticker)+'</div><div class="s">'+E(T.summary(v))+'</div></div>';}catch(e){cards+=failure(ticker,'Qualification');}
+  if(!v.available)continue;
+  const oldGex=gex;
+  try{if(g){
+   const label=E(ticker)+'<div class="note">'+E(T.legText(v,'gex'))+'</div>';
+   if(g.status!=='OBSERVATIONS')gex+='<tr><td>'+label+'</td><td colspan="9">Model observations unavailable</td></tr>';
+   else {const w=g.walls?.[0];gex+='<tr><td>'+label+'</td><td>'+N(g.spot)+'</td><td>'+N(g.net_gex_bn)+'</td><td>'+E(g.regime)+'</td><td>'+N(g.flip_approx)+'</td><td>'+N(g.put_call_oi)+'</td><td>'+N(g.put_call_vol)+'</td><td>'+N(g.dte5_vol_share_pct)+'%</td><td>'+N(g.dist_to_flip_pct)+'%</td><td>'+(w?N(w.strike)+' ('+N(w.net_gex_bn)+'bn)':'—')+'</td></tr>';}
+  }}catch(e){gex=oldGex+failure(ticker,'GEX',true);}
+  const oldCvd=cvd;
+  try{
+  const received=Array.isArray(c.series)?c.series:[];
+  // Bound validation, allocation and SVG size; do not imply full-ledger coverage.
+  const series=received.slice(-CHART_LIMIT);
+  cvd+='<div class="card"><div class="k">'+E(ticker)+'</div><div class="s">'+E(T.legText(v,'cvd'))+' · ledger session keys, not verified bar timestamps</div>';
+  cvd+='<div class="s">Chart coverage: last '+series.length+' of '+received.length+' supplied rows'+(received.length>CHART_LIMIT?' · capped subset; earlier rows not validated or plotted':'')+' · '+sourceLink+'</div>';
+  const chartable=series.length>=2&&series.every(x=>x&&T.finite(x.close)&&T.finite(x.cum_cvd)&&T.clock(x.d,'date').status==='VALID');
+  if(chartable){
+   const W=340,H=90,px=series.map(x=>x.close),cv=series.map(x=>x.cum_cvd);
+   const nx=a=>{let mn=Infinity,mx=-Infinity;for(const x of a){mn=Math.min(mn,x);mx=Math.max(mx,x);}const scale=Math.max(Math.abs(mn),Math.abs(mx))||1;return a.map(x=>mx===mn?H/2:H-6-(x/scale-mn/scale)/(mx/scale-mn/scale)*(H-16));};
+   const pts=a=>a.map((v,i)=>((i/(a.length-1))*W).toFixed(1)+','+v.toFixed(1)).join(' ');
+   cvd+='<svg width="100%" viewBox="0 0 '+W+' '+H+'" aria-label="Separately scaled close and bar CVD proxy"><polyline points="'+pts(nx(px))+'" fill="none" stroke="#6b7688" stroke-width="1.4"/><polyline points="'+pts(nx(cv))+'" fill="none" stroke="#22d3ee" stroke-width="1.6"/></svg><div class="s">'+E(series[0].d)+' to '+E(series.at(-1).d)+'</div>';
+  }else cvd+='<div class="s">Dated chart unavailable or fewer than two observations.</div>';
+  cvd+='<div class="s">Sessions '+N(c.n_days,0)+' · session bar-CVD '+N(c.session_cvd,0)+' share proxy · 5d proxy '+N(c.cvd_5d,0)+' · price 5d '+N(c.price_chg_5d_pct)+'%</div><div class="s">Legacy computed context (unqualified): volume ratio '+N(c.vol_ratio_20d)+' · close/VWAP '+N(c.close_vs_vwap_pct)+'% · close-in-range '+N(c.clv_session)+' · churn flag '+E(typeof c.churn_flag==='boolean'?String(c.churn_flag):'unavailable')+' · top/bottom divergence flags '+E(typeof c.top_divergence==='boolean'?String(c.top_divergence):'not supplied')+'/'+E(typeof c.bottom_divergence==='boolean'?String(c.bottom_divergence):'not supplied')+'</div></div>';
+  }catch(e){cvd=oldCvd+failure(ticker,'CVD');}
+  const oldFinra=finra;
+  try{if(f)finra+='<tr><td>'+E(ticker)+'<div class="note">'+E(T.legText(v,'short_vol'))+'</div></td><td>'+N(f.ratio,4)+'</td><td>'+N(f.z_20d)+'</td><td>'+N(f.n_days,0)+'</td></tr>';}catch(e){finra=oldFinra+failure(ticker,'FINRA',true);}
+ }
+ document.getElementById('verdicts').innerHTML=cards;
+ document.getElementById('gex').innerHTML=gex+'</table>';
+ document.getElementById('cvd').innerHTML=cvd;
+ document.getElementById('finra').innerHTML=finra+'</table>';
+}
+loadTape();
 </script><script src="/sidebar.js" defer></script>
 </body></html>

@@ -1,0 +1,171 @@
+{
+  "script": "1057_deep_read",
+  "read_at": "2026-10-01T11:31:01Z",
+  "finra_1053": {
+    "overall": "FAIL_API",
+    "treasury_filtered": {
+      "http_status": 400,
+      "parsed_ok": false,
+      "parse_error": "HTTPError 400",
+      "rows": 0,
+      "content_type": null,
+      "trade_date_queried": "2026-09-25",
+      "fields_present": null,
+      "body_preview": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"1cd68dad-74f3-444a-86c2-fc0121553fa4\",\"message\":\"Sorting is allowed only if all partitions keys are specified in EQUAL CompareFilter.Partition keys missing or not using EQUAL CompareFilter: tradeDate\",\"dataRequest\":{\"async\":false,\"offset\":0,\"dataVersion\":1,\"dateRangeFilters\":[{\"fieldName\":\"tradeDate\",\"endDate\":\"2026-09-25\",\"startDate\":\"2026-09-25\"}],\"datasetName\":\"treasurydailyaggregates\",\"format\":\"application/json\",\"limit\":100,\"da"
+    },
+    "corporate_breadth": {
+      "http_status": 404,
+      "parsed_ok": false,
+      "parse_error": "HTTPError 404",
+      "rows": 0,
+      "content_type": null,
+      "trade_date_queried": null,
+      "fields_present": [],
+      "body_preview": "{\"statusCode\":404,\"statusDescription\":\"Not Found\",\"requestId\":\"7cc25dab-c75e-43c6-bd8e-20568f3607bc\",\"message\":\"Unable to find the specified dataset. \",\"dataRequest\":{\"async\":false,\"dataVersion\":1,\"datasetName\":\"corporatedebtmarketbreadth\",\"format\":\"application/json\",\"limit\":1,\"datasetGroup\":\"fixedincomemarket\",\"versionedDatasetName\":\"corporatedebtmarketbreadth\",\"sortFields\":[\"-tradeDate\"]}}"
+    },
+    "treasury_metadata": {
+      "http_status": 200,
+      "parsed_ok": true,
+      "parse_error": null,
+      "rows": null,
+      "content_type": "application/json",
+      "trade_date_queried": null,
+      "fields_present": null,
+      "body_preview": "   {\"datasetGroup\":\"FIXEDINCOMEMARKET\",\"datasetName\":\"TREASURYDAILYAGGREGATES\",\"description\":\"Treasury Daily Aggregates\",\"partitionFields\":[\"tradeDate\"],\"fields\":[{\"name\":\"tradeDate\",\"type\":\"Date\",\"format\":\"yyyy-MM-dd\",\"description\":\"Date on which the security was traded\"},{\"name\":\"productCategory\",\"type\":\"String\",\"description\":\"Category of the Treasury product\"},{\"name\":\"yearsToMaturity\",\"type\":\"String\",\"description\":\"Range of years to maturity\"},{\"name\":\"benchmark\",\"type\":\"String\",\"description"
+    },
+    "shared_module": {
+      "finra_trace_importable": true,
+      "fetch_treasury_daily_rows": 0,
+      "fetch_corporate_breadth_ok": false
+    }
+  },
+  "prod_1054": {
+    "overall": "FAIL",
+    "checked_at": "2026-10-01T03:35:48.679945+00:00",
+    "top_level_keys": [
+      "account",
+      "checked_at",
+      "ops",
+      "overall",
+      "r1051",
+      "region",
+      "summary",
+      "upgrades"
+    ],
+    "verdict_maps": {
+      "r1051.summary": {
+        "total": {
+          "verdict": 9
+        },
+        "pass": {
+          "verdict": 0
+        },
+        "degraded": {
+          "verdict": 0
+        },
+        "fail": {
+          "verdict": 9
+        },
+        "unexpected_schedules_under_prefix": {
+          "verdict": []
+        },
+        "duplicate_targets": {
+          "verdict": null,
+          "notes": null
+        }
+      }
+    },
+    "r1051": {
+      "engines": [
+        {
+          "engine": "justhodl-factor-decomposition",
+          "schedule_name": "justhodl-justhodl-factor-decomposition-schedule",
+          "expected_expression": "cron(0 6 * * ? *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-fx-decomposition",
+          "schedule_name": "justhodl-justhodl-fx-decomposition-schedule",
+          "expected_expression": "cron(15 6 * * ? *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-fedwatch-rate-probability",
+          "schedule_name": "justhodl-justhodl-fedwatch-rate-probability-schedule",
+          "expected_expression": "cron(30 6 * * ? *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-cftc-deep-view",
+          "schedule_name": "justhodl-justhodl-cftc-deep-view-schedule",
+          "expected_expression": "cron(45 6 * * ? *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-sec-filing-diff",
+          "schedule_name": "justhodl-justhodl-sec-filing-diff-schedule",
+          "expected_expression": "cron(0 7 ? * MON *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-transcript-query",
+          "schedule_name": "justhodl-justhodl-transcript-query-schedule",
+          "expected_expression": "cron(15 7 ? * MON *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-peer-comparison",
+          "schedule_name": "justhodl-justhodl-peer-comparison-schedule",
+          "expected_expression": "cron(30 7 ? * MON *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-screen-builder",
+          "schedule_name": "justhodl-justhodl-screen-builder-schedule",
+          "expected_expression": "cron(45 7 ? * MON *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        },
+        {
+          "engine": "justhodl-supply-chain-linkage",
+          "schedule_name": "justhodl-justhodl-supply-chain-linkage-schedule",
+          "expected_expression": "cron(0 8 ? * MON *)",
+          "lambda_exists": true,
+          "schedule_found": false,
+          "verdict": "FAIL"
+        }
+      ],
+      "summary": {
+        "total": 9,
+        "pass": 0,
+        "degraded": 0,
+        "fail": 9,
+        "unexpected_schedules_under_prefix": [],
+        "duplicate_targets": {}
+      }
+    },
+    "rollup": {
+      "upgrade_PASS": 6,
+      "upgrade_DEGRADED": 1,
+      "upgrade_FAIL": 8,
+      "r1051_PASS": 0,
+      "r1051_DEGRADED": 0,
+      "r1051_FAIL": 9
+    }
+  }
+}

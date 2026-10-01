@@ -1,0 +1,337 @@
+{
+  "scope": "Whole invented packet through current scalar decoder and actual main drawing function with inert chart capture. This records requested geometry, not rendered pixels or predictive evidence.",
+  "source_sha256": "c6c8f8e8a56a59f5460cbf39dce91fac6899aeba29e77ed50e1ba301af8cc459",
+  "whole_packet": {
+    "id": "FRED:invented_gap",
+    "freq": "D",
+    "unit": "invented",
+    "provider": "FRED",
+    "obs": [
+      [
+        "2026-01-01",
+        0
+      ],
+      [
+        "2026-01-02",
+        null
+      ],
+      [
+        "2026-01-03",
+        2
+      ],
+      [
+        "2026-01-04",
+        3
+      ],
+      [
+        "2026-01-04",
+        4
+      ],
+      [
+        "2026-01-05",
+        -1
+      ],
+      [
+        "not-a-date",
+        7
+      ]
+    ]
+  },
+  "result": {
+    "d": [
+      {
+        "time": 1767225600,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": null,
+        "observation_ordinals": [
+          0
+        ]
+      },
+      {
+        "time": 1767398400,
+        "open": 2,
+        "high": 2,
+        "low": 2,
+        "close": 2,
+        "volume": null,
+        "observation_ordinals": [
+          2
+        ]
+      },
+      {
+        "time": 1767571200,
+        "open": -1,
+        "high": -1,
+        "low": -1,
+        "close": -1,
+        "volume": null,
+        "observation_ordinals": [
+          5
+        ]
+      }
+    ],
+    "src": "FRED:invented_gap · 3 scalar observations · unit invented · D · 4 excluded records · observation dates, not release times",
+    "evidence": {
+      "contract": "chart-observations.v1",
+      "requested_id": "FRED:invented_gap",
+      "packet_path": "/series?id=FRED%3Ainvented_gap",
+      "status": "partial",
+      "reason": null,
+      "matches": [],
+      "whole_packet": {
+        "id": "FRED:invented_gap",
+        "freq": "D",
+        "unit": "invented",
+        "provider": "FRED",
+        "obs": [
+          [
+            "2026-01-01",
+            0
+          ],
+          [
+            "2026-01-02",
+            null
+          ],
+          [
+            "2026-01-03",
+            2
+          ],
+          [
+            "2026-01-04",
+            3
+          ],
+          [
+            "2026-01-04",
+            4
+          ],
+          [
+            "2026-01-05",
+            -1
+          ],
+          [
+            "not-a-date",
+            7
+          ]
+        ]
+      },
+      "source_freshness_verified": false,
+      "source_equivalence_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "records": [
+        {
+          "ordinal": 0,
+          "source_path": "$.obs[0]",
+          "raw_period": "2026-01-01",
+          "raw_value": 0,
+          "accepted": true,
+          "reason": null,
+          "coordinate": {
+            "time": 1767225600,
+            "original_period": "2026-01-01",
+            "period_end": "2026-01-01",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": 0
+        },
+        {
+          "ordinal": 1,
+          "source_path": "$.obs[1]",
+          "raw_period": "2026-01-02",
+          "raw_value": null,
+          "accepted": false,
+          "reason": "missing_or_invalid_scalar",
+          "coordinate": {
+            "time": 1767312000,
+            "original_period": "2026-01-02",
+            "period_end": "2026-01-02",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": null
+        },
+        {
+          "ordinal": 2,
+          "source_path": "$.obs[2]",
+          "raw_period": "2026-01-03",
+          "raw_value": 2,
+          "accepted": true,
+          "reason": null,
+          "coordinate": {
+            "time": 1767398400,
+            "original_period": "2026-01-03",
+            "period_end": "2026-01-03",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": 2
+        },
+        {
+          "ordinal": 3,
+          "source_path": "$.obs[3]",
+          "raw_period": "2026-01-04",
+          "raw_value": 3,
+          "accepted": false,
+          "reason": "conflicting_duplicate_period",
+          "coordinate": {
+            "time": 1767484800,
+            "original_period": "2026-01-04",
+            "period_end": "2026-01-04",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": 3
+        },
+        {
+          "ordinal": 4,
+          "source_path": "$.obs[4]",
+          "raw_period": "2026-01-04",
+          "raw_value": 4,
+          "accepted": false,
+          "reason": "conflicting_duplicate_period",
+          "coordinate": {
+            "time": 1767484800,
+            "original_period": "2026-01-04",
+            "period_end": "2026-01-04",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": 4
+        },
+        {
+          "ordinal": 5,
+          "source_path": "$.obs[5]",
+          "raw_period": "2026-01-05",
+          "raw_value": -1,
+          "accepted": true,
+          "reason": null,
+          "coordinate": {
+            "time": 1767571200,
+            "original_period": "2026-01-05",
+            "period_end": "2026-01-05",
+            "clock": "source_calendar_date_UTC_display_coordinate",
+            "source_availability_at": null,
+            "date_precision": "day"
+          },
+          "value": -1
+        },
+        {
+          "ordinal": 6,
+          "source_path": "$.obs[6]",
+          "raw_period": "not-a-date",
+          "raw_value": 7,
+          "accepted": false,
+          "reason": "invalid_period_or_frequency",
+          "coordinate": null,
+          "value": 7
+        }
+      ],
+      "transformations": [
+        "Strict finite scalar and calendar validation; sorted by period coordinate; equal duplicates plotted once; conflicting duplicates withheld; all records retained",
+        "Validate received normalized calendar dates without interpreting packet as_of as observation acquisition or first publication"
+      ],
+      "observation_kind": "scalar",
+      "selected_id": "FRED:invented_gap",
+      "selected_path": "$",
+      "selected_series": {
+        "id": "FRED:invented_gap",
+        "freq": "D",
+        "unit": "invented",
+        "provider": "FRED",
+        "obs": [
+          [
+            "2026-01-01",
+            0
+          ],
+          [
+            "2026-01-02",
+            null
+          ],
+          [
+            "2026-01-03",
+            2
+          ],
+          [
+            "2026-01-04",
+            3
+          ],
+          [
+            "2026-01-04",
+            4
+          ],
+          [
+            "2026-01-05",
+            -1
+          ],
+          [
+            "not-a-date",
+            7
+          ]
+        ]
+      },
+      "source_frequency": "D",
+      "unit": "invented",
+      "packet_generated_at": null,
+      "source_acquired_at": null,
+      "source_published_at": null,
+      "source_quality": null,
+      "points_scope": "Complete received warehouse obs array; upstream original history and transformations remain unverified",
+      "volume": {
+        "value": null,
+        "reason": "Not reported by this scalar observation series"
+      },
+      "plotting_projection": "Open/high/low/close are the same scalar, not market OHLC",
+      "rejected_records": 4,
+      "accepted_records": 3,
+      "plotted_points": 3,
+      "reported_provider": "FRED",
+      "reported_source": null,
+      "packet_reported_as_of": null,
+      "received_calendar_basis": "Warehouse-normalized calendar dates. Native normalization may collapse periods and duplicates; original provider rows and period precision are unverified.",
+      "upstream_originals_verified": false,
+      "identity_resolution": {
+        "requested": "FRED:invented_gap",
+        "reported": "FRED:invented_gap",
+        "rule": "Full native directory id, case-insensitive; no suffix or substring matching"
+      }
+    }
+  },
+  "captured": [
+    {
+      "options": {
+        "color": "#abc",
+        "lineWidth": 2,
+        "title": "",
+        "priceFormat": {
+          "type": "custom"
+        },
+        "lastValueVisible": true,
+        "priceLineVisible": true
+      },
+      "data": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767398400,
+          "value": 2
+        },
+        {
+          "time": 1767571200,
+          "value": -1
+        }
+      ]
+    }
+  ],
+  "defect": "One default connected line spans rejected known periods; an unplaced invalid date has no continuity evidence."
+}

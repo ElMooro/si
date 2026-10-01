@@ -1,0 +1,133 @@
+{
+  "script": "1063_schedules",
+  "read_at": "2026-10-01T12:36:37Z",
+  "results": {
+    "justhodl-sec-8k-enrich": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(10,40 * * * ? *)",
+        "function_bound": true
+      },
+      "ok": true
+    },
+    "justhodl-xbrl-fundamentals": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(0 6 ? * SUN *)",
+        "function_bound": true
+      },
+      "ok": true
+    },
+    "justhodl-cboe-options-chain": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(5,35 * * * ? *)",
+        "function_bound": true
+      },
+      "ok": true
+    },
+    "justhodl-corporate-actions": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(30 6 ? * * *)",
+        "function_bound": true
+      },
+      "ok": true
+    },
+    "justhodl-price-redundancy": {
+      "rule": {
+        "action": "exists"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "rate(15 minutes)",
+        "function_bound": true
+      },
+      "ok": false
+    },
+    "justhodl-microcap-float-squeeze": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(0 22 ? * MON-FRI *)",
+        "function_bound": true
+      },
+      "ok": true
+    },
+    "justhodl-transcript-query": {
+      "rule": {
+        "action": "created"
+      },
+      "permission": {
+        "action": "added"
+      },
+      "target": {
+        "action": "bound",
+        "preserved_unrelated": 0
+      },
+      "verify": {
+        "rule_state": "ENABLED",
+        "expression": "cron(15 7 ? * MON *)",
+        "function_bound": true
+      },
+      "ok": true
+    }
+  },
+  "overall": "FAIL"
+}

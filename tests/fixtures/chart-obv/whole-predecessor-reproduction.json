@@ -1,0 +1,296 @@
+{
+  "source_sha256": "22790bc09ce26cdbe10c4f296889eb97c9df7a2d7a26431580d7fc00e2258348",
+  "scope": "Complete current engine parsed offline. Complete invented inputs only; no actual data or providers. OBV defects are unchanged by pending RVOL repair.",
+  "cases": {
+    "flat": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767398400,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": 100
+        },
+        {
+          "time": 1767398400,
+          "value": 200
+        }
+      ]
+    },
+    "mixed": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": 200
+        },
+        {
+          "time": 1767398400,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": 999
+        },
+        {
+          "time": 1767484800,
+          "open": 99,
+          "high": 100,
+          "low": 98,
+          "close": 99,
+          "volume": 300
+        },
+        {
+          "time": 1767571200,
+          "open": 99,
+          "high": 100,
+          "low": 98,
+          "close": 99,
+          "volume": 999
+        },
+        {
+          "time": 1767657600,
+          "open": 102,
+          "high": 103,
+          "low": 101,
+          "close": 102,
+          "volume": 50
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": 200
+        },
+        {
+          "time": 1767398400,
+          "value": 1199
+        },
+        {
+          "time": 1767484800,
+          "value": 899
+        },
+        {
+          "time": 1767571200,
+          "value": 1898
+        },
+        {
+          "time": 1767657600,
+          "value": 1948
+        }
+      ]
+    },
+    "missing_up": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": null
+        },
+        {
+          "time": 1767398400,
+          "open": 102,
+          "high": 103,
+          "low": 101,
+          "close": 102,
+          "volume": 100
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": 0
+        },
+        {
+          "time": 1767398400,
+          "value": 100
+        }
+      ]
+    },
+    "string_up": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": "100"
+        },
+        {
+          "time": 1767398400,
+          "open": 102,
+          "high": 103,
+          "low": 101,
+          "close": 102,
+          "volume": 100
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": "0100"
+        },
+        {
+          "time": 1767398400,
+          "value": "0100100"
+        }
+      ]
+    },
+    "negative_up": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": -100
+        },
+        {
+          "time": 1767398400,
+          "open": 102,
+          "high": 103,
+          "low": 101,
+          "close": 102,
+          "volume": 100
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": -100
+        },
+        {
+          "time": 1767398400,
+          "value": 0
+        }
+      ]
+    },
+    "overflow": {
+      "rows": [
+        {
+          "time": 1767225600,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        },
+        {
+          "time": 1767312000,
+          "open": 101,
+          "high": 102,
+          "low": 100,
+          "close": 101,
+          "volume": 1e+308
+        },
+        {
+          "time": 1767398400,
+          "open": 102,
+          "high": 103,
+          "low": 101,
+          "close": 102,
+          "volume": 1e+308
+        }
+      ],
+      "actual": [
+        {
+          "time": 1767225600,
+          "value": 0
+        },
+        {
+          "time": 1767312000,
+          "value": 1e+308
+        },
+        {
+          "time": 1767398400,
+          "value": {
+            "nonfinite": "Infinity"
+          }
+        }
+      ]
+    }
+  }
+}

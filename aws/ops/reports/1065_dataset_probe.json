@@ -1,0 +1,31 @@
+{
+  "script": "1065_dataset_probe",
+  "read_at": "2026-10-01T12:46:01Z",
+  "trade_date": "2026-09-30",
+  "probes": {
+    "corporateMarketBreadth": {
+      "http": 400,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"8816e929-87cc-4dd5-afb9-e6c7b046b31c\",\"message\":\"The following fields are not available in this dataset: [tradeDate]\",\"dataRequest\":{\"a"
+    },
+    "agencyMarketBreadth": {
+      "http": 400,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"5430dc1d-0b69-430f-bcae-599f70e22331\",\"message\":\"The following fields are not available in this dataset: [tradeDate]\",\"dataRequest\":{\"a"
+    },
+    "corporate144AMarketBreadth": {
+      "http": 400,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"fdb17be6-4e97-440d-80a7-504ef4d7af71\",\"message\":\"The following fields are not available in this dataset: [tradeDate]\",\"dataRequest\":{\"a"
+    },
+    "corporateMarketSentiment": {
+      "http": 400,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":400,\"statusDescription\":\"Bad Request\",\"requestId\":\"0e0a10b8-1f56-4b68-aadc-f2189828ea4e\",\"message\":\"The following fields are not available in this dataset: [tradeDate]\",\"dataRequest\":{\"a"
+    }
+  }
+}

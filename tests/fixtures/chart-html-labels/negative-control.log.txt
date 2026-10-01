@@ -1,0 +1,218 @@
+TAP version 13
+# Subtest: tab symbol text and both quoted data attributes retain literal special characters
+not ok 1 - tab symbol text and both quoted data attributes retain literal special characters
+  ---
+  duration_ms: 5.4988
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:12:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(s.includes("data-id='"+literal+"'"))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:12:177)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: favorite symbols cannot introduce tags or escape the data attribute
+not ok 2 - favorite symbols cannot introduce tags or escape the data attribute
+  ---
+  duration_ms: 0.9791
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(element('favs').innerHTML.includes("data-f='"+literal+"'>"+literal))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:13:129)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: watchlist search preserves both symbol and list-name text
+not ok 3 - watchlist search preserves both symbol and list-name text
+  ---
+  duration_ms: 1.0923
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:14:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(s.includes("data-s='"+literal+"'"))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:14:178)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: alert IDs and symbols stay literal and genuine zero prices remain visible
+not ok 4 - alert IDs and symbols stay literal and genuine zero prices remain visible
+  ---
+  duration_ms: 1.071
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:15:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(s.includes(literal+' 0'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:15:173)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: notes cannot terminate their textarea or inject metadata/list cards
+not ok 5 - notes cannot terminate their textarea or inject metadata/list cards
+  ---
+  duration_ms: 1.5251
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:16:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:16:232)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: watchlist labels, counts, symbol attributes and flag styling cannot break their HTML context
+not ok 6 - watchlist labels, counts, symbol attributes and flag styling cannot break their HTML context
+  ---
+  duration_ms: 1.1529
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:17:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /<svg/. Input:
+    
+    `<option value='A'"&<svg onload="void(0)">' selected>A'"&<svg onload="void(0)"> (A'"&<svg onload="void(0)">)</option>`
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: `<option value='A'"&<svg onload="void(0)">' selected>A'"&<svg onload="void(0)"> (A'"&<svg onload="void(0)">)</option>`
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:17:228)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: command and type-ahead labels remain literal without changing item identity
+not ok 7 - command and type-ahead labels remain literal without changing item identity
+  ---
+  duration_ms: 1.0108
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:18:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /<svg/. Input:
+    
+    `<button class='on' data-i='0'><b>A'"&<svg onload="void(0)"></b><span>A'"&<svg onload="void(0)"> · A'"&<svg onload="void(0)"></span></button>`
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: `<button class='on' data-i='0'><b>A'"&<svg onload="void(0)"></b><span>A'"&<svg onload="void(0)"> · A'"&<svg onload="void(0)"></span></button>`
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:18:189)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: legacy legend fallback preserves the literal selected symbol
+not ok 8 - legacy legend fallback preserves the literal selected symbol
+  ---
+  duration_ms: 0.9374
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage511-html-labels.test.cjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + `<div class=leg-sym>A'"&<svg onload="void(0)"> · 1d</div>`
+    - '<div class=leg-sym>A&#39;&quot;&amp;&lt;svg onload=&quot;void(0)&quot;&gt; · 1d</div>'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '<div class=leg-sym>A&#39;&quot;&amp;&lt;svg onload=&quot;void(0)&quot;&gt; · 1d</div>'
+  actual: `<div class=leg-sym>A'"&<svg onload="void(0)"> · 1d</div>`
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage511-html-labels.test.cjs:19:124)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 0
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 245.0595

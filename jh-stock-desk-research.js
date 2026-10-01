@@ -26,7 +26,7 @@
   const available=sample.length===20&&sample.every(b=>volume(b.volume))&&volume(last?.volume);
   const computed=available?sample.reduce((s,b)=>s+b.volume,0)/20:null,mean=finite(computed)?computed:null;
   const ratio=available&&mean>0?last.volume/mean:null;
-  return {ratio:finite(ratio)?ratio:null,latest:volume(last?.volume)?last.volume:null,
+  return {ratio:finite(ratio)&&!(ratio===0&&last.volume!==0)?ratio:null,latest:volume(last?.volume)?last.volume:null,
    mean,observations:sample.length,available_volume_rows:sample.filter(b=>volume(b.volume)).length,
    start:sample.length?label(sample[0].time):null,end:sample.length?label(sample.at(-1).time):null,
    includes_latest:!excludeLatest,unit:'reported chart volume units; economic unit unverified'};

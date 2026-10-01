@@ -55,7 +55,7 @@ const output={scope:'Whole chart HTML/CSS and seven complete modules. Every requ
   assert.deepEqual(model.observations.whole_packet,inputs['/data/cryptoquant-series.json']);assert.equal(model.bars[0].close,-0.0000000123456789);
   const controls=await page.evaluate(()=>{jhSetKind('renko');jhSetScale(1);return fixtureCharts[0].series.at(-1);});
   assert.equal(controls.kind,'addLineSeries');assert.equal(controls.data[0].value,-0.0000000123456789);assert.ok(controls.data.some(r=>r.value===0));
-  for(const [id,label] of [['btn-kind','Source line'],['btn-md','Scalar'],['btn-sc','Linear']]){assert.match(await page.locator('#'+id).textContent(),new RegExp(label));assert.equal(await page.locator('#'+id).isDisabled(),true);}
+  for(const [id,label] of [['btn-kind','Source points'],['btn-md','Scalar'],['btn-sc','Linear']]){assert.match(await page.locator('#'+id).textContent(),new RegExp(label));assert.equal(await page.locator('#'+id).isDisabled(),true);}
   if(realLibrary){assert.equal(await page.evaluate(()=>fixtureCharts[0].formatValue(-0.0000000123456789)),'-1.23456789e-8');assert.equal(await page.evaluate(()=>fixtureCharts[0].scaleMode()),0);}
   const plot=path.join(D,'observations-plot-'+width+'.png');await page.screenshot({path:plot});
   await page.evaluate(()=>{document.querySelector('#btn-rep').click();});assert.equal(await page.locator('#replay.on').count(),0);

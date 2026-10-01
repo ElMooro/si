@@ -60,7 +60,7 @@ const output={scope:'Whole chart HTML/CSS and seven complete modules. Every requ
   await page.goto('https://invented.justhodl.test/chart.html?s=FRED:invented');await wait('FRED:invented');
   models.initial=await page.evaluate(()=>JHStockDeskController.getModel());assert.equal(models.initial.bars.length,27);assert.equal(models.initial.observations.records.length,32);assert.deepEqual(models.initial.observations.whole_packet,fred);
   assert.equal(models.initial.bars[0].close,-0.0000000123456789);assert.ok(models.initial.bars.some(b=>b.close===0));assert.equal(models.initial.observations.source_acquired_at,null);
-  for(const [id,label]of [['btn-kind','Source line'],['btn-md','Scalar'],['btn-sc','Linear']]){assert.match(await page.locator('#'+id).textContent(),new RegExp(label));assert.equal(await page.locator('#'+id).isDisabled(),true);}
+  for(const [id,label]of [['btn-kind','Source points'],['btn-md','Scalar'],['btn-sc','Linear']]){assert.match(await page.locator('#'+id).textContent(),new RegExp(label));assert.equal(await page.locator('#'+id).isDisabled(),true);}
   assert.equal(await page.evaluate(()=>fixtureCharts[0].series.at(-1).kind),'addLineSeries');await snapshot('source-line');
   await page.evaluate(()=>{document.querySelector('#btn-watch').click();document.querySelector('[data-sub=details]').click();document.querySelector('[data-stock-observation-details]').open=true;});
   for(const id of ['fin','over','season','trade','test','corr'])assert.match(await page.locator('#'+id).textContent(),/unavailable for this scalar/);

@@ -8,9 +8,9 @@ test('older preservation gates retain all assertions and only normalize the revi
   const hook="\n const later=require('./warehouse-observation-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);";
   assert.equal(current,prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));
  }
- const file='tests/observation-cache-preservation.test.js',prior=fs.readFileSync(path.join(D,'pre502',file+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,file),'utf8');
+ const file='tests/observation-cache-preservation.test.js',prior=fs.readFileSync(path.join(D,'pre502',file+'.txt'),'utf8'),current=require('./helpers/chart-refresh-status-preservation.cjs').normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file);
  assert.equal(current,prior.replace("file==='jh-observation-series.js'?path.join(R,file)","file==='jh-observation-series.js'?path.join(__dirname,'fixtures/warehouse-observations/pre502',file+'.txt')"));
- assert.equal(fs.readFileSync(path.join(R,'tests/chart-observation-preservation.test.js'),'utf8'),fs.readFileSync(path.join(D,'pre502/tests/chart-observation-preservation.test.js.txt'),'utf8'));
+ assert.equal(require('./helpers/chart-refresh-status-preservation.cjs').normalizeLegacyTest(fs.readFileSync(path.join(R,'tests/chart-observation-preservation.test.js'),'utf8'),'tests/chart-observation-preservation.test.js'),fs.readFileSync(path.join(D,'pre502/tests/chart-observation-preservation.test.js.txt'),'utf8'));
 });
 test('a changed unrelated function or outer statement fails preservation',()=>{
  const file='jh-observation-series.js',current=fs.readFileSync(path.join(R,file),'utf8');

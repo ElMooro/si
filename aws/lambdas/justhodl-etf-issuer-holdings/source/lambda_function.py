@@ -1,5 +1,8 @@
 """Daily issuer-published ETF holdings (Bloomberg parity 10/10).
 
+Ops 1060 restored the EventBridge trigger (justhodl-etf-issuer-holdings-daily,
+cron(0 4 * * ? *)); the 8fefa5c deploy had been blocked by the missing rule.
+
 For each Phase 1 ETF, fetches holdings from the issuer's own published file,
 retains the raw original under ``audit-private/<date>/etf-issuer-holdings/``,
 and publishes ``data/etf-issuer-holdings.json`` plus per-ETF detail files.

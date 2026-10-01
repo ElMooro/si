@@ -18,6 +18,7 @@ USAGE in a Lambda (shared modules are bundled into every Lambda zip):
 All public functions fail-soft: they return None on any network, auth,
 or parsing failure. No exceptions escape this module.
 """
+import datetime
 import json
 import urllib.error
 import urllib.request
@@ -120,6 +121,17 @@ def query(dataset, compare_filters=None, date_range_filters=None,
     return None
 
 
+def _weekday_window(n):
+    """Return (start, end) ISO date strings covering the last n weekdays."""
+    days = []
+    d = datetime.date.today()
+    while len(days) < n:
+        if d.weekday() < 5:
+            days.append(d.isoformat())
+        d -= datetime.timedelta(days=1)
+    return days[-1], days[0]
+
+
 # ---------- Dataset-specific fetchers ----------
 
 TREASURY_FIELDS = (
@@ -135,12 +147,15 @@ def fetch_treasury_daily(trade_date):
 
     Returns a list of per-bucket dicts (documented fields only), or None.
     """
+    # FINRA rejects sortFields unless the partition key (tradeDate) is pinned
+    # with an EQUAL compareFilter (HTTP 400 otherwise); a dateRangeFilter
+    # alone does not satisfy the rule.
     rows = query(
         "treasuryDailyAggregates",
-        date_range_filters=[{
+        compare_filters=[{
             "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
+            "compareType": "EQUAL",
+            "fieldValue": trade_date,
         }],
         limit=5000,
         sort_fields=["yearsToMaturity"],
@@ -155,85 +170,126 @@ def fetch_treasury_daily(trade_date):
     return out or None
 
 
+# Legacy consumer-facing key names (kept stable for the bond-trace lambda).
+# Sourced live from the `corporateMarketBreadth` dataset (verified 2026-10-01):
+#   tradeDate <- tradeReportDate, numberOfIssuesAdvancing <- advances,
+#   numberOfIssuesDeclining <- declines, numberOfIssuesUnchanged <- unchanged,
+#   numberOfTrades <- totalTrades, parValueTraded <- totalVolume.
 CORPORATE_BREADTH_FIELDS = (
     "tradeDate", "numberOfIssues", "numberOfIssuesAdvancing",
     "numberOfIssuesDeclining", "numberOfIssuesUnchanged",
     "parValueTraded", "numberOfTrades", "averagePriceChange",
 )
+BREADTH_DATASET = "corporateMarketBreadth"
+BREADTH_DATE_FIELD = "tradeReportDate"
+_BREADTH_FIELD_MAP = {
+    "tradeDate": "tradeReportDate",
+    "numberOfIssuesAdvancing": "advances",
+    "numberOfIssuesDeclining": "declines",
+    "numberOfIssuesUnchanged": "unchanged",
+    "numberOfTrades": "totalTrades",
+    "parValueTraded": "totalVolume",
+}
 
 
 def fetch_corporate_breadth():
-    """Fetch the latest corporateDebtMarketBreadth snapshot.
+    """Fetch the latest corporateMarketBreadth snapshot.
 
-    Returns a dict of documented fields, or None.
+    FINRA's breadth datasets key their date as `tradeReportDate` (there is
+    no `tradeDate` field; the retired `corporateDebtMarketBreadth` name 404s).
+    Rows are per productCategory, so the latest date's rows are summed into
+    one market-wide snapshot. Returns legacy-shaped dict (see
+    CORPORATE_BREADTH_FIELDS), or None.
     """
+    # Cannot EQUAL-pin an unknown latest date, and FINRA forbids sortFields
+    # without one — pull the last 5 weekdays unsorted and pick the latest
+    # tradeReportDate client-side.
+    start, end = _weekday_window(5)
     rows = query(
-        "corporateDebtMarketBreadth",
-        limit=1,
-        sort_fields=["-tradeDate"],
+        BREADTH_DATASET,
+        date_range_filters=[{
+            "fieldName": BREADTH_DATE_FIELD,
+            "startDate": start,
+            "endDate": end,
+        }],
+        limit=500,
     )
     if not rows:
         return None
-    r = rows[0]
-    if not isinstance(r, dict):
+    dated = [r for r in rows if isinstance(r, dict) and r.get(BREADTH_DATE_FIELD)]
+    if not dated:
         return None
-    return {f: r.get(f) for f in CORPORATE_BREADTH_FIELDS}
+    latest = max(r[BREADTH_DATE_FIELD] for r in dated)
+    day_rows = [r for r in dated if r[BREADTH_DATE_FIELD] == latest]
+
+    def _f(r, k):
+        try:
+            v = r.get(k)
+            return float(v) if v is not None else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
+    agg = {f: 0.0 for f in CORPORATE_BREADTH_FIELDS}
+    agg["tradeDate"] = latest
+    for r in day_rows:
+        for legacy, live in _BREADTH_FIELD_MAP.items():
+            if legacy == "tradeDate":
+                continue
+            agg[legacy] += _f(r, live)
+    # numberOfIssues is not published separately; derive from components
+    agg["numberOfIssues"] = (agg["numberOfIssuesAdvancing"]
+                             + agg["numberOfIssuesDeclining"]
+                             + agg["numberOfIssuesUnchanged"])
+    return agg
 
 
 def fetch_trace_aggregates(trade_date):
-    """Fetch per-print trace rows for a tradeDate and aggregate client-side.
+    """Derive TRACE-style aggregates for a trade date.
 
-    Phase 1 keeps this coarse: total volume, print count, and average
-    price change across whatever rows the endpoint returns (limit 5000).
-    Returns a dict, or None.
+    There is no per-print TRACE dataset on the FINRA Query API (the
+    `trace` name 404s; true tick data is a delayed academic product), so
+    this aggregates the `corporateMarketBreadth` snapshot for the date:
+    total trades -> n_prints, total volume -> total_volume. Returns the
+    same dict shape as before, or None.
     """
     rows = query(
-        "trace",
-        date_range_filters=[{
-            "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
+        BREADTH_DATASET,
+        compare_filters=[{
+            "fieldName": BREADTH_DATE_FIELD,
+            "compareType": "EQUAL",
+            "fieldValue": trade_date,
         }],
-        limit=5000,
-        sort_fields=["-tradeDate"],
+        limit=500,
     )
     if not rows:
         return None
-    total_volume = 0.0
     n_prints = 0
-    px_changes = []
+    total_volume = 0.0
     for r in rows:
         if not isinstance(r, dict):
             continue
-        n_prints += 1
-        vol = r.get("volume")
-        if vol is None:
-            vol = r.get("parValueTraded")
         try:
-            if vol is not None:
-                total_volume += float(vol)
+            t = r.get("totalTrades")
+            if t is not None:
+                n_prints += int(float(t))
         except (TypeError, ValueError):
             pass
-        pc = r.get("priceChange")
-        if pc is None:
-            pc = r.get("averagePriceChange")
         try:
-            if pc is not None:
-                px_changes.append(float(pc))
+            v = r.get("totalVolume")
+            if v is not None:
+                total_volume += float(v)
         except (TypeError, ValueError):
             pass
     return {
         "trade_date": trade_date,
         "n_prints": n_prints,
         "total_volume": total_volume,
-        "avg_price_change": (
-            sum(px_changes) / len(px_changes) if px_changes else None
-        ),
-        "n_with_price_change": len(px_changes),
+        "avg_price_change": None,
+        "source": BREADTH_DATASET,
     }
 
 
-# ---------- Health check ----------
+
 def health_check():
     """Returns a dict describing auth/data reachability. Does NOT raise."""
     out = {
@@ -245,8 +301,14 @@ def health_check():
     try:
         tok = get_token()
         out["token_available"] = bool(tok)
-        rows = query("treasuryDailyAggregates", limit=1,
-                     sort_fields=["-tradeDate"])
+        start, end = _weekday_window(5)
+        rows = query("treasuryDailyAggregates",
+                     date_range_filters=[{
+                         "fieldName": "tradeDate",
+                         "startDate": start,
+                         "endDate": end,
+                     }],
+                     limit=1)
         if rows:
             out["data_api_reachable"] = True
             out["latest_treasury_row"] = (

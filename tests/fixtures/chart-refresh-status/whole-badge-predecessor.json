@@ -1,0 +1,197 @@
+{
+  "scope": "Exact deployed source functions, fixed invented clock and complete invented tape states; no application/network data.",
+  "source_commit": "8724ecc74e20d259c19af65e4317508e7f9eaf27",
+  "source_sha256": "c36db0759a6607aa6a80d2249cc828b884befa920e245ec8811ceec7215200b3",
+  "functions": {
+    "lastPrintAgeSec": "function lastPrintAgeSec(){\n    var t=null, i;\n    if(tape && tape.prints && tape.prints.length){\n      for(i=0;i<tape.prints.length;i++){\n        var x=tape.prints[i] && tape.prints[i].t;\n        if(x && (t==null || x>t)) t=x;\n      }\n      if(t) return (Date.now()-(t>1e12?t:t*1000))/1000;\n    }\n    return 1e9;\n  }",
+    "syncLivePill": "function syncLivePill(){\n    var el=document.getElementById(\"livepill\");\n    if(!el) return;\n    var fresh=!!liveOn && lastPrintAgeSec()<120;\n    el.className=fresh?\"on\":\"\";\n    el.innerHTML=\"<i></i> \"+(fresh?\"LIVE\":\"EOD\");\n  }"
+  },
+  "now": 1790852400000,
+  "cases": [
+    {
+      "input": {
+        "id": "same_symbol_recent",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790852370000
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": 30,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "other_symbol_recent",
+        "active": "NEW",
+        "tape": {
+          "sym": "OLD",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790852370000
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": 30,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "future_milliseconds",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790852460000
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": -60,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "future_seconds",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790852460
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": -60,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "string_timestamp",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": "1790852370000"
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": 30,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "no_tape",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "",
+          "prints": []
+        },
+        "liveOn": true
+      },
+      "age_seconds": 1000000000,
+      "badge": {
+        "className": "",
+        "innerHTML": "<i></i> EOD"
+      }
+    },
+    {
+      "input": {
+        "id": "bar_recap_is_not_tick_tape",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "yahoo-1m",
+          "prints": [
+            {
+              "t": 1790852370000
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": 30,
+      "badge": {
+        "className": "on",
+        "innerHTML": "<i></i> LIVE"
+      }
+    },
+    {
+      "input": {
+        "id": "stale_print",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790766000000
+            }
+          ]
+        },
+        "liveOn": true
+      },
+      "age_seconds": 86400,
+      "badge": {
+        "className": "",
+        "innerHTML": "<i></i> EOD"
+      }
+    },
+    {
+      "input": {
+        "id": "refresh_disabled",
+        "active": "NEW",
+        "tape": {
+          "sym": "NEW",
+          "src": "binance",
+          "prints": [
+            {
+              "t": 1790852370000
+            }
+          ]
+        },
+        "liveOn": false
+      },
+      "age_seconds": 30,
+      "badge": {
+        "className": "",
+        "innerHTML": "<i></i> EOD"
+      }
+    }
+  ]
+}

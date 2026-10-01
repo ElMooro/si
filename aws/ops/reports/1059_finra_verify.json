@@ -1,0 +1,26 @@
+{
+  "script": "1059_finra_verify",
+  "read_at": "2026-10-01T12:09:26Z",
+  "checks": {
+    "treasury_equal_filter": {
+      "ok": false,
+      "elapsed_s": 1.54
+    },
+    "breadth_metadata_auth": {
+      "http_status": 404,
+      "body_preview": "{\"statusCode\":404,\"statusDescription\":\"Not Found\",\"requestId\":\"8d0958d5-34a1-48ae-a033-57c0d3cd1ceb\",\"message\":\"Unable to find specified metadata.\",\"metaDataRequest\":{\"action\":\"GET\",\"datasetName\":\"corporatedebtmarketbreadth\",\"datasetGroup\":\"fixedincomemarket\",\"dataVersion\":1}}\n",
+      "conclusion": "dataset name invalid or dataset retired (metadata also 404)"
+    },
+    "breadth_fallback": {
+      "ok": false,
+      "elapsed_s": 5.56
+    },
+    "trace_equal_filter": {
+      "ok": false,
+      "elapsed_s": 3.4
+    }
+  },
+  "trade_date_used": "2026-10-01",
+  "overall": "FAIL",
+  "passed": 0
+}

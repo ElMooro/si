@@ -1,0 +1,52 @@
+{
+  "script": "1066_schema_probe",
+  "read_at": "2026-10-01T12:51:00Z",
+  "probes": {
+    "corporateMarketBreadth": {
+      "http": 200,
+      "rows": 3,
+      "keys": [
+        "advances",
+        "declines",
+        "fiftyTwoWeekHigh",
+        "fiftyTwoWeekLow",
+        "productCategory",
+        "totalTrades",
+        "totalVolume",
+        "tradeReportDate",
+        "unchanged"
+      ],
+      "sample": {
+        "declines": 1675,
+        "totalVolume": 46081.449992,
+        "advances": 9072,
+        "unchanged": 67,
+        "totalTrades": 11476,
+        "tradeReportDate": "2023-12-14",
+        "fiftyTwoWeekHigh": 2526,
+        "productCategory": "all securities",
+        "fiftyTwoWeekLow": 56
+      }
+    },
+    "corporateMarketSentiment": {
+      "http": 200,
+      "rows": 3,
+      "keys": [
+        "productCategory",
+        "totalTrades",
+        "totalTransactions",
+        "totalVolume",
+        "tradeReportDate",
+        "tradeType"
+      ],
+      "sample": {
+        "totalVolume": 46123.9328,
+        "totalTransactions": 129364,
+        "totalTrades": 11637,
+        "tradeReportDate": "2023-12-14",
+        "tradeType": "all securities",
+        "productCategory": "all securities"
+      }
+    }
+  }
+}

@@ -22,9 +22,19 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
    await openPointer();await page.evaluate(()=>jhInduxLegend(testCtx));await page.getByRole('button',{name:'Close help',exact:true}).click();assert.ok(await page.locator('[data-annotation-timing]').evaluate(n=>n===document.activeElement));
    await openPointer();await page.mouse.click(2,2);assert.equal(await page.locator('#indhelp').evaluate(n=>n.open),false);
    assert.ok(await page.locator('[data-annotation-timing]').evaluate(n=>n===document.activeElement));
+   // Native restoration is itself a successful return to the opener, even
+   // when its JS focus method is a no-op; it must not be called a failed return.
+   await page.locator('#other').click();await page.evaluate(()=>{document.getElementById('other').focus=()=>{};});
+   await page.getByRole('button',{name:'Close help',exact:true}).click();assert.equal(await page.evaluate(()=>document.activeElement.id),'other');
+   await page.evaluate(()=>{delete document.getElementById('other').focus;});
    for(const state of ['hidden','refused']) {
     await page.locator('#other').click();
-    await page.evaluate(state=>{const n=document.getElementById('other');if(state==='hidden')n.style.visibility='hidden';else n.focus=()=>{};},state);
+    await page.evaluate(state=>{const n=document.getElementById('other');if(state==='hidden')n.style.visibility='hidden';else {
+     // Native dialog close may restore the opener without calling its JS focus
+     // override. Move that native restoration away so the custom fallback is
+     // actually exercised, then refuse its explicit focus request.
+     n.addEventListener('focus',()=>document.getElementById('z-minus').focus(),{once:true});n.focus=()=>{};
+    }},state);
     await page.getByRole('button',{name:'Close help',exact:true}).click();
     assert.ok(await timing.evaluate(n=>n===document.activeElement));
     await page.evaluate(()=>{const n=document.getElementById('other');n.style.visibility='';delete n.focus;});
@@ -33,6 +43,11 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
    await openPointer();
    assert.equal(await page.locator('#indhelp').evaluate(n=>n.tagName),'DIV');
    assert.equal(await page.locator('#indhelp').getAttribute('aria-modal'),null);
+   // A nonmodal popover can physically cover nearby controls on mobile.
+   // Place this fixture control outside its rectangle before testing that the
+   // rest of the page remains operable; do not force a click through the help.
+   await page.locator('#z-minus').evaluate(n=>{n.style.cssText='position:fixed;left:8px;bottom:8px';});
+   const outside=await page.locator('#z-minus').evaluate(n=>{const a=n.getBoundingClientRect(),b=document.querySelector('#indhelp').getBoundingClientRect();return a.bottom<=b.top||a.top>=b.bottom||a.right<=b.left||a.left>=b.right;});assert.ok(outside);
    await page.locator('#z-minus').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'z-minus');
    await page.getByRole('button',{name:'Close help',exact:true}).focus();await page.keyboard.press('Escape');
    assert.ok(await timing.evaluate(n=>n===document.activeElement));

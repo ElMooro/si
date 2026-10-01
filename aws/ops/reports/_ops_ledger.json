@@ -71,12 +71,26 @@
    "sha256": "d17babe4e6ba7111da3271fd38c88398a88e6d7fbed7f24f0b1437f8d8e4877c",
    "status": "success"
   },
+  "aws/ops/pending/1056_read_verdicts.py": {
+   "commit": "f88307b08f9feba583646662268ceda75efe8a8d",
+   "recorded_at": "2026-10-01T11:24:50Z",
+   "run_id": "36854947267",
+   "sha256": "95d70d2719e9b5f4cf8474c34c3a8042f0cbab748fe4d629cce597cc879d1f0e",
+   "status": "success"
+  },
   "aws/ops/pending/1057_ark_patent.py": {
    "commit": null,
    "recorded_at": "2026-09-11T21:25:51Z",
    "run_id": null,
    "sha256": "0f6842731240456fb512d5259a94cd92bf2f1ec92d2e8d7a8fd347b95251b3cd",
    "status": "legacy-frozen"
+  },
+  "aws/ops/pending/1057_deep_read.py": {
+   "commit": "dbb6b480a588963880d5829586ca01cb1d9b38ec",
+   "recorded_at": "2026-10-01T11:31:02Z",
+   "run_id": "36855512433",
+   "sha256": "88d6d4e58eda81d3b1a498fc39eec0ff10932f42dd0ba0c036063381527eb419",
+   "status": "success"
   },
   "aws/ops/pending/1058_ark_patent_verify.py": {
    "commit": null,
@@ -91,6 +105,90 @@
    "run_id": null,
    "sha256": "3c09b6affab0e8d0616a6858d69795e9454223e71afe76909342b4eb82f946e3",
    "status": "legacy-frozen"
+  },
+  "aws/ops/pending/1058_targeted.py": {
+   "commit": "064e4fe5403b073176615291d3c0ce0c792f1692",
+   "recorded_at": "2026-10-01T11:54:55Z",
+   "run_id": "36858044829",
+   "sha256": "f7e5d6607db0b0751b9d3002f71a83c203511673d4d7508965d50ca7bd2e3e34",
+   "status": "success"
+  },
+  "aws/ops/pending/1059_finra_verify.py": {
+   "commit": "0920a0a5dfa80e284cbf50bfa37fa682fac6acd7",
+   "recorded_at": "2026-10-01T12:09:41Z",
+   "run_id": "36859563692",
+   "sha256": "5d71a8f4fb6db7c124be11f489b01c077c166d023dae2bd17fd6a9a30c05adfa",
+   "status": "success"
+  },
+  "aws/ops/pending/1060_schedule_restore.py": {
+   "commit": "89e36eae12f5b6d04d0bd732037c32337f41b0ee",
+   "recorded_at": "2026-10-01T12:12:58Z",
+   "run_id": "36859815280",
+   "sha256": "8506826a0f8060985cbdfa48c0a0b9847ed84fb3dc4f0cd3c53ccdbbec43780f",
+   "status": "success"
+  },
+  "aws/ops/pending/1061_schedule_dive.py": {
+   "commit": "9e83d2a5835b7a7388d1c9db38933cd2df3063bf",
+   "recorded_at": "2026-10-01T12:22:37Z",
+   "run_id": "36861061943",
+   "sha256": "bef2ffe0784d121170aedfb0cde656e8576d44a564526f4dd64e4e1e45428ccc",
+   "status": "success"
+  },
+  "aws/ops/pending/1062_finra_diag.py": {
+   "commit": "c3de671d7f3e4d7ea977e4bd2c1d58737a4e696e",
+   "recorded_at": "2026-10-01T12:28:22Z",
+   "run_id": "36861585544",
+   "sha256": "e4297c644eee28f38d5ea6c28194959693a48c8653475846bd17705ad0eebe0a",
+   "status": "success"
+  },
+  "aws/ops/pending/1063_schedules.py": {
+   "commit": "af6706729e42cb7c880d516801304a3d98be43be",
+   "recorded_at": "2026-10-01T12:36:37Z",
+   "run_id": "36862005482",
+   "sha256": "2b3b52fc9703ae03fd39947a19178f621e85ec9a1c857c228a42f5458cd4d2f2",
+   "status": "success"
+  },
+  "aws/ops/pending/1064_diag.py": {
+   "commit": "af6706729e42cb7c880d516801304a3d98be43be",
+   "recorded_at": "2026-10-01T12:37:19Z",
+   "run_id": "36862005482",
+   "sha256": "96864ccba90111bde4c6fc6aed7f130b1a75fb6796ed8241803cac81ec96e877",
+   "status": "success"
+  },
+  "aws/ops/pending/1065_dataset_probe.py": {
+   "commit": "81546ffadfb516a29c44ddb15dc90bd3d848ecf4",
+   "recorded_at": "2026-10-01T12:46:04Z",
+   "run_id": "36863412786",
+   "sha256": "f036fccf35169943558a2777f90a7591b0c1aa4d56d8ab2b043bc4c6168ac030",
+   "status": "success"
+  },
+  "aws/ops/pending/1066_schema_probe.py": {
+   "commit": "2360dc62e8ff983e4ed42795bb3fe94a0ba22200",
+   "recorded_at": "2026-10-01T12:51:02Z",
+   "run_id": "36864172403",
+   "sha256": "747c6d48ed20f7f7a7437f0eae4c24be6e8d46a5729626b0a647e1355cb560c1",
+   "status": "success"
+  },
+  "aws/ops/pending/1067_finra_rewire_verify.py": {
+   "commit": "e96a6caaafb84bedec2fb0888ecfafc023418ae6",
+   "recorded_at": "2026-10-01T13:11:19Z",
+   "run_id": "36866430387",
+   "sha256": "be93fb3d659f4b0d5b91d807713b57c9dd9a87f842186d1d7324b00b070f4844",
+   "status": "success"
+  },
+  "aws/ops/pending/1068_final_validation.py": {
+   "commit": "8fe2e85907ea498ee032b6a7f86cb326a1a2eca1",
+   "recorded_at": "2026-10-01T13:34:12Z",
+   "run_id": "36869232717",
+   "sha256": "1ab07127deb7cde847bbf0e2e26dab259189b7c3bcf42701608181fd3f5b1032",
+   "status": "success"
+  },
+  "aws/ops/pending/1069_si_errors.py": {
+   "commit": "cca5d6db72d618139bdab617ec43089304a83322",
+   "recorded_at": "2026-10-01T13:40:55Z",
+   "run_id": "36870047103",
+   "sha256": "9722fe5faedb584d2008b9aa63789bae6ec5a889c78657e025474768206459fd",
+   "status": "success"
   },
   "aws/ops/pending/1070_stress_recon.py": {
    "commit": null,

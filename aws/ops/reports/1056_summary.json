@@ -1,0 +1,44 @@
+{
+  "script": "1056_read_verdicts",
+  "read_at": "2026-10-01T11:24:49Z",
+  "reports": {
+    "finra_v2": {
+      "overall": "FAIL_API",
+      "checked_at": "2026-10-01T01:18:09Z",
+      "treasury_probe": {
+        "parsed_ok": false,
+        "rows": 0,
+        "http_status": 400
+      },
+      "breadth_probe": {
+        "parsed_ok": false,
+        "rows": 0
+      },
+      "freshness": null
+    },
+    "prod_validation": {
+      "overall": "FAIL",
+      "checked_at": "2026-10-01T03:35:48.679945+00:00",
+      "overall_rollup": {
+        "upgrade_PASS": 6,
+        "upgrade_DEGRADED": 1,
+        "upgrade_FAIL": 8,
+        "r1051_PASS": 0,
+        "r1051_DEGRADED": 0,
+        "r1051_FAIL": 9
+      },
+      "non_pass_details": {}
+    },
+    "openfigi": {
+      "overall": "PASS",
+      "checked_at": "2026-10-01T03:06:43Z",
+      "ssm_ok": true,
+      "api_key_valid": true,
+      "probe": {
+        "http_status": 200,
+        "results": 74,
+        "valid": true
+      }
+    }
+  }
+}
