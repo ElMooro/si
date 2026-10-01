@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "exact_native_release_checked",
   "functions": [
     "justhodl-alpha-research",
     "justhodl-opportunities-research",
@@ -117,5 +117,281 @@
     "actual_application_packets_read": 0,
     "actual_model_requests": 0,
     "invented_cases_only": true
+  },
+  "source_commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be",
+  "native_acceptance": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": "2d12cec7108a70de22c6a1bbea2e8b9019dc5642a249996ab166286fff638a57",
+      "aws/shared/equity_enrich.py": "2248cfb57a157c59acbb671d02842e3ee9846dd243d163da9a3c8ceb1d506a8c",
+      "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/short_position_context.py": "4254e629803838e6bc4a3c8ea01b0016451c762df2ffd5f8e10b0e65310b896c",
+      "aws/lambdas/justhodl-opportunities-research/source/lambda_function.py": "67193a4a6777f97fccc1d24a3170633bcf35d9fefbbf86babecfa8b458ef479d",
+      "aws/lambdas/justhodl-retail-sentiment/source/lambda_function.py": "068cce4f6438e81cf2989df6829054c0bef284ce323195ff6eb534d766932f34",
+      "aws/lambdas/justhodl-retail-sentiment/source/legacy_retail_sentiment.py": "4039b6d46d221567277885b158cdd99dbbc91b05bfec27e102291c8a6ec3f6d9",
+      "aws/lambdas/justhodl-retail-sentiment/source/retail_research_model.py": "b140a908775982fcd6f01432e1dba6f5973220250ed5822623116c37b0ecd430",
+      "aws/lambdas/justhodl-retail-sentiment/source/retail_research_store.py": "3545f059574dc695adc441477d0617a45c6c85410db18256971c039b0b960977",
+      "aws/shared/finviz.py": "a68a6d83a70848e91dc1dbebee8a28ad5e110ce8b672d862c858e08b92346e69",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+    },
+    "native_before": {
+      "justhodl-alpha-research": {
+        "code_sha256": "lq809ezHKhg9jnzlavTfS1WlnVG4AcpB4yVmr8UlHkY=",
+        "source_files_checked": 5,
+        "handler_bytes": 14934,
+        "timeout": 600,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-alpha-research-6h",
+            "state": "ENABLED",
+            "expression": "rate(6 hours)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-alpha-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-opportunities-research": {
+        "code_sha256": "dqnEANKVbZIo+tZzEcOJtC+MF6kQbkglatQIhYEMXuU=",
+        "source_files_checked": 5,
+        "handler_bytes": 11861,
+        "timeout": 600,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-opportunities-research-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 14 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-opportunities-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-retail-sentiment": {
+        "code_sha256": "QjuLf2kARf1hSd0wNkGhThLFjZw1Wq+Svqrx9xFhjtg=",
+        "source_files_checked": 9,
+        "handler_bytes": 1540,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-retail-sentiment-30min",
+            "state": "ENABLED",
+            "expression": "cron(10 19 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-retail-sentiment",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "native_after": {
+      "justhodl-alpha-research": {
+        "code_sha256": "lq809ezHKhg9jnzlavTfS1WlnVG4AcpB4yVmr8UlHkY=",
+        "source_files_checked": 5,
+        "handler_bytes": 14934,
+        "timeout": 600,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-alpha-research-6h",
+            "state": "ENABLED",
+            "expression": "rate(6 hours)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-alpha-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-opportunities-research": {
+        "code_sha256": "dqnEANKVbZIo+tZzEcOJtC+MF6kQbkglatQIhYEMXuU=",
+        "source_files_checked": 5,
+        "handler_bytes": 11861,
+        "timeout": 600,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-opportunities-research-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 14 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-opportunities-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-retail-sentiment": {
+        "code_sha256": "QjuLf2kARf1hSd0wNkGhThLFjZw1Wq+Svqrx9xFhjtg=",
+        "source_files_checked": 9,
+        "handler_bytes": 1540,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-retail-sentiment-30min",
+            "state": "ENABLED",
+            "expression": "cron(10 19 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-retail-sentiment",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "original_controls": {
+      "justhodl-alpha-research": {
+        "function_name": "justhodl-alpha-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory_mb": 1024,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-alpha-research-6h",
+            "state": "ENABLED",
+            "expression": "rate(6 hours)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-opportunities-research": {
+        "function_name": "justhodl-opportunities-research",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory_mb": 1024,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-opportunities-research-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 14 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-retail-sentiment": {
+        "function_name": "justhodl-retail-sentiment",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-retail-sentiment-30min",
+            "state": "ENABLED",
+            "expression": "cron(10 19 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "run_id": 36901056070,
+    "operation_commit": "72636f01c85f4f6f3afcf575808ed57dcb6c00be",
+    "report_commit": "8f97970bba7848d285bec9bb77866a583d3c9e4e",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6421_short_position_ambiguity_acceptance.md",
+      "bytes": 7611,
+      "sha256": "76099eb7a3ef23c0bd29bc21e270beb69187c18bf47b98797d04ac102b48a2e5"
+    }
   }
 }
