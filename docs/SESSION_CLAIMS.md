@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
 | Tape-truth observation qualification and industry-case projection; tape-truth.html, industry-case.html and only why.html IC_/TT_ modules with ticker bus preserved; separate draft codex/tape-truth-qualification. No math/provider/schedule/capital/LLM prompt changes. | none | S-codex#ttqual1001u4 | 2026-10-01 10:29 |
 | PR38 risk explanation projection/display accepted d867fb3d2; authorized release verification; preserve policy/actions/clocks; no manual invokes, providers or schedules | none | S-codex#kdiagui1001t9 | 2026-10-01 08:59 |
 | PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
