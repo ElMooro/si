@@ -100,7 +100,7 @@
   ];
 
   /* Every harvest series in /data/cryptoquant-series.json. extra is honest:
-   * daily EOD from 2025-07; twins (when present) extend to 2010 at coarser spacing. */
+   * Exact primary history only; matching proxy histories remain separate. */
   var CQ_META = [
     ["btc_exchange_netflow", "BTC exchange netflow", ["netflow", "exchange netflow", "btc netflow"]],
     ["btc_exchange_inflow", "BTC exchange inflow", ["exchange inflow", "inflow"]],
@@ -161,7 +161,7 @@
   var CQ_COLORS = ["#f0b429", "#2962ff", "#26c6da", "#ab47bc", "#ff6d00", "#089981", "#f23645", "#7e57c2", "#00897b", "#e91e63"];
   CQ_META.forEach(function (row) {
     var q = row[2].concat([row[0], row[0].replace(/_/g, " ")]);
-    CURATED.push(H(q, "CQ:" + row[0], row[1], "chain", "CryptoQuant EOD · harvest (not live); twins extend some series to 2010", "onchain"));
+    CURATED.push(H(q, "CQ:" + row[0], row[1], "chain", "CryptoQuant reported observations · source freshness unverified · proxies separate", "onchain"));
   });
   function cqOscSpecs() {
     var rows = CQ_META;
@@ -663,12 +663,12 @@
   }
 
   function loadCQ() {
-    if (CQ) return Promise.resolve(CQ);
-    return loadJson("/data/cryptoquant-series.json").then(function (j) { CQ = j; return j; });
+    if(!global.JHObservationCache)return Promise.reject(new Error("Observation cache unavailable"));
+    return global.JHObservationCache.shared().read("series").then(function(result){CQ=result.packet;return result;});
   }
   function loadCISS() {
-    if (CISS) return Promise.resolve(CISS);
-    return loadJson("/data/ciss-stress.json").then(function (j) { CISS = j; return j; });
+    if(!global.JHObservationCache)return Promise.reject(new Error("Observation cache unavailable"));
+    return global.JHObservationCache.shared().read("ciss").then(function(result){CISS=result.packet;return result;});
   }
 
   function cqKey(sym) {
@@ -726,17 +726,19 @@
     if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return null;
     if (/^CQ:|^CISS:/i.test(s)) {
       var history = global.JHObservationSeries;
-      if (!history) return { d: [], src: "Observation history unavailable: parser not loaded" };
+      if (!history || !global.JHObservationCache) return { d: [], src: "Observation history unavailable: required module not loaded" };
       if (/^CQ:/i.test(s)) {
         if (global.JHCqFuse && typeof global.JHCqFuse.klines === "function") {
           try {
             var fused = await global.JHCqFuse.klines(s);
-            if (fused && fused.evidence && fused.evidence.contract === history.contract && fused.d.length) return fused;
+            if (fused && fused.evidence && fused.evidence.contract === history.contract) return fused;
           } catch (eFuse) {}
         }
-        return history.cq(await loadCQ(), s);
+        var cq = await loadCQ(), primary = history.cq(cq.packet, s);
+        primary.evidence.transport_cache = cq.cache; primary.src += " · download " + cq.cache.state + " · source freshness unverified"; return primary;
       }
-      return history.ciss(await loadCISS(), s);
+      var ciss = await loadCISS(), stress = history.ciss(ciss.packet, s);
+      stress.evidence.transport_cache = ciss.cache; stress.src += " · download " + ciss.cache.state + " · source freshness unverified"; return stress;
     }
     return null;
   }

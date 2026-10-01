@@ -1,0 +1,395 @@
+{
+  "scope": "Complete modules; invented packets; zero network",
+  "source": {
+    "jh-observation-series.js": "8684fc867320911ceeeb9cdec6813defebf78a57821f3322239d7fdbfb3833f0",
+    "jh-cq-fuse.js": "c9fbfdfafce3bf2ed0c85e2a08c6298db6977f2d30daa698e1766922bfe36b01",
+    "jh-chart-catalog.js": "fa97c3aa84998b3dd281c4da8f8836abf90d3b3a99b16775376a771753f6a2d2"
+  },
+  "fuse_permanent_success": {
+    "before": {
+      "series": {
+        "generated_at": "invented",
+        "series": {
+          "sample": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              1
+            ],
+            "unit": "invented unit"
+          }
+        }
+      },
+      "onchain": {},
+      "feed": {},
+      "catalog": {},
+      "spec": {},
+      "universe": {}
+    },
+    "after": {
+      "series": {
+        "generated_at": "invented",
+        "series": {
+          "sample": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              1
+            ],
+            "unit": "invented unit"
+          }
+        }
+      },
+      "onchain": {},
+      "feed": {},
+      "catalog": {},
+      "spec": {},
+      "universe": {}
+    },
+    "additional_requests": 0
+  },
+  "fuse_permanent_failure": {
+    "initial": {
+      "generated_at": "",
+      "plan_note": "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
+      "source_documents": {
+        "series": {},
+        "onchain": {},
+        "feed": {},
+        "catalog": {},
+        "spec": {},
+        "universe": {}
+      },
+      "series": {},
+      "twins": {},
+      "btc": null,
+      "onchain": {},
+      "feed": {},
+      "spec": {},
+      "catalog": {},
+      "universe": {},
+      "chartable": [],
+      "snaps": [],
+      "armed": [],
+      "docs": [],
+      "n_series": 0,
+      "n_snaps": 0,
+      "n_armed": 0,
+      "n_docs": 0,
+      "n_feed": 0,
+      "n_twins": 0,
+      "n_v1": 0,
+      "n_v2": 0
+    },
+    "recovery": {
+      "generated_at": "",
+      "plan_note": "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
+      "source_documents": {
+        "series": {},
+        "onchain": {},
+        "feed": {},
+        "catalog": {},
+        "spec": {},
+        "universe": {}
+      },
+      "series": {},
+      "twins": {},
+      "btc": null,
+      "onchain": {},
+      "feed": {},
+      "spec": {},
+      "catalog": {},
+      "universe": {},
+      "chartable": [],
+      "snaps": [],
+      "armed": [],
+      "docs": [],
+      "n_series": 0,
+      "n_snaps": 0,
+      "n_armed": 0,
+      "n_docs": 0,
+      "n_feed": 0,
+      "n_twins": 0,
+      "n_v1": 0,
+      "n_v2": 0
+    },
+    "additional_requests": 0
+  },
+  "fuse_reset_race": {
+    "new_load": {
+      "series": {
+        "generated_at": "invented",
+        "series": {
+          "sample": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              5
+            ],
+            "unit": "invented unit"
+          }
+        }
+      },
+      "onchain": {},
+      "feed": {},
+      "catalog": {},
+      "spec": {},
+      "universe": {}
+    },
+    "after_older_completes": {
+      "series": {
+        "generated_at": "invented",
+        "series": {
+          "sample": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              4
+            ],
+            "unit": "invented unit"
+          }
+        }
+      },
+      "onchain": {},
+      "feed": {},
+      "catalog": {},
+      "spec": {},
+      "universe": {}
+    }
+  },
+  "catalog_permanent_success": {
+    "before": {
+      "d": [
+        {
+          "time": 1767225600,
+          "open": 6,
+          "high": 6,
+          "low": 6,
+          "close": 6,
+          "volume": null,
+          "observation_ordinals": [
+            0
+          ]
+        }
+      ],
+      "src": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX · 1 scalar observations · unit index · frequency unverified · 0 excluded records · observation dates, not release times",
+      "evidence": {
+        "contract": "chart-observations.v1",
+        "requested_id": "CISS:ea",
+        "packet_path": "/data/ciss-stress.json",
+        "status": "observations",
+        "reason": null,
+        "matches": [],
+        "whole_packet": {
+          "series": [
+            {
+              "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+              "points": [
+                [
+                  "2026-01-01",
+                  6
+                ]
+              ],
+              "unit": "index"
+            }
+          ]
+        },
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "records": [
+          {
+            "ordinal": 0,
+            "source_path": "series[0].points[0]",
+            "raw_period": "2026-01-01",
+            "raw_value": 6,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767225600,
+              "original_period": "2026-01-01",
+              "period_end": "2026-01-01",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 6
+          }
+        ],
+        "transformations": [
+          "Strict finite scalar and calendar validation; sorted by period coordinate; equal duplicates plotted once; conflicting duplicates withheld; all records retained"
+        ],
+        "observation_kind": "scalar",
+        "selected_id": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+        "selected_path": "series[0]",
+        "selected_series": {
+          "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+          "points": [
+            [
+              "2026-01-01",
+              6
+            ]
+          ],
+          "unit": "index"
+        },
+        "source_frequency": null,
+        "unit": "index",
+        "packet_generated_at": null,
+        "source_acquired_at": null,
+        "source_published_at": null,
+        "source_quality": null,
+        "points_scope": "Received series only; full upstream history is unverified",
+        "volume": {
+          "value": null,
+          "reason": "Not reported by this scalar observation series"
+        },
+        "plotting_projection": "Open/high/low/close are the same scalar, not market OHLC",
+        "rejected_records": 0,
+        "accepted_records": 1,
+        "plotted_points": 1,
+        "identity_alias": {
+          "requested": "ea",
+          "canonical_key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX"
+        }
+      }
+    },
+    "after": {
+      "d": [
+        {
+          "time": 1767225600,
+          "open": 6,
+          "high": 6,
+          "low": 6,
+          "close": 6,
+          "volume": null,
+          "observation_ordinals": [
+            0
+          ]
+        }
+      ],
+      "src": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX · 1 scalar observations · unit index · frequency unverified · 0 excluded records · observation dates, not release times",
+      "evidence": {
+        "contract": "chart-observations.v1",
+        "requested_id": "CISS:ea",
+        "packet_path": "/data/ciss-stress.json",
+        "status": "observations",
+        "reason": null,
+        "matches": [],
+        "whole_packet": {
+          "series": [
+            {
+              "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+              "points": [
+                [
+                  "2026-01-01",
+                  6
+                ]
+              ],
+              "unit": "index"
+            }
+          ]
+        },
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "records": [
+          {
+            "ordinal": 0,
+            "source_path": "series[0].points[0]",
+            "raw_period": "2026-01-01",
+            "raw_value": 6,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767225600,
+              "original_period": "2026-01-01",
+              "period_end": "2026-01-01",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 6
+          }
+        ],
+        "transformations": [
+          "Strict finite scalar and calendar validation; sorted by period coordinate; equal duplicates plotted once; conflicting duplicates withheld; all records retained"
+        ],
+        "observation_kind": "scalar",
+        "selected_id": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+        "selected_path": "series[0]",
+        "selected_series": {
+          "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+          "points": [
+            [
+              "2026-01-01",
+              6
+            ]
+          ],
+          "unit": "index"
+        },
+        "source_frequency": null,
+        "unit": "index",
+        "packet_generated_at": null,
+        "source_acquired_at": null,
+        "source_published_at": null,
+        "source_quality": null,
+        "points_scope": "Received series only; full upstream history is unverified",
+        "volume": {
+          "value": null,
+          "reason": "Not reported by this scalar observation series"
+        },
+        "plotting_projection": "Open/high/low/close are the same scalar, not market OHLC",
+        "rejected_records": 0,
+        "accepted_records": 1,
+        "plotted_points": 1,
+        "identity_alias": {
+          "requested": "ea",
+          "canonical_key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX"
+        }
+      }
+    },
+    "additional_requests": 0
+  },
+  "formatter": [
+    {
+      "input": null,
+      "output": "—"
+    },
+    {
+      "input": false,
+      "output": "0.00e+0"
+    },
+    {
+      "input": true,
+      "output": "1"
+    },
+    {
+      "input": [],
+      "output": "0.00e+0"
+    },
+    {
+      "input": [
+        1
+      ],
+      "output": "1"
+    },
+    {
+      "input": " ",
+      "output": "0.00e+0"
+    },
+    {
+      "input": 0,
+      "output": "0.00e+0"
+    },
+    {
+      "input": -1.23456789e-8,
+      "output": "-1.23e-8"
+    }
+  ]
+}
