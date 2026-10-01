@@ -386,11 +386,21 @@ def lambda_handler(event, context):
             s["overlays"] = notes
     stack.sort(key=lambda x: (x["families_hit"], x["conviction_score"]),
                reverse=True)
+    # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).
+    try:
+        t360 = (json.loads(s3.get_object(Bucket=S3_BUCKET,
+                    Key="data/ticker-360.json")["Body"].read()).get("tickers") or {})
+    except Exception:
+        t360 = {}
+    for s in stack:
+        tv = t360.get(s.get("symbol", "")) or {}
+        s["t360_coverage"] = tv.get("coverage_count", 0)
+        s["t360_domains"] = sorted((tv.get("domains") or {}).keys())
     titans = [s for s in stack if s["conviction_tier"] == "CONVICTION TITAN"]
     high = [s for s in stack if s["conviction_tier"] == "HIGH CONVICTION"]
     out = {
         "momentum_research_exclusion": momentum_exclusion(),
-        "schema_version": "1.1.1-grok-fusion",
+        "schema_version": "1.2.0-t360",
         "method": "cross_engine_factor_confluence",
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
