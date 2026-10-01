@@ -32,6 +32,7 @@ def load(name, path):
 figi = load('tested_openfigi', SHARED)
 bonds = load('tested_bonds', CANDIDATE / 'bond_symbology.py')
 native = load('tested_symbology', CANDIDATE / 'lambda_function.py')
+equities = load('tested_equities', CANDIDATE / 'equity_identity.py')
 NOW = datetime(2026, 9, 30, tzinfo=timezone.utc)
 CUSIP = '123456780'
 OTHER = '876543210'
@@ -246,12 +247,12 @@ class StorageTests(unittest.TestCase):
 
 class NativeTests(unittest.TestCase):
     def test_missing_low_and_invalid_native_clock_defer_without_storage(self):
-        with patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': bonds}), patch.object(native.boto3, 'client') as client:
+        with patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': bonds, 'equity_identity': equities}), patch.object(native.boto3, 'client') as client:
             for context in (None, SimpleNamespace(get_remaining_time_in_millis=lambda: 15000), SimpleNamespace(get_remaining_time_in_millis=lambda: float('nan'))):
                 self.assertEqual(native.enrich_bond_cusips(context=context)['status'], 'deferred')
             client.assert_not_called()
     def test_deferred_paths_preserve_legacy_count_fields_without_false_remaining_zero(self):
-        with patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': bonds}):
+        with patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': bonds, 'equity_identity': equities}):
             for context in (None, SimpleNamespace(get_remaining_time_in_millis=lambda: 1000)):
                 result = native.enrich_bond_cusips(context=context)
                 self.assertEqual({k: result[k] for k in ('resolved', 'no_match', 'errors', 'remaining')},
@@ -265,7 +266,8 @@ class NativeTests(unittest.TestCase):
             stack.enter_context(patch.object(native.urllib.request, 'urlopen', return_value=response))
             stack.enter_context(patch.object(native, 'enrich_figi', return_value={}))
             stack.enter_context(patch.object(native, 'enrich_cusip_chain', return_value={}))
-            stack.enter_context(patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': SimpleNamespace(enrich=lambda *a, **kw: (_ for _ in ()).throw(RuntimeError()))}))
+            stack.enter_context(patch.dict(sys.modules, {'openfigi': figi, 'bond_symbology': bonds, 'equity_identity': equities}))
+            stack.enter_context(patch.object(bonds, 'enrich', side_effect=RuntimeError()))
             result = native.lambda_handler({}, SimpleNamespace(get_remaining_time_in_millis=lambda: 60000))
         self.assertEqual(result['statusCode'], 200)
         self.assertEqual(storage.puts[0]['Key'], 'data/symbology/master.json')

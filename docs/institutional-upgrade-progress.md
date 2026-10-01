@@ -6859,3 +6859,28 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Source `fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4` is accepted with exact public receipt and CodeSha256 `L9/D/CYSXd5QNOQzuQM96KIXHDfIGI0gPMkgKHAgwBw=`. Read-only 6398, run `36795920997`, confirms all four packaged source files and unchanged 1024 MB / 120 seconds / 512 MB temporary storage / Python 3.12 / x86_64 and original daily 05:15 UTC rule, before and after inspection. Report commit: `d8ff825c08af3c586ab368dc1bcbcb57d6afa15d`.
 - All 55 inspected static files match one exact build. The full source inventory preserves 897 engine records, 599 page contracts, 543 navigation destinations and 143 companion wires. The final source passes 27 focused native, three operation, 981 deployment, fifteen shell and 2,213 frontend checks; the preceding audit records launcher recovery and the exact scope of the later unrelated peer integration.
 - No actual queue, master, account, private/current consumer body, provider request or producer invocation was used. Normal new-code publication and independent source replay remain unverified; no investment authority is granted. Six complete invented equity-path reproductions identify the next repair: prior-read data loss, wrong no-match, inconsistent CUSIP/ISIN, ticker/CIK reuse, fabricated zero CIK and conflicting ticker overwrite. The inherited equity paths and all ten platform workstreams remain OPEN.
+
+
+## Stage 491: equity identity and recovery
+
+- Complete invented predecessor replays reproduce six defects: false no-match,
+  incompatible CUSIP/ISIN, prior-read replacement, reused ticker borrowing an old
+  issuer's identifiers, fabricated zero CIK and conflicting ticker overwrite.
+  The repair validates complete prior state and SEC identity, preserves whole
+  conflicting/absent predecessors, uses conditional publication and typed FIGI
+  outcomes, and separates unqualified name/country assumptions from identifiers.
+- Native resources and original 05:15 UTC daily schedule are unchanged. Read-only
+  6399 will check exact package/receipt/controls without current/private/account/
+  consumer reads, provider requests or invocations. Integrated checks pass: 60 native, three operation, 984 deployment,
+  fifteen shell and 2,213 frontend checks, 599 page graphs and 143 companion wires.
+  The complete source inventory now has 898 engines, including the preserved peer
+  ETF importer; static ownership does not prove that peer deployed. Exact release
+  acceptance is pending. CUSIP/GLEIF transport and relationship evidence,
+  consumer migration, normal publication and all ten platform workstreams remain OPEN.
+
+- Consumer source review confirms the former 13F symbology guesser is unreachable
+  from its canonical handler, so it is not rebuilt. Catalog qualification remains
+  open. Four whole invented coverage-report replays reproduce failure-as-zero,
+  invalid identifier counting, hardcoded CUSIP zero and malformed-row crashes.
+
+- Push guard preserved another lane's 6400 binding diagnostic, report and claim at `1fdd66b8ad61f68a7e138bd84256f1d8d5f73a1a`. Only the complete diagnostic source was reviewed/compiled; no tested engine, config, workflow, test or page source changed. Our 60 native, three operation, preflight and complete page-contract checks pass on the combined revision. The full 984/fifteen shell/2,213 frontend results remain bound to `c1976489ecf63434c76bd7dec2b74c8e8accb5d1`. Peer diagnostic/report conclusions are not part of this acceptance.

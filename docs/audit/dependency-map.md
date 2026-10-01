@@ -1,24 +1,24 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-10-01T00:17:45 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-10-01T00:51:16 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `dfb42a63bb175395e1a868e973d0dcd588ce9d69ec886f4cf6af270862f22d44`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `2998b1aba4d2b7f02e75b13290ddb3f6d40dabc7333e05d82d5269f09843e7a7`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
 | metric | count |
 |---|---|
 | duplicate writers | 15 |
-| engines | 897 |
+| engines | 898 |
 | engines without consumer | 33 |
 | engines without schedule | 259 |
-| keys | 2061 |
+| keys | 2063 |
 | orphan engine refs | 533 |
 | orphan page refs | 105 |
 | pages | 599 |
 | two cycles | 66 |
-| unused outputs | 158 |
-| writers | 1435 |
+| unused outputs | 159 |
+| writers | 1437 |
 
 ## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)
 

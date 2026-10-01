@@ -29,7 +29,9 @@ def _reject(value):
     raise ValueError('Nonfinite JSON number')
 
 
-def _read(client, bucket, key):
+def _read(client, bucket, key, *, max_bytes=_MAX_JSON_BYTES):
+    if type(max_bytes) is not int or not 1 <= max_bytes <= 64 * 1024 * 1024:
+        raise ValueError("Positive bounded whole-object limit required")
     try:
         response = client.get_object(Bucket=bucket, Key=key)
     except Exception as exc:
@@ -39,12 +41,12 @@ def _read(client, bucket, key):
     stream = response['Body']
     try:
         length = response.get('ContentLength')
-        if type(length) is not int or not 0 <= length <= _MAX_JSON_BYTES:
+        if type(length) is not int or not 0 <= length <= max_bytes:
             raise ValueError('Complete bounded storage length required')
         chunks = []
         total = 0
         while True:
-            chunk = stream.read(min(65536, _MAX_JSON_BYTES + 1 - total))
+            chunk = stream.read(min(65536, max_bytes + 1 - total))
             if not isinstance(chunk, bytes):
                 raise ValueError('Binary storage body required')
             if not chunk:

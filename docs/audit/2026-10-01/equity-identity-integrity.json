@@ -1,0 +1,332 @@
+{
+  "stage": 491,
+  "status": "tested_pending_exact_release",
+  "base": "c1976489ecf63434c76bd7dec2b74c8e8accb5d1",
+  "predecessor_release": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+  "operation": 6399,
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-symbology-master/source/lambda_function.py",
+      "sha256": "1b1c01e82fe1afc59c942c4b44d1490de4179b92911c589db19ce29e8273aa3c",
+      "bytes": 14400
+    },
+    {
+      "path": "aws/lambdas/justhodl-symbology-master/source/bond_symbology.py",
+      "sha256": "6ca251a7c996592510a5cbda5eab38403729838ec5cd2364dd488e552706250d",
+      "bytes": 10025
+    },
+    {
+      "path": "aws/lambdas/justhodl-symbology-master/source/equity_identity.py",
+      "sha256": "73c93e15c6d195b05d792bc0ce1e6224ff6b2f36922f16c56150cb7c257499d3",
+      "bytes": 10741
+    },
+    {
+      "path": "aws/shared/openfigi.py",
+      "sha256": "4888f7598ac84440dc429afac4b7a0e53dd97be3550c6c54eedf0d6a20b855e5",
+      "bytes": 11901
+    }
+  ],
+  "invented_predecessor_reproductions": {
+    "source_sha256": "be8bb319219d7451f1c7c90b1cd238ea71a0cb2bb520d31f7f9074fa00d824e6",
+    "scope": "Whole current source, complete invented fixtures and retained outputs only. No actual native/provider/private/current/account/consumer reads or writes.",
+    "cases": [
+      {
+        "name": "provider_error_becomes_terminal_negative",
+        "input": [
+          {
+            "error": "invented provider unavailable"
+          }
+        ],
+        "actual_rows": {
+          "TEST": {
+            "figi": null,
+            "figi_status": "no_match"
+          }
+        },
+        "actual_stats": {
+          "enriched": 0,
+          "no_match": 1,
+          "errors": 0,
+          "remaining_null": 0
+        }
+      },
+      {
+        "name": "inconsistent_cusip_and_derived_isin",
+        "input": {
+          "prior_cusip": "111111111",
+          "new_map_cusip": "123456789"
+        },
+        "actual_rows": {
+          "TEST": {
+            "name": "Invented issuer",
+            "cusip": "111111111",
+            "isin": "US1234567899",
+            "lei": null
+          }
+        },
+        "actual_stats": {
+          "cusip": 0,
+          "isin": 1,
+          "lei": 0,
+          "map_shape": "dict/1 joinable",
+          "name_joined": 0,
+          "gleif_error": "TimeoutError: invented unavailable prior"
+        }
+      },
+      {
+        "name": "failed_prior_read_replaces_enriched_master",
+        "input": {
+          "sec": {
+            "0": {
+              "ticker": "TEST",
+              "cik_str": 123,
+              "title": "Invented new issuer"
+            }
+          },
+          "prior_read": "TimeoutError"
+        },
+        "actual_packet": {
+          "as_of": "2026-10-01T00:12:14+00:00",
+          "spec": "E1 v1 \u2014 SEC spine; OpenFIGI/CUSIP enrichment in later passes (absent ids are explicit nulls, never invented)",
+          "n_tickers": 1,
+          "n_ciks": 1,
+          "coverage": {
+            "vs_bloomberg_320k_pct": 0.0,
+            "note": "320k includes global+delisted+funds; SEC registrants are the US-listed operating spine"
+          },
+          "enrichment_status": {
+            "cik": "complete",
+            "cusip_chain": {},
+            "figi": {},
+            "isin": "pending",
+            "sedol": "pending",
+            "bond_cusips": {}
+          },
+          "by_ticker": {
+            "TEST": {
+              "ticker": "TEST",
+              "cik": "0000000123",
+              "name": "Invented new issuer",
+              "cusip": null,
+              "isin": null,
+              "figi": null,
+              "sedol": null,
+              "lei": null,
+              "source": {
+                "kind": "sec",
+                "url": "https://www.sec.gov/files/company_tickers.json",
+                "raw_snapshot_key": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "ticker_reuse_borrows_other_issuer_identifiers",
+        "input": {
+          "sec": {
+            "0": {
+              "ticker": "TEST",
+              "cik_str": 123,
+              "title": "Invented new issuer"
+            }
+          },
+          "prior": {
+            "by_ticker": {
+              "TEST": {
+                "cik": "0000000456",
+                "figi": "BBG00PRIOR01",
+                "name": "Invented old issuer",
+                "cusip": "111111111",
+                "isin": "US1111111111"
+              }
+            }
+          }
+        },
+        "actual_packet": {
+          "as_of": "2026-10-01T00:12:14+00:00",
+          "spec": "E1 v1 \u2014 SEC spine; OpenFIGI/CUSIP enrichment in later passes (absent ids are explicit nulls, never invented)",
+          "n_tickers": 1,
+          "n_ciks": 1,
+          "coverage": {
+            "vs_bloomberg_320k_pct": 0.0,
+            "note": "320k includes global+delisted+funds; SEC registrants are the US-listed operating spine"
+          },
+          "enrichment_status": {
+            "cik": "complete",
+            "cusip_chain": {},
+            "figi": {},
+            "isin": "pending",
+            "sedol": "pending",
+            "bond_cusips": {}
+          },
+          "by_ticker": {
+            "TEST": {
+              "ticker": "TEST",
+              "cik": "0000000123",
+              "name": "Invented new issuer",
+              "cusip": "111111111",
+              "isin": "US1111111111",
+              "figi": "BBG00PRIOR01",
+              "sedol": null,
+              "lei": null,
+              "source": {
+                "kind": "sec",
+                "url": "https://www.sec.gov/files/company_tickers.json",
+                "raw_snapshot_key": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "absent_cik_becomes_fabricated_zero_identity",
+        "input": {
+          "sec": {
+            "0": {
+              "ticker": "TEST",
+              "cik_str": null,
+              "title": "Invented invalid issuer"
+            }
+          }
+        },
+        "actual_packet": {
+          "as_of": "2026-10-01T00:12:14+00:00",
+          "spec": "E1 v1 \u2014 SEC spine; OpenFIGI/CUSIP enrichment in later passes (absent ids are explicit nulls, never invented)",
+          "n_tickers": 1,
+          "n_ciks": 1,
+          "coverage": {
+            "vs_bloomberg_320k_pct": 0.0,
+            "note": "320k includes global+delisted+funds; SEC registrants are the US-listed operating spine"
+          },
+          "enrichment_status": {
+            "cik": "complete",
+            "cusip_chain": {},
+            "figi": {},
+            "isin": "pending",
+            "sedol": "pending",
+            "bond_cusips": {}
+          },
+          "by_ticker": {
+            "TEST": {
+              "ticker": "TEST",
+              "cik": "0000000000",
+              "name": "Invented invalid issuer",
+              "cusip": null,
+              "isin": null,
+              "figi": null,
+              "sedol": null,
+              "lei": null,
+              "source": {
+                "kind": "sec",
+                "url": "https://www.sec.gov/files/company_tickers.json",
+                "raw_snapshot_key": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "conflicting_ticker_rows_silently_overwrite",
+        "input": {
+          "sec": {
+            "0": {
+              "ticker": "TEST",
+              "cik_str": 123,
+              "title": "Invented first"
+            },
+            "1": {
+              "ticker": "TEST",
+              "cik_str": 456,
+              "title": "Invented conflicting second"
+            }
+          }
+        },
+        "actual_packet": {
+          "as_of": "2026-10-01T00:12:14+00:00",
+          "spec": "E1 v1 \u2014 SEC spine; OpenFIGI/CUSIP enrichment in later passes (absent ids are explicit nulls, never invented)",
+          "n_tickers": 1,
+          "n_ciks": 2,
+          "coverage": {
+            "vs_bloomberg_320k_pct": 0.0,
+            "note": "320k includes global+delisted+funds; SEC registrants are the US-listed operating spine"
+          },
+          "enrichment_status": {
+            "cik": "complete",
+            "cusip_chain": {},
+            "figi": {},
+            "isin": "pending",
+            "sedol": "pending",
+            "bond_cusips": {}
+          },
+          "by_ticker": {
+            "TEST": {
+              "ticker": "TEST",
+              "cik": "0000000456",
+              "name": "Invented conflicting second",
+              "cusip": null,
+              "isin": null,
+              "figi": null,
+              "sedol": null,
+              "lei": null,
+              "source": {
+                "kind": "sec",
+                "url": "https://www.sec.gov/files/company_tickers.json",
+                "raw_snapshot_key": null
+              }
+            }
+          }
+        }
+      }
+    ],
+    "qualification": false
+  },
+  "checks": {
+    "native": 60,
+    "bond": 27,
+    "equity": 33,
+    "operation": 3,
+    "deployment": 984,
+    "shell": 15,
+    "frontend": 2213,
+    "page_graphs": 599,
+    "companion_wires": 143,
+    "tested_base": "c1976489ecf63434c76bd7dec2b74c8e8accb5d1",
+    "manifest": {
+      "engine_count": 898,
+      "recompiled_importers": [
+        "justhodl-etf-issuer-holdings",
+        "justhodl-symbology-master"
+      ],
+      "preserved_unchanged_engine_records": 896,
+      "method": "Complete changed symbology importer and new peer ETF importer compiled; other source/config/compiler inputs unchanged from accepted 897-record inventory. Static source ownership is not deployment proof.",
+      "reviewed_peer_base": "c1976489ecf63434c76bd7dec2b74c8e8accb5d1"
+    }
+  },
+  "limits": [
+    "normal_publication_unverified",
+    "historical_relationships_unqualified",
+    "source_replay_unverified",
+    "CUSIP_GLEIF_transport_and_schema_unqualified",
+    "consumer_migration_open",
+    "legacy_coverage_denominator_unvalidated"
+  ],
+  "actual_current_private_account_consumer_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "investment_authority": false,
+  "all_ten_workstreams": "OPEN",
+  "final_review": "A US ticker query must also receive the requested US exchange code. Missing/foreign exchange results stay ambiguous; cached results are revalidated. Complete invented regression added.",
+  "consumer_source_review": {
+    "13f": "Former symbology map consumer is unreachable from the canonical handler; no change needed in this batch.",
+    "symdir": "Legacy ISIN catalog enrichment remains unqualified; open separate review.",
+    "coverage_gap": "Four complete invented predecessor cases reproduced outside repo; next engine repair."
+  },
+  "peer_integration": {
+    "reviewed_head": "1fdd66b8ad61f68a7e138bd84256f1d8d5f73a1a",
+    "path": "aws/ops/staged/ops_6400_issuer_binding_readonly.py",
+    "sha256": "6e28744613607fa4b59416a4806ea1ba1c55aaa5095322034407b1d1211c167a",
+    "bytes": 5948,
+    "scope": "Complete source reviewed and compiled only. Separate bounded read-only peer binding diagnostic, with explicit incomplete search scope. No tested engine/config/workflow/test/page source changed. Peer report contents were not read; no peer probe was executed."
+  }
+}

@@ -1,15 +1,12 @@
-"""justhodl-symbology-master — E1 v1 (ops 4441).
+"""SEC ticker/CIK spine with conservative optional identifier enrichment.
 
-Nightly symbology mastering. v1 grounds the identifier spine in the SEC's
-authoritative, free company_tickers.json: TICKER <-> CIK <-> NAME for every
-SEC registrant (~10k+), the join key for EDGAR (E3), 13F CUSIP work, and
-insider chains. Structure ships enrichment-ready: cusip/isin/figi/sedol
-fields exist per record and populate as OpenFIGI (key-gated) and the 13F
-cusip-map are wired in later E1 passes — absent identifiers are explicit
-nulls, never invented. Coverage vs the Bloomberg 320k target is computed
-honestly (that target includes global + delisted + funds; SEC registrants
-are the US-listed operating spine).
-Writes data/symbology/master.json + a raw snapshot (F4)."""
+The current SEC ticker file is a source population, not a complete market
+universe or a historical issuer-security relationship. Prior identities and
+unknown fields are retained; conflicting issuers cannot inherit identifiers.
+The legacy CUSIP/GLEIF chain remains unqualified, with name-only joins and US
+ISIN derivations retained as candidates. Writes the existing master and raw
+snapshot on the original schedule; no new investment authority is granted.
+"""
 import json
 import os
 import urllib.request
@@ -79,8 +76,12 @@ def _isin_check_digit(body11):
 
 
 def enrich_cusip_chain(by_ticker):
-    """Fill cusip (13F filings map), isin (US+cusip+check), lei (GLEIF
-    ISIN->LEI file). Shape-flexible on the 13F map; explicit no_match."""
+    """Retain optional legacy map evidence without claiming identity authority.
+
+    Direct CUSIPs remain unqualified; name-only matches and country-assumed
+    ISIN derivations are candidates. Existing compatible ISINs may use the
+    inherited GLEIF path, whose transport and relationship proof remain open.
+    """
     stats = {"cusip": 0, "isin": 0, "lei": 0, "map_shape": None}
     try:
         # ops 4473: v2 (full-holdings rebuild) overlays v1
@@ -97,7 +98,7 @@ def enrich_cusip_chain(by_ticker):
     except Exception as e:
         stats["error"] = f"13f map: {type(e).__name__}: {str(e)[:60]}"
         return stats
-    cus_by_t = {}
+    candidate_sets = {}
     items = (m.items() if isinstance(m, dict) else
              [(None, x) for x in m] if isinstance(m, list) else [])
     for k, v in items:
@@ -110,10 +111,15 @@ def enrich_cusip_chain(by_ticker):
             cus, tkr = k, str(v)
         tkr = (tkr or "").upper().strip()
         if cus and tkr and len(str(cus)) == 9 and tkr in by_ticker:
-            cus_by_t.setdefault(tkr, str(cus).upper())
+            candidate_sets.setdefault(tkr, set()).add(str(cus).upper())
+    cus_by_t = {t: next(iter(values)) for t, values in candidate_sets.items() if len(values) == 1}
+    stats["ambiguous_tickers"] = sum(len(values) > 1 for values in candidate_sets.values())
+    for t, values in candidate_sets.items():
+        by_ticker[t]["cusip_direct_candidates"] = sorted(values)
+        by_ticker[t]["cusip_match_qualified"] = False
     # ops 4470: pass 2 — name-normalized join for map rows whose ticker
-    # field is absent (the AAPL cohort). Unique-match only; ambiguity
-    # stays null rather than approximately right.
+    # field is absent. Even a unique normalized name is only a candidate;
+    # it does not establish the security or issuer relationship.
     name_to_t = {}
     for tkr, r in by_ticker.items():
         n = _norm_name(r.get("name"))
@@ -136,22 +142,38 @@ def enrich_cusip_chain(by_ticker):
         nm = _norm_name(nm_raw)
         cands = name_to_t.get(nm) or []
         if len(cands) == 1 and cands[0] not in cus_by_t:
-            cus_by_t[cands[0]] = str(cus).upper()
-            name_joined += 1
+            row = by_ticker[cands[0]]
+            values = row.setdefault("cusip_name_candidates", [])
+            if str(cus).upper() not in values:
+                values.append(str(cus).upper())
+            row["cusip_name_match_qualified"] = False
     stats["name_joined"] = name_joined
+    stats["name_candidate_rows"] = sum(len(r.get("cusip_name_candidates", [])) for r in by_ticker.values())
+    stats["conflicts"] = 0
     stats["map_shape"] = (type(m).__name__ + f"/{len(cus_by_t)} joinable")
     want_isin = {}
     for tkr, cus in cus_by_t.items():
         r = by_ticker[tkr]
+        if r.get("cusip") is not None and r["cusip"] != cus:
+            r["cusip_mapping_conflict"] = {"retained": r["cusip"], "observed": cus, "eligible": False}
+            stats["conflicts"] += 1
+            continue
         if r.get("cusip") is None:
             r["cusip"] = cus
             stats["cusip"] += 1
+        # A CUSIP does not establish an ISIN's issuing country. Retain this
+        # legacy US derivation as a candidate only, never as an observed ISIN.
+        if not cus.isalnum() or not cus.isascii():
+            r["isin_derivation_status"] = "unsupported_cusip_characters"
+            continue
         body = "US" + cus
-        isin = body + _isin_check_digit(body)
-        if r.get("isin") is None:
-            r["isin"] = isin
-            stats["isin"] += 1
-        want_isin[isin] = tkr
+        candidate = body + _isin_check_digit(body)
+        r["isin_derivation_candidate"] = {"value": candidate, "cusip": cus,
+                                         "assumed_country": "US", "qualified": False}
+        if r.get("isin") == candidate:
+            want_isin[candidate] = tkr
+        elif r.get("isin") is not None:
+            r["isin_mapping_review"] = {"retained": r["isin"], "legacy_us_candidate": candidate, "eligible": False}
     if want_isin:
         try:
             zb = s3.get_object(Bucket=BUCKET,
@@ -184,49 +206,35 @@ def enrich_cusip_chain(by_ticker):
     return stats
 
 
-def enrich_figi(by_ticker, limit=2500):
-    """Fill null FIGIs via OpenFIGI v3 mapping. Batch 100 jobs/request,
-    polite pacing, bounded per run — converges to full coverage across
-    nightly runs. Unmatched tickers get figi_status='no_match' (explicit,
-    never invented)."""
-    key = _figi_key()
-    if not key:
-        return {"enriched": 0, "note": "no key in SSM"}
-    todo = [t for t, r in by_ticker.items()
-            if r.get("figi") is None and r.get("figi_status") != "no_match"]
-    todo = todo[:limit]
-    done = no_match = errors = 0
-    for i in range(0, len(todo), 100):
-        batch = todo[i:i + 100]
-        jobs = [{"idType": "TICKER", "idValue": t, "exchCode": "US"}
-                for t in batch]
-        req = urllib.request.Request(
-            "https://api.openfigi.com/v3/mapping",
-            data=json.dumps(jobs).encode(),
-            headers={"Content-Type": "application/json",
-                     "X-OPENFIGI-APIKEY": key})
-        try:
-            with urllib.request.urlopen(req, timeout=25) as r:
-                res = json.loads(r.read())
-        except Exception as e:
-            errors += 1
-            print("figi batch err:", str(e)[:80])
-            time.sleep(3)
-            continue
-        for t, item in zip(batch, res):
-            d = (item.get("data") or [None])[0] if isinstance(item, dict)                 else None
-            if d and d.get("figi"):
-                by_ticker[t]["figi"] = d["figi"]
-                by_ticker[t]["figi_name"] = d.get("name")
-                done += 1
-            else:
-                by_ticker[t]["figi_status"] = "no_match"
-                no_match += 1
-        time.sleep(0.35)
-    return {"enriched": done, "no_match": no_match, "errors": errors,
-            "remaining_null": sum(1 for r in by_ticker.values()
-                                  if r.get("figi") is None
-                                  and r.get("figi_status") != "no_match")}
+def enrich_figi(by_ticker, limit=2500, context=None):
+    from equity_identity import enrich_figi as resolve_equities
+    try:
+        working = {t: dict(row) for t, row in by_ticker.items()}
+        result = resolve_equities(working, context, limit=limit)
+        by_ticker.update(working)
+        return result
+    except Exception:
+        return {"enriched": 0, "no_match": 0, "errors": 1, "ambiguous": 0,
+                "remaining_null": sum(r.get("figi") is None for r in by_ticker.values()),
+                "reason": "optional_figi_enrichment_failed"}
+
+
+def enrich_cusip_safely(by_ticker):
+    # The legacy optional chain may fail on malformed map fields. Do not leave
+    # half-applied identifiers behind or prevent the primary SEC publication.
+    try:
+        working = {t: dict(row) for t, row in by_ticker.items()}
+        for row in working.values():
+            if "cusip_name_candidates" in row:
+                if not isinstance(row["cusip_name_candidates"], list):
+                    raise ValueError("Prior candidate list malformed")
+                row["cusip_name_candidates"] = list(row["cusip_name_candidates"])
+        result = enrich_cusip_chain(working)
+        by_ticker.update(working)
+        return result
+    except Exception:
+        return {"cusip": 0, "isin": 0, "lei": 0, "errors": 1,
+                "error": "optional_cusip_chain_failed", "lookup_qualified": False}
 
 
 # ── ops 9/10: bond-CUSIP enrichment (OpenFIGI ID_CUSIP bridge) ──────────
@@ -261,56 +269,44 @@ def enrich_bond_cusips(limit=100, context=None):
 
 
 def lambda_handler(event, context):
+    from equity_identity import read_prior, spine, carry_previous, publish, IdentityError
+    from bond_symbology import _pairs, _reject
+    # Read and validate complete prior state before a provider request or write.
+    # Only NoSuchKey/404 permits a new master; other failures retain production.
+    prev, prior_etag = read_prior(s3, BUCKET)
     url = "https://www.sec.gov/files/company_tickers.json"
     req = urllib.request.Request(url, headers={
         "User-Agent": "JustHodl research admin@justhodl.ai"})
     with urllib.request.urlopen(req, timeout=30) as r:
         raw = r.read()
     raw_key = snapshot("sec", url, raw) if snapshot else None
-    data = json.loads(raw)
-    by_ticker, by_cik = {}, {}
-    for rec in data.values():
-        t = (rec.get("ticker") or "").upper()
-        cik = str(rec.get("cik_str") or "").zfill(10)
-        if not t:
-            continue
-        row = {"ticker": t, "cik": cik, "name": rec.get("title"),
-               "cusip": None, "isin": None, "figi": None, "sedol": None,
-               "lei": None,
-               "source": {"kind": "sec", "url": url,
-                          "raw_snapshot_key": raw_key}}
-        by_ticker[t] = row
-        by_cik.setdefault(cik, []).append(t)
-    # carry forward FIGIs already resolved in prior runs (progressive)
-    try:
-        prev = json.loads(s3.get_object(
-            Bucket=BUCKET, Key="data/symbology/master.json")["Body"].read())
-        for tkr, old_r in (prev.get("by_ticker") or {}).items():
-            if tkr in by_ticker:
-                for f in ("figi", "figi_name", "figi_status", "cusip",
-                          "isin", "sedol", "lei"):
-                    if old_r.get(f) is not None:
-                        by_ticker[tkr][f] = old_r[f]
-    except Exception:
-        pass
-    figi_stats = enrich_figi(by_ticker)
-    cusip_stats = enrich_cusip_chain(by_ticker)
+    data = json.loads(raw, object_pairs_hook=_pairs, parse_constant=_reject)
+    by_ticker, by_cik = spine(data, {"kind": "sec", "url": url, "raw_snapshot_key": raw_key})
+    if prev.get("by_ticker") and len(by_ticker)*2 < len(prev["by_ticker"]):
+        raise IdentityError("Source population contracted more than half; prior master retained")
+    retained_prior = carry_previous(by_ticker, prev)
+    figi_stats = enrich_figi(by_ticker, context=context)
+    cusip_stats = enrich_cusip_safely(by_ticker)
     bond_cusip_stats = enrich_bond_cusips(context=context)
     n = len(by_ticker)
-    doc = {"as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-           "spec": "E1 v1 — SEC spine; OpenFIGI/CUSIP enrichment in later "
-                   "passes (absent ids are explicit nulls, never invented)",
+    doc = {**prev, "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+           "spec": "SEC ticker/CIK spine with typed optional FIGI resolution; "
+                   "legacy identifiers are retained with separate qualification",
            "n_tickers": n, "n_ciks": len(by_cik),
            "coverage": {
                "vs_bloomberg_320k_pct": round(100 * n / 320000, 2),
-               "note": "320k includes global+delisted+funds; SEC registrants "
-                       "are the US-listed operating spine"},
+               "note": "Legacy 320k comparison is unvalidated; this source population "
+                       "does not establish full-market coverage",
+               "denominator_qualified": False},
            "enrichment_status": {"cik": "complete", "cusip_chain": cusip_stats, "figi": figi_stats, "isin": "pending",
                                  "sedol": "pending", "bond_cusips": bond_cusip_stats},
-           "by_ticker": by_ticker}
-    s3.put_object(Bucket=BUCKET, Key="data/symbology/master.json",
-                  Body=json.dumps(doc, default=str).encode(),
-                  ContentType="application/json", CacheControl="no-cache")
+           "by_ticker": by_ticker,
+           "retained_prior_tickers": retained_prior,
+           "identity_quality": {"contract": "sec-equity-identity.v1", "source_records": len(data),
+                                "universe_coverage_qualified": False,
+                                "issuer_security_relationships_qualified": False,
+                                "source_replay_verified": False, "investment_authority": False}}
+    publish(s3, BUCKET, doc, prior_etag)
     res = {"ok": True, "n_tickers": n, "n_ciks": len(by_cik),
            "raw_key": raw_key}
     print(json.dumps(res))

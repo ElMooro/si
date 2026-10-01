@@ -1,3 +1,5 @@
 from pathlib import Path
-import runpy
-runpy.run_path(str(Path(__file__).resolve().parents[4]/"tests/test_symbology_integrity.py"),run_name="__main__")
+import subprocess,sys
+root=Path(__file__).resolve().parents[4]
+for name in ('test_symbology_integrity.py','test_equity_identity.py'):
+    subprocess.run([sys.executable,'-X','utf8',str(root/'tests'/name)],cwd=root,check=True)
