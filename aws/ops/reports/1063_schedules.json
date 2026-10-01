@@ -1,4 +1,3 @@
-executing-against: af6706729e42cb7c880d516801304a3d98be43be
 {
   "script": "1063_schedules",
   "read_at": "2026-10-01T12:36:37Z",
@@ -131,31 +130,4 @@ executing-against: af6706729e42cb7c880d516801304a3d98be43be
     }
   },
   "overall": "FAIL"
-}
-{
-  "script": "1064_diag",
-  "read_at": "2026-10-01T12:36:38Z",
-  "short_interest_errors": {
-    "log_group": "/aws/lambda/justhodl-short-interest",
-    "error_events": [],
-    "count": 0
-  },
-  "fedwatch_triggers": [
-    {
-      "type": "scheduler",
-      "name": "justhodl-fedwatch-rate-probability-daily",
-      "state": "DISABLED",
-      "expression": "cron(0 23 * * ? *)",
-      "created": "2026-05-22 01:17:46.022000+00:00",
-      "last_modified": "2026-09-20 23:26:07.389000+00:00"
-    },
-    {
-      "type": "scheduler",
-      "name": "fedwatch-rate-probability-sched",
-      "state": "ENABLED",
-      "expression": "cron(0 23 * * ? *)",
-      "created": "2026-06-28 10:44:11.535000+00:00",
-      "last_modified": "2026-06-28 10:44:11.535000+00:00"
-    }
-  ]
 }
