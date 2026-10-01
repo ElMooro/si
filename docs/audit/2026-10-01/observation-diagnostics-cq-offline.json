@@ -1,0 +1,1144 @@
+{
+  "scope": "Complete crypto HTML/CSS with only the three complete observation/fuse modules executed. All requests intercepted; invented packets only. Other crypto engines and scripts are not executed or qualified.",
+  "whole_inputs": {
+    "/data/cryptoquant-series.json": {
+      "series": {
+        "invented": {
+          "d": [
+            "2026-01-01"
+          ],
+          "v": [
+            0
+          ],
+          "unit": "invented unit"
+        }
+      },
+      "twins": {
+        "invented": {
+          "d": [
+            "2010-01-01"
+          ],
+          "v": [
+            1
+          ]
+        }
+      }
+    },
+    "/data/cryptoquant-onchain.json": {
+      "metrics": {
+        "invented": {
+          "value": false,
+          "z365": null,
+          "label": "Invented zero test"
+        }
+      },
+      "composite_onchain_risk_z": null
+    },
+    "/data/cq-feed.json": {
+      "metrics": {}
+    },
+    "/data/cq-catalog.json": {
+      "catalog": {}
+    },
+    "/data/config/cryptoquant-spec.json": {
+      "metrics": []
+    },
+    "/cq-universe.json": {
+      "rows": []
+    }
+  },
+  "cases": [
+    {
+      "width": 1440,
+      "requests": [
+        "/crypto/",
+        "/jh-observation-series.js",
+        "/jh-observation-cache.js",
+        "/jh-cq-fuse.js",
+        "/data/cryptoquant-series.json",
+        "/data/cryptoquant-onchain.json",
+        "/data/cq-feed.json",
+        "/data/cq-catalog.json",
+        "/data/config/cryptoquant-spec.json",
+        "/cq-universe.json",
+        "/assets/cq-universe.json",
+        "/data/cryptoquant-series.json",
+        "/data/cryptoquant-onchain.json",
+        "/data/cq-feed.json",
+        "/data/cq-catalog.json",
+        "/data/config/cryptoquant-spec.json",
+        "/cq-universe.json"
+      ],
+      "errors": [],
+      "whole_failed": {
+        "generated_at": "",
+        "plan_note": "No source plan note reported",
+        "source_documents": {
+          "series": null,
+          "onchain": null,
+          "feed": null,
+          "catalog": null,
+          "spec": null,
+          "universe": null
+        },
+        "series": {},
+        "twins": {},
+        "btc": null,
+        "onchain": {},
+        "feed": {},
+        "spec": {},
+        "catalog": {},
+        "universe": {},
+        "chartable": [],
+        "snaps": [],
+        "armed": [],
+        "docs": [],
+        "n_series": null,
+        "n_chartable": null,
+        "n_snaps": null,
+        "n_armed": null,
+        "n_docs": null,
+        "n_feed": null,
+        "n_twins": null,
+        "n_v1": null,
+        "n_v2": null,
+        "source_cache": {
+          "series": {
+            "contract": "observation-cache.v1",
+            "source_id": "series",
+            "packet_path": "/data/cryptoquant-series.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.479Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-series.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "onchain": {
+            "contract": "observation-cache.v1",
+            "source_id": "onchain",
+            "packet_path": "/data/cryptoquant-onchain.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.479Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-onchain.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "feed": {
+            "contract": "observation-cache.v1",
+            "source_id": "feed",
+            "packet_path": "/data/cq-feed.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.479Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cq-feed.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "catalog": {
+            "contract": "observation-cache.v1",
+            "source_id": "catalog",
+            "packet_path": "/data/cq-catalog.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.479Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cq-catalog.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "spec": {
+            "contract": "observation-cache.v1",
+            "source_id": "spec",
+            "packet_path": "/data/config/cryptoquant-spec.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.480Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/config/cryptoquant-spec.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "universe": {
+            "contract": "observation-cache.v1",
+            "source_id": "universe",
+            "packet_path": "/cq-universe.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:45.480Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/cq-universe.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              },
+              {
+                "path": "/assets/cq-universe.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          }
+        },
+        "coverage_complete": false,
+        "source_freshness_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "whole_recovered": {
+        "generated_at": "",
+        "plan_note": "No source plan note reported",
+        "source_documents": {
+          "series": {
+            "series": {
+              "invented": {
+                "d": [
+                  "2026-01-01"
+                ],
+                "v": [
+                  0
+                ],
+                "unit": "invented unit"
+              }
+            },
+            "twins": {
+              "invented": {
+                "d": [
+                  "2010-01-01"
+                ],
+                "v": [
+                  1
+                ]
+              }
+            }
+          },
+          "onchain": {
+            "metrics": {
+              "invented": {
+                "value": false,
+                "z365": null,
+                "label": "Invented zero test"
+              }
+            },
+            "composite_onchain_risk_z": null
+          },
+          "feed": {
+            "metrics": {}
+          },
+          "catalog": {
+            "catalog": {}
+          },
+          "spec": {
+            "metrics": []
+          },
+          "universe": {
+            "rows": []
+          }
+        },
+        "series": {
+          "invented": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              0
+            ],
+            "unit": "invented unit"
+          }
+        },
+        "twins": {
+          "invented": {
+            "d": [
+              "2010-01-01"
+            ],
+            "v": [
+              1
+            ]
+          }
+        },
+        "btc": null,
+        "onchain": {
+          "metrics": {
+            "invented": {
+              "value": false,
+              "z365": null,
+              "label": "Invented zero test"
+            }
+          },
+          "composite_onchain_risk_z": null
+        },
+        "feed": {
+          "metrics": {}
+        },
+        "spec": {
+          "metrics": []
+        },
+        "catalog": {},
+        "universe": {
+          "rows": []
+        },
+        "chartable": [
+          {
+            "id": "invented",
+            "s": "CQ:invented",
+            "name": "Invented zero test",
+            "category": "other",
+            "unit": "invented unit",
+            "n": 1,
+            "first": "2026-01-01",
+            "last": "2026-01-01",
+            "twin": true,
+            "extra": "invented \u00b7 1 scalar observations \u00b7 unit invented unit \u00b7 frequency unverified \u00b7 0 excluded records \u00b7 observation dates, not release times \u00b7 proxy history retained separately",
+            "chartable": true,
+            "type": "onchain",
+            "cat": "chain",
+            "blob": "invented invented invented zero test other invented unit cryptoquant onchain cq"
+          }
+        ],
+        "snaps": [],
+        "armed": [],
+        "docs": [],
+        "n_series": 1,
+        "n_chartable": 1,
+        "n_snaps": 0,
+        "n_armed": 0,
+        "n_docs": 0,
+        "n_feed": 0,
+        "n_twins": 1,
+        "n_v1": null,
+        "n_v2": null,
+        "source_cache": {
+          "series": {
+            "contract": "observation-cache.v1",
+            "source_id": "series",
+            "packet_path": "/data/cryptoquant-series.json",
+            "accepted_path": "/data/cryptoquant-series.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.653Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.653Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.653Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-series.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "onchain": {
+            "contract": "observation-cache.v1",
+            "source_id": "onchain",
+            "packet_path": "/data/cryptoquant-onchain.json",
+            "accepted_path": "/data/cryptoquant-onchain.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.653Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.653Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.653Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-onchain.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "feed": {
+            "contract": "observation-cache.v1",
+            "source_id": "feed",
+            "packet_path": "/data/cq-feed.json",
+            "accepted_path": "/data/cq-feed.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.654Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.654Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.654Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cq-feed.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "catalog": {
+            "contract": "observation-cache.v1",
+            "source_id": "catalog",
+            "packet_path": "/data/cq-catalog.json",
+            "accepted_path": "/data/cq-catalog.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.654Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.654Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.654Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cq-catalog.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "spec": {
+            "contract": "observation-cache.v1",
+            "source_id": "spec",
+            "packet_path": "/data/config/cryptoquant-spec.json",
+            "accepted_path": "/data/config/cryptoquant-spec.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.654Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.654Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.654Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/config/cryptoquant-spec.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "universe": {
+            "contract": "observation-cache.v1",
+            "source_id": "universe",
+            "packet_path": "/cq-universe.json",
+            "accepted_path": "/cq-universe.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:15.654Z",
+            "last_successful_check_at": "2026-10-01T07:10:15.654Z",
+            "attempted_at": "2026-10-01T07:10:15.646Z",
+            "checked_at": "2026-10-01T07:10:15.654Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/cq-universe.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          }
+        },
+        "coverage_complete": true,
+        "source_freshness_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "layout": {
+        "width": 1366,
+        "scroll": 1366,
+        "document": 1440,
+        "viewport": 1440
+      },
+      "failed_screenshot": {
+        "path": "docs/audit/2026-10-01/observation-diagnostics-cq-failed-1440.png",
+        "bytes": 45125,
+        "sha256": "88f92fc32caa207841de0132a279c59588dd25e1dd542ffef77dad58cb4be86f"
+      },
+      "recovered_screenshot": {
+        "path": "docs/audit/2026-10-01/observation-diagnostics-cq-recovered-1440.png",
+        "bytes": 84158,
+        "sha256": "f1e67b5ea019210f59a97c4b77c1a7d5483d37b0d6f75a7cb98210acfca2acbe"
+      },
+      "actual_network_requests": 0
+    },
+    {
+      "width": 390,
+      "requests": [
+        "/crypto/",
+        "/jh-observation-series.js",
+        "/jh-observation-cache.js",
+        "/jh-cq-fuse.js",
+        "/data/cryptoquant-series.json",
+        "/data/cryptoquant-onchain.json",
+        "/data/cq-feed.json",
+        "/data/cq-catalog.json",
+        "/data/config/cryptoquant-spec.json",
+        "/cq-universe.json",
+        "/assets/cq-universe.json",
+        "/data/cryptoquant-series.json",
+        "/data/cryptoquant-onchain.json",
+        "/data/cq-feed.json",
+        "/data/cq-catalog.json",
+        "/data/config/cryptoquant-spec.json",
+        "/cq-universe.json"
+      ],
+      "errors": [],
+      "whole_failed": {
+        "generated_at": "",
+        "plan_note": "No source plan note reported",
+        "source_documents": {
+          "series": null,
+          "onchain": null,
+          "feed": null,
+          "catalog": null,
+          "spec": null,
+          "universe": null
+        },
+        "series": {},
+        "twins": {},
+        "btc": null,
+        "onchain": {},
+        "feed": {},
+        "spec": {},
+        "catalog": {},
+        "universe": {},
+        "chartable": [],
+        "snaps": [],
+        "armed": [],
+        "docs": [],
+        "n_series": null,
+        "n_chartable": null,
+        "n_snaps": null,
+        "n_armed": null,
+        "n_docs": null,
+        "n_feed": null,
+        "n_twins": null,
+        "n_v1": null,
+        "n_v2": null,
+        "source_cache": {
+          "series": {
+            "contract": "observation-cache.v1",
+            "source_id": "series",
+            "packet_path": "/data/cryptoquant-series.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-series.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "onchain": {
+            "contract": "observation-cache.v1",
+            "source_id": "onchain",
+            "packet_path": "/data/cryptoquant-onchain.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-onchain.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "feed": {
+            "contract": "observation-cache.v1",
+            "source_id": "feed",
+            "packet_path": "/data/cq-feed.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cq-feed.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "catalog": {
+            "contract": "observation-cache.v1",
+            "source_id": "catalog",
+            "packet_path": "/data/cq-catalog.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/cq-catalog.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "spec": {
+            "contract": "observation-cache.v1",
+            "source_id": "spec",
+            "packet_path": "/data/config/cryptoquant-spec.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/data/config/cryptoquant-spec.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "universe": {
+            "contract": "observation-cache.v1",
+            "source_id": "universe",
+            "packet_path": "/cq-universe.json",
+            "accepted_path": null,
+            "state": "unavailable",
+            "has_packet": false,
+            "received_at": null,
+            "last_successful_check_at": null,
+            "attempted_at": "2026-10-01T07:09:46.092Z",
+            "checked_at": null,
+            "retry_after_s": 30,
+            "last_error": {
+              "kind": "http_error",
+              "http_status": 503
+            },
+            "attempts": [
+              {
+                "path": "/cq-universe.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              },
+              {
+                "path": "/assets/cq-universe.json",
+                "status": "rejected",
+                "error": {
+                  "kind": "http_error",
+                  "http_status": 503
+                }
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          }
+        },
+        "coverage_complete": false,
+        "source_freshness_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "whole_recovered": {
+        "generated_at": "",
+        "plan_note": "No source plan note reported",
+        "source_documents": {
+          "series": {
+            "series": {
+              "invented": {
+                "d": [
+                  "2026-01-01"
+                ],
+                "v": [
+                  0
+                ],
+                "unit": "invented unit"
+              }
+            },
+            "twins": {
+              "invented": {
+                "d": [
+                  "2010-01-01"
+                ],
+                "v": [
+                  1
+                ]
+              }
+            }
+          },
+          "onchain": {
+            "metrics": {
+              "invented": {
+                "value": false,
+                "z365": null,
+                "label": "Invented zero test"
+              }
+            },
+            "composite_onchain_risk_z": null
+          },
+          "feed": {
+            "metrics": {}
+          },
+          "catalog": {
+            "catalog": {}
+          },
+          "spec": {
+            "metrics": []
+          },
+          "universe": {
+            "rows": []
+          }
+        },
+        "series": {
+          "invented": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              0
+            ],
+            "unit": "invented unit"
+          }
+        },
+        "twins": {
+          "invented": {
+            "d": [
+              "2010-01-01"
+            ],
+            "v": [
+              1
+            ]
+          }
+        },
+        "btc": null,
+        "onchain": {
+          "metrics": {
+            "invented": {
+              "value": false,
+              "z365": null,
+              "label": "Invented zero test"
+            }
+          },
+          "composite_onchain_risk_z": null
+        },
+        "feed": {
+          "metrics": {}
+        },
+        "spec": {
+          "metrics": []
+        },
+        "catalog": {},
+        "universe": {
+          "rows": []
+        },
+        "chartable": [
+          {
+            "id": "invented",
+            "s": "CQ:invented",
+            "name": "Invented zero test",
+            "category": "other",
+            "unit": "invented unit",
+            "n": 1,
+            "first": "2026-01-01",
+            "last": "2026-01-01",
+            "twin": true,
+            "extra": "invented \u00b7 1 scalar observations \u00b7 unit invented unit \u00b7 frequency unverified \u00b7 0 excluded records \u00b7 observation dates, not release times \u00b7 proxy history retained separately",
+            "chartable": true,
+            "type": "onchain",
+            "cat": "chain",
+            "blob": "invented invented invented zero test other invented unit cryptoquant onchain cq"
+          }
+        ],
+        "snaps": [],
+        "armed": [],
+        "docs": [],
+        "n_series": 1,
+        "n_chartable": 1,
+        "n_snaps": 0,
+        "n_armed": 0,
+        "n_docs": 0,
+        "n_feed": 0,
+        "n_twins": 1,
+        "n_v1": null,
+        "n_v2": null,
+        "source_cache": {
+          "series": {
+            "contract": "observation-cache.v1",
+            "source_id": "series",
+            "packet_path": "/data/cryptoquant-series.json",
+            "accepted_path": "/data/cryptoquant-series.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.186Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.186Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.186Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-series.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "onchain": {
+            "contract": "observation-cache.v1",
+            "source_id": "onchain",
+            "packet_path": "/data/cryptoquant-onchain.json",
+            "accepted_path": "/data/cryptoquant-onchain.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.187Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.187Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.187Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cryptoquant-onchain.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "feed": {
+            "contract": "observation-cache.v1",
+            "source_id": "feed",
+            "packet_path": "/data/cq-feed.json",
+            "accepted_path": "/data/cq-feed.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.187Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.187Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.187Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cq-feed.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "catalog": {
+            "contract": "observation-cache.v1",
+            "source_id": "catalog",
+            "packet_path": "/data/cq-catalog.json",
+            "accepted_path": "/data/cq-catalog.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.187Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.187Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.187Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/cq-catalog.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "spec": {
+            "contract": "observation-cache.v1",
+            "source_id": "spec",
+            "packet_path": "/data/config/cryptoquant-spec.json",
+            "accepted_path": "/data/config/cryptoquant-spec.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.187Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.187Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.187Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/data/config/cryptoquant-spec.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          },
+          "universe": {
+            "contract": "observation-cache.v1",
+            "source_id": "universe",
+            "packet_path": "/cq-universe.json",
+            "accepted_path": "/cq-universe.json",
+            "state": "checked_within_interval",
+            "has_packet": true,
+            "received_at": "2026-10-01T07:10:16.187Z",
+            "last_successful_check_at": "2026-10-01T07:10:16.187Z",
+            "attempted_at": "2026-10-01T07:10:16.178Z",
+            "checked_at": "2026-10-01T07:10:16.187Z",
+            "retry_after_s": 300,
+            "last_error": null,
+            "attempts": [
+              {
+                "path": "/cq-universe.json",
+                "status": "accepted"
+              }
+            ],
+            "source_freshness_verified": false,
+            "source_equivalence_verified": false,
+            "calls_eligible": false,
+            "sizing_eligible": false
+          }
+        },
+        "coverage_complete": true,
+        "source_freshness_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "layout": {
+        "width": 356,
+        "scroll": 356,
+        "document": 390,
+        "viewport": 390
+      },
+      "failed_screenshot": {
+        "path": "docs/audit/2026-10-01/observation-diagnostics-cq-failed-390.png",
+        "bytes": 37323,
+        "sha256": "96e69809388c3583574a43b9d5189c84044e4a3bb2f293656825a4a1f75f02d0"
+      },
+      "recovered_screenshot": {
+        "path": "docs/audit/2026-10-01/observation-diagnostics-cq-recovered-390.png",
+        "bytes": 50336,
+        "sha256": "27d2c8fb92938e0e270b521b83c9bb47df280e4a68afbaa1b511bb21da933886"
+      },
+      "actual_network_requests": 0
+    }
+  ]
+}

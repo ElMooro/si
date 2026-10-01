@@ -565,7 +565,8 @@
     return true;
   }
   function resampleToTf(d, tfId){
-    if(!d || d.length<2) return d||[];
+    var scalar=!!(d&&d.length&&d.every(function(b){return Array.isArray(b.observation_ordinals);}));
+    if(!d || (d.length<2&&!scalar)) return d||[];
     var id=spec(tfId)[0];
     if(!/^(2d|3d|5d|1w|2w|1M|3M)$/.test(id)) return d;
     var step=0, i0;
@@ -576,7 +577,7 @@
       step=gaps[Math.floor(gaps.length/2)]||0;
     }
     var need=id==="1w"?5*86400: id==="2w"?10*86400: id==="1M"?20*86400: id==="3M"?70*86400: id==="2d"?1.5*86400: id==="3d"?2.5*86400: id==="5d"?4*86400: 0;
-    if(need && step>=need) return d;
+    if(!scalar && need && step>=need) return d;
     function weekMon(t){
       var dt=new Date(t*1000), day=dt.getUTCDay(), diff=(day+6)%7;
       dt.setUTCDate(dt.getUTCDate()-diff); dt.setUTCHours(0,0,0,0);
@@ -585,7 +586,7 @@
     function bucket(t){
       var dt=new Date(t*1000);
       if(id==="1w") return weekMon(t);
-      if(id==="2w"){ var w=weekMon(t); return w - ((Math.floor(w/86400)%14)*86400); }
+      if(id==="2w"){ var w=weekMon(t); return scalar?345600+Math.floor((w-345600)/1209600)*1209600:w-((Math.floor(w/86400)%14)*86400); }
       if(id==="1M" || id==="3M"){dt.setUTCDate(1);if(id==="3M")dt.setUTCMonth(Math.floor(dt.getUTCMonth()/3)*3);dt.setUTCHours(0,0,0,0);return Math.floor(dt.getTime()/1000);}
       var n=parseInt(id,10)||1;
       return Math.floor(t/(n*86400))*(n*86400);
@@ -1844,13 +1845,17 @@
     if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){
       try{
         var catBars=await window.JHChartCatalog.klines(sym, tfId, quiet);
-        if(catBars && catBars.d && catBars.d.length>=minimum && (!scalar || catBars.evidence&&catBars.evidence.contract==="chart-observations.v1")){
+        var exactObservation=scalar&&catBars&&catBars.evidence&&catBars.evidence.contract==="chart-observations.v1"&&catBars.evidence.requested_id===sym;
+        if(exactObservation&&Array.isArray(catBars.d)&&!catBars.d.length){
+          return identifyBars(catBars.d,sym,tfId,catBars.src,Object.assign({},catBars.evidence,{display_interval:tfId,display_points:[],display_projection:"No plotted values; received source diagnostics retained without substitution."}));
+        }
+        if(catBars && catBars.d && catBars.d.length>=minimum && (!scalar || exactObservation)){
           var cd0=resampleToTf(catBars.d, tfId);
           if(cd0.length>=minimum && (scalar || barsFitTf(cd0, tfId))){
-            if(!quiet) lastSource=catBars.src||"catalog";
+            if(!quiet&&!scalar) lastSource=catBars.src||"catalog";
             var observations=catBars.evidence||null;
             if(observations) observations=Object.assign({},observations,{display_interval:tfId,display_points:cd0,
-              display_projection:"Existing UTC chart buckets: first/minimum/maximum/last scalar; bucket times are not source release times. Missing volume stays unavailable."});
+              display_projection:"UTC calendar display groups retain first/minimum/maximum/last scalar; the line shows the last scalar. Weeks start Monday; two-week groups are anchored at 1970-01-05; 2/3/5-day groups are anchored at 1970-01-01; months and quarters start on their first day. Group starts are not source observation or release times. Original periods and every contributing ordinal remain retained. Missing volume stays unavailable."});
             barCache[key]={d:cd0, at:now, src:catBars.src||"catalog",observations:observations};
             return identifyBars(cd0,sym,tfId,catBars.src||"catalog",observations);
           }
@@ -1859,7 +1864,7 @@
     }
     // A measurement ID cannot become a similarly named exchange ticker.
     if(/^CQ:|^CISS:/i.test(String(sym||""))){
-      if(!quiet) lastSource="Observation history unavailable: exact valid source series required";
+      // Scalar download completion cannot publish a label for a superseded selection.
       return [];
     }
     var ws=warehouseSpec(tfId);
@@ -2134,10 +2139,14 @@
     if(el)el.textContent=id==="detail"?observationText(lastBars,null,true):"Market "+({fin:"fundamentals",over:"returns and price indicators",season:"seasonality",trade:"paper trading",test:"strategy returns",corr:"return correlations",tech:"technical signals"}[id]||"calculations")+" unavailable for this scalar source. Inspect the source observations below.";
     return true;
   }
-  function clearObservationFrame(message){
+  function clearObservationFrame(message,diagnostics){
+    var frame=diagnostics&&barEvidence.get(diagnostics);
+    if(!frame||diagnostics.length||frame.symbol!==active||frame.interval!==tf||!frame.observations||frame.observations.contract!=="chart-observations.v1")frame=null;
     if(replay.timer)clearInterval(replay.timer);replay.timer=null;replay.on=false;replay.full=[];
     var rp=document.getElementById("replay");if(rp)rp.className="";
-    wipe();lastBars=[];window.lastBars=lastBars;window.jhChartEvidence=null;lastVolShow=false;
+    wipe();lastBars=frame?diagnostics:[];window.lastBars=lastBars;window.jhChartEvidence=frame;lastVolShow=false;
+    if(chart&&typeof chart.applyOptions==="function")chart.applyOptions({watermark:{visible:false}});
+    var wm=document.getElementById("wm");if(wm)wm.textContent="";
     if(miniSeries)miniSeries.setData([]);
     oscCharts.forEach(function(c){try{c.remove();}catch(e){}});oscCharts=[];oscSeries=[];
     var wrap=document.getElementById("oscwrap");if(wrap){wrap.className="";wrap.innerHTML="";}
@@ -2150,9 +2159,14 @@
     if(!e || frame.symbol!==active || frame.interval!==tf) return "Observation evidence unavailable for the selected series";
     var row=time==null?d[d.length-1]:d.filter(function(b){return b.time===time;})[0];
     if(!row) return "No retained observation at this display coordinate";
-    if(!full)return "Observation · "+new Date(row.time*1000).toISOString().slice(0,10)+" · "+String(row.close)+" "+(e.unit||"unit unverified");
+    var originals=(row.observation_ordinals||[]).map(function(i){return e.records&&e.records[i];}).filter(function(r){return r&&r.accepted;});
+    var periods=originals.map(function(r){return r.raw_period;}).filter(function(p,i,a){return a.indexOf(p)===i;}).sort();
+    var sourcePeriods=periods.length?periods[0]+(periods.length>1?" → "+periods[periods.length-1]:""):"unavailable";
+    var lastPeriod=originals.filter(function(r){return r.value===row.close;}).sort(function(a,b){return b.coordinate.time-a.coordinate.time;})[0];
+    var sourceLabel=" · source periods "+sourcePeriods+" · last scalar from "+(lastPeriod?lastPeriod.raw_period:"unavailable");
+    if(!full)return "Scalar · "+String(row.close)+" "+(e.unit||"unit unverified")+sourceLabel+" · display group "+new Date(row.time*1000).toISOString().slice(0,10);
     return frame.symbol+" · "+String(row.close)+" · unit "+(e.unit||"unverified")+" · "+new Date(row.time*1000).toISOString().slice(0,10)+
-      " UTC display coordinate · source frequency "+(e.source_frequency||"unverified")+" · market OHLC, trade volume and release time unavailable";
+      " UTC display coordinate"+sourceLabel+" · source frequency "+(e.source_frequency||"unverified")+" · market OHLC, trade volume and release time unavailable";
   }
   function paintObservations(d,saved){
     chart.priceScale("right").applyOptions({mode:0,scaleMargins:{top:0.06,bottom:0.04}});
@@ -2175,6 +2189,7 @@
     if(observationId(active) && (!identified || !identified.observations || identified.symbol!==active || identified.interval!==tf)){
       clearObservationFrame("Observation evidence unavailable for the selected series");return;
     }
+    if(observationId(active)&&identified&&!d.length){clearObservationFrame("Observation history unavailable for "+active+"; no other series is substituted",d);return;}
     if(!d||!d.length){ toast("No bars for "+active); var qe=document.getElementById("quote"); if(qe) qe.textContent="No bars for "+active; return; }
     var saved=null;
     try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
@@ -3145,10 +3160,11 @@
     preserveView=false;
     try{
       var d=await klines(want, wantTf);
-      if(gen!==loadGen) return;
+      if(gen!==loadGen||want!==active||wantTf!==tf) return;
+      if(observationId(want)){var currentFrame=barEvidence.get(d);lastSource=currentFrame?currentFrame.source:"unavailable";}
       if(!d||!d.length){
         lastSource="unavailable";
-        if(observationId(want)){clearObservationFrame("Observation history unavailable for "+want+"; no other series is substituted");syncLivePill();return;}
+        if(observationId(want)){clearObservationFrame("Observation history unavailable for "+want+"; no other series is substituted",d);syncLivePill();return;}
         if(wantTf!=="1d" && !lastBars.length){
           tf="1d"; lastGoodTf="1d"; renderTf();
           toast("No "+wantTf+" bars for "+want+" — loading 1d");
@@ -3166,8 +3182,9 @@
       loadTape(true);
     }catch(e){
       try{
+        if(gen!==loadGen||want!==active||wantTf!==tf)return;
         lastSource="unavailable";
-        if(observationId(want) && gen===loadGen)clearObservationFrame("Observation history unavailable for "+want);
+        if(observationId(want))clearObservationFrame("Observation history unavailable for "+want);
         toast("No bars for "+want);
         syncLivePill();
       }catch(e2){

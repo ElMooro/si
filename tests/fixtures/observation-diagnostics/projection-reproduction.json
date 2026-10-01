@@ -1,0 +1,43 @@
+{
+  "scope": "Actual whole-engine function, complete invented pre-epoch observations; no network",
+  "source_sha256": "70ef60d7d194deb561640ab5310c8265fd34dd25ae405fd67c8b0da272b3466c",
+  "input": [
+    {
+      "time": -259200,
+      "open": 0,
+      "high": 0,
+      "low": 0,
+      "close": 0,
+      "volume": null,
+      "observation_ordinals": [
+        0
+      ]
+    },
+    {
+      "time": -172800,
+      "open": 1,
+      "high": 1,
+      "low": 1,
+      "close": 1,
+      "volume": null,
+      "observation_ordinals": [
+        1
+      ]
+    }
+  ],
+  "result": [
+    {
+      "time": 0,
+      "open": 0,
+      "high": 1,
+      "low": 0,
+      "close": 1,
+      "volume": null,
+      "observation_ordinals": [
+        0,
+        1
+      ]
+    }
+  ],
+  "finding": "The legacy two-week projection labels these pre-epoch Monday/Tuesday measurements at a later Thursday, rather than a declared two-week Monday interval."
+}
