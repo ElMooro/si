@@ -1,5 +1,8 @@
 """Dated original-source FINRA research. No AI, accounts or notifications.
 
+Deploy retrigger: preflight fixture (squeeze-pretrigger migration entry)
+retired after 3/10 rewire; no logic change.
+
 Bloomberg parity 3/10: after the evidence-contract publication below, an
 additive consumer-facing layer publishes data/short-interest-tickers.json
 (per-ticker descriptive measurements). The research contract is untouched.
