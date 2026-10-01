@@ -4,13 +4,7 @@
   "timeout": 180,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Cross-engine AI synthesis. Reads 12 engines, calls Claude haiku-4-5, writes ai-website-synthesis.json. Hourly cron at :25.",
-  "inherit_env": {
-    "from_function": "justhodl-ai-chat",
-    "keys": [
-      "ANTHROPIC_API_KEY"
-    ]
-  },
+  "description": "Deterministic research availability for 12 inputs. Retains evidence, abstains from portfolio recommendations, and makes no AI or notification calls.",
   "preserved_eventbridge_scheduler_reference": {
     "schedule_name": "justhodl-ai-website-synthesis-hourly",
     "cron": "cron(25 * * * ? *)",

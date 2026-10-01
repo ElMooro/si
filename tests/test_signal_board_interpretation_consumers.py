@@ -24,9 +24,10 @@ class Tests(unittest.TestCase):
         return Storage()
     def test_synthesis_receives_qualification_context_without_an_s3_freshness_claim(self):
         for packet in self.packets():
-            scope = functions('ai-website-synthesis', {'fetch_engine'}, {'s3': self.storage(packet), 'S3_BUCKET': 'test', 'json': json,
-                              'datetime': datetime, 'timezone': timezone})
-            name, data = scope['fetch_engine']('signal_board', {'key': gate.CURRENT, 'fields': ['composite_signal', 'n_live']})
+            from synthesis_status_test_support import Memory, load
+            memory = Memory(); producer, _ = load(memory)
+            memory.objects[gate.CURRENT] = json.dumps(packet).encode('utf-8'); producer.s3 = memory
+            name, data = producer.fetch_engine('signal_board', producer.ENGINE_INPUTS['signal_board'])
             self.assertEqual(name, 'signal_board'); self.assertEqual(data['status'], 'ABSTAIN')
             self.assertNotIn('composite_signal', data); self.assertNotIn('_stale', data)
             self.assertFalse(data['current_observation_freshness_verified_by_consumer'])

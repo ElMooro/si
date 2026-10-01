@@ -1,77 +1,31 @@
+"""Descriptive research availability with retained evidence and no model calls.
+
+The twelve existing inputs remain complete acquisition attempts. Their bodies
+and compiler bytes are retained under the protected evidence prefix before a
+conditional current-head write. No donor grants a forecast or portfolio vote.
+Legacy public hourly archives remain untouched; new immutable replay records
+use the protected content-addressed store. Native schedules are preserved.
 """
-justhodl-ai-website-synthesis
-══════════════════════════════
-Reads 12+ major engine outputs from S3 and calls Claude (haiku-4-5) to
-produce a CROSS-ENGINE synthesis: a unified narrative + per-page
-slug that the entire website surfaces via a global JS widget.
-
-OUTPUT: s3://justhodl-dashboard-live/data/ai-website-synthesis.json
-
-SCHEMA
-══════
-{
-  "schema_version":   "1.0",
-  "generated_at":     "...",
-  "model":            "claude-haiku-4-5-20251001",
-  "snapshot_age_min": {engine: minutes},
-  "synthesis": {
-      "global_posture":      RISK_ON | NEUTRAL | RISK_OFF | DEFENSIVE | EXTREME,
-      "headline":            "single sentence what's happening",
-      "thesis":              "3-4 sentence cross-engine read",
-      "key_drivers":         ["..."],            # top 3-5 things moving
-      "key_dissonances":     ["..."],            # signals contradicting each other
-      "decisive_call":       "...",              # 1-line action
-      "watch_list":          ["..."],            # what to monitor next 24h
-      "per_page_focus": {                        # what each page should highlight
-          "auction-crisis":  "...",
-          "macro-frontrun":  "...",
-          "crisis":          "...",
-          "bonds":           "...",
-          "repo":            "...",
-          "regime":          "...",
-          "correlation":     "...",
-          "sentiment":       "...",
-          "volatility":      "..."
-      }
-  }
-}
-
-DESIGN
-══════
-- One Claude API call per invocation (~30-60s)
-- 12-engine read in parallel via ThreadPoolExecutor
-- Stale engines (>4h) flagged but not blocking
-- Schedule: hourly cron at 25min past
-- Fail-soft: writes degraded payload with status=error on any failure
-- Archives every output to data/archive/ai-website-synthesis/YYYYMMDD_HH.json
-"""
-import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
-import json
-import os
-import re
-import sys
-import time
-import urllib.request
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
-
+from pathlib import Path
+from datetime import datetime,timezone
+from concurrent.futures import ThreadPoolExecutor
+import hashlib,json
 import boto3
-from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+from botocore.config import Config
+import context_evidence_store
+from context_evidence_store import ContextStore
+import research_status
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-try:
-    from _sentry_lite import track_errors  # noqa
-except ImportError:
-    pass
+S3_BUCKET="justhodl-dashboard-live"
+OUTPUT_KEY="data/ai-website-synthesis.json"
+MODEL="deterministic-research-status-v1"
+CONTRACT="website-research-status.v1"
+PRIVATE="audit-private/20260909-originals/website-research-status/"
+PRIOR_STATE_KEY="data/_alerts/website-synthesis-state.json"  # Retained identity; never read or written.
+LEGACY_ARCHIVE_PREFIX="data/archive/ai-website-synthesis/"  # Retained history; never overwritten.
+SYSTEM_PROMPT="Model synthesis is disabled. Research availability cannot authorize an investment action."
+s3=None
 
-S3_BUCKET = "justhodl-dashboard-live"
-OUTPUT_KEY = "data/ai-website-synthesis.json"
-MODEL = "claude-haiku-4-5-20251001"
-ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-
-s3 = boto3.client("s3", region_name="us-east-1")
-
-# ─── Engine inputs — distilled views of the most important state ───
 ENGINE_INPUTS = {
     "signal_board":     {"key": "data/signal-board.json",
                            "fields": ["composite_posture", "composite_signal",
@@ -105,388 +59,120 @@ ENGINE_INPUTS = {
                            "fields": ["regime", "vix", "vvix", "move"]},
 }
 
-
-# ═════════════════════════════════════════════════════════════════════
-# Prompt engineering
-# ═════════════════════════════════════════════════════════════════════
-
-SYSTEM_PROMPT = """You are the senior strategist running cross-engine \
-synthesis for an institutional financial intelligence platform. The \
-platform has 50+ specialized engines (auction crisis, macro front-run, \
-credit spreads, repo stress, regime, correlations, sentiment, vol, \
-liquidity, etc.). Your job is to read the LATEST outputs from 12 of \
-the most decision-critical engines and produce a SINGLE COHERENT \
-narrative that tells the user: what is happening across markets right \
-now, what's the dominant theme, where are signals AGREEING (high \
-conviction) vs DISAGREEING (uncertainty), what to do.
-
-STYLE RULES
-───────────
-- Direct, decisive, no hedging
-- Plain English, NOT bureaucratic
-- Reference specific engine readings to support claims
-- Highlight DISSONANCES between engines (the most diagnostic feature)
-- Make a CALL even when uncertain
-- Each section is concise (executive summary 3 sentences max)
-- NO preambles like "Here is the analysis"
-- The decisive_call MUST be a single sentence prescribing concrete action
-
-OUTPUT FORMAT — pure JSON, no markdown, no preamble
-═══════════════════════════════════════════════════
-{
-  "global_posture":       "RISK_ON | NEUTRAL | RISK_OFF | DEFENSIVE | EXTREME",
-  "headline":             "single sentence — what's the dominant story",
-  "thesis":               "3-4 sentence cross-engine read on what's actually happening",
-  "key_drivers":          ["...", "...", "..."],
-  "key_dissonances":      ["...", "..."],
-  "decisive_call":        "single concrete action sentence",
-  "watch_list":           ["...", "...", "..."],
-  "per_page_focus": {
-      "auction-crisis":   "1 sentence — what this page reveals right now",
-      "macro-frontrun":   "...",
-      "crisis":           "...",
-      "bonds":            "...",
-      "repo":             "...",
-      "regime":           "...",
-      "correlation":      "...",
-      "sentiment":        "...",
-      "volatility":       "..."
-  }
-}
-
-The per_page_focus entries are what the global insights widget will \
-display when the user is on that page — make them sharp and useful.
-"""
+def call_anthropic(*args,**kwargs):
+    raise RuntimeError("All model requests are disabled for this producer")
 
 
-def build_user_prompt(snapshots: dict) -> str:
-    """Format engine snapshots into a structured user prompt."""
-    parts = ["# Cross-Engine Market Snapshot — right now\n"]
-    parts.append(f"Generated at: {datetime.now(timezone.utc).isoformat()}\n")
-
-    for engine_name, snap in snapshots.items():
-        if not snap or snap.get("_error"):
-            parts.append(f"\n## {engine_name.upper()} — UNAVAILABLE")
-            if snap and snap.get("_error"):
-                parts.append(f"  Error: {snap['_error']}")
-            continue
-        age_min = snap.get("_age_min", "?")
-        parts.append(f"\n## {engine_name.upper()} (age: {age_min}min)")
-        for k, v in snap.items():
-            if k.startswith("_"):
-                continue
-            if isinstance(v, (dict, list)):
-                # Truncate nested structures for prompt density
-                s = json.dumps(v, default=str)
-                if len(s) > 600:
-                    s = s[:600] + "..."
-                parts.append(f"  {k}: {s}")
-            else:
-                parts.append(f"  {k}: {v}")
-
-    parts.append("\n\nProduce the JSON cross-engine synthesis per the system prompt format.")
-    return "\n".join(parts)
+def send_telegram(*args,**kwargs):
+    return False
 
 
-def call_anthropic(system: str, user: str, max_tokens: int = 4000) -> str:
-    """Call Anthropic API, return the text response."""
-    if not ANTHROPIC_KEY:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in env")
-    payload = json.dumps({
-        "model": MODEL,
-        "max_tokens": max_tokens,
-        "system": system,
-        "messages": [{"role": "user", "content": user}],
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=payload,
-        headers={
-            "Content-Type":     "application/json",
-            "x-api-key":        ANTHROPIC_KEY,
-            "anthropic-version": "2023-06-01",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=90) as r:
-        data = json.loads(r.read().decode("utf-8"))
-    if not data.get("content"):
-        raise RuntimeError(f"Empty response: {data}")
-    text = ""
-    for block in data["content"]:
-        if block.get("type") == "text":
-            text += block.get("text", "")
-    return text.strip()
+def maybe_alert_posture_change(*args,**kwargs):
+    return {"sent":False,"reason":"unqualified_research_status"}
 
 
-def extract_json(text: str) -> dict:
-    """Extract first balanced JSON object from response."""
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
-    text = re.sub(r"\s*```\s*$", "", text.strip(), flags=re.MULTILINE)
-    depth = 0
-    start = -1
-    for i, ch in enumerate(text):
-        if ch == "{":
-            if depth == 0:
-                start = i
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0 and start >= 0:
-                candidate = text[start:i+1]
-                try:
-                    return json.loads(candidate)
-                except json.JSONDecodeError:
-                    continue
-    return json.loads(text)
+def extract_json(text):
+    return context_evidence_store.strict(text.encode('utf-8'))
 
 
-# ═════════════════════════════════════════════════════════════════════
-# Engine data fetching
-# ═════════════════════════════════════════════════════════════════════
+def _client():
+    return boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))
 
-def fetch_engine(engine_name: str, spec: dict) -> tuple:
-    """Fetch a single engine output, return (name, distilled_dict)."""
-    key = spec["key"]
-    fields = spec["fields"]
+
+def _metadata(raw,encoding=''):
+    meta={'read_status':'malformed','body_sha256':hashlib.sha256(raw).hexdigest(),'body_bytes':len(raw)}
     try:
-        obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-        d = json.loads(obj["Body"].read())
-        if engine_name == "bonds":
-            return engine_name, {
-                "_error": "Bond TRACE remains unqualified descriptive research; it has no decision or sizing authority.",
-                "_age_min": None,
-            }
-        if key == "data/signal-board.json":
-            return engine_name, __import__("signal_board_authority").context(d)
-        if engine_name == "global_stress":
-            d = __import__("gsi_authority").decision_view(d)
-        last_modified = obj["LastModified"]
-        age_s = (datetime.now(timezone.utc) - last_modified).total_seconds()
-        age_min = round(age_s / 60, 1)
-        # Distill — keep only specified fields
-        distilled = {"_age_min": age_min, "_stale": age_s > 14400}  # >4h
-        for f in fields:
-            if f in d:
-                v = d[f]
-                # Heavy truncation for nested objects to keep prompt under 30K tokens
-                if isinstance(v, list) and len(v) > 5:
-                    v = v[:5]
-                elif isinstance(v, dict) and len(v) > 10:
-                    # Keep first 10 keys
-                    v = dict(list(v.items())[:10])
-                distilled[f] = v
-        return engine_name, distilled
-    except s3.exceptions.NoSuchKey:
-        return engine_name, {"_error": "engine output not found in S3", "_age_min": None}
-    except Exception as e:
-        return engine_name, {"_error": str(e)[:140], "_age_min": None}
+        packet=context_evidence_store.strict(raw,encoding)
+        if not isinstance(packet,dict):return meta,None
+        status=packet.get('status')
+        reported_error=(isinstance(status,str) and status.lower() in ('error','failed','failure','unavailable')) or bool(packet.get('error'))
+        meta.update(read_status='reported_error' if reported_error else 'parsed',reported_generated_at=packet.get('generated_at'),reported_as_of=packet.get('as_of'))
+        return meta,packet
+    except (ValueError,TypeError,OverflowError,UnicodeError,RecursionError):return meta,None
 
 
-def fetch_all_engines() -> dict:
-    """Parallel fetch all 12 engine outputs."""
-    snapshots = {}
-    with ThreadPoolExecutor(max_workers=12) as ex:
-        futures = {ex.submit(fetch_engine, name, spec): name
-                    for name, spec in ENGINE_INPUTS.items()}
-        for fut in as_completed(futures, timeout=60):
-            try:
-                name, snap = fut.result()
-                snapshots[name] = snap
-            except Exception as e:
-                name = futures[fut]
-                snapshots[name] = {"_error": str(e)[:140]}
-    return snapshots
+def _context(name,raw,encoding=''):
+    meta,packet=_metadata(raw,encoding)
+    out={'_availability':meta,'_age_min':None,'status':'ABSTAIN',
+         'current_observation_freshness_verified_by_consumer':False,
+         **dict.fromkeys(research_status.FLAGS,False)}
+    if name=='signal_board':
+        # Preserve the shared decision boundary, never serialize donor scores.
+        boundary=__import__('signal_board_authority').context(packet)
+        assert boundary['status']=='ABSTAIN' and boundary['calls_eligible'] is False
+    elif name=='global_stress':
+        boundary=__import__('gsi_authority').decision_view(packet)
+        assert boundary['calls_eligible'] is False
+    if name=='bonds':out['_error']='Bond TRACE remains unqualified descriptive research.'
+    return out
 
 
-# ═════════════════════════════════════════════════════════════════════
-# Telegram notification on regime change
-# ═════════════════════════════════════════════════════════════════════
-
-TELEGRAM_TOKEN = managed_secret(('TELEGRAM_TOKEN', 'TELEGRAM_BOT_TOKEN'), ("/justhodl/telegram/bot_token",))
-TELEGRAM_CHAT_ID = "8678089260"
-PRIOR_STATE_KEY  = "data/_alerts/website-synthesis-state.json"
-
-
-def send_telegram(text: str) -> bool:
-    """Send Markdown msg via Telegram. Returns success bool."""
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = json.dumps({
-        "chat_id": TELEGRAM_CHAT_ID, "text": text,
-        "parse_mode": "Markdown", "disable_web_page_preview": True,
-    }).encode("utf-8")
+def fetch_engine(engine_name,spec):
+    """Compatibility accessor: complete bounded artifact metadata, no scores."""
+    if engine_name not in ENGINE_INPUTS or spec.get('key')!=ENGINE_INPUTS[engine_name]['key']:
+        raise ValueError('Undeclared research input')
+    client=s3 if s3 is not None else _client()
     try:
-        req = urllib.request.Request(url, data=payload,
-                                        headers={"Content-Type": "application/json"},
-                                        method="POST")
-        with urllib.request.urlopen(req, timeout=10) as r:
-            return bool(json.loads(r.read())["ok"])
-    except Exception as e:
-        print(f"[telegram] err: {e}")
-        return False
+        obj=client.get_object(Bucket=S3_BUCKET,Key=spec['key']);stream=obj['Body']
+        try:raw=stream.read(context_evidence_store.MAX_BYTES+1)
+        finally:stream.close()
+        if len(raw)>context_evidence_store.MAX_BYTES:
+            return engine_name,{'_availability':{'read_status':'oversize'},'_age_min':None,'status':'ABSTAIN','current_observation_freshness_verified_by_consumer':False}
+        if type(obj.get('ContentLength')) is not int or obj['ContentLength']!=len(raw):raise ValueError('Incomplete artifact')
+        return engine_name,_context(engine_name,raw,str(obj.get('ContentEncoding') or '').strip().lower())
+    except Exception as exc:
+        state='missing' if context_evidence_store.code(exc) in ('404','NoSuchKey') else 'unavailable'
+        return engine_name,{'_availability':{'read_status':state},'_age_min':None,'status':'ABSTAIN','current_observation_freshness_verified_by_consumer':False,**dict.fromkeys(research_status.FLAGS,False)}
 
 
-def maybe_alert_posture_change(synthesis: dict) -> dict:
-    """If global_posture changed since last run, send a Telegram alert."""
-    cur_posture = synthesis.get("global_posture")
-    if not cur_posture:
-        return {"sent": False, "reason": "no_posture"}
-
-    prior_posture = None
-    try:
-        obj = s3.get_object(Bucket=S3_BUCKET, Key=PRIOR_STATE_KEY)
-        prior = json.loads(obj["Body"].read())
-        prior_posture = prior.get("global_posture")
-    except s3.exceptions.NoSuchKey:
-        pass
-    except Exception as e:
-        print(f"[alert] state load err: {e}")
-
-    sent = False
-    reason = "no_change"
-    if prior_posture is None:
-        # First run — send init message
-        msg = (f"🆕 *Website-Wide AI Synthesis ONLINE*\n\n"
-                f"Global posture: *{cur_posture}*\n\n"
-                f"_{synthesis.get('headline', '')}_\n\n"
-                f"🔗 [Dashboard](https://justhodl.ai/)")
-        sent = send_telegram(msg)
-        reason = "system_initialized"
-    elif prior_posture != cur_posture:
-        # Posture transition
-        severity_rank = {"RISK_ON": 0, "NEUTRAL": 1, "RISK_OFF": 2,
-                          "DEFENSIVE": 3, "EXTREME": 4}
-        prev_rank = severity_rank.get(prior_posture, 2)
-        cur_rank = severity_rank.get(cur_posture, 2)
-        arrow = "⬆️" if cur_rank > prev_rank else "⬇️"
-        emoji = "🚨" if cur_rank > prev_rank else "✅"
-        msg = (f"{emoji} *Cross-Engine Posture Change* {arrow}\n\n"
-                f"*{prior_posture} → {cur_posture}*\n\n"
-                f"_{synthesis.get('headline', '')}_\n\n"
-                f"_Decisive call_: {synthesis.get('decisive_call', '')[:300]}\n\n"
-                f"🔗 [Dashboard](https://justhodl.ai/)")
-        sent = send_telegram(msg)
-        reason = f"posture_transition_{prior_posture}_to_{cur_posture}"
-
-    # Save current state
-    try:
-        s3.put_object(
-            Bucket=S3_BUCKET, Key=PRIOR_STATE_KEY,
-            Body=json.dumps({
-                "global_posture": cur_posture,
-                "snapshot_at":   datetime.now(timezone.utc).isoformat(),
-            }, default=str),
-            ContentType="application/json",
-        )
-    except Exception as e:
-        print(f"[alert] state save err: {e}")
-
-    return {"sent": sent, "reason": reason,
-            "prior": prior_posture, "current": cur_posture}
+def fetch_all_engines():
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        return dict(pool.map(lambda pair:fetch_engine(*pair),ENGINE_INPUTS.items()))
 
 
-# ═════════════════════════════════════════════════════════════════════
-# Lambda handler
-# ═════════════════════════════════════════════════════════════════════
-
-def lambda_handler(event, context):
-    t0 = time.time()
-    print(f"[website-synthesis] start {datetime.now(timezone.utc).isoformat()}")
-
-    # 1. Fetch all engine snapshots in parallel
-    print("[ws] phase 1: fetch 12 engines in parallel…")
-    snapshots = fetch_all_engines()
-    engines_ok = sum(1 for v in snapshots.values() if v and not v.get("_error"))
-    print(f"[ws] {engines_ok}/{len(ENGINE_INPUTS)} engines loaded")
-
-    if engines_ok < 4:
-        return _write_error(
-            f"Too few engines loaded ({engines_ok}/{len(ENGINE_INPUTS)})",
-            snapshots=snapshots,
-        )
-
-    # 2. Build prompt + call Claude
-    user_prompt = build_user_prompt(snapshots)
-    print(f"[ws] prompt {len(user_prompt)} chars")
-
-    try:
-        t_claude = time.time()
-        response_text = call_anthropic(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
-        claude_elapsed = round(time.time() - t_claude, 2)
-        print(f"[ws] Claude response in {claude_elapsed}s, {len(response_text)} chars")
-    except Exception as e:
-        return _write_error(f"Claude error: {e}", snapshots=snapshots)
-
-    # 3. Parse JSON
-    try:
-        synthesis = extract_json(response_text)
-    except Exception as e:
-        return _write_error(f"JSON parse error: {e}",
-                             raw_response_preview=response_text[:500])
-
-    # 4. Validate
-    if "global_posture" not in synthesis or "headline" not in synthesis:
-        return _write_error("Missing required keys in AI response",
-                             partial=synthesis)
-
-    # 5. Build output + write
-    snapshot_age_summary = {
-        n: (s.get("_age_min") if s else None)
-        for n, s in snapshots.items()
-    }
-    output = {
-        "schema_version":   "1.0",
-        "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "model":            MODEL,
-        "elapsed_sec":      round(time.time() - t0, 2),
-        "claude_elapsed_sec": claude_elapsed,
-        "engines_loaded":   engines_ok,
-        "engines_total":    len(ENGINE_INPUTS),
-        "snapshot_age_min": snapshot_age_summary,
-        "synthesis":        synthesis,
-    }
-    body = json.dumps(output, indent=2, default=str)
-    s3.put_object(
-        Bucket=S3_BUCKET, Key=OUTPUT_KEY, Body=body,
-        ContentType="application/json", CacheControl="max-age=900",
-    )
-    archive_key = (f"data/archive/ai-website-synthesis/"
-                    f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H')}.json")
-    s3.put_object(Bucket=S3_BUCKET, Key=archive_key, Body=body,
-                    ContentType="application/json")
-
-    # 6. Maybe send Telegram alert on posture change
-    alert_info = maybe_alert_posture_change(synthesis)
-    output["alert_info"] = alert_info
-
-    summary = {
-        "status":             "ok",
-        "elapsed_sec":        output["elapsed_sec"],
-        "claude_elapsed":     claude_elapsed,
-        "engines_loaded":     f"{engines_ok}/{len(ENGINE_INPUTS)}",
-        "global_posture":     synthesis.get("global_posture"),
-        "headline":           (synthesis.get("headline") or "")[:140],
-        "alert_sent":         alert_info.get("sent"),
-        "alert_reason":       alert_info.get("reason"),
-    }
-    print(f"[website-synthesis] done: {summary}")
-    return {"statusCode": 200, "body": json.dumps(summary)}
+def build_user_prompt(snapshots):
+    # Compatibility-only diagnostic, never dispatched to a provider.
+    lines=['Research availability only. All investment votes remain withheld.']
+    for name in ENGINE_INPUTS:
+        snap=snapshots.get(name,{}) if isinstance(snapshots,dict) else {}
+        state=(snap.get('_availability') or {}).get('read_status','unavailable') if isinstance(snap,dict) else 'unavailable'
+        lines.append(name.upper()+' — UNAVAILABLE' if name=='bonds' else name.upper()+': '+(state if state in research_status.READ_STATES else 'unavailable'))
+    return '\n'.join(lines)
 
 
-def _write_error(message: str, **extras) -> dict:
-    """Write degraded payload."""
-    payload = {
-        "schema_version": "1.0",
-        "generated_at":   datetime.now(timezone.utc).isoformat(),
-        "status":         "error",
-        "error":          message,
-        **extras,
-    }
-    try:
-        s3.put_object(Bucket=S3_BUCKET, Key=OUTPUT_KEY,
-                        Body=json.dumps(payload, default=str, indent=2),
-                        ContentType="application/json", CacheControl="max-age=300")
-    except Exception as e:
-        print(f"[ws] error-payload write fail: {e}")
-    print(f"[website-synthesis] ERROR: {message}")
-    return {"statusCode": 500, "body": json.dumps({"status": "error", "error": message})}
+def _project(attempts,sources,generated_at):
+    snapshots={}
+    for name,spec in ENGINE_INPUTS.items():
+        attempt=attempts.get(name)
+        if not isinstance(attempt,dict) or attempt.get('source_key')!=spec['key']:raise ValueError('Complete fixed input inventory required')
+        if attempt.get('status')!='received':
+            snapshots[name]={'_availability':{'read_status':'unavailable'}};continue
+        ref=context_evidence_store.validate_ref(attempt.get('original_ref'),PRIVATE,'sources')
+        raw=sources.get(ref['key'])
+        if not isinstance(raw,bytes) or len(raw)!=ref['bytes'] or context_evidence_store.sha(raw)!=ref['sha256']:raise ValueError('Exact retained input required')
+        snapshots[name]=_context(name,raw,attempt.get('content_encoding',''))
+    output=research_status.compile_status(ENGINE_INPUTS,snapshots,generated_at,context_evidence_store.sha(Path(__file__).read_bytes()))
+    output['measurement_contract']=CONTRACT
+    output['model_requests']=0;output['notifications_sent']=0;output['claude_elapsed_sec']=None
+    output['archive_policy']={'legacy_hourly_prefix':LEGACY_ARCHIVE_PREFIX,'legacy_history_untouched':True,'new_records':'Protected content-addressed evidence store; see replay references.'}
+    output['replay_scope']='Retained donor artifact bytes, acquisition attempts and exact compiler sources support replay of availability and abstention only. Original provider measurement evidence and forecasting have not been qualified.'
+    return output
+
+
+def _write_error(message,**extras):
+    # Never overwrite current research with an error or claim Lambda success.
+    raise RuntimeError('Research status acquisition or publication failed')
+
+
+def lambda_handler(event,context):
+    # Caller payload cannot alter data keys, compiler paths, output or policy.
+    here=Path(__file__).resolve().parent
+    store=ContextStore(_client(),S3_BUCKET,OUTPUT_KEY,{name:spec['key'] for name,spec in ENGINE_INPUTS.items()},PRIVATE,CONTRACT,
+        {'lambda_function.py':here/'lambda_function.py','research_status.py':here/'research_status.py',
+         'context_evidence_store.py':Path(context_evidence_store.__file__),
+         'signal_board_authority.py':Path(__import__('signal_board_authority').__file__),
+         'gsi_authority.py':Path(__import__('gsi_authority').__file__)},acquisition_budget_s=60,publication_budget_s=150)
+    packet,ref=store.publish(_project)
+    return {'statusCode':200,'body':json.dumps({'status':'unqualified','generated_at':packet['generated_at'],
+        'contract':CONTRACT,'engines_loaded':packet['engines_loaded'],'engines_total':len(ENGINE_INPUTS),
+        'global_posture':'WAIT','call':None,'output_sha256':ref['sha256'],'model_requests':0,'notifications_sent':0})}

@@ -1,25 +1,23 @@
 from pathlib import Path
-from datetime import datetime,timezone
-from unittest.mock import patch
-import ast,copy,io,json,runpy,sys,types,unittest
-R=Path(__file__).resolve().parents[4]
-def run(packet,engine='bonds',legacy=False):
- class S3:
-  class exceptions:NoSuchKey=KeyError
-  def get_object(self,**kw):return {'Body':io.BytesIO(json.dumps(packet).encode()),'LastModified':datetime.now(timezone.utc)}
- fake=types.ModuleType('boto3');fake.client=lambda *a,**kw:S3()
- secret=types.ModuleType('managed_secret');secret.managed_secret=lambda *a,**kw:''
- source=R/'tests/fixtures/bond-trace-contract/pre512/aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py.txt' if legacy else R/'aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py'
- with patch.dict(sys.modules,{'boto3':fake,'managed_secret':secret,'anthropic_shim':types.ModuleType('anthropic_shim'),'_sentry_lite':types.ModuleType('_sentry_lite')}),patch('urllib.request.urlopen',side_effect=AssertionError('No network or model allowed')):
-  mod=runpy.run_path(str(source));result=mod['fetch_engine'](engine,{'key':'data/bond-trace.json','fields':['regime','quality','calls_eligible']});prompt=mod['build_user_prompt']({result[0]:result[1]})
- return result,prompt
+import ast,json,sys,unittest
+R=Path(__file__).resolve().parents[4];sys.path.insert(0,str(R/'tests'))
+from synthesis_status_test_support import Memory,load
+
 class Synthesis(unittest.TestCase):
  def test_legacy_and_candidate_bond_packets_never_gain_decision_authority(self):
   for packet in [{'regime':'CALM'},{'regime':'BOND_PANIC','calls_eligible':False,'quality':{'status':'unqualified'}},{'regime':'CALM','calls_eligible':True,'quality':{'status':'fresh'}}]:
-   result,prompt=run(packet);self.assertIn('_error',result[1]);self.assertIn('BONDS — UNAVAILABLE',prompt);self.assertNotIn(packet['regime'],prompt)
- def test_other_contexts_unchanged(self):
-  packet={'regime':'invented description','quality':{'status':'unqualified'}};candidate,prompt=run(packet,'invented_engine');previous,_=run(packet,'invented_engine',True);candidate[1].pop('_age_min');previous[1].pop('_age_min');self.assertEqual(candidate,previous)
- def test_only_fetch_engine_executable_ast_changes(self):
-  def funcs(p):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(p.read_bytes()).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
-  old=funcs(R/'tests/fixtures/bond-trace-contract/pre512/aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py.txt');new=funcs(R/'aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py');self.assertEqual(set(old),set(new));self.assertEqual([k for k in old if old[k]!=new[k]],['fetch_engine'])
+   mem=Memory();mod,_=load(mem);mem.objects['data/bond-trace.json']=json.dumps(packet).encode();mod.s3=mem
+   name,snap=mod.fetch_engine('bonds',mod.ENGINE_INPUTS['bonds']);prompt=mod.build_user_prompt({name:snap})
+   self.assertIn('_error',snap);self.assertIn('BONDS — UNAVAILABLE',prompt);self.assertNotIn(packet['regime'],prompt);self.assertFalse(snap['calls_eligible'])
+ def test_all_other_declared_contexts_remain_present_and_withhold_votes(self):
+  mem=Memory();mod,_=load(mem);mod.s3=mem
+  for name,spec in mod.ENGINE_INPUTS.items():
+   mem.objects[spec['key']]=b'{"regime":"invented description","calls_eligible":true}'
+   returned,snap=mod.fetch_engine(name,spec);self.assertEqual(returned,name);self.assertEqual(snap['_availability']['read_status'],'parsed');self.assertFalse(snap['calls_eligible']);self.assertNotIn('regime',snap)
+ def test_predecessor_functions_preserved_as_explicit_safe_compatibility_entrypoints(self):
+  old=ast.parse((R/'tests/fixtures/website-research-status/pre513/aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py.txt').read_bytes());new=ast.parse((R/'aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py').read_bytes())
+  names=lambda tree:{n.name for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
+  self.assertFalse(names(old)-names(new));mem=Memory();mod,_=load(mem)
+  with self.assertRaises(RuntimeError):mod.call_anthropic('s','u')
+  self.assertFalse(mod.send_telegram('invented'));self.assertEqual(mem.clients,[])
 if __name__=='__main__':unittest.main()

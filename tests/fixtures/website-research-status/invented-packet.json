@@ -1,0 +1,256 @@
+{
+  "acquisition_started_at": "2026-10-01T13:53:44.871427+00:00",
+  "alert_info": {
+    "reason": "unqualified_research_status",
+    "sent": false
+  },
+  "archive_policy": {
+    "legacy_history_untouched": true,
+    "legacy_hourly_prefix": "data/archive/ai-website-synthesis/",
+    "new_records": "Protected content-addressed evidence store; see replay references."
+  },
+  "call": null,
+  "calls_eligible": false,
+  "claude_elapsed_sec": null,
+  "contract": "website-research-status.v1",
+  "decision": {
+    "abstain": true,
+    "action": "WAIT",
+    "eligible_votes": 0,
+    "portfolio_effect": null
+  },
+  "engines_loaded": 12,
+  "engines_total": 12,
+  "execution_eligible": false,
+  "forecast_qualified": false,
+  "generated_at": "2026-10-01T13:53:44.872429+00:00",
+  "input_status": {
+    "auction_crisis": {
+      "artifact": "data/auction-crisis.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "auction_crisis_ai": {
+      "artifact": "data/auction-crisis-ai.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "bonds": {
+      "artifact": "data/bond-trace.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "correlations": {
+      "artifact": "data/correlations.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "crisis_brief": {
+      "artifact": "data/crisis-brief.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "global_stress": {
+      "artifact": "data/global-stress.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "macro_frontrun": {
+      "artifact": "data/macro-frontrun-sniffer.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "regime": {
+      "artifact": "data/regime.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "repo": {
+      "artifact": "data/repo.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "sentiment": {
+      "artifact": "data/sentiment.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "signal_board": {
+      "artifact": "data/signal-board.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    },
+    "volatility": {
+      "artifact": "data/vol-radar.json",
+      "body_bytes": 87,
+      "body_sha256": "65ac830335553ba3890d51d4eaef3efc1f11cb8a5e6046110145a3d7fefaa787",
+      "decision_eligible": false,
+      "observation_freshness_verified": false,
+      "original_source_evidence_verified": false,
+      "read_status": "parsed",
+      "reported_as_of": "2026-09-30",
+      "reported_generated_at": "2026-10-01T12:00:00+00:00",
+      "storage_last_modified": null
+    }
+  },
+  "input_status_sha256": "48fd23f45ebbb9c570caa3f3ac24cb750af1b95e7e1ceeed8a18da8be6fc15f1",
+  "measurement_contract": "website-research-status.v1",
+  "model": "deterministic-research-status-v1",
+  "model_requests": 0,
+  "notifications_sent": 0,
+  "producer_source_sha256": "992b9567cb5a4cdf3f486a583b69ed50f9c79f0fa27a7d73ee5666a22ca2b992",
+  "replay": {
+    "input_ref": {
+      "bytes": 6940,
+      "key": "audit-private/20260909-originals/website-research-status/inputs/6724e4671af3ab5c422601066c2c7c1f124162d597ae6ac2c5df038bac6f56fe.bin",
+      "sha256": "6724e4671af3ab5c422601066c2c7c1f124162d597ae6ac2c5df038bac6f56fe"
+    },
+    "originals_public": false,
+    "previous_publication": null,
+    "source_files": {
+      "context_evidence_store.py": {
+        "bytes": 8815,
+        "key": "audit-private/20260909-originals/website-research-status/compilers/d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7.bin",
+        "sha256": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7"
+      },
+      "gsi_authority.py": {
+        "bytes": 2557,
+        "key": "audit-private/20260909-originals/website-research-status/compilers/c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef.bin",
+        "sha256": "c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef"
+      },
+      "lambda_function.py": {
+        "bytes": 10244,
+        "key": "audit-private/20260909-originals/website-research-status/compilers/992b9567cb5a4cdf3f486a583b69ed50f9c79f0fa27a7d73ee5666a22ca2b992.bin",
+        "sha256": "992b9567cb5a4cdf3f486a583b69ed50f9c79f0fa27a7d73ee5666a22ca2b992"
+      },
+      "research_status.py": {
+        "bytes": 5238,
+        "key": "audit-private/20260909-originals/website-research-status/compilers/fa5ac6378a3d4dea68e2beead20238473830109cb0431e04d543fb1e237372fc.bin",
+        "sha256": "fa5ac6378a3d4dea68e2beead20238473830109cb0431e04d543fb1e237372fc"
+      },
+      "signal_board_authority.py": {
+        "bytes": 1892,
+        "key": "audit-private/20260909-originals/website-research-status/compilers/075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183.bin",
+        "sha256": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183"
+      }
+    }
+  },
+  "replay_scope": "Retained donor artifact bytes, acquisition attempts and exact compiler sources support replay of availability and abstention only. Original provider measurement evidence and forecasting have not been qualified.",
+  "schema_version": "2.0",
+  "sizing_eligible": false,
+  "snapshot_age_min": {
+    "auction_crisis": null,
+    "auction_crisis_ai": null,
+    "bonds": null,
+    "correlations": null,
+    "crisis_brief": null,
+    "global_stress": null,
+    "macro_frontrun": null,
+    "regime": null,
+    "repo": null,
+    "sentiment": null,
+    "signal_board": null,
+    "volatility": null
+  },
+  "status": "unqualified",
+  "synthesis": {
+    "decisive_call": "WAIT \u2014 abstain from a new portfolio recommendation until the underlying evidence and portfolio constraints are qualified.",
+    "global_posture": "WAIT",
+    "headline": "Research status: 12 of 12 input artifacts parsed; no investment vote is qualified.",
+    "key_dissonances": [],
+    "key_drivers": [],
+    "per_page_focus": {
+      "auction-crisis": "Descriptive research only; 2 of 2 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "bonds": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "correlation": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "crisis": "Descriptive research only; 2 of 2 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "macro-frontrun": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "regime": "Descriptive research only; 2 of 2 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "repo": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "sentiment": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified.",
+      "volatility": "Descriptive research only; 1 of 1 associated input artifacts parsed. Source evidence and decision eligibility remain unverified."
+    },
+    "thesis": "This deterministic status report records artifact availability. Parsing and storage publication times do not establish current source observations, independent evidence, a forecast edge or a suitable portfolio action.",
+    "watch_list": [
+      "Review original observation dates and source evidence.",
+      "Validate independent inputs and outcomes before any position-sizing decision."
+    ]
+  }
+}

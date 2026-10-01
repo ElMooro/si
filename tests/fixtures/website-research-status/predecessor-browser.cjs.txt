@@ -1,0 +1,18 @@
+const {chromium}=require('playwright');const fs=require('fs'),path=require('path'),assert=require('assert/strict'),crypto=require('crypto');
+const W=__dirname,source=path.join(W,'si-batch-improvements','jh-ai-insights.js'),out=path.join(W,'stage513-widget-predecessor');fs.mkdirSync(out,{recursive:true});
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true}),cases=[];try{
+ for(const width of [1440,390]){
+  const context=await browser.newContext({viewport:{width,height:950}}),page=await context.newPage(),network=[];await context.route('**/*',route=>{network.push(route.request().url());return route.abort();});
+  await page.setContent('<!doctype html><html><body style="background:#080d17;color:white"><h1>Invented predecessor fixture</h1></body></html>');
+  await page.evaluate(()=>{const store=new Map();Object.defineProperty(window,'sessionStorage',{value:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v),removeItem:k=>store.delete(k)}});window.__requests=[];window.fetch=()=>new Promise(resolve=>window.__requests.push(resolve));});
+  await page.addScriptTag({path:source});await page.waitForFunction(()=>window.__requests.length===1);
+  await page.evaluate(()=>window.__requests[0]({ok:true,json:async()=>({generated_at:'2099-01-01T00:00:00Z',synthesis:{headline:'Wholly invented input without a posture'}})}));
+  await page.locator('.jhi-fab').click();await page.waitForFunction(()=>document.querySelector('.jhi-posture .val')?.textContent==='NEUTRAL');
+  assert.equal(await page.locator('.jhi-panel .age').textContent(),'now');assert.match(await page.locator('.jhi-footer').innerText(),/claude/);
+  const screenshot=path.join(out,'missing-posture-'+width+'.png');await page.screenshot({path:screenshot,fullPage:true});
+  await page.evaluate(()=>window.JHInsights.refresh());await page.waitForFunction(()=>window.__requests.length===2);
+  await page.evaluate(()=>window.__requests[1]({ok:true,json:async()=>({generated_at:'2099-01-01T00:00:00Z',synthesis:{global_posture:'RISK_OFF',headline:'Wholly invented refresh'}})}));
+  await page.waitForFunction(()=>document.querySelector('.jhi-posture .val')?.textContent==='RISK OFF');assert.match(await page.locator('.jhi-fab').innerText(),/AI READ/);
+  assert.deepEqual(network,[]);cases.push({width,missing_posture_promoted_to_neutral:true,future_publication_labeled_now:true,hardcoded_paid_model_label:true,fab_did_not_update_on_refresh:true,screenshot,actual_network_requests:0});await context.close();
+ }
+}finally{await browser.close();}const record={source_sha256:crypto.createHash('sha256').update(fs.readFileSync(source)).digest('hex'),wholly_invented_inputs:true,cases};fs.writeFileSync(path.join(out,'reproduction.json'),JSON.stringify(record,null,2)+'\n');console.log(JSON.stringify(record));})().catch(e=>{console.error(e);process.exitCode=1;});

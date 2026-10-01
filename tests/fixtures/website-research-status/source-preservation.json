@@ -1,0 +1,50 @@
+{
+  "preserved": {
+    "aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py": {
+      "path": "tests/fixtures/website-research-status/pre513/aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py.txt",
+      "bytes": 21497,
+      "sha256": "1a800d4069b4699bc7fa29d3b4d2672bdfd0851e932f9f2b3518eae1f7cfae72"
+    },
+    "aws/lambdas/justhodl-ai-website-synthesis/config.json": {
+      "path": "tests/fixtures/website-research-status/pre513/aws/lambdas/justhodl-ai-website-synthesis/config.json.txt",
+      "bytes": 852,
+      "sha256": "dc5a3fd51c650ff7e977655693b55924556962c4d596eb71528c8172dfc53dbf"
+    },
+    "jh-ai-insights.js": {
+      "path": "tests/fixtures/website-research-status/pre513/jh-ai-insights.js.txt",
+      "bytes": 14373,
+      "sha256": "fb5fec4e4106c7281706fc0968ec4d36c65ec942e814a1164e351caae54bbd57"
+    },
+    "tests/test_signal_board_interpretation_consumers.py": {
+      "path": "tests/fixtures/website-research-status/pre513/tests/test_signal_board_interpretation_consumers.py.txt",
+      "bytes": 6192,
+      "sha256": "13b7d120abf70071cece247e020b70adc57de025aad870105b8bd836cc94f4db"
+    },
+    "aws/lambdas/justhodl-ai-website-synthesis/tests/test_bond_context.py": {
+      "path": "tests/fixtures/website-research-status/pre513/aws/lambdas/justhodl-ai-website-synthesis/tests/test_bond_context.py.txt",
+      "bytes": 2584,
+      "sha256": "991d4099ca9c7e658fa218bd5afbf618ae71c86377a6b39f4b31c9574323af9f"
+    },
+    "aws/lambdas/justhodl-ai-website-synthesis/tests/run_tests.py": {
+      "path": "tests/fixtures/website-research-status/pre513/aws/lambdas/justhodl-ai-website-synthesis/tests/run_tests.py.txt",
+      "bytes": 477,
+      "sha256": "fd0b45476d71af9abafbb84b6c7e4829fcb9982a71ef906d185e0f7e3b2e12e6"
+    }
+  },
+  "native_sources": {
+    "aws/lambdas/justhodl-ai-website-synthesis/config.json": "8f940d198089b754bde08f130c32c18d829740f9de6a0693a4507b366004f422",
+    "aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py": "709af8acbf28318d39bd281de2c1b707f24351a4b5bc3fde73ddd0b91d92e832",
+    "aws/lambdas/justhodl-ai-website-synthesis/source/research_status.py": "8fcdf668327dd8c55240701e101cfba316c42ccb8440d060b2a52a16206b0964",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/shared/context_evidence_store.py": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7",
+    "aws/shared/gsi_authority.py": "c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef",
+    "aws/shared/signal_board_authority.py": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183"
+  },
+  "intended_shrink": {
+    "path": "aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py",
+    "previous_bytes": 21497,
+    "candidate_bytes": 10244,
+    "reason": "Complete no-paid rewrite: removed paid HTTP, secret initialization, misleading market prompt and posture notifications; pure status compiler moved to a new bundled module. All twelve input definitions and every former function name retained. Full predecessor bytes are archived. Commit must declare [shrink-ok]."
+  }
+}

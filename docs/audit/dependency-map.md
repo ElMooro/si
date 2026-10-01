@@ -1,24 +1,24 @@
 # Fleet dependency map (static, referenced-by-code)
 
-Generated 2026-10-01T13:37:55 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
+Generated 2026-10-01T14:40:36 by scripts/build_dependency_map.py. CANDIDATE CODE REFERENCES only (static); each output records handler-call reachability separately. Existence/freshness on S3, successful load, display and decision use are separate states.
 
-Input inventory SHA-256: `9368bf49a445d7cdb9d2f0f3edc6da356bc3724deceb84d086742fc44ea0a992`. Every input file is listed in the JSON companion.
+Input inventory SHA-256: `9e00a2169b7662694843f227a6078565df47d7b73239f9425ecb46aaa1a98034`. Every input file is listed in the JSON companion.
 
 Potential transitive dependencies from candidate code references. Unproven writer keys retain uncertain handler reachability. Dynamic paths, external providers and runtime execution may be unresolved; engine counts never establish independent evidence.
 
 | metric | count |
 |---|---|
 | duplicate writers | 15 |
-| engines | 898 |
-| engines without consumer | 33 |
+| engines | 899 |
+| engines without consumer | 34 |
 | engines without schedule | 259 |
-| keys | 2064 |
-| orphan engine refs | 534 |
-| orphan page refs | 105 |
+| keys | 2067 |
+| orphan engine refs | 535 |
+| orphan page refs | 109 |
 | pages | 599 |
 | two cycles | 66 |
-| unused outputs | 159 |
-| writers | 1437 |
+| unused outputs | 161 |
+| writers | 1436 |
 
 ## Pages referencing keys no engine writes (orphan page references -- missing or obsolete outputs, or written outside aws/lambdas)
 
@@ -38,6 +38,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `cq-universe.json` <- chart.html, crypto/index.html
 - `data/ai-factory.json` <- ai.html
 - `data/ai-student-desk.json` <- ai.html
+- `data/ai-website-synthesis.json` <- auction-crisis.html, bonds.html, classic-dashboard.html, correlation.html, desk-v2.html, macro-frontrun.html, pre-pump-radar.html, sentiment.html
 - `data/alfred-vintages.json` <- data.html
 - `data/alpha-atlas.json` <- alpha-atlas.html
 - `data/alpha-triage.json` <- alpha-families.html
@@ -49,6 +50,8 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/cftc-join.json` <- data.html
 - `data/config-backtest-url.json` <- fundamental-census.html
 - `data/confluence-decisive-call.json` <- confluence.html
+- `data/correlations.json` <- auction-crisis.html, bonds.html, classic-dashboard.html, correlation.html, desk-v2.html, macro-frontrun.html, pre-pump-radar.html, sentiment.html
+- `data/crisis-brief.json` <- auction-crisis.html, bonds.html, classic-dashboard.html, correlation.html, desk-v2.html, macro-frontrun.html, pre-pump-radar.html, sentiment.html
 - `data/desk-rollup.json` <- data.html
 - `data/dtcc-fails-agency.json` <- data.html
 - `data/ecb-hist/gdp_yoy.json` <- ecb.html
@@ -97,6 +100,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/provider-consumption.json` <- data.html
 - `data/real-economy-summary.json` <- data.html
 - `data/regime-decisive-call.json` <- regime.html
+- `data/sentiment.json` <- auction-crisis.html, bonds.html, classic-dashboard.html, correlation.html, desk-v2.html, macro-frontrun.html, pre-pump-radar.html, sentiment.html
 - `data/signal-suppress.json` <- alpha-families.html
 - `data/sizing-decisive-call.json` <- sizing.html
 - `data/stock-valuations-decisive-call.json` <- valuations.html
@@ -190,6 +194,7 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `data/activity-research/runs/*.json` <- justhodl-activity-nowcast
 - `data/ai-commentary/*.json` <- justhodl-page-ai-commentary
 - `data/ai-commentary/history/*/*.json` <- justhodl-page-ai-commentary
+- `data/ai-website-synthesis.json` <- justhodl-pump-positioning
 - `data/ai/verdict.json` <- justhodl-ai
 - `data/alpha-research/inputs/*.json` <- justhodl-alpha-compass, justhodl-alpha-daily-brief
 - `data/alpha-research/outputs/*.json` <- justhodl-alpha-compass, justhodl-alpha-daily-brief
@@ -683,9 +688,9 @@ Potential transitive dependencies from candidate code references. Unproven write
 - `learning/improvement_log.json` <- justhodl-morning-intelligence, justhodl-prompt-iterator
 - `learning/prompt_templates.json` <- justhodl-morning-intelligence, justhodl-prompt-iterator
 
-## Engines whose every output is unreferenced by any page or engine (33)
+## Engines whose every output is unreferenced by any page or engine (34)
 
-justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-edgar-full-index, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
+justhodl-auction-interpreter, justhodl-bloomberg-v8, justhodl-catalyst-chain, justhodl-causality-scanner, justhodl-cftc-full-datasets, justhodl-edgar-full-index, justhodl-equity-prewarm, justhodl-eurostat-history, justhodl-eurostat-oecd, justhodl-failure-library, justhodl-fast-filings, justhodl-feedback, justhodl-fiat-peg-monitor, justhodl-finnhub-signals, justhodl-fred-tag-crawler, justhodl-fx-decomposition, justhodl-guardrail-notify, justhodl-kb-matcher, justhodl-ma-target-predictor, justhodl-market-interpreter, justhodl-miss-calibrator, justhodl-plumbing-panel, justhodl-polygon-daily-snapshot, justhodl-powell-pivot, justhodl-public-archive-index, justhodl-schedule-reconciler, justhodl-self-critique, justhodl-shadow-lab, justhodl-tax-plan, justhodl-theme-cascade-backtest, justhodl-ticker-360, justhodl-upside-thesis, justhodl-wealth-plan, justhodl-weekly-ai-review
 
 ## Engines that write outputs but have no schedule in config.json and are not fan-out members (259)
 

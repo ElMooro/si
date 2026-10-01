@@ -1,0 +1,72 @@
+{
+  "prototype": false,
+  "source_sha256": "625a72f6c65a270cf2bb7fa7a233cc6cb53cf73db0ba9a210732ce366573350a",
+  "wholly_invented_fixture": true,
+  "actual_network_requests": 0,
+  "cases": [
+    {
+      "width": 1440,
+      "tests": [
+        "initial_loading",
+        "valid_wait",
+        "input_provenance",
+        "keyboard_open_close",
+        "mobile_overflow",
+        "legacy_withheld",
+        "late_response_ownership",
+        "failure_recovery",
+        "future_clock",
+        "literal_markup",
+        "rejected_fetch",
+        "null_response",
+        "visible_retry_control"
+      ],
+      "screens": [
+        {
+          "path": "docs/audit/2026-10-01/website-research-status-normal-1440.png",
+          "bytes": 104298,
+          "sha256": "b4863130d6ef23965a7e60352565218713e6976cbbe5f0c436aa8dd4480d8652"
+        },
+        {
+          "path": "docs/audit/2026-10-01/website-research-status-unavailable-1440.png",
+          "bytes": 44031,
+          "sha256": "4c36aee5f1226dbe0d56c1b74221b7a0fb59ab832048c44a9c204b79493f9c2c"
+        }
+      ],
+      "errors": [],
+      "actual_network_requests": 0
+    },
+    {
+      "width": 390,
+      "tests": [
+        "initial_loading",
+        "valid_wait",
+        "input_provenance",
+        "keyboard_open_close",
+        "mobile_overflow",
+        "legacy_withheld",
+        "late_response_ownership",
+        "failure_recovery",
+        "future_clock",
+        "literal_markup",
+        "rejected_fetch",
+        "null_response",
+        "visible_retry_control"
+      ],
+      "screens": [
+        {
+          "path": "docs/audit/2026-10-01/website-research-status-normal-390.png",
+          "bytes": 74938,
+          "sha256": "9c08e333cf6b79e991603dd80ae07af8dd717369d79f9fd1b165359f56421db8"
+        },
+        {
+          "path": "docs/audit/2026-10-01/website-research-status-unavailable-390.png",
+          "bytes": 35946,
+          "sha256": "a8e7bf2c7d360249396b22d6ac74eb397176cd4e191e4fcda8ed34beb50bf631"
+        }
+      ],
+      "errors": [],
+      "actual_network_requests": 0
+    }
+  ]
+}
