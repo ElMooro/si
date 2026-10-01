@@ -40,7 +40,7 @@ test('Timing button opens honest stages and DIST detail; escape still closes hel
   click(help.querySelector("[data-kind='dist']"));
   assert.match(help.innerHTML,/incomplete window/);assert.match(help.innerHTML,/280 loaded bars/);
   assert.match(help.innerHTML,/No per-event window status/);
-  listeners.keydown({key:'Escape'});assert.equal(help.className,'');
+  help.onkeydown({key:'Escape',stopPropagation(){},preventDefault(){}});assert.equal(help.className,'');
 });
 
 test('missing/nonfinite dates cannot become a fabricated availability or evaluation timestamp',()=>{
