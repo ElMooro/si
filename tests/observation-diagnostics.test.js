@@ -11,7 +11,7 @@ function setup(doc={series:{}},catalog){
   chart:{applyOptions(value){c.lastChartOptions=value;}},window:{JHChartCatalog:catalog||{klines:async s=>core.cq(doc,s)},JHStockDeskController:{refresh(){frames.push(c.window.jhChartEvidence);}}},
   resolveSym:s=>({ticker:s,yahoo:s}),spec:id=>[id],document:{getElementById:el},wipe(){},syncLivePill(){},
   toast(){throw Error('No market fallback');},warehouseSpec(){throw Error('No market endpoint');},fetchJson:async u=>{requests.push(u);throw Error('No network');}};
- vm.createContext(c);vm.runInContext(['identifyBars','observationId','resampleToTf','klines','clearObservationFrame','observationText','paint','load'].map(n=>named[n]).join('\n'),c);
+ vm.createContext(c);vm.runInContext(['reportedVolume','volumeTotal','identifyBars','observationId','resampleToTf','klines','clearObservationFrame','observationText','paint','load'].map(n=>named[n]).join('\n'),c);
  return {c,frames,requests,el};
 }
 function scalar(dates){return dates.map((day,i)=>({time:Date.parse(day+'T00:00:00Z')/1000,open:i-1,high:i-1,low:i-1,close:i-1,volume:null,observation_ordinals:[i]}));}

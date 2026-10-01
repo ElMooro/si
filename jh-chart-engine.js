@@ -440,6 +440,30 @@
     var t=tickFromBars(d);
     return {type:"price", precision:tickPrec(t), minMove:t};
   }
+
+  function reportedVolume(value){return typeof value==="number"&&Number.isFinite(value)&&value>=0?value:null;}
+  function volumeTotal(a,b){
+    a=reportedVolume(a);b=reportedVolume(b);if(a===null||b===null)return null;
+    var total=a+b;
+    return Number.isFinite(total)&&!(a>0&&b>0&&(total===a||total===b))?total:null;
+  }
+  function volumeFields(row){
+    var names=["volume","v","vol","Volume"],value=null,seen=false;
+    for(var i=0;i<names.length;i++){
+      if(!Object.prototype.hasOwnProperty.call(row,names[i]))continue;
+      var next=reportedVolume(row[names[i]]);
+      if(next===null||(seen&&next!==value))return null;
+      value=next;seen=true;
+    }
+    return seen?value:null;
+  }
+  function completeVolumes(d){return Array.isArray(d)&&d.length>0&&d.every(function(b){return b&&reportedVolume(b.volume)!==null;});}
+  function volumeMean(d,from,to){
+    if(!Array.isArray(d)||!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<from||to>=d.length)return null;
+    var total=0;
+    for(var i=from;i<=to;i++){total=volumeTotal(total,d[i]&&d[i].volume);if(total===null)return null;}
+    var value=total/(to-from+1);return Number.isFinite(value)&&!(total>0&&value===0)?value:null;
+  }
   function roundBar(b, t){
     t=t||tickSize(b&&b.close);
     var o=roundTick(b.open,t), c=roundTick(b.close,t), h=roundTick(b.high,t), l=roundTick(b.low,t);
@@ -447,7 +471,7 @@
     if(!isFinite(h) || h<Math.max(o,c)) h=Math.max(o,c);
     if(!isFinite(l) || l>Math.min(o,c) || (l<=0 && c>0)) l=Math.min(o,c);
     if(h<l){ var x=h; h=l; l=x; }
-    return {time:b.time, open:o, high:h, low:l, close:c, volume:+(b.volume||0)};
+    return {time:b.time, open:o, high:h, low:l, close:c, volume:reportedVolume(b.volume)};
   }
   function roundBars(rows){
     if(!rows||!rows.length) return rows||[];
@@ -531,7 +555,7 @@
     if(/^https?:\/\//i.test(u)) return u;
     return "";
   }
-  function fmtVol(v){ if(v>=1e12) return (v/1e12).toFixed(2)+"T"; if(v>=1e9) return (v/1e9).toFixed(2)+"B"; if(v>=1e6) return (v/1e6).toFixed(2)+"M"; if(v>=1e3) return (v/1e3).toFixed(1)+"K"; return String(Math.round(v||0)); }
+  function fmtVol(v){ if(typeof v!=="number"||!Number.isFinite(v))return "Unavailable"; if(v>=1e12) return (v/1e12).toFixed(2)+"T"; if(v>=1e9) return (v/1e9).toFixed(2)+"B"; if(v>=1e6) return (v/1e6).toFixed(2)+"M"; if(v>=1e3) return (v/1e3).toFixed(1)+"K"; return String(v); }
   function toast(m){ var el=document.getElementById("toast"); el.textContent=m; el.className="on"; clearTimeout(toastT); toastT=setTimeout(function(){ el.className=""; }, 2800); }
   function uid(){ return "d"+Math.random().toString(36).slice(2,8); }
   function spec(tfId){ for(var i=0;i<TFS.length;i++) if(TFS[i][0]===tfId) return TFS[i]; return TFS.filter(function(t){return t[0]==="1d";})[0]||TFS[0]; }
@@ -605,14 +629,14 @@
     var map={}, order=[], i;
     for(i=0;i<d.length;i++){
       var b=d[i], k=bucket(b.time);
-      if(!map[k]){ map[k]={time:k,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.observation_ordinals?null:b.volume||0}; if(b.observation_ordinals)map[k].observation_ordinals=b.observation_ordinals.slice(); order.push(k); }
+      if(!map[k]){ map[k]={time:k,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.observation_ordinals?null:reportedVolume(b.volume)}; if(b.observation_ordinals)map[k].observation_ordinals=b.observation_ordinals.slice(); order.push(k); }
       else {
         var x=map[k];
         if(b.high>x.high) x.high=b.high;
         if(b.low<x.low) x.low=b.low;
         x.close=b.close;
         if(x.observation_ordinals && b.observation_ordinals)x.observation_ordinals=x.observation_ordinals.concat(b.observation_ordinals);
-        else x.volume+=(b.volume||0);
+        else x.volume=volumeTotal(x.volume,b.volume);
       }
     }
     var grouped=order.map(function(k){ return map[k]; });
@@ -650,10 +674,13 @@
   }
   function wma(d,n){ var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n)continue; var s=0,w=0; for(j=0;j<n;j++){ var ww=j+1; s+=d[i-n+1+j].close*ww; w+=ww; } o.push({time:d[i].time,value:s/w}); } return o; }
   function hull(d,n){ var n2=Math.max(1,Math.round(n/2)), ns=Math.max(1,Math.round(Math.sqrt(n))); var e1=wma(d,n2), e2=wma(d,n), map={},i; for(i=0;i<e2.length;i++) map[e2[i].time]=e2[i].value; var raw=[]; for(i=0;i<e1.length;i++) if(map[e1[i].time]!=null) raw.push({time:e1[i].time,close:2*e1[i].value-map[e1[i].time]}); return wma(raw,ns); }
-  function vwma(d,n){ var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n)continue; var pv=0,vv=0; for(j=i-n+1;j<=i;j++){ pv+=d[j].close*d[j].volume; vv+=d[j].volume; } if(vv)o.push({time:d[i].time,value:pv/vv}); } return o; }
-  function vwap(d){ var o=[],pv=0,vv=0,i; for(i=0;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3; pv+=tp*d[i].volume; vv+=d[i].volume; if(vv)o.push({time:d[i].time,value:pv/vv}); } return o; }
+  function vwma(d,n){
+    if(!completeVolumes(d))return []; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n)continue; var pv=0,vv=0; for(j=i-n+1;j<=i;j++){ pv+=d[j].close*d[j].volume; vv+=d[j].volume; } if(vv)o.push({time:d[i].time,value:pv/vv}); } return o; }
+  function vwap(d){
+    if(!completeVolumes(d))return []; var o=[],pv=0,vv=0,i; for(i=0;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3; pv+=tp*d[i].volume; vv+=d[i].volume; if(vv)o.push({time:d[i].time,value:pv/vv}); } return o; }
   function twap(d){ var o=[],s=0,i; for(i=0;i<d.length;i++){ s+=(d[i].high+d[i].low+d[i].close)/3; o.push({time:d[i].time,value:s/(i+1)}); } return o; }
-  function cvd(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; var buy=hl? ((d[i].close-d[i].low)/hl)*d[i].volume : d[i].volume*0.5; v+= buy-(d[i].volume-buy); o.push({time:d[i].time,value:v}); } return o; }
+  function cvd(d){
+    if(!completeVolumes(d))return []; var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; var buy=hl? ((d[i].close-d[i].low)/hl)*d[i].volume : d[i].volume*0.5; v+= buy-(d[i].volume-buy); o.push({time:d[i].time,value:v}); } return o; }
   function rvolSeries(d,n){
     if(!Array.isArray(d))return [];
     var out=[],i,value;
@@ -706,7 +733,8 @@
   function linreg(d,n){ n=n||20; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var sx=0,sy=0,sxy=0,sx2=0; for(j=0;j<n;j++){ sx+=j; sy+=d[i-n+1+j].close; sxy+=j*d[i-n+1+j].close; sx2+=j*j; } var den=n*sx2-sx*sx, sl=den?(n*sxy-sx*sy)/den:0, ic=(sy-sl*sx)/n; o.push({time:d[i].time,value:ic+sl*(n-1)}); } return o; }
   function cci(d,n){ n=n||20; var tp=d.map(function(b){return {time:b.time,close:(b.high+b.low+b.close)/3};}), m=sma(tp,n), o=[],i,j,map={}; for(i=0;i<m.length;i++) map[m[i].time]=m[i].value; for(i=n-1;i<d.length;i++){ var mean=map[d[i].time], md=0; for(j=0;j<n;j++) md+=Math.abs(tp[i-n+1+j].close-mean); md/=n; o.push({time:d[i].time,value:md? (tp[i].close-mean)/(0.015*md):0}); } return o; }
   function willr(d,n){ n=n||14; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var hi=-1e99,lo=1e99; for(j=i-n+1;j<=i;j++){ if(d[j].high>hi)hi=d[j].high; if(d[j].low<lo)lo=d[j].low; } o.push({time:d[i].time,value:hi===lo?0: -100*(hi-d[i].close)/(hi-lo)}); } return o; }
-  function mfi(d,n){ n=n||14; var o=[],pos=[],neg=[],i; for(i=1;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3, ptp=(d[i-1].high+d[i-1].low+d[i-1].close)/3, mf=tp*d[i].volume; pos.push(tp>ptp?mf:0); neg.push(tp<ptp?mf:0); if(i>=n){ var ps=0,ng=0,j; for(j=i-n;j<i;j++){ ps+=pos[j]; ng+=neg[j]; } o.push({time:d[i].time,value:ng?100-100/(1+ps/ng):100}); } } return o; }
+  function mfi(d,n){
+    if(!completeVolumes(d))return []; n=n||14; var o=[],pos=[],neg=[],i; for(i=1;i<d.length;i++){ var tp=(d[i].high+d[i].low+d[i].close)/3, ptp=(d[i-1].high+d[i-1].low+d[i-1].close)/3, mf=tp*d[i].volume; pos.push(tp>ptp?mf:0); neg.push(tp<ptp?mf:0); if(i>=n){ var ps=0,ng=0,j; for(j=i-n;j<i;j++){ ps+=pos[j]; ng+=neg[j]; } o.push({time:d[i].time,value:ng?100-100/(1+ps/ng):100}); } } return o; }
   function obv(d){
     if(!Array.isArray(d))return [];
     var out=[],total=0,broken=false,i,b,step,next;
@@ -728,8 +756,10 @@
     }
     return out;
   }
-  function adline(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; v+= hl? ((d[i].close-d[i].low)-(d[i].high-d[i].close))/hl*d[i].volume : 0; o.push({time:d[i].time,value:v}); } return o; }
-  function cmf(d,n){ n=n||20; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var mf=0,vol=0; for(j=i-n+1;j<=i;j++){ var hl=d[j].high-d[j].low; mf+= hl? ((d[j].close-d[j].low)-(d[j].high-d[j].close))/hl*d[j].volume : 0; vol+=d[j].volume; } o.push({time:d[i].time,value:vol?mf/vol:0}); } return o; }
+  function adline(d){
+    if(!completeVolumes(d))return []; var o=[],v=0,i; for(i=0;i<d.length;i++){ var hl=d[i].high-d[i].low; v+= hl? ((d[i].close-d[i].low)-(d[i].high-d[i].close))/hl*d[i].volume : 0; o.push({time:d[i].time,value:v}); } return o; }
+  function cmf(d,n){
+    if(!completeVolumes(d))return []; n=n||20; var o=[],i,j; for(i=0;i<d.length;i++){ if(i+1<n) continue; var mf=0,vol=0; for(j=i-n+1;j<=i;j++){ var hl=d[j].high-d[j].low; mf+= hl? ((d[j].close-d[j].low)-(d[j].high-d[j].close))/hl*d[j].volume : 0; vol+=d[j].volume; } o.push({time:d[i].time,value:vol?mf/vol:0}); } return o; }
   function adx(d,n){ n=n||14; var tr=[],pdm=[],mdm=[],i; for(i=1;i<d.length;i++){ var up=d[i].high-d[i-1].high, dn=d[i-1].low-d[i].low; pdm.push(up>dn&&up>0?up:0); mdm.push(dn>up&&dn>0?dn:0); tr.push(Math.max(d[i].high-d[i].low, Math.abs(d[i].high-d[i-1].close), Math.abs(d[i].low-d[i-1].close))); } function wild(a,n){ var o=[],s=0,i; for(i=0;i<a.length;i++){ if(i<n){ s+=a[i]; if(i===n-1) o.push(s/n); } else { s=s-(s/n)+a[i]; o.push(s); } } return o; } var str=wild(tr,n), sp=wild(pdm,n), sm=wild(mdm,n), dx=[],o=[]; for(i=0;i<str.length;i++){ var pdi=str[i]?100*sp[i]/str[i]:0, mdi=str[i]?100*sm[i]/str[i]:0, sum=pdi+mdi; dx.push(sum?100*Math.abs(pdi-mdi)/sum:0); } var ad=wild(dx,n); for(i=0;i<ad.length;i++) o.push({time:d[i+n*2-1]&&d[i+n*2-1].time || d[d.length-1].time, value:ad[i]}); return o.filter(function(p){return p.time;}); }
   function ao(d){ var mid=d.map(function(b){return {time:b.time,close:(b.high+b.low)/2};}); var f=sma(mid,5), s=sma(mid,34), map={},i,o=[]; for(i=0;i<s.length;i++) map[s[i].time]=s[i].value; for(i=0;i<f.length;i++) if(map[f[i].time]!=null) o.push({time:f[i].time,value:f[i].value-map[f[i].time]}); return o; }
   function mom(d,n){ n=n||10; var o=[],i; for(i=n;i<d.length;i++) o.push({time:d[i].time,value:d[i].close-d[i-n].close}); return o; }
@@ -738,7 +768,8 @@
   function uo(d){ function avg(bp,tr,n){ var s1=0,s2=0,i; for(i=d.length-n;i<d.length;i++){ if(i<1) continue; s1+=bp[i]; s2+=tr[i]; } return s2?s1/s2:0; } var bp=[],tr=[],i; bp[0]=0; tr[0]=d[0].high-d[0].low; for(i=1;i<d.length;i++){ var mn=Math.min(d[i].low,d[i-1].close); bp.push(d[i].close-mn); tr.push(Math.max(d[i].high,d[i-1].close)-mn); } var o=[],i2; for(i2=28;i2<d.length;i2++){ var slice=d.slice(0,i2+1), b=bp.slice(0,i2+1), t=tr.slice(0,i2+1); var a7=avg(b,t,7), a14=avg(b,t,14), a28=avg(b,t,28); o.push({time:d[i2].time,value:100*(4*a7+2*a14+a28)/7}); } return o; }
   function trix(d,n){ n=n||15; var e1=ema(d,n), e2=ema(e1.map(function(p){return {time:p.time,close:p.value};}),n), e3=ema(e2.map(function(p){return {time:p.time,close:p.value};}),n), o=[],i; for(i=1;i<e3.length;i++) if(e3[i-1].value) o.push({time:e3[i].time,value:(e3[i].value-e3[i-1].value)/e3[i-1].value*100}); return o; }
   function chaikin(d){ var ad=adline(d); var e3=ema(ad.map(function(p){return {time:p.time,close:p.value};}),3), e10=ema(ad.map(function(p){return {time:p.time,close:p.value};}),10), map={},i,o=[]; for(i=0;i<e10.length;i++) map[e10[i].time]=e10[i].value; for(i=0;i<e3.length;i++) if(map[e3[i].time]!=null) o.push({time:e3[i].time,value:e3[i].value-map[e3[i].time]}); return o; }
-  function force(d,n){ n=n||13; var raw=[],i; for(i=1;i<d.length;i++) raw.push({time:d[i].time,close:(d[i].close-d[i-1].close)*d[i].volume}); return ema(raw,n); }
+  function force(d,n){
+    if(!completeVolumes(d))return []; n=n||13; var raw=[],i; for(i=1;i<d.length;i++) raw.push({time:d[i].time,close:(d[i].close-d[i-1].close)*d[i].volume}); return ema(raw,n); }
   function ppo(d){ var e12=ema(d,12), e26=ema(d,26), map={},i,o=[]; for(i=0;i<e26.length;i++) map[e26[i].time]=e26[i].value; for(i=0;i<e12.length;i++) if(map[e12[i].time]) o.push({time:e12[i].time,value:(e12[i].value-map[e12[i].time])/map[e12[i].time]*100}); return o; }
   function tsi(d){ var mom=[],i; for(i=1;i<d.length;i++) mom.push({time:d[i].time,close:d[i].close-d[i-1].close}); var ds=ema(ema(mom,25),13), abs=ema(ema(mom.map(function(p){return {time:p.time,close:Math.abs(p.close)};}),25),13), map={},o=[]; for(i=0;i<abs.length;i++) map[abs[i].time]=abs[i].value; for(i=0;i<ds.length;i++) if(map[ds[i].time]) o.push({time:ds[i].time,value:100*ds[i].value/map[ds[i].time]}); return o; }
   function dpo(d,n){ n=n||20; var m=sma(d,n), shift=Math.floor(n/2)+1, o=[],i; for(i=0;i<m.length;i++){ var idx=i+(n-1)-shift; if(idx>=0 && idx<d.length) o.push({time:d[idx].time,value:d[idx].close-m[i].value}); } return o; }
@@ -973,6 +1004,7 @@
     return {m:mid,up:up,dn:dn};
   }
   function volOsc(d,f,s){
+    if(!completeVolumes(d))return [];
     f=f||5; s=s||20;
     var vol=d.map(function(b){return {time:b.time,close:b.volume||0};});
     var a=sma(vol,f), b=sma(vol,s), map={},i,o=[];
@@ -981,6 +1013,7 @@
     return o;
   }
   function eom(d,n){
+    if(!completeVolumes(d))return [];
     n=n||14; var raw=[],i;
     for(i=1;i<d.length;i++){
       var dist=((d[i].high+d[i].low)/2)-((d[i-1].high+d[i-1].low)/2);
@@ -1163,6 +1196,7 @@
     return "all";
   }
   function periodVwap(d, kind){
+    if(!completeVolumes(d))return [];
     var o=[], pv=0, vv=0, key=null, i;
     for(i=0;i<d.length;i++){
       var k=periodKey(d[i].time, kind);
@@ -1231,6 +1265,7 @@
     return o;
   }
   function avwapFromAth(d){
+    if(!completeVolumes(d))return [];
     if(!d||!d.length) return [];
     var peak=-1e99, i0=0, i;
     for(i=0;i<d.length;i++){ if(d[i].high>=peak){ peak=d[i].high; i0=i; } }
@@ -1289,12 +1324,12 @@
     var map={}, order=[], i;
     for(i=0;i<d.length;i++){
       var k=periodKey(d[i].time,"week");
-      if(!map[k]){ map[k]={time:d[i].time,open:d[i].open,high:d[i].high,low:d[i].low,close:d[i].close,volume:d[i].volume||0}; order.push(k); }
+      if(!map[k]){ map[k]={time:d[i].time,open:d[i].open,high:d[i].high,low:d[i].low,close:d[i].close,volume:reportedVolume(d[i].volume)}; order.push(k); }
       else {
         var w=map[k];
         if(d[i].high>w.high) w.high=d[i].high;
         if(d[i].low<w.low) w.low=d[i].low;
-        w.close=d[i].close; w.volume+=(d[i].volume||0); w.time=d[i].time;
+        w.close=d[i].close; w.volume=volumeTotal(w.volume,d[i].volume); w.time=d[i].time;
       }
     }
     return order.map(function(k){ return map[k]; });
@@ -1385,6 +1420,7 @@
     return mk.slice(-10);
   }
   function swingVwap(d){
+    if(!completeVolumes(d))return {fromH:[],fromL:[]};
     var pts=swingPts(d), lastH=null, lastL=null, i;
     for(i=pts.length-1;i>=0;i--){
       if(!lastH && pts[i].kind==="h") lastH=pts[i];
@@ -1650,7 +1686,7 @@
     pct=pct||0.01; if(d.length<2) return d;
     var sz=Math.max(d[d.length-1].close*pct,1e-12), o=[], cur=d[0], i;
     for(i=1;i<d.length;i++){
-      cur={time:d[i].time,open:cur.open,high:Math.max(cur.high,d[i].high),low:Math.min(cur.low,d[i].low),close:d[i].close,volume:(cur.volume||0)+(d[i].volume||0)};
+      cur={time:d[i].time,open:cur.open,high:Math.max(cur.high,d[i].high),low:Math.min(cur.low,d[i].low),close:d[i].close,volume:volumeTotal(cur.volume,d[i].volume)};
       if(Math.abs(cur.close-cur.open)>=sz){ o.push(cur); cur=d[i]; }
     }
     if(o.length) o.push(cur); return o.length?o:d;
@@ -1678,13 +1714,13 @@
     for(i=0;i<d.length;i++){
       t=utcMidnight(d[i].time); if(!t) continue;
       b=d[i]; o=m[t];
-      if(!o) m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+      if(!o) m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:reportedVolume(b.volume)};
       else if(spr(b)+0.015 < spr(o) || ((b.volume||0)>0 && (o.volume||0)>0 && (b.volume||0)*4 < (o.volume||0) && spr(b)<=spr(o)+0.03)){
-        m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:b.volume||0};
+        m[t]={time:t,open:b.open,high:b.high,low:b.low,close:b.close,volume:reportedVolume(b.volume)};
       } else if(Math.abs(spr(b)-spr(o))<0.02){
         if(b.high>o.high) o.high=b.high;
         if(b.low<o.low) o.low=b.low;
-        o.close=b.close; o.volume+=(b.volume||0);
+        o.close=b.close; o.volume=volumeTotal(o.volume,b.volume);
       }
     }
     return Object.keys(m).map(Number).sort(function(a,b){return a-b;}).map(function(k){return m[k];});
@@ -1739,7 +1775,7 @@
     var m={}, i, t, b;
     function put(row, prefer){
       t=utcMidnight(row.time); if(!t) return;
-      if(prefer || !m[t]) m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:row.volume||0};
+      if(prefer || !m[t]) m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:reportedVolume(row.volume)};
     }
     for(i=0;i<(base||[]).length;i++) put(base[i], false);
     for(i=0;i<(over||[]).length;i++) put(over[i], true);
@@ -1766,22 +1802,22 @@
         else { t=+t; if(t>1e12) t=Math.floor(t/1000); }
         if(!isFinite(t) || t<=0) continue;
         var c=b.length>=5 && b[4]!=null?+b[4]:+b[1]; if(!isFinite(c)) continue;
-        out.push({time:t,open:+(b.length>=5?b[1]:c)||c,high:+(b.length>=5?b[2]:c)||c,low:+(b.length>=5?b[3]:c)||c,close:c,volume:+(b[5]||0)});
+        out.push({time:t,open:+(b.length>=5?b[1]:c)||c,high:+(b.length>=5?b[2]:c)||c,low:+(b.length>=5?b[3]:c)||c,close:c,volume:reportedVolume(b[5])});
       } else {
         var tm=b.time||b.t||b.date, c2=b.close!=null?b.close:(b.c!=null?b.c:b.value);
         if(c2==null) continue;
         if(typeof tm==="string") tm=Math.floor(Date.parse(tm.length<=10?tm+"T00:00:00Z":tm)/1000);
         if(tm>1e12) tm=Math.floor(tm/1000);
         var c3=+c2; if(!isFinite(c3)) continue;
-        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:+(function(){var hasVol=b.volume!=null||b.v!=null||b.vol!=null||b.Volume!=null;var cand=hasVol?(b.volume!=null?b.volume:(b.v!=null?b.v:(b.vol!=null?b.vol:b.Volume))):b.value;var n=+cand;if(!isFinite(n)||n<0)return 0;if(!hasVol){if(Math.abs(n-c3)<1e-6||Math.abs(n-(+b.open||c3))<1e-6||Math.abs(n-(+b.high||c3))<1e-6||Math.abs(n-(+b.low||c3))<1e-6)return 0;}return n;})()});
+        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:volumeFields(b)});
       }
     }
     if(!out.length && j.chart && j.chart.result && j.chart.result[0]){
       var res=j.chart.result[0], q=(res.indicators.quote||[])[0]||{}, ts=res.timestamp||[];
-      for(i=0;i<ts.length;i++){ if(q.close[i]==null||!isFinite(+q.close[i])) continue; out.push({time:ts[i],open:+(q.open[i]||q.close[i]),high:+(q.high[i]||q.close[i]),low:+(q.low[i]||q.close[i]),close:+q.close[i],volume:+(q.volume[i]||0)}); }
+      for(i=0;i<ts.length;i++){ if(q.close[i]==null||!isFinite(+q.close[i])) continue; out.push({time:ts[i],open:+(q.open[i]||q.close[i]),high:+(q.high[i]||q.close[i]),low:+(q.low[i]||q.close[i]),close:+q.close[i],volume:reportedVolume(q.volume&&q.volume[i])}); }
     }
     if(!out.length && Array.isArray(j.timestamp) && Array.isArray(j.close)){
-      for(i=0;i<j.timestamp.length;i++){ if(j.close[i]==null||!isFinite(+j.close[i])) continue; out.push({time:j.timestamp[i],open:+((j.open&&j.open[i])||j.close[i]),high:+((j.high&&j.high[i])||j.close[i]),low:+((j.low&&j.low[i])||j.close[i]),close:+j.close[i],volume:+((j.volume&&j.volume[i])||0)}); }
+      for(i=0;i<j.timestamp.length;i++){ if(j.close[i]==null||!isFinite(+j.close[i])) continue; out.push({time:j.timestamp[i],open:+((j.open&&j.open[i])||j.close[i]),high:+((j.high&&j.high[i])||j.close[i]),low:+((j.low&&j.low[i])||j.close[i]),close:+j.close[i],volume:reportedVolume(j.volume&&j.volume[i])}); }
     }
     return uniq(sanitizeBars(out));
   }
@@ -1793,7 +1829,7 @@
       if(!isFinite(h) || h<Math.max(o,c)) h=Math.max(o,c);
       if(!isFinite(l) || l<=0 || l>Math.min(o,c)) l=Math.min(o,c);
       if(h<l){ var t=h; h=l; l=t; }
-      return {time:b.time,open:o,high:h,low:l,close:c,volume:+(b.volume||0)};
+      return {time:b.time,open:o,high:h,low:l,close:c,volume:reportedVolume(b.volume)};
     });
   }
   function looksCloseOnly(d){
@@ -1818,7 +1854,7 @@
         high=Math.max(high, open, close);
         low=Math.min(low, open, close);
       }
-      o.push({time:b.time,open:open,high:high,low:low,close:close,volume:b.volume||0});
+      o.push({time:b.time,open:open,high:high,low:low,close:close,volume:reportedVolume(b.volume)});
       prev=close;
     }
     return o;
@@ -1960,7 +1996,7 @@
                 var ydC=asDaily(cleanWildTicks(toBars(yrawC)));
                 if(ydC.length>=8){
                   var n0=d.length, t0=d.length?d[0].time:0;
-                  for(var yi=0;yi<ydC.length;yi++) ydC[yi].volume=0;
+                  for(var yi=0;yi<ydC.length;yi++) ydC[yi].volume=null;
                   d=mergeByDay(ydC, d);
                   if(d.length>n0 || (d.length && d[0].time<t0)) src=(src||"warehouse")+"+yahoo";
                 }
@@ -2099,7 +2135,7 @@
       syncing=false;
     });
   }
-  function wipe(){ observationAxes.delete(chart); namedLines={}; series.forEach(function(s){ try{ chart.removeSeries(s); }catch(e){} }); series=[]; mainSeries=null; volSeries=null; }
+  function wipe(){ observationAxes.delete(chart); mainSeries=null; lastVP={poc:null,vah:null,val:null}; lastHudVwap=[]; lastAtrPts=[]; ["hud","ohlc"].forEach(function(id){var node=document.getElementById(id);if(node){node.textContent="";if(id==="hud")node.style.display="none";}}); namedLines={}; series.forEach(function(s){ try{ chart.removeSeries(s); }catch(e){} }); series=[]; mainSeries=null; volSeries=null; }
 
   function addLine(pts, color, w, opt){
     if(!pts||!pts.length) return;
@@ -2452,24 +2488,27 @@
           volTapeEvents=(pack && pack.events)||[];
           volTapeEvents.forEach(function(e){ evMap[e.time]=e; });
         }
-        var v=chart.addHistogramSeries({ priceFormat:{type:"volume"}, priceScaleId:"vol", lastValueVisible:true, priceLineVisible:false, title:"Volume" });
+        var v=chart.addHistogramSeries({ priceFormat:{type:"volume"}, priceScaleId:"vol", lastValueVisible:reportedVolume(display[display.length-1].volume)!==null, priceLineVisible:false, title:"Volume" });
         volSeries=v;
         chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.76, bottom:0 } });
         v.setData(display.map(function(b,ix){
-          var look=Math.min(20, ix), avg=0, j;
-          for(j=Math.max(0,ix-look); j<ix; j++) avg+=display[j].volume;
-          avg=look?avg/look:b.volume;
-          var r=avg?b.volume/avg:1;
+          if(reportedVolume(b.volume)===null)return {time:b.time};
+          var r=rvolAt(display,ix,20);
           var ev=evMap[b.time];
           if(ev) return {time:b.time,value:b.volume,color:ev.color};
           var upBar=ix? b.close>=display[ix-1].close : b.close>=b.open;
-          var a=r>=2.5?1: r>=1.6?0.88: r>=1?0.72:0.48;
+          var a=r===null?0.72:r>=2.5?1: r>=1.6?0.88: r>=1?0.72:0.48;
           return {time:b.time,value:b.volume,color: (upBar?"rgba(8,153,129,":"rgba(242,54,69,")+a+")"};
         }));
         series.push(v);
         var vsma=[], ss=0, vn=20, vi;
-        for(vi=0;vi<display.length;vi++){ ss+=display[vi].volume; if(vi>=vn) ss-=display[vi-vn].volume; if(vi>=vn-1) vsma.push({time:display[vi].time,value:ss/vn}); }
-        if(vsma.length){ var vl=chart.addLineSeries({ color:dark?"#f0b429":"#ef6c00", lineWidth:1.5, priceScaleId:"vol", lastValueVisible:true, priceLineVisible:false, title:"Vol MA 20" }); vl.setData(vsma); series.push(vl); }
+        for(vi=0;vi<display.length;vi++){var mean=vi>=vn-1?volumeMean(display,vi-vn+1,vi):null;vsma.push(mean===null?{time:display[vi].time}:{time:display[vi].time,value:mean});}
+        var volumeRuns=[],volumeRun=[];
+        vsma.forEach(function(point){if(point.value===undefined){if(volumeRun.length)volumeRuns.push(volumeRun);volumeRun=[];}else volumeRun.push(point);});
+        if(volumeRun.length)volumeRuns.push(volumeRun);
+        volumeRuns.forEach(function(run){var current=run[run.length-1].time===vsma[vsma.length-1].time;
+          var vl=chart.addLineSeries({color:dark?"#f0b429":"#ef6c00",lineWidth:1.5,priceScaleId:"vol",lastValueVisible:current,priceLineVisible:false,title:"Vol MA 20 · complete windows",pointMarkersVisible:true,pointMarkersRadius:1.5});vl.setData(run);series.push(vl);
+        });
         setTimeout(paintVolTape, 0);
         setTimeout(paintVolTape, 60);
       } else {
@@ -2713,8 +2752,9 @@
     var vwLab=intra?"VWAP":"YTD VWAP";
     var tw=twap(d), twv=tw.length?tw[tw.length-1].value:null;
     var rvol=rvolAt(d,d.length-1,20);
-    var deltaEst=last.high>last.low? ((last.close-last.low)/(last.high-last.low)*2-1)*last.volume : 0;
-    var vsPx=vw? (last.close-vw)/vw : 0;
+    var deltaEst=reportedVolume(last.volume)===null?null:last.high>last.low? ((last.close-last.low)/(last.high-last.low)*2-1)*last.volume : 0;
+    if(deltaEst!==null&&!Number.isFinite(deltaEst))deltaEst=null;
+    var vsPx=vw? (last.close-vw)/vw : null;
     var heat=rvol===null?"":rvol>=2?"HOT":rvol>=1.4?"elevated":rvol>=0.8?"normal":"thin";
     var stance=vw==null?"—": last.close>vw?"above "+vwLab: last.close<vw?"below "+vwLab:"at "+vwLab;
     var loc=lastVP.poc==null?"—": last.close>lastVP.vah?"above value": last.close<lastVP.val?"below value":"in value";
@@ -2733,7 +2773,7 @@
       var yr=lastVsSpx.from?(window.jhInst&&window.jhInst.nyClock?window.jhInst.nyClock(lastVsSpx.from).y:new Date(lastVsSpx.from*1000).getUTCFullYear()):"";
       vsBit=" <span title='Price relative vs S&P 500 cash (GSPC). NY session join, no interpolation. RS rebased 100 at first overlap. Not SPY (1993).'>vs SPX 1d "+fmtXs(L.d1)+" · YTD "+fmtXs(L.ytd)+" · 1y "+fmtXs(L.y)+" · all "+fmtXs(L.all)+(yr?" · "+yr:"")+"</span>";
     }
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume||0)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx>=0?"up":"dn")+">"+(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%</span></span> <span>Δ "+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+active+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+tf+" · "+mode+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx===null?"":vsPx>=0?"up":"dn")+">"+(vsPx===null?"Unavailable":(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%")+"</span></span> <span>Δ "+(deltaEst===null?"Unavailable":(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst)))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -2756,7 +2796,7 @@
         "<div class=cell><span>vs SPX all</span><span class='"+(LV.all>=0?"up":"dn")+"'>"+fmtXs(LV.all)+" · RS "+(LV.rs!=null?LV.rs.toFixed(1):"—")+"</span></div>"+
         "<div class=cell><span>β vs SPX 1y</span><span>"+(LV.beta!=null?LV.beta.toFixed(2):"—")+"</span></div>";
     }
-    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst>=0?"up":"dn")+">"+(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
+    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+active+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst===null?"":deltaEst>=0?"up":"dn")+">"+(deltaEst===null?"Unavailable":(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst)))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
@@ -3082,11 +3122,13 @@
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
   }
   function drawVP(d){
+    lastVP={poc:null,vah:null,val:null};
     if(observationId(active))return;
     var cv=document.getElementById("vp"), box=document.getElementById("chart");
     if(!cv||!box) return;
     var w=96, h=box.clientHeight-8; cv.width=w; cv.height=h; cv.style.width=w+"px"; cv.style.height=h+"px";
     var ctx=cv.getContext("2d"); ctx.clearRect(0,0,w,h);
+    if(!completeVolumes(d))return;
     var hi=-1e99, lo=1e99,i; for(i=0;i<d.length;i++){ if(d[i].high>hi)hi=d[i].high; if(d[i].low<lo)lo=d[i].low; }
     var bins=48, vol=new Array(bins).fill(0), up=new Array(bins).fill(0), dn=new Array(bins).fill(0), max=1, tot=0;
     if(tape.src==="binance" && tape.prints.length){
@@ -3212,7 +3254,7 @@
       var lb=lastBars.slice(-40), i, html="<div class=qrbar><b>QR</b> "+active+" <span>daily warehouse — not SIP ticks</span></div><div class=qrbody>";
       for(i=lb.length-1;i>=0;i--){
         var b=lb[i], up=b.close>=b.open, d=new Date(b.time*1000);
-        html+="<div style=display:flex;gap:8px;font-variant-numeric:tabular-nums><span>"+d.toISOString().slice(0,10)+"</span><span style=color:"+(up?"#089981":"#f23645")+">"+b.close.toFixed(2)+"</span><span>"+Math.round(b.volume||0).toLocaleString()+"</span></div>";
+        html+="<div style=display:flex;gap:8px;font-variant-numeric:tabular-nums><span>"+d.toISOString().slice(0,10)+"</span><span style=color:"+(up?"#089981":"#f23645")+">"+b.close.toFixed(2)+"</span><span>"+fmtVol(b.volume)+"</span></div>";
       }
       el.innerHTML=html+"</div>"; return;
     }

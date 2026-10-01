@@ -7241,3 +7241,15 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `4735d3b0bcbdde6967bad8c2fdcd0bd77df71f35` matches the exact served Pages build, run 36847549974. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - Combined checks passed 2,477 frontend cases, 1018 deployment and fifteen shell checks, including thirteen new formatting/preservation cases. Seven offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
 - Scalar panes preserve their source units through theme changes. Generated tick noise is shortened only below 0.05 pixels; source measurements remain exact. Crowded mobile metadata, stale market-recovery loading text, extreme library scales, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 507: unavailable market volume and frame replacement (candidate)
+
+- Reproduced absent/null/boolean/negative volume becoming zero and a generic price/value becoming volume. The decoder and core transforms now preserve unavailable quantities and reject conflicting aliases. Complete invented packets and original source remain retained.
+- Volume bars preserve missing coordinates; complete twenty-bar means recover at the correct inclusive boundary without connecting across unavailable windows. RVOL and OBV keep their existing separate definitions. Legacy core volume overlays withhold incomplete frames pending individual window qualification.
+- Real-library review exposed removeSeries callbacks recreating an old volume profile during a frame switch. Clearing ownership before removal and clearing hover state fixes that path; no stale number is intentionally retained as a fallback.
+- Forty focused checks pass, including twenty new numerical/preservation cases. Nine offline desktop/mobile suites, full combined checks and exact publication remain pending. Actual providers, extended annotation modules, transformed-candle volume, original lineage, numerical qualification of legacy formulas and all institutional workstreams remain OPEN. No producer invocation or actual private/current-consumer data read.
+
+- Stage 507 combined checks passed 2,497 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.
+
+- Stage 507 combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.

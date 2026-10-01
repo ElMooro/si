@@ -3,7 +3,7 @@ const R=path.join(__dirname,'..'),raw=fs.readFileSync(path.join(R,'jh-chart-engi
 Function('exports','module',process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'])(p.exports,p);
 const nodes=p.exports.parse(raw,{ecmaVersion:'latest'}).body.find(n=>n.expression?.callee?.type==='FunctionExpression').expression.callee.body.body;
 const functions=Object.fromEntries(nodes.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,raw.slice(n.start,n.end)]));
-function context(){const c={observationAxes:new WeakMap()};vm.createContext(c);vm.runInContext(['observationAxisFormatter','bindObservationAxis','applyTheme','wipe'].map(n=>functions[n]).join('\n'),c);return c;}
+function context(){const c={observationAxes:new WeakMap(),document:{getElementById:()=>null}};vm.createContext(c);vm.runInContext(['observationAxisFormatter','bindObservationAxis','applyTheme','wipe'].map(n=>functions[n]).join('\n'),c);return c;}
 function fmt(values,coordinate=x=>x*100){return context().observationAxisFormatter(values.map(close=>({close})),{priceToCoordinate:coordinate});}
 
 test('generated scalar ticks remove binary noise without modifying exact source labels',()=>{
