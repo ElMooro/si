@@ -203,7 +203,6 @@ def lambda_handler(event, context):
     multi = [b for b in book if b["n_engines"] >= 2]
 
     # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).
-    # Each ticker gets its full 360-degree domain coverage attached.
     t360 = {}
     try:
         t360_raw = s3.get_object(Bucket=BUCKET, Key="data/ticker-360.json")["Body"].read()
@@ -215,7 +214,6 @@ def lambda_handler(event, context):
         tv = t360.get(tk) or {}
         b["t360_coverage"] = tv.get("coverage_count", 0)
         b["t360_domains"] = sorted((tv.get("domains") or {}).keys())
-    # cross-validated: flow posture + 3+ domain coverage
     cross_validated = [b["ticker"] for b in book
                        if b.get("t360_coverage", 0) >= 3 and b["posture"] in
                        ("SHORT_SQUEEZE_SETUP", "ACCUMULATION", "STEALTH_ACCUMULATION")]
