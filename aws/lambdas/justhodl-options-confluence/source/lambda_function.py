@@ -260,6 +260,20 @@ def lambda_handler(event, context):
         book.append(a)
 
     book.sort(key=lambda x: (-x["n_engines"], -abs(x["score"])))
+
+    # ── Ticker-360 cross-engine enrichment: attach 360° coverage context
+    #    per name. Diagnostic inventory only — never another independent
+    #    vote in the confluence score. Fail-soft.
+    try:
+        from ticker_coverage_context import load as _t360_load
+        _t360_ctx = _t360_load(s3, BUCKET)
+        _t360_by = _t360_ctx.get("by_ticker", {}) if _t360_ctx else {}
+        for _b in book:
+            _tv = _t360_by.get(_b.get("ticker", ""))
+            _b["t360_coverage"] = _tv["coverage_count"] if _tv else None
+            _b["t360_domains"] = _tv["domains"] if _tv else []
+    except Exception as _t360_e:
+        print(f"[options-confluence] t360 enrichment skipped: {_t360_e}")
     by_posture = {}
     for p in ("SQUEEZE_FUEL", "BULLISH_FLOW", "BEARISH_FLOW", "COILED", "BULLISH_LEAN", "BEARISH_LEAN"):
         by_posture[p] = [b for b in book if b["posture"] == p][:25]
