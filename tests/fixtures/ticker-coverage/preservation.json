@@ -1,0 +1,135 @@
+{
+  "base_commit": "ee21e7e672433f6c06c143a4688a3e221bd66e7b",
+  "scope": "Optional diagnostic coverage only; original scores, universe, inputs and legacy research boundaries are preserved.",
+  "sources": {
+    "aws/lambdas/justhodl-flow-confluence/source/lambda_function.py": {
+      "file": "tests/fixtures/ticker-coverage/flow-confluence.py.txt",
+      "sha256": "44e55d303e74917b4d3d9f799e797e2ab8ebb56abe91f4c1d7d5ce08c586ae23",
+      "bytes": 12967
+    },
+    "aws/lambdas/justhodl-best-ideas/source/lambda_function.py": {
+      "file": "tests/fixtures/ticker-coverage/best-ideas.py.txt",
+      "sha256": "f58e06dc4d68f78725d565c541b1b3fed6e771236f84110e8870d0fee603a081",
+      "bytes": 20359
+    },
+    "aws/shared/tests/test_capital_research_boundary.py": {
+      "file": "tests/fixtures/ticker-coverage/capital-boundary-test.py.txt",
+      "sha256": "0c35867c851a3e8bdaefa875f31b45ff47f8318dd50c11d0d8b075ed1e80d4bc",
+      "bytes": 11696
+    },
+    "aws/lambdas/justhodl-flow-confluence/tests/run_tests.py": {
+      "file": "tests/fixtures/ticker-coverage/flow-confluence-runner.py.txt",
+      "sha256": "612ce9328114e39be9e8ae421172568c5eba7d46f267b20d36263fd71b49bf64",
+      "bytes": 829
+    },
+    "aws/lambdas/justhodl-best-ideas/tests/run_tests.py": {
+      "file": "tests/fixtures/ticker-coverage/best-ideas-runner.py.txt",
+      "sha256": "b282c9d0fcfbc8f6cccd311f281a05969754a00ccd29523206bf8aeb175eb5e9",
+      "bytes": 707
+    },
+    "tests/deployment/test_options_complete_closure.py": {
+      "file": "tests/fixtures/ticker-coverage/options-closure-test.py.txt",
+      "sha256": "1324159f139e973a99758645d349d1714931ec3f518fd8ae668ecbd457d55b41",
+      "bytes": 1831
+    }
+  },
+  "edits": {
+    "aws/lambdas/justhodl-flow-confluence/source/lambda_function.py": [
+      {
+        "start_line": 31,
+        "old": "VERSION = \"1.3\"\n",
+        "new": "VERSION = \"1.3.1\"\n"
+      },
+      {
+        "start_line": 204,
+        "old": "    # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).\n    t360 = {}\n    try:\n        t360_raw = s3.get_object(Bucket=BUCKET, Key=\"data/ticker-360.json\")[\"Body\"].read()\n        t360 = (json.loads(t360_raw).get(\"tickers\") or {})\n    except Exception:\n        t360 = {}\n",
+        "new": "    # Ticker-360 is diagnostic inventory, never another independent vote.\n    from ticker_coverage_context import load as load_coverage_context\n    t360_context = load_coverage_context(s3, BUCKET)\n    t360 = t360_context['by_ticker']\n"
+      },
+      {
+        "start_line": 212,
+        "old": "        tk = b[\"ticker\"]\n        tv = t360.get(tk) or {}\n        b[\"t360_coverage\"] = tv.get(\"coverage_count\", 0)\n        b[\"t360_domains\"] = sorted((tv.get(\"domains\") or {}).keys())\n    cross_validated = [b[\"ticker\"] for b in book\n                       if b.get(\"t360_coverage\", 0) >= 3 and b[\"posture\"] in\n                       (\"SHORT_SQUEEZE_SETUP\", \"ACCUMULATION\", \"STEALTH_ACCUMULATION\")]\n",
+        "new": "        tv = t360.get(b['ticker'])\n        b['t360_coverage'] = tv['coverage_count'] if tv else None\n        b['t360_domains'] = tv['domains'] if tv else []\n        b['t360_context'] = tv\n    cross_validated = []  # Coverage has no validated predictive or independence evidence.\n"
+      },
+      {
+        "start_line": 227,
+        "old": "                      \"t360_indexed\": len(t360), \"cross_validated\": len(cross_validated),\n",
+        "new": "                      \"t360_indexed\": t360_context[\"indexed_rows\"], \"cross_validated\": len(cross_validated),\n"
+      },
+      {
+        "start_line": 233,
+        "old": "                                        \"t360_coverage\": b.get(\"t360_coverage\", 0), \"t360_domains\": b.get(\"t360_domains\", [])}\n",
+        "new": "                                        \"t360_coverage\": b.get(\"t360_coverage\"), \"t360_domains\": b.get(\"t360_domains\", [])}\n"
+      },
+      {
+        "start_line": 237,
+        "old": "           \"cross_validated_tickers\": cross_validated[:40],\n",
+        "new": "           \"cross_validated_tickers\": cross_validated,\n           \"cross_validation_status\": \"unqualified\",\n           \"ticker_360_context\": {k:v for k,v in t360_context.items() if k != \"by_ticker\"},\n"
+      }
+    ],
+    "aws/lambdas/justhodl-best-ideas/source/lambda_function.py": [
+      {
+        "start_line": 388,
+        "old": "    # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).\n    try:\n        t360 = (json.loads(s3.get_object(Bucket=S3_BUCKET,\n                    Key=\"data/ticker-360.json\")[\"Body\"].read()).get(\"tickers\") or {})\n    except Exception:\n        t360 = {}\n",
+        "new": "    # Ticker-360 is diagnostic inventory, never another independent vote.\n    from ticker_coverage_context import load as load_coverage_context\n    t360_context = load_coverage_context(s3, S3_BUCKET)\n    t360 = t360_context['by_ticker']\n"
+      },
+      {
+        "start_line": 395,
+        "old": "        tv = t360.get(s.get(\"symbol\", \"\")) or {}\n        s[\"t360_coverage\"] = tv.get(\"coverage_count\", 0)\n        s[\"t360_domains\"] = sorted((tv.get(\"domains\") or {}).keys())\n",
+        "new": "        tv = t360.get(s.get('symbol', ''))\n        s['t360_coverage'] = tv['coverage_count'] if tv else None\n        s['t360_domains'] = tv['domains'] if tv else []\n        s['t360_context'] = tv\n"
+      },
+      {
+        "start_line": 402,
+        "old": "        \"schema_version\": \"1.2.0-t360\",\n",
+        "new": "        \"schema_version\": \"1.2.1-t360-context\",\n"
+      },
+      {
+        "start_line": 404,
+        "old": "",
+        "new": "        \"ticker_360_context\": {k:v for k,v in t360_context.items() if k != \"by_ticker\"},\n"
+      },
+      {
+        "start_line": 408,
+        "old": "            f\"{len(stack)} names carry multi-engine conviction  \"\n            f\"{len(titans)} TITANS confirmed across 4+ factor families, \"\n            f\"{len(high)} HIGH-CONVICTION across 3.\"),\n",
+        "new": "            f\"Heuristic screen: {len(stack)} names span multiple configured factor families. \"\n            \"Independence and predictive performance are unverified.\"),\n"
+      },
+      {
+        "start_line": 412,
+        "old": "            \"Every name here is flagged by at least two of the platform's \"\n            \"opportunity engines, in two DIFFERENT factor families. \"\n            \"More families = more independent confirmation = higher \"\n            \"conviction. CONVICTION TITANS (4+ families) are the rarest \"\n            \"and strongest reads.\"),\n",
+        "new": "            \"Factor families classify inputs; their count does not establish independent evidence. \"\n            \"Existing conviction tiers are heuristic labels, not calibrated probabilities. \"\n            \"Ticker-360 coverage is descriptive context and never adds a score or vote.\"),\n"
+      },
+      {
+        "start_line": 431,
+        "old": "        \"disclaimer\": (\"Confluence improves the signal-to-noise ratio; it \"\n                       \"is not a guarantee. Research and education only  \"\n                       \"not investment advice.\"),\n",
+        "new": "        \"disclaimer\": (\"Research context only. These heuristic scores are not validated \"\n                       \"forecasts or portfolio sizing guidance.\"),\n"
+      }
+    ],
+    "aws/shared/tests/test_capital_research_boundary.py": [
+      {
+        "start_line": 122,
+        "old": "        self.assertEqual(flow_annotations(output), output['ticker_map'])\n",
+        "new": "        core_keys = ('posture', 'score', 'n_engines', 'engines', 'heavy_short', 'stealth', 'tags')\n        expected = {ticker: {key: row[key] for key in core_keys} for ticker, row in output['ticker_map'].items()}\n        self.assertEqual(flow_annotations(output), expected)\n        self.assertEqual(set(output['ticker_map']['KO']) - set(core_keys), {'t360_coverage', 't360_domains'})\n        for diagnostic in ({'t360_coverage': 999, 't360_domains': ['market-wide']},\n                           {'t360_coverage': True, 't360_domains': {'calls_eligible': True}}):\n            changed = deepcopy(output); changed['ticker_map']['KO'].update(diagnostic)\n            self.assertEqual(flow_annotations(changed), expected)\n"
+      }
+    ],
+    "aws/lambdas/justhodl-flow-confluence/tests/run_tests.py": [
+      {
+        "start_line": 9,
+        "old": "",
+        "new": "suite.addTests(unittest.TestLoader().loadTestsFromName('test_ticker_coverage_context.Context'))\nsuite.addTests(unittest.TestLoader().loadTestsFromName('test_ticker_coverage_handlers.Whole'))\n"
+      }
+    ],
+    "aws/lambdas/justhodl-best-ideas/tests/run_tests.py": [
+      {
+        "start_line": 20,
+        "old": "",
+        "new": "\nif __name__==\"__main__\":\n    for test in (\"test_ticker_coverage_context.py\", \"test_ticker_coverage_handlers.py\"):\n        subprocess.run([sys.executable,str(root/\"tests\"/test)],check=True)\n"
+      }
+    ],
+    "tests/deployment/test_options_complete_closure.py": [
+      {
+        "start_line": 0,
+        "old": "from pathlib import Path\nimport importlib.util,json,subprocess,sys\n\nROOT=Path(__file__).resolve().parents[2]\n\n\ndef test_current_options_packages_include_the_added_momentum_helper():\n    path=ROOT/'aws/ops/staged/ops_6320_options_normal_publication.py'\n    spec=importlib.util.spec_from_file_location('options_complete_closure',path)\n    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n    from release_package_evidence import shared_imports\n    baselines=json.loads((ROOT/'docs/audit/2026-09-28/options-flow-original-baseline.json').read_bytes())['actual_producers']\n    actual={}\n    for fn,sha in module.EXPECTED.items():\n        source=ROOT/'aws/lambdas'/fn/'source'\n        files=[ROOT/p for p in subprocess.check_output(['git','ls-files',str(source.relative_to(ROOT))],cwd=ROOT,text=True).splitlines()]\n        closure={p.relative_to(source).as_posix() for p in files}\n        closure.update(p.name for p in shared_imports(ROOT,files) if not (source/p.name).exists())\n        assert module.COUNTS[fn]==len(closure),(fn,module.COUNTS[fn],closure)\n        cfg=baselines[fn]['runtime']\n        mapping={'function_name':'FunctionName','runtime':'Runtime','handler':'Handler','timeout':'Timeout',\n            'memory_mb':'MemorySize','architectures':'Architectures','role':'Role'}\n        actual[fn]={k:cfg[v] for k,v in mapping.items()}\n        actual[fn].update(ephemeral_storage_mb=cfg['EphemeralStorage']['Size'],schedules=baselines[fn]['schedules'],\n            receipt={'status':'matched','commit':sha},source_files_checked=len(closure))\n    module.check_packages(actual,baselines)\n    actual['justhodl-best-ideas']['source_files_checked']=5\n    try:module.check_packages(actual,baselines)\n    except ValueError:pass\n    else:raise AssertionError('Incomplete Best Ideas source closure accepted')\n",
+        "new": "from pathlib import Path\nimport importlib.util,json,subprocess,sys\n\nROOT=Path(__file__).resolve().parents[2]\n\n\ndef test_historical_options_gate_and_current_complete_consumer_closures():\n    path=ROOT/'aws/ops/staged/ops_6320_options_normal_publication.py'\n    spec=importlib.util.spec_from_file_location('options_complete_closure',path)\n    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n    from release_package_evidence import shared_imports\n    baselines=json.loads((ROOT/'docs/audit/2026-09-28/options-flow-original-baseline.json').read_bytes())['actual_producers']\n    actual={}\n    for fn,sha in module.EXPECTED.items():\n        source=ROOT/'aws/lambdas'/fn/'source'\n        files=[ROOT/p for p in subprocess.check_output(['git','ls-files',str(source.relative_to(ROOT))],cwd=ROOT,text=True).splitlines()]\n        closure={p.relative_to(source).as_posix() for p in files}\n        closure.update(p.name for p in shared_imports(ROOT,files) if not (source/p.name).exists())\n        historical=json.loads((ROOT/'tests/fixtures/ticker-coverage/historical-options-source-closure.json').read_bytes())['packages'][fn]\n        assert historical['commit']==sha\n        prior_members=set(historical['members'])\n        additions={'ticker_coverage_context.py'} if fn in ('justhodl-best-ideas','justhodl-flow-confluence') else set()\n        assert closure==prior_members|additions,(fn,closure,prior_members)\n        assert module.COUNTS[fn]==len(prior_members),(fn,module.COUNTS[fn],prior_members)\n        if additions:\n            current_path=ROOT/'aws/ops/staged/ops_6420_ticker_coverage_acceptance.py'\n            current_spec=importlib.util.spec_from_file_location('current_coverage_closure',current_path)\n            current=importlib.util.module_from_spec(current_spec);current_spec.loader.exec_module(current)\n            assert current.EXPECTED_SOURCE_COUNTS[fn]==len(closure)\n            # Native acceptance pins bytes when dispatched; this permanent gate checks\n            # complete member coverage, not obsolete bytes after a future source edit.\n            member_paths={(source/member if (source/member).exists() else ROOT/'aws/shared'/member).relative_to(ROOT).as_posix() for member in closure}\n            assert member_paths <= set(current.SOURCE_HASHES)\n        cfg=baselines[fn]['runtime']\n        mapping={'function_name':'FunctionName','runtime':'Runtime','handler':'Handler','timeout':'Timeout',\n            'memory_mb':'MemorySize','architectures':'Architectures','role':'Role'}\n        actual[fn]={k:cfg[v] for k,v in mapping.items()}\n        actual[fn].update(ephemeral_storage_mb=cfg['EphemeralStorage']['Size'],schedules=baselines[fn]['schedules'],\n            receipt={'status':'matched','commit':sha},source_files_checked=len(prior_members))\n    module.check_packages(actual,baselines)\n    actual['justhodl-best-ideas']['source_files_checked']=5\n    try:module.check_packages(actual,baselines)\n    except ValueError:pass\n    else:raise AssertionError('Incomplete Best Ideas source closure accepted')\n"
+      }
+    ]
+  }
+}

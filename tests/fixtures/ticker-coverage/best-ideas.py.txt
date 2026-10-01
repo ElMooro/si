@@ -386,32 +386,35 @@ def lambda_handler(event, context):
             s["overlays"] = notes
     stack.sort(key=lambda x: (x["families_hit"], x["conviction_score"]),
                reverse=True)
-    # Ticker-360 is diagnostic inventory, never another independent vote.
-    from ticker_coverage_context import load as load_coverage_context
-    t360_context = load_coverage_context(s3, S3_BUCKET)
-    t360 = t360_context['by_ticker']
+    # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).
+    try:
+        t360 = (json.loads(s3.get_object(Bucket=S3_BUCKET,
+                    Key="data/ticker-360.json")["Body"].read()).get("tickers") or {})
+    except Exception:
+        t360 = {}
     for s in stack:
-        tv = t360.get(s.get('symbol', ''))
-        s['t360_coverage'] = tv['coverage_count'] if tv else None
-        s['t360_domains'] = tv['domains'] if tv else []
-        s['t360_context'] = tv
+        tv = t360.get(s.get("symbol", "")) or {}
+        s["t360_coverage"] = tv.get("coverage_count", 0)
+        s["t360_domains"] = sorted((tv.get("domains") or {}).keys())
     titans = [s for s in stack if s["conviction_tier"] == "CONVICTION TITAN"]
     high = [s for s in stack if s["conviction_tier"] == "HIGH CONVICTION"]
     out = {
         "momentum_research_exclusion": momentum_exclusion(),
-        "schema_version": "1.2.1-t360-context",
+        "schema_version": "1.2.0-t360",
         "method": "cross_engine_factor_confluence",
-        "ticker_360_context": {k:v for k,v in t360_context.items() if k != "by_ticker"},
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
         "ok": len(stack) >= 1,
         "headline": (
-            f"Heuristic screen: {len(stack)} names span multiple configured factor families. "
-            "Independence and predictive performance are unverified."),
+            f"{len(stack)} names carry multi-engine conviction  "
+            f"{len(titans)} TITANS confirmed across 4+ factor families, "
+            f"{len(high)} HIGH-CONVICTION across 3."),
         "how_to_read": (
-            "Factor families classify inputs; their count does not establish independent evidence. "
-            "Existing conviction tiers are heuristic labels, not calibrated probabilities. "
-            "Ticker-360 coverage is descriptive context and never adds a score or vote."),
+            "Every name here is flagged by at least two of the platform's "
+            "opportunity engines, in two DIFFERENT factor families. "
+            "More families = more independent confirmation = higher "
+            "conviction. CONVICTION TITANS (4+ families) are the rarest "
+            "and strongest reads."),
         "n_total": len(stack),
         "n_titans": len(titans),
         "n_high_conviction": len(high),
@@ -426,8 +429,9 @@ def lambda_handler(event, context):
             "bond_vol": move_lvl,
             "forensic_flagged": len(bad),
         },
-        "disclaimer": ("Research context only. These heuristic scores are not validated "
-                       "forecasts or portfolio sizing guidance."),
+        "disclaimer": ("Confluence improves the signal-to-noise ratio; it "
+                       "is not a guarantee. Research and education only  "
+                       "not investment advice."),
     }
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, default=str).encode("utf-8"),

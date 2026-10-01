@@ -120,14 +120,7 @@ class Tests(unittest.TestCase):
         m = load('justhodl-flow-confluence'); db = Storage({'data/insider-clusters.json': {'clusters': [{'ticker':'KO','n_insiders':3}]}})
         with patch.object(m, 's3', db): m.lambda_handler({}, None)
         output = db.writes[m.OUT_KEY]
-        core_keys = ('posture', 'score', 'n_engines', 'engines', 'heavy_short', 'stealth', 'tags')
-        expected = {ticker: {key: row[key] for key in core_keys} for ticker, row in output['ticker_map'].items()}
-        self.assertEqual(flow_annotations(output), expected)
-        self.assertEqual(set(output['ticker_map']['KO']) - set(core_keys), {'t360_coverage', 't360_domains'})
-        for diagnostic in ({'t360_coverage': 999, 't360_domains': ['market-wide']},
-                           {'t360_coverage': True, 't360_domains': {'calls_eligible': True}}):
-            changed = deepcopy(output); changed['ticker_map']['KO'].update(diagnostic)
-            self.assertEqual(flow_annotations(changed), expected)
+        self.assertEqual(flow_annotations(output), output['ticker_map'])
         self.assertEqual(output['ticker_map']['KO']['engines'], ['insider'])
         changes = ({'engines':['capital-flow']}, {'engines':['13f']}, {'engines':['smart-money']},
             {'engines':['CapitalFlow']}, {'engines':[]}, {'engines':['dark-pool','dark-pool'], 'n_engines':2},

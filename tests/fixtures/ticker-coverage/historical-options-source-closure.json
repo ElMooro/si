@@ -1,0 +1,117 @@
+{
+  "scope": "Historical source-only member inventory, obtained from exact Git commits. No native packet, application data, private genealogy or outcome artifact was read.",
+  "packages": {
+    "justhodl-options-flow-scanner": {
+      "commit": "f9b0cc066ecaca3dde599b98b426b9d6483f479d",
+      "members": {
+        "flow_observations.py": {
+          "path": "aws/lambdas/justhodl-options-flow-scanner/source/flow_observations.py",
+          "sha256": "20aee9ad68b227b6a677cde823c306d099ae882eb7a0a4e434a1f15b93c002c5"
+        },
+        "lambda_function.py": {
+          "path": "aws/lambdas/justhodl-options-flow-scanner/source/lambda_function.py",
+          "sha256": "ac2c9f662e1cbbe1156c1d1165cf0b6cbf0c7334b008497165c327fe6a7f291f"
+        },
+        "managed_secret.py": {
+          "path": "aws/shared/managed_secret.py",
+          "sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e"
+        },
+        "offexchange_measurements.py": {
+          "path": "aws/shared/offexchange_measurements.py",
+          "sha256": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18"
+        }
+      }
+    },
+    "justhodl-best-ideas": {
+      "commit": "b7db9ef147732700a4817e156eca2d2d53171896",
+      "members": {
+        "insider_research.py": {
+          "path": "aws/shared/insider_research.py",
+          "sha256": "bd9dfd28a4a5dd072397b708d34b28b1bd8636b98dda81bcd4d1048d1713a15d"
+        },
+        "lambda_function.py": {
+          "path": "aws/lambdas/justhodl-best-ideas/source/lambda_function.py",
+          "sha256": "3aa5649404203dbbb516d7ac2b23ca81b3303a51b3d40fbb1be5db89c7e06323"
+        },
+        "momentum_research_boundary.py": {
+          "path": "aws/shared/momentum_research_boundary.py",
+          "sha256": "54eff7690518c228905fb26bd22ca03d446d4d2915e5b8f3166eefcde46a4d92"
+        },
+        "provider_flow_catalog.py": {
+          "path": "aws/shared/provider_flow_catalog.py",
+          "sha256": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b"
+        },
+        "provider_flow_research.py": {
+          "path": "aws/shared/provider_flow_research.py",
+          "sha256": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a"
+        },
+        "sec_search_research.py": {
+          "path": "aws/shared/sec_search_research.py",
+          "sha256": "6e450928888c5210ebfa8b33c3906a8cdc11971d6b640c9a830e986794aaa483"
+        }
+      }
+    },
+    "justhodl-flow-confluence": {
+      "commit": "f9b0cc066ecaca3dde599b98b426b9d6483f479d",
+      "members": {
+        "capital_research_boundary.py": {
+          "path": "aws/shared/capital_research_boundary.py",
+          "sha256": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f"
+        },
+        "holdings_authority.py": {
+          "path": "aws/shared/holdings_authority.py",
+          "sha256": "b9790df87ed542396333cb75cfd4f7e6a185f733568e4886beb7753220d99355"
+        },
+        "holdings_derived_boundary.py": {
+          "path": "aws/shared/holdings_derived_boundary.py",
+          "sha256": "1da007ba20f1ae67ac35729276fa0c43a486b80c0a09eff001ad25c08ac35240"
+        },
+        "lambda_function.py": {
+          "path": "aws/lambdas/justhodl-flow-confluence/source/lambda_function.py",
+          "sha256": "6f93faf144fb49b6288adc2e66180e955622d49458ec3a824e69f56e2828a86d"
+        },
+        "offexchange_context.py": {
+          "path": "aws/shared/offexchange_context.py",
+          "sha256": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3"
+        },
+        "option_scanner_boundary.py": {
+          "path": "aws/shared/option_scanner_boundary.py",
+          "sha256": "3abfb136783cc01aa8a78411fc51830b8aac0b68d251ef3908177d6dae9459b1"
+        },
+        "provider_flow_catalog.py": {
+          "path": "aws/shared/provider_flow_catalog.py",
+          "sha256": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b"
+        },
+        "provider_flow_research.py": {
+          "path": "aws/shared/provider_flow_research.py",
+          "sha256": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a"
+        },
+        "short_interest_context.py": {
+          "path": "aws/shared/short_interest_context.py",
+          "sha256": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04"
+        },
+        "short_volume_context.py": {
+          "path": "aws/shared/short_volume_context.py",
+          "sha256": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff"
+        }
+      }
+    },
+    "justhodl-options-confluence": {
+      "commit": "b3dd1c2b5f1ee461471d83a4fd733932c1bf694b",
+      "members": {
+        "lambda_function.py": {
+          "path": "aws/lambdas/justhodl-options-confluence/source/lambda_function.py",
+          "sha256": "8a751894dc6853f22ef59d2b6b2d9d7e29eb9380f1440fc1d07795bccd79163e"
+        },
+        "option_population_context.py": {
+          "path": "aws/shared/option_population_context.py",
+          "sha256": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a"
+        },
+        "option_scanner_boundary.py": {
+          "path": "aws/shared/option_scanner_boundary.py",
+          "sha256": "3abfb136783cc01aa8a78411fc51830b8aac0b68d251ef3908177d6dae9459b1"
+        }
+      }
+    }
+  }
+}

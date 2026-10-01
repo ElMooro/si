@@ -18,7 +18,3 @@ if __name__=='__main__':
     import sys,subprocess
     root=Path(__file__).resolve().parents[4]
     subprocess.run([sys.executable,str(root/'tests/test_option_scanner_boundary.py')],check=True)
-
-if __name__=="__main__":
-    for test in ("test_ticker_coverage_context.py", "test_ticker_coverage_handlers.py"):
-        subprocess.run([sys.executable,str(root/"tests"/test)],check=True)

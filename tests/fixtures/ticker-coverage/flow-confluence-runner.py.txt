@@ -7,6 +7,4 @@ suite.addTests(unittest.TestLoader().loadTestsFromName('test_capital_research_bo
 suite.addTests(unittest.TestLoader().loadTestsFromName('test_capital_research_boundary.Tests.test_flow_annotations_require_actual_components_and_both_revisions'))
 sys.path.insert(0,str(ROOT/'tests'))
 suite.addTests(unittest.TestLoader().loadTestsFromName('test_option_scanner_boundary.Tests'))
-suite.addTests(unittest.TestLoader().loadTestsFromName('test_ticker_coverage_context.Context'))
-suite.addTests(unittest.TestLoader().loadTestsFromName('test_ticker_coverage_handlers.Whole'))
 sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)
