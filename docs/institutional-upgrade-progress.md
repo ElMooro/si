@@ -6920,3 +6920,10 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
   report write reachable; dynamic private archive keys remain explicitly unresolved.
   Exact release acceptance is pending.
   Normal publication, independent real-source replay and all ten workstreams remain OPEN.
+
+
+### Stage 492 exact coverage inventory release acceptance
+
+- Source `2d1f4c6285102dd36501bc720185348ee496f04c` is accepted with exact public receipt and CodeSha256 `QtbutQg5wLuz7SFB86IruWKOCIl8n7iHNC/dGWjVfeI=`. Read-only 6402, run `36802291659`, confirms all three packaged source files and unchanged 1024 MB / 120 seconds / 512 MB temporary storage / Python 3.12 / x86_64 and original daily 06:45 UTC rule, before and after inspection. Report commit: `f0d2a2eaa7b123f4865bace9c06c7703731a0abd`.
+- All 55 inspected static files match one exact build. The full source inventory preserves 898 engine records, 599 page contracts, 543 navigation destinations and 143 companion wires. The final source passes 39 native, three operation, 990 deployment, fifteen shell and 2,213 frontend checks. The final cycle includes functional publication reachability, corrected metadata, strict framing and extreme-clock regressions.
+- No actual queue, master, account, private/current consumer body, provider request or producer invocation was used. Normal new-code publication, independent source replay and global inventory completeness remain unverified. No investment authority is granted. A complete invented directory build reproduces the next stored-index defect: copying an ISIN across conflicting issuer identities. Current search responses omit that ISIN, so display exposure is not claimed. All ten platform workstreams remain OPEN.
