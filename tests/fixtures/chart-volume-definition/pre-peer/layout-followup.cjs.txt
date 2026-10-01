@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{chromium}=require('playwright');
-const R=path.join(__dirname,'..'),D=path.resolve(process.argv[2]||'');assert.ok(process.argv[2]);fs.mkdirSync(D,{recursive:true});
+const R=path.join(__dirname,'si-batch-improvements'),D=path.resolve(process.argv[2]||'');assert.ok(process.argv[2]);fs.mkdirSync(D,{recursive:true});
 const vendor='tests/fixtures/chart-observations/vendor/lightweight-charts-4.2.3.js.txt';
 const scripts=['jh-observation-series.js','jh-observation-cache.js','jh-cq-fuse.js','jh-chart-catalog.js','jh-chart-engine.js','jh-chart-indux.js','jh-stock-desk-research.js','jh-chart-stock-desk.js','jh-chart-vol-events.js'];
 const html=fs.readFileSync(path.join(R,'chart.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'');
@@ -59,7 +59,7 @@ const output={scope:'Complete selected chart modules with pinned real drawing li
    s=await draw('zero');candles=s.main.find(r=>r.kind==='addCandlestickSeries');assert.notEqual(candles.data.at(-1).color,candles.options.upColor);states.volume_candles_zero=s;
    await page.evaluate(async()=>{INDS.find(x=>x.id==='voltape').on=true;await paint(lastBars);});
    assert.match(await page.locator('.annotation-timing').textContent(),/not first availability/);
-   await page.locator('[data-annotation-timing]').click();assert.match(await page.locator('#indhelp').textContent(),/First availability is unknown/);await shot('annotation-timing');
+   await page.locator('[data-annotation-timing]').click();assert.match(await page.locator('#indhelp').textContent(),/First availability is unknown/);await shot('annotation-timing');await page.locator('#indhelp .caveat').scrollIntoViewIfNeeded();const visible=await page.locator('#indhelp .caveat').evaluate(el=>{const r=el.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;});assert.equal(visible,true);await shot('annotation-caveat');
    await page.keyboard.press('Escape');assert.notEqual(await page.locator('#indhelp').getAttribute('class'),'on');
    await page.evaluate(async()=>{INDS.find(x=>x.id==='voltape').on=false;await paint(lastBars);});assert.equal(await page.locator('.annotation-timing').count(),0);
    assert.deepEqual(errors,[]);output.cases.push({width,requests,errors,states,screenshots,actual_network_requests:0});

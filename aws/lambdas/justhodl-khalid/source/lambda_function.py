@@ -958,6 +958,7 @@ def build_output(
             "shelter": policy["default_shelter"],
         },
         "risk_board": risk_board,
+        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),
         "risk_artifact": {
             "artifact": "data/khalid-risk.json",
             "generated_at": risk_artifact.get("generated_at"),
