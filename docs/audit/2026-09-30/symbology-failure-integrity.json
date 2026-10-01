@@ -189,7 +189,3388 @@
     }
   },
   "acceptance": {
-    "status": "not_deployed",
+    "status": "exact_native_and_static_release_checked",
+    "source_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+    "public_receipt": {
+      "actor": "ElMooro",
+      "code_sha256": "L9/D/CYSXd5QNOQzuQM96KIXHDfIGI0gPMkgKHAgwBw=",
+      "commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+      "deployed_at": "2026-10-01T00:21:41Z",
+      "function": "justhodl-symbology-master",
+      "run_id": "36795498685",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36795498685",
+      "schema": "release-receipt.v1",
+      "source": {
+        "bond_symbology.py": {
+          "bytes": 9857,
+          "sha256": "7d00f29b2485557ddcff6665aadee7e15d5ed00cf6e0252cf85dbe36eb758311"
+        },
+        "lambda_function.py": {
+          "bytes": 13518,
+          "sha256": "be8bb319219d7451f1c7c90b1cd238ea71a0cb2bb520d31f7f9074fa00d824e6"
+        }
+      },
+      "verified": true,
+      "workflow": "deploy-lambdas.yml",
+      "zip_bytes": 1013439,
+      "zip_sha256_hex": "2fdfc3fc26125dde5034e433b9033de8a2171c37c8188d203cc920287020c01c"
+    },
+    "native": {
+      "run_id": 36795920997,
+      "operation_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+      "report_commit": "d8ff825c08af3c586ab368dc1bcbcb57d6afa15d",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6398_symbology_failure_integrity_acceptance.md",
+        "bytes": 2783,
+        "sha256": "75cc9fd7d0b460f896b317481e63966402bafce040067fd2eaa174ed7b8147e6"
+      },
+      "evidence": {
+        "status": "exact_native_release_checked",
+        "expected_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "reviewed_source_hashes": {
+          "aws/lambdas/justhodl-symbology-master/source/lambda_function.py": "be8bb319219d7451f1c7c90b1cd238ea71a0cb2bb520d31f7f9074fa00d824e6",
+          "aws/lambdas/justhodl-symbology-master/source/bond_symbology.py": "7d00f29b2485557ddcff6665aadee7e15d5ed00cf6e0252cf85dbe36eb758311",
+          "aws/shared/openfigi.py": "4888f7598ac84440dc429afac4b7a0e53dd97be3550c6c54eedf0d6a20b855e5"
+        },
+        "native_before": {
+          "code_sha256": "L9/D/CYSXd5QNOQzuQM96KIXHDfIGI0gPMkgKHAgwBw=",
+          "source_files_checked": 4,
+          "handler_bytes": 13518,
+          "timeout": 120,
+          "memory_mb": 1024,
+          "receipt": {
+            "status": "matched",
+            "commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-symbology-master-daily",
+              "state": "ENABLED",
+              "expression": "cron(15 5 * * ? *)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-symbology-master",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "native_after": {
+          "code_sha256": "L9/D/CYSXd5QNOQzuQM96KIXHDfIGI0gPMkgKHAgwBw=",
+          "source_files_checked": 4,
+          "handler_bytes": 13518,
+          "timeout": 120,
+          "memory_mb": 1024,
+          "receipt": {
+            "status": "matched",
+            "commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-symbology-master-daily",
+              "state": "ENABLED",
+              "expression": "cron(15 5 * * ? *)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-symbology-master",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "declared_settings": {
+          "function_name": "justhodl-symbology-master",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "timeout": 120,
+          "memory_mb": 1024,
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+        },
+        "declared_settings_match": true,
+        "all_observed_schedules_enabled": true,
+        "normal_publication_verified": false,
+        "source_replay_verified": false,
+        "investment_authority": false,
+        "native_invocations": 0,
+        "provider_requests": 0,
+        "current_packet_reads": 0,
+        "private_reads": 0,
+        "account_reads": 0,
+        "consumer_reads": 0,
+        "native_writes": 0,
+        "schedule_changes": 0,
+        "application_log_queries": 0,
+        "scope": "Exact native package, public release receipt and selected resource/schedule controls only. No environment values, signed package URL, queue, master, original archive, data publication or logs are returned."
+      }
+    },
+    "static": {
+      "platform": {
+        "checked_at": "2026-10-01T00:21:28.317888+00:00",
+        "intended_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "served_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "assets": {
+          "term-premium.html": {
+            "bytes": 11119,
+            "sha256": "a71cae2d1798cde7eb1b997385c8e2ca21c72c86939a22c75e3ac1bf322493db",
+            "matches_manifest": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "862b85b97da1a0fb67284f8c25c52dae0f150d20b3f6c39cd7151ec83ffcde13",
+            "matches_manifest": true,
+            "embedded_home_configuration_hashes_match_exact_served_files": true
+          },
+          "portfolio-manager.html": {
+            "bytes": 30627,
+            "sha256": "ff834ef1ff80e25ec3b913d1d56d3c37f047e64212634105ac9115e0a48c7456",
+            "matches_manifest": true
+          },
+          "portfolio/index.html": {
+            "bytes": 48427,
+            "sha256": "feed8eeb31364a94425b51ec8d3af37eb9c53102df60b97f235305806f21f24d",
+            "matches_manifest": true,
+            "helper_content_version_matches_reviewed_source": true
+          },
+          "position-sizer.html": {
+            "bytes": 11687,
+            "sha256": "c097f6bf9af52981f827059aef189fef9c4e155ce69429b5b1045a46c2883de5",
+            "matches_manifest": true,
+            "model_sri_matches_reviewed_source": true
+          },
+          "cb-injection.html": {
+            "bytes": 14823,
+            "sha256": "c9471446fda253e69f878b1407570721d13d9b742d9fa32a840acdb9adf3856d",
+            "matches_manifest": true
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "3167e964721873d433983450061f1bbd87e92bfe9a098a8b6c286ef1a95ba73b",
+            "matches_manifest": true
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "d698e4372b27f61e722c85a6105c9d93586490a5a21e3a9ab59c46eec46db868",
+            "matches_manifest": true
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "50474d3b7bab290ac4831146ea3ae240843d96d42218666cc02b8be8f747d0a7",
+            "matches_manifest": true
+          },
+          "capitulation.html": {
+            "bytes": 9023,
+            "sha256": "39f17bda138ef56e2877d1e389040cad5646742afd6553b4dc7b814c7cf4804f",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "market-extremes.html": {
+            "bytes": 10103,
+            "sha256": "bce7feb63f8eb47c10a3216bd3fda15c4c3b5c873907d306d082e436a6aec8bc",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "jh-term-premium-research.js": {
+            "bytes": 20425,
+            "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-term-premium-research.css": {
+            "bytes": 3683,
+            "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+            "matches_manifest": true
+          },
+          "jh-portfolio-research.js": {
+            "bytes": 5693,
+            "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-research-page.js": {
+            "bytes": 7876,
+            "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes.js": {
+            "bytes": 7020,
+            "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes-page.js": {
+            "bytes": 8073,
+            "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "private-artifacts.js": {
+            "bytes": 13930,
+            "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-evidence-io.js": {
+            "bytes": 5002,
+            "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-binding.js": {
+            "bytes": 3954,
+            "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-risk-contract.js": {
+            "bytes": 11530,
+            "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario.js": {
+            "bytes": 7387,
+            "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-io.js": {
+            "bytes": 3035,
+            "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-page.js": {
+            "bytes": 9325,
+            "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-research.js": {
+            "bytes": 15703,
+            "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-page.js": {
+            "bytes": 1072,
+            "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-liquidity-research.js": {
+            "bytes": 6746,
+            "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "calls-page.js": {
+            "bytes": 13589,
+            "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-public-brief.js": {
+            "bytes": 25766,
+            "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-extremes-research.js": {
+            "bytes": 16212,
+            "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-data-inspector.js": {
+            "bytes": 34117,
+            "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "engine-manifest.json": {
+            "bytes": 3091545,
+            "sha256": "db8a8472c9725261e1663f48bc78f892c2f9747468b4d386c75bf27c4a7a4b86",
+            "matches_manifest": true,
+            "complete_inventory_matches_excluding_generated_at": true,
+            "engines": 897
+          },
+          "nav-manifest.json": {
+            "bytes": 36315,
+            "sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20",
+            "matches_manifest": true
+          },
+          "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+            "bytes": 107761,
+            "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+            "matches_manifest": true
+          },
+          "config/home-layout.json": {
+            "bytes": 562,
+            "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+            "matches_manifest": true
+          },
+          "config/section-registry.json": {
+            "bytes": 1305504,
+            "sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3",
+            "matches_manifest": true
+          },
+          "config/page-data-contracts.json": {
+            "bytes": 7716984,
+            "sha256": "de505016f6ef45ef01a04579512de5b9e81bd258b3d938b7e1c201e9ce90220f",
+            "matches_manifest": true,
+            "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+            "pages": 599
+          },
+          "engines.html": {
+            "bytes": 959733,
+            "sha256": "9e47fe6b61ee2678a19724e4ff198b8625116ded0dbdb4eeaa20252e2e988895",
+            "matches_manifest": true
+          },
+          "config/engine-registry.json": {
+            "bytes": 195792,
+            "sha256": "cec9029e5c1825fd6a9b262d48076c6c393a0d933a899964e6cd87d93dce0efb",
+            "matches_manifest": true
+          }
+        },
+        "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+        "generated_asset_bindings": {
+          "navigation_replayed_from_source_at_recorded_build_date": true,
+          "rows": [
+            {
+              "page": "0dte/index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "10kq-filings.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "13f.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "8k-items.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "aaii.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "about.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "accum-composite.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "accumulation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "accuracy.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "activist-13d.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "activist-filings.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "agreement-terminations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ai-rerating.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ai.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ai_predictions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "alerts.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "allocator.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "alpha-atlas.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "alpha-compass.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "alpha-families.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "alpha-scoreboard.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "altseason.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "analogs.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "analyst-actions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "analytics.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "apac.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "apex.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "api-docs.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ark.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ask.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "asset-compass.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "asymmetric.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ath.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "attention.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "auction-crisis.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "auctions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "audit.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "backlog.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "backtest.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "backtests.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "baggers.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "beneish.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "benzinga.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "best-ideas.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "billings-crpo.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bis-crossborder.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "blackout.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bls.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "boj-detail.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bond-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bond-vol.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bonds.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "boom-board.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "boom-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "boom-stage.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bottleneck-boom.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bottleneck.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "bottom.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "brain-compiler.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "brain.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "breadth-thrust.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "brief.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "buyback-scanner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "buybacks.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "buzz-velocity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "calibration-fleet.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "calls.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "canaries.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "capex-pulse.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "capital-flow.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "capital-inflows.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "capital-return.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "capture-gap.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "carry-surface.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cash-conversion-cycle.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "catalyst-calendar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "catalysts.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "catch-up.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cb-injection.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cds-monitor.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "census.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cftc.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "chart-macro.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "chart-patterns.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "chart-pro.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "charts.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ciss.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "classic-dashboard.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cockpit.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "comeback.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "compare.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "compass.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "compound-signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "compounders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "confluence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "consolidation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "construction-housing.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "consumer-pulse.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "contact.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "conviction.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "correlation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cot-extremes.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "credit/index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "credit-before-equity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "credit-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crisis.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cross-asset-flow.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cross-asset-rv.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "cross-asset.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-confluence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-emergence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-liquidity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-narratives.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-opportunities.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "crypto-risk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dark-pool.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "data.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "deal-scanner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dealer-survey.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "debt-wall.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "deep-value-overlap.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "deep-value.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "defcon.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "deferred-revenue.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "delisting-notices.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dep-graph.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "desk-allocator.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "desk-v2.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dex.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "digest-archive.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "digest-trends.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dilution.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "directory.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dislocations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "distribution-composite.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "divergence-v2.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dividend-growth.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dollar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dossier.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "download.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "downloads.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "dxy.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "early-signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "earnings-pead.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "earnings-quality.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "earnings-whisper.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ecb-detail.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ecb-history.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ecb.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "econ-calendar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "edge-discovery.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "edge.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "eia.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "engine.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "engines.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "episode-compass.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "eps-velocity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "equity-chokepoint.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "equity-confluence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "equity-cyclical-bagger.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "errors.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "estimate-revisions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "etf-census.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "etf-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "eu-dump-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "euro-fragmentation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "eva.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "event-study.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "factor-regime.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "factor-returns.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "factor-risk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fed-speak.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "feedback.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fifx-vol.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "filing-cycle-tape.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "filing-redflags.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "financial-conditions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "financial-obligations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "finviz-signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "firm-book.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "firm-risk-board.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "firm-stress.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fixed-income-census.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fleet-audit.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fleet-edge.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fleet-health.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "flow-confluence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "flow.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fmp.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "foreign-flows.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "forensic.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "forward-orders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fred.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "freight-pulse.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "frontrun.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fundamental-census.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fundamental-graphs.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fundamentals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "funding-plumbing.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fusion.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "future-intel.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "futures-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "fx-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "gdelt.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "geo-risk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "gex/index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "gf-value.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-cycle/index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-cycle.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-flow-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-liquidity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-macro.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-recession.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-sovereign.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-stress.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "global-tide.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "glossary.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "gold-rotation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "grid-queue.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "groups.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "gsi-calibration.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "health.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "heatmap.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "hedge-planner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "hedge-pnl.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "highs-lows.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "hiring-velocity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "holdings-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "horizons-gsi.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "horizons.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "hot-stocks.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "housing-predict-future.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "housing-tv-extras.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ici-flows.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ignition.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "impairments-8k.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "import-canary.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "index-recon.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "index.html",
+              "key": "config/home-layout.json",
+              "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+              "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+            },
+            {
+              "page": "index.html",
+              "key": "config/section-registry.json",
+              "source_sha256": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+              "built_sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+            },
+            {
+              "page": "index.html",
+              "key": "engine-manifest.json",
+              "source_sha256": "65e8ed458f587852255d8ad25aa7737fdcc172d70e61029cd3ae168b838887eb",
+              "built_sha256": "db8a8472c9725261e1663f48bc78f892c2f9747468b4d386c75bf27c4a7a4b86"
+            },
+            {
+              "page": "index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "industry-rotation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "industry-triad.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "inflection.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider-buys.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider-clusters.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider-drawdown.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider-industry-cluster.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insider.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "insiders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "institutional-footprint.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "intelligence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "interpretation-scorecard.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "inventory-drawdown.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "investor.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ipo-pipeline.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "journal.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "jsi.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "katlin.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "khalid.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "khalidrisk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "kill-theses.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "lce.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "leader-observations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "leverage.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "liquidity-capacity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "liquidity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "live-pulse.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "live.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "livermore.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "llm-cost.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "lobbying.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ma-crosses.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ma-reversion.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ma200-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "macro-data.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "macro-economic-data.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "macro-frontrun.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "macro-leads.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "macro-rooms.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "magic-formula.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "market-evidence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "market-internals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "market-leaders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "market-map.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "master-allocator.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "master-board.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "master-rank.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "material-agreements.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "materials-orders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "merger-arb-risk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "merger-arb.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "metals-miners.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "methodology.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "microcap-float-squeeze.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ml-predictions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "momentum-observations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "momentum.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "my-portfolio.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "narrative.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "nasdaq-datalink.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "news.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "nobrainers.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "notifications.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "nowcast-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ny-fed.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "observability.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "offexchange-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "officer-change.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "official-orders.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "official-pulse.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ofr.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "onchain.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "opex-calendar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "opportunities.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "option-chain-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "options-analytics.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "options-confluence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "options-flow.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "options-scanner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "options.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "orderbook.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pairs-arb.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pairs-scanner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pairs.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "panels.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "paper-book.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "patent-velocity.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "patterns.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pead-signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "performance.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "phases.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "physical-trade.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "plumbing.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pm-decision.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pnl-attribution.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "political.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "port-cargo.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "portfolio-manager.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "portfolio.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "portwatch.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "positioning.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ppi-acceleration.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pre-pump-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "predictability.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "pricing.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "privacy.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "proof.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "proven-alpha.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "proven-portfolio.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "provider.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "purchase-obligations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "quality-cycle.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "quantum-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "read.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "readthrough.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "real-economy-tape.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "rebalance-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "regime-map.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "regime.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "reports.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "reserves-production.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "resilience.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "retail-edges.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "revenue-acceleration.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk-gate.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk-monitor.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk-regime.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "risk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "rotation-chains.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "rotation-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "russell-recon.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "rv-iv-scanner.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "scarcity-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "scorecard.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sec-filings.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sector-emergence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sentiment.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "settings.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "short/index.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "short-book.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "short-interest-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "short-pressure.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "short-volume-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-board.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-genealogy.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-halflife.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-intelligence.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-orthogonality.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-replay.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signal-scorecard.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sizing.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "skill.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "smart-beta.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "smart-money-13f.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "smart-money.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "snb-detail.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sovereign-stress.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "sovereign.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "spinoff-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "squeeze-fuel.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "squeeze.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "stablecoin-flow.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "starmine.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "statement-research.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "status.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "strategist.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "strategy-portfolio.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "stress.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "strong.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "supply-chain.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "supply-inflection.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "switzerland.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "system-health.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "system.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "systemic-stress.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "tail-hedge.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "tape-reader.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "targets.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "tax-plan.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "term-premium.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "terms.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "theme-tiers.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "themes.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "theses.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "ticker.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "today.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "track-public.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "track-record.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "trade-journal.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "trading-signals.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "treasury-auctions.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "treasury-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "treasury-noise.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "treasury-rehypo.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "trend-engine.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "trend-reversal.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "tv-notes.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "tv-watchlist-tape.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "universe-heatmap.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "upside-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "uptime.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "us-cycle.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "us-data-desk.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "valuations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vintages.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vix-capitulation.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vix-curve.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vol-radar.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vol-regime.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vol-target-unwind.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "vol.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "volatility-observations.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "volatility.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "watchlist.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "watchlists.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "wealth-plan.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "weights.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "welcome.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "whales.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "why-cross-signal.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "why-now.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "why.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "workspace.html",
+              "key": "engine-manifest.json",
+              "source_sha256": "65e8ed458f587852255d8ad25aa7737fdcc172d70e61029cd3ae168b838887eb",
+              "built_sha256": "db8a8472c9725261e1663f48bc78f892c2f9747468b4d386c75bf27c4a7a4b86"
+            },
+            {
+              "page": "write-downs.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "wyckoff.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            },
+            {
+              "page": "yield-curve.html",
+              "key": "nav-manifest.json",
+              "source_sha256": "cc229c56c160cba191a34912a6421b354810b4f51078d5a128217d9d0834410f",
+              "built_sha256": "bea12c9eecb2ffe468a0744dc4cf7236f808340b9183c8628bca03548a7b6b20"
+            }
+          ]
+        },
+        "offline_build": {
+          "complete_engine_rows": 897,
+          "complete_source_registry_matches_manifest": true,
+          "all_concrete_outputs_unchecked_with_null_measurements": true,
+          "counts": {
+            "no-outs": 70,
+            "wired-unverified-feed": 670,
+            "declared-unverified": 157
+          },
+          "rails": [
+            {
+              "page": "calls.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            },
+            {
+              "page": "liquidity.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            }
+          ],
+          "source_references_are_not_runtime_health": true
+        },
+        "intended_static_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "static_sources_unchanged_between_commits": true,
+        "build_manifest_sha256": "f24899a4b42c232d9fbf6e16f4c705eb26acd899b61d67c80d4ce1bc92c1c7ea",
+        "same_build_manifest_before_after": true
+      },
+      "assets": {
+        "checked_at": "2026-10-01T00:21:28.448786+00:00",
+        "served_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "scope": "Whole China and FI/FX static HTML/script/style only, no page execution or current/private/consumer requests.",
+        "assets": {
+          "fifx-vol.html": {
+            "bytes": 11213,
+            "sha256": "581176f10b408e004343d365e9343ebe6e6e25f9d23fd9df2bc2d8d4dc373b9a",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "bond-desk.html": {
+            "bytes": 30701,
+            "sha256": "453156a9452a2d6e2cfa9e004d103010a9d4ff72c903d3f871f867d9a14dd96a",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "2110adef6963a45cc2fd48ef8527b4a491a2b263e9269f52dc62ed4211962ad4",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "signal-board.html": {
+            "bytes": 20200,
+            "sha256": "cf10fe8d49e4caf6ea3dbd40f5aa04c1ae0a23f50b6015f7439d86eeaa71699d",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.js": {
+            "bytes": 21919,
+            "sha256": "fe2ba9e5342223027fb112de6fe75ae7372f32a82fec53a4432fd988f8cde837",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.css": {
+            "bytes": 3417,
+            "sha256": "297f89dbdb5f4336012d92428efd394dc48049ab2354094cd6f0d78974549831",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "8c69185adfc107864b4afd3124aca9dabbfab6e9ba72aa5d68485f0464819b4d",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-china-calendar.js": {
+            "bytes": 13841,
+            "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.js": {
+            "bytes": 10079,
+            "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.css": {
+            "bytes": 2372,
+            "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          }
+        },
+        "build_manifest_sha256": "f24899a4b42c232d9fbf6e16f4c705eb26acd899b61d67c80d4ce1bc92c1c7ea"
+      },
+      "navigation": {
+        "checked_at": "2026-10-01T00:21:30.645275+00:00",
+        "served_commit": "fa8e1f3ab811e3a8f1f4e5d8cf1cf2493c8740f4",
+        "scope": "Static navigation/home code and complete local dependency closure, no page execution or consumer data requests",
+        "assets": {
+          "auth-config.js": {
+            "bytes": 1406,
+            "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+            "matches_source_transform_and_build": true
+          },
+          "auth.js": {
+            "bytes": 20821,
+            "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+            "matches_source_transform_and_build": true
+          },
+          "home.js": {
+            "bytes": 95417,
+            "sha256": "cb25ef27d9c3cf7ad688bcec48d6adc683f1aacddc78bcfcff20ff495747abf9",
+            "matches_source_transform_and_build": true
+          },
+          "jh-market-tape.js": {
+            "bytes": 3401,
+            "sha256": "8e73601eeb861880a9d5ce3d12669a86b20e102daeeff3de5df8de450450fea1",
+            "matches_source_transform_and_build": true
+          },
+          "jh-nav-drawer.js": {
+            "bytes": 31948,
+            "sha256": "11f00277d99e195aeda4d580fb1115a1e03e5326d3570c1b191aab09cfd53f86",
+            "matches_source_transform_and_build": true
+          },
+          "jh-theme.css": {
+            "bytes": 10031,
+            "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+            "matches_source_transform_and_build": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "862b85b97da1a0fb67284f8c25c52dae0f150d20b3f6c39cd7151ec83ffcde13",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "d698e4372b27f61e722c85a6105c9d93586490a5a21e3a9ab59c46eec46db868",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "2110adef6963a45cc2fd48ef8527b4a491a2b263e9269f52dc62ed4211962ad4",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "8c69185adfc107864b4afd3124aca9dabbfab6e9ba72aa5d68485f0464819b4d",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "3167e964721873d433983450061f1bbd87e92bfe9a098a8b6c286ef1a95ba73b",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "50474d3b7bab290ac4831146ea3ae240843d96d42218666cc02b8be8f747d0a7",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          }
+        },
+        "dependency_mode": "topo",
+        "drawer_version": "529d2cc3",
+        "build_manifest_sha256": "f24899a4b42c232d9fbf6e16f4c705eb26acd899b61d67c80d4ce1bc92c1c7ea",
+        "verification_notes": [
+          "Temporary reconstruction explicitly reproduces Linux UTF-8/LF writes and the exact reskin skip rules; served bytes are never normalized.",
+          "The separate portfolio/index.html application does not declare the shared drawer; its whole static HTML is checked by platform acceptance."
+        ]
+      }
+    },
+    "unique_static_files": 55,
     "normal_publication_verified": false,
     "source_replay_verified": false,
     "investment_authority": false
