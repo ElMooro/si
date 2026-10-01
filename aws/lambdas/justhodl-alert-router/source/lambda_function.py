@@ -35,6 +35,7 @@ from _sentry_lite import track_errors
 from bottom_context import context_rows
 from cot_context import extreme_rows
 from donor_contract import numeric
+from capital_contract import authority_view, finite, timestamp, publication_summary
 
 
 S3 = boto3.client("s3", region_name="us-east-1")
@@ -826,16 +827,84 @@ def check_bottom(alerts):
                 })
 
 
+def katlin_alert_permission(d, now=None):
+    """Recheck the published capital contract at alert time; never refresh research.
+
+    The authority is the producer's normalized view. Rehydrate its raw contract
+    for the existing shared validator instead of trusting the cached FRESH label.
+    Research and session limits match Katlin and capital-view.js. This function
+    does not change picks, allocations, or any producer policy.
+    """
+    now = now or datetime.now(timezone.utc)
+    if not isinstance(d, dict) or d.get("engine") != "justhodl-katlin" or d.get("schema") != "1.1":
+        return False
+    wr = d.get("war_room")
+    if not isinstance(wr, dict) or wr.get("entries_allowed") is not True:
+        return False
+    if wr.get("posture") not in ("FULL_RISK", "SELECTIVE", "DEFENSIVE") or wr.get("hold_reasons") != [] or wr.get("vetoes") != []:
+        return False
+    cap = finite(wr.get("exposure_cap_pct"))
+    generated, expires = timestamp(d.get("generated_at")), timestamp(d.get("expires_at"))
+    board_expiry = timestamp(wr.get("expires_at"))
+    if cap is None or not 0 < cap <= 100 or generated is None or expires is None or board_expiry is None:
+        return False
+    if generated > now or not now < expires <= min(board_expiry, generated + timedelta(hours=24)):
+        return False
+    research = timestamp(d.get("research_generated_at"))
+    session = timestamp(str(d.get("session", "")) + "T00:00:00+00:00")
+    if d.get("research_status") != "FRESH" or research is None or session is None:
+        return False
+    if not timedelta(0) <= now - research <= timedelta(hours=36) or not timedelta(0) <= now - session <= timedelta(hours=96):
+        return False
+    if expires > min(research + timedelta(hours=36), session + timedelta(hours=96)):
+        return False
+    a = wr.get("authority")
+    if not isinstance(a, dict) or a.get("status") != "FRESH":
+        return False
+    raw = {"engine": a.get("source"), "schema_version": a.get("schema_version"),
+           "status": a.get("engine_status"), "generated_at": a.get("generated_at"), "expires_at": a.get("expires_at"),
+           "exposure_cap_pct": a.get("exposure_cap_pct"), "hard_vetoes": a.get("hard_vetoes"),
+           "source_health": a.get("source_health"), "critical_failures": a.get("critical_failures"),
+           "policy": {"mode": a.get("mode"), "allows_new_entries": a.get("allows_new_entries"),
+                      "exposure_cap_pct": a.get("exposure_cap_pct")}}
+    try:
+        checked = authority_view(raw, now)
+    except (ValueError, TypeError, AttributeError, OverflowError):
+        return False
+    if checked["status"] != "FRESH" or checked["allows_new_entries"] is not True or cap > checked["exposure_cap_pct"]:
+        return False
+    if timestamp(a.get("generated_at")) > now:
+        return False
+    for row in a["source_health"]:
+        if row.get("critical") is True:
+            observed = row.get("as_of")
+            if isinstance(observed, str) and len(observed) == 10:
+                observed += "T00:00:00+00:00"
+            if timestamp(observed) > now:
+                return False
+    if expires > timestamp(checked["expires_at"]):
+        return False
+    try:
+        publication_summary(d, "katlin")
+    except (ValueError, TypeError, AttributeError, OverflowError):
+        return False
+    return True
+
+
 @track_errors
 def check_katlin(alerts):
     """KATLIN buy desk (data/katlin.json): a name that just entered KATLIN_PRIME (every gate incl. a confirmed
     long-term bottom and a named catalyst), a READY name whose 4h sniper says SNIPE_NOW, and a war-room posture
     change to CASH_OR_TBILLS / back to FULL_RISK. Ids carry the session so each event fires once."""
     d = load_json("data/katlin.json")
+    if not isinstance(d, dict):
+        return
+    allowed = katlin_alert_permission(d)
     session = d.get("session") or "?"
-    ch = d.get("changes") or {}
-    wr = d.get("war_room") or {}
-    picks = {r.get("ticker"): r for r in (d.get("picks") or []) if isinstance(r, dict)}
+    ch = d.get("changes") if isinstance(d.get("changes"), dict) else {}
+    wr = d.get("war_room") if isinstance(d.get("war_room"), dict) else {}
+    rows = d.get("picks") if isinstance(d.get("picks"), list) else []
+    picks = {r.get("ticker"): r for r in rows if isinstance(r, dict) and isinstance(r.get("ticker"), str)}
 
     def fmt(x, nd=2, suf=""):
         return ("%.*f%s" % (nd, x, suf)) if isinstance(x, (int, float)) else "n/a"
@@ -854,7 +923,10 @@ def check_katlin(alerts):
                 f"{md((r.get('why') or '')[:400])}\n"
                 f"https://justhodl.ai/katlin.html")
 
-    for t in (ch.get("new_prime") or [])[:5]:
+    new_prime = ch.get("new_prime") if isinstance(ch.get("new_prime"), list) else []
+    for t in (new_prime[:5] if allowed else []):
+        if not isinstance(t, str):
+            continue
         r = picks.get(t) or {}
         alerts.append({
             "id": f"katlin_prime_{t}_{session}",
@@ -864,7 +936,7 @@ def check_katlin(alerts):
             "detail": line(r) if r else f"{t} entered KATLIN_PRIME on session {session}. https://justhodl.ai/katlin.html",
         })
     n_snipe = 0
-    for r in (d.get("picks") or []):
+    for r in (rows if allowed else []):
         if n_snipe >= 3 or not isinstance(r, dict):
             break
         if r.get("tier") in ("KATLIN_PRIME", "READY") and (r.get("sniper") or {}).get("state") == "SNIPE_NOW":
@@ -877,13 +949,18 @@ def check_katlin(alerts):
                 "detail": line(r),
             })
     post = wr.get("posture")
-    if post in ("CASH_OR_TBILLS", "FULL_RISK"):
+    # Cash remains a nonactionable research diagnostic, never an entry signal.
+    generated = timestamp(d.get("generated_at"))
+    cash_diagnostic = (post == "CASH_OR_TBILLS" and d.get("engine") == "justhodl-katlin"
+                       and d.get("schema") == "1.1" and generated is not None
+                       and timedelta(0) <= datetime.now(timezone.utc) - generated <= timedelta(hours=24))
+    if (allowed and post == "FULL_RISK") or cash_diagnostic:
         alerts.append({
             "id": f"katlin_posture_{post}_{session}",
             "category": "KATLIN",
             "severity": "HIGH" if post == "CASH_OR_TBILLS" else "LOW",
             "title": f"🏛 KATLIN war room: {md(post)} (thermometer {fmt(wr.get('thermometer'), 0)})",
-            "detail": md(wr.get("brief") or "")[:700] + "\nhttps://justhodl.ai/katlin.html",
+            "detail": (("Research diagnostic only; no entry permission. Source: " + str(d.get("generated_at")) + "\n") if cash_diagnostic else "") + md(wr.get("brief") or "")[:700] + "\nhttps://justhodl.ai/katlin.html",
         })
 
 

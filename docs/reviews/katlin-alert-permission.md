@@ -1,0 +1,13 @@
+# Katlin alert permission boundary
+
+Scope: `justhodl-alert-router.check_katlin` only. The user approved this correction on 2026-10-01 at 14:57 UTC. No producer decisions, allocation thresholds, schedules, destinations, deduplication rules, or other alert families change.
+
+Previously retained PRIME changes and SNIPE_NOW rows could generate actionable alerts while Katlin was in DATA_HOLD. FULL_RISK alerts also ignored expiry. They now require explicit, current entry permission, a positive finite cap, no holds/vetoes, schema 1.1, valid research/session clocks, and a conforming basket. The authority's cached FRESH label is revalidated at alert time using the existing shared `authority_view`; basket constraints use `publication_summary`. No shared helper is modified. Future permission/research/source clocks are rejected; the alert boundary does not grant clock-skew permission.
+
+Limits remain the established 24-hour permission/authority, 36-hour research, and 96-hour session limits. Effective expiry must remain within the published war-room, authority and research/session deadlines. This does not independently reconstruct funding or raw-gate policy: those established producer holds and effective expiry remain binding.
+
+Valid PRIME, SNIPE and FULL_RISK ids, severity, detail and count limits are preserved. CASH_OR_TBILLS remains a fresh-publication research diagnostic, explicitly labeled “Research diagnostic only; no entry permission” with its original source timestamp; it is not a trade instruction. Missing or unusable permission suppresses actionable events rather than generating new diagnostic traffic. Existing history is not rewritten and suppression does not consume an alert deduplication id.
+
+Offline tests execute the actual production functions without importing SDK clients or invoking notification transports. Cases cover retained actionable picks under blocked permission, malformed/missing inputs, zero/nonfinite caps, expiry boundaries, future/stale engine/authority/source/research/session clocks, a fresh permission refresh wrapping stale research, basket constraint violations, unchanged valid alerts, and nonactionable cash diagnostics. Daily and permission-refresh packets share this published boundary; research clocks are never replaced with refresh time.
+
+Deployment target is only `justhodl-alert-router`, through the existing GitHub Actions workflow after independent exact-head review. No manual live invocation or test message is permitted. Release receipt/source-byte proof and subsequent natural scheduled behavior are separate acceptance steps; no live acceptance is claimed by this document.
