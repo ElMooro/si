@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| PR21 follow-up: Wyckoff placeholder copy only, visible-prompt regression; agent/shopiz/etf-proxy-prompt-copy; draft only, preserve all logic/controls; no live scan or Brain | none | S-shopiz#proxycopy1001b | 2026-10-01 04:09 |
 | Katlin OOS label-boundary/availability correction authorized 2026-10-01 03:32; draft codex/katlin-oos-availability; preserve intentional full-history priors, paired decision regressions; no deploy until exact-head independent review and parent release | none | S-codex#koa1001r3 | 2026-10-01 03:35 |
 | Holdings cohort Previous/cache navigation and explicit dated coverage labels; agent/shopiz/holdings-cohort-navigation; frontend-only draft, no deploy or ops retry | none | S-shopiz#hnav1001a | 2026-10-01 03:07 |
 | Extra-funds-only ETF desk holdings supplement: reuse OwnershipSummary for 16 acquired extras, model/store + offline tests/benchmark; agent/shopiz/extra-holdings-supplement; draft only, no deployment | none | S-shopiz#ehs1001d | 2026-10-01 03:28 |
