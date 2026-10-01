@@ -17,6 +17,8 @@ def test_snapshot_ordering_preserves_whole_predecessors_and_unchanged_native_ris
 def test_snapshot_ordering_does_not_rewrite_unrelated_worker_handlers():
     prior=(ROOT/'tests/fixtures/pre-snapshot-ordered-mirror/index.js.txt').read_text(encoding='utf-8')
     current=(ROOT/'cloudflare/workers/justhodl-data-proxy/src/index.js').read_text(encoding='utf-8')
+    from search_cache_preservation import restore_reviewed_search_cache
+    current=restore_reviewed_search_cache(current)
     current=current.replace("import { handleSnapshotPublication, routeSnapshotPublication } from './snapshot-publication.js';","import { publishSnapshot } from './portfolio-snapshot.js';",1)
     a=current.index("    if (new URL(request.url).pathname === '/snapshot-publication') {")
     b=current.index("    if (new URL(request.url).pathname === '/risk-publication') {",a)

@@ -57,3 +57,7 @@ The native resources and all seven original schedules remain unchanged. Operatio
 settings without invoking a producer, accessing current/private/account/consumer
 packets or changing schedules. Its success would prove deployed code and controls,
 not normal new-code publication or independent real-source replay.
+
+Ordinary resident-search generation checks and explicit degraded-cache metadata
+are described in [resident-search-cache.md](resident-search-cache.md). Their
+release acceptance is separate from this original generation contract.

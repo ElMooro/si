@@ -47,6 +47,7 @@ and the raw file is a multi-hundred-MB scan); never fabricate a name -- a
 series without a title shows its code.
 """
 import bisect
+from directory_resident import load as resident_load, evidence as resident_evidence
 import csv
 import gzip
 import hashlib
@@ -1433,14 +1434,21 @@ def fred_fresh(event, context):
 # ================================================================ RUNTIME INDEX
 
 _IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
+_ICHECK = {}
 _WIDX = {"generated_at": None, "path": None}
 _T0CACHE, _T1CACHE = {}, {}
 
 
-def load_index(force=False):
-    if _IDX["docs"] is not None and not force:
-        return _IDX
-    return refresh_index(_IDX, s3, BUCKET, SD, index_for_docs, _iso)
+def load_index(force=False, check=False):
+    return resident_load(_IDX, _ICHECK,
+                         lambda: refresh_index(_IDX, s3, BUCKET, SD, index_for_docs, _iso),
+                         lambda: index_manifest(s3, BUCKET, SD),
+                         lambda head, cache: index_refresh_needed(head, cache, SD),
+                         _iso, time.monotonic, force=force, check=check)
+
+
+def index_cache_evidence():
+    return resident_evidence(_IDX, _ICHECK, _iso, time.monotonic)
 
 
 def _warehouse_db(force=False):
@@ -3205,15 +3213,11 @@ def lambda_handler(event, context):
     if mode == "ustbank":
         return ust_bank(event, context)
     if mode == "warm" or path == "/warm":
-        # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
+        # Every resident process also checks during ordinary search traffic.
         force = qs.get("force") == "1"
-        if not force and _IDX["docs"] is not None:
-            # Surface failed generation checks; a cached index is not evidence
-            # that the latest manifest was checked successfully.
-            man = index_manifest(s3, BUCKET, SD)
-            force = index_refresh_needed(man, _IDX, SD)
-        ix = load_index(force=force)
-        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force, "index_integrity": ix.get("index_integrity")}
+        ix = load_index(force=force, check=True)
+        force = force or bool(_ICHECK.get("reloaded"))
+        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force, "index_integrity": index_cache_evidence()}
         try:
             warehouse_path = _warehouse_db(force=force)
             out["warehouse_ready"] = bool(warehouse_path)
@@ -3233,8 +3237,8 @@ def lambda_handler(event, context):
             out = search(q, lim, prov=(qs.get("provider") or None), kind=(qs.get("kind") or None))
             out["ms"] = int((time.time() - t) * 1000)
             out["built_at"] = _IDX.get("built_at")
-            out["index_integrity"] = _IDX.get("index_integrity")
-            return _resp(out, ttl=120)
+            out["index_integrity"] = index_cache_evidence()
+            return _resp(out, ttl=out["index_integrity"]["head_check"]["http_max_age_s"])
         except Exception as e:  # noqa: BLE001
             return _resp({"q": q, "rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
     if mode == "browse" or path == "/browse":
