@@ -1774,6 +1774,46 @@ def war_room(F):
         cycle_context[feed] = guarded["research_context"]
         F[feed] = guarded
         missing.append(feed + " synthetic model unqualified; abstains from risk votes")
+    # These producers establish descriptive research, not portfolio risk votes.
+    # Packet flags cannot self-qualify an unvalidated model. Vol-regime's native
+    # COMPLACENT/NORMAL/CONCERNED/PANIC vocabulary has no approved Katlin mapping.
+    # Keep complete parsed research separately; optional sources remain optional.
+    from credit_research import context as credit_context
+    import hashlib
+    research_context = {}
+    for key, source, reason in (
+            ("regime", "data/regime-composite.json", "descriptive regime model has no qualified investment contract"),
+            ("credit", "data/credit-stress.json", "credit measurements have no qualified investment contract"),
+            ("vol", "data/vol-regime.json", "Katlin volatility risk mapping unresolved")):
+        payload = F.get(key)
+        parsed = digest = None
+        try:
+            if isinstance(payload, dict):
+                raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+                parsed = json.loads(raw)
+                digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+        except (TypeError, ValueError, OverflowError):
+            pass
+        ts = (parsed.get("generated_at") or parsed.get("as_of") or parsed.get("asof")) if parsed is not None else None
+        age = contract_age_hours(ts, now) if isinstance(ts, str) else None
+        current = age is not None and 0 <= age < 36.0
+        research_context[key] = {
+            "source_key": source, "source_generated_at": ts if isinstance(ts, str) else None,
+            "publication_within_36h": current, "observation_freshness_verified": False,
+            "status": "UNQUALIFIED_RESEARCH", "reason": reason,
+            "decision_eligible": False, "qualified_investment_votes": 0,
+            "portfolio_action": "WAIT", "meaning": "abstain",
+            "received_packet": parsed, "parsed_input_sha256": digest,
+            "identity_basis": "Complete parsed JSON; not original stored bytes or model validation."}
+        if key == "credit":
+            try:
+                research_context[key]["verified_measurements"] = credit_context(parsed, at=now)
+            except (AttributeError, TypeError, ValueError, ArithmeticError):
+                research_context[key]["verified_measurements"] = {
+                    "available": False, "reason": "malformed_credit_research", "measurements": {},
+                    "calls_eligible": False, "sizing_eligible": False}
+        F[key] = {"generated_at": research_context[key]["source_generated_at"]}
+        missing.append(key + ": " + reason + "; abstains from risk votes")
     leg_health = []
     for key, payload in list(F.items()):
         if key == "khalid_risk" or not isinstance(payload, dict):
@@ -1781,7 +1821,10 @@ def war_room(F):
         ts = payload.get("generated_at") or payload.get("as_of") or payload.get("asof")
         is_fresh = fresh_timestamp(ts, now, 36.0)
         leg_health.append({"source": key, "generated_at": ts, "age_h": contract_age_hours(ts, now), "max_age_h": 36.0, "status": "FRESH" if is_fresh else "UNUSABLE"})
-        if key in cycle_context:
+        if key in research_context:
+            is_fresh = research_context[key]["publication_within_36h"]
+            leg_health[-1]["status"] = "FRESH" if is_fresh else "UNUSABLE"
+        if key in cycle_context or key in research_context:
             leg_health[-1].update(decision_eligible=False, qualified_investment_votes=0,
                                   qualification_status="UNQUALIFIED_RESEARCH")
         if not is_fresh:
@@ -1912,26 +1955,6 @@ def war_room(F):
     except Exception as e_:
         missing.append("leg error: %s" % str(e_)[:80])
     try:
-        rc = F["regime"]
-        mr = str(rc.get("meta_regime") or "")
-        if mr:
-            mru = mr.upper()
-            r = 80 if ("CRISIS" in mru or "RISK-OFF" in mru or "RISK_OFF" in mru or "BEAR" in mru) else (55 if ("CAUTION" in mru or "TRANSITION" in mru or "LATE" in mru) else 25)
-            add("Regime composite", "regime-composite", r, "%s / %s -- %s" % (mr, rc.get("meta_class"), (rc.get("meta_narrative") or "")[:120]), mr, 1.2, rc.get("generated_at"))
-        else:
-            missing.append("Regime composite")
-    except Exception as e_:
-        missing.append("leg error: %s" % str(e_)[:80])
-    try:
-        vr = F["vol"]
-        vrg = str(vr.get("composite_regime") or "")
-        if vrg:
-            vu = vrg.upper()
-            add("Volatility regime", "vol-regime", 85 if ("CRISIS" in vu or "EXTREME" in vu) else (65 if ("HIGH" in vu or "STRESS" in vu or "ELEVATED" in vu) else 25),
-                "%s (score %s)" % (vrg, vr.get("composite_score")), vrg, 1.0, vr.get("as_of"))
-    except Exception as e_:
-        missing.append("leg error: %s" % str(e_)[:80])
-    try:
         vx = F["vix"]
         vxr = str(vx.get("composite_regime") or "")
         cur = vx.get("current") or {}
@@ -1941,18 +1964,6 @@ def war_room(F):
                 "%s -- VIX %s" % (vxr, cur.get("VIX") or cur.get("vix")), vxr, 1.0, vx.get("generated_at"))
             if "BACKWARD" in vu:
                 vetoes.append("VIX curve in backwardation")
-    except Exception as e_:
-        missing.append("leg error: %s" % str(e_)[:80])
-    try:
-        cs = F["credit"]
-        csr = str(cs.get("composite_regime") or "")
-        hy = fnum(_first(cs, "current_bps.hy_oas", "current_bps.HY_OAS", "current_bps.hy", "current.hy_oas"))
-        if csr:
-            cu = csr.upper()
-            add("Credit spreads (visible liquidity)", "credit-stress", 85 if ("CRISIS" in cu or "SEVERE" in cu) else (60 if ("STRESS" in cu or "WIDEN" in cu or "ELEVATED" in cu) else 25),
-                "%s%s" % (csr, (" -- HY OAS %sbp" % rnd(hy, 0)) if hy is not None else ""), csr, 1.5, cs.get("generated_at"))
-        else:
-            missing.append("Credit spreads")
     except Exception as e_:
         missing.append("leg error: %s" % str(e_)[:80])
     try:
@@ -2131,7 +2142,7 @@ def war_room(F):
     return {"posture": posture, "exposure_cap_pct": cap, "entries_allowed": entries_allowed, "thermometer": rnd(therm, 1), "n_red": nred, "vetoes": vetoes,
             "authority": authority, "local": {"posture": local_posture, "exposure_cap_pct": local_cap, "note": "desk thermometer -- research opinion, not the binding permission"},
             "raw_gate": {"posture": rg.get("posture"), "sizing_multiplier": sz, "cap_pct": gate_cap, "age_h": gate_age, "fresh": gate_fresh, "sla_h": GATE_SLA_H},
-            "hold_reasons": hold_reasons, "source_health": leg_health,
+            "hold_reasons": hold_reasons, "source_health": leg_health, "research_context": research_context,
             "expires_at": min(funding_expiry, now + timedelta(hours=24), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now, datetime.fromisoformat(rg["generated_at"].replace("Z", "+00:00")) + timedelta(hours=GATE_SLA_H) if gate_fresh else now).isoformat(),
             "legs": legs, "missing": missing, "brief": " ".join(brief), "crypto_dump_risk": crypto_risk, "y10": y10,
             "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp, "research_context": cycle_context},
