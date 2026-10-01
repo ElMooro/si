@@ -65,17 +65,11 @@ def descriptive_context(packet):
     grouped={}
     for original,row in rows.items():
         out['source_occurrences']+=1
-        if not isinstance(original,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.:-]{0,31}',original):
+        if not isinstance(original,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.:-]{0,31}',original) or not isinstance(row,dict):
             out['unresolved_occurrences'].append({'reported_key':original if isinstance(original,str) else None,'key_type':type(original).__name__,'reason':'Invalid ticker identity or row shape'});continue
-        symbol=original.upper()
-        unresolved={'ticker':symbol,'reported_ticker_key':original,'source_row':'/by_ticker/'+original,'status':'unresolved_identity_or_row','identity_verified':False,'observation_freshness_verified':False,**dict.fromkeys(FLAGS,False)}
-        if not isinstance(row,dict):
-            out['unresolved_occurrences'].append({'reported_key':original,'key_type':type(original).__name__,'reason':'Invalid ticker identity or row shape'})
-            grouped.setdefault(symbol,[]).append(unresolved);continue
-        declared=row.get('ticker')
-        if declared is not None and (not isinstance(declared,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.:-]{0,31}',declared) or declared.upper()!=symbol):
-            out['unresolved_occurrences'].append({'reported_key':original,'reason':'Ticker identity disagreement'})
-            grouped.setdefault(symbol,[]).append(unresolved);continue
+        symbol=original.upper();declared=row.get('ticker')
+        if declared is not None and (not isinstance(declared,str) or declared.upper()!=symbol):
+            out['unresolved_occurrences'].append({'reported_key':original,'reason':'Ticker identity disagreement'});continue
         context=row_context(symbol,row)
         context['source_row']='/by_ticker/'+original.replace('~','~0').replace('/','~1')
         context['reported_ticker_key']=original
@@ -83,6 +77,6 @@ def descriptive_context(packet):
     for symbol,occurrences in grouped.items():
         if len(occurrences)!=1:
             out['ambiguous_symbols'].append({'ticker':symbol,'occurrences':occurrences});continue
-        if occurrences[0].get('status')!='unresolved_identity_or_row':out['by_ticker'][symbol]=occurrences[0]
+        out['by_ticker'][symbol]=occurrences[0]
     out['status']='descriptive_only'
     return out

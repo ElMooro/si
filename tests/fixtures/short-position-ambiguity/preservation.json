@@ -1,0 +1,76 @@
+{
+  "scope": "Complete source/test predecessors and exact additive regressions; all input is invented. No private or live application packet is included.",
+  "sources": {
+    "aws/shared/short_position_context.py": {
+      "file": "tests/fixtures/short-position-ambiguity/short_position_context.py.txt",
+      "bytes": 5412,
+      "sha256": "f62260c04d17df94f96eff9f938272c665d1fd4d604e87d955a3eb4203996c5e"
+    },
+    "tests/test_short_position_context.py": {
+      "file": "tests/fixtures/short-position-ambiguity/test_short_position_context.py.txt",
+      "bytes": 4496,
+      "sha256": "ba4a9e314bdc4a8920c6e98fb84818cdc8921af0a2034a9789035e1023859421"
+    },
+    "tests/test_research_confirmation_handlers.py": {
+      "file": "tests/fixtures/short-position-ambiguity/test_research_confirmation_handlers.py.txt",
+      "bytes": 11437,
+      "sha256": "561d1af0f06e1d54cbef5cf2fd7b7337eb8e25087fc5a7562ff400d30571f4fc"
+    }
+  },
+  "edits": {
+    "aws/shared/short_position_context.py": [
+      {
+        "start": 4388,
+        "end": 4416,
+        "before": " or not isinstance(row,dict)",
+        "after": ""
+      },
+      {
+        "start": 4655,
+        "end": 4655,
+        "before": "",
+        "after": "\n        unresolved={'ticker':symbol,'reported_ticker_key':original,'source_row':'/by_ticker/'+original,'status':'unresolved_identity_or_row','identity_verified':False,'observation_freshness_verified':False,**dict.fromkeys(FLAGS,False)}\n        if not isinstance(row,dict):\n            out['unresolved_occurrences'].append({'reported_key':original,'key_type':type(original).__name__,'reason':'Invalid ticker identity or row shape'})\n            grouped.setdefault(symbol,[]).append(unresolved)"
+      },
+      {
+        "start": 4656,
+        "end": 4656,
+        "before": "",
+        "after": "continue\n        "
+      },
+      {
+        "start": 4747,
+        "end": 4747,
+        "before": "",
+        "after": ") or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.:-]{0,31}',declared"
+      },
+      {
+        "start": 4893,
+        "end": 4893,
+        "before": "",
+        "after": ")\n            grouped.setdefault(symbol,[]).append(unresolved"
+      },
+      {
+        "start": 5320,
+        "end": 5320,
+        "before": "",
+        "after": "if occurrences[0].get('status')!='unresolved_identity_or_row':"
+      }
+    ],
+    "tests/test_short_position_context.py": [
+      {
+        "start": 4445,
+        "end": 4445,
+        "before": "",
+        "after": "\n def test_malformed_duplicate_cannot_make_a_valid_row_unambiguous(self):\n  for bad in (None,[],False,0,'bad',{'ticker':'OTHER'},{'ticker':True},{'ticker':'teſt'},{'ticker':' TEST'}):\n   for reverse in (False,True):\n    rows=[('TEST',{'short_interest':0}),('test',bad)]\n    if reverse:rows.reverse()\n    out=m.descriptive_context(packet(dict(rows)))\n    self.assertEqual(out['by_ticker'],{})\n    self.assertEqual(out['source_occurrences'],2)\n    self.assertEqual(len(out['unresolved_occurrences']),1)\n    group=out['ambiguous_symbols'][0];self.assertEqual(group['ticker'],'TEST')\n    self.assertEqual([r['source_row'] for r in group['occurrences']],['/by_ticker/'+k for k,_ in rows])\n    self.assertEqual(out['independent_investment_votes'],0)\n    self.assertTrue(all(row[k] is False for row in group['occurrences'] for k in m.FLAGS))\n    json.dumps(out,allow_nan=False)\n def test_entirely_unresolved_group_still_preserves_all_occurrences(self):\n  out=m.descriptive_context(packet({'TEST':None,'test':[],'Test':{'ticker':'OTHER'}}))\n  self.assertEqual(out['by_ticker'],{});self.assertEqual(len(out['unresolved_occurrences']),3)\n  self.assertEqual(len(out['ambiguous_symbols']),1)\n  self.assertEqual(len(out['ambiguous_symbols'][0]['occurrences']),3)\n def test_unique_malformed_row_does_not_create_context_or_false_duplicate(self):\n  for row in (None,[],{'ticker':'OTHER'},{'ticker':'teſt'},{'ticker':' TEST'}):\n   out=m.descriptive_context(packet({'TEST':row}))\n   self.assertEqual(out['by_ticker'],{});self.assertEqual(out['ambiguous_symbols'],[])\n   self.assertEqual(len(out['unresolved_occurrences']),1)\n def test_unique_valid_lowercase_and_reported_identity_keep_zero(self):\n  out=m.descriptive_context(packet({'test':{'ticker':'TeSt','short_interest':0}}))\n  self.assertEqual(out['ambiguous_symbols'],[]);self.assertEqual(out['unresolved_occurrences'],[])\n  row=out['by_ticker']['TEST'];self.assertEqual(row['short_interest_shares'],0)\n  self.assertEqual(row['source_row'],'/by_ticker/test');self.assertFalse(row['identity_verified'])\n\n\n def test_complete_predecessors_and_exact_reviewed_edits_preserved(self):\n  import hashlib\n  spec=json.loads((ROOT/'tests/fixtures/short-position-ambiguity/preservation.json').read_bytes())\n  for path,item in spec['sources'].items():\n   raw=(ROOT/item['file']).read_bytes();self.assertEqual(len(raw),item['bytes'])\n   self.assertEqual(hashlib.sha256(raw).hexdigest(),item['sha256'])\n   old=raw.decode('utf-8');parts=[];offset=0\n   for edit in spec['edits'][path]:\n    self.assertGreaterEqual(edit['start'],offset)\n    self.assertEqual(old[edit['start']:edit['end']],edit['before'])\n    parts.extend((old[offset:edit['start']],edit['after']));offset=edit['end']\n   parts.append(old[offset:]);self.assertEqual(''.join(parts),(ROOT/path).read_text(encoding='utf-8'))\n\n"
+      }
+    ],
+    "tests/test_research_confirmation_handlers.py": [
+      {
+        "start": 11379,
+        "end": 11379,
+        "before": "",
+        "after": "    def test_malformed_duplicate_is_withheld_by_both_whole_handlers(self):\n        for name in ('alpha', 'opportunities'):\n            healthy_out, _ = run_handler(name)\n            for bad in (None, [], False, {'ticker': 'OTHER'}, {'ticker': 'teſt'}):\n                for reverse in (False, True):\n                    feeds = healthy()\n                    rows = feeds[KEYS[0]]['by_ticker']\n                    rows['test'] = bad\n                    if reverse:\n                        feeds[KEYS[0]]['by_ticker'] = dict(reversed(list(rows.items())))\n                    output, _ = run_handler(name, feeds)\n                    meta = output['confirmation_feeds']['short_interest']\n                    self.assertEqual(meta['ambiguous_ticker_count'], 1)\n                    self.assertEqual(meta['unresolved_occurrences'], 1)\n                    self.assertEqual(len(meta['ambiguous_symbols'][0]['occurrences']), 2)\n                    self.assertIsNone(output['by_ticker']['TEST']['short_position_context'])\n                    self.assertNotIn('short_pct', output['by_ticker']['TEST'])\n                    self.assertNotIn('short_signal', output['by_ticker']['TEST'])\n                    self.assertEqual(meta['body_sha256'], hashlib.sha256(json.dumps(feeds[KEYS[0]]).encode()).hexdigest())\n                    self.assertEqual(output['new_theses'], 0)\n                    self.assertFalse(output['narrative']['model_requests_enabled'])\n                    comparable = copy.deepcopy(output)\n                    baseline = copy.deepcopy(healthy_out)\n                    for value in (comparable, baseline):\n                        value.pop('confirmation_feeds')\n                        value['by_ticker']['TEST'].pop('short_position_context')\n                        value['by_ticker']['TEST'].pop('short_pct', None)\n                        value['by_ticker']['TEST'].pop('short_signal', None)\n                    self.assertEqual(comparable, baseline)\n\n\n"
+      }
+    ]
+  }
+}

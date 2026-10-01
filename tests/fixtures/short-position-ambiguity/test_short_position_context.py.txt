@@ -36,49 +36,4 @@ class Reader(unittest.TestCase):
   out=m.descriptive_context(packet({'TEST':{'ticker':'OTHER'}}));self.assertEqual(out['by_ticker'],{});self.assertEqual(len(out['unresolved_occurrences']),1)
  def test_historical_and_self_promoting_rows_never_gain_authority(self):
   out=m.descriptive_context(packet({'TEST':{'latest':False,'settlement_date':'2000-01-01','dtc_effective':'10','calls_eligible':True,'score':100}}));row=out['by_ticker']['TEST'];self.assertFalse(row['latest_reported']);self.assertFalse(row['observation_freshness_verified']);self.assertTrue(all(row[k] is False for k in m.FLAGS));self.assertEqual(out['independent_investment_votes'],0)
-
- def test_malformed_duplicate_cannot_make_a_valid_row_unambiguous(self):
-  for bad in (None,[],False,0,'bad',{'ticker':'OTHER'},{'ticker':True},{'ticker':'teſt'},{'ticker':' TEST'}):
-   for reverse in (False,True):
-    rows=[('TEST',{'short_interest':0}),('test',bad)]
-    if reverse:rows.reverse()
-    out=m.descriptive_context(packet(dict(rows)))
-    self.assertEqual(out['by_ticker'],{})
-    self.assertEqual(out['source_occurrences'],2)
-    self.assertEqual(len(out['unresolved_occurrences']),1)
-    group=out['ambiguous_symbols'][0];self.assertEqual(group['ticker'],'TEST')
-    self.assertEqual([r['source_row'] for r in group['occurrences']],['/by_ticker/'+k for k,_ in rows])
-    self.assertEqual(out['independent_investment_votes'],0)
-    self.assertTrue(all(row[k] is False for row in group['occurrences'] for k in m.FLAGS))
-    json.dumps(out,allow_nan=False)
- def test_entirely_unresolved_group_still_preserves_all_occurrences(self):
-  out=m.descriptive_context(packet({'TEST':None,'test':[],'Test':{'ticker':'OTHER'}}))
-  self.assertEqual(out['by_ticker'],{});self.assertEqual(len(out['unresolved_occurrences']),3)
-  self.assertEqual(len(out['ambiguous_symbols']),1)
-  self.assertEqual(len(out['ambiguous_symbols'][0]['occurrences']),3)
- def test_unique_malformed_row_does_not_create_context_or_false_duplicate(self):
-  for row in (None,[],{'ticker':'OTHER'},{'ticker':'teſt'},{'ticker':' TEST'}):
-   out=m.descriptive_context(packet({'TEST':row}))
-   self.assertEqual(out['by_ticker'],{});self.assertEqual(out['ambiguous_symbols'],[])
-   self.assertEqual(len(out['unresolved_occurrences']),1)
- def test_unique_valid_lowercase_and_reported_identity_keep_zero(self):
-  out=m.descriptive_context(packet({'test':{'ticker':'TeSt','short_interest':0}}))
-  self.assertEqual(out['ambiguous_symbols'],[]);self.assertEqual(out['unresolved_occurrences'],[])
-  row=out['by_ticker']['TEST'];self.assertEqual(row['short_interest_shares'],0)
-  self.assertEqual(row['source_row'],'/by_ticker/test');self.assertFalse(row['identity_verified'])
-
-
- def test_complete_predecessors_and_exact_reviewed_edits_preserved(self):
-  import hashlib
-  spec=json.loads((ROOT/'tests/fixtures/short-position-ambiguity/preservation.json').read_bytes())
-  for path,item in spec['sources'].items():
-   raw=(ROOT/item['file']).read_bytes();self.assertEqual(len(raw),item['bytes'])
-   self.assertEqual(hashlib.sha256(raw).hexdigest(),item['sha256'])
-   old=raw.decode('utf-8');parts=[];offset=0
-   for edit in spec['edits'][path]:
-    self.assertGreaterEqual(edit['start'],offset)
-    self.assertEqual(old[edit['start']:edit['end']],edit['before'])
-    parts.extend((old[offset:edit['start']],edit['after']));offset=edit['end']
-   parts.append(old[offset:]);self.assertEqual(''.join(parts),(ROOT/path).read_text(encoding='utf-8'))
-
 if __name__=='__main__':unittest.main(verbosity=2)

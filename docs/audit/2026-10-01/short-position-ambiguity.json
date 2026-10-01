@@ -1,0 +1,121 @@
+{
+  "status": "candidate_not_deployed",
+  "functions": [
+    "justhodl-alpha-research",
+    "justhodl-opportunities-research",
+    "justhodl-retail-sentiment"
+  ],
+  "reviewed_source_hashes": {
+    "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": "2d12cec7108a70de22c6a1bbea2e8b9019dc5642a249996ab166286fff638a57",
+    "aws/shared/equity_enrich.py": "2248cfb57a157c59acbb671d02842e3ee9846dd243d163da9a3c8ceb1d506a8c",
+    "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/shared/short_position_context.py": "4254e629803838e6bc4a3c8ea01b0016451c762df2ffd5f8e10b0e65310b896c",
+    "aws/lambdas/justhodl-opportunities-research/source/lambda_function.py": "67193a4a6777f97fccc1d24a3170633bcf35d9fefbbf86babecfa8b458ef479d",
+    "aws/lambdas/justhodl-retail-sentiment/source/lambda_function.py": "068cce4f6438e81cf2989df6829054c0bef284ce323195ff6eb534d766932f34",
+    "aws/lambdas/justhodl-retail-sentiment/source/legacy_retail_sentiment.py": "4039b6d46d221567277885b158cdd99dbbc91b05bfec27e102291c8a6ec3f6d9",
+    "aws/lambdas/justhodl-retail-sentiment/source/retail_research_model.py": "b140a908775982fcd6f01432e1dba6f5973220250ed5822623116c37b0ecd430",
+    "aws/lambdas/justhodl-retail-sentiment/source/retail_research_store.py": "3545f059574dc695adc441477d0617a45c6c85410db18256971c039b0b960977",
+    "aws/shared/finviz.py": "a68a6d83a70848e91dc1dbebee8a28ad5e110ce8b672d862c858e08b92346e69",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+  },
+  "expected_controls": {
+    "justhodl-alpha-research": {
+      "function_name": "justhodl-alpha-research",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 600,
+      "memory_mb": 1024,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-alpha-research-6h",
+          "state": "ENABLED",
+          "expression": "rate(6 hours)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-opportunities-research": {
+      "function_name": "justhodl-opportunities-research",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 600,
+      "memory_mb": 1024,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-opportunities-research-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 14 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-retail-sentiment": {
+      "function_name": "justhodl-retail-sentiment",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 180,
+      "memory_mb": 512,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-retail-sentiment-30min",
+          "state": "ENABLED",
+          "expression": "cron(10 19 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    }
+  },
+  "native_source_counts": {
+    "justhodl-alpha-research": 5,
+    "justhodl-opportunities-research": 5,
+    "justhodl-retail-sentiment": 9
+  },
+  "scope": "Group case-colliding source keys before excluding malformed or conflicting rows. Preserve every unresolved occurrence and withhold the ticker context. ASCII reported identity only. Prior valid rows, numbers and all unrelated handler output remain unchanged.",
+  "source_only_static_importers": [
+    "justhodl-alpha-research",
+    "justhodl-opportunities-research",
+    "justhodl-retail-sentiment"
+  ],
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "application_packet_reads": 0,
+  "open_limits": [
+    "Reported symbol context is not verified security identity.",
+    "Hashes and row pointers do not establish retained original replay.",
+    "Source observations, outcome scorecards, independent evidence and portfolio authority remain unqualified.",
+    "All ten institutional workstreams remain OPEN."
+  ],
+  "validation": {
+    "alpha_runner_tests": 52,
+    "opportunities_runner_tests": 52,
+    "retail_tests": 20,
+    "native_acceptance_tests": 6,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass",
+    "actual_application_packets_read": 0,
+    "actual_model_requests": 0,
+    "invented_cases_only": true
+  }
+}

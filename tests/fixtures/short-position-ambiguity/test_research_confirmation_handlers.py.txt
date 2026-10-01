@@ -206,36 +206,5 @@ class WholeHandlers(unittest.TestCase):
             self.assertEqual(new['narrative']['model_requests_enabled'], False)
 
 
-    def test_malformed_duplicate_is_withheld_by_both_whole_handlers(self):
-        for name in ('alpha', 'opportunities'):
-            healthy_out, _ = run_handler(name)
-            for bad in (None, [], False, {'ticker': 'OTHER'}, {'ticker': 'teſt'}):
-                for reverse in (False, True):
-                    feeds = healthy()
-                    rows = feeds[KEYS[0]]['by_ticker']
-                    rows['test'] = bad
-                    if reverse:
-                        feeds[KEYS[0]]['by_ticker'] = dict(reversed(list(rows.items())))
-                    output, _ = run_handler(name, feeds)
-                    meta = output['confirmation_feeds']['short_interest']
-                    self.assertEqual(meta['ambiguous_ticker_count'], 1)
-                    self.assertEqual(meta['unresolved_occurrences'], 1)
-                    self.assertEqual(len(meta['ambiguous_symbols'][0]['occurrences']), 2)
-                    self.assertIsNone(output['by_ticker']['TEST']['short_position_context'])
-                    self.assertNotIn('short_pct', output['by_ticker']['TEST'])
-                    self.assertNotIn('short_signal', output['by_ticker']['TEST'])
-                    self.assertEqual(meta['body_sha256'], hashlib.sha256(json.dumps(feeds[KEYS[0]]).encode()).hexdigest())
-                    self.assertEqual(output['new_theses'], 0)
-                    self.assertFalse(output['narrative']['model_requests_enabled'])
-                    comparable = copy.deepcopy(output)
-                    baseline = copy.deepcopy(healthy_out)
-                    for value in (comparable, baseline):
-                        value.pop('confirmation_feeds')
-                        value['by_ticker']['TEST'].pop('short_position_context')
-                        value['by_ticker']['TEST'].pop('short_pct', None)
-                        value['by_ticker']['TEST'].pop('short_signal', None)
-                    self.assertEqual(comparable, baseline)
-
-
 if __name__ == '__main__':
     unittest.main(verbosity=2)
