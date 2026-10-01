@@ -1,0 +1,169 @@
+{
+  "baseline": "064e4fe5403b073176615291d3c0ce0c792f1692",
+  "public_capture_receipts": [
+    {
+      "artifact": "https://justhodl.ai/data/khalid.json?scope-audit=20261001",
+      "bytes": 20878869,
+      "sha256": "b53f26da54e88167ef95b96d77fbb32007901f8a810b18c6210ac25eeddef063",
+      "generated_at": "2026-10-01T11:25:50.923333+00:00",
+      "radar_count": 3643
+    },
+    {
+      "artifact": "https://justhodl.ai/data/fortress.json",
+      "bytes": 9937644,
+      "sha256": "7ad1d73aa155b29889ee6d7dc5a4121a6d3d231c2291532bfda07ca3e45d4ded",
+      "generated_at": "2026-10-01T03:32:02+00:00",
+      "radar_count": 0
+    },
+    {
+      "artifact": "https://justhodl.ai/data/katlin.json",
+      "bytes": 2016588,
+      "sha256": "66dcd74debe2b10b8ee1d31e263530407b65da826e2358201ea2b2af9890e257",
+      "generated_at": "2026-10-01T11:52:39.684192+00:00",
+      "radar_count": 0
+    }
+  ],
+  "benchmark": {
+    "scope": "Actual public candidate inventory; separately captured native source snapshots. Mismatched clocks stay unavailable, not repaired.",
+    "candidate_count": 3643,
+    "generated_at": "2026-10-01T11:25:50.923333+00:00",
+    "inputs": [
+      {
+        "file": "khalid.json",
+        "sha256": "b53f26da54e88167ef95b96d77fbb32007901f8a810b18c6210ac25eeddef063",
+        "bytes": 20878869
+      },
+      {
+        "file": "fortress.json",
+        "sha256": "7ad1d73aa155b29889ee6d7dc5a4121a6d3d231c2291532bfda07ca3e45d4ded",
+        "bytes": 9937644
+      },
+      {
+        "file": "katlin.json",
+        "sha256": "66dcd74debe2b10b8ee1d31e263530407b65da826e2358201ea2b2af9890e257",
+        "bytes": 2016588
+      }
+    ],
+    "added_bytes": 542067,
+    "exceeds_1MB": false,
+    "projection_ms": 83.315,
+    "legacy_packet_byte_equal": true,
+    "checks": {
+      "instrument": {
+        "PASS": 2913,
+        "UNAVAILABLE": 730
+      },
+      "biotech": {
+        "PASS": 1277,
+        "UNAVAILABLE": 1969,
+        "FAIL": 250,
+        "UNRESOLVED": 147
+      },
+      "cap": {
+        "UNRESOLVED": 1421,
+        "FAIL": 593,
+        "PASS": 888,
+        "UNAVAILABLE": 741
+      }
+    },
+    "sources": [
+      {
+        "id": "fortress",
+        "artifact": "data/fortress.json",
+        "producer": "justhodl-fortress",
+        "status": "AVAILABLE",
+        "published_at": "2026-10-01T03:32:02+00:00",
+        "research_at": "2026-10-01T03:32:02+00:00",
+        "expires_at": "2026-10-04T15:32:02+00:00",
+        "max_age_h": 84,
+        "native_research_status": null,
+        "finviz_snapshot_at": "2026-09-30T22:00:37.494796+00:00",
+        "census_snapshot_at": "2026-09-15T06:49:07.707881+00:00",
+        "fields": {
+          "instrument": "container (Fortress) / asset_class (Katlin)",
+          "biotech": "industry",
+          "cap": "market_cap"
+        }
+      },
+      {
+        "id": "katlin",
+        "artifact": "data/katlin.json",
+        "producer": "justhodl-katlin",
+        "status": "UNAVAILABLE",
+        "published_at": "2026-10-01T11:52:39.684192+00:00",
+        "research_at": "2026-10-01T04:12:50Z",
+        "expires_at": "2026-10-02T16:12:50+00:00",
+        "max_age_h": 36,
+        "native_research_status": "FRESH",
+        "finviz_snapshot_at": "2026-09-30T22:00:37.494796+00:00",
+        "census_snapshot_at": "2026-09-15T06:49:07.707881+00:00",
+        "fields": {
+          "instrument": "container (Fortress) / asset_class (Katlin)",
+          "biotech": "industry",
+          "cap": "mcap"
+        }
+      }
+    ]
+  },
+  "browser": {
+    "scope": "Actual page HTML/CSS and shared module; invented source evidence; all requests intercepted; no live market or production acceptance claim",
+    "cases": [
+      {
+        "pageName": "khalid.html",
+        "width": 1440,
+        "total": 12,
+        "overlappingCounts": true,
+        "keyboardFilterAndReset": true,
+        "independentExpiry": true,
+        "requests": 1,
+        "geometry": {
+          "client": 1158,
+          "scroll": 1158
+        },
+        "errors": []
+      },
+      {
+        "pageName": "khalid.html",
+        "width": 390,
+        "total": 12,
+        "overlappingCounts": true,
+        "keyboardFilterAndReset": true,
+        "independentExpiry": true,
+        "requests": 1,
+        "geometry": {
+          "client": 347,
+          "scroll": 347
+        },
+        "errors": []
+      },
+      {
+        "pageName": "chart.html",
+        "width": 1440,
+        "total": 1,
+        "overlappingCounts": true,
+        "keyboardFilterAndReset": true,
+        "independentExpiry": true,
+        "requests": 1,
+        "geometry": {
+          "client": 1320,
+          "scroll": 1320
+        },
+        "errors": []
+      },
+      {
+        "pageName": "chart.html",
+        "width": 390,
+        "total": 1,
+        "overlappingCounts": true,
+        "keyboardFilterAndReset": true,
+        "independentExpiry": true,
+        "requests": 1,
+        "geometry": {
+          "client": 333,
+          "scroll": 333
+        },
+        "errors": []
+      }
+    ]
+  }
+}

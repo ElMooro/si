@@ -1,5 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const R=path.join(__dirname,'..'),D=path.join(__dirname,'fixtures/warehouse-observations'),{normalize,manifest}=require('./helpers/warehouse-observation-preservation.cjs');
+// The scope follow-up changes only the sniper cache token normalized by these gates.
+const scopeToken=".replace('/jh-khalid-sniper.js?v=20261001-user-scope','/jh-khalid-sniper.js?v=20261001-snapshot')";
+const withoutScopeToken=s=>s.replace(scopeToken,'');
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 test('warehouse scalar repair preserves every unrelated function and exact prior module',()=>{for(const file of Object.keys(manifest.entries))normalize(fs.readFileSync(path.join(R,file),'utf8'),file);});
 test('older preservation gates retain all assertions and only normalize the reviewed next layer',()=>{
@@ -9,8 +12,8 @@ test('older preservation gates retain all assertions and only normalize the revi
   assert.equal(current,prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));
  }
  const file='tests/observation-cache-preservation.test.js',prior=fs.readFileSync(path.join(D,'pre502',file+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,file),'utf8');
- assert.equal(current,prior.replace("file==='jh-observation-series.js'?path.join(R,file)","file==='jh-observation-series.js'?path.join(__dirname,'fixtures/warehouse-observations/pre502',file+'.txt')"));
- assert.equal(fs.readFileSync(path.join(R,'tests/chart-observation-preservation.test.js'),'utf8'),fs.readFileSync(path.join(D,'pre502/tests/chart-observation-preservation.test.js.txt'),'utf8'));
+ assert.equal(withoutScopeToken(current),prior.replace("file==='jh-observation-series.js'?path.join(R,file)","file==='jh-observation-series.js'?path.join(__dirname,'fixtures/warehouse-observations/pre502',file+'.txt')"));
+ assert.equal(withoutScopeToken(fs.readFileSync(path.join(R,'tests/chart-observation-preservation.test.js'),'utf8')),fs.readFileSync(path.join(D,'pre502/tests/chart-observation-preservation.test.js.txt'),'utf8'));
 });
 test('a changed unrelated function or outer statement fails preservation',()=>{
  const file='jh-observation-series.js',current=fs.readFileSync(path.join(R,file),'utf8');

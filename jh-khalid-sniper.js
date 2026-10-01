@@ -437,6 +437,100 @@
       }
     };
   }});
+  // Independent optional display contract. It never participates in project(),
+  // native readiness, snapshot validity, ranking, or risk permission.
+  function scopeProject(feed, now) {
+    var p = feed && feed.user_scope_evidence, legacy = feed && feed.qualification_evidence;
+    function absent(reason) { return {valid: false, reason: reason, rows: [], deadline: Infinity}; }
+    if (!p) return absent("Scope observations are not published in this snapshot.");
+    if (!legacy || p.schema_version !== "khalid-user-scope.v1" || p.generated_at !== feed.generated_at ||
+        p.qualification_revision !== legacy.revision || p.effective_at !== null || p.available_at !== null ||
+        !Number.isFinite(now) || !Number.isFinite(Date.parse(p.generated_at)) || Date.parse(p.generated_at) > now ||
+        !Array.isArray(p.definitions) || p.definitions.length !== 3 ||
+        !["instrument", "biotech", "cap"].every(function (id, i) { var d = p.definitions[i]; return d && d.id === id && typeof d.label === "string" && typeof d.definition === "string" && d.unit === (i === 2 ? "USD" : null); }) ||
+        !p.reasons || typeof p.reasons !== "object" || !Array.isArray(p.sources) || p.sources.length !== 2 ||
+        !Array.isArray(p.rows) || !Array.isArray(legacy.rows) || !Array.isArray(feed.opportunity_radar) || p.rows.length !== feed.opportunity_radar.length ||
+        !["identity_ref", "check_encoding", "authority", "attribution", "clock_policy"].every(function (k) { return typeof p[k] === "string"; }))
+      return absent("Scope contract is unsupported, malformed or not bound to this publication.");
+    var labels = p.definitions[1].source_labels;
+    if (!Array.isArray(labels) || !labels.length || new Set(labels).size !== labels.length || !labels.every(function (v) { return typeof v === "string" && v.length > 0 && v.length <= 120; }) || typeof p.definitions[1].vocabulary_ref !== "string") return absent("Missing bounded source-label vocabulary.");
+    var bad = false, deadline = Infinity;
+    function dated(v) { return typeof v === "string" && /(?:Z|[+-]\d\d:\d\d)$/.test(v) && Number.isFinite(Date.parse(v)); }
+    p.sources.forEach(function (s, i) {
+      var id = i === 0 ? "fortress" : "katlin", ttl = i === 0 ? 84 : 36;
+      if (!s || s.id !== id || s.artifact !== "data/" + id + ".json" || s.producer !== "justhodl-" + id ||
+          !["AVAILABLE", "UNAVAILABLE"].includes(s.status) || s.max_age_h !== ttl || !s.fields ||
+          s.fields.biotech !== "industry" || s.fields.cap !== (i === 0 ? "market_cap" : "mcap") || typeof s.fields.instrument !== "string") { bad = true; return; }
+      ["published_at", "research_at", "expires_at", "finviz_snapshot_at", "census_snapshot_at"].forEach(function (k) { if (s[k] !== null && !dated(s[k])) bad = true; });
+      if (s.status === "AVAILABLE") {
+        if (i === 1 && s.native_research_status !== "FRESH") bad = true;
+        if (!dated(s.research_at) || !dated(s.published_at) || !dated(s.expires_at) ||
+            Date.parse(s.research_at) > Date.parse(s.published_at) || Date.parse(s.published_at) > Date.parse(p.generated_at) ||
+            Date.parse(s.expires_at) !== Date.parse(s.research_at) + ttl * 3600000 || now > Date.parse(s.expires_at)) bad = true;
+        deadline = Math.min(deadline, Date.parse(s.expires_at) + 1);
+      }
+    });
+    if (bad) return absent("Scope source clocks or provenance are unavailable; legacy readiness is unchanged.");
+    var rows = p.rows.map(function (r, i) {
+      var candidate = feed.opportunity_radar[i], binding = legacy.rows && legacy.rows[i];
+      if (!r || r.i !== i || !candidate || !binding || binding.source_path !== "opportunity_radar/" + i ||
+          candidate.ticker !== binding.ticker || candidate.asset_class !== binding.asset_class || binding.artifact_revision !== p.qualification_revision ||
+          !Array.isArray(r.refs) || !Array.isArray(r.checks) || r.checks.length !== 3) { bad = true; return null; }
+      var refs = new Set();
+      r.refs.forEach(function (ref) {
+        if (!Array.isArray(ref) || ref.length !== 2 || !Number.isInteger(ref[0]) || ![0, 1].includes(ref[0]) || typeof ref[1] !== "string" ||
+            !(ref[0] === 0 ? /^(board|etfs|ledger)\/\d+$/ : /^(picks|watch)\/\d+$/).test(ref[1])) { bad = true; return; }
+        refs.add(ref[0]);
+      });
+      r.checks.forEach(function (c, j) {
+        if (!Array.isArray(c) || c.length !== 3 || !STATES.includes(c[0]) || !Object.prototype.hasOwnProperty.call(p.reasons, c[2]) || typeof p.reasons[c[2]] !== "string") { bad = true; return; }
+        if (c[0] === "UNAVAILABLE") { if (c[1] !== null) bad = true; return; }
+        if (!r.refs.length || refs.size !== r.refs.length || Array.from(refs).some(function (id) { return p.sources[id].status !== "AVAILABLE" || !Array.isArray(candidate.sources) || !candidate.sources.includes(id === 0 ? "fortress-execution" : "katlin"); })) bad = true;
+        if (j === 0) r.refs.forEach(function (ref) { if (ref[0] === 0 && (ref[1].startsWith("etfs/") ? "ETF" : "STOCK") !== candidate.asset_class) bad = true; });
+        if (j === 0 && (c[0] !== "PASS" || !["STOCK", "ETF", "CRYPTO"].includes(c[1]) || c[1] !== candidate.asset_class)) bad = true;
+        if (j > 0 && candidate.asset_class !== "STOCK") { if (c[0] !== "UNRESOLVED" || c[1] !== null || c[2] !== "applicability") bad = true; return; }
+        if (j === 1 && (!["PASS", "FAIL"].includes(c[0]) || typeof c[1] !== "string" || !labels.includes(c[1]))) bad = true;
+        if (j === 2 && (typeof c[1] !== "number" || !Number.isFinite(c[1]) || c[1] <= 0 || c[1] > Number.MAX_SAFE_INTEGER ||
+            (c[0] === "UNRESOLVED" && c[2] !== "below_small"))) bad = true;
+        if (j > 0) Array.from(refs).forEach(function (id) {
+          var s = p.sources[id];
+          (j === 1 ? ["finviz_snapshot_at"] : ["finviz_snapshot_at", "census_snapshot_at"]).forEach(function (k) {
+            if (!dated(s[k]) || Date.parse(s[k]) > Date.parse(s.research_at)) bad = true;
+          });
+        });
+      });
+      return r;
+    });
+    return bad ? absent("Scope evidence is malformed, source-expired or identity/clock-mismatched; legacy readiness is unchanged.") : {valid: true, packet: p, rows: rows, deadline: deadline};
+  }
+  function scopeMatches(row, filter) {
+    if (filter === "ALL") return true;
+    if (!row) return filter === "UNKNOWN";
+    if (filter === "BIOTECH") return row.checks[1][0] === "FAIL";
+    if (filter === "SMALL") return row.checks[2][0] === "FAIL";
+    return row.checks.some(function (c) { return c[0] === "UNAVAILABLE" || c[0] === "UNRESOLVED"; });
+  }
+  root.jhUserScopeEvidence = scopeProject;
+  root.jhUserScopeMatches = scopeMatches;
+  function scopeCard(parent, scope, row) {
+    if (!scope.valid || !row) { parent.append(el("p", "Scope evidence — UNAVAILABLE. " + (scope.reason || "Missing row."))); return; }
+    var p = scope.packet, block = el("section", null, "sn-scope"); block.append(el("h4", "User scope observations — research only"));
+    row.checks.forEach(function (c, i) {
+      var d = p.definitions[i], details = el("details", null, "sn-scope-check");
+      details.append(el("summary", d.label + " — " + c[0]));
+      var dl = el("dl", null, "sn-facts"); pair(dl, "Observed value", c[1]); pair(dl, "Unit", d.unit); pair(dl, "Definition", d.definition);
+      if (d.source_labels) { pair(dl, "Supported source labels", d.source_labels); pair(dl, "Vocabulary provenance", d.vocabulary_ref); }
+      pair(dl, "Reason", p.reasons[c[2]]); details.append(dl); block.append(details);
+    });
+    var provenance = el("details"); provenance.append(el("summary", "Scope source references"));
+    var dl = el("dl", null, "sn-facts"); pair(dl, "Candidate reference", p.identity_ref.replaceAll("[i]", "[" + row.i + "]"));
+    row.refs.forEach(function (ref) { var s = p.sources[ref[0]]; pair(dl, "Native row", s.artifact + "/" + ref[1]);
+      Object.keys(s).forEach(function (k) { pair(dl, k, s[k]); }); });
+    pair(dl, "Historical effective time", p.effective_at); pair(dl, "Historical availability time", p.available_at);
+    provenance.append(dl); block.append(provenance); parent.append(block);
+  }
+
+
   if (typeof document === "undefined") return;
 
   function el(tag, text, cls) {
@@ -534,6 +628,14 @@
         shell.append(retry); host.replaceChildren(shell); return;
       }
       var p = projection.packet;
+      var scope = scopeProject(snapshot.feed, Date.now());
+      shell.append(el("p", "The inherited 23-item scanner contract remains unresolved for compatibility; it is not 23 newly confirmed user requirements. Scope observations below do not establish full strategy matching."));
+      if (scope.valid) {
+        var scopeMeta = el("details"); scopeMeta.append(el("summary", "Scope evidence definitions and clocks"));
+        var scopeDL = el("dl", null, "sn-facts");
+        ["schema_version", "generated_at", "qualification_revision", "identity_ref", "check_encoding", "authority", "attribution", "clock_policy", "effective_at", "available_at"].forEach(function (key) { pair(scopeDL, key, scope.packet[key]); });
+        scopeMeta.append(scopeDL); shell.append(scopeMeta);
+      }
       shell.append(el("p", "Published " + p.generated_at + "; display expires " + p.expires_at + "."));
       shell.append(el("p", p.historical_validation));
       var pd = el("details"); pd.append(el("summary", "Publication provenance"));
@@ -544,7 +646,11 @@
       var button = el("button", "Show backend-ready only"); button.type = "button"; button.setAttribute("aria-pressed", "false");
       var reload = el("button", "Refresh data"); reload.type = "button";
       reload.addEventListener("click", function () { root.jhKhalidSnapshot.load({force: true}).catch(function () {}); });
-      controls.append(label, catlabel, button, reload); shell.append(controls);
+      var scopeLabel = el("label", "Scope evidence filter (display only)"), scopeSelect = el("select");
+      [["ALL", "All candidates"], ["BIOTECH", "Biotechnology exclusion observed"], ["SMALL", "Existing SMALL convention observed"], ["UNKNOWN", "Unavailable or unresolved scope evidence"]].forEach(function (entry) { var option = el("option", entry[1]); option.value = entry[0]; scopeSelect.append(option); });
+      scopeLabel.append(scopeSelect); var reset = el("button", "Reset filters"); reset.type = "button";
+      controls.append(label, catlabel, button, scopeLabel, reset, reload); shell.append(controls);
+      var scopeCount = el("p"); scopeCount.setAttribute("role", "status"); shell.append(scopeCount);
       var count = el("p"); count.setAttribute("role", "status"); var list = el("div"); shell.append(count, list); host.replaceChildren(shell);
       var onlyReady = false, pageIndex = 0, pageSize = 10;
       var previous = el("button", "Previous"), next = el("button", "Next"); previous.type = next.type = "button";
@@ -553,10 +659,13 @@
         // Revalidate time on every interaction; an old mounted panel cannot remain qualified.
         var current = snapshot.view(Date.now(), symbol);
         list.replaceChildren();
-        if (!current.valid) { count.textContent = "UNAVAILABLE — " + current.reason; return false; }
+        if (!current.valid) { count.textContent = "UNAVAILABLE — " + current.reason; scopeCount.textContent = "Scope evidence — UNAVAILABLE while the publication is withheld."; return false; }
+        scope = scopeProject(snapshot.feed, Date.now());
+        function scopeRow(r) { return scope.valid ? scope.rows[Number(r.source_path.split("/")[1])] : null; }
+        scopeCount.textContent = scope.valid ? "Scope observations across " + current.rows.length + " candidates: biotechnology exclusions " + current.rows.filter(function (r) { return scopeMatches(scopeRow(r), "BIOTECH"); }).length + "; SMALL convention failures " + current.rows.filter(function (r) { return scopeMatches(scopeRow(r), "SMALL"); }).length + "; unavailable/unresolved " + current.rows.filter(function (r) { return scopeMatches(scopeRow(r), "UNKNOWN"); }).length + ". Counts overlap; no candidates removed from the backend." : "Scope evidence — UNAVAILABLE. " + scope.reason;
         var shown = current.rows.filter(function (r) {
           return r.ticker.toUpperCase().indexOf(search.value.trim().toUpperCase()) >= 0 && (select.value === "ALL" || r.asset_class === select.value) &&
-            (!onlyReady || r.existing_backend_qualification.status === "PASS");
+            (!onlyReady || r.existing_backend_qualification.status === "PASS") && scopeMatches(scopeRow(r), scopeSelect.value);
         });
         pageIndex = Math.min(pageIndex, Math.max(0, Math.ceil(shown.length / pageSize) - 1));
         previous.disabled = pageIndex === 0; next.disabled = (pageIndex + 1) * pageSize >= shown.length;
@@ -566,10 +675,12 @@
           var link = el("a", "Open chart"); link.href = "/chart.html?s=" + encodeURIComponent(r.ticker); article.append(link);
           var provenance = el("details"); provenance.append(el("summary", "Candidate provenance"));
           var identity = el("dl", null, "sn-facts"); pair(identity, "Source path", r.source_path); pair(identity, "Artifact revision", r.artifact_revision); provenance.append(identity); article.append(provenance);
-          var grid = el("div", null, "sn-pair"); contract(grid, "Existing backend qualification", r.existing_backend_qualification); contract(grid, "Requested strategy qualification", r.requested_strategy_qualification); article.append(grid); list.append(article);
+          var grid = el("div", null, "sn-pair"); contract(grid, "Existing backend qualification", r.existing_backend_qualification); contract(grid, "Requested strategy qualification", r.requested_strategy_qualification); article.append(grid); scopeCard(article, scope, scopeRow(r)); list.append(article);
         });
         return true;
       }
+      scopeSelect.addEventListener("change", function () { pageIndex = 0; renderRows(); });
+      reset.addEventListener("click", function () { search.value = ""; select.value = scopeSelect.value = "ALL"; onlyReady = false; pageIndex = 0; button.setAttribute("aria-pressed", "false"); button.textContent = "Show backend-ready only"; renderRows(); });
       search.addEventListener("input", function () { pageIndex = 0; renderRows(); }); select.addEventListener("change", function () { pageIndex = 0; renderRows(); });
       previous.addEventListener("click", function () { pageIndex--; renderRows(); next.focus(); });
       next.addEventListener("click", function () { pageIndex++; renderRows(); previous.focus(); });
@@ -587,7 +698,7 @@
         timer = null;
         if (host._qualificationTicket !== ticket || !host.isConnected) { cleanup(); return; }
         if (!renderRows()) { cleanup(); return; }
-        timer = root.setTimeout(refreshValidity, Math.max(1, snapshot.deadline - Date.now()));
+        timer = root.setTimeout(refreshValidity, Math.max(1, Math.min(snapshot.deadline, scope.valid ? scope.deadline : Infinity) - Date.now()));
       }
       function onVisibility() { if (document.visibilityState !== "hidden") refreshValidity(); }
       renderCleanup = cleanup;
