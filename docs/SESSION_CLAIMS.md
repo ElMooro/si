@@ -19,6 +19,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
 | Katlin OOS label-boundary/availability correction authorized 2026-10-01 03:32; draft codex/katlin-oos-availability; preserve intentional full-history priors, paired decision regressions; no deploy until exact-head independent review and parent release | none | S-codex#koa1001r3 | 2026-10-01 03:35 |
+| Credit-before-equity frontend evidence qualification, typed null/zero handling and empty states; agent/codex/credit-before-equity-qualification; draft only, no merge/deploy/backend/nav changes | none | S-codex#cbe1001q | 2026-10-01 |
 | Holdings cohort Previous/cache navigation and explicit dated coverage labels; agent/shopiz/holdings-cohort-navigation; frontend-only draft, no deploy or ops retry | none | S-shopiz#hnav1001a | 2026-10-01 03:07 |
 | Extra-funds-only ETF desk holdings supplement: reuse OwnershipSummary for 16 acquired extras, model/store + offline tests/benchmark; agent/shopiz/extra-holdings-supplement; draft only, no deployment | none | S-shopiz#ehs1001d | 2026-10-01 03:28 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
