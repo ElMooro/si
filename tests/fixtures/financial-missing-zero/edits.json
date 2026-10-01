@@ -1,7 +1,7 @@
 {
   "target": "aws/shared/equity_enrich.py",
   "predecessor_sha256": "2248cfb57a157c59acbb671d02842e3ee9846dd243d163da9a3c8ceb1d506a8c",
-  "candidate_sha256": "66d0e884ea6b7f1ea54c2ecc014da272a94a47db0a5b8835f7fda7643fe5ccc0",
+  "candidate_sha256": "cfbae657aa42cc4b62e15821b7c5014e46dbc8d3f53cce51b26c1d78a6b50735",
   "edits": [
     [
       "def num(v):\n    try:\n        return float(v)\n    except Exception:\n        return None",
@@ -58,6 +58,10 @@
     [
       "\"mkt_cap\": p.get(\"mktCap\") or p.get(\"marketCap\"),",
       "\"mkt_cap\": first_num(p.get(\"mktCap\"), p.get(\"marketCap\")),"
+    ],
+    [
+      "    def finite_float(value):\n        from decimal import Decimal\n        parsed = float(value)\n        if not math.isfinite(parsed) or parsed == 0 and Decimal(value) != 0:\n            raise ValueError('Unrepresentable JSON number')\n        return parsed\n",
+      "    def finite_float(value):\n        from decimal import Decimal\n        if len(value) > 512:\n            raise ValueError('Oversized JSON numeric token')\n        exact = Decimal(value)\n        parsed = float(value)\n        if not math.isfinite(parsed) or Decimal(str(parsed)) != exact:\n            raise ValueError('Lossy JSON numeric projection')\n        return parsed\n"
     ]
   ]
 }

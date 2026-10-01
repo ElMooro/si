@@ -332,12 +332,9 @@ def _confirmation_document(key):
 
     def finite_float(value):
         from decimal import Decimal
-        if len(value) > 512:
-            raise ValueError('Oversized JSON numeric token')
-        exact = Decimal(value)
         parsed = float(value)
-        if not math.isfinite(parsed) or Decimal(str(parsed)) != exact:
-            raise ValueError('Lossy JSON numeric projection')
+        if not math.isfinite(parsed) or parsed == 0 and Decimal(value) != 0:
+            raise ValueError('Unrepresentable JSON number')
         return parsed
 
     def unique_object(pairs):

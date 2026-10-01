@@ -91,10 +91,6 @@
       [
         "\"mkt_cap\": p.get(\"mktCap\") or p.get(\"marketCap\"),",
         "\"mkt_cap\": first_num(p.get(\"mktCap\"), p.get(\"marketCap\")),"
-      ],
-      [
-        "    def finite_float(value):\n        from decimal import Decimal\n        parsed = float(value)\n        if not math.isfinite(parsed) or parsed == 0 and Decimal(value) != 0:\n            raise ValueError('Unrepresentable JSON number')\n        return parsed\n",
-        "    def finite_float(value):\n        from decimal import Decimal\n        if len(value) > 512:\n            raise ValueError('Oversized JSON numeric token')\n        exact = Decimal(value)\n        parsed = float(value)\n        if not math.isfinite(parsed) or Decimal(str(parsed)) != exact:\n            raise ValueError('Lossy JSON numeric projection')\n        return parsed\n"
       ]
     ],
     "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": [
