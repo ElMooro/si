@@ -7073,3 +7073,16 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 
 
 - Final Stage 498 candidate: 1018 deployment/fifteen shell, 2,283 frontend (including 26 new search/cache cases), 104 unchanged native regressions, 599 page graphs and 143 companion wires pass. Both complete browser suites pass at 1440 and 390 pixels, with source bytes bound before/after the run and no actual data requests. Review preserved the legacy explicit-failure FRED fallback. Exact Pages release acceptance is the remaining gate for this batch.
+
+
+### Stage 498 runner test ordering repair
+
+- Pages run 36818832534 rejected the source batch because an existing snapshot test assumed asynchronous hashes would complete in launch order. A newer request reaching the Worker first correctly causes a 409 for the older revision. No Worker defect is established by that failure; production source remains unchanged.
+- The test now synchronizes at the actual held legacy read and verifies that both later publication and reservation wait. A second test deliberately reverses digest completion and proves the complete newer body survives the older 409. The complete preceding test and exact failure context are retained.
+- Runner-version Node 22.23.2 passes all 2,284 frontend cases, including 22 snapshot cases; native 104 and deployment 1,018 plus fifteen shell checks pass. Official Node archive checksum verified. Exact Pages acceptance remains pending; no real private/account/consumer data was read or producer invoked.
+
+- Before the repair push, peer PR29 merged at `cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d`. Its additive Khalid qualification and UI are preserved. Combined checks pass: 2,290 frontend, 70 Khalid, 104 symbol-directory and 1,018 deployment plus fifteen shell tests. The only incoming chart HTML edit is the removed Khalid script version: the complete HTML produced by each existing offline browser harness is byte-identical, as are both exercised chart modules and both harnesses. Whole-source equivalence is retained in the audit. No live Khalid/portfolio packet was read.
+
+- PR31 then added opt-in holdings diagnostics at `5c797c0534ab5724b4d7b6bebfad6671a69411cb`. Preserved the peer change and ran all shared ETF suites and both consuming native engine runners. Full frontend/deployment validation remains explicitly bound to the preceding PR29 base; the intervening delta changes no browser, pipeline or symbol-directory source. No real holdings data or external source was accessed.
+
+- Peer PR30 then withdrew unsupported backtest Mode A qualification at `c0f2565eb0d66b9463b7b225dcefc9f35d95adf8`. All three native runners and the complete revised frontend (2293 cases), plus public page parsing, pass. This preserves the independent lane; it is not a corrected backtest or live scorecard acceptance.

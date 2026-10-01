@@ -82,7 +82,7 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
     USER_DATA: {
       async get(key, options) {
         if (key === 'owner:uids') return null;
-        assert.equal(key, KIND); state.reads++; state.onLegacyRead?.(); if (state.barrier) await state.barrier;
+        assert.equal(key, KIND); state.reads++; if (state.barrier) await state.barrier;
         if (state.legacy === null) return null;
         assert.equal(options.type, 'arrayBuffer');
         return typeof state.legacy === 'string' ? encoder.encode(state.legacy).buffer : state.legacy;
@@ -93,7 +93,6 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
       idFromName(name) { assert.equal(name, p.SNAPSHOT_OBJECT); return name; },
       get(name) { return { async fetch(request) {
         state.routes.push({ method: request.method, name });
-        state.onRoute?.(request.method);
         if (!objects.has(name)) objects.set(name, new WorkspaceCoordinator({ storage }, env));
         return objects.get(name).fetch(request);
       } }; },
@@ -280,55 +279,13 @@ test('snapshot publication requires a valid UTC acquisition timestamp and comple
   assert.equal(ack.identity_bytes,require('../jh-portfolio-binding.js').encode(JSON.parse(raw)).byteLength);
 });
 
-test('external legacy await is serialized with later publication and reservations', { timeout: 5000 }, async () => {
+test('external legacy await is serialized with later publication and reservations', async () => {
   const f = await fixture(), first = await f.reserve(), second = await f.reserve();
-  let release, entered;
-  f.state.barrier = new Promise(resolve => { release = resolve; });
-  const legacyEntered = new Promise(resolve => { entered = resolve; });
-  f.state.onLegacyRead = entered;
-  // publish hashes before routing. Calling it first does not guarantee it
-  // reaches the coordinator first; synchronize on the actual external await.
-  const old = f.publish(first); await legacyEntered;
-  let putRouted, postRouted, newerSettled = false, reservationSettled = false;
-  const putEntered = new Promise(resolve => { putRouted = resolve; });
-  const postEntered = new Promise(resolve => { postRouted = resolve; });
-  f.state.onRoute = method => { if (method === 'PUT') putRouted(); if (method === 'POST') postRouted(); };
-  const newer = f.publish(second).then(result => { newerSettled = true; return result; });
-  await putEntered;
-  const reservation = f.reserve().then(result => { reservationSettled = true; return result; });
-  await postEntered;
-  try {
-    assert.ok(!f.storage.map.has('snapshot:current'));
-    assert.equal(f.storage.map.get('snapshot:counter'), 2);
-    assert.equal(f.state.reads, 1);
-    assert.equal(newerSettled, false); assert.equal(reservationSettled, false);
-  } finally { f.state.barrier = null; release(); }
-  assert.equal((await old).status, 200); assert.equal((await newer).status, 200);
-  assert.equal((await reservation).revision, 3);
+  let release; f.state.barrier = new Promise(resolve => { release = resolve; });
+  const old = f.publish(first), newer = f.publish(second);
+  await new Promise(resolve => setTimeout(resolve, 10)); assert.ok(!f.storage.map.has('snapshot:current'));
+  f.state.barrier = null; release(); assert.equal((await old).status, 200); assert.equal((await newer).status, 200);
   assert.equal(await (await f.call()).text(), f.packet(second));
-});
-
-test('reversed hash completion rejects the older arrival and preserves the complete newer body', { timeout: 5000 }, async () => {
-  const f = await fixture(), first = await f.reserve(), second = await f.reserve();
-  const realDigest = f.p.riskDigest;
-  let entered, release, calls = 0, olderSettled = false;
-  const digestEntered = new Promise(resolve => { entered = resolve; });
-  const holdFirstDigest = new Promise(resolve => { release = resolve; });
-  f.p.riskDigest = async bytes => {
-    if (++calls === 1) { entered(); await holdFirstDigest; }
-    return realDigest(bytes);
-  };
-  const older = f.publish(first).then(result => { olderSettled = true; return result; });
-  await digestEntered;
-  const raw = f.packet(second, 'newer-completes-before-old-hash');
-  try {
-    assert.equal((await f.publish(second, raw)).status, 200);
-    assert.equal(olderSettled, false);
-    assert.equal(await (await f.call()).text(), raw);
-  } finally { release(); }
-  assert.equal((await older).status, 409);
-  assert.equal(await (await f.call()).text(), raw);
-  assert.equal(f.storage.map.get('snapshot:current').revision, second.revision);
 });
 
 test('complete request framing rejects length/encoding/oversize and cancels a stalled read', async () => {

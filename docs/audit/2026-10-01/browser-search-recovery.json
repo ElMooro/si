@@ -1,5 +1,5 @@
 {
-  "status": "full_candidate_checks_passed_exact_static_release_pending",
+  "status": "runner_test_race_repaired_exact_static_release_pending",
   "source": [
     {
       "path": "jh-chart-catalog.js",
@@ -63,7 +63,7 @@
   "validation": {
     "deployment": 1018,
     "shell": 15,
-    "frontend": 2283,
+    "frontend": 2293,
     "native": 104,
     "new_search_regressions": 26,
     "page_graphs": 599,
@@ -125,6 +125,172 @@
       },
       "offline_label_tests": 9,
       "mocked_desk_tests": 16
+    }
+  },
+  "runner_failure_repair": {
+    "status": "complete_local_checks_pass_exact_static_release_pending",
+    "failed_pages_run": 36818832534,
+    "failed_job": 110229758830,
+    "failed_source_commit": "4b4a7ca2b4f03d5fc9fb4bc4e7d23f8555400187",
+    "whole_own_job_log_sha256": "038071b5d8341bd894e5dcbe9441a10556f04b2d1baf7d7318037f36fd7847a3",
+    "whole_own_job_log_bytes": 929102,
+    "failure_context": [
+      "2026-10-01T05:15:38.2504961Z not ok 2208 - external legacy await is serialized with later publication and reservations",
+      "2026-10-01T05:15:38.2505599Z   ---",
+      "2026-10-01T05:15:38.2506022Z   duration_ms: 13.676342",
+      "2026-10-01T05:15:38.2506368Z   type: 'test'",
+      "2026-10-01T05:15:38.2506963Z   location: '/home/runner/work/si/si/tests/worker-snapshot-ordering.test.js:282:1'",
+      "2026-10-01T05:15:38.2507595Z   failureType: 'testCodeFailure'",
+      "2026-10-01T05:15:38.2507885Z   error: |-",
+      "2026-10-01T05:15:38.2508157Z     Expected values to be strictly equal:",
+      "2026-10-01T05:15:38.2508418Z     ",
+      "2026-10-01T05:15:38.2508629Z     409 !== 200",
+      "2026-10-01T05:15:38.2508825Z     ",
+      "2026-10-01T05:15:38.2509018Z   code: 'ERR_ASSERTION'",
+      "2026-10-01T05:15:38.2509256Z   name: 'AssertionError'",
+      "2026-10-01T05:15:38.2509489Z   expected: 200",
+      "2026-10-01T05:15:38.2509697Z   actual: 409",
+      "2026-10-01T05:15:38.2509914Z   operator: 'strictEqual'",
+      "2026-10-01T05:15:38.2510150Z   stack: |-",
+      "2026-10-01T05:15:38.2510593Z     TestContext.<anonymous> (/home/runner/work/si/si/tests/worker-snapshot-ordering.test.js:287:45)",
+      "2026-10-01T05:15:38.2511120Z     async Test.run (node:internal/test_runner/test:1054:7)",
+      "2026-10-01T05:15:38.2511576Z     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)",
+      "2026-10-01T05:15:38.2511938Z   ...",
+      "2026-10-01T05:15:38.2750197Z # Subtest: complete request framing rejects length/encoding/oversize and cancels a stalled read",
+      "2026-10-01T05:15:38.2751346Z ok 2209 - complete request framing rejects length/encoding/oversize and cancels a stalled read",
+      "2026-10-01T05:15:38.2751981Z   ---",
+      "2026-10-01T05:15:38.2752713Z   duration_ms: 17.919996",
+      "2026-10-01T05:15:38.2753100Z   type: 'test'",
+      "2026-10-01T05:15:38.2753432Z   ...",
+      "2026-10-01T05:15:38.2754147Z # Subtest: missing coordinator refuses private reads without falling through to KV",
+      "2026-10-01T05:15:38.2755190Z ok 2210 - missing coordinator refuses private reads without falling through to KV"
+    ],
+    "cause": "The old test launched two asynchronous body hashes, assumed request arrival order, and slept ten milliseconds. The newer request can arrive first; rejecting the older revision with 409 is correct production behavior.",
+    "repair": "Synchronize on entry into the actual legacy read, then queue a newer publication and reservation. Assert neither crosses the held boundary. Separately force reversed hash completion and verify 409 plus complete newer body preservation. Production Worker and chart source are unchanged.",
+    "complete_predecessor": {
+      "path": "tests/fixtures/snapshot-ordering/pre-explicit-synchronization.test.js.txt",
+      "bytes": 22990,
+      "sha256": "445651b26135a0f4ae1d869b8c65e0ec069e02b53d94d8b353acd02ddc2cd59f"
+    },
+    "current_test": {
+      "path": "tests/worker-snapshot-ordering.test.js",
+      "bytes": 25230,
+      "sha256": "217bff6721f54d91273fed3122734ede9a73444233f06edc72c82b3b1d960281"
+    },
+    "node_distribution": {
+      "version": "v22.23.2",
+      "source": "https://nodejs.org/dist/v22.23.2/node-v22.23.2-win-x64.zip",
+      "checksum_source": "https://nodejs.org/dist/v22.23.2/SHASUMS256.txt",
+      "sha256": "1177b4137ba5adaa56354ae40f1080c7450e8ae09cecb47da459d1c52ac99f97",
+      "bytes": 35683585
+    },
+    "validation": {
+      "base": "cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d",
+      "node": "v22.23.2",
+      "checks": [
+        "peer-khalid",
+        "native",
+        "frontend",
+        "deployment"
+      ],
+      "focused_worker_tests": 22,
+      "frontend": 2290,
+      "native": 104,
+      "deployment": 1018,
+      "shell": 15,
+      "peer_khalid": 70
+    },
+    "actual_network_data_requests": 0,
+    "private_reads": 0,
+    "producer_invocations": 0,
+    "actual_portfolio_execution_verified": false,
+    "incoming_review": {
+      "base": "4b4a7ca2b4f03d5fc9fb4bc4e7d23f8555400187",
+      "reviewed_head": "cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d",
+      "reviewed_paths": {
+        "aws/lambdas/justhodl-khalid/source/lambda_function.py": "08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798",
+        "aws/lambdas/justhodl-khalid/source/qualification.py": "4652b0ce3b7a748c169410bd2c33421d19cc1fd96b6fae75501f7adff89660e8",
+        "aws/lambdas/justhodl-khalid/source/scoring.py": "cdbd34c5e251cae565c7f4f83fb2634198c2409409e8585050b85f16245db3a8",
+        "aws/lambdas/justhodl-khalid/tests/run_tests.py": "662a50a6bfc9791ad2cd5fcf7fac43e74f6f9e09cb4bcad7e77e00f9ed69f14b",
+        "aws/lambdas/justhodl-khalid/tests/test_provider_flow_evidence.py": "bd4d1e4e1f106da801cb4e1008bc098930bcd224d408bd98c07e897375204f8d",
+        "aws/lambdas/justhodl-khalid/tests/test_qualification.py": "f1d4c33f99112cc4a907bd61be74428c67ec1e897847245e2fa0dc5b21162e45",
+        "chart.html": "2ea9e20d82db6ddb6a585ee24cafd395a9e75c2b5d8a0d29568604b1edb148d7",
+        "docs/SESSION_CLAIMS.md": "91400becc5451b4b72907152183f22d9994c78f30eb3537d909e971673599f2b",
+        "docs/reviews/khalid-qualification-contract.md": "8312412f4aa5c0d688d09e5a2c20e312aba990a5e7115ed6671cc3244036fc7a",
+        "docs/reviews/khalid-qualification-evidence.json": "3f2bd76939423608e927e1ac46a67cfa81662e7f31a261b60fd333746dc026b9",
+        "jh-khalid-sniper.js": "8562ef888927332ecf8214d2074e92091b1ffabf743df851d528eff88b334898",
+        "khalid.html": "3c8cc0f7ca17d563aba1ccf22d3f242166d844f5370e83a604fc4645181aac36",
+        "tests/fixtures/khalid-qualification-synthetic.json": "a55cbc77c770b33d7b488d107e05ab1a153072b0ac3d1e0c5d477ef40ff2c631",
+        "tests/khalid-qualification-browser.cjs": "c71b7daa044d1f0b6d5c1c95ed105b5265503be359b749f3ebda2a88a513da7d",
+        "tests/khalid-qualification.test.js": "b5ba87105444f684c1addf74199a1dd04bd987554ccfc18e31da78874a21e14c",
+        "tests/khalid-sniper.test.js": "b884240f93259e8e34e5e9e501759715b6d1a65629f031df82920f31e98c8e03"
+      },
+      "scope": "Peer PR29 adds display-only Khalid qualification, preserves native scoring/lifecycle policy and changes only its script query in chart.html. Retained and tested; no application-data probe or producer invocation.",
+      "browser_fixture_equivalence": {
+        "original_html_commit": "4b4a7ca2b4f03d5fc9fb4bc4e7d23f8555400187",
+        "original_html_sha256": "258e79fa09c1c537c7e13e364c371c2580e4c1aee1973e6a8c905d50bb33bc5f",
+        "current_html_sha256": "2ea9e20d82db6ddb6a585ee24cafd395a9e75c2b5d8a0d29568604b1edb148d7",
+        "complete_fixture_sha256": "536cdf04dfed155e35ac79a4b9ad8e09a22bb79c678e00c2f8e776249bfd2317",
+        "transform": "Same complete HTML transform as both browser harnesses: remove script blocks and link tags. The only incoming HTML change is the removed Khalid script version."
+      }
+    },
+    "peer_etf_review": {
+      "base": "cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d",
+      "reviewed_head": "5c797c0534ab5724b4d7b6bebfad6671a69411cb",
+      "paths": {
+        "aws/shared/etf_desk_store.py": "6a8e288db962cd50455d69e04c5fed7da0e40df3b18b564799a59b4fc37262ac",
+        "aws/shared/etf_holdings_model.py": "eff34b5dec0d24be3f4e4e19f4b25dd77adad827b54635dc0c5fd20b3f54e7b2",
+        "aws/shared/etf_holdings_store.py": "c32227d329237efdf080399609c8bbeb1ce8e5efcbe8636dad3f95fd0b7a00aa",
+        "aws/shared/tests/test_etf_ownership_summary.py": "a5c88145086ab4dc657be0ad4d0a488049aabd13b8279785da33f98fc27ee473",
+        "aws/shared/tests/test_etf_qualification_diagnostics.py": "6b329c876c561e55a7185f95398683016914be6699d2ce3c49afb3c9b3f9cbf5",
+        "docs/SESSION_CLAIMS.md": "3a3508e5ae983f3ce3b4543b157440e337509276b452c76c432a5dab1b4cf76b",
+        "docs/reviews/holdings-qualification-diagnostics-benchmark.json": "55193797fdcb5b02cb7bf8fb52a0b89d4acad90a0207bb569582eb5ed6f32eb6",
+        "docs/reviews/holdings-qualification-diagnostics.md": "dbdde005bfc01c720401fd7f6dd1a3f8b9c71e2e72e21b330454c299f66ff2b7",
+        "tests/benchmark_qualification_diagnostics.py": "bb49b686c9f467ca2a43b618dbd94ccd64ecfa302a656011e6477885b5110c91",
+        "tests/fixtures/holdings-diagnostics-predecessor-synthetic.json.gz": "de15dca89d638bc3bea1e76b18f81576abcb48815f78a980358493d676bb0e75"
+      },
+      "checks": [
+        "peer-etf-shared",
+        "peer-etf-desk",
+        "peer-etf-constituents"
+      ],
+      "scope": "Peer PR31 adds opt-in versioned holdings qualification diagnostics; preserves existing decision authority, full rows and predecessor replay. Read and tested all eleven shared ETF suites and both consuming native engine runners with invented inputs. No source config, workflow or browser source changed; no real holdings or provider read.",
+      "full_suite_base": "cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d",
+      "frontend_source_unchanged": true,
+      "symdir_source_unchanged": true,
+      "pipeline_source_unchanged": true
+    },
+    "peer_harness_review": {
+      "base": "5c797c0534ab5724b4d7b6bebfad6671a69411cb",
+      "reviewed_head": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+      "paths": {
+        "aws/lambdas/justhodl-alpha-decay/source/lambda_function.py": "7ca24e7db7779b984f5739e0c019632a3c05ec9b763c082416192acacb56dd5d",
+        "aws/lambdas/justhodl-alpha-decay/tests/run_tests.py": "98cdf333263d56e24531061411773db1b90f59a7dc515c66531091d78fcbc3ad",
+        "aws/lambdas/justhodl-ask-desk/source/lambda_function.py": "cbb38ffd039bb2a2e6c3bd4b6a32e54a0cdb4444da78e89d10928a17215c9b62",
+        "aws/lambdas/justhodl-ask-desk/tests/run_tests.py": "30d6a60ecb24b39e5568fcbdd0d7e00994015042bc8e365d847dccdac257be87",
+        "aws/lambdas/justhodl-backtest-harness/source/lambda_function.py": "809e29c0b0470c741672c11e007171faf1f440b50774bfbd1d50eeaaa8b92ec0",
+        "aws/lambdas/justhodl-backtest-harness/tests/run_tests.py": "98cdf333263d56e24531061411773db1b90f59a7dc515c66531091d78fcbc3ad",
+        "aws/shared/backtest_harness_authority.py": "dd3cae640caa850921dacdd825b04780793094a858d4905b79348d43e25d7ede",
+        "backtests.html": "81607945764230c8b60623584e8a0f78bc2bc3b438ec58b1c9a5a5b6bf2cfc5b",
+        "docs/SESSION_CLAIMS.md": "da01dea803b8838d94ce462b6c36947bf0e1fac358d81ca4ca4c99ff4930f23c",
+        "docs/reviews/harness-mode-a-withdrawal.md": "be18685059400fd0cf2cb44636ad2ffb4e13af4324583b1863a26bf78c438d4d",
+        "tests/fixtures/harness-mode-a/alpha.py.txt": "421340deea01da9db84b36767f7e3c62487ed0bb73eb8f913510e0ff6b3793ac",
+        "tests/fixtures/harness-mode-a/backtests.html.txt": "513273e1694f83143a761acb872a5ba7963898edfa556f91512c550c911b0723",
+        "tests/fixtures/harness-mode-a/harness.py.txt": "ee0ec6e1d10afed32a8e6581c9a79e03ae256d6e490dea48c64be11cb50f3dbb",
+        "tests/fixtures/harness-mode-a/manifest.json": "f16aac04701194bd48cf40f9552693cb9bab3f3368f5fb6ad3ba9619fb45718e",
+        "tests/harness-mode-a-browser.cjs": "6d0dec42052ff03978df7dc60a512982cff07e002bffd6c21a8fa5b88a17a8f0",
+        "tests/harness-mode-a-withdrawal.test.js": "79a602ec7f5d2b3cc86fe0aec416ec23a2c7a02cac7c49e9d09fc94347ec8579",
+        "tests/test_harness_mode_a_withdrawal.py": "5513ad5cf4ff3d3a687542bd467effd3f95132ada872692ecc939485fc9d8024"
+      },
+      "checks": [
+        "justhodl-alpha-decay",
+        "justhodl-backtest-harness",
+        "justhodl-ask-desk",
+        "frontend",
+        "page-scripts"
+      ],
+      "frontend": 2293,
+      "scope": "Preserved peer PR30 withdrawal of unsupported Mode A backtest qualification across producer, alpha-decay, Ask Desk and page. Full revised frontend and all three native runners pass on invented inputs. No live scorecard, private artifact, historical fitting, provider query or producer invoke."
     }
   }
 }
