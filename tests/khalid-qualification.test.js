@@ -44,3 +44,44 @@ test('all criterion fields reach the expanded display model, no synthetic availa
  }
  assert.match(row.requested_strategy_qualification.criteria.find(c=>c.id==='resilience').definition,/SPY is not silently substituted/);
 });
+
+test('backend criterion values reject wrong types and null/status contradictions',()=>{
+ const gates=source.qualification_evidence.rows[0].existing_backend_qualification.criteria;
+ const bools=new Set(['structure','dilution','risk_permission','trigger']);
+ const counts=new Set(['legacy_flow','catalyst','vetoes']);
+ for(const gate of gates){
+  const invalid=bools.has(gate.id)?[null,'false','true',0,1,{},[],false]:[null,'unknown','0',true,false,{},[],NaN,Infinity,-Infinity];
+  if(counts.has(gate.id))invalid.push(-1,.5);
+  for(const value of invalid){const f=fresh();f.qualification_evidence.rows[0].existing_backend_qualification.criteria.find(c=>c.id===gate.id).value=value;
+   assert.equal(project(f,NOW).valid,false,gate.id+' invalid PASS '+String(value));}
+  for(const status of ['PASS','FAIL']){const f=fresh(),b=f.qualification_evidence.rows[0].existing_backend_qualification;
+   b.status='FAIL';b.reported_action=f.opportunity_radar[0].action='TRACKING';
+   const c=b.criteria.find(c=>c.id===gate.id);c.status=status;c.value=null;
+   assert.equal(project(f,NOW).valid,false,gate.id+' '+status+' null');}
+  const f=fresh(),b=f.qualification_evidence.rows[0].existing_backend_qualification;
+  b.status='FAIL';b.reported_action=f.opportunity_radar[0].action='TRACKING';
+  const c=b.criteria.find(c=>c.id===gate.id);c.status='UNAVAILABLE';c.value=null;
+  assert.equal(project(f,NOW).valid,true,gate.id+' valid missing');
+  c.value=gate.value;assert.equal(project(f,NOW).valid,false,gate.id+' unavailable non-null');
+  c.status='FAIL';c.value=bools.has(gate.id)?false:gate.value;
+  assert.equal(project(f,NOW).valid,true,gate.id+' valid typed FAIL');
+  if(bools.has(gate.id)){c.value=true;assert.equal(project(f,NOW).valid,false,gate.id+' FAIL true');}
+ }
+ const f=fresh();f.qualification_evidence.rows[0].existing_backend_qualification.criteria[0].unit='boolean';
+ assert.equal(project(f,NOW).valid,false,'criterion cannot override definition unit');
+});
+test('unresolved requested values stay null and numerical thresholds remain backend-owned',()=>{
+ for(const c of source.qualification_evidence.requested_criteria){const f=fresh();f.qualification_evidence.requested_criteria.find(x=>x.id===c.id).value=0;assert.equal(project(f,NOW).valid,false,c.id);}
+ const f=fresh(),g=f.qualification_evidence.rows[0].existing_backend_qualification.criteria;
+ // Deliberately contradictory numerical evaluations prove this renderer does not
+ // reimplement the 0.60 confidence, <=0 location or >=2.5 reward/risk thresholds.
+ g.find(c=>c.id==='confidence').value=.5;g.find(c=>c.id==='location').value=3;g.find(c=>c.id==='reward_risk').value=1;
+ assert.equal(project(f,NOW).valid,true);
+});
+test('source SLA equality remains valid, first later millisecond and publication boundary expire',()=>{
+ const f=fresh();f.qualification_evidence.rows[0].existing_backend_qualification.sources.find(s=>s.name==='khalid_risk').max_age_h=2;
+ const edge=Date.parse('2026-10-01T06:00:00Z');
+ assert.equal(project(f,edge-1).valid,true);assert.equal(project(f,edge).valid,true);assert.equal(project(f,edge+1).valid,false);
+ const publication=Date.parse(source.qualification_evidence.expires_at);
+ assert.equal(project(fresh(),publication-1).valid,true);assert.equal(project(fresh(),publication).valid,false);
+});

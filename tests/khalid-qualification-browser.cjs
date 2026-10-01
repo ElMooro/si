@@ -7,11 +7,19 @@ const evidence={scope:'Actual page HTML/CSS, complete shared qualification modul
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||undefined});try{
  for(const pageName of ['khalid.html','chart.html'])for(const width of [1440,390]) {
   const context=await browser.newContext({viewport:{width,height:1000},isMobile:width===390,hasTouch:width===390,serviceWorkers:'block'});
-  await context.addInitScript(()=>{Date.now=()=>Date.parse('2026-10-01T04:05:00Z');window.jhActive='TEST';});
+  await context.addInitScript(()=>{
+   window.__now=Date.parse('2026-10-01T04:05:00Z');Date.now=()=>window.__now;window.jhActive='TEST';
+   window.__visibility='visible';Object.defineProperty(document,'visibilityState',{get:()=>window.__visibility});
+   Object.defineProperty(document,'hidden',{get:()=>window.__visibility==='hidden'});
+   window.__timers=[];const set=window.setTimeout,clear=window.clearTimeout;
+   window.setTimeout=function(fn,delay,...args){const id=set(fn,delay,...args);if(delay>1000000)window.__timers.push({id,fn,delay,due:Date.now()+delay,cancelled:false});return id;};
+   window.clearTimeout=function(id){window.__timers.forEach(t=>{if(t.id===id)t.cancelled=true;});return clear(id);};
+  });
   const page=await context.newPage(),errors=[],requests=[];
   const packet=structuredClone(fixture);
+  packet.qualification_evidence.rows[0].existing_backend_qualification.sources.find(s=>s.name==='khalid_risk').max_age_h=2;
   if(pageName==='khalid.html')for(let i=1;i<12;i++) {
-   const candidate=structuredClone(fixture.opportunity_radar[0]),row=structuredClone(fixture.qualification_evidence.rows[0]);
+   const candidate=structuredClone(fixture.opportunity_radar[0]),row=structuredClone(packet.qualification_evidence.rows[0]);
    candidate.ticker=row.ticker='TEST'+i;row.source_path='opportunity_radar/'+i;
    row.existing_backend_qualification.ticker=row.requested_strategy_qualification.ticker=candidate.ticker;
    packet.opportunity_radar.push(candidate);packet.qualification_evidence.rows.push(row);
@@ -51,6 +59,40 @@ const evidence={scope:'Actual page HTML/CSS, complete shared qualification modul
   assert.ok(geometry.scroll<=geometry.client+1,JSON.stringify(geometry));
   const state=await panel.locator('.sn-card').first().textContent();
   await page.screenshot({path:path.join(out,pageName+'-'+width+'.png')});
+  const freshnessCases=[];
+  for(const mode of ['deadline','visibilitychange','pageshow','focus','publication']) {
+   packet.qualification_evidence.expires_at=mode==='publication'?'2026-10-01T05:00:00Z':fixture.qualification_evidence.expires_at;
+   await page.evaluate(async ({packet,pageName})=>{
+    __now=Date.parse('2026-10-01T04:05:00Z');__visibility='visible';window.__fixtureFeed=packet;
+    await jhSniperMount(document.getElementById(pageName==='chart.html'?'ws-sniper':'k-sniper-host'));
+   },{packet,pageName});
+   assert.match(await panel.textContent(),/Existing backend qualification — PASS/);
+   const edge=Date.parse(mode==='publication'?'2026-10-01T05:00:00Z':'2026-10-01T06:00:00Z');
+   const timers=await page.evaluate(()=>__timers.filter(t=>!t.cancelled).map(t=>({due:t.due,delay:t.delay})));
+   assert.equal(timers.length,1,'remount must clear the old timer');
+   assert.equal(timers[0].due,edge+(mode==='publication'?0:1));
+   assert.equal(await page.evaluate(t=>{__now=t;return jhSniperQualification(__fixtureFeed,__now).valid;},edge-1),true);
+   if(mode!=='publication')assert.equal(await page.evaluate(t=>{__now=t;return jhSniperQualification(__fixtureFeed,__now).valid;},edge),true);
+   if(mode==='deadline'||mode==='publication') {
+    await page.evaluate(t=>{__now=t;__timers.filter(x=>!x.cancelled).at(-1).fn();},edge+(mode==='publication'?0:1));
+   } else {
+    await page.evaluate(t=>{__visibility='hidden';document.dispatchEvent(new Event('visibilitychange'));__now=t;},edge+1000);
+    // Model a throttled background timer: no callback has run yet.
+    assert.ok(await panel.locator('.sn-card').count()>0);
+    await page.evaluate(event=>{
+     __visibility='visible';
+     if(event==='visibilitychange')document.dispatchEvent(new Event(event));
+     else if(event==='pageshow')window.dispatchEvent(new PageTransitionEvent(event,{persisted:true}));
+     else window.dispatchEvent(new Event(event));
+    },mode);
+   }
+   assert.equal(await panel.locator('.sn-card').count(),0);
+   assert.match(await panel.textContent(),/UNAVAILABLE/);
+   assert.doesNotMatch(await panel.textContent(),/Existing backend qualification — PASS/);
+   assert.equal(await page.evaluate(()=>__timers.filter(t=>!t.cancelled).length),0);
+   freshnessCases.push({mode,first_invalid_ms:edge+(mode==='publication'?0:1),badge_withdrawn_without_interaction:true});
+  }
+  await page.evaluate(()=>{__now=Date.parse('2026-10-01T04:05:00Z');});
   if(pageName==='chart.html') {
    await page.evaluate(()=>{jhActive='ABSENT';jhOpenWorkspace('sniper');});
    await page.getByText(/No backend qualification for ABSENT/).waitFor();
@@ -59,7 +101,7 @@ const evidence={scope:'Actual page HTML/CSS, complete shared qualification modul
   }
   assert.deepEqual(errors,[]);
   assert.ok(!requests.some(x=>/yf-ohlc|yahoo|sp500.json|bottom.json/.test(x)));
-  evidence.cases.push({page:pageName,width,geometry,keyboard_filter_toggle_details:true,unknown_chart_symbol_unavailable:pageName==='chart.html',errors,requests,rendered_card:state});
+  evidence.cases.push({page:pageName,width,geometry,keyboard_filter_toggle_details:true,freshness_cases:freshnessCases,unknown_chart_symbol_unavailable:pageName==='chart.html',errors,requests,rendered_card:state});
   await context.close();
  }
  fs.writeFileSync(path.join(out,'browser-qa.json'),JSON.stringify(evidence,null,2)+'\n');console.log(JSON.stringify({cases:evidence.cases.length,passed:true,actual_network_requests:0}));

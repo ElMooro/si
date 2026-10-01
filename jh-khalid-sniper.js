@@ -266,8 +266,24 @@
   var GATES = ["location", "compression", "supply", "structure", "legacy_flow", "catalyst", "rsi", "dilution", "confidence", "vetoes", "reward_risk", "risk_permission", "trigger"];
   var REQUESTED_IDS = ["universe","ma250","offhigh","rsi","spread","bb","volatility","volume","flat","support_3m","higher_low","capitulation","demand","valuation","industry","true_flow","resilience","crypto_relative","ma300","double_bottom","campaign","catalyst","momentum"];
   function unavailable(reason) { return { valid: false, status: "UNAVAILABLE", reason: reason, rows: [] }; }
+  var GATE_UNITS = { location: "percent", compression: "percentile", supply: "ratio", structure: "boolean",
+    legacy_flow: "count", catalyst: "count", rsi: "index", dilution: "boolean", confidence: "fraction",
+    vetoes: "count", reward_risk: "ratio", risk_permission: "boolean", trigger: "boolean" };
+  function validCriterionValue(c, version) {
+    if (!c) return false;
+    if (version === REQUESTED) return c.status === "UNRESOLVED" && c.value === null && c.unit === null;
+    var unit = GATE_UNITS[c.id];
+    if (!unit || c.unit !== unit) return false;
+    if (c.status === "UNAVAILABLE") return c.value === null;
+    if (c.status !== "PASS" && c.status !== "FAIL") return false;
+    if (unit === "boolean") return typeof c.value === "boolean" && c.value === (c.status === "PASS");
+    if (typeof c.value !== "number" || !Number.isFinite(c.value)) return false;
+    if (unit === "count") return Number.isInteger(c.value) && c.value >= 0;
+    // Numeric pass/fail thresholds belong exclusively to the backend evaluator.
+    return true;
+  }
   function validCriterion(c, version) {
-    return c && typeof c.id === "string" && typeof c.label === "string" && typeof c.definition === "string" &&
+    return validCriterionValue(c, version) && typeof c.id === "string" && typeof c.label === "string" && typeof c.definition === "string" &&
       c.definition_version === version && typeof c.applicability === "string" && STATES.indexOf(c.status) >= 0 &&
       Object.prototype.hasOwnProperty.call(c, "value") && Object.prototype.hasOwnProperty.call(c, "unit") &&
       c.clocks && typeof c.clocks.evaluated_at === "string" && Object.prototype.hasOwnProperty.call(c.clocks, "effective_at") &&
@@ -373,8 +389,22 @@
     parent.append(section);
   }
   var STYLE = ".sn-evidence{color:inherit;max-width:100%;font:14px/1.5 system-ui;overflow-wrap:anywhere}.sn-evidence h2{font-size:22px}.sn-tools{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.sn-tools label{display:grid;gap:4px}.sn-tools input,.sn-tools select,.sn-tools button{font:inherit;padding:8px;max-width:100%;background:#151c28;color:#e5e7eb;border:1px solid #637184;border-radius:5px}.sn-tools button:disabled{opacity:.45;cursor:default}.sn-card{border:1px solid #637184;border-radius:8px;padding:14px;margin:14px 0}.sn-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.sn-criterion{border-top:1px solid #485468;padding:8px 0}.sn-evidence summary{cursor:pointer;min-height:32px}.sn-facts{display:grid;grid-template-columns:minmax(85px,1fr) minmax(0,3fr);gap:4px 12px}.sn-facts dt{color:#9ca3af}.sn-facts dd{margin:0}.sn-evidence :focus-visible{outline:3px solid #f3b942;outline-offset:3px}@media(max-width:760px){.sn-pair{grid-template-columns:1fr}.sn-card{padding:10px}.sn-tools>*{max-width:100%}.sn-facts{grid-template-columns:1fr}.sn-facts dd{margin-bottom:8px}}";
+  function revalidationDeadline(packet) {
+    var deadline = Date.parse(packet.expires_at);
+    packet.rows.forEach(function (row) {
+      var backend = row.existing_backend_qualification;
+      if (backend.status !== "PASS") return;
+      backend.sources.forEach(function (source) {
+        // Native freshness accepts age == SLA; first invalid JS millisecond is +1.
+        var firstStale = Math.floor(Date.parse(source.as_of) + source.max_age_h * 3600000) + 1;
+        if (Number.isFinite(firstStale)) deadline = Math.min(deadline, firstStale);
+      });
+    });
+    return deadline;
+  }
   function mount(host, options) {
     if (!host) return;
+    if (host._qualificationCleanup) host._qualificationCleanup();
     options = options || {};
     var symbol = options.ticker || (root.location && root.location.pathname === "/chart.html" && root.jhActive) || null;
     var ticket = {}; host._qualificationTicket = ticket;
@@ -406,7 +436,7 @@
         // Revalidate time on every interaction; an old mounted panel cannot remain qualified.
         var current = project(feed, Date.now(), symbol);
         list.replaceChildren();
-        if (!current.valid) { count.textContent = "UNAVAILABLE — " + current.reason; return; }
+        if (!current.valid) { count.textContent = "UNAVAILABLE — " + current.reason; return false; }
         var shown = current.rows.filter(function (r) {
           return r.ticker.toUpperCase().indexOf(search.value.trim().toUpperCase()) >= 0 && (select.value === "ALL" || r.asset_class === select.value) &&
             (!onlyReady || r.existing_backend_qualification.status === "PASS");
@@ -421,14 +451,34 @@
           var identity = el("dl", null, "sn-facts"); pair(identity, "Source path", r.source_path); pair(identity, "Artifact revision", r.artifact_revision); provenance.append(identity); article.append(provenance);
           var grid = el("div", null, "sn-pair"); contract(grid, "Existing backend qualification", r.existing_backend_qualification); contract(grid, "Requested strategy qualification", r.requested_strategy_qualification); article.append(grid); list.append(article);
         });
+        return true;
       }
       search.addEventListener("input", function () { pageIndex = 0; renderRows(); }); select.addEventListener("change", function () { pageIndex = 0; renderRows(); });
       previous.addEventListener("click", function () { pageIndex--; renderRows(); next.focus(); });
       next.addEventListener("click", function () { pageIndex++; renderRows(); previous.focus(); });
       button.addEventListener("click", function () { onlyReady = !onlyReady; button.setAttribute("aria-pressed", String(onlyReady)); button.textContent = onlyReady ? "Show every candidate" : "Show backend-ready only"; renderRows(); });
-      renderRows();
-      var timer = root.setTimeout(function () { if (host._qualificationTicket === ticket) renderRows(); }, Math.max(1, Date.parse(p.expires_at) - Date.now() + 1));
-      if (host._qualificationTimer) root.clearTimeout(host._qualificationTimer); host._qualificationTimer = timer;
+      var timer = null;
+      function cleanup() {
+        if (timer !== null) root.clearTimeout(timer);
+        timer = null;
+        document.removeEventListener("visibilitychange", onVisibility);
+        root.removeEventListener("pageshow", refreshValidity);
+        root.removeEventListener("focus", refreshValidity);
+        if (host._qualificationCleanup === cleanup) host._qualificationCleanup = null;
+      }
+      function refreshValidity() {
+        if (timer !== null) root.clearTimeout(timer);
+        timer = null;
+        if (host._qualificationTicket !== ticket || !host.isConnected) { cleanup(); return; }
+        if (!renderRows()) { cleanup(); return; }
+        timer = root.setTimeout(refreshValidity, Math.max(1, revalidationDeadline(p) - Date.now()));
+      }
+      function onVisibility() { if (document.visibilityState !== "hidden") refreshValidity(); }
+      host._qualificationCleanup = cleanup;
+      document.addEventListener("visibilitychange", onVisibility);
+      root.addEventListener("pageshow", refreshValidity);
+      root.addEventListener("focus", refreshValidity);
+      refreshValidity();
     }).catch(function () { if (host._qualificationTicket === ticket) host.replaceChildren(el("p", "UNAVAILABLE — Backend qualification could not be loaded.")); });
   }
   root.jhSniperMount = mount;

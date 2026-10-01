@@ -80,7 +80,7 @@ is a producer content identifier and cross-record binding; it is not a signature
   stale/missing execution evidence, missing historical clocks and unresolved rules.
 - Existing provider-flow preservation test retains its original baseline digest;
   only the separately-tested additive qualification lines/field are excluded.
-- 2,247 frontend tests passed; focused current-script checks pass.
+- 2,250 frontend tests passed; focused current-script checks pass.
 - Both actual page HTML/CSS contexts, actual shared renderer, actual Khalid
   controller and chart workspace module were tested at 1440 and 390 pixels with
   invented data and every request intercepted. Keyboard navigation, filters,
@@ -110,3 +110,37 @@ python scripts/gen_engine_wiring.py --check
 
 Independent exact-head review is required. This PR is draft only: no merge,
 deployment, policy promotion or requested-strategy definition approval is included.
+
+
+## Independent-review corrections
+
+The first review rejected head `646bd869e` for two display-contract defects.
+This revision changes no backend file, action, threshold, sizing or payload.
+
+- The panel now schedules revalidation at the earliest applicable PASS source
+  deadline or publication expiry, rather than waiting only for publication expiry.
+  Source age equal to its existing SLA remains valid; the first later millisecond
+  is unavailable. Publication expiry is exclusive. Visibility restoration,
+  persisted pageshow and window focus revalidate immediately, covering suspended
+  or throttled background timers. Remount and terminal invalidation clean up
+  old timers/listeners; stale PASS cards are removed without user interaction.
+- Criterion values must agree with their declared backend type and status:
+  measured numbers are finite numbers, counts are nonnegative integers, booleans
+  are actual booleans matching their PASS/FAIL state, and unavailable values are
+  null. Requested unresolved criteria retain null values/units. Unit overrides,
+  string coercions and missing/invalid measured values are rejected. Numerical
+  strategy thresholds are still evaluated solely by the backend.
+
+Mutation regressions cover every native criterion and requested criterion, valid
+missing/FAIL states, and deliberately contradictory numerical threshold outcomes
+that demonstrate there is no second strategy evaluator in the browser. Four real
+page-context browser cases each exercise source deadline, publication deadline,
+background visibility resume, persisted pageshow and focus (20 freshness cases),
+in addition to the existing keyboard/mobile controls. All requests are intercepted.
+
+The reviewer reported an unchanged worker-ordering combined-run failure followed
+by an isolated 21/21 pass. No worker/test changes are included here. This revision's
+full combined frontend run passed all 2,250 tests; that does not establish that the
+separate intermittent test behavior is resolved. Native tests remain 70/70; page
+parse (599 graphs), wiring and diff checks pass. Payload cost remains 2,609,170
+compact bytes per 1,000 invented candidates; no new requests or infrastructure.
