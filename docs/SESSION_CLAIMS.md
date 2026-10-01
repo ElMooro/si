@@ -32,13 +32,12 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | ETF desk daily phase dependency repair; agent/shopiz/etf-desk-phase; read-only probe then draft migration, no execution | 6380 probe; 6381 migration / 6382 rollback RESERVED (draft, not executed) | S-shopiz#edphase0930a | 2026-09-30 20:40 |
 | Khalid native Radar informational evidence only; agent/shopiz/khalid-provider-flow-evidence; draft, no deploy | none | S-shopiz#kpf0930r8 | 2026-09-30 19:10 |
 | brief_contract future timestamps only; draft review branch agent/shopiz/brief-future-timestamps (no ops/deploy) | none | S-shopiz#bft0930 | 2026-09-30 17:38 |
+| Khalid qualification evidence: existing backend readiness + unresolved requested strategy contracts, shared sniper display only; scoring/new helper/tests and jh-khalid-sniper.js, both page script refs; prior provider evidence owner merged PR13 verified; codex/khalid-qualification-contract draft, no deploy/actions/threshold/sizing changes | none | S-codex#kqc1001v6 | 2026-10-01 04:07 |
 | Factory discipline in the student tick (factory_doctrine.verdict, spawn caps), evidence contract, reading receipts, governed outside voice, official prints lane (scripts/factory_official_prints.py + factory-official-prints.yml), gate | 5520-5526 | S-claude-factory#9k2f | 2026-09-13 18:2x |
 | H.4.1 weekly official layer: justhodl-official-pulse (RRP proven + custody runtime-resolver) + dollar_leg composite + page card (+risk-gate wire if leg structure trivial) | 4864-4866 | S-fable-A | 2026-08-17 23:0x |
 | INCIDENT 526 justhodl.ai (4906-4907): GH LE cert expired 13:57 UTC, ACME bad_authz chronic under CF proxy; ACME reset done, CF SSL->full mitigation live, www DNS + CAA verified clean, edge recheck | 4906-4907 | S-F5#p9k4 | 2026-08-19 15:1x |\n| IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 | Offline Katlin label-boundary evidence validator and mutation tests only; production backtest feeds live priors, so source/consumers untouched; draft PR #19 awaiting independent review | none | S-codex#klb1001n4 | 2026-10-01 03:20 |
-
-| Khalid qualification evidence: existing backend readiness + unresolved requested strategy contracts, shared sniper display only; scoring/new helper/tests and jh-khalid-sniper.js, both page script refs; prior provider evidence owner merged PR13 verified; codex/khalid-qualification-contract draft, no deploy/actions/threshold/sizing changes | none | S-codex#kqc1001v6 | 2026-10-01 04:07 |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/
