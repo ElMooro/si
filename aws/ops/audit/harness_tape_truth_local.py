@@ -1,4 +1,5 @@
 """Local harness -- justhodl-tape-truth (mandatory push gate)."""
+from datetime import datetime, timezone
 import json
 import sys
 import types
@@ -25,10 +26,19 @@ sys.modules["boto3"] = boto3_stub
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]
                        / "lambdas" / "justhodl-tape-truth"
                        / "source"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
 import lambda_function as eng  # noqa: E402
 import os  # noqa: E402
 os.environ["POLYGON_API_KEY"] = "test"
 
+# Freeze the fixture's August observation session; its September options must
+# not expire merely because the harness is run later.
+class FrozenDateTime(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2026, 8, 17, 22, tzinfo=timezone.utc)
+
+eng.datetime = FrozenDateTime
 eng.WATCH = ["AAA", "BBB"]
 eng.GEX_SYMS = ["AAA"]
 
@@ -146,7 +156,7 @@ def main():
         or isinstance(g5["dist_to_flip_pct"], float))
     chk("GEX math: DTE filter drops 2027, zero-OI dropped, "
         "net == recompute",
-        g["status"] == "LIVE" and g["n_contracts_used"] == 3
+        g["status"] == "OBSERVATIONS" and g["n_contracts_used"] == 3
         and g["net_gex_bn"] == round((call1 + call2 - put1)
                                      / 1e9, 2)
         and g["put_call_oi"] == round(200 / 150, 2))
@@ -156,9 +166,10 @@ def main():
         and (g["flip_approx"] in
              [w["strike"] for w in g["walls"]]
              or g["flip_approx"] is None))
-    chk("verdict WARMING at n_days=1 with honest why",
-        a["verdict"]["call"] == "WARMING"
-        and ">=5" in a["verdict"]["why"])
+    chk("day-one verdict and conviction withheld",
+        a["verdict"]["call"] is None
+        and a["verdict"]["conviction"] is None
+        and a["qualification"]["freshness"] == "UNKNOWN")
     from datetime import date, timedelta
     dd0 = date(2026, 8, 15)
     seed_days = []
@@ -181,17 +192,9 @@ def main():
     chk("conviction pure-fn arithmetic",
         eng.conviction([("a", 15), ("b", -10)]) == 55.0
         and eng.conviction([("a", -80)]) == 0.0)
-    chk("FAKE_UP_DISTRIBUTION: price up on negative delta, "
-        "evidence cites both numbers",
-        v2["call"].endswith("FAKE_UP_DISTRIBUTION")
-        and any("exit-liquidity" in e
-                for e in v2["evidence"])
-        and any("price 5d" in e for e in v2["evidence"])
-        and any("top-divergence" in e
-                for e in v2["evidence"]))
-    chk("conviction == recompute from score_parts",
-        v2["conviction"]
-        == eng.conviction(v2["score_parts"]))
+    chk("price/delta divergence does not authorize a verdict",
+        v2["call"] is None and v2["conviction"] is None
+        and v2["status"] == "WITHHELD")
     chk("legacy ledger rows (no vol/vwap) never crash -- "
         "derived stay None-safe",
         d2["symbols"]["AAA"]["cvd"]["vol_ratio_20d"] is None
