@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 532: the 73-function no-paid adapter release, twelve-engine context numeric release, three-engine financial null/zero and confirmation-precision releases, Crypto commentary page and two queue definitions have scoped native/static acceptance. FI/FX's corrected original-data check reports `post_release_originals_replayed`. This is not current-pointer delivery, original schedule causation, source-definition or predictive qualification. All ten institutional workstreams remain OPEN. Financial statement comparability and P/E labels, additional direct provider routes, normal publication, out-of-sample validation and reconciled portfolio consequences still need work. Private/account/current-consumer packets remain outside these release checks.
+October 1 UTC, after Stage 534: scoped native acceptance for the prior adapter/context/financial releases is recorded, as are FI/FX's complete original API replay and exact static P/E/Crypto display repairs. All ten institutional workstreams remain OPEN. The next source review found a market-cap-to-historical-mean proxy falsely labeled MVRV and a funding schema mismatch; their full consumer closure remains to be repaired. Source-definition/timing qualification, normal publication, independent-evidence validation and reconciled portfolio consequences are still separate. Private/account/current-consumer packets remain outside these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7626,3 +7626,12 @@ The candidate removes fabricated neutral score/oscillator readings and zero pric
 ## Stage 535: named controls before Crypto semantic repair
 
 Source review found a historical market-cap mean proxy labeled MVRV, despite lacking realized capitalization, plus a funding schema mismatch. The prepared read-only operation 6434 captures the six named producer/consumer Lambda resource and schedule controls twice, without invocations, application/account/private packets, provider requests or environment-value output. Source/consumer repair remains pending this baseline and its own tests. This does not qualify any data or model. All ten institutional workstreams remain open.
+
+
+### Stages 533–534 exact static acceptance
+
+The two P/E drawers are served from `99c3b43624c33df6209fd655d7808a42221ad071` and match both complete commit-bound HTML artifacts. They describe a linear range position, preserve zero and withhold malformed values, without calling it a percentile. Twenty-four invented browser scenarios, 2695 frontend tests, 1026 deployment checks, fifteen shell checks, 599 parsed page graphs and all 143 wiring declarations pass. Full preceding source/test/manifest bytes remain retained.
+
+Crypto's complete served HTML matches `cb86ce2e3a543f2091a6f58866336eaf8bc17712`; the entire changed helper block matches source. The source page is over 80 KB and went through one native Git batch. Forty-eight final browser scenarios across four panes at 390/1280 pixels have zero requests/errors/markup execution/overflow, and horizontal technical-table scrolling works by keyboard. Screenshot review caught and repaired a cramped mobile value. Thirteen new behavior tests include full-render duplicate-consumer injection and missing/zero cases; all 2708 frontend, 1026 deployment/fifteen shell checks, page graphs and wiring pass. The unfinished initial integrated run was intentionally stopped before the layout edit; the accepted gates ran on the final exact bytes. Existing assertions and whole prior page remain retained.
+
+These are scoped presentation repairs, not new measurement qualification. Funding schema alignment, false MVRV proxy semantics, source clocks, other unsafe fields, normal publication, out-of-sample validation and reconciled portfolio consequences remain open. No producer or paid model was invoked; no application/private/account packet was read. All ten institutional workstreams remain OPEN.

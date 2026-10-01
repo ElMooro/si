@@ -1,6 +1,6 @@
 {
   "stage": 533,
-  "status": "tested_source_batch_awaiting_static_release",
+  "status": "exact_static_release_checked",
   "scope": "P/E min-max range presentation only on Alpha Scoreboard and Opportunities. Legacy field names and producer calculations unchanged.",
   "reason": "pe_pctile is a clamped linear position between reported positive annual P/E extrema, not an empirical percentile. Previous page interpolation also accepted arbitrary markup.",
   "repairs": [
@@ -14,8 +14,6 @@
   "source_qualified": false,
   "investment_authority": false,
   "remaining": [
-    "Integrated gates and isolated browser QA",
-    "Commit-bound static HTML acceptance",
     "Other valuation fields, statement comparability, false YoY and narrative qualification remain open"
   ],
   "validation": {
@@ -300,5 +298,65 @@
     "deployment_cases": 1026,
     "shell_cases": 15,
     "application_packet_reads": 0
-  }
+  },
+  "source_commit": "99c3b43624c33df6209fd655d7808a42221ad071",
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-01T22:10:45.440758+00:00",
+    "source_commit": "99c3b43624c33df6209fd655d7808a42221ad071",
+    "served_commit": "99c3b43624c33df6209fd655d7808a42221ad071",
+    "build_manifest_sha256": "18c78f13f660283f146be8c263b775f7dde75c9e5dbc88a8d87901061d473c0d",
+    "pages": [
+      {
+        "path": "alpha-scoreboard.html",
+        "bytes": 73870,
+        "sha256": "013f4ad024faeebb23236bcad5186b3e58259945e09f42a3b67e0a4f1bb1c4dd",
+        "whole_http_body_sha256": "c82a86531093f6eab6748c47fbc9c2cfbf712a8df8a77b0c23a5b4d7488952d6",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "whole_changed_renderer_sha256": "f32196dda04be9471b4e322ac49e2331e08bde7281581f6738b541dc054dedb9",
+        "renderer_source_bytes_match": true,
+        "existing_script_tag_verified": true
+      },
+      {
+        "path": "opportunities.html",
+        "bytes": 90835,
+        "sha256": "88c01eba6b0dcc8c168ba7b25a08a0454957cbc06e6f0db6b1a48c0abd9f3e6f",
+        "whole_http_body_sha256": "c8c8ccc0a333efafcff999c358e92e72205e838f49498a1e0b1c3d2ea2c6e172",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "whole_changed_renderer_sha256": "f32196dda04be9471b4e322ac49e2331e08bde7281581f6738b541dc054dedb9",
+        "renderer_source_bytes_match": true,
+        "existing_script_tag_verified": true
+      }
+    ],
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Both complete served HTML artifacts match one commit-bound build. Entire changed renderer equals source. Separate invented browser QA; no real application/provider/private packet reads."
+  },
+  "workflow_acceptance": [
+    {
+      "id": 36932853065,
+      "path": ".github/workflows/page-gate.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "99c3b43624c33df6209fd655d7808a42221ad071",
+      "event": "push"
+    },
+    {
+      "id": 36932852992,
+      "path": ".github/workflows/pages.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "99c3b43624c33df6209fd655d7808a42221ad071",
+      "event": "push"
+    }
+  ],
+  "frontend_cases": 2695
 }

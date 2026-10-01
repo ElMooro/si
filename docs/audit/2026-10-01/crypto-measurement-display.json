@@ -1,6 +1,6 @@
 {
   "stage": 534,
-  "status": "tested_source_batch_awaiting_static_release",
+  "status": "exact_static_release_checked",
   "scope": "Crypto risk/Fear-Greed/dominance, coin score/price and RSI/Bollinger/StochRSI/ATR presentation. Engines and observation history unchanged. All duplicate dominance consumers and sentiment display transformations included after whole-render/browser regression.",
   "repairs": [
     "Missing or malformed values do not become neutral 50 or zero prices. Valid zero preserved.",
@@ -18,8 +18,6 @@
   "normal_publication_verified": false,
   "investment_authority": false,
   "remaining": [
-    "Full integrated checks and browser inspection",
-    "Exact commit-bound static release verification",
     "Funding/stablecoin/MVRV defaults, other unsafe fields, source timing and economic validity remain open"
   ],
   "pre_release_findings": [
@@ -503,5 +501,42 @@
     "deployment_cases": 1026,
     "shell_cases": 15,
     "application_packet_reads": 0
-  }
+  },
+  "source_commit": "cb86ce2e3a543f2091a6f58866336eaf8bc17712",
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-01T22:26:35.525715+00:00",
+    "source_commit": "cb86ce2e3a543f2091a6f58866336eaf8bc17712",
+    "served_commit": "cb86ce2e3a543f2091a6f58866336eaf8bc17712",
+    "build_manifest_sha256": "67b6f4f1b10df71fadac6831728dbf7b119e133bbcc0fb2327000e70256bb67e",
+    "page": {
+      "path": "crypto/index.html",
+      "bytes": 112694,
+      "sha256": "80976b1f2decfc9c22c85f5b4f5bc6c9245395b44249aa8df5ee6c1b320416de",
+      "whole_http_body_sha256": "d9b4ed726d8a433299248e34c2aa63e9286878927f9630b620eba602dfb11544",
+      "sole_edge_script_removed": {
+        "bytes": 367,
+        "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+      },
+      "whole_changed_renderer_sha256": "500c2e0f4b7cbc1af3c48084b76e5c2ed782e098ad87e95e687044247e7d67a3",
+      "renderer_source_bytes_match": true,
+      "existing_script_tags_verified": true
+    },
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served static page matches commit-bound build; entire changed inline renderer equals source. Isolated browser QA is separate; no live application/provider/private packet read."
+  },
+  "workflow_acceptance": [
+    {
+      "id": 36934107608,
+      "path": ".github/workflows/pages.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "cb86ce2e3a543f2091a6f58866336eaf8bc17712",
+      "event": "push"
+    }
+  ],
+  "frontend_cases": 2708
 }
