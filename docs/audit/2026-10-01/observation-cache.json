@@ -1,6 +1,6 @@
 {
   "stage": 500,
-  "status": "full_candidate_checks_passed_exact_static_release_pending",
+  "status": "exact_static_release_accepted_normal_data_execution_unverified",
   "base_commit": "7e7044328ccdf49cf1cbb2cd68314817eb427109",
   "source": [
     {
@@ -591,7 +591,581 @@
   "private_reads": 0,
   "calls_authority": false,
   "sizing_authority": false,
-  "validation_pending": [
-    "exact_static_release"
-  ]
+  "validation_pending": [],
+  "acceptance": {
+    "source_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+    "pages_run": 36827703153,
+    "workflow_results": [
+      {
+        "id": 36828327563,
+        "path": ".github/workflows/pages.yml",
+        "status": "in_progress",
+        "conclusion": null
+      },
+      {
+        "id": 36827983625,
+        "path": ".github/workflows/audit-release-progress.yml",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 36827771794,
+        "path": ".github/workflows/section-registry.yml",
+        "status": "in_progress",
+        "conclusion": null
+      },
+      {
+        "id": 36827703153,
+        "path": ".github/workflows/pages.yml",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 36827703157,
+        "path": ".github/workflows/page-gate.yml",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "static": {
+      "platform": {
+        "checked_at": "2026-10-01T07:05:53.353530+00:00",
+        "intended_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "served_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "assets": {
+          "term-premium.html": {
+            "bytes": 11119,
+            "sha256": "a76970199adb75b6e27ee61a0b948cd0d1cb6d6e8cfb2e71aefa8ef3705189ea",
+            "matches_manifest": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "f2e4766628d51a08086d93ebef0e97107c5f2d211b728c2f09ec14122f4197fe",
+            "matches_manifest": true,
+            "embedded_home_configuration_hashes_match_exact_served_files": true
+          },
+          "portfolio-manager.html": {
+            "bytes": 30627,
+            "sha256": "f516428d7cb92d2d8b2e73639bc859e82a84267e53b1f160cc49e75fc8ff921c",
+            "matches_manifest": true
+          },
+          "portfolio/index.html": {
+            "bytes": 48427,
+            "sha256": "47c0cde658acaad7e58d7db93975458bd2784f2a4b739f60887addf2fa652b68",
+            "matches_manifest": true,
+            "helper_content_version_matches_reviewed_source": true
+          },
+          "position-sizer.html": {
+            "bytes": 11687,
+            "sha256": "42d9c0bc6a612f6cc05ca498fe4564ce32569190cbeccce6671a55a5fe6516e0",
+            "matches_manifest": true,
+            "model_sri_matches_reviewed_source": true
+          },
+          "cb-injection.html": {
+            "bytes": 14823,
+            "sha256": "54cdd98bf5c7b647e0568269705f4dcd956a324c3c33cd4bf6c557b96b792372",
+            "matches_manifest": true
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "bb67d41a3685f6a55a09787107db89131135c0cdd9651c23226101056c193eb3",
+            "matches_manifest": true
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "f0e69cdd5be63a77229848d937b4a01388d4d09990b3880831744f74e55949d2",
+            "matches_manifest": true
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "a6de13aff54bcec6f021f23c0680f4534c762514a53a2470900430a00eb58dea",
+            "matches_manifest": true
+          },
+          "capitulation.html": {
+            "bytes": 9023,
+            "sha256": "8b308108be9277a778c71ce2c319e2b9d146e8c64cc5cdd4013ff8e158139d56",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "market-extremes.html": {
+            "bytes": 10103,
+            "sha256": "1f85623f7ca3058c09fc9a1ab750f8a10c1a0f4a7f80f1863b8b0caedc6a2964",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "jh-term-premium-research.js": {
+            "bytes": 20425,
+            "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-term-premium-research.css": {
+            "bytes": 3683,
+            "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+            "matches_manifest": true
+          },
+          "jh-portfolio-research.js": {
+            "bytes": 5693,
+            "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-research-page.js": {
+            "bytes": 7876,
+            "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes.js": {
+            "bytes": 7020,
+            "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes-page.js": {
+            "bytes": 8073,
+            "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "private-artifacts.js": {
+            "bytes": 13930,
+            "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-evidence-io.js": {
+            "bytes": 5002,
+            "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-binding.js": {
+            "bytes": 3954,
+            "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-risk-contract.js": {
+            "bytes": 11530,
+            "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario.js": {
+            "bytes": 7387,
+            "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-io.js": {
+            "bytes": 3035,
+            "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-page.js": {
+            "bytes": 9325,
+            "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-research.js": {
+            "bytes": 15703,
+            "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-page.js": {
+            "bytes": 1072,
+            "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-liquidity-research.js": {
+            "bytes": 6746,
+            "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "calls-page.js": {
+            "bytes": 13589,
+            "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-public-brief.js": {
+            "bytes": 25766,
+            "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-extremes-research.js": {
+            "bytes": 16212,
+            "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-data-inspector.js": {
+            "bytes": 34117,
+            "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "engine-manifest.json": {
+            "bytes": 3097593,
+            "sha256": "f776868fa34567c573fca9314057999d86eea8f97d5dd4fb2e74005cba003448",
+            "matches_manifest": true,
+            "complete_inventory_matches_excluding_generated_at": true,
+            "inventory_replayed_from_commit_source": true,
+            "engines": 898
+          },
+          "nav-manifest.json": {
+            "bytes": 36317,
+            "sha256": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9",
+            "matches_manifest": true
+          },
+          "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+            "bytes": 107761,
+            "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+            "matches_manifest": true
+          },
+          "config/home-layout.json": {
+            "bytes": 562,
+            "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+            "matches_manifest": true
+          },
+          "config/section-registry.json": {
+            "bytes": 1305504,
+            "sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3",
+            "matches_manifest": true
+          },
+          "config/page-data-contracts.json": {
+            "bytes": 7715917,
+            "sha256": "a04e8ed90f8da22021e78c26a9a581ea008a3c84d1ba39a3a4b9793ae0189890",
+            "matches_manifest": true,
+            "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+            "pages": 599
+          },
+          "engines.html": {
+            "bytes": 961290,
+            "sha256": "3f19e28abf591a50ce9e63d7a90817747c703d34d3593cf1a77600e4d512b6b4",
+            "matches_manifest": true
+          },
+          "config/engine-registry.json": {
+            "bytes": 196073,
+            "sha256": "754d5bec588e326d9e228ab2eda632e7c7d8d753cd11388a83ffcf796e01ccb5",
+            "matches_manifest": true
+          }
+        },
+        "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+        "source_inventory_replay": {
+          "build_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+          "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5",
+          "whole_engine_records": 898,
+          "whole_page_contracts": 599,
+          "inventory_generated_at": "2026-10-01T07:00:57.730386+00:00",
+          "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+          "generators": {
+            "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+            "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+          },
+          "generated_repository_assets": {
+            "engine-manifest.json": "f776868fa34567c573fca9314057999d86eea8f97d5dd4fb2e74005cba003448",
+            "nav-manifest.json": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9"
+          },
+          "working_tree_unchanged": true
+        },
+        "generated_asset_bindings": {
+          "navigation_replayed_from_source_at_recorded_build_date": true,
+          "rows": [
+            {
+              "page": "index.html",
+              "key": "config/home-layout.json",
+              "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+              "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+            },
+            {
+              "page": "index.html",
+              "key": "config/section-registry.json",
+              "source_sha256": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+              "built_sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+            }
+          ]
+        },
+        "offline_build": {
+          "complete_engine_rows": 898,
+          "complete_source_registry_matches_manifest": true,
+          "all_concrete_outputs_unchecked_with_null_measurements": true,
+          "counts": {
+            "no-outs": 70,
+            "wired-unverified-feed": 670,
+            "declared-unverified": 158
+          },
+          "rails": [
+            {
+              "page": "calls.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            },
+            {
+              "page": "liquidity.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            }
+          ],
+          "source_references_are_not_runtime_health": true
+        },
+        "intended_static_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "static_sources_unchanged_between_commits": true,
+        "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5",
+        "same_build_manifest_before_after": true
+      },
+      "assets": {
+        "checked_at": "2026-10-01T07:03:30.291427+00:00",
+        "served_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "scope": "Whole China and FI/FX static HTML/script/style only, no page execution or current/private/consumer requests.",
+        "assets": {
+          "fifx-vol.html": {
+            "bytes": 11213,
+            "sha256": "9f475901f17de2b2e811b369426a243b91182dcb1340d06339f2e08bf24fe177",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "bond-desk.html": {
+            "bytes": 30701,
+            "sha256": "1428b538aa3299bc3ef2a3c9c74e3910b9ee72272055fa153187594613fef6cc",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "363b1d70d0f31d53b1d0187b53dc1971ed0bb22fea1a5fb256d1480ab39b0ec8",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "signal-board.html": {
+            "bytes": 20200,
+            "sha256": "b1d57c823c2918d7ec444b594690a7def8f4026629e8755932b8ffd6df3a3b66",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.js": {
+            "bytes": 21919,
+            "sha256": "fe2ba9e5342223027fb112de6fe75ae7372f32a82fec53a4432fd988f8cde837",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.css": {
+            "bytes": 3417,
+            "sha256": "297f89dbdb5f4336012d92428efd394dc48049ab2354094cd6f0d78974549831",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "39f043d354ed46418808c2f45e903e96105fa64143489b1fc20b554ddf80a7a0",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-china-calendar.js": {
+            "bytes": 13841,
+            "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.js": {
+            "bytes": 10079,
+            "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.css": {
+            "bytes": 2372,
+            "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          }
+        },
+        "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5"
+      },
+      "navigation": {
+        "checked_at": "2026-10-01T07:03:32.170960+00:00",
+        "served_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "scope": "Static navigation/home code and complete local dependency closure, no page execution or consumer data requests",
+        "assets": {
+          "auth-config.js": {
+            "bytes": 1406,
+            "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+            "matches_source_transform_and_build": true
+          },
+          "auth.js": {
+            "bytes": 20821,
+            "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+            "matches_source_transform_and_build": true
+          },
+          "home.js": {
+            "bytes": 95417,
+            "sha256": "cb25ef27d9c3cf7ad688bcec48d6adc683f1aacddc78bcfcff20ff495747abf9",
+            "matches_source_transform_and_build": true
+          },
+          "jh-market-tape.js": {
+            "bytes": 3401,
+            "sha256": "8e73601eeb861880a9d5ce3d12669a86b20e102daeeff3de5df8de450450fea1",
+            "matches_source_transform_and_build": true
+          },
+          "jh-nav-drawer.js": {
+            "bytes": 31948,
+            "sha256": "11f00277d99e195aeda4d580fb1115a1e03e5326d3570c1b191aab09cfd53f86",
+            "matches_source_transform_and_build": true
+          },
+          "jh-theme.css": {
+            "bytes": 10031,
+            "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+            "matches_source_transform_and_build": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "f2e4766628d51a08086d93ebef0e97107c5f2d211b728c2f09ec14122f4197fe",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "f0e69cdd5be63a77229848d937b4a01388d4d09990b3880831744f74e55949d2",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "363b1d70d0f31d53b1d0187b53dc1971ed0bb22fea1a5fb256d1480ab39b0ec8",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "39f043d354ed46418808c2f45e903e96105fa64143489b1fc20b554ddf80a7a0",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "bb67d41a3685f6a55a09787107db89131135c0cdd9651c23226101056c193eb3",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "a6de13aff54bcec6f021f23c0680f4534c762514a53a2470900430a00eb58dea",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          }
+        },
+        "dependency_mode": "topo",
+        "drawer_version": "529d2cc3",
+        "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5",
+        "verification_notes": [
+          "Temporary reconstruction explicitly reproduces Linux UTF-8/LF writes and the exact reskin skip rules; served bytes are never normalized.",
+          "The separate portfolio/index.html application does not declare the shared drawer; its whole static HTML is checked by platform acceptance."
+        ]
+      },
+      "chart": {
+        "checked_at": "2026-10-01T07:03:30.244676+00:00",
+        "served_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+        "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5",
+        "scope": "Whole static chart source and exact built HTML only. No browser execution, current data or provider requests.",
+        "assets": {
+          "jh-observation-series.js": {
+            "bytes": 8353,
+            "sha256": "8684fc867320911ceeeb9cdec6813defebf78a57821f3322239d7fdbfb3833f0",
+            "md5": "d73626c2cef89ce7ada901cf48ca442f",
+            "matches_exact_build": true
+          },
+          "jh-observation-cache.js": {
+            "bytes": 7570,
+            "sha256": "5b55094815baaa5e27297d3a63ab16f216bbdd61c69c9b6d67cb7bd398e43f78",
+            "md5": "d220e156b19f7490666389bd56311690",
+            "matches_exact_build": true
+          },
+          "jh-cq-fuse.js": {
+            "bytes": 30162,
+            "sha256": "c9fd0ae32e89f6f3c55746dd0f7eb01679dfcc4cf6df682d26fd7199835e7723",
+            "md5": "83909e6c0b45044d6d8b0e5a57be8466",
+            "matches_exact_build": true
+          },
+          "jh-chart-catalog.js": {
+            "bytes": 39940,
+            "sha256": "4597e0fac0bea1d22f7217f5e6daf5d2d9ec62180f437d5cadf725b023153b0f",
+            "md5": "38f93e6169d39d5bbc478ec8a1e1ff80",
+            "matches_exact_build": true
+          },
+          "jh-chart-engine.js": {
+            "bytes": 368290,
+            "sha256": "70ef60d7d194deb561640ab5310c8265fd34dd25ae405fd67c8b0da272b3466c",
+            "md5": "dbee38f44da90a31a6f2f95af24702fe",
+            "matches_exact_build": true
+          },
+          "jh-chart-stock-desk.js": {
+            "bytes": 13336,
+            "sha256": "c1ab4c6f7fcf28afb22b0190590755d5f6cc825bfb6b4d81cc78b3a21779df5c",
+            "md5": "686cf5b1d616d79fb168fd91461b980a",
+            "matches_exact_build": true
+          },
+          "jh-stock-desk-research.js": {
+            "bytes": 7080,
+            "sha256": "405076c7dd5e5cf962a7f949c6948f32dd6597e8a9959583fcd0575a4ed9609f",
+            "md5": "5c35650ce8416edc0a4a3e4ac4a45390",
+            "matches_exact_build": true
+          },
+          "jh-chart-tvsearch.js": {
+            "bytes": 97927,
+            "sha256": "4de3f0c93e64bd2ff43081204da130de24ec15ec103f2f579cbf9a34e3cfd9ba",
+            "md5": "6e7e846cd670d0dcb00a88f862cd9fca",
+            "matches_exact_build": true
+          },
+          "chart.html": {
+            "bytes": 52443,
+            "sha256": "459e18245ab527dc2aa64f7043136bafefcf63dcc4f565897073a420133f6720",
+            "md5": "c571db5042a42758911abb20dde1d117",
+            "matches_exact_build": true
+          },
+          "crypto/index.html": {
+            "bytes": 108477,
+            "sha256": "f2fb9b481fb76143af372f36c7aee5f530254a2c1d666008c5bdeb1097c33ba4",
+            "md5": "843de42e90a137353cb8053f29e7a970",
+            "matches_exact_build": true
+          },
+          "correlation.html": {
+            "bytes": 65717,
+            "sha256": "a1704d9f39ec932bcd8c3738724c1fbc0c421929082931ea1ecf7051a8d42ce3",
+            "md5": "41ae9c28cda5a9558ba1bac18994fa2f",
+            "matches_exact_build": true
+          }
+        }
+      }
+    },
+    "unique_static_files": 66,
+    "whole_generation_replay": {
+      "build_commit": "2e113edac4993b8602f00f33a28ac7647b352e9c",
+      "build_manifest_sha256": "a0e892f752abf9544808ba3cfadf29b2b6b5f5c9725b423324903f35ae978cd5",
+      "whole_engine_records": 898,
+      "whole_page_contracts": 599,
+      "inventory_generated_at": "2026-10-01T07:00:57.730386+00:00",
+      "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+      "generators": {
+        "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+        "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+      },
+      "generated_repository_assets": {
+        "engine-manifest.json": "f776868fa34567c573fca9314057999d86eea8f97d5dd4fb2e74005cba003448",
+        "nav-manifest.json": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9"
+      },
+      "working_tree_unchanged": true
+    },
+    "actual_application_data_requests": 0,
+    "producer_invocations": 0,
+    "normal_data_execution_verified": false,
+    "investment_authority": false,
+    "native_release_required": false
+  }
 }
