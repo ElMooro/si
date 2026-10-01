@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
-import json,re,sys,time
+import json,os,re,sys,time
 import etf_desk_model as model
 import etf_desk_catalog as catalog
 import etf_profile_native as native
@@ -30,7 +30,9 @@ COMPILERS=(native,model,catalog,collector,flow_native,flow_model,flow_collect,fl
 # Exact source-qualified candidate store; current code must still reconstruct
 # every original byte/result. Retained compiler source is never executed.
 COMPATIBLE_COMPILERS={
-    'etf_desk_store':frozenset(('8efcdf2fb7ae5061de51b1e0a5e980b931da1c4025d358dfbfb4726240164750',
+    'etf_desk_model':frozenset(('05cb730fb8518944a1c06bd18abb9b494df100425d0cf18fc1c174c8ae8034d1',)),
+    'etf_desk_store':frozenset(('804b1d1bd5ddc0804b2ac85217c35200a415a0d48f6931ba61d43c8bce0e77e3',
+        '8efcdf2fb7ae5061de51b1e0a5e980b931da1c4025d358dfbfb4726240164750',
         'f613dd2ef7b3b284f41cb413618abb8870d29ddc24b1a498171676447f13c3e3')),
     'etf_holdings_model':frozenset(('bbf0979393fcffae1694dac56e203013d6a7cfcdb6ab059553b6b3e501995c19',)),
     'etf_holdings_store':frozenset(('d3e20272d4deac5e68fdda77df1ab030c1b88aa60fa1c991e3ef5e644fc98cbc',))}
@@ -270,7 +272,7 @@ def replay(ref,read):
 
 def recovery_inputs(ref,read):
     run=verified_run(ref,read);inputs=checked(run['input'],'inputs',read);output=checked(run['output'],'outputs',read)
-    if (inputs.get('contract')!='etf-desk-inputs.v1' or output.get('contract')!=model.CONTRACT
+    if (inputs.get('contract') not in ('etf-desk-inputs.v1','etf-desk-inputs.v2') or output.get('contract')!=model.CONTRACT
             or inputs['generated_at']!=output['generated_at'] or output['generated_at']!=run['generated_at']
             or model.sha(model.encoded(output))!=ref['output_sha256'] or run['output_sha256']!=ref['output_sha256']
             or model.clock(output['generated_at'])>model.clock(now()) or any(output.get(k) is not False for k in model.PERMISSIONS)):
@@ -388,6 +390,9 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
             collections=collect(client,bucket,credential,read,end-360)
             inputs={'contract':'etf-desk-inputs.v1','generated_at':now(),'contexts':contexts,
                 'canonical_flows':canonical_flows,'canonical_holdings':canonical_holdings,'previous':previous,**collections}
+            # Acquisition-time brake only: replay/recovery use the retained version.
+            if os.environ.get('ETF_OWNERSHIP_SUMMARY_ENABLED') == 'true':
+                inputs.update(contract='etf-desk-inputs.v2',extra_holdings_summary_policy=model.SUPPLEMENT_POLICY)
         raw=model.encoded(inputs);digest=model.sha(raw);input_key=model.PREFIX+'inputs/'+digest+'.json';immutable(client,bucket,input_key,raw,read=read)
         status.update(phase='compile',phase_started_at=now(),retained_input={'key':input_key,'sha256':digest,'bytes':len(raw)},provider_requests=inputs['provider_requests'])
         status_write(client,bucket,key,status)
