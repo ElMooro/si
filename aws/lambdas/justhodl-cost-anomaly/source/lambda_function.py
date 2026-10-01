@@ -40,7 +40,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')
 ANOMALY_THRESHOLD_PCT = float(os.environ.get('ANOMALY_THRESHOLD_PCT', '25'))
 LAMBDA_INVOCATION_MULTIPLIER = float(os.environ.get('LAMBDA_INV_MULT', '3.0'))
-MONTHLY_BUDGET_USD = float(os.environ.get('MONTHLY_BUDGET_USD', '300'))
+MONTHLY_BUDGET_USD = float(os.environ.get('MONTHLY_BUDGET_USD', '150'))
 
 ce = boto3.client('ce', region_name='us-east-1')  # cost explorer is global, lives in us-east-1
 cw = boto3.client('cloudwatch', region_name=REGION)
