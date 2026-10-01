@@ -18,10 +18,11 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Financial Secretary presentation only: explicit top-10 BUY cohort/baseline labels, typed crypto risk and escaped rendering with synthetic tests; codex/secretary-presentation; draft only, no policy, delivery, invokes or deployment | none | S-codex#fsp1001n7 | 2026-10-01 08:55 |
+| PR49 industry producer/page repair accepted ac90ff8eb; authorized code/page release via existing pinned industry-only Lambda and explicit Pages dispatch. Standard configuration reconciliation allowed; no schedules, paid activation, invokes, IAM/security policy changes or tape redeploy. Verification pending. | none | S-codex#icrepair1001q9 | 2026-10-01 |
 | Credit-before-equity missing-value unit suffix only; codex/credit-unavailable-units; preserve numeric formatting/signals, regression and independent review before release | none | S-codex#cbeunits1001m | 2026-10-01 |
 | PR50 meta-labeler TAKE/SKIP leakage withholding accepted 71c493105; authorized integration and Actions release, exact receipts/served assets and natural publication verification; no causal restoration, schedules, providers or manual invoke. | none | S-codex#mlcausal1001v7 | 2026-10-01 14:10 |
 | Khalid additive user_scope_evidence research projection and shared sniper scope display only; codex/khalid-user-scope-evidence; preserve legacy qualification and every decision; PR48 accepted 3e936889d; user authorized integration/review and release 13:47 UTC; deployment verification pending. Risk diagnostics, tape and chart/SymDir unchanged. | none | S-codex#scope1001b7 | 2026-10-01 |
+| Katlin required funding fail-closed gate, user-approved 13:47 UTC; codex/katlin-funding-hold; war_room only plus regression/consumer trace. Infrastructure recovery of completed executor 01a0f56f, fresh main; claim continued by S-codex#kfund1001r9. OOS and meta-labeler untouched. Draft and exact-head review before release. | none | S-codex#kfund1001x2 | 2026-10-01 13:50 |
 | Industry-case missing cls renderer helper only; restore league/drilldown and typed neutral display, actual-renderer tests; separate draft codex/industry-case-render-helper. PR43 and tape-reader notice unchanged; no backend/date/navigation/policy/cosmetic changes or deploy. | none | S-codex#iccls1001r7 | 2026-10-01 11:51 |
 | PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
 | Tape-truth observation qualification and industry-case projection; tape-truth.html, industry-case.html and only why.html IC_/TT_ modules with ticker bus preserved; separate draft codex/tape-truth-qualification. No math/provider/schedule/capital/LLM prompt changes. | none | S-codex#ttqual1001u4 | 2026-10-01 10:29 |
@@ -51,6 +52,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 | INCIDENT 526 justhodl.ai (4906-4907): GH LE cert expired 13:57 UTC, ACME bad_authz chronic under CF proxy; ACME reset done, CF SSL->full mitigation live, www DNS + CAA verified clean, edge recheck | 4906-4907 | S-F5#p9k4 | 2026-08-19 15:1x |\n| IMF BOP worldwide layer: structure probe -> multi-country portfolio+ST-other liabilities wire -> macro hot-money composite (+BIS v2 probe folded in) | 4843-4846 | S-A#k7q2 | 2026-08-17 17:4x |
 
 | Offline Katlin label-boundary evidence validator and mutation tests only; production backtest feeds live priors, so source/consumers untouched; draft PR #19 awaiting independent review | none | S-codex#klb1001n4 | 2026-10-01 03:20 |
+
+| Financial Secretary presentation only: explicit top-10 BUY cohort/baseline labels, typed crypto risk and escaped rendering with synthetic tests; codex/secretary-presentation; draft only, no policy, delivery, invokes or deployment | none | S-codex#fsp1001n7 | 2026-10-01 08:55 |
 
 ### SHARED-SURFACE RULE (foreign-flows.html) -- 2026-08-17 23:4x
 The page script is now: helpers block FIRST (PROXY/fN/cls/zs/acc/

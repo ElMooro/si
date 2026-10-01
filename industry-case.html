@@ -38,13 +38,14 @@ tr:last-child td{border-bottom:none}
 <div class="wrap">
 <div class="hero"><h1>&#129513; Industry Case <span style="font-size:12px;color:var(--fg-2)">what role does this stock play?</span></h1>
 <div id="sub" class="note">loading&hellip;</div>
+<details class="note"><summary>Source dates and qualification</summary><div id="sourceQualification" style="white-space:pre-wrap;overflow-wrap:anywhere"></div></details>
 <div style="margin-top:10px"><input id="tk" placeholder="ticker, e.g. NVDA" style="font-family:var(--mono);background:var(--bg-1);border:1px solid var(--border-bright);color:var(--fg-0);padding:7px 12px;border-radius:6px;width:180px;text-transform:uppercase"> <button id="go" style="font-family:var(--mono);padding:7px 14px;border-radius:6px;border:1px solid var(--border-bright);background:var(--bg-1);color:var(--fg-0);cursor:pointer">open case</button></div></div>
 <div class="sec" id="casewrap" style="display:none"><h2 id="ct"></h2><div id="ai"></div><div id="qa"></div></div>
 <div class="sec" id="indwrap" style="display:none"><h2 id="it"></h2><div class="cards" id="icards"></div><div class="note" id="ihow"></div><div id="imem" style="margin-top:10px"></div></div>
 <div class="sec"><h2>Industry league &mdash; heat &times; size</h2>
 <div class="note">Share figures are of the LISTED-US investable cohort (universe mcap), never a claimed product-market share &mdash; the method line travels with every case.</div>
 <div id="inds"></div></div>
-<div class="note">Engine: justhodl-industry-case &middot; daily 13:00 UTC. Value-chain edges (who supplies whom) are DEFERRED until readthrough event&rarr;edge aggregation is proven &mdash; stated, never guessed. AI narratives self-heal on Anthropic credits.</div>
+<div class="note">Engine: justhodl-industry-case &middot; declared weekday 13:00 UTC cadence; runtime activation unverified. Value-chain edges (who supplies whom) are DEFERRED until readthrough event&rarr;edge aggregation is proven &mdash; stated, never guessed. Optional narratives use the governed router; deterministic explanations remain available. Publication time does not establish observation freshness.</div>
 </div>
 <script src="/jh-tape-truth.js"></script>
 <script>
@@ -52,6 +53,27 @@ const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const fN=(v,d)=>typeof v!=="number"||!Number.isFinite(v)?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
 const cls=v=>typeof v!=="number"||!Number.isFinite(v)?"":(v>0?" pos":(v<0?" neg":""));
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
+const esc=v=>JHTapeTruth.esc(typeof v==="string"||typeof v==="number"?v:"");
+const record=v=>v&&typeof v==="object"&&!Array.isArray(v);
+const shown=v=>typeof v==="string"?v:(v==null?"unavailable":JSON.stringify(v));
+function publicationNotice(d){
+  const qualified=d.publication_contract==="industry-case-publication.v1";
+  const count=Number.isInteger(d.n_cases)?d.n_cases:(record(d.cases)?Object.keys(d.cases).length:"unavailable");
+  const industries=Number.isInteger(d.n_industries)?d.n_industries:(record(d.industries)?Object.keys(d.industries).length:"unavailable");
+  const state=typeof d.status==="string"?d.status:"unavailable";
+  document.getElementById("sub").textContent=(qualified?"Generated "+shown(d.generated_at)+" (publication time only)":"As of "+shown(d.as_of)+" (legacy packet date; not verified observation freshness)")+" · "+count.toLocaleString()+" cases across "+industries+" industries · "+state+" · freshness UNKNOWN";
+  const lines=["Current-condition eligibility: withheld. No authoritative source freshness SLA is established."];
+  if(Array.isArray(d.unavailable_industries)&&d.unavailable_industries.length)lines.push("Unavailable industries (invalid aggregate arithmetic): "+shown(d.unavailable_industries));
+  if(qualified&&record(d.sources))for(const [key,value] of Object.entries(d.sources)){
+    if(!record(value)){lines.push(key+": invalid qualification");continue;}
+    lines.push(key+": "+shown(value.availability)+"; source status "+shown(value.source_status)+"; freshness UNKNOWN; discarded rows "+shown(value.discarded_rows)+"; invalid values "+shown(value.invalid_values));
+    if(record(value.clocks))for(const [label,c] of Object.entries(value.clocks)){
+      if(!record(c)){lines.push("  "+label+": INVALID");continue;}
+      lines.push("  "+label+": "+shown(c.value===undefined?c.values:c.value)+" ["+shown(c.status)+"]");
+    }
+  }else lines.push("Original per-source dates/qualification unavailable in this legacy packet. Packet generated_at: "+shown(d.generated_at));
+  document.getElementById("sourceQualification").textContent=lines.join("\n");
+}
 const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
 let D=null;
 function qa(t,c){
@@ -63,13 +85,13 @@ function qa(t,c){
     ["2. How big is it in its industry?", "Rank #"+c.ind_rank+" of "+c.ind_n+" listed US names \u2014 "+c.ind_share_pct+"% of the industry's $"+(ind.total_mcap_b||"?")+"B investable market value."+(c.ind_share_pct>=50?" It IS the industry by market value.":(c.ind_rank===1?" The largest name in the cohort.":""))],
     ["3. How fast is it growing vs its industry?", (c.ret_12m_pct!=null?("12m return "+fN(c.ret_12m_pct)+"%"+(ind.median_ret_12m_pct!=null?" vs industry median "+fN(ind.median_ret_12m_pct)+"% ("+(c.ret_12m_pct>=ind.median_ret_12m_pct?"outgrowing":"lagging")+" the cohort).":".")) :"price ledger has <52 weeks for this name -- growth shown only when real.")+" Revenue growth: "+((ind.rev_growth&&ind.rev_growth.status)||"DEFERRED")+" -- "+((ind.rev_growth&&ind.rev_growth.why)||"")],
     ["4. Who are the peers that matter?", peers||"cohort unavailable"],
-    ["5. Is the industry hot right now?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
-    ["6. Is institutional money moving in?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
-    ["7. Did it just prove itself on earnings?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the current 35-day reporter window."],
-    ["8. What dated tape observations are available?", JHTapeTruth.esc(JHTapeTruth.summary(JHTapeTruth.projection(c.tape)))],
+    ["5. What dated industry heat is recorded?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
+    ["6. What institutional observations are recorded?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
+    ["7. What earnings observations are recorded?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the supplied earnings cohort — observation coverage unavailable."],
+    ["8. What dated tape observations are available?", JHTapeTruth.summary(JHTapeTruth.projection(c.tape))],
     ["9. Who supplies it / who depends on it?", "DEFERRED \u2014 value-chain edges ship once readthrough event\u2192edge aggregation is proven. Never guessed."]];
   let h="";
-  for(const[q,a]of rows)h+='<div class="card" style="margin-bottom:8px"><div class="k">'+q+'</div><div class="s" style="font-size:12px;color:var(--fg-1);margin-top:4px">'+a+'</div></div>';
+  for(const[q,a]of rows)h+='<div class="card" style="margin-bottom:8px"><div class="k">'+esc(q)+'</div><div class="s" style="font-size:12px;color:var(--fg-1);margin-top:4px">'+esc(a)+'</div></div>';
   return h;}
 function openInd(k){
   const v=D&&D.industries&&D.industries[k];
@@ -93,7 +115,7 @@ function openInd(k){
     return st.dir*(x-y);};
   const render=()=>{
     let h='<table><tr>';for(const[kk,lab]of COLS)h+='<th data-k="'+kk+'" style="cursor:pointer;user-select:none">'+lab+(st.key===kk?(st.dir>0?" \u25b2":" \u25bc"):"")+'</th>';h+='</tr>';
-    for(const m of M.slice().sort(cmp))h+='<tr><td>'+m.rank+'</td><td><b><a href="industry-case.html?t='+m.t+'" style="color:inherit">'+m.t+'</a></b></td><td style="color:var(--fg-2)">'+(m.name||"")+'</td><td>'+m.tier+'</td><td>'+m.share_pct+'</td><td>'+m.mcap_b+'</td><td class="'+cls(m.ret_12m_pct)+'">'+(m.ret_12m_pct==null?"\u2013":fN(m.ret_12m_pct)+"%")+'</td></tr>';
+    for(const m of M.slice().sort(cmp))h+='<tr><td>'+m.rank+'</td><td><b><a href="industry-case.html?t='+encodeURIComponent(m.t)+'" style="color:inherit">'+esc(m.t)+'</a></b></td><td style="color:var(--fg-2)">'+esc(m.name||"")+'</td><td>'+m.tier+'</td><td>'+m.share_pct+'</td><td>'+m.mcap_b+'</td><td class="'+cls(m.ret_12m_pct)+'">'+(m.ret_12m_pct==null?"\u2013":fN(m.ret_12m_pct)+"%")+'</td></tr>';
     document.getElementById("imem").innerHTML=h+'</table>';
     document.querySelectorAll("#imem th").forEach(x=>x.onclick=()=>{const kk=x.dataset.k;
       if(st.key===kk)st.dir=-st.dir;else{st.key=kk;st.dir=(kk==="rank"||!COLS.find(c=>c[0]===kk)[2])?1:-1;}render();});};
@@ -107,18 +129,19 @@ function openCase(t){
   if(!c){w.style.display="block";document.getElementById("ct").textContent=t+" \u2014 not in the universe spine";document.getElementById("qa").innerHTML="";document.getElementById("ai").innerHTML="";return;}
   w.style.display="block";
   document.getElementById("ct").textContent=t+" \u00b7 "+c.name;
-  document.getElementById("ai").innerHTML=c.ai_case?'<div class="note" style="font-style:italic">'+c.ai_case+' <span style="color:var(--fg-3)">['+(c.ai_mode||"")+']</span></div>':(c.ai_mode?'<div class="note" style="color:var(--fg-3)">'+c.ai_mode+'</div>':'');
+  document.getElementById("ai").innerHTML=c.ai_case?'<div class="note" style="font-style:italic">'+esc(c.ai_case)+' <span style="color:var(--fg-3)">['+esc(c.ai_mode||"")+']</span></div>':(c.ai_mode?'<div class="note" style="color:var(--fg-3)">'+esc(c.ai_mode)+'</div>':'');
   document.getElementById("qa").innerHTML=qa(t,c);
   history.replaceState(null,"","industry-case.html?t="+t);}
 (async function(){
   D=await jget("/data/industry-case.json");
-  if(!D||D.status!=="LIVE"){document.getElementById("sub").textContent="feed "+((D&&D.status)||"unavailable")+" \u2014 "+((D&&D.why)||"");return;}
-  S_("hero",()=>{document.getElementById("sub").textContent="As of "+D.as_of+" \u00b7 "+D.n_cases.toLocaleString()+" cases across "+D.n_industries+" industries";});
+  if(!record(D)){document.getElementById("sub").textContent="feed unavailable · freshness UNKNOWN";return;}
+  publicationNotice(D);
+  if(!record(D.industries)||!record(D.cases)){document.getElementById("sub").textContent+=" · "+shown(D.why);return;}
   S_("inds",()=>{
     const rows=Object.entries(D.industries||{}).map(([k,v])=>[k,v]).sort((a,b)=>((b[1].boom&&b[1].boom.score)||-1)-((a[1].boom&&a[1].boom.score)||-1));
     let t1='<table><tr><th>industry</th><th>sector</th><th>boom</th><th>names</th><th>total mcap</th><th>HHI</th><th>wtd 12m</th><th>top name (share)</th></tr>';
     for(const[k,v]of rows){const tp=(v.top5||[])[0];
-      t1+='<tr data-ind="'+encodeURIComponent(k)+'" style="cursor:pointer"><td><b>'+k+'</b></td><td>'+(v.sector||"")+'</td><td>'+((v.boom&&v.boom.score)!=null?v.boom.score:"\u2013")+'</td><td>'+v.n+'</td><td>$'+v.total_mcap_b.toLocaleString()+'B</td><td>'+(v.hhi==null?"\u2013":v.hhi)+'</td><td class="'+cls(v.wtd_ret_12m_pct)+'">'+(v.wtd_ret_12m_pct==null?"\u2013":fN(v.wtd_ret_12m_pct)+"%")+'</td><td>'+(tp?tp.t+" ("+tp.share_pct+"%)":"\u2013")+'</td></tr>';}
+      t1+='<tr data-ind="'+encodeURIComponent(k)+'" style="cursor:pointer"><td><b>'+esc(k)+'</b></td><td>'+esc(v.sector||"")+'</td><td>'+((v.boom&&v.boom.score)!=null?v.boom.score:"\u2013")+'</td><td>'+v.n+'</td><td>$'+v.total_mcap_b.toLocaleString()+'B</td><td>'+(v.hhi==null?"\u2013":v.hhi)+'</td><td class="'+cls(v.wtd_ret_12m_pct)+'">'+(v.wtd_ret_12m_pct==null?"\u2013":fN(v.wtd_ret_12m_pct)+"%")+'</td><td>'+(tp?esc(tp.t)+" ("+tp.share_pct+"%)":"\u2013")+'</td></tr>';}
     document.getElementById("inds").innerHTML=t1+'</table>';
     document.querySelectorAll("#inds tr[data-ind]").forEach(x=>x.onclick=()=>openInd(decodeURIComponent(x.dataset.ind)));});
   document.getElementById("go").onclick=()=>openCase(document.getElementById("tk").value);

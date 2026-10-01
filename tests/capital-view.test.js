@@ -28,3 +28,19 @@ test('Evidence tree retains nested objects, null and every trailing array row',(
  function text(n){return n.textContent+' '+n.childNodes.map(text).join(' ');}const all=text(tree);
  assert(all.includes('TAIL_SENTINEL'));assert(all.includes('missing: null'));assert(!all.includes('[object Object]'));
 });
+
+test('Required funding hold and funding deadline remain binding in the browser consumer',()=>{
+ const p={...payload.katlin,...payload.funding_hold};
+ const errors=api.permissionErrors(p,'katlin');
+ assert(errors.includes('Capital permission expired or has no valid deadline'));
+ const held=api.restrictedCopy(p,'katlin',errors);
+ assert.equal(held.war_room.entries_allowed,false);
+ assert.equal(held.war_room.exposure_cap_pct,0);
+ assert.deepEqual(held.basket.core,[]);assert.equal(held.basket.cash_pct,100);
+ const permitted=payload.katlin;
+ assert.equal(permitted.war_room.entries_allowed,true);
+ const deadline=Date.parse(permitted.expires_at);
+ assert(deadline<Date.parse(permitted.war_room.authority.expires_at));
+ assert.deepEqual(api.permissionErrors(permitted,'katlin',deadline-1),[]);
+ assert(api.permissionErrors(permitted,'katlin',deadline).length);
+});
