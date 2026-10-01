@@ -1796,11 +1796,31 @@ def war_room(F):
         legs.append({"leg": name, "source": source, "risk": rnd(clamp(risk), 0), "read": read, "value": value, "weight": weight,
                      "asof": asof, "flag": "RED" if risk >= 70 else ("AMBER" if risk >= 45 else "GREEN")})
 
+    # Required funding evidence must qualify independently of other bond legs.
+    # Legacy qualified producer packets omit eligibility flags; explicit flags
+    # must be True. Unknown states never inherit the calm-state risk vote.
+    bw = F.get("bond_warroom")
+    bw = bw if isinstance(bw, dict) else {}
+    funding = bw.get("eurodollar_shortage")
+    funding = funding if isinstance(funding, dict) else {}
+    funding_risks = {"NONE": 20, "WATCH": 50, "SHORTAGE SIGNAL": 85}
+    funding_state = funding.get("state")
+    funding_age = contract_age_hours(bw.get("generated_at"), now)
+    funding_usable = (
+        isinstance(funding_state, str) and funding_state in funding_risks
+        and all(key not in funding or funding[key] is True for key in ("calls_eligible", "sizing_eligible"))
+        and all(isinstance(funding.get(key), (int, float)) and not isinstance(funding[key], bool)
+                and 0 <= funding[key] <= limit and math.isfinite(funding[key])
+                for key, limit in (("score", 100), ("points", 13)))
+        and isinstance(bw.get("generated_at"), str)
+        and funding_age is not None and 0 <= funding_age < 36.0
+    )
+    funding_expiry = (datetime.fromisoformat(bw["generated_at"].replace("Z", "+00:00"))
+                      + timedelta(hours=36)) if funding_usable else now
     try:
         bw = F["bond_warroom"]
         hb = bw.get("heartbeat") or {}
         eq = bw.get("equity_risk") or {}
-        ed = bw.get("eurodollar_shortage") or {}
         add("Bond heartbeat", "bond-warroom", fnum(hb.get("score")), "%s -- %s" % (hb.get("regime"), (hb.get("headline") or "")[:140]),
             fnum(hb.get("score")), 1.5, bw.get("generated_at"))
         eqs = str(eq.get("state") or "")
@@ -1811,12 +1831,14 @@ def war_room(F):
                 vetoes.append("bond desk flags DUMP RISK (high): bonds selling off hard today")
         else:
             missing.append("Bond volatility -> stocks")
-        eds = str(ed.get("state") or "")
-        if eds:
-            add("Eurodollar shortage", "bond-warroom", 85 if "SHORTAGE" in eds.upper() else (50 if "WATCH" in eds.upper() else 20),
-                "%s (%s pts)" % (eds, ed.get("points")), ed.get("points"), 1.0, bw.get("generated_at"))
     except Exception as e_:
         missing.append("leg error: %s" % str(e_)[:80])
+    if funding_usable:
+        add("Eurodollar shortage", "bond-warroom", funding_risks[funding_state],
+            "%s (%s pts)" % (funding_state, funding["points"]), funding["points"], 1.0, bw["generated_at"])
+    else:
+        missing.append("Required funding evidence unqualified, missing, stale, future or invalid")
+
     try:
         au = F["auction"]
         av = _first(au, "verdict", "today.verdict") or {}
@@ -2058,6 +2080,10 @@ def war_room(F):
         hold_reasons.append("raw risk-gate contract missing, stale, future or invalid -- DATA_HOLD")
         cap = 0
         entries_allowed = False
+    if not funding_usable:
+        hold_reasons.append("required funding evidence unqualified, missing, stale, future or invalid -- DATA_HOLD")
+        cap = 0
+        entries_allowed = False
     if gate_fresh and gate_cap is not None:
         cap = int(min(cap, gate_cap))   # the raw gate's own sizing multiplier still bounds the desk
     if cap <= 0:
@@ -2106,7 +2132,7 @@ def war_room(F):
             "authority": authority, "local": {"posture": local_posture, "exposure_cap_pct": local_cap, "note": "desk thermometer -- research opinion, not the binding permission"},
             "raw_gate": {"posture": rg.get("posture"), "sizing_multiplier": sz, "cap_pct": gate_cap, "age_h": gate_age, "fresh": gate_fresh, "sla_h": GATE_SLA_H},
             "hold_reasons": hold_reasons, "source_health": leg_health,
-            "expires_at": min(now + timedelta(hours=24), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now, datetime.fromisoformat(rg["generated_at"].replace("Z", "+00:00")) + timedelta(hours=GATE_SLA_H) if gate_fresh else now).isoformat(),
+            "expires_at": min(funding_expiry, now + timedelta(hours=24), datetime.fromisoformat(authority["expires_at"]) if authority.get("expires_at") else now, datetime.fromisoformat(rg["generated_at"].replace("Z", "+00:00")) + timedelta(hours=GATE_SLA_H) if gate_fresh else now).isoformat(),
             "legs": legs, "missing": missing, "brief": " ".join(brief), "crypto_dump_risk": crypto_risk, "y10": y10,
             "cycle": {"phase": ph or None, "cli": cli, "downturn_prob_6m": dp6, "recession_prob_pct": gp, "research_context": cycle_context},
             "words": words[posture]}
