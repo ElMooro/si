@@ -1,0 +1,88 @@
+{
+  "base": "f94629c205be91ec08feb651883d80af40689aee",
+  "old": "/jh-ai-insights.js?t=20260601a",
+  "new": "/jh-ai-insights.js?v=20261001-status",
+  "pages": [
+    {
+      "page": "auction-crisis.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/auction-crisis.html.txt",
+      "previous_sha256": "5cef2becbae560fc4831bb0d826c9ce5b69de54ae0ad50da7b51ea1820617bf6",
+      "sha256": "d0068062a4449b298ab3ae50dbe57b9aa53a9ec45cfe3402b21ab9013026870e",
+      "bytes": 52733
+    },
+    {
+      "page": "bonds.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/bonds.html.txt",
+      "previous_sha256": "d67a6e329f6c1351cfafba1eb3e2bd67fb7fa62c06ee1dc51d72c5a011f6129d",
+      "sha256": "7746a0b93074131365dd6b2d1127c34ee74ba69449076a959f19856bc1e73c35",
+      "bytes": 109067
+    },
+    {
+      "page": "classic-dashboard.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/classic-dashboard.html.txt",
+      "previous_sha256": "d9749bfd4909f014d51f1478da1605bdd8833ace2dc8c00da65c109006fe8f5c",
+      "sha256": "639ef6cde823b235fc775431825322fc35191000829f93a1f8a00116a425d966",
+      "bytes": 163599
+    },
+    {
+      "page": "correlation.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/correlation.html.txt",
+      "previous_sha256": "9083ed9388b76cd0d9427cff4211b6a48945a7c925322ae5fdbe5eeafd26e966",
+      "sha256": "2d9baa82f148302eda28aab61371a46c74239e616147a30b9601e4a8c2f09894",
+      "bytes": 37350
+    },
+    {
+      "page": "desk-v2.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/desk-v2.html.txt",
+      "previous_sha256": "eee2bca693aafdc917e3f9f9d295cae8c0c6850ebceba60657b4c0d4bf49d8bc",
+      "sha256": "d45296766c70061d682e210528f6375140b035492d3fdc8c1555276f7dd26d4b",
+      "bytes": 48232
+    },
+    {
+      "page": "macro-frontrun.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/macro-frontrun.html.txt",
+      "previous_sha256": "82c97a7bcd80cc476512ea35a79fabfaac9b95c013c5f0d2289ad212ebea7840",
+      "sha256": "8309646ad0bf1160e5d66ae7d2997fd5c8554a65fe5e164de51a872fbe7666f8",
+      "bytes": 13266
+    },
+    {
+      "page": "pre-pump-radar.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/pre-pump-radar.html.txt",
+      "previous_sha256": "e9dffd785bafb985d1aebdeea3f16198fa2045c4689d93d66007fa31e41c178e",
+      "sha256": "3baf47ba243e0d5626d4306cc95fa37d901e63832315416f865303caf08f8c8f",
+      "bytes": 211071
+    },
+    {
+      "page": "sentiment.html",
+      "predecessor": "tests/fixtures/website-research-status/pre513-imports/sentiment.html.txt",
+      "previous_sha256": "403e302586eed47fd811938cbcdf48aa936accf9468387469df3b1254d76db35",
+      "sha256": "520ad2bbe4dd9bfef9f6b3c07fac296f63b51a1cfb64ff9a16b8e52cebdcce99",
+      "bytes": 17757
+    }
+  ],
+  "discovered_by": "Exact live acceptance of source a030aa17c: legacy ?t imports are not rewritten by stamp_assets.py. Native Lambda remains on a030aa17c.",
+  "test_adaptation": {
+    "path": "tests/correlation-heatmap.test.js",
+    "predecessor": "tests/fixtures/website-research-status/pre513-imports/correlation-heatmap.test.js.txt",
+    "previous_sha256": "fec25db5b84d7c3c03862e558620776bb97bf23dcc5e9f98e5099aeaa10f15e0",
+    "sha256": "015299debc7f9966b7a1161e962d07b96247edbf384193e3e53f9a9b44dd40a7",
+    "replacements": [
+      [
+        "const normalize=s=>",
+        "const imported=source.replace('/jh-ai-insights.js?v=20261001-status','/jh-ai-insights.js?t=20260601a');const normalize=s=>"
+      ],
+      [
+        "normalize(source),normalize(before)",
+        "normalize(imported),normalize(before)"
+      ],
+      [
+        "prefix(source),prefix(before)",
+        "prefix(imported),prefix(before)"
+      ],
+      [
+        "links(source),links(before)",
+        "links(imported),links(before)"
+      ]
+    ]
+  }
+}
