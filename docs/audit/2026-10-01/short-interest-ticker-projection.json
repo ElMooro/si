@@ -1,5 +1,5 @@
 {
-  "status": "candidate_tests_passed_native_baseline_pending",
+  "status": "tested_source_batch_awaiting_native_release",
   "scope": "Source-only and invented fixtures; no actual AWS/provider/current/private/account body reads or producer invocation.",
   "candidate_tests": {
     "combined_existing_and_new": 84,
@@ -18,14 +18,13 @@
     "test_short_interest_ticker_publication.py": "80602fd2e1874ecb7a4382b0844976ab9b0bdd190b886d0e666924c977b3a720"
   },
   "remaining": [
-    "Read-only native control baseline for both packaged importers",
-    "Final independent source review and budget/memory/retention review",
-    "Adopt complete related batch and regression archives, run integrated suites and both engine runners",
-    "Verify atomic source push, both release receipts/native packages and normal publication on original cadence"
+    "Exact release receipts and native package/control verification",
+    "Normal publication on original cadence remains unverified",
+    "Provider and investment qualification remain open"
   ],
-  "operation_number": "6425 proposed only; not reserved; recheck against main before adoption",
+  "operation_number": "6425 baseline accepted; 6426 reserved for exact native acceptance",
   "baseline_operation": "aws/ops/staged/ops_6425_short_interest_ticker_controls.py",
-  "native_controls_verified": false,
+  "native_controls_verified": true,
   "source_release_deployed": false,
   "normal_publication_verified": false,
   "source_qualified": false,
@@ -81,7 +80,7 @@
       }
     }
   },
-  "candidate_scope": "Issue-safe descriptive projection, typed latest flags, source-head and shard integrity, bounded reader, retained compiler/input/output and conditional ticker publication. Candidate code remains outside repository pending control baseline and final integration.",
+  "candidate_scope": "Complete related source batch adopted and tested; original source acquisition and native controls unchanged.",
   "baseline_validation": {
     "invented_control_cases": 8,
     "deployment_tests": 1018,
@@ -91,5 +90,175 @@
   "baseline_source_hashes": {
     "aws/ops/staged/ops_6425_short_interest_ticker_controls.py": "2dadc83453eb8ebbbf57b233b48b1987d57c76c67b4b1eed36db9803b4e9fbdb",
     "aws/ops/checks/test_short_interest_ticker_controls.py": "4a74653cee10ddb6805df92555a032302bd70047f6253db9109a95f2091ee9ae"
+  },
+  "native_baseline": {
+    "status": "stable_native_control_baseline",
+    "functions": {
+      "justhodl-short-interest": {
+        "FunctionName": "justhodl-short-interest",
+        "CodeSha256": "QLxH3AFBytQzoLonroRuwT3XOVRSPSmttX/ZzpMFXeI=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 360,
+        "MemorySize": 512,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-microcap-float-squeeze": {
+        "FunctionName": "justhodl-microcap-float-squeeze",
+        "CodeSha256": "NWaltUYgecSIHijRkv3yPLhRIFUX+lbn0WOaZH0CXFs=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 600,
+        "MemorySize": 2048,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "source_qualified": false,
+    "normal_publication_verified": false,
+    "investment_authority": false,
+    "source_commit": "e3f2331f2f271d5a3ce595a776bbae88fad6ec99",
+    "operation_commit": "e3f2331f2f271d5a3ce595a776bbae88fad6ec99",
+    "run_id": 36912885021,
+    "report_commit": "13277a36e5b0c97c43f0ec259a111af0ae16284a",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6425_short_interest_ticker_controls.md",
+      "bytes": 1691,
+      "sha256": "f14b17124c5169f4c2c9d0302f1e822f935bfceff8a9a7d769a7089b5a09ef05"
+    }
+  },
+  "reviewed_source_hashes": {
+    "aws/lambdas/justhodl-short-interest/source/lambda_function.py": "570f68ab5ad828e20ef4c2ec74552df59add7d2a82cc91ff0d4480a8f7661d68",
+    "aws/shared/context_evidence_store.py": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7",
+    "aws/shared/offexchange_measurements.py": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18",
+    "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+    "aws/shared/short_interest_measurements.py": "9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63",
+    "aws/shared/short_interest_producer.py": "73d62965bcef38be200f6c1d39e56a3059ebda5af3f4d0c007a1825ae02cf9b7",
+    "aws/shared/short_interest_research_model.py": "11716dc109a04b4b7b34b40d5b5602abe26c518e5dd9708649257f091b0ba831",
+    "aws/shared/short_interest_research_store.py": "5b84503baf1268a4537f16d55f89be903a7ccf24cc64779205cb58d64f1c5dc2",
+    "aws/shared/short_interest_tickers.py": "f0955d45924173a455610cfbb4456962f35b8fb25685897a0681abeba96df464",
+    "aws/lambdas/justhodl-microcap-float-squeeze/source/float_observations.py": "7a545897a6f4a1e6a44725b78b4141cd2a1f7671c24af06bd7c7f6e82d049b7e",
+    "aws/lambdas/justhodl-microcap-float-squeeze/source/lambda_function.py": "1bc3e2cd0d16292da967deb44fdd330244106823ed0c053352dad8aa881801a1",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+  },
+  "native_source_counts": {
+    "justhodl-short-interest": 9,
+    "justhodl-microcap-float-squeeze": 8
+  },
+  "expected_controls": {
+    "justhodl-short-interest": {
+      "function_name": "justhodl-short-interest",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 360,
+      "memory_mb": 512,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-short-interest-6h",
+          "state": "ENABLED",
+          "expression": "cron(20 12 * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-short-interest-sched",
+          "state": "ENABLED",
+          "expression": "cron(15 21 ? * MON,WED *)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-microcap-float-squeeze": {
+      "function_name": "justhodl-microcap-float-squeeze",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 600,
+      "memory_mb": 2048,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-microcap-float-squeeze-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 22 ? * MON-FRI *)",
+          "native_targets": 1
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Application-level conditional retention is not S3 Object Lock qualification.",
+    "Exact native/source receipt checks do not verify normal publication or underlying provider truth.",
+    "Existing descriptive rank-list aliases remain for compatibility; no covering/squeeze forecast follows.",
+    "Runtime/byte admissions are soft checks around bounded requests, not certified worst-case latency or RSS."
+  ],
+  "validation": {
+    "short_interest_tests": 86,
+    "microcap_tests": 16,
+    "native_acceptance_tests": 6,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass",
+    "actual_application_packet_reads": 0,
+    "provider_requests": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "invented_cases_only": true,
+    "microcap_test_repair": "Exact four already-shipped legacy changes; complete source and test predecessors retained; active native Microcap source unchanged."
   }
 }

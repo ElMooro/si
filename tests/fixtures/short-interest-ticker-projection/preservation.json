@@ -1,0 +1,142 @@
+{
+  "scope": "Complete predecessor source and exact reviewed transformations; no captured application data.",
+  "files": {
+    "aws/shared/short_interest_tickers.py": {
+      "predecessor": "tests/fixtures/short-interest-ticker-projection/aws__shared__short_interest_tickers.py.txt",
+      "bytes": 13139,
+      "sha256": "216ae79d7bc7294f60764c925a32e77147d0025cd512a8fa0916d19b3bad61fe",
+      "edits": [
+        [
+          "def _record_latest_observation(record):\n    \"\"\"Return (identity_dict, latest_point_dict) for one issue history record.\"\"\"\n    if not isinstance(record, dict):\n        raise ValueError(\"Issue history record required\")\n    identity = record.get(\"identity\")\n    if not isinstance(identity, dict) or any(identity.get(k) is None for k in GRAIN):\n        raise ValueError(\"Complete reported issue identity required\")\n    observations = record.get(\"observations\")\n    if not isinstance(observations, list) or not observations:\n        raise ValueError(\"Nonempty observation history required\")\n    latest = max(\n        (_point_dict(p) for p in observations),\n        key=lambda d: str(d.get(\"settlementDate\") or \"\"),\n    )\n    return identity, latest\n",
+          "def _record_latest_observation(record):\n    \"\"\"Validate one complete reported issue history; never select by lexical date.\"\"\"\n    if not isinstance(record, dict):\n        raise ValueError(\"Issue history record required\")\n    identity = record.get(\"identity\")\n    if not isinstance(identity, dict) or any(not isinstance(identity.get(k), str)\n            or not identity[k].strip() or len(identity[k]) > 500 for k in GRAIN):\n        raise ValueError(\"Complete reported issue identity required\")\n    observations = record.get(\"observations\")\n    if not isinstance(observations, list) or not observations:\n        raise ValueError(\"Nonempty observation history required\")\n    points = [_point_dict(p) for p in observations]\n    dates = set()\n    for point in points:\n        stamp = point.get(\"settlementDate\")\n        if (not isinstance(stamp, str) or not re.fullmatch(r\"[0-9]{4}-[0-9]{2}-[0-9]{2}\", stamp)\n                or date.fromisoformat(stamp).isoformat() != stamp or stamp in dates):\n            raise ValueError(\"Distinct actual settlement dates required\")\n        if any(point.get(k) != identity[k] for k in GRAIN):\n            raise ValueError(\"Observation and reported issue identities differ\")\n        dates.add(stamp)\n    return identity, max(points, key=lambda p: p[\"settlementDate\"])\n"
+        ],
+        [
+          "def build_tickers_view(shards, symbols=None):\n    \"\"\"Build {SYMBOL: per-ticker dict} from published record shards.\n\n    shards: {prefix2: {\"contract\": ..., \"records\": {identity_hash: record}}}\n    as stored under data/short-interest-research/records/.\n    symbols: optional iterable of symbols to include; None means all.\n\n    Several issue identities can share one symbolCode (different issue\n    names / market classes). The record with the most recent settlement\n    date wins; ties break toward larger reported short interest, then\n    toward latest-settlement presence. Malformed records are skipped\n    (fail-soft); an empty or fully malformed input yields {}.\n    \"\"\"\n    if not isinstance(shards, dict):\n        return {}\n    wanted = None\n    if symbols is not None:\n        try:\n            wanted = {str(s).strip().upper() for s in symbols if str(s).strip()}\n        except TypeError:\n            return {}\n    best = {}\n    for shard in shards.values():\n        records = shard.get(\"records\") if isinstance(shard, dict) else None\n        if not isinstance(records, dict):\n            continue\n        for record in records.values():\n            try:\n                identity, latest = _record_latest_observation(record)\n            except (ValueError, TypeError, KeyError, AttributeError):\n                continue\n            symbol = str(identity.get(\"symbolCode\", \"\")).strip().upper()\n            if not symbol or (wanted is not None and symbol not in wanted):\n                continue\n            stamp = str(latest.get(\"settlementDate\") or \"\")\n            size = _decimal_or_none(latest.get(\"currentShortPositionQuantity\"))\n            rank = (\n                stamp,\n                size if size is not None else Decimal(-1),\n                bool(record.get(\"latest_settlement_present\")),\n            )\n            if symbol not in best or rank > best[symbol][0]:\n                try:\n                    entry = _ticker_entry(\n                        symbol, identity, latest,\n                        record.get(\"latest_settlement_present\"),\n                    )\n                except (ValueError, TypeError, KeyError, AttributeError):\n                    continue\n                best[symbol] = (rank, entry)\n    return {symbol: entry for symbol, (_, entry) in sorted(best.items())}\n",
+          "def build_tickers_projection(shards, symbols=None):\n    \"\"\"Retain every source occurrence; ambiguous symbols have no ticker projection.\n\n    A symbol is a reported label, not a unique security identifier. Even a\n    malformed issue can collide with a valid issue, so group before validation.\n    This does not verify provider identity, freshness or continuity.\n    \"\"\"\n    out = {\"by_ticker\": {}, \"ambiguous_symbols\": [], \"unresolved_occurrences\": [],\n           \"source_occurrences\": 0, \"identity_verified\": False}\n    if not isinstance(shards, dict):\n        return out\n    wanted = None\n    if symbols is not None:\n        try:\n            wanted = {s.upper() for s in symbols if isinstance(s, str)\n                      and re.fullmatch(r\"[A-Za-z0-9][A-Za-z0-9.:-]{0,31}\", s)}\n        except TypeError:\n            return out\n    grouped = {}\n    for prefix, shard in shards.items():\n        records = shard.get(\"records\") if isinstance(shard, dict) else None\n        if not isinstance(records, dict):\n            out[\"unresolved_occurrences\"].append({\"shard\": prefix, \"reason\": \"invalid_record_container\"})\n            continue\n        for record_id, record in records.items():\n            out[\"source_occurrences\"] += 1\n            identity = record.get(\"identity\") if isinstance(record, dict) else None\n            reported = identity.get(\"symbolCode\") if isinstance(identity, dict) else None\n            occurrence = {\"shard\": prefix, \"record_id\": record_id,\n                          \"reported_symbol\": reported if isinstance(reported, str) else None,\n                          \"status\": \"unresolved\", \"identity_verified\": False}\n            if not isinstance(reported, str) or not re.fullmatch(r\"[A-Za-z0-9][A-Za-z0-9.:-]{0,31}\", reported):\n                occurrence[\"reason\"] = \"invalid_reported_symbol\"\n                out[\"unresolved_occurrences\"].append(occurrence)\n                continue\n            symbol = reported.upper()\n            if wanted is not None and symbol not in wanted:\n                continue\n            grouped.setdefault(symbol, []).append((occurrence, None))\n            try:\n                identity, latest = _record_latest_observation(record)\n                entry = _ticker_entry(symbol, identity, latest, record.get(\"latest_settlement_present\"))\n            except (ValueError, TypeError, KeyError, AttributeError, OverflowError):\n                occurrence[\"reason\"] = \"invalid_issue_history\"\n                out[\"unresolved_occurrences\"].append(occurrence)\n                continue\n            occurrence.update(status=\"descriptive_issue\", reported_identity=dict(identity),\n                              settlement_date=entry[\"settlement_date\"])\n            grouped[symbol][-1] = (occurrence, entry)\n    for symbol, occurrences in sorted(grouped.items()):\n        if len(occurrences) != 1:\n            out[\"ambiguous_symbols\"].append({\"ticker\": symbol,\n                \"occurrences\": [item[0] for item in occurrences],\n                \"reason\": \"multiple_reported_issue_occurrences\"})\n        elif occurrences[0][1] is not None:\n            out[\"by_ticker\"][symbol] = occurrences[0][1]\n    return out\n\n\ndef build_tickers_view(shards, symbols=None):\n    \"\"\"Compatibility projection; ambiguous reported symbols are withheld.\"\"\"\n    return build_tickers_projection(shards, symbols)[\"by_ticker\"]\n"
+        ],
+        [
+          "from datetime import datetime, timezone",
+          "from datetime import date, datetime, timezone"
+        ],
+        [
+          "import json\n",
+          "import json, re\n"
+        ],
+        [
+          "\"latest\": bool(latest_settlement_present),",
+          "\"latest\": latest_settlement_present if type(latest_settlement_present) is bool else None,\n        \"latest_flag_status\": \"reported_boolean\" if type(latest_settlement_present) is bool else \"invalid_or_missing\","
+        ],
+        [
+          "    by_ticker = build_tickers_view(shards)\n    artifact = build_artifact(by_ticker, settlement_date, generated_at)\n",
+          "    projection = build_tickers_projection(shards)\n    artifact = build_artifact(projection[\"by_ticker\"], settlement_date, generated_at)\n    artifact[\"identity_report\"] = {k: v for k, v in projection.items() if k != \"by_ticker\"}\n"
+        ],
+        [
+          "def load_tickers(s3_client, bucket, key=TICKERS_KEY):\n    \"\"\"Read the tickers artifact from S3; return {} on any failure.\n\n    Fail-soft: missing key, access errors, malformed JSON and schema\n    drift all yield {} so consumers degrade to no-SI-data, never crash.\n    \"\"\"\n    try:\n        raw = s3_client.get_object(Bucket=bucket, Key=key)[\"Body\"].read()\n        doc = json.loads(raw)\n    except (ValueError, TypeError, AttributeError, KeyError):\n        return {}\n    except Exception:\n        # Covers ClientError/NoSuchKey and transport errors without\n        # importing botocore here; consumers must not crash on S3 issues.\n        return {}\n    if not isinstance(doc, dict) or not isinstance(doc.get(\"by_ticker\"), dict):\n        return {}\n    return doc\n",
+          "def load_tickers(s3_client, bucket, key=TICKERS_KEY):\n    \"\"\"Read a complete bounded ticker packet; failures remain unavailable, not zero.\"\"\"\n    def pairs(items):\n        out = {}\n        for name, value in items:\n            if name in out:\n                raise ValueError(\"Duplicate ticker JSON field\")\n            out[name] = value\n        return out\n    def number(text):\n        exact = Decimal(text)\n        value = float(exact)\n        if not exact.is_finite() or Decimal(str(value)) != exact:\n            raise ValueError(\"Ticker JSON number loses precision\")\n        return value\n    def constant(_):\n        raise ValueError(\"Nonfinite ticker JSON\")\n    try:\n        response = s3_client.get_object(Bucket=bucket, Key=key)\n        stream = response[\"Body\"]\n        try:\n            raw = stream.read(16 * 1024 * 1024 + 1)\n        finally:\n            stream.close()\n        if not isinstance(raw, bytes) or len(raw) > 16 * 1024 * 1024:\n            raise ValueError(\"Whole ticker packet exceeds byte bound\")\n        doc = json.loads(raw.decode(\"utf-8\"), object_pairs_hook=pairs,\n                         parse_float=number, parse_constant=constant)\n    except Exception:\n        # Keep the existing fail-soft caller contract without hiding a partial\n        # document behind parsed rows or leaking storage exception details.\n        return {}\n    if not isinstance(doc, dict) or not isinstance(doc.get(\"by_ticker\"), dict):\n        return {}\n    return doc\n"
+        ],
+        [
+          "def publish_tickers_artifact(s3_client, bucket, shards, settlement_date,\n                             generated_at, key=TICKERS_KEY):\n    \"\"\"Build the tickers view from shards and publish it to S3.\n\n    Raises on S3 write failure so the caller can decide fail-soft policy.\n    Returns the artifact meta dict.\n    \"\"\"\n    projection = build_tickers_projection(shards)\n    artifact = build_artifact(projection[\"by_ticker\"], settlement_date, generated_at)\n    artifact[\"identity_report\"] = {k: v for k, v in projection.items() if k != \"by_ticker\"}\n    body = json.dumps(artifact, separators=(\",\", \":\"),\n                      ensure_ascii=False, allow_nan=False).encode(\"utf-8\")\n    s3_client.put_object(Bucket=bucket, Key=key, Body=body,\n                         ContentType=\"application/json\", CacheControl=\"no-store\")\n    return artifact[\"meta\"]\n",
+          "def publish_tickers_artifact(s3_client, bucket, shards, settlement_date,\n                             generated_at, key=TICKERS_KEY, *, expected_head=None,\n                             compiler_paths=None):\n    \"\"\"Retain replay inputs and compare-and-swap the one declared ticker head.\n\n    The canonical source must still be exactly this producer run after the\n    previous ticker head is captured. That ordering prevents an older producer\n    from overwriting a newer consumer publication. No head write is retried.\n    \"\"\"\n    from pathlib import Path\n    import context_evidence_store as retention\n    import short_interest_research_model as research\n    if key != TICKERS_KEY or not isinstance(expected_head, bytes):\n        raise ValueError(\"Declared ticker head and exact source publication required\")\n    if not isinstance(compiler_paths, dict) or not compiler_paths:\n        raise ValueError(\"Complete reviewed compiler inventory required\")\n    expected = research.strict(expected_head)\n    if (not isinstance(expected, dict) or expected.get('contract') != research.CONTRACT\n            or expected.get('settlement_date') != settlement_date\n            or expected.get('generated_at') != generated_at):\n        raise ValueError(\"Canonical projection clock and settlement required\")\n    if set(shards) != set(expected.get('record_shards', {})):\n        raise ValueError(\"Complete canonical shard inventory required\")\n    for prefix, shard in shards.items():\n        if research.record_identity(shard) != expected['record_shards'][prefix]:\n            raise ValueError(\"Projection shard differs from canonical evidence\")\n    paths = dict(compiler_paths)\n    paths['short_interest_tickers.py'] = Path(__file__)\n    paths['context_evidence_store.py'] = Path(retention.__file__)\n    publisher = retention.ContextStore(s3_client, bucket, TICKERS_KEY,\n        {'research': research.CURRENT},\n        'audit-private/20260909-originals/short-interest-ticker-projection/',\n        'short-interest-ticker-projection.v1', paths,\n        acquisition_budget_s=30, publication_budget_s=90)\n    def project(attempts, originals, publication_at):\n        attempt = attempts.get('research', {})\n        ref = attempt.get('original_ref', {})\n        if attempt.get('status') != 'received' or originals.get(ref.get('key')) != expected_head:\n            raise ValueError(\"Canonical head changed or unavailable; preserve ticker publication\")\n        projection = build_tickers_projection(shards)\n        packet = build_artifact(projection['by_ticker'], settlement_date, publication_at)\n        packet.update(measurement_contract='short-interest-ticker-projection.v1',\n            source_generated_at=generated_at, research_replay=expected.get('replay'),\n            source_head_sha256=research.sha(expected_head), source_head_bytes=len(expected_head),\n            source_record_shards=expected['record_shards'],\n            identity_report={k:v for k,v in projection.items() if k!='by_ticker'},\n            independent_investment_votes=0, call=None, **research.PERMISSIONS)\n        return packet\n    artifact, _ = publisher.publish(project)\n    return artifact['meta']\n"
+        ],
+        [
+          "    publisher = retention.ContextStore(s3_client, bucket, TICKERS_KEY,",
+          "    class PublicationClient:\n        def get_object(self, **request):\n            return s3_client.get_object(**request)\n        def put_object(self, **request):\n            if request.get('Key') == TICKERS_KEY:\n                request['CacheControl'] = 'no-store'\n            return s3_client.put_object(**request)\n    publisher = retention.ContextStore(PublicationClient(), bucket, TICKERS_KEY,"
+        ],
+        [
+          "    if set(shards) != set(expected.get('record_shards', {})):",
+          "    replay = expected.get('replay')\n    if (retention.clock(generated_at) is None or not isinstance(settlement_date, str)\n            or not re.fullmatch('[0-9]{4}-[0-9]{2}-[0-9]{2}', settlement_date)\n            or date.fromisoformat(settlement_date).isoformat() != settlement_date\n            or not isinstance(replay, dict)\n            or replay.get('output_sha256') != research.digest({k:v for k,v in expected.items() if k!='replay'})\n            or any(expected.get(k) is not False for k in research.PERMISSIONS)):\n        raise ValueError(\"Exact descriptive canonical head and source clocks required\")\n    if set(shards) != set(expected.get('record_shards', {})):"
+        ],
+        [
+          "def publish_tickers_artifact(s3_client, bucket, shards, settlement_date,",
+          "def project_verified_tickers(shards, expected_head, publication_at):\n    \"\"\"Pure projection of hash-verified canonical input; no transport or clock.\n\n    Retained-input replay supplies the complete source head, every referenced\n    record shard and the publication clock from the input manifest. Storage\n    validation remains the caller's responsibility. No forecast is granted.\n    \"\"\"\n    import short_interest_research_model as research\n    expected = research.strict(expected_head)\n    projection = build_tickers_projection(shards)\n    packet = build_artifact(projection['by_ticker'], expected['settlement_date'], publication_at)\n    packet.update(measurement_contract='short-interest-ticker-projection.v1',\n        source_generated_at=expected['generated_at'], research_replay=expected.get('replay'),\n        source_head_sha256=research.sha(expected_head), source_head_bytes=len(expected_head),\n        source_record_shards=expected['record_shards'],\n        identity_report={k:v for k,v in projection.items() if k!='by_ticker'},\n        independent_investment_votes=0, call=None, **research.PERMISSIONS)\n    return packet\n\n\ndef publish_tickers_artifact(s3_client, bucket, shards, settlement_date,"
+        ],
+        [
+          "        projection = build_tickers_projection(shards)\n        packet = build_artifact(projection['by_ticker'], settlement_date, publication_at)\n        packet.update(measurement_contract='short-interest-ticker-projection.v1',\n            source_generated_at=generated_at, research_replay=expected.get('replay'),\n            source_head_sha256=research.sha(expected_head), source_head_bytes=len(expected_head),\n            source_record_shards=expected['record_shards'],\n            identity_report={k:v for k,v in projection.items() if k!='by_ticker'},\n            independent_investment_votes=0, call=None, **research.PERMISSIONS)\n        return packet",
+          "        return project_verified_tickers(shards, expected_head, publication_at)"
+        ],
+        [
+          "Consumer-facing per-ticker FINRA short-interest layer (Bloomberg parity 3/10).",
+          "Consumer-facing FINRA short-interest projection with explicit identity gaps."
+        ],
+        [
+          "# DTC statuses where the provider display is a trustworthy ratio.",
+          "# Reconciled provider displays; a display floor remains a convention."
+        ]
+      ]
+    },
+    "aws/lambdas/justhodl-short-interest/source/lambda_function.py": {
+      "predecessor": "tests/fixtures/short-interest-ticker-projection/aws__lambdas__justhodl-short-interest__source__lambda_function.py.txt",
+      "bytes": 6071,
+      "sha256": "e06b7eb8c46564856f192a42ff14d2b48a8014cba4d8cfa165718781ab5c423a",
+      "edits": [
+        [
+          "    packet=model.strict(head)\n    refs=packet.get('record_shards')",
+          "    packet=model.strict(head)\n    # Bind to this completed producer run, never whichever head won a later race.\n    replay=result.get('replay')\n    if (not isinstance(packet,dict) or packet.get('contract')!=model.CONTRACT\n            or not isinstance(replay,dict) or packet.get('replay')!=replay\n            or model.digest({k:v for k,v in packet.items() if k!='replay'})!=replay.get('output_sha256')\n            or any(packet.get(k) is not False for k in model.PERMISSIONS)):\n        raise ValueError('Exact just-published research head required')\n    refs=packet.get('record_shards')"
+        ],
+        [
+          "    shards={}\n    for prefix,ref in refs.items():",
+          "    if len(refs)>256 or any(not isinstance(prefix,str) or not re.fullmatch('[a-f0-9]{2}',prefix) for prefix in refs):\n        raise ValueError('Whole bounded shard index required')\n    shards={};source_bytes=0;issue_ids=set()\n    for prefix,ref in sorted(refs.items()):"
+        ],
+        [
+          "        if not isinstance(key,str):\n            raise ValueError('Shard reference missing key')",
+          "        if (not isinstance(key,str) or not re.fullmatch(re.escape(model.PREFIX)+r'records/[a-f0-9]{64}\\.json',key)\n                or type(ref.get('bytes')) is not int or not 0<ref['bytes']<=model.MAX\n                or not isinstance(ref.get('sha256'),str) or key!=model.PREFIX+'records/'+ref['sha256']+'.json'):\n            raise ValueError('Exact record-shard reference required')"
+        ],
+        [
+          "        shards[prefix]=model.strict(raw)\n    raw_client=",
+          "        source_bytes+=len(raw)\n        if source_bytes>64*1024*1024 or store.identity(raw,'records')!=ref:\n            raise ValueError('Whole referenced shard bytes differ or exceed admission bound')\n        shard=model.strict(raw)\n        if not isinstance(shard,dict) or shard.get('contract')!='short-interest-record-shard.v1' or not isinstance(shard.get('records'),dict):\n            raise ValueError('Reported record shard required')\n        for identifier,record in shard['records'].items():\n            identity=record.get('identity') if isinstance(record,dict) else None\n            if (not isinstance(identifier,str) or not re.fullmatch('[a-f0-9]{64}',identifier)\n                    or identifier in issue_ids or not identifier.startswith(prefix)\n                    or not isinstance(identity,dict)\n                    or identifier!=model.record_id(tuple(identity.get(k) for k in tickers.GRAIN))):\n                raise ValueError('Exact unique reported issue record required')\n            issue_ids.add(identifier)\n        shards[prefix]=shard\n    expected_issues=(packet.get('counts') or {}).get('issues')\n    if type(expected_issues) is not int or len(issue_ids)!=expected_issues:\n        raise ValueError('Whole issue inventory differs from research head')\n    raw_client="
+        ],
+        [
+          "    meta=tickers.publish_tickers_artifact(raw_client,bucket,shards,packet.get('settlement_date'),packet.get('generated_at'))",
+          "    from pathlib import Path\n    compilers={module.__name__+'.py':Path(module.__file__) for module in\n        (model,store,producer,short_interest_context,model.exact,model.measurements)}\n    compilers['lambda_function.py']=Path(__file__)\n    meta=tickers.publish_tickers_artifact(raw_client,bucket,shards,packet.get('settlement_date'),\n        packet.get('generated_at'),expected_head=head,compiler_paths=compilers)"
+        ],
+        [
+          "    try:\n        _publish_tickers_layer(client,BUCKET,result)\n    except Exception as exc:\n        print(f\"[tickers-layer] skipped: {type(exc).__name__}: {exc}\")\n    return {'statusCode':200,'body':json.dumps(result)}",
+          "    try:\n        projected=_publish_tickers_layer(client,BUCKET,result)\n        projection_status={'status':'published' if projected is not None else 'not_attempted'}\n    except Exception as exc:\n        projection_status={'status':'unavailable','error_type':type(exc).__name__}\n        print(f\"[tickers-layer] skipped: {type(exc).__name__}\")\n    return {'statusCode':200,'body':json.dumps({**result,'consumer_projection':projection_status})}"
+        ],
+        [
+          "import json,re\n",
+          "import json,re,time\n"
+        ],
+        [
+          "def _publish_tickers_layer(evidence_client,bucket,result):",
+          "def _publish_tickers_layer(evidence_client,bucket,result,*,remaining_seconds):"
+        ],
+        [
+          "    head=store.bounded(evidence_client.get_object(Bucket=bucket,Key=PUBLISHED_KEY)['Body'])",
+          "    if type(remaining_seconds) not in (int,float) or not 120<=remaining_seconds<float('inf'):\n        raise ValueError('Insufficient remaining time for optional ticker publication')\n    started=time.monotonic()\n    def reserve():\n        if remaining_seconds-(time.monotonic()-started)<120:\n            raise ValueError('Ticker acquisition reserve exhausted; preserve previous projection')\n    reserve()\n    head=store.bounded(evidence_client.get_object(Bucket=bucket,Key=PUBLISHED_KEY)['Body'])"
+        ],
+        [
+          "        raw=store.bounded(evidence_client.get_object(Bucket=bucket,Key=key)['Body'])",
+          "        reserve()\n        raw=store.bounded(evidence_client.get_object(Bucket=bucket,Key=key)['Body'])"
+        ],
+        [
+          "    raw_client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=4,read_timeout=10,retries={'max_attempts':1},max_pool_connections=8,tcp_keepalive=True))",
+          "    reserve()\n    raw_client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))"
+        ],
+        [
+          "_publish_tickers_layer(client,BUCKET,result)",
+          "_publish_tickers_layer(client,BUCKET,result,remaining_seconds=context.get_remaining_time_in_millis()/1000)"
+        ],
+        [
+          "Bloomberg parity 3/10: after the evidence-contract publication below, an",
+          "After the evidence-contract publication below, an"
+        ],
+        [
+          "artifact, not evidence. Fail-soft is the caller's policy; this helper\n    raises so the caller can log the skip.",
+          "artifact. Its exact canonical input, compilers, prior head and output are\n    retained before one conditional publication; failure is reported separately\n    from the original research producer's status."
+        ]
+      ]
+    },
+    "aws/lambdas/justhodl-microcap-float-squeeze/tests/run_tests.py": {
+      "predecessor": "tests/fixtures/short-interest-ticker-projection/microcap-run-tests-before.py.txt",
+      "bytes": 14958,
+      "sha256": "970f8c4b8d49f3e67a98e1eae495481aa0f318acc197e160e56a1ad13c33b468",
+      "edits": [
+        [
+          "        self.assertTrue((SRC/'lambda_function.py').read_bytes().startswith(raw.replace(b'def lambda_handler(',b'def _legacy_lambda_handler(',1)))",
+          "        # The later SI-helper rewire touched only legacy methods. Validate its\n        # exact complete delta, then retain the original predecessor assertion.\n        delta=json.loads((ROOT/'tests/fixtures/short-interest-ticker-projection/microcap-approved-source-delta.json').read_bytes())\n        previous=(ROOT/delta['predecessor']).read_bytes()\n        self.assertEqual(len(previous),delta['bytes']);self.assertEqual(hashlib.sha256(previous).hexdigest(),delta['sha256'])\n        expected=previous.decode('utf-8')\n        for old,new in delta['edits']:self.assertEqual(expected.count(old),1);expected=expected.replace(old,new)\n        current=(SRC/'lambda_function.py').read_bytes()\n        self.assertEqual(current,expected.encode('utf-8'));self.assertEqual(hashlib.sha256(current).hexdigest(),delta['current_source_sha256'])\n        self.assertTrue(previous.startswith(raw.replace(b'def lambda_handler(',b'def _legacy_lambda_handler(',1)))"
+        ]
+      ]
+    }
+  }
+}

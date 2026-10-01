@@ -4,11 +4,11 @@ Deploy retrigger: preflight fixture (squeeze-pretrigger migration entry)
 retired after 3/10 rewire; no logic change.
 Second retrigger: equity-enrich also retired from migration fixture.
 
-After the evidence-contract publication below, an
+Bloomberg parity 3/10: after the evidence-contract publication below, an
 additive consumer-facing layer publishes data/short-interest-tickers.json
 (per-ticker descriptive measurements). The research contract is untouched.
 """
-import json,re,time
+import json,re
 from datetime import datetime,timezone,date
 import boto3
 from botocore.config import Config
@@ -40,7 +40,7 @@ class EvidenceStorage:
         if not (request_path(key) or store.artifact_key(key)):raise ValueError('FINRA research evidence write required')
         return self.client.put_object(**request)
 
-def _publish_tickers_layer(evidence_client,bucket,result,*,remaining_seconds):
+def _publish_tickers_layer(evidence_client,bucket,result):
     """Build and publish the per-ticker artifact from the just-published head.
 
     Reads the head packet and its record-shard refs through the evidence
@@ -48,68 +48,25 @@ def _publish_tickers_layer(evidence_client,bucket,result,*,remaining_seconds):
     short_interest_tickers, and writes data/short-interest-tickers.json
     with a RAW client: EvidenceStorage only permits evidence-contract
     keys, and the tickers artifact is a separate Khalid-approved consumer
-    artifact. Its exact canonical input, compilers, prior head and output are
-    retained before one conditional publication; failure is reported separately
-    from the original research producer's status.
+    artifact, not evidence. Fail-soft is the caller's policy; this helper
+    raises so the caller can log the skip.
     """
     if not isinstance(result,dict) or result.get('published') is not True:
         return None
-    if type(remaining_seconds) not in (int,float) or not 120<=remaining_seconds<float('inf'):
-        raise ValueError('Insufficient remaining time for optional ticker publication')
-    started=time.monotonic()
-    def reserve():
-        if remaining_seconds-(time.monotonic()-started)<120:
-            raise ValueError('Ticker acquisition reserve exhausted; preserve previous projection')
-    reserve()
     head=store.bounded(evidence_client.get_object(Bucket=bucket,Key=PUBLISHED_KEY)['Body'])
     packet=model.strict(head)
-    # Bind to this completed producer run, never whichever head won a later race.
-    replay=result.get('replay')
-    if (not isinstance(packet,dict) or packet.get('contract')!=model.CONTRACT
-            or not isinstance(replay,dict) or packet.get('replay')!=replay
-            or model.digest({k:v for k,v in packet.items() if k!='replay'})!=replay.get('output_sha256')
-            or any(packet.get(k) is not False for k in model.PERMISSIONS)):
-        raise ValueError('Exact just-published research head required')
     refs=packet.get('record_shards')
     if not isinstance(refs,dict) or not refs:
         raise ValueError('Published head carries no record shards')
-    if len(refs)>256 or any(not isinstance(prefix,str) or not re.fullmatch('[a-f0-9]{2}',prefix) for prefix in refs):
-        raise ValueError('Whole bounded shard index required')
-    shards={};source_bytes=0;issue_ids=set()
-    for prefix,ref in sorted(refs.items()):
+    shards={}
+    for prefix,ref in refs.items():
         key=ref.get('key') if isinstance(ref,dict) else None
-        if (not isinstance(key,str) or not re.fullmatch(re.escape(model.PREFIX)+r'records/[a-f0-9]{64}\.json',key)
-                or type(ref.get('bytes')) is not int or not 0<ref['bytes']<=model.MAX
-                or not isinstance(ref.get('sha256'),str) or key!=model.PREFIX+'records/'+ref['sha256']+'.json'):
-            raise ValueError('Exact record-shard reference required')
-        reserve()
+        if not isinstance(key,str):
+            raise ValueError('Shard reference missing key')
         raw=store.bounded(evidence_client.get_object(Bucket=bucket,Key=key)['Body'])
-        source_bytes+=len(raw)
-        if source_bytes>64*1024*1024 or store.identity(raw,'records')!=ref:
-            raise ValueError('Whole referenced shard bytes differ or exceed admission bound')
-        shard=model.strict(raw)
-        if not isinstance(shard,dict) or shard.get('contract')!='short-interest-record-shard.v1' or not isinstance(shard.get('records'),dict):
-            raise ValueError('Reported record shard required')
-        for identifier,record in shard['records'].items():
-            identity=record.get('identity') if isinstance(record,dict) else None
-            if (not isinstance(identifier,str) or not re.fullmatch('[a-f0-9]{64}',identifier)
-                    or identifier in issue_ids or not identifier.startswith(prefix)
-                    or not isinstance(identity,dict)
-                    or identifier!=model.record_id(tuple(identity.get(k) for k in tickers.GRAIN))):
-                raise ValueError('Exact unique reported issue record required')
-            issue_ids.add(identifier)
-        shards[prefix]=shard
-    expected_issues=(packet.get('counts') or {}).get('issues')
-    if type(expected_issues) is not int or len(issue_ids)!=expected_issues:
-        raise ValueError('Whole issue inventory differs from research head')
-    reserve()
-    raw_client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))
-    from pathlib import Path
-    compilers={module.__name__+'.py':Path(module.__file__) for module in
-        (model,store,producer,short_interest_context,model.exact,model.measurements)}
-    compilers['lambda_function.py']=Path(__file__)
-    meta=tickers.publish_tickers_artifact(raw_client,bucket,shards,packet.get('settlement_date'),
-        packet.get('generated_at'),expected_head=head,compiler_paths=compilers)
+        shards[prefix]=model.strict(raw)
+    raw_client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=4,read_timeout=10,retries={'max_attempts':1},max_pool_connections=8,tcp_keepalive=True))
+    meta=tickers.publish_tickers_artifact(raw_client,bucket,shards,packet.get('settlement_date'),packet.get('generated_at'))
     try:
         age=(date.today()-date.fromisoformat(str(packet.get('settlement_date')))).days
         if age>45:
@@ -135,9 +92,7 @@ def lambda_handler(event=None,context=None):
     remaining=context.get_remaining_time_in_millis()/1000
     result=producer.run(client,BUCKET,event.get('request_id') or event.get('id') or 'scheduled-short-interest:'+datetime.now(timezone.utc).date().isoformat(),execution,remaining_seconds=remaining)
     try:
-        projected=_publish_tickers_layer(client,BUCKET,result,remaining_seconds=context.get_remaining_time_in_millis()/1000)
-        projection_status={'status':'published' if projected is not None else 'not_attempted'}
+        _publish_tickers_layer(client,BUCKET,result)
     except Exception as exc:
-        projection_status={'status':'unavailable','error_type':type(exc).__name__}
-        print(f"[tickers-layer] skipped: {type(exc).__name__}")
-    return {'statusCode':200,'body':json.dumps({**result,'consumer_projection':projection_status})}
+        print(f"[tickers-layer] skipped: {type(exc).__name__}: {exc}")
+    return {'statusCode':200,'body':json.dumps(result)}
