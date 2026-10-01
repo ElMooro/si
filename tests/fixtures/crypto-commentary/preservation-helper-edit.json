@@ -1,0 +1,10 @@
+{
+  "target": "tests/helpers/chart-refresh-status-preservation.cjs",
+  "predecessor_sha256": "5dfa6cee5dd88d5e7662d98ab7020b236418b1cde9da3452c32e9faf52f4d3b4",
+  "edits": [
+    [
+      "function normalizeHtml(raw,file){\n if(file!=='chart.html')return raw;",
+      "function normalizeHtml(raw,file){\n if(file==='crypto/index.html'){\n  const plan=require('../fixtures/crypto-commentary/edits.json');assert.equal(hash(raw),plan.candidate_sha256);\n  for(const [before,after] of [...plan.edits].reverse()){assert.equal(raw.split(after).length-1,1);raw=raw.replace(after,before);}\n  assert.equal(hash(raw),plan.predecessor_sha256);return raw;\n }\n if(file!=='chart.html')return raw;"
+    ]
+  ]
+}

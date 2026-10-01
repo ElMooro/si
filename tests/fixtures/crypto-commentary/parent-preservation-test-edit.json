@@ -1,0 +1,10 @@
+{
+  "target": "tests/chart-html-labels-preservation.test.js",
+  "predecessor_sha256": "3e9a9800e42d96dd31f8b5a8099ba10c4752dce422921d72ad59738cdc18ff54",
+  "edits": [
+    [
+      " assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));",
+      " let expected=prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook);\n const delta=require('./fixtures/crypto-commentary/preservation-helper-edit.json');\n for(const [before,after] of delta.edits){assert.equal(expected.split(before).length-1,1);expected=expected.replace(before,after);}\n assert.equal(fs.readFileSync(path.join(R,file),'utf8'),expected);"
+    ]
+  ]
+}

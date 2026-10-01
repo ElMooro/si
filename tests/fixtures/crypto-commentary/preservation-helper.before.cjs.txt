@@ -28,11 +28,6 @@ function normalize(raw,file){
  return old;
 }
 function normalizeHtml(raw,file){
- if(file==='crypto/index.html'){
-  const plan=require('../fixtures/crypto-commentary/edits.json');assert.equal(hash(raw),plan.candidate_sha256);
-  for(const [before,after] of [...plan.edits].reverse()){assert.equal(raw.split(after).length-1,1);raw=raw.replace(after,before);}
-  assert.equal(hash(raw),plan.predecessor_sha256);return raw;
- }
  if(file!=='chart.html')return raw;
  const record=manifest.html,old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
  assert.equal(raw,old.replace(record.old,record.fresh));assert.equal(hash(raw),record.sha256);return old;

@@ -77,31 +77,6 @@ function bar(v,mx,clr){var w=mx>0?Math.max(3,v/mx*100):3;return "<div style='hei
 function canonPx(sym,fb){try{var c=(D.prices_canonical||{}).prices||{};if(c[sym]&&c[sym].price)return c[sym].price;}catch(e){}return fb}
 function priceFmt(p){if(!p)return"$0";return"$"+p.toLocaleString(undefined,{maximumFractionDigits:p>=1?2:6})}
 
-// Typed commentary presentation: text is escaped before limited emphasis.
-function renderCryptoCommentary(value){
-  var ai=value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  function text(v,fallback,max){return typeof v==="string"&&v.trim()&&v.length<=max?v:fallback;}
-  function escape(v){return v.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-  var analysis=text(ai.analysis,"",100000);
-  var h="<div class='pane' id='pane-ai'><div class='card' style='overflow-wrap:anywhere'><div class='card-title' style='color:var(--t2)'>Research commentary</div>";
-  if(ai.status!=="ok"||!analysis){
-    var message=text(ai.error,"Model commentary unavailable.",2000);
-    return h+"<p style='color:var(--t2)'>"+escape(message)+"</p></div></div>";
-  }
-  var model=text(ai.model,"Unavailable",256);
-  var stamp=text(ai.generated_at,"",80);
-  var validStamp=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(stamp)&&Number.isFinite(Date.parse(stamp));
-  if(validStamp)validStamp=new Date(stamp.replace(/(?:Z|[+-]\d{2}:\d{2})$/,"Z")).toISOString().slice(0,19)===stamp.slice(0,19);
-  h+="<p style='color:var(--t2)'>Research only. Forecast accuracy and portfolio suitability are unverified.</p>";
-  h+="<div style='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap'><div>Model: <strong>"+escape(model)+"</strong></div>";
-  h+="<div>Reported generation time: <strong>"+escape(validStamp?stamp:"Unavailable")+"</strong></div></div>";
-  var sources=Array.isArray(ai.system_sources)&&ai.system_sources.length<=100&&ai.system_sources.every(function(s){return typeof s==="string"&&s.trim()&&s.length<=256;})?ai.system_sources:null;
-  if(sources&&sources.length)h+="<p>Reported sources: "+sources.map(escape).join(" + ")+"</p>";
-  else h+="<p>Reported sources: unavailable</p>";
-  h+="<div class='ai-report'>"+escape(analysis).replace(/\*\*([^\n]*?)\*\*/g,"<strong>$1</strong>").replace(/\r\n?|\n/g,"<br>")+"</div></div></div>";
-  return h;
-}
-
 function render(){
 try{
 if(!D)return;
@@ -263,7 +238,16 @@ h+="</tbody></table>";}else{h+="<div style='color:var(--t3);padding:30px;text-al
 h+="</div></div>";
 
 // ========== AI INTEL ==========
-h+=renderCryptoCommentary(ai);
+h+="<div class='pane' id='pane-ai'>";
+if(ai.status==="ok"&&ai.analysis){
+h+="<div class='card'><div class='card-title'>AI Intelligence &mdash; Wyckoff + Predictions</div>";
+h+="<div style='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap'>";
+h+="<div style='padding:5px 10px;background:var(--bbg);border:1px solid rgba(41,121,255,.2);border-radius:6px;font-size:10px'>Model: <strong>"+(ai.model||"?")+"</strong></div>";
+h+="<div style='padding:5px 10px;background:var(--gbg);border:1px solid rgba(0,230,118,.2);border-radius:6px;font-size:10px'>Generated: <strong>"+(ai.generated_at||"?").replace("T"," ").replace("Z","")+"</strong></div>";
+if(ai.system_sources)h+="<div style='padding:5px 10px;background:var(--ybg);border:1px solid rgba(255,196,0,.2);border-radius:6px;font-size:10px'>Sources: <strong>"+ai.system_sources.join(" + ")+"</strong></div>";
+h+="</div><div class='ai-report'>"+ai.analysis.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\n/g,"<br>")+"</div></div>";}
+else{h+="<div class='card'><div class='card-title'>AI Intelligence</div><div style='color:var(--t3);padding:40px;text-align:center'>"+(ai.error||"AI report generates after Lambda runs.")+"</div></div>";}
+h+="</div>";
 
 // ========== STABLECOINS (with state visual) ==========
 h+="<div class='pane' id='pane-stablecoins'>";

@@ -5,10 +5,7 @@ test('complete indicator UX file changes only its helper and three reviewed subs
 test('refresh preservation retains every earlier assertion through one exact normalization hook',()=>{
  const file='tests/helpers/chart-refresh-status-preservation.cjs',prior=fs.readFileSync(path.join(D,file+'.txt'),'utf8');
  const hook="\n const later=require('./chart-html-labels-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);";
- let expected=prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook);
- const delta=require('./fixtures/crypto-commentary/preservation-helper-edit.json');
- for(const [before,after] of delta.edits){assert.equal(expected.split(before).length-1,1);expected=expected.replace(before,after);}
- assert.equal(fs.readFileSync(path.join(R,file),'utf8'),expected);
+ assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));
 });
 test('all earlier volume assertions survive with the actual escaping dependency',()=>{for(const file of Object.keys(manifest.test_adaptations))normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file);});
 test('restoring executable labels or changing unrelated functions fails preservation',()=>{

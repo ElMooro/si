@@ -1,0 +1,130 @@
+{
+  "stage": 528,
+  "status": "tested_source_batch_awaiting_static_release",
+  "scope": "Crypto commentary section: type-safe escaped text, complete original preservation, truthful unavailable/research state and reported clocks. Other sections and source packets are outside this repair.",
+  "predecessor_sha256": "6ebe2ca761773be5a29961784636f141933d9e7ca18f3ee483c0e569577acfc0",
+  "source_sha256": "00552be437308e376be5229b7717cf39a1ab45205f1340eb1145686d52bed68d",
+  "candidate_tests": 9,
+  "browser_scenarios": 10,
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Whole frontend/deployment gates",
+    "Exact static build and source-byte verification",
+    "Other Crypto page measurement defaults and unsafe renderers remain open"
+  ],
+  "initial_integration_failure": "Two existing whole-page preservation tests correctly rejected the new commentary edit. Their shared normalizer now checks the full candidate hash, reverses exactly the two reviewed edits and checks the full predecessor hash. All original test assertions remain.",
+  "validation": {
+    "checks": [
+      {
+        "suite": "contracts-build",
+        "exit": 0
+      },
+      {
+        "suite": "deployment",
+        "exit": 0
+      },
+      {
+        "suite": "browser",
+        "exit": 0
+      },
+      {
+        "suite": "contracts",
+        "exit": 0
+      },
+      {
+        "suite": "scripts",
+        "exit": 0
+      },
+      {
+        "suite": "wiring",
+        "exit": 0
+      },
+      {
+        "suite": "frontend",
+        "exit": 0
+      }
+    ],
+    "browser": {
+      "scope": "Actual candidate commentary renderer and full page inline CSS; isolated DOM, invented data, no network. Other page sections and live producers are not tested.",
+      "results": [
+        {
+          "name": "normal",
+          "width": 390,
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage528-browser-final\\stage528-normal-390.png",
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "unavailable",
+          "width": 390,
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage528-browser-final\\stage528-unavailable-390.png",
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "malformed",
+          "width": 390,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "injection",
+          "width": 390,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "long",
+          "width": 390,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "normal",
+          "width": 1280,
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage528-browser-final\\stage528-normal-1280.png",
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "unavailable",
+          "width": 1280,
+          "screenshot": "C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage528-browser-final\\stage528-unavailable-1280.png",
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "malformed",
+          "width": 1280,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "injection",
+          "width": 1280,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        },
+        {
+          "name": "long",
+          "width": 1280,
+          "screenshot": null,
+          "no_markup_execution": true,
+          "no_overflow": true
+        }
+      ],
+      "page_errors": 0,
+      "network_requests": 0
+    },
+    "deployment_cases": 1021,
+    "shell_cases": 15,
+    "application_packet_reads": 0
+  }
+}
