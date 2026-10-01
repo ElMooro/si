@@ -11,7 +11,7 @@ test('prior scalar tests retain every assertion with only real dependency and ch
   let prior=fs.readFileSync(path.join(D,file+'.txt'),'utf8').replace('barEvidence:new WeakMap(),','barEvidence:new WeakMap(),observationAxes:new WeakMap(),').replace("'paintObservations',","'observationAxisFormatter','bindObservationAxis','paintObservations',");
   if(file.endsWith('points.test.js'))prior=prior.replace('const row={options,type,seriesType:','const row={options,type,applyOptions(o){Object.assign(this.options,o);},seriesType:');
   else prior=prior.replace('chart:{priceScale:','chart:{applyOptions(){},priceScale:').replace('addLineSeries:()=>({setData:','addLineSeries:()=>({applyOptions(){},setData:');
-  assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior);
+  assert.equal(file.endsWith('integration.test.js')?require('./helpers/chart-html-labels-preservation.cjs').normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file):fs.readFileSync(path.join(R,file),'utf8'),prior);
  }
 });
 test('source rounding or unrelated arithmetic edits fail the preservation gate',()=>{

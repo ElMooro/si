@@ -7296,3 +7296,12 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `7a96c14e2a9653c4d38cfff29283c23a1baab3e8` matches the exact served Pages build, run 36859499377. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - Combined checks passed 2,560 frontend cases, 1018 deployment and fifteen shell checks, including twenty new refresh-status/lifecycle/preservation cases. Fourteen offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
 - Refresh status describes AUTO, PAUSED or REPLAY; the reported age of usable selected-symbol tape entries is separate and grants no chart-freshness or session claim. Existing polling, settings and replay behavior are preserved. Removed mkChart objects release their resize observer, timers and window listener; queued callbacks cannot resize them. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 511: chart HTML labels (candidate; prioritized before Stage 510)
+
+- Complete invented URL input reproduced executable DOM content at desktop and mobile widths. The candidate encodes user/source labels at 21 engine functions and the indicator UX legend while preserving original identities, calculations and interactions.
+- Eight focused cases pass and all eight fail on the predecessor. Expanded whole-module browser cases retain literal notes/attributes, query/hash entry, tab recovery, alert deletion and comparison-removal identity. Combined checks and exact publication are pending; this is not a complete security audit.
+- The signed-volume Stage 510 prototype remains unpublished, and must be rebased after this security repair. No actual/private/current-consumer data, producer invocation or investment authority change. All ten institutional workstreams OPEN.
+
+- Stage 511 combined checks passed 2,578 frontend cases, 1018 deployment and fifteen shell checks. Thirteen new behavior/preservation cases and fifteen offline desktop/mobile suites pass. Literal label/identity preservation is verified within this scope; exact static release remains pending.
