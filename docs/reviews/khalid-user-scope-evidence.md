@@ -105,17 +105,20 @@ Backend suite: 81 checks, including entire serialized-output equality with the n
 field removed and exact legacy qualification equality. Tests cover huge integers,
 invalid classes/units/buckets, exact labels versus healthcare/unknown/case drift,
 source mismatches/collisions, native stale health, and preserved uncertainty.
-All 2,543 frontend tests pass in the final combined run. Page parsing covers 599
+All 2,544 frontend tests pass in the final combined run. Page parsing covers 599
 public graphs with zero syntax errors; engine wiring and Python preflight pass.
 Scope frontend tests cover values/identity/clocks, overlapping filter counts,
 no second threshold evaluator and legacy independence. Four browser cases use real
 page HTML/CSS and modules with intercepted invented inputs at 1440/390 widths:
 keyboard filter/reset, details, default all, counts, no horizontal overflow,
-independent scope expiry and one public snapshot request. Existing four-case
+independent scope expiry and one shared public snapshot request per load. A second
+explicit refresh injects malformed optional scope and verifies that legacy readiness
+still mounts, without a browser error. Existing four-case
 qualification browser suite also passes. These are not live release acceptance.
 
-Independent working-tree review found two defects (unknown industry labels and
-native Katlin stale health); both were repaired with regressions. Exact committed
+Independent review found three defects (unknown industry labels, native Katlin
+stale health and a malformed optional-reference exception); all were repaired with
+regressions, including browser proof that malformed scope leaves legacy visible. Exact committed
 head review is required before any release. Draft branch only: no merge, dispatch,
 AWS/vendor/private calls, schedules, orders or capital-policy changes.
 

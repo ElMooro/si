@@ -34,3 +34,11 @@ test('producer deadline equality is valid; expiry removes scope only',()=>{
  p.sources[0].finviz_snapshot_at=p.sources[0].census_snapshot_at=p.sources[0].research_at;
  assert.equal(project(f,now).valid,true);assert.equal(project(f,now+1).valid,false);assert.equal(ctx.jhSniperQualification(f,now+1).valid,true);
 });
+
+test('malformed optional source references cannot throw or suppress legacy qualification',()=>{
+ for(const refs of [[null],[1],['board/0'],[{}],[[0,null]],[[0,{}]],[[0]],[[9,'board/0']],[[0,'not/a/path']]]){
+  const f=fresh();f.user_scope_evidence.rows[0].refs=refs;
+  assert.doesNotThrow(()=>project(f,now));assert.equal(project(f,now).valid,false);
+  assert.equal(ctx.jhSniperQualification(f,now).valid,true);
+ }
+});

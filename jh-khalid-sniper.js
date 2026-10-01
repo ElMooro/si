@@ -482,6 +482,7 @@
             !(ref[0] === 0 ? /^(board|etfs|ledger)\/\d+$/ : /^(picks|watch)\/\d+$/).test(ref[1])) { bad = true; return; }
         refs.add(ref[0]);
       });
+      if (bad) return null; // Never dereference a rejected optional source reference.
       r.checks.forEach(function (c, j) {
         if (!Array.isArray(c) || c.length !== 3 || !STATES.includes(c[0]) || !Object.prototype.hasOwnProperty.call(p.reasons, c[2]) || typeof p.reasons[c[2]] !== "string") { bad = true; return; }
         if (c[0] === "UNAVAILABLE") { if (c[1] !== null) bad = true; return; }

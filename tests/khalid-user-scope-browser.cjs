@@ -42,7 +42,13 @@ for(const pageName of ['khalid.html','chart.html'])for(const width of [1440,390]
  assert.equal(await panel.locator('.sn-scope-check').count(),0);assert.equal(await panel.locator('.sn-card').count(),Math.min(10,total));
  assert.match(await panel.textContent(),/Existing backend qualification — PASS/);assert.match(await panel.textContent(),/Scope evidence — UNAVAILABLE/);
  await select.selectOption('BIOTECH');assert.equal(await panel.locator('.sn-card').count(),0);await reset.click();assert.equal(await panel.locator('.sn-card').count(),Math.min(10,total));
- assert.deepEqual(errors,[]);evidence.push({pageName,width,total,overlappingCounts:true,keyboardFilterAndReset:true,independentExpiry:true,requests:requests.filter(x=>x==='/data/khalid.json').length,geometry,errors});await context.close();
+ packet.user_scope_evidence.rows[0].refs=[null];
+ await page.evaluate(()=>{__now=Date.parse('2026-10-01T04:05:00Z');});
+ await panel.getByRole('button',{name:'Refresh data',exact:true}).click();
+ await panel.locator('.sn-card').first().waitFor();
+ assert.equal(await panel.locator('.sn-scope-check').count(),0);assert.match(await panel.textContent(),/Existing backend qualification — PASS/);
+ assert.match(await panel.textContent(),/Scope evidence — UNAVAILABLE/);
+ assert.deepEqual(errors,[]);evidence.push({pageName,width,total,overlappingCounts:true,keyboardFilterAndReset:true,independentExpiry:true,malformedScopeKeepsLegacy:true,requests:requests.filter(x=>x==='/data/khalid.json').length,geometry,errors});await context.close();
 }
 fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({scope:'Actual page HTML/CSS and shared module; invented source evidence; all requests intercepted; no live market or production acceptance claim',cases:evidence},null,2));console.log(JSON.stringify(evidence));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
