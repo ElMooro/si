@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / 'aws/shared'))
+sys.path.insert(0, str(ROOT / 'aws/lambdas/justhodl-industry-case/source'))
 from tape_truth_qualification import CONTRACT, PROJECTION, clock, project_tape
 NOW = datetime(2026, 10, 1, 22, tzinfo=timezone.utc)
 class Frozen(datetime):
@@ -114,9 +115,10 @@ class QualificationTests(unittest.TestCase):
             d,_,_=tape(fail=True,dates=[value]);s=d['symbols']['SPY']
             self.assertEqual(s['cvd']['series'][0]['d'],value);self.assertEqual(s['observation_clocks']['cvd']['status'],status)
 
-    def test_actual_industry_projection_preserves_observations_and_unrelated_output_and_llm(self):
+    def test_actual_industry_projection_preserves_observations_and_measured_output(self):
         source,_,_=tape(fail=True);old,calls,_=industry(source,True);new,ncalls,_=industry(source)
-        self.assertEqual(calls,ncalls);self.assertFalse(any('tape' in args[2] for args in ncalls))
+        self.assertEqual([a[1:3] for a in calls],[a[1:3] for a in ncalls]);self.assertFalse(any('tape' in args[2] for args in ncalls))
+        self.assertTrue(all(a[0] is False for a in ncalls));self.assertEqual(new['qualification']['freshness'],'UNKNOWN')
         self.assertEqual(old['industries'],new['industries'])
         for t,c in old['cases'].items():
             a=deepcopy(c);b=deepcopy(new['cases'][t]);a.pop('tape',None);b.pop('tape',None);self.assertEqual(a,b)
@@ -154,7 +156,7 @@ class QualificationTests(unittest.TestCase):
         self.assertEqual(p['qualification']['freshness'],'UNKNOWN');self.assertIsNone(p['conviction'])
 
     def test_frozen_fetch_helpers_llm_prompt_and_why_bus_unchanged(self):
-        for engine,names in [('justhodl-tape-truth',['http_raw','completed_session','bar_delta','session_cvd','finra_day','parse_occ','zlast','conviction']),('justhodl-industry-case',['llm_case','tier_of','_g','_put'])]:
+        for engine,names in [('justhodl-tape-truth',['http_raw','completed_session','bar_delta','session_cvd','finra_day','parse_occ','zlast','conviction']),('justhodl-industry-case',['tier_of','_g','_put'])]:
             def funcs(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text()).body if isinstance(n,ast.FunctionDef)}
             base=ROOT/'aws/lambdas'/engine;old=funcs(base/'tests/legacy-before.py.txt');new=funcs(base/'source/lambda_function.py')
             for name in names:self.assertEqual(old[name],new[name],name)

@@ -68,3 +68,31 @@ test('real qualified projection retains observation dates, UNKNOWN freshness and
  const e=await render(packet,'?t=SPY');assert.deepEqual(e.warnings,[]);assert.match(e.elements.qa.innerHTML,/2026-01-06/);assert.match(e.elements.qa.innerHTML,/freshness UNKNOWN/i);assert.match(e.elements.qa.innerHTML,/calls and conviction withheld/i);
  assert.doesNotMatch(e.elements.qa.innerHTML,/GENUINE_UP|SHAKEOUT|FAKE_UP/);
 });
+test('actual repaired producer displays original source dates and publication-only clock without hiding measurements',async()=>{
+ const packet=JSON.parse(execFileSync('python3',['-B','aws/lambdas/justhodl-industry-case/tests/test_publication.py','--fixture'],{cwd:root,encoding:'utf8'}));
+ const e=await render(packet,'?t=T0000');assert.deepEqual(e.warnings,[]);
+ assert.match(e.elements.sub.textContent,/Generated 2026-10-01T13:00:00\+00:00 \(publication time only\)/);
+ assert.match(e.elements.sub.textContent,/freshness UNKNOWN/);assert.doesNotMatch(e.elements.sub.textContent,/As of 2026-10-01|LIVE/);
+ assert.match(e.elements.sourceQualification.textContent,/2026-08-18T03:00:00Z/);
+ assert.match(e.elements.sourceQualification.textContent,/2026-08-14/);
+ assert.match(e.elements.sourceQualification.textContent,/NO_|No authoritative/);
+ assert.match(e.elements.qa.innerHTML,/50\.0%/);assert.match(e.elements.ai.innerHTML,/Recorded cohort/);
+ assert.equal(e.nodes.league.length,2);assert.equal(e.ctx.location.search,'?t=T0000');
+ e.ctx.openInd('Semis');assert.equal(memberTickers(e.elements.imem.innerHTML).length,2);
+});
+test('missing and malformed qualifications remain readable without forged zero counts or HTML',async()=>{
+ const missing=await render({status:'MISSING',why:'universe spine unavailable',publication_contract:'industry-case-publication.v1',sources:{}},'');
+ assert.match(missing.elements.sub.textContent,/unavailable cases across unavailable industries/);
+ assert.match(missing.elements.sub.textContent,/freshness UNKNOWN/);assert.match(missing.elements.sub.textContent,/MISSING/);
+ const packet=structuredClone(captured);packet.publication_contract='industry-case-publication.v1';packet.status='PARTIAL';
+ packet.sources={'source':{availability:'INVALID',clocks:{generated_at:{value:{toString:null},status:'INVALID'},as_of:{value:'<img src=x>',status:'INVALID'}}}};
+ packet.cases.NVDA.ai_case='<img src=x onerror=boom()>';packet.cases.NVDA.ai_mode='<b>unavailable</b>';
+ const e=await render(packet);assert.deepEqual(e.warnings,[]);assert.equal(e.nodes.league.length,149);
+ assert.match(e.elements.sourceQualification.textContent,/INVALID/);assert.match(e.elements.sourceQualification.textContent,/<img src=x>/);
+ assert.doesNotMatch(e.elements.ai.innerHTML,/<img|<b>/);assert.match(e.elements.ai.innerHTML,/&lt;img/);
+});
+test('legacy measured packet stays available with its original date and explicitly unavailable source qualification',async()=>{
+ const e=await render();assert.equal(e.nodes.league.length,149);
+ assert.match(e.elements.sub.textContent,/legacy packet date; not verified observation freshness/);
+ assert.match(e.elements.sourceQualification.textContent,/Original per-source dates\/qualification unavailable/);
+});

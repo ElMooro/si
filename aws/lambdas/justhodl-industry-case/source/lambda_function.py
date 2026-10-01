@@ -9,13 +9,15 @@ event-shaped, not a static map).  LLM narrative self-heals.
 import gzip
 import json
 import os
-import urllib.request
+import math
+import time
 from datetime import datetime, timezone
 
 import boto3
 from tape_truth_qualification import project_tape
+from publication import CONTRACT, SOURCE_KEYS, prepare, number
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/industry-case.json"
@@ -55,40 +57,64 @@ def _put(key, obj):
                   CacheControl="no-cache")
 
 
-def llm_case(key_a, name, facts):
-    if not key_a:
-        return None, ("rules_only (Anthropic billing down -- "
-                      "self-heals on credits)")
+def llm_case(enabled, name, facts, context=None, deadline=None):
+    fallback = "Recorded cohort: rank %s in %s; %s%% of listed-cohort market value. Source freshness UNKNOWN; no current-market inference." % (facts["rank"], str(facts["industry"])[:120], facts["share_pct"])
+    def denied(reason):
+        return fallback[:420], "rules_only (" + reason + ")"
+    if not enabled:
+        return denied("optional narratives disabled pending activation review")
     try:
-        body = json.dumps({
-            "model": "claude-haiku-4-5",
-            "max_tokens": 160,
-            "messages": [{"role": "user", "content":
-                          "Two factual sentences on %s's role "
-                          "in its industry, using ONLY these "
-                          "facts, no hype: %s"
-                          % (name, json.dumps(facts)[:700])}]})
-        req = urllib.request.Request(
-            "https://api.anthropic.com/v1/messages",
-            data=body.encode(),
-            headers={"x-api-key": key_a,
-                     "anthropic-version": "2023-06-01",
-                     "content-type": "application/json"})
-        with urllib.request.urlopen(req, timeout=40) as r:
-            j = json.loads(r.read())
-        return j["content"][0]["text"].strip()[:420], "llm"
-    except Exception as e:  # noqa: BLE001
-        return None, ("rules_only (llm error %s -- "
-                      "self-heals)" % str(e)[:40])
+        remaining = context.get_remaining_time_in_millis() if context else None
+        if (type(remaining) not in (int, float) or not math.isfinite(remaining) or remaining < 60000
+                or deadline is None or time.monotonic() >= deadline):
+            return denied("optional narrative time budget unavailable")
+        # Import failure means deterministic fallback. Never construct a provider request here.
+        import llm_router
+        import llm_cost
+        # Require the existing admission controls before entering the router, which checks them again.
+        if llm_cost.mode() not in ("normal", "economy") or llm_cost.budget_ok() is not True or llm_cost.within_daily_cap() is not True:
+            return denied("router admission denied")
+        prompt = ("Explain these dated recorded cohort measurements in two sentences. Freshness is UNKNOWN; "
+                  "do not imply current conditions or make investment claims. Name: %s. Facts: %s" %
+                  (name[:120] if isinstance(name, str) else "unavailable", json.dumps(facts, allow_nan=False)[:700]))[:1100]
+        # Admission reads may themselves consume time; recheck before optional router work.
+        remaining = context.get_remaining_time_in_millis()
+        if (type(remaining) not in (int, float) or not math.isfinite(remaining) or remaining < 60000
+                or time.monotonic() >= deadline):
+            return denied("optional narrative time budget exhausted during admission")
+        line = llm_router.complete(prompt, tier="bulk", max_tokens=160,
+                                   contains_proprietary=False, on_demand=False)
+        if not isinstance(line, str) or not line.strip():
+            return denied("router unavailable or disallowed")
+        return line.strip()[:420], "governed_router (dated facts; freshness UNKNOWN)"
+    except Exception:
+        return denied("governed narrative unavailable")
 
 
-def build(event=None):
+def build(event=None, context=None):
     now = datetime.now(timezone.utc)
-    key_a = os.environ.get("ANTHROPIC_KEY", "")
+    narratives_enabled = os.environ.get("INDUSTRY_CASE_NARRATIVES", "off") == "governed"
+    narrative_deadline = time.monotonic() + 30
+    primary = _g(SOURCE_KEYS[0])
+    rows = primary.get("stocks") if isinstance(primary, dict) else None
+    read_companions = isinstance(rows, list) and len(rows) >= 1000
+    packets = {SOURCE_KEYS[0]: primary}
+    packets.update({key: _g(key) if read_companions else None for key in SOURCE_KEYS[1:]})
+    inputs, sources = prepare(packets, now)
+    if not read_companions:
+        for key in SOURCE_KEYS[1:]:
+            sources[key]["availability"] = "NOT_READ_PRIMARY_UNAVAILABLE"
     doc = {"v": VERSION, "engine": "justhodl-industry-case",
-           "as_of": now.date().isoformat(),
+           "as_of": None,
+           "publication_contract": CONTRACT,
+           "qualification": {"freshness": "UNKNOWN", "freshness_reason": "NO_AUTHORITATIVE_SOURCE_SLA",
+                             "current_eligible": False},
+           "sources": sources,
+           "narrative_control": {"enabled": narratives_enabled, "router_calls_max": AI_CAP,
+                                 "duplicate_protection": "BLOCKED_NO_DURABLE_IDEMPOTENCY",
+                                 "activation": "NOT_RESTORED"},
            "generated_at": now.isoformat(),
-           "status": "LIVE",
+           "status": "COMPUTED" if all(v["availability"] == "AVAILABLE" for v in sources.values()) else "PARTIAL",
            "method": {
                "share": "industry share = ticker mcap / "
                         "sum(universe mcap in industry); "
@@ -112,15 +138,15 @@ def build(event=None):
                       ">2500 highly concentrated, 1500-2500 "
                       "moderate, <1500 competitive (DOJ/FTC "
                       "convention)"}}
-    uni = _g("data/universe.json")
+    uni = inputs["data/universe.json"]
     stocks = (uni or {}).get("stocks") or []
-    if len(stocks) < 1000:
+    if not read_companions or not stocks:
         doc.update({"status": "MISSING",
                     "why": "universe spine absent/thin "
                            "(%d)" % len(stocks)})
         _put(OUT_KEY, doc)
         return doc
-    boom = _g("data/industry-boom.json") or {}
+    boom = inputs["data/industry-boom.json"]
     league = boom.get("league") or []
     boom_by_ind = {}
     for i, r in enumerate(sorted(
@@ -136,26 +162,26 @@ def build(event=None):
                 .get("inst_net_bps"),
                 "insider_buys_30d": (r.get("comp") or {})
                 .get("insider_buys_30d")}
-    earn = _g("data/earnings.json") or {}
+    earn = inputs["data/earnings.json"]
     beat_by_t = {r["t"]: r for r in
                  (earn.get("beat_league") or [])}
     picks_by_t = {p["t"]: p for p in
                   ((earn.get("growth_calls") or {})
                    .get("picks") or [])}
-    tape = _g("data/tape-truth.json") or {}
+    tape = inputs["data/tape-truth.json"]
     tape = tape if isinstance(tape, dict) else {}
     tape_by_t = tape.get("symbols") or {}
     tape_by_t = tape_by_t if isinstance(tape_by_t, dict) else {}
-    closes = (_g(CLOSES_KEY) or {}).get("closes") or {}
+    closes = inputs[CLOSES_KEY].get("closes") or {}
 
     def ret12(sym):
         arr = closes.get(sym)
         if isinstance(arr, list) and len(arr) >= 53 \
                 and arr[-53] and arr[-1]:
             try:
-                return round((arr[-1] / arr[-53] - 1)
-                             * 100, 1)
-            except (TypeError, ZeroDivisionError):
+                value = round((arr[-1] / arr[-53] - 1) * 100, 1)
+                return value if math.isfinite(value) else None
+            except (TypeError, ZeroDivisionError, OverflowError):
                 return None
         return None
 
@@ -175,6 +201,11 @@ def build(event=None):
     for ind, blk in inds.items():
         mem = sorted(blk["members"], key=lambda x: -x[2])
         tot = sum(m[2] for m in mem)
+        if (not number(tot) or tot <= 0
+                or not all(math.isfinite(100.0 * m[2] / tot) for m in mem)):
+            doc["status"] = "PARTIAL"
+            doc.setdefault("unavailable_industries", []).append(ind)
+            continue
         members = []
         hhi = 0.0
         wtd_num = wtd_den = 0.0
@@ -202,7 +233,7 @@ def build(event=None):
             "top3_share_pct": round(sum(
                 100.0 * m[2] / tot for m in mem[:3]), 1),
             "wtd_ret_12m_pct": round(wtd_num / wtd_den, 1)
-            if wtd_den else None,
+            if wtd_den and math.isfinite(wtd_num) and math.isfinite(wtd_den) else None,
             "median_ret_12m_pct": rets[len(rets) // 2]
             if rets else None,
             "ret_coverage": len(rets),
@@ -258,12 +289,12 @@ def build(event=None):
             break
         c = cases[tname]
         line, mode = llm_case(
-            key_a, c["name"],
+            narratives_enabled, c["name"],
             {"industry": c["industry"],
              "rank": "%d of %d" % (c["ind_rank"],
                                    c["ind_n"]),
              "share_pct": c["ind_share_pct"],
-             "boom": c.get("boom")})
+             "boom": c.get("boom")}, context, narrative_deadline)
         c["ai_case"] = line
         c["ai_mode"] = mode
         ai_done += 1
@@ -276,7 +307,7 @@ def build(event=None):
 
 
 def lambda_handler(event, context):
-    doc = build(event)
+    doc = build(event, context)
     return {"statusCode": 200,
             "body": json.dumps({"v": doc.get("v"),
                                 "status": doc.get("status"),
