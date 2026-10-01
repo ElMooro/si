@@ -6,11 +6,11 @@ const source = name => fs.readFileSync(path.join(root, name), 'utf8');
 // Not a layout/paint/browser substitute. Timers are retained but never fired.
 function chrome(code = source('jh-chart-indux.js'), w = {}) {
   const nodes = new Map(), timers = [], listeners = {};
-  function node() {
-    return { id: '', className: '', textContent: '', dataset: {}, children: new Map(),
+  function node(tagName = "div") {
+    return { tagName: tagName.toUpperCase(), isConnected: true, open: false, focus() { document.activeElement = this; }, closest() { return null; }, getClientRects() { return this.isConnected ? [{}] : []; }, setAttribute(k,v) { this[k]=v; }, showModal() { this.open=true; }, close() { this.open=false; if(this.onclose)this.onclose(); }, id: '', className: '', textContent: '', dataset: {}, children: new Map(),
       appendChild(n) { if (n.id) nodes.set(n.id, n); },
       set innerHTML(s) {
-        this.html = s; this.children.clear();
+        this.html = s; for (const n of this.children.values()) n.isConnected = false; this.children.clear();
         for (const match of s.matchAll(/<button\b([^>]*)>/g)) {
           const attrs = {}, b = node();
           for (const a of match[1].matchAll(/([\w-]+)(?:=(?:'([^']*)'|"([^"]*)"|([^\s>]+)))?/g)) attrs[a[1]] = a[2] ?? a[3] ?? a[4] ?? '';
@@ -26,11 +26,11 @@ function chrome(code = source('jh-chart-indux.js'), w = {}) {
   }
   nodes.set('legend', node());
   const document = { readyState: 'loading', createElement: node, getElementById: id => nodes.get(id) || null,
-    documentElement: node(), body: node(), addEventListener() {}, querySelectorAll() { return []; } };
+    documentElement: node(), body: node(), activeElement: null, querySelector(sel) { for (const n of nodes.values()) { const found=n.querySelector(sel); if(found)return found; } return null; }, addEventListener() {}, querySelectorAll() { return []; } };
   w.addEventListener = (name, fn) => { listeners[name] = fn; };
   const localStorage = { getItem() { return null; }, setItem() {} };
   new Function('window', 'document', 'localStorage', 'setTimeout', code)(w, document, localStorage, fn => timers.push(fn));
-  return { w, nodes, listeners, timers };
+  return { w, nodes, listeners, timers, document, node };
 }
 function engine() {
   const w = { __classifyCalls: 0, __distributionCalls: 0 };

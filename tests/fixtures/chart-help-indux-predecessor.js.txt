@@ -65,10 +65,8 @@
     "#inddlg .star.on{color:#f0b429}",
     "#inddlg .qhelp{width:22px;height:22px;flex:none;border-radius:50%;border:1px solid #434651;color:#787b86;font-size:11px;font-weight:700;margin-left:4px}",
     "#inddlg .qhelp:hover{border-color:#2962ff;color:#d1d4dc;background:#2a2e39}",
-    "#indhelp{display:none;position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;box-sizing:border-box;z-index:80;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding:8vh 0 0;overscroll-behavior:contain}",
-    "#indhelp[open]{display:flex}",
-    "#indhelp::backdrop{background:transparent}",
-    "#indhelp button:focus-visible{outline:2px solid #90b4ff;outline-offset:2px}",
+    "#indhelp{display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding-top:8vh}",
+    "#indhelp.on{display:flex}",
     "#indhelp .box{width:min(520px,94vw);max-height:min(78vh,640px);background:#1e222d;border:1px solid #2a2e39;border-radius:8px;color:#d1d4dc;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column}",
     "#indhelp .sh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #2a2e39}",
     "#indhelp .sh b{display:block;font-size:15px;font-weight:600}",
@@ -184,7 +182,7 @@
     }
     host.innerHTML = html;
     var timing = host.querySelector("[data-annotation-timing]");
-    if (timing) timing.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp("volume-timing", timing); };
+    if (timing) timing.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp("volume-timing"); };
     var dia = host.querySelector(".leg-dia");
     if (dia) dia.onclick = function (e) { e.stopPropagation(); if (window.jhChartMenu) window.jhChartMenu(dia); };
     host.querySelectorAll(".leg-row").forEach(function (row) {
@@ -202,7 +200,7 @@
         var i = INDS.find(function (x) { return x.id === row.getAttribute("data-id"); });
         if (!i) return;
         if (act === "eye") { i.hide = !i.hide; paintNow(); }
-        else if (act === "help") { if (window.jhInduxHelp) window.jhInduxHelp(i.id, btn); }
+        else if (act === "help") { if (window.jhInduxHelp) window.jhInduxHelp(i.id); }
         else if (act === "x") { i.on = false; i.hide = false; paintNow(); }
         else window.jhInduxSet(i, false, ctx);
       };
@@ -373,7 +371,7 @@
       document.querySelectorAll("#indlist [data-help]").forEach(function (b) {
         b.onclick = function (e) {
           e.stopPropagation();
-          if (window.jhInduxHelp) window.jhInduxHelp(b.getAttribute("data-help"), b);
+          if (window.jhInduxHelp) window.jhInduxHelp(b.getAttribute("data-help"));
         };
       });
       document.querySelectorAll("#indlist [data-star]").forEach(function (b) {
@@ -526,47 +524,7 @@
     });
   };
 
-  var helpReturn = null, helpParent = null;
-  function usableHelpTarget(n) {
-    return n && n !== document.body && n !== document.documentElement && n.isConnected && typeof n.focus === "function" && !n.disabled && !n.closest("[inert]") && n.getClientRects().length;
-  }
-  function finishHelp(d) {
-    if (d.open) return; // A queued close event must not close a newly opened help.
-    d.className = "";
-    var target = helpReturn, parent = helpParent;
-    helpReturn = helpParent = null;
-    if (!target && !parent) return;
-    if (!usableHelpTarget(target)) {
-      target = parent && parent.isConnected && parent.querySelector("button");
-      if (!usableHelpTarget(target)) target = document.querySelector("[data-annotation-timing]");
-      if (!usableHelpTarget(target)) target = document.querySelector("#legend .leg-dia");
-    }
-    if (usableHelpTarget(target)) target.focus({ preventScroll: true });
-  }
-  function dismissHelp(d) {
-    if (d.open) d.close();
-    finishHelp(d);
-  }
-  function helpDialog() {
-    var d = document.getElementById("indhelp");
-    if (!d) {
-      d = document.createElement("dialog");
-      d.id = "indhelp";
-      d.setAttribute("aria-labelledby", "indhelp-title");
-      document.body.appendChild(d);
-      d.oncancel = function (e) { e.preventDefault(); dismissHelp(d); };
-      d.onclose = function () { finishHelp(d); };
-      // Keep chart/document shortcuts from acting behind this modal. Native Tab
-      // handling still confines focus; button Enter/Space activation stays native.
-      d.onkeydown = function (e) {
-        e.stopPropagation();
-        if (e.key === "Escape") { e.preventDefault(); dismissHelp(d); }
-      };
-    }
-    return d;
-  }
-
-  window.jhInduxHelp = function (id, trigger) {
+  window.jhInduxHelp = function (id) {
     id = String(id || "");
     var TAPE = {
       capit: ["CAPIT · Capitulation", "Volume", "Volume Tape: return at most −2.8%, close in the bottom 42% of the range, and the panic score or a hard-decline override passes. The score combines return, prior-bar ATR, relative volume, range and location.", "A same-bar candidate, not a confirmed selling climax or reversal. There is no universal minimum-volume gate: price-decline overrides exist.", "The classifier first runs with 70 loaded bars, examining indices 60 onward. Earlier candidates can therefore appear later."],
@@ -650,11 +608,8 @@
       cave += " " + TIMING_WARNING;
       if (TAPE[id] && id !== "sc") cave += " Ordinary Volume Tape RVOL uses the preceding 60-bar positive-volume median (volume capped at 10× that baseline); VSA uses the preceding 20-bar mean. These are bar counts, not necessarily trading days.";
     }
-    var d = helpDialog();
-    if (!d.open) {
-      helpReturn = trigger || document.activeElement;
-      helpParent = helpReturn && helpReturn.closest("#inddlg, #indset");
-    }
+    var d = el("indhelp");
+    d.className = "on";
     var evHtml = "";
     if (id === "volume-timing") {
       evHtml = "<h5>PATTERN DETAILS</h5><div class=evlist>" + ["capit", "sc", "bc", "abs", "dist"].map(function (key) {
@@ -667,27 +622,25 @@
           return "<button type=button data-kind='" + k + "'><b>" + TAPE[k][0].split("·")[0].trim() + "</b><span>" + TAPE[k][0].split("·")[1].trim() + "</span><span class=qhelp>?</span></button>";
         }).join("") + "</div>";
     }
-    d.innerHTML = "<div class=box><div class=sh><div><b id=indhelp-title>" + title + "</b><span class=tag>" + tag.toUpperCase() + "</span></div><button type=button class=x id=helpx aria-label='Close help'>×</button></div>" +
+    d.innerHTML = "<div class=box><div class=sh><div><b>" + title + "</b><span class=tag>" + tag.toUpperCase() + "</span></div><button type=button class=x id=helpx>×</button></div>" +
       "<div class=hb>" +
         "<h5>WHAT IT IS</h5><p>" + what + "</p>" +
         "<h5>HOW TO READ IT</h5><p>" + how + "</p>" +
         evHtml +
         "<div class=caveat>" + cave + "</div>" +
       "</div></div>";
-    document.getElementById("helpx").onclick = function () { dismissHelp(d); };
-    d.onclick = function (e) { if (e.target === d) dismissHelp(d); };
+    document.getElementById("helpx").onclick = function () { d.className = ""; };
+    d.onclick = function (e) { if (e.target === d) d.className = ""; };
     d.querySelectorAll("[data-kind]").forEach(function (b) {
-      b.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp(b.getAttribute("data-kind"), b); };
+      b.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp(b.getAttribute("data-kind")); };
     });
-    if (!d.open) d.showModal();
-    d.className = "on";
-    document.getElementById("helpx").focus({ preventScroll: true });
   };
 
   window.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       var a = document.getElementById("inddlg"); if (a) a.className = "";
       var b = document.getElementById("indset"); if (b) b.className = "";
+      var c = document.getElementById("indhelp"); if (c) c.className = "";
     }
   });
 
