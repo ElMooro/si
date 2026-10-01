@@ -129,6 +129,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     try {
       errors = api.permissionErrors(p, "katlin", Date.now());
       if (typeof board.exposure_cap_pct !== "number" || !isFinite(board.exposure_cap_pct) || board.exposure_cap_pct < 0 || board.exposure_cap_pct > 100) errors.push("Effective cap unavailable or malformed");
+      if (!Array.isArray(board.hold_reasons) || board.hold_reasons.some(function (x) { return typeof x !== "string"; })) errors.push("Hold reasons unavailable or malformed");
       view = api.restrictedCopy(p, "katlin", errors);
     } catch (e) {
       errors = ["Capital permission unavailable: malformed packet or display validator unavailable"];
@@ -136,12 +137,18 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     }
     var effective = view.war_room || {};
     var expanded = host.querySelector("details");
-    var wasOpen = expanded && expanded.open;
-    host.replaceChildren();
+    if (expanded && host._katlinPacket !== p) { host.removeChild(expanded); expanded = null; }
+    host._katlinPacket = p;
+    var lineIndex = 0;
+    function displayNode(tag) {
+      var id = "katlin-permission-line-" + lineIndex++;
+      var n = document.getElementById(id);
+      if (!n) { n = document.createElement(tag); n.id = id; host.insertBefore(n, expanded || null); }
+      return n;
+    }
     function line(label, value) {
-      var n = document.createElement("p");
+      var n = displayNode("p");
       n.textContent = label + ": " + value;
-      host.appendChild(n);
     }
     function clock(value, dateOnly) {
       var valid = typeof value === "string" && (dateOnly ? /^\d{4}-\d{2}-\d{2}$/.test(value) : /(?:Z|[+-]\d\d:\d\d)$/.test(value));
@@ -150,12 +157,12 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
       var age = (Date.now() - stamp) / 3600000;
       return value + (age < 0 ? " (in " + (-age).toFixed(1) + "h)" : " (" + age.toFixed(1) + "h ago)");
     }
-    var heading = document.createElement("h2");
+    var heading = displayNode("h2");
     heading.textContent = "KATLIN · RESEARCH PERMISSION";
-    host.appendChild(heading);
     line("Scope", "Katlin research contributions only, including measurements on mixed-source Accumulation rows. Phase-detector and radar retain their own meaning. Rows and tiers are research, not entry signals.");
     line("Entry permission", errors.length ? "unavailable — no entry permission established" : effective.entries_allowed === true ? "allowed by loaded Katlin packet — not a buy or trigger" : "blocked");
     line("Effective cap", errors.length ? "unavailable — display restricted to 0%" : effective.exposure_cap_pct + "%");
+    line("Loaded packet cap", typeof board.exposure_cap_pct === "number" && isFinite(board.exposure_cap_pct) && board.exposure_cap_pct >= 0 && board.exposure_cap_pct <= 100 ? board.exposure_cap_pct + "% (subject to permission validation above)" : "unavailable");
     line("Posture", typeof board.posture === "string" ? board.posture : "unavailable");
     var reasons = Array.isArray(effective.hold_reasons) ? effective.hold_reasons.filter(function (x) { return typeof x === "string"; }) : [];
     line("Hold / validation reasons", reasons.concat(errors.filter(function (x) { return reasons.indexOf(x) < 0; })).join("; ") || "none reported");
@@ -163,15 +170,14 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     line("Original research", clock(p.research_generated_at));
     line("Market session (UTC date)", clock(p.session, true));
     line("Permission expiry", clock(p.expires_at));
-    if (api && api.evidenceNode) {
+    if (!expanded && api && api.evidenceNode) {
       var evidence = api.evidenceNode("Katlin source health and posture notes (including bond war room clock)", {
-        source_health: p.source_health == null ? "unavailable" : p.source_health,
+        source_health: board.source_health == null ? "unavailable" : board.source_health,
         authority: board.authority == null ? "unavailable" : board.authority,
         research_status: p.research_status == null ? "unavailable" : p.research_status,
         posture_notes: Array.isArray(p.picks) ? p.picks.map(function (r) { return {ticker: r && r.ticker, posture_note: r && r.posture_note != null ? r.posture_note : "unavailable"}; }) : "unavailable"
       }, document);
       host.appendChild(evidence);
-      evidence.open = !!wasOpen;
     }
   }
   setInterval(paintKatlinPermission, 30000);
