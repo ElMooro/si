@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 500: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search, exact scalar observation identity and bounded observation-cache recovery are accepted through Stage 500. The inspected static build includes 898 engine records, 599 page contracts and 66 complete artifacts. Next: unavailable-source diagnostics and scalar calendar/grouping correctness; broader legacy crypto/page correctness remains open. Actual normal execution/capacity, independent source qualification and reconciled portfolio consequences remain unverified. Original-publication windows are unchanged: Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 501: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497. Browser search, exact CQ/CISS scalar identity, bounded download recovery and unavailable-source inspection/calendar grouping are accepted through Stage 501. The inspected static build includes 898 engine records, 599 page contracts and 70 complete artifacts. Next: general warehouse chart measurement decoding and identity; broader legacy chart/page correctness remains open. Actual normal execution/capacity, independent source qualification and reconciled portfolio consequences remain unverified. Original-publication windows are unchanged: Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7143,3 +7143,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Stage 501 final candidate checks: 2,361 frontend; 1018 deployment and fifteen shell; 104 unchanged native cases; thirty focused regressions, including thirteen new diagnostic/preservation cases. Five offline suites pass at 1440/390px, including the complete drawing library, unavailable histories and pre-epoch groups. Exact Pages acceptance remains pending.
 
 - Stage 501 final combined-source checks after preserving PR33 and the nightly section registry: 2,370 frontend; 1018 deployment and fifteen shell; 104 unchanged native cases; thirty focused regressions, including thirteen new diagnostic/preservation cases. Five offline suites pass at 1440/390px, including the complete drawing library, unavailable histories and pre-epoch groups. Exact Pages acceptance remains pending.
+
+
+### Stage 501 exact static acceptance
+
+- Source `2cb92648c2c886d5268cfb832669f78d856daea5` is accepted against its exact served Pages build (successful Pages run 36831000447). All 70 inspected complete static artifacts match one manifest. The complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final source passed 2,370 frontend cases, 1018 deployment and fifteen shell checks, 104 unchanged native cases, thirty focused cases and five desktop/mobile offline suites. Empty diagnostic frames retain received evidence and unknown counts. Calendar groups retain every contributing original ordinal. Tests and screenshots verify that the prior DOM ticker watermark is cleared. No actual application/private/current-consumer data or producer invocation was involved.
+- The general warehouse chart decoder still coerces null/boolean/blank/array values into numbers and accepts an impossible date. Whole invented input/output reproduces this separately; it is the next repair. Original-provider qualification, gap-aware presentation, broader page correctness, normal scheduled publication and reconciled portfolio consequences remain open. All ten institutional workstreams remain OPEN.
