@@ -73,6 +73,27 @@ allocation prompts, delta selection, recipient/delivery logic, and handlers.
 It also checks nonmutation, mixed BUY/WATCH cohorts, typed score edge cases,
 escaping, source field passthrough, and UTC-date/LastModified baseline selection.
 
+## Validation
+
+- Secretary offline runner: **11 passed**.
+- Full deployment gate: **1,018 static checks and 15 mocked shell scenarios
+  passed**, with `DEPLOY_TARGETS=justhodl-financial-secretary` and the reviewed
+  base supplied as `GUARD_BASE_SHA`. The first attempt used a system Python in
+  shell subprocesses without the gate dependencies; rerunning with the test
+  virtual environment on PATH passed. No gate files were changed.
+- Public-boundary regression runner: **15 passed**, with synthetic/mocked inputs.
+- Selected Lambda source and configuration validators: **passed**.
+- Python compilation, diff whitespace check, and tracked-file secret scan:
+  **passed** (13,648 tracked files, zero findings).
+- Ops preflight: **passed**, with two pre-existing root-key warnings matching
+  the existing `flow-data.json` and `crypto-intel.json` reads. No I/O changed.
+- Local Chromium, 1100px viewport: original and draft rendered; the browser
+  confirmed the cohort label change, structured risk text, and 16 recommendation
+  table rows including the header. External browser requests were blocked.
+
+Review source SHA-256:
+`41a584bb6d3f95f2666dd14b00907b78517fde6a5c33eb4d8d3279bc265c24d1`.
+
 ## Limits
 
 No live or archived user payload was fetched, and this is not deployed evidence.
