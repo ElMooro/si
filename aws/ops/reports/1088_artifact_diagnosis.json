@@ -1,0 +1,317 @@
+{
+  "script": "1088_artifact_diagnosis",
+  "read_at": "2026-10-01T23:11:11Z",
+  "units": [
+    {
+      "lambda": "justhodl-sec-8k-enrich",
+      "expected_artifact": "data/sec-8k.json",
+      "recent_logs": [
+        {
+          "stream": "$LATEST]f4f09cb0b5a9422ea9fd500bc9d7af45",
+          "last_events": [
+            "INIT_START Runtime Version: python:3.12.mainlinev2.v53\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:82e039f92842e36f1a6625923469bca61af525e1ba09578e99a8baf78ff79db7\n",
+            "START RequestId: 356abee8-485e-43c6-9316-335c3c1aaa7c Version: $LATEST\n",
+            "[8k-enrich] CIK map cache hit (8006 entries, 0.4d old)\n"
+          ]
+        },
+        {
+          "stream": "$LATEST]7a83100bcb5149b5ad48c925eae6951d",
+          "last_events": [
+            "START RequestId: 2a58f504-b4ce-4882-8bab-33fb03f9d707 Version: $LATEST\n",
+            "[8k-enrich] CIK map cache hit (8006 entries, 0.4d old)\n",
+            "[8k-enrich] 728 new, 300 reused, 625 tickers, 343 fulltext, 25 red flags\n",
+            "END RequestId: 2a58f504-b4ce-4882-8bab-33fb03f9d707\n",
+            "REPORT RequestId: 2a58f504-b4ce-4882-8bab-33fb03f9d707\tDuration: 24575.96 ms\tBilled Duration: 25095 ms\tMemory Size: 512 MB\tMax Memory Used: 120 MB\tInit Duration: 518.17 ms\t\nXRAY TraceId: 1-6abee860-4a"
+          ]
+        },
+        {
+          "stream": "$LATEST]013db07d52214a32ae308b1bad067fc8",
+          "last_events": [
+            "START RequestId: 1897f76d-f224-4dbd-bdaf-ae5453a0be2a Version: $LATEST\n",
+            "[8k-enrich] CIK map cache hit (8006 entries, 0.4d old)\n",
+            "[8k-enrich] 730 new, 300 reused, 627 tickers, 344 fulltext, 25 red flags\n",
+            "END RequestId: 1897f76d-f224-4dbd-bdaf-ae5453a0be2a\n",
+            "REPORT RequestId: 1897f76d-f224-4dbd-bdaf-ae5453a0be2a\tDuration: 23564.94 ms\tBilled Duration: 24003 ms\tMemory Size: 512 MB\tMax Memory Used: 120 MB\tInit Duration: 437.26 ms\t\nXRAY TraceId: 1-6abee586-79"
+          ]
+        }
+      ],
+      "s3_search": [
+        {
+          "key": "data/sec-cik-ticker-map.json",
+          "modified": "2026-10-01T12:40:26Z",
+          "size": 150437
+        },
+        {
+          "key": "data/sec-filing-diff.json",
+          "modified": "2026-10-01T12:00:26Z",
+          "size": 7165
+        },
+        {
+          "key": "data/sec-filings-intel.json",
+          "modified": "2026-10-01T21:07:49Z",
+          "size": 3368592
+        },
+        {
+          "key": "data/sec-ftd-research-verification.json",
+          "modified": "2026-09-25T09:10:08Z",
+          "size": 9878
+        },
+        {
+          "key": "data/sec-ftd-research/compilers/0533b9341ab5d2422736ac7ab1144de1e6851dbffb88206fc28acdf2abe56c60.py",
+          "modified": "2026-09-25T08:26:19Z",
+          "size": 6806
+        },
+        {
+          "key": "data/sec-ftd-research/compilers/32ab46ad21b4b7b9368bdd61df15557a8da78249bdcf0fb986af7d442baa4e54.py",
+          "modified": "2026-09-25T08:26:19Z",
+          "size": 11603
+        },
+        {
+          "key": "data/sec-ftd-research/compilers/3536dce70f4ed7df4028d2b890e32176f4dc9e270fd8bb2a6cb24f91362195a0.py",
+          "modified": "2026-09-25T08:26:19Z",
+          "size": 4341
+        },
+        {
+          "key": "data/sec-ftd-research/compilers/69e9ad4792d5b97dc302aaa61d0f69715fa26b3db690b143c6ff100e6a123bfe.py",
+          "modified": "2026-09-25T08:26:19Z",
+          "size": 8754
+        },
+        {
+          "key": "data/sec-ftd-research/inputs/02c4380ffe237bbb0e5ffc705e7b636421c1727688154ff9d10c4a9d0b9470e7.json",
+          "modified": "2026-10-01T21:42:17Z",
+          "size": 10886
+        },
+        {
+          "key": "data/sec-ftd-research/inputs/11ca15d64b2eea62db90c0f85b7336a0be74e06dd1c38645283cf9531e016d34.json",
+          "modified": "2026-09-29T13:31:50Z",
+          "size": 10887
+        }
+      ]
+    },
+    {
+      "lambda": "justhodl-short-interest",
+      "expected_artifact": "data/short-interest-tickers.json",
+      "recent_logs": [
+        {
+          "stream": "$LATEST]67fdffbaaf8e4416bd8ac034b310682a",
+          "last_events": [
+            "INIT_START Runtime Version: python:3.12.mainlinev2.v43\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:36aeb19f3326e129d9f096dea0a3c6a9ca8dce2610e62d2b2060747602d863ae\n",
+            "START RequestId: 703d28bc-6020-4245-be14-7ff4ea181062 Version: $LATEST\n",
+            "[tickers-layer] skipped: ValueError\n",
+            "END RequestId: 703d28bc-6020-4245-be14-7ff4ea181062\n",
+            "REPORT RequestId: 703d28bc-6020-4245-be14-7ff4ea181062\tDuration: 254566.51 ms\tBilled Duration: 254860 ms\tMemory Size: 512 MB\tMax Memory Used: 337 MB\tInit Duration: 292.72 ms\t\nXRAY TraceId: 1-6abee587-"
+          ]
+        },
+        {
+          "stream": "$LATEST]f80848c0e5ac4b9cbd17e40346d8982d",
+          "last_events": [
+            "REPORT RequestId: 29dce5f5-03dc-4973-af17-e9485700e31e\tDuration: 18.49 ms\tBilled Duration: 19 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\t\nXRAY TraceId: 1-6abe501f-5774c84c333e9cf1367ebf39\tSegmentId",
+            "START RequestId: 29dce5f5-03dc-4973-af17-e9485700e31e Version: $LATEST\n",
+            "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get",
+            "END RequestId: 29dce5f5-03dc-4973-af17-e9485700e31e\n",
+            "REPORT RequestId: 29dce5f5-03dc-4973-af17-e9485700e31e\tDuration: 39.87 ms\tBilled Duration: 40 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6abe501f-5774c84c333e9cf1367ebf39\tSegmentId"
+          ]
+        },
+        {
+          "stream": "$LATEST]03d63b0dbe744fa5b2ff000d06b74089",
+          "last_events": [
+            "REPORT RequestId: 19bfae9c-d291-4056-bf05-0e64a18ece58\tDuration: 17.55 ms\tBilled Duration: 18 ms\tMemory Size: 512 MB\tMax Memory Used: 96 MB\t\nXRAY TraceId: 1-6abd7bf0-63398ae009d3cfdd3e884d09\tSegmentId",
+            "START RequestId: 19bfae9c-d291-4056-bf05-0e64a18ece58 Version: $LATEST\n",
+            "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get",
+            "END RequestId: 19bfae9c-d291-4056-bf05-0e64a18ece58\n",
+            "REPORT RequestId: 19bfae9c-d291-4056-bf05-0e64a18ece58\tDuration: 29.03 ms\tBilled Duration: 30 ms\tMemory Size: 512 MB\tMax Memory Used: 97 MB\t\nXRAY TraceId: 1-6abd7bf0-63398ae009d3cfdd3e884d09\tSegmentId"
+          ]
+        }
+      ],
+      "s3_search": [
+        {
+          "key": "data/short-book.json",
+          "modified": "2026-10-01T21:50:18Z",
+          "size": 2950
+        },
+        {
+          "key": "data/short-interest-research-verification.json",
+          "modified": "2026-09-25T07:06:26Z",
+          "size": 21583
+        },
+        {
+          "key": "data/short-interest-research/compilers/11716dc109a04b4b7b34b40d5b5602abe26c518e5dd9708649257f091b0ba831.py",
+          "modified": "2026-09-25T05:52:13Z",
+          "size": 13469
+        },
+        {
+          "key": "data/short-interest-research/compilers/5b84503baf1268a4537f16d55f89be903a7ccf24cc64779205cb58d64f1c5dc2.py",
+          "modified": "2026-09-25T05:52:13Z",
+          "size": 6853
+        },
+        {
+          "key": "data/short-interest-research/compilers/9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63.py",
+          "modified": "2026-09-25T05:52:13Z",
+          "size": 14247
+        },
+        {
+          "key": "data/short-interest-research/compilers/b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18.py",
+          "modified": "2026-09-25T05:52:12Z",
+          "size": 13174
+        },
+        {
+          "key": "data/short-interest-research/inputs/07e65e7214fe744b6e0fac037f21e01e183d536ee2aa30bda0c1bc6e62398cba.json",
+          "modified": "2026-10-01T23:01:14Z",
+          "size": 42449
+        },
+        {
+          "key": "data/short-interest-research/inputs/0f29988979dfc20d9221f9c64ade052cc469c56e17e33beeb5d9b070ab6ea5a5.json",
+          "modified": "2026-09-25T07:03:37Z",
+          "size": 42458
+        },
+        {
+          "key": "data/short-interest-research/inputs/29edf468e42dfbfc77fec3d857d55504f604a93c3a0f186183c1063fb3a2b0fc.json",
+          "modified": "2026-09-28T12:23:52Z",
+          "size": 42450
+        },
+        {
+          "key": "data/short-interest-research/inputs/50e2d1d580b6ac052cbd17c2276e7ef34e19ea1ce2c7fc0a4615ce9848b37cb4.json",
+          "modified": "2026-09-25T05:52:12Z",
+          "size": 42267
+        }
+      ]
+    },
+    {
+      "lambda": "justhodl-corporate-actions",
+      "expected_artifact": "data/corporate-actions.json",
+      "recent_logs": [
+        {
+          "stream": "$LATEST]b5743a7beaba4b18a228c00d31dbe911",
+          "last_events": [
+            "INIT_START Runtime Version: python:3.12.mainlinev2.v53\tRuntime Version ARN: arn:aws:lambda:us-east-1::runtime:82e039f92842e36f1a6625923469bca61af525e1ba09578e99a8baf78ff79db7\n",
+            "START RequestId: ca54f8f2-308f-473e-b226-33a8d216fbf3 Version: $LATEST\n",
+            "[corpact] done: {\"universe\": 11707, \"window\": 200, \"due\": 200, \"processed\": 200, \"written\": 200, \"failed\": 0, \"with_events\": 0, \"disagreements\": 5158, \"factor_gaps\": 0, \"polygon_key\": false, \"duration",
+            "END RequestId: ca54f8f2-308f-473e-b226-33a8d216fbf3\n",
+            "REPORT RequestId: ca54f8f2-308f-473e-b226-33a8d216fbf3\tDuration: 210338.12 ms\tBilled Duration: 210666 ms\tMemory Size: 256 MB\tMax Memory Used: 165 MB\tInit Duration: 327.32 ms\t\nXRAY TraceId: 1-6abee587-"
+          ]
+        }
+      ],
+      "s3_search": [
+        {
+          "key": "data/corporate-actions-index.json",
+          "modified": "2026-10-01T23:01:47Z",
+          "size": 39282
+        },
+        {
+          "key": "data/corporate-actions/A.json",
+          "modified": "2026-10-01T22:58:22Z",
+          "size": 8018
+        },
+        {
+          "key": "data/corporate-actions/AA.json",
+          "modified": "2026-10-01T22:58:23Z",
+          "size": 21342
+        },
+        {
+          "key": "data/corporate-actions/AAA.json",
+          "modified": "2026-10-01T22:58:24Z",
+          "size": 9544
+        },
+        {
+          "key": "data/corporate-actions/AAAA.json",
+          "modified": "2026-10-01T22:58:25Z",
+          "size": 1472
+        },
+        {
+          "key": "data/corporate-actions/AAAC.json",
+          "modified": "2026-10-01T22:58:26Z",
+          "size": 2057
+        },
+        {
+          "key": "data/corporate-actions/AAAD.json",
+          "modified": "2026-10-01T22:58:27Z",
+          "size": 1472
+        },
+        {
+          "key": "data/corporate-actions/AAAP.json",
+          "modified": "2026-10-01T22:58:28Z",
+          "size": 1355
+        },
+        {
+          "key": "data/corporate-actions/AAAU.json",
+          "modified": "2026-10-01T22:58:29Z",
+          "size": 1006
+        },
+        {
+          "key": "data/corporate-actions/AAC.json",
+          "modified": "2026-10-01T22:58:30Z",
+          "size": 1005
+        }
+      ]
+    },
+    {
+      "lambda": "justhodl-xbrl-fundamentals",
+      "expected_artifact": "data/xbrl-fundamentals.json",
+      "recent_logs": [
+        {
+          "stream": "$LATEST]2077bcb5923a43c291a668759825787e",
+          "last_events": [
+            "[xbrl] SEC HTTP 404 for CIK 0001732379\n",
+            "[xbrl] SEC HTTP 404 for CIK 0001320375\n",
+            "[xbrl] SEC HTTP 404 for CIK 0002076975\n",
+            "[xbrl] SEC HTTP 404 for CIK 0001768666\n",
+            "[xbrl] SEC HTTP 404 for CIK 0001343793\n"
+          ]
+        }
+      ],
+      "s3_search": [
+        {
+          "key": "data/xbrl-fundamentals/A.json",
+          "modified": "2026-10-01T23:01:14Z",
+          "size": 907753
+        },
+        {
+          "key": "data/xbrl-fundamentals/AA.json",
+          "modified": "2026-10-01T23:01:14Z",
+          "size": 535582
+        },
+        {
+          "key": "data/xbrl-fundamentals/AAAU.json",
+          "modified": "2026-10-01T23:01:15Z",
+          "size": 118336
+        },
+        {
+          "key": "data/xbrl-fundamentals/AAC.json",
+          "modified": "2026-10-01T23:01:15Z",
+          "size": 3525
+        },
+        {
+          "key": "data/xbrl-fundamentals/AACG.json",
+          "modified": "2026-10-01T23:01:16Z",
+          "size": 1171
+        },
+        {
+          "key": "data/xbrl-fundamentals/AACI.json",
+          "modified": "2026-10-01T23:01:16Z",
+          "size": 10457
+        },
+        {
+          "key": "data/xbrl-fundamentals/AACO.json",
+          "modified": "2026-10-01T23:01:17Z",
+          "size": 8945
+        },
+        {
+          "key": "data/xbrl-fundamentals/AACP.json",
+          "modified": "2026-10-01T23:01:17Z",
+          "size": 7255
+        },
+        {
+          "key": "data/xbrl-fundamentals/AADX.json",
+          "modified": "2026-10-01T23:01:17Z",
+          "size": 14953
+        },
+        {
+          "key": "data/xbrl-fundamentals/AAL.json",
+          "modified": "2026-10-01T23:01:18Z",
+          "size": 728802
+        }
+      ]
+    }
+  ],
+  "status": "COMPLETE"
+}
