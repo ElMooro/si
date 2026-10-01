@@ -1,6 +1,6 @@
 """Protected ETF desk originals, complete replay and conditional public research."""
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_EXCEPTION, ALL_COMPLETED
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
@@ -42,8 +42,153 @@ COMPATIBLE_COMPILERS['etf_holdings_model'] |= frozenset(('13a3cc577eac2101ad3039
 COMPATIBLE_COMPILERS['etf_holdings_store'] |= frozenset(('564e975a150bbee905ba39d129960323cf0a6dc8265008d756ee686ee162b81b',))
 COMPATIBLE_COMPILERS['etf_desk_store'] |= frozenset(('3fba26e742d01f587d3e67caab15f170beb93e4a515a0d7897c85a09a7818aa1',))
 
+COMPATIBLE_COMPILERS['etf_desk_store'] |= frozenset(('6a8e288db962cd50455d69e04c5fed7da0e40df3b18b564799a59b4fc37262ac',))
+
 now=holdings_store.now
 code,missing,conflict,bounded=holdings_store.code,holdings_store.missing,holdings_store.conflict,holdings_store.bounded
+
+
+
+class BudgetExceeded(RuntimeError):
+    """Internal admission failure; public request contracts remain unchanged."""
+
+
+class ExecutionBudget:
+    # Admission allowances, NOT transport wall-clock guarantees. Existing S3
+    # settings: <=3 attempts, 5s connect/20s idle read; retry backoff <=3s.
+    # Body progress is checked separately. Slow trickles/DNS/socket writes may
+    # exceed these allowances; no thread or remote PUT can be forcibly undone.
+    IO = 120
+    DRAIN = 120
+    CHECKPOINT = 120
+
+    def __init__(self, seconds):
+        self.end = time.monotonic() + max(0, min(seconds, 900))
+        self.stopped = False
+
+    def remaining(self): return self.end - time.monotonic()
+
+    def check(self, allowance=0, checkpoint=False):
+        reserve = 0 if checkpoint else self.DRAIN + self.CHECKPOINT
+        if (self.stopped and not checkpoint) or self.remaining() <= reserve + allowance:
+            if not checkpoint:self.stopped = True
+            raise BudgetExceeded('Desk execution budget exhausted')
+
+    def stop(self): self.stopped = True
+
+
+def budget_check(read, allowance=0):
+    budget = getattr(read, 'budget', None)
+    if budget is not None: budget.check(allowance)
+
+
+class BudgetBody:
+    def __init__(self, body, budget, checkpoint=False):
+        self.body, self.budget, self.checkpoint = body, budget, checkpoint
+
+    def read(self, amount):
+        chunks = []; left = amount
+        try:
+            while left:
+                self.budget.check(25, self.checkpoint)
+                # read1 avoids asking urllib3 to fill a large buffer where
+                # supported. Older clients retain idle-timeout limitations.
+                method = getattr(self.body, 'read1', None) or self.body.read
+                chunk = method(min(left, 64 * 1024))
+                self.budget.check(0, self.checkpoint)
+                if not chunk: break
+                chunks.append(chunk); left -= len(chunk)
+            return b''.join(chunks)
+        except BaseException:
+            self.body.close()
+            raise
+
+    def close(self): self.body.close()
+
+
+class BudgetClient:
+    """Only run() opts in; recovery readers and unrelated importers keep APIs."""
+    def __init__(self, client, budget, checkpoint=False):
+        self.client, self.budget, self.checkpoint = client, budget, checkpoint
+
+    def _call(self, method, **kwargs):
+        self.budget.check(self.budget.IO, self.checkpoint)
+        result = getattr(self.client, method)(**kwargs)
+        try: self.budget.check(0, self.checkpoint)
+        except BaseException:
+            if isinstance(result, dict) and 'Body' in result: result['Body'].close()
+            raise
+        if isinstance(result, dict) and 'Body' in result:
+            result = {**result, 'Body': BudgetBody(result['Body'], self.budget, self.checkpoint)}
+        return result
+
+    def get_object(self, **kwargs): return self._call('get_object', **kwargs)
+    def put_object(self, **kwargs): return self._call('put_object', **kwargs)
+
+    def get_paginator(self, operation):
+        if operation != 'list_objects_v2': raise ValueError('Unreviewed desk pagination')
+        owner = self
+        class Pages:
+            def paginate(self, **kwargs):
+                while True:
+                    page = owner._call('list_objects_v2', **kwargs)
+                    yield page
+                    if not page.get('IsTruncated'): break
+                    token = page.get('NextContinuationToken')
+                    if not token or token == kwargs.get('ContinuationToken'):
+                        raise ValueError('Desk pagination did not advance')
+                    kwargs = {**kwargs, 'ContinuationToken': token}
+        return Pages()
+
+
+def bind_retry_guard(client, budget):
+    # Boto clients are invocation-local. Keep the hook attached if a transport
+    # outlives the caller: stopped budgets must also reject its pending retries.
+    meta = getattr(client, 'meta', None)
+    if meta is None: return  # offline duck-typed clients
+    config = meta.config
+    retry = config.retries or {}
+    total = retry.get('total_max_attempts', retry.get('max_attempts', 2) + 1)
+    if (config.connect_timeout > 5 or config.read_timeout > 20 or total > 3
+            or retry.get('mode', 'legacy') not in ('legacy', 'standard')):
+        raise ValueError('Desk S3 transport exceeds reviewed retry/idle bounds')
+    # Checkpoint uses a separate client view but the same SDK. Thread-local
+    # checkpoint permission prevents workers from borrowing its reserve.
+    from threading import local
+    state = local()
+    def before_send(**kwargs): budget.check(25, getattr(state, 'checkpoint', False))
+    hook_id='etf-desk-budget-' + str(id(budget))
+    meta.events.register('before-send.s3', before_send, unique_id=hook_id)
+    state.detach=lambda:meta.events.unregister('before-send.s3',unique_id=hook_id)
+    return state
+
+
+def finish_pool(pool, futures, budget, failed=False):
+    if budget is None:
+        pool.shutdown(wait=True, cancel_futures=failed)
+        if not failed:
+            for future in futures:future.result()
+        return
+    if failed:
+        budget.stop()
+        for future in futures:future.cancel()
+    try:
+        done, pending = wait(futures, timeout=max(0,min(budget.DRAIN,budget.remaining()-budget.CHECKPOINT)),
+                             return_when=ALL_COMPLETED if failed else FIRST_EXCEPTION)
+        error = next((f.exception() for f in done if not f.cancelled() and f.exception() is not None),None)
+        if error is not None:
+            budget.stop()
+            for future in pending:future.cancel()
+            _,pending=wait(pending,timeout=max(0,min(budget.DRAIN,budget.remaining()-budget.CHECKPOINT)))
+        if pending:
+            budget.stop()
+            raise BudgetExceeded('Desk I/O drain reserve exhausted')
+        if error is not None and not failed:raise error
+    finally:
+        for future in futures:future.cancel()
+        # An active transport cannot be killed by Future.cancel(). Never turn a
+        # bounded drain into an unconditional executor shutdown wait.
+        pool.shutdown(wait=False, cancel_futures=True)
 
 
 def own_artifact(key):
@@ -60,6 +205,7 @@ def source_key(key):
 
 def reader(client,bucket,capacity=768*1024*1024):
     cache=OrderedDict();size=0;lock=Lock()
+    budget=getattr(client,'budget',None)
     def remember(key,raw):
         nonlocal size
         if not artifact(key) or not isinstance(raw,bytes) or len(raw)>MAX or key.rsplit('/',1)[-1].split('.')[0]!=model.sha(raw):
@@ -71,6 +217,7 @@ def reader(client,bucket,capacity=768*1024*1024):
                 _,old=cache.popitem(last=False);size-=len(old)
             cache[key]=raw;size+=len(raw)
     def read(key):
+        if budget is not None:budget.check()
         if not (artifact(key) or source_key(key) or key==MIGRATION):raise ValueError('Unreviewed desk read')
         if artifact(key):
             with lock:
@@ -79,6 +226,7 @@ def reader(client,bucket,capacity=768*1024*1024):
         if artifact(key):remember(key,raw)
         return raw
     read.remember=remember
+    read.budget=budget
     return read
 
 
@@ -174,8 +322,18 @@ def warm(refs,read):
     def one(ref):
         raw=read(ref['key'])
         if len(raw)!=ref['bytes'] or model.sha(raw)!=ref['sha256']:raise ValueError('Canonical evidence bytes differ')
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        for _ in pool.map(one,unique.values()):pass
+    budget=getattr(read,'budget',None);pool=ThreadPoolExecutor(max_workers=8);futures=[]
+    try:
+        for ref in unique.values():
+            budget_check(read)
+            if budget is not None and len(futures)>=16:
+                futures[0].result(timeout=max(0,budget.remaining()-budget.DRAIN-budget.CHECKPOINT))
+                futures.pop(0)
+            futures.append(pool.submit(one,ref))
+    except BaseException:
+        finish_pool(pool,futures,budget,failed=True)
+        raise
+    else:finish_pool(pool,futures,budget)
 
 
 def warm_sources(flow_packet,holding_packet,read):
@@ -198,6 +356,7 @@ def warm_sources(flow_packet,holding_packet,read):
 
 
 def compile_output(inputs,read,emit):
+    budget_check(read)
     validate_contexts(inputs['contexts'],read)
     if type(inputs.get('provider_requests')) is not int or not 0<=inputs['provider_requests']<=10000:raise ValueError('Bounded desk request count required')
     if type(inputs.get('original_provider_bytes')) is not int or not 0<=inputs['original_provider_bytes']<=384*1024*1024:raise ValueError('Bounded provider evidence bytes required')
@@ -220,7 +379,10 @@ def compile_output(inputs,read,emit):
             if (c.get('selection') or {}).get('original'):refs.append(c['selection']['original'])
             if c.get('rejected_original'):refs.append(c['rejected_original'])
             for ref in refs:verify(ref,read)
-    return model.build(inputs,read,emit,flow_packet,holding_packet,previous)
+    budget_check(read)
+    output=model.build(inputs,read,emit,flow_packet,holding_packet,previous)
+    budget_check(read)
+    return output
 
 
 def checked(ref,kind,read):
@@ -265,6 +427,7 @@ def verified_run(ref,read):
 
 
 def replay(ref,read):
+    budget_check(read)
     run=verified_run(ref,read)
     def verify(key,body):
         if read(key)!=body:raise ValueError('Desk reconstructed artifact differs')
@@ -272,6 +435,7 @@ def replay(ref,read):
     if (output!=checked(run['output'],'outputs',read) or output.get('contract')!=model.CONTRACT
             or model.sha(model.encoded(output))!=ref.get('output_sha256') or run['output_sha256']!=ref['output_sha256']
             or output['generated_at']!=run['generated_at']):raise ValueError('Original desk replay differs')
+    budget_check(read)
     return output
 
 
@@ -290,10 +454,27 @@ def recovery_inputs(ref,read):
 
 
 class ArtifactWriter(holdings_store.ArtifactWriter):
-    def write(self,key,body):immutable(self.client,self.bucket,key,body,read=self.read)
+    def write(self,key,body):
+        budget_check(self.read)
+        immutable(self.client,self.bucket,key,body,read=self.read)
+
+    def __call__(self,key,body):
+        budget=getattr(self.read,'budget',None)
+        if budget is None:return super().__call__(key,body)
+        budget.check(budget.IO)
+        if len(self.pending)>=self.limit:
+            future=self.pending[0]
+            future.result(timeout=max(0,budget.remaining()-budget.DRAIN-budget.CHECKPOINT))
+            self.pending.popleft()
+        budget.check(budget.IO)
+        self.pending.append(self.pool.submit(self.write,key,body))
+
+    def __exit__(self,exc_type,exc,tb):
+        finish_pool(self.pool,list(self.pending),getattr(self.read,'budget',None),failed=exc_type is not None)
 
 
 def retain(client,bucket,inputs,output,read,checkpoint=None):
+    budget_check(read)
     refs={}
     if len(model.encoded(output))>model.MAX_PUBLIC_ARTIFACT:raise ValueError('Desk public root byte bound')
     for name,doc in (('input',inputs),('output',output)):
@@ -338,6 +519,10 @@ def conditional(client,bucket,key,packet,publish=None):
             if not missing(exc):raise
             condition={'IfNoneMatch':'*'}
         try:
+            budget=getattr(client,'budget',None)
+            # At the irreversible boundary reserve the PUT, readback and final
+            # checkpoint; alias failure may still leave the replayable new root.
+            if budget is not None:budget.check(2*budget.IO)
             if publish is not None and key==model.CURRENT:publish(client,bucket,key,model.encoded(packet),condition)
             else:status_write(client,bucket,key,packet,**condition)
             live=json.loads(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
@@ -375,12 +560,23 @@ def collect(client,bucket,credential,read,deadline):
 
 
 def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=900,recover_run=None,publish=None):
-    end=time.monotonic()+max(1,min(remaining_seconds,900));key=request_key(request_id)
+    budget=ExecutionBudget(remaining_seconds);end=budget.end;key=request_key(request_id)
+    budget.check(budget.IO)
+    retry_state=bind_retry_guard(client,budget)
+    checkpoint_client=BudgetClient(client,budget,checkpoint=True)
+    client=BudgetClient(client,budget)
+    def failure_checkpoint(doc):
+        if retry_state is not None:retry_state.checkpoint=True
+        try:status_write(checkpoint_client,bucket,key,doc)
+        finally:
+            if retry_state is not None:retry_state.checkpoint=False
     status={'contract':'etf-desk-request.v1','request_id':request_id,'execution_id':execution_id,'started_at':now(),'status':'running','phase':'preserve'}
     try:status_write(client,bucket,key,status,IfNoneMatch='*')
     except Exception as exc:
         if not conflict(exc):raise
-        return json.loads(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
+        result=json.loads(bounded(client.get_object(Bucket=bucket,Key=key)['Body']))
+        if retry_state is not None:retry_state.detach()
+        return result
     try:
         read=reader(client,bucket);expected_output=None
         if recover_run is not None:
@@ -393,12 +589,15 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
                 if not missing(exc):raise
                 previous=None
             status['phase']='collect_originals';status_write(client,bucket,key,status)
+            budget.check(budget.IO)
             collections=collect(client,bucket,credential,read,end-360)
+            budget.check(budget.IO)
             inputs={'contract':'etf-desk-inputs.v1','generated_at':now(),'contexts':contexts,
                 'canonical_flows':canonical_flows,'canonical_holdings':canonical_holdings,'previous':previous,**collections}
             # Acquisition-time brake only: replay/recovery use the retained version.
             if os.environ.get('ETF_OWNERSHIP_SUMMARY_ENABLED') == 'true':
                 inputs.update(contract='etf-desk-inputs.v2',extra_holdings_summary_policy=model.SUPPLEMENT_POLICY)
+        budget.check(budget.IO)
         raw=model.encoded(inputs);digest=model.sha(raw);input_key=model.PREFIX+'inputs/'+digest+'.json';immutable(client,bucket,input_key,raw,read=read)
         status.update(phase='compile',phase_started_at=now(),retained_input={'key':input_key,'sha256':digest,'bytes':len(raw)},provider_requests=inputs['provider_requests'])
         status_write(client,bucket,key,status)
@@ -407,6 +606,7 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
         status.update(phase='retained_replay',phase_started_at=now());status_write(client,bucket,key,status)
         def checkpoint(ref):status['candidate_replay']=ref;status_write(client,bucket,key,status)
         ref=retain(client,bucket,inputs,output,read,checkpoint)
+        budget.DRAIN=0  # All compiler/writer/replay pools have drained successfully.
         status['phase']='publish';status_write(client,bucket,key,status);published=False;aliases={}
         if output['quality']['status']!='unavailable':
             packet={**output,'replay':ref};published=conditional(client,bucket,model.CURRENT,packet,publish)
@@ -415,7 +615,11 @@ def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90
         result={**status,'status':'complete','phase':'complete','completed_at':now(),'published':published,
             'generated_at':output['generated_at'],'quality':output['quality'],'replay':ref,'compatibility_publications':aliases,
             'provider_requests':inputs['provider_requests'],'provider_requests_this_execution':0 if recover_run is not None else inputs['provider_requests'],'private_account_reads':0,'paid_ai_calls':0,'signals_emitted':0,'notifications_sent':0,'portfolio_writes':0}
-        status_write(client,bucket,key,result);return result
+        status_write(client,bucket,key,result)
+        if retry_state is not None:retry_state.detach()
+        budget.stop();return result
     except Exception:
-        status_write(client,bucket,key,{**status,'status':'failed','completed_at':now(),'error':'original_desk_replay_or_publication_failed'})
+        budget.stop()
+        try:failure_checkpoint({**status,'status':'failed','completed_at':now(),'error':'original_desk_replay_or_publication_failed'})
+        except Exception:pass  # No unsafe checkpoint; existing running state remains recoverable.
         raise RuntimeError('Native desk research failed; inspect retained request evidence') from None
