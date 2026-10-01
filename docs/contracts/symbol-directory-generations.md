@@ -42,8 +42,9 @@ failed manifest read or invalid/regressing head raises an error while preserving
 the working cache; it no longer reports a successful check through an empty fallback.
 
 This is not recovery from process termination, host loss, disk corruption after
-checkpoint validation or an unrecoverable memory kill. It does not repair the
-separate SQLite provider-warehouse refresh. Temporary-space contention can defer
+checkpoint validation or an unrecoverable memory kill. The separate SQLite provider-warehouse refresh has its own candidate contract
+in [provider-search-cache.md](provider-search-cache.md) and requires separate
+release acceptance. Temporary-space contention can defer
 a refresh, and actual AWS population capacity/latency has not been measured.
 The reproducible optional synthetic benchmark is
 `python tests/benchmark_directory_index.py 500000`; it requires no provider or
