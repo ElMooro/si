@@ -44,3 +44,15 @@ There are 598 embedded inspection routes and one standalone route. Overlapping s
 The source navigation manifest lists 543 routes. Its 56-route difference comprises 52 nested paths and four intentional redirects; it does not prove 56 unreachable pages. The authoritative served `/nav-manifest.json` and `/build-manifest.json` returned HTTP 403 from the initial audit environment; the web tool could not open navigation either. No live outage or live rendering bug was inferred from that access limitation.
 
 Correlation interpretation/units and shared `jh-wire.js` preview/freshness findings remain separate future work. Khalid scorer/backtest, heatmap navigation, ETF desk extras, proxy labels and other active claims are excluded from this change.
+
+## Independent-review P2 follow-up
+
+The review of `412b8439631cf95c88ff5cff35652153c512116c` identified synthetic malformed packets whose summary counts contradicted their supplied row signals. Both exact cases are now marked incomplete: (1) one `CREDIT_LEADS_UP` issuer with zero reported leads and an empty preview, and (2) one issuer with one lead plus one awaiting-history count. Original counts, signals and rows remain visible; incomplete empty previews cannot assert no leads.
+
+The renderer compares published signal categories with `n_leads` and `n_awaiting_history`, checks their mutually exclusive total against `n_names`, and compares the capped preview's ticker/signal sequence with the first 20 supplied issuer lead rows. It recognizes the producer's four existing signal categories and qualifies unknown categories. It does not calculate credit direction or a signal from numeric measurements.
+
+Three new regression tests failed against the reviewed predecessor and pass with this fix. Related cases cover both directions of count mismatch, awaiting-history mismatch, preview ticker/signal mismatch, unrecognized categories, valid mixed categories, and valid 21-lead/20-preview packets. Earlier synthetic fixtures were corrected to carry signals consistent with the counts they declared. Both reviewer cases also execute in intercepted desktop/mobile Chromium. These findings are not proven live failures. Independent re-review remains required; no merge or deployment is authorized by this follow-up.
+
+Follow-up validation: 11 focused tests and the full 2,254-test frontend suite passed; intercepted Chromium passed at 1440/390 with both reviewer contradictions. Required source/privacy/wiring/offline gates and final 599-page built syntax passed. The compiled access inventory remains 599 routes / 898 engines. This remains local synthetic/build evidence, not live verification.
+
+Rebased onto main `11bc431ce` after resolving only session-claim context and retaining both claims. Repair/page/test bytes are unchanged by the rebase. The rebased full frontend suite passed 2,255 tests (one additional upstream test), and both intercepted Chromium viewports passed again.

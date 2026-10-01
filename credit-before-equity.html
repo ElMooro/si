@@ -83,6 +83,17 @@ var issues=[];
 if(count(d.n_names)&&Array.isArray(d.names)&&d.n_names!==d.names.length)issues.push('Issuer count does not match the supplied rows.');
 if(count(d.n_leads)&&Array.isArray(d.leads)&&Math.min(d.n_leads,20)!==d.leads.length)issues.push('Lead count does not match the supplied preview (maximum 20).');
 if(count(d.n_names)&&((count(d.n_leads)&&d.n_leads>d.n_names)||(count(d.n_awaiting_history)&&d.n_awaiting_history>d.n_names)))issues.push('Summary counts exceed the reported issuer count.');
+// Reconcile published categories only; never derive a signal from measurements.
+var isLead=function(x){return x.signal==='CREDIT_LEADS_UP'||x.signal==='CREDIT_LEADS_DOWN';};
+if(count(d.n_names)&&count(d.n_leads)&&count(d.n_awaiting_history)&&d.n_leads+d.n_awaiting_history>d.n_names)issues.push('Lead and awaiting-history counts together exceed the reported issuer count.');
+if(Array.isArray(d.names)&&d.names.every(row)){
+ var reportedLeads=rows.filter(isLead);
+ var reportedAwaiting=rows.filter(function(x){return x.signal==='INSUFFICIENT_HISTORY';});
+ if(rows.some(function(x){return !isLead(x)&&x.signal!=='NONE'&&x.signal!=='INSUFFICIENT_HISTORY';}))issues.push('Unrecognized issuer signal; category counts cannot be fully reconciled.');
+ if(count(d.n_leads)&&d.n_leads!==reportedLeads.length)issues.push('Lead count does not match the supplied issuer signals.');
+ if(count(d.n_awaiting_history)&&d.n_awaiting_history!==reportedAwaiting.length)issues.push('Awaiting-history count does not match the supplied issuer signals.');
+ if(Array.isArray(d.leads)&&d.leads.every(row)&&(leads.length!==Math.min(reportedLeads.length,20)||leads.some(function(x,i){var expected=reportedLeads[i];return !expected||x.ticker!==expected.ticker||x.signal!==expected.signal;})))issues.push('Lead preview does not match the first 20 supplied issuer lead signals.');
+}
 var numericFields=['distance_to_default','d_distance_to_default','synthetic_cds_bp','d_synthetic_cds_bp','d_price_pct','default_prob_5y_pct'];
 if(rows.concat(leads).some(function(x){return typeof x.ticker!=='string'||!x.ticker.trim()||typeof x.signal!=='string'||!x.signal.trim()||numericFields.some(function(k){return x[k]!=null&&!finite(x[k]);});}))issues.push('Some issuer fields are unavailable or invalid; supplied rows are retained.');
 var flat=row(d.thresholds)?d.thresholds.equity_flat_band_pct:null;

@@ -24,6 +24,10 @@ await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.a
 await page.screenshot({path:'/tmp/credit-qualification-'+width+'.png',fullPage:true});
 packet={...packet,n_names:0,n_leads:0,names:[],leads:[],degraded:['No credit leg']};await page.reload();await page.waitForFunction(()=>document.querySelector('#leads').textContent.includes('unavailable or degraded'));
 packet={...packet,n_names:1,names:[{...row,signal:'NONE'}],degraded:[],gaps:[]};await page.reload();await page.waitForFunction(()=>document.querySelector('#leads').textContent.includes('No leads reported by the engine'));
-assert.deepEqual(errors,[]);assert.equal(requests.filter(p=>p==='/data/credit-before-equity.json').length,3);
-console.log(JSON.stringify({width,populated:true,degradedEmpty:true,validNoSignal:true,zeroThreshold:true,xssBlocked:true,keyboard:true,overflow:false,externalNetwork:false}));await page.close();
+packet={...packet,names:[{...row,signal:'CREDIT_LEADS_UP'}]};await page.reload();await page.waitForFunction(()=>document.querySelector('#evidence').textContent.includes('Lead count does not match the supplied issuer signals'));
+assert.match(await page.locator('#leads').innerText(),/unavailable or incomplete/);assert.match(await page.locator('#tb').innerText(),/CREDIT LEADS UP/);
+packet={...packet,n_leads:1,n_awaiting_history:1,leads:packet.names};await page.reload();await page.waitForFunction(()=>document.querySelector('#evidence').textContent.includes('Lead and awaiting-history counts together exceed'));
+assert.match(await page.locator('#leads').innerText(),/CREDIT LEADS UP/);assert.match(await page.locator('#evidence').innerText(),/Incomplete packet/);
+assert.deepEqual(errors,[]);assert.equal(requests.filter(p=>p==='/data/credit-before-equity.json').length,5);
+console.log(JSON.stringify({width,populated:true,degradedEmpty:true,validNoSignal:true,contradictoryCounts:true,zeroThreshold:true,xssBlocked:true,keyboard:true,overflow:false,externalNetwork:false}));await page.close();
 }} finally {await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
