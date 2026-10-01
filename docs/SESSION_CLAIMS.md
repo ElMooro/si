@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Khalid qualification evidence: existing backend readiness + unresolved requested strategy contracts, shared sniper display only; scoring/new helper/tests and jh-khalid-sniper.js, both page script refs; prior provider evidence owner merged PR13 verified; codex/khalid-qualification-contract draft, no deploy/actions/threshold/sizing changes | none | S-codex#kqc1001v6 | 2026-10-01 04:07 |
 | Katlin OOS label-boundary/availability correction authorized 2026-10-01 03:32; draft codex/katlin-oos-availability; preserve intentional full-history priors, paired decision regressions; no deploy until exact-head independent review and parent release | none | S-codex#koa1001r3 | 2026-10-01 03:35 |
 | Holdings cohort Previous/cache navigation and explicit dated coverage labels; agent/shopiz/holdings-cohort-navigation; frontend-only draft, no deploy or ops retry | none | S-shopiz#hnav1001a | 2026-10-01 03:07 |
 | Extra-funds-only ETF desk holdings supplement: reuse OwnershipSummary for 16 acquired extras, model/store + offline tests/benchmark; agent/shopiz/extra-holdings-supplement; draft only, no deployment | none | S-shopiz#ehs1001d | 2026-10-01 03:28 |
