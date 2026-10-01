@@ -1,10 +1,8 @@
 """Production consumers exclude descriptive/forged risk scores, including denominators."""
-import ast
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sys
-import time
 import types
 import unittest
 from unittest.mock import patch
@@ -42,24 +40,19 @@ class Tests(unittest.TestCase):
         for stamp in ('2000-01-01T00:00:00Z','2099-01-01T00:00:00Z','2026-09-20T00:00:00',None):
             self.assertIsNone(qualified_score(dict(packet,generated_at=stamp)))
     def test_real_normalizers_abstain_before_label_fallback(self):
-        for engine in ('conviction-engine','signal-board'):
-            normalizer=functions(engine,{'n_risk_regime'}, {})['n_risk_regime']
-            for packet in ({},hostile(),hostile(-99),{'risk_regime':'NEUTRAL','risk_regime_score':None}):
-                self.assertIsNone(normalizer(packet)[0])
+        normalizer=functions('conviction-engine',{'n_risk_regime'}, {})['n_risk_regime']
+        for packet in ({},hostile(),hostile(-99),{'risk_regime':'NEUTRAL','risk_regime_score':None}):
+            self.assertIsNone(normalizer(packet)[0])
     def test_actual_signal_denominator(self):
-        class Storage:
-            objects={}
-            def put_object(self,**kw):self.objects[kw['Key']]=json.loads(kw['Body'])
-            def get_object(self,**kw):raise KeyError('no previous output')
-        db=Storage();stamp=datetime.now(timezone.utc);packet=hostile()
-        scope=functions('signal-board',{'lambda_handler','n_risk_regime','clamp'},
-            {'time':time,'datetime':datetime,'timezone':timezone,'timedelta':timedelta,'json':json,
-             's3':db,'S3_BUCKET':'fixture','OUT_KEY':'data/signal-board.json','STALE_HOURS':48,
-             'SIG_LABEL':{1:'POSITIVE'},'guard_output':None,'read_json':lambda key:(packet,stamp)})
-        scope['FEEDS']=[('Risk Regime','macro','data/risk-regime.json',scope['n_risk_regime']),
-                        ('Qualified test vote','macro','fixture',lambda d:(1,'fixture'))]
-        scope['lambda_handler']({},None);out=db.objects['data/signal-board.json']
-        self.assertEqual(out['n_live'],1);self.assertEqual(out['composite_signal'],1);self.assertIsNone(out['engines'][0]['signal'])
+        sys.path.insert(0,str(ROOT/'tests'))
+        from signal_board_native_test_support import assert_abstention
+        forged=hostile()
+        forged.update(execution_eligible=True,forecast_qualified=True)
+        # The native compiler conserves all registered sources without voting.
+        assert_abstention('data/risk-regime.json', (
+            {}, hostile(99), hostile(-99),
+            {'risk_regime':'NEUTRAL','risk_regime_score':None}, forged,
+        ))
     def test_actual_hedge_budget_exclusion(self):
         for packet in ({},hostile(99),hostile(-99)):
             scope={'feeds':{'risk-regime':packet},'num':lambda x:x,'target_budget':.03,'MAX_HEDGE_SPEND_PCT':.10}
