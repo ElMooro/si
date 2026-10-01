@@ -49,7 +49,8 @@ tr:last-child td{border-bottom:none}
 <script src="/jh-tape-truth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const fN=(v,d)=>typeof v!=="number"||!Number.isFinite(v)?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
+const cls=v=>typeof v!=="number"||!Number.isFinite(v)?"":(v>0?" pos":(v<0?" neg":""));
 async function jget(p){try{const r=await fetch(PROXY+p+"?t="+Date.now());if(r.ok)return await r.json();}catch(e){}return null;}
 const S_=(n,f)=>{try{f()}catch(e){console.warn("sec",n,e)}};
 let D=null;
