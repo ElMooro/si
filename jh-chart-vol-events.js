@@ -371,16 +371,40 @@
 
   var STRUCT = { bottom: 1, top: 1, eoa: 1, eod: 1, revup: 1, revdn: 1 };
   var MARK = { capit: 1, sc: 1, bc: 1, bottom: 1, top: 1, eoa: 1, eod: 1, revup: 1, revdn: 1 };
-  var _tblD = null, _tblOut = null;
+  var _tblD = null, _tblOut = null, _tblValues = null;
+  var CACHE_FIELDS = ["time", "open", "high", "low", "close", "volume"];
+
+  /* Arrays and their bars can be corrected in place. Compare the exact scalar
+     inputs, not a lossy hash or just the last bar; keep only one snapshot. */
+  function sameBarValues(d) {
+    var n = d ? d.length : 0, i, j, at = 0, b;
+    if (!_tblValues || _tblValues.length !== n * CACHE_FIELDS.length) return false;
+    for (i = 0; i < n; i++) {
+      b = d[i];
+      for (j = 0; j < CACHE_FIELDS.length; j++) {
+        if (!Object.is(_tblValues[at++], b && b[CACHE_FIELDS[j]])) return false;
+      }
+    }
+    return true;
+  }
+  function barValues(d) {
+    var values = [], i, j, b;
+    for (i = 0; d && i < d.length; i++) {
+      b = d[i];
+      for (j = 0; j < CACHE_FIELDS.length; j++) values.push(b && b[CACHE_FIELDS[j]]);
+    }
+    return values;
+  }
 
   function eventTable(d) {
-    if (_tblD === d && _tblOut) return _tblOut;
+    if (_tblD === d && _tblOut && sameBarValues(d)) return _tblOut;
     var tape = classify(d);
     var st = structureScan(d);
     var sc = sellingClimaxScan(d);
     /* Structure first, then Wyckoff SC, then tape so crowding prefers BOTTOM/SC over CAPIT. */
     _tblOut = st.concat(sc).concat(tape);
     _tblD = d;
+    _tblValues = barValues(d);
     return _tblOut;
   }
 

@@ -1,0 +1,9 @@
+# Scalar axis display and pane ownership
+
+Every scalar pane binds its formatter to that pane's plotted frame and series. Theme changes retain this binding rather than copying the main market pane's percentage formatter. Replacing the main frame removes the old ownership. Existing market formatting remains unchanged.
+
+Exact finite source values use their complete JavaScript numeric representation. Their labels, stored records, inspector, exports and plotted values are not rounded. Generated axis ticks may use zero or a twelve-significant-digit representation only when the original and candidate map less than 0.05 screen pixels apart on that same series at the current scale. Distinguishable candidates, failed conversions and unavailable scales retain the full representation. Invalid label inputs are blank without coercion. This is display noise suppression, not measurement rounding or source precision qualification.
+
+Complete invented histories exercise gaps, conflicting dates, measured zero, signed high precision, independent scalar panes, YTD market comparisons, two theme transitions and market recovery. Unit cases add subnormal and maximum finite source values, changed scale coordinates, removed scales and exact pixel boundaries. Complete predecessor source and a desktop/mobile reproduction retain the erroneous percentage labels. No actual provider, private, account or current-consumer data is used.
+
+The change does not qualify source units, original normalization, timestamps, cadence, completeness or economic interpretation. The inherited custom-format minimum tick increment and extreme real-library scale behavior are not comprehensively qualified. Crowded mobile metadata and stale loading text after switching back to a market frame remain separate open defects. All ten institutional workstreams remain open.

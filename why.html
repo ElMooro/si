@@ -4078,18 +4078,17 @@ async function markStale(d, ticker){
 <h2 style="font-size:15px;margin:0 0 6px">&#129513; Industry Case &mdash; the stock's role in its industry <a href="industry-case.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
 <div id="ic_body" style="font-size:12px"></div>
 </div>
+<script src="/jh-tape-truth.js"></script>
 <script>
-(async function IC_(){
-  try{
-    const IC_P="https://justhodl-data-proxy.raafouis.workers.dev";
-    const qt=(new URLSearchParams(location.search).get("t")||"").toUpperCase();
-    const r=await fetch(IC_P+"/data/industry-case.json?t="+Date.now());
-    if(!r.ok)return;
-    const D=await r.json();
-    if(!D||!D.cases)return;
+(function IC_(){
+  const IC_P="https://justhodl-data-proxy.raafouis.workers.dev";
+  let D=null, current='', failed=false;
+  function render(qt){
+    current=qt;
     const el=document.getElementById("ic_body");
+    if(!D||!D.cases){el.textContent=failed?'Industry context unavailable.':'Loading industry context…';return;}
     if(!qt||!D.cases[qt]){
-      el.innerHTML='<span style="opacity:.7">Open any ticker (?t=NVDA) to see its rank, industry share, cohort, boom heat, and desk joins \u2014 or use the full desk.</span>';return;}
+      el.textContent='Open a ticker to see its industry context, or use the full desk.';return;}
     const c=D.cases[qt];const ind=(D.industries||{})[c.industry]||{};const b=c.boom;
     const card=(k,v)=>'<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:170px"><div style="font-size:10px;opacity:.65">'+k+'</div><div style="font-size:12px;margin-top:2px">'+v+'</div></div>';
     let h='<div style="display:flex;flex-wrap:wrap;gap:8px">';
@@ -4098,41 +4097,48 @@ async function markStale(d, ticker){
     h+=card("Industry heat",b?("boom "+b.score+" \u00b7 rank "+b.rank+"/"+b.of):"not in boom league");
     h+=card("Peers",((ind.top5||[]).slice(0,4).map(x=>x.t).join(" \u00b7 "))||"\u2013");
     if(c.earn)h+=card("Earnings desk","beat #"+c.earn.beat_rank+(c.earn.growth_pick_score?" \u00b7 growth pick "+c.earn.growth_pick_score:""));
-    if(c.tape)h+=card("Tape truth",(c.tape.call||"").replace(/_/g," "));
+    h+=card("Tape observations",JHTapeTruth.esc(JHTapeTruth.summary(JHTapeTruth.projection(c.tape))));
     h+='</div>';
     if(c.ai_case)h+='<div style="margin-top:8px;font-style:italic;opacity:.85">'+c.ai_case+'</div>';
     el.innerHTML=h;
-  }catch(e){console.warn("ic-module",e)}
+  }
+  JHTapeTruth.bindTicker(render);
+  fetch(IC_P+"/data/industry-case.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
+    D=d;failed=!d;render(current);
+  }).catch(()=>{D=null;failed=true;render(current);});
 })();
 </script>
 
-<!-- tape-truth-module (S-fable-A2, self-contained; namespaced TT_) -->
+<!-- tape-truth-module: dated research context, existing ticker bus -->
 <div id="tt_sec" style="max-width:1200px;margin:18px auto;padding:0 16px;font-family:inherit">
-<h2 style="font-size:15px;margin:0 0 6px">&#127902;&#65039; Tape Truth &mdash; genuine vs manufactured moves <a href="tape-truth.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
-<div id="tt_note" style="font-size:11px;opacity:.75;margin-bottom:8px">Bar-approximated CVD, volume regime, VWAP, dealer gamma &mdash; evidence-cited verdicts; WARMING until ledgers hold &ge;5 sessions.</div>
+<h2 style="font-size:15px;margin:0 0 6px">Tape Truth &mdash; dated observations <a href="tape-truth.html" style="font-size:11px;margin-left:8px">full desk &rarr;</a></h2>
+<div id="tt_note" style="font-size:11px;opacity:.75;margin-bottom:8px">Calls and conviction withheld. Bar proxies do not establish aggressor direction or participant intent; observation freshness UNKNOWN.</div>
 <div id="tt_strip" style="display:flex;flex-wrap:wrap;gap:8px"></div>
 </div>
 <script>
-(async function TT_(){
-  try{
-    const TT_P="https://justhodl-data-proxy.raafouis.workers.dev";
-    const r=await fetch(TT_P+"/data/tape-truth.json?t="+Date.now());
-    if(!r.ok)return;
-    const d=await r.json();
-    if(!d||!d.symbols)return;
-    const qt=(new URLSearchParams(location.search).get("t")||"").toUpperCase();
-    const col=c=>c&&c.indexOf("GENUINE_UP")>=0?"#26ffaf":(c&&(c.indexOf("FAKE")>=0||c==="GENUINE_DOWN")?"#ff5577":(c&&c.indexOf("SHAKEOUT")>=0?"#26ffaf":"#8a93a5"));
-    let h="";
-    const order=Object.keys(d.symbols).sort((a,b)=>(a===qt?-1:(b===qt?1:0)));
-    for(const t2 of order){
-      const s=d.symbols[t2];const v=s.verdict||{};
-      h+='<div style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:150px'+(t2===qt?';box-shadow:0 0 0 1px #26ffaf":"':'')+'">'
-        +'<div style="font-size:11px;font-weight:700">'+t2+(v.conviction!=null?' <span style="float:right;opacity:.7">'+v.conviction+'</span>':'')+'</div>'
-        +'<div style="font-size:11px;color:'+col(v.call)+'">'+((v.call||"\u2013").replace(/_/g," "))+'</div>'
-        +(s.gex&&s.gex.status==="LIVE"?'<div style="font-size:10px;opacity:.7">GEX '+(s.gex.net_gex_bn>0?"+":"")+s.gex.net_gex_bn+'bn '+s.gex.regime.toLowerCase()+'</div>':'')
-        +'</div>';}
-    document.getElementById("tt_strip").innerHTML=h;
-  }catch(e){console.warn("tt-module",e)}
+(function TT_(){
+  const TT_P="https://justhodl-data-proxy.raafouis.workers.dev",T=JHTapeTruth;
+  let d=null,current='',pending=true;
+  function render(qt){
+    current=qt;
+    const el=document.getElementById('tt_strip');
+    if(pending){el.textContent='Loading dated tape observations…';return;}
+    const order=d&&d.symbols&&typeof d.symbols==='object'?Object.keys(d.symbols).sort((a,b)=>a===qt?-1:b===qt?1:0):[];
+    if(!order.some(t=>T.view(d,t).available)){el.textContent=T.unavailable;return;}
+    let h='';
+    for(const t of order){
+      const v=T.view(d,t),g=v.observations?.gex;
+      h+='<div data-tape-ticker="'+T.esc(t)+'" style="border:1px solid #223047;border-radius:8px;padding:8px 10px;min-width:150px;max-width:360px">'+
+       '<div style="font-size:11px;font-weight:700">'+T.esc(t)+(t===qt?' · selected':'')+'</div>'+
+       '<div style="font-size:11px">'+T.esc(T.summary(v))+'</div>'+
+       (g?.status==='OBSERVATIONS'?'<div style="font-size:10px;opacity:.7">Assumed net GEX '+T.fmt(g.net_gex_bn)+' $bn · '+T.esc(T.legText(v,'gex'))+'</div>':'')+'</div>';
+    }
+    el.innerHTML=h;
+  }
+  T.bindTicker(render);
+  fetch(TT_P+"/data/tape-truth.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(packet=>{
+    d=packet;pending=false;render(current);
+  }).catch(()=>{d=null;pending=false;render(current);});
 })();
 </script>
 

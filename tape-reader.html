@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tape Reader · JustHodl.AI</title>
-<meta name="description" content="Institutional tape-activity detection — block prints, volume surges, range expansion, mega-notional flow.">
+<meta name="description" content="Daily aggregate activity — relative volume, notional volume, range and average transaction size.">
 <style>
   :root {
     --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818;
@@ -68,9 +68,10 @@
                 margin-right: 3px; margin-bottom: 1px; }
   .cls-VOLUME_SURGE      { background: rgba(245,158,11,0.20); color: var(--amber); }
   .cls-RANGE_EXPANSION   { background: rgba(168,85,247,0.20); color: var(--purple); }
-  .cls-BLOCK_PRINTS      { background: rgba(220,38,38,0.22); color: var(--crimson); }
+  .cls-LARGE_AVG_TRADE_SIZE      { background: rgba(220,38,38,0.22); color: var(--crimson); }
   .cls-MEGA_NOTIONAL     { background: rgba(59,130,246,0.20); color: var(--blue); }
   .rationale { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  #tableHost { overflow-x: auto; }
   .loader { text-align: center; padding: 40px; color: var(--text-dim); }
   @media (max-width: 720px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
@@ -82,7 +83,7 @@
   <div class="container">
     <div class="header">
       <div>
-        <h1>Tape Reader <span class="sub">institutional footprint detection · daily after close</span></h1>
+        <h1>Tape Reader <span class="sub">daily aggregate activity · after close</span></h1>
         <div class="meta" id="metaLine">Loading…</div>
       </div>
       <div class="meta">
@@ -95,19 +96,20 @@
     <div class="thesis">
       <h3>📡 The Strategy</h3>
       <p>
-        Daily after close, score every S&P 500 name on 4 institutional-tape signals:
-        <code>relative volume vs 20-day baseline</code>, <code>relative dollar volume</code>,
-        <code>range expansion</code>, and <code>average trade size</code> (block-print proxy).
-        When average trade size is <strong>significantly larger than baseline</strong>,
-        institutions are crossing big prints — the highest-frequency
-        institutional-footprint signal that's currently invisible to most retail.
+        Daily after close, rank the covered universe using <code>relative volume</code>,
+        <code>relative dollar volume</code>, <code>range expansion</code>, and
+        <code>relative average transaction size</code> from grouped daily bars.
+        Average size is shares divided by reported transactions. It does not identify
+        block trades, institutions, venues or buyer/seller direction.
+        Unavailable size comparisons add no size points; other score terms are not rescaled.
+        The existing baseline window and denominator floor are unchanged.
       </p>
     </div>
 
     <div class="stats">
       <div class="stat"><div class="label">Names Scanned</div><div class="value" id="nUniverse">—</div></div>
-      <div class="stat"><div class="label">With Loud Tape</div><div class="value" id="nLoud">—</div></div>
-      <div class="stat"><div class="label">Block Prints</div><div class="value" id="nBlock">—</div></div>
+      <div class="stat"><div class="label">Scored Activity</div><div class="value" id="nLoud">—</div></div>
+      <div class="stat"><div class="label">Size Available (Top Rows)</div><div class="value" id="nSize">—</div></div>
       <div class="stat"><div class="label">Adv/Decl Ratio</div><div class="value" id="adRatio">—</div></div>
       <div class="stat"><div class="label">Top Score</div><div class="value" id="topScore">—</div></div>
     </div>
@@ -120,10 +122,13 @@ const FEED_URL = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/dat
 let DATA = null;
 let SORT = { col: 'score', dir: 'desc' };
 
+function numeric(v) { return typeof v === 'number' && Number.isFinite(v); }
+function fmt(v, digits, suffix = '') { return numeric(v) ? v.toFixed(digits) + suffix : '—'; }
+function esc(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function sizeAvailable(r) { return r.trade_size_status === 'available' && numeric(r.block_ratio) && r.block_ratio >= 0; }
 function fmtBig(v) {
-  if (v === null || v === undefined) return '—';
-  const n = Number(v);
-  if (isNaN(n)) return '—';
+  if (!numeric(v)) return '—';
+  const n = v;
   if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(1)+'B';
   if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1)+'M';
   if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'K';
@@ -135,8 +140,8 @@ function applySort(rows, col, dir) {
     let av = a[col], bv = b[col];
     if (Array.isArray(av)) av = av.length;
     if (Array.isArray(bv)) bv = bv.length;
-    if (typeof av === 'string') av = av.toLowerCase();
-    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (col === 'ticker') { av = String(av ?? '').toLowerCase(); bv = String(bv ?? '').toLowerCase(); }
+    else { av = numeric(av) ? av : null; bv = numeric(bv) ? bv : null; }
     if (av === undefined || av === null) av = dir === 'asc' ? Infinity : -Infinity;
     if (bv === undefined || bv === null) bv = dir === 'asc' ? Infinity : -Infinity;
     if (av < bv) return dir === 'asc' ? -1 : 1;
@@ -147,78 +152,127 @@ function applySort(rows, col, dir) {
 
 function render() {
   if (!DATA) return;
-  const rows = applySort(DATA.top_loud_tape || [], SORT.col, SORT.dir);
+  const rows = applySort((DATA.top_loud_tape || []).map(r => ({...r, block_ratio: sizeAvailable(r) ? r.block_ratio : null})), SORT.col, SORT.dir);
   const cols = [
     { k: 'ticker', label: 'Ticker' },
     { k: 'score', label: 'Score' },
     { k: 'rel_volume', label: 'Vol×' },
     { k: 'rel_dollar_volume', label: '$Vol×' },
     { k: 'range_expansion', label: 'Range×' },
-    { k: 'block_ratio', label: 'Block×' },
+    { k: 'block_ratio', label: 'Avg size×' },
     { k: 'today_dollar_vol', label: 'Today $Vol' },
-    { k: 'change_pct', label: 'Chg %' },
+    { k: 'change_pct', label: 'Open–close %' },
     { k: 'classifications', label: 'Tape Tags', sortable: false },
     { k: 'rationale', label: 'Rationale', sortable: false },
   ];
   const thead = cols.map(c => {
     const cls = c.sortable !== false && c.k === SORT.col ? `sort-${SORT.dir}` : '';
-    const sortAttr = c.sortable !== false ? ` data-col="${c.k}"` : '';
+    const sortAttr = c.sortable !== false ? ` data-col="${c.k}" tabindex="0" role="button" aria-label="Sort by ${c.label}"` : '';
     return `<th${sortAttr} class="${cls}">${c.label}</th>`;
   }).join('');
   const tbody = rows.map(r => {
-    const scoreCls = r.score >= 60 ? 'high' : (r.score >= 30 ? 'mid' : 'low');
-    const rowCls = r.score >= 60 ? 'score-high' : (r.score >= 30 ? 'score-mid' : '');
-    const chgCls = (r.change_pct || 0) >= 0 ? 'pos' : 'neg';
-    const tags = (r.classifications || []).map(c =>
+    const scoreCls = !numeric(r.score) ? '' : r.score >= 60 ? 'high' : (r.score >= 30 ? 'mid' : 'low');
+    const rowCls = !numeric(r.score) ? '' : r.score >= 60 ? 'score-high' : (r.score >= 30 ? 'score-mid' : '');
+    const chgCls = !numeric(r.change_pct) ? '' : (r.change_pct >= 0 ? 'pos' : 'neg');
+    const allowed = ['VOLUME_SURGE', 'RANGE_EXPANSION', 'MEGA_NOTIONAL'];
+    if (sizeAvailable(r) && r.block_ratio >= 1.8) allowed.push('LARGE_AVG_TRADE_SIZE');
+    const tags = (Array.isArray(r.classifications) ? r.classifications : []).filter(c => allowed.includes(c)).map(c =>
       `<span class="class-pill cls-${c}">${c.replace(/_/g,' ')}</span>`).join('');
     return `
       <tr class="${rowCls}">
-        <td><span class="ticker-cell">${r.ticker || '?'}</span></td>
-        <td><span class="score-cell ${scoreCls}">${(r.score||0).toFixed(0)}</span></td>
-        <td>${(r.rel_volume||0).toFixed(2)}×</td>
-        <td>${(r.rel_dollar_volume||0).toFixed(2)}×</td>
-        <td>${(r.range_expansion||0).toFixed(2)}×</td>
-        <td>${(r.block_ratio||0).toFixed(2)}×</td>
-        <td>$${fmtBig(r.today_dollar_vol)}</td>
-        <td><span class="change ${chgCls}">${r.change_pct >= 0 ? '+' : ''}${(r.change_pct||0).toFixed(1)}%</span></td>
+        <td><span class="ticker-cell">${esc(r.ticker || '?')}</span></td>
+        <td><span class="score-cell ${scoreCls}">${fmt(r.score, 0)}</span></td>
+        <td>${fmt(r.rel_volume, 2, '×')}</td>
+        <td>${fmt(r.rel_dollar_volume, 2, '×')}</td>
+        <td>${fmt(r.range_expansion, 2, '×')}</td>
+        <td>${fmt(r.block_ratio, 2, '×')}</td>
+        <td>${numeric(r.today_dollar_vol) ? '$' + fmtBig(r.today_dollar_vol) : '—'}</td>
+        <td><span class="change ${chgCls}">${numeric(r.change_pct) && r.change_pct >= 0 ? '+' : ''}${fmt(r.change_pct, 1, '%')}</span></td>
         <td>${tags}</td>
-        <td><div class="rationale">${(r.rationale||'').slice(0,120)}</div></td>
+        <td><div class="rationale">${esc((r.rationale||'').slice(0,180))}</div></td>
       </tr>
     `;
   }).join('');
   document.getElementById('tableHost').innerHTML =
     `<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
   document.querySelectorAll('th[data-col]').forEach(th => {
-    th.addEventListener('click', () => {
+    const sort = () => {
       const c = th.dataset.col;
       SORT.dir = (SORT.col === c && SORT.dir === 'desc') ? 'asc' : 'desc';
       SORT.col = c;
       render();
-    });
+    };
+    th.addEventListener('click', sort);
+    th.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort(); } });
   });
 }
 
+function tapePublication(packet, now = Date.now()) {
+  const value = packet && packet.as_of;
+  const m = typeof value === 'string' && /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!m) return 'Publication time unavailable.';
+  const year=+m[1], month=+m[2], day=+m[3], offset=m[7];
+  const days=new Date(Date.UTC(year<100?year+400:year,month,0)).getUTCDate();
+  const stamp=Date.parse(value);
+  if (year<1 || month<1 || month>12 || day<1 || day>days || +m[4]>23 || +m[5]>59 || +m[6]>59 ||
+      (offset!=='Z' && (+offset.slice(1,3)>23 || +offset.slice(4,6)>59)) || !Number.isFinite(stamp)) return 'Publication time unavailable.';
+  if (stamp>now) return 'Publication time unavailable (future timestamp).';
+  return 'Packet publication time: '+value+' (not observation freshness).';
+}
+
+function publishTapeState(packet, error = null) {
+  globalThis.__JH_TAPE_READER_STATE = {packet, error};
+  if (typeof globalThis.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+    globalThis.dispatchEvent(new CustomEvent('jh:tape-reader-state'));
+  }
+}
+function clearActivity() {
+  DATA = null;
+  ['nUniverse','nLoud','nSize','adRatio','topScore'].forEach(id => { document.getElementById(id).textContent = '—'; });
+}
+let LOAD_GENERATION = 0;
 async function load() {
+  const generation = ++LOAD_GENERATION;
+  let phase = 'request';
   try {
     const r = await fetch(FEED_URL + '?_=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    DATA = await r.json();
+    phase = 'parse';
+    const packet = await r.json();
+    if (generation !== LOAD_GENERATION) return;
+    phase = 'display';
+    if (!packet || packet.measurement_contract !== 'tape-reader-activity.v2' || !Array.isArray(packet.top_loud_tape)) {
+      clearActivity();
+      const message = packet && packet.measurement_contract === 'tape-reader-activity.v2'
+        ? 'Qualification withheld — compatible activity rows unavailable.'
+        : 'Qualification withheld — awaiting a compatible publication.';
+      document.getElementById('metaLine').textContent = tapePublication(packet);
+      document.getElementById('tableHost').innerHTML = `<div class="loader">${esc(message)} ${esc(tapePublication(packet))}</div>`;
+      publishTapeState(packet);
+      return;
+    }
+    DATA = packet;
     document.getElementById('metaLine').innerHTML =
-      `As of <strong>${new Date(DATA.as_of).toLocaleString()}</strong> · ` +
-      `${DATA.n_with_data} tickers scored from ${DATA.n_universe} universe · ${DATA.duration_s}s`;
-    document.getElementById('nUniverse').textContent = DATA.n_universe || 0;
-    document.getElementById('nLoud').textContent = DATA.n_with_data || 0;
-    const blocks = (DATA.top_loud_tape || []).filter(r =>
-      (r.classifications || []).includes('BLOCK_PRINTS')).length;
-    document.getElementById('nBlock').textContent = blocks;
+      `<strong>${esc(tapePublication(DATA))}</strong> · ` +
+      `${esc(DATA.n_with_data)} tickers scored from ${esc(DATA.n_universe)} universe · ${esc(DATA.duration_s)}s`;
+    document.getElementById('nUniverse').textContent = fmt(DATA.n_universe, 0);
+    document.getElementById('nLoud').textContent = fmt(DATA.n_with_data, 0);
+    const available = DATA.top_loud_tape.filter(sizeAvailable).length;
+    document.getElementById('nSize').textContent = `${available} / ${DATA.top_loud_tape.length}`;
     const breadth = DATA.market_breadth || {};
-    document.getElementById('adRatio').textContent = (breadth.advance_decline_ratio || 0).toFixed(2);
+    document.getElementById('adRatio').textContent = fmt(breadth.advance_decline_ratio, 2);
     const top = DATA.top_loud_tape && DATA.top_loud_tape[0];
-    document.getElementById('topScore').textContent = top ? top.score.toFixed(0) : '—';
+    document.getElementById('topScore').textContent = top ? fmt(top.score, 0) : '—';
     render();
+    publishTapeState(packet);
   } catch (e) {
-    document.getElementById('tableHost').innerHTML =
-      `<div class="loader">Failed: ${e.message}</div>`;
+    if (generation !== LOAD_GENERATION) return;
+    clearActivity();
+    document.getElementById('metaLine').textContent = 'Publication time unavailable.';
+    const message = phase === 'parse' ? 'Data response could not be parsed as JSON.'
+      : phase === 'display' ? 'Activity display failed: '+e.message : 'Data request failed: '+e.message;
+    document.getElementById('tableHost').innerHTML = `<div class="loader">${esc(message)}</div>`;
+    publishTapeState(null, message);
     console.error(e);
   }
 }
@@ -230,7 +284,7 @@ setInterval(load, 5*60*1000);
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
-  <script src="/jh-enhance.js" data-feed="data/tape-reader.json" data-bars="top_loud_tape:ticker:score" data-title="Tape reader — loud-tape score" data-sub="intraday tape intensity" ></script>
+  <script src="/jh-enhance.js" data-feed="data/tape-reader.json" data-bars="top_loud_tape:ticker:score" data-title="Tape reader — aggregate activity score" data-sub="Daily grouped-bar activity; unavailable size contributes no size points" data-contract="tape-reader-activity.v2" data-publication-notice="tape-reader" data-strict-numbers="1" data-footnote="Published daily aggregate activity; no participant or trade-direction inference" ></script>
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

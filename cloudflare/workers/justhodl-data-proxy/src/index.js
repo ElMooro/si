@@ -1,3 +1,4 @@
+import { searchDeadline, searchCacheSeconds, searchCacheControl } from './symsearch-cache.js';
 import { factoryGateway } from './factory-gateway.js';
 import { handlePortfolioPublication, routePortfolioPublication } from './portfolio-publication.js';
 import { handleSnapshotPublication, routeSnapshotPublication } from './snapshot-publication.js';
@@ -2162,7 +2163,7 @@ export default {
     // (ad-blockers / corporate proxies kill that host, see equity-research
     // fallback above). Endpoint is discovered from S3 so the worker can ship
     // before the function exists; SYMDIR_URL var overrides when set.
-    //   /symsearch?q=   -> /search   (edge 120s)
+    //   /symsearch?q=   -> /search   (native-bounded edge cache, at most 120s)
     //   /browse?ds=&q=  -> /browse   (edge 300s)
     //   /series?id=     -> /series   (edge 900s; full-history observations)
     //   /quote?ids=     -> /quote    (edge 600s; watchlist last/prev/chg)
@@ -2170,6 +2171,7 @@ export default {
         url.pathname === "/series" || url.pathname === "/quote" || url.pathname === "/symdir-health") {
       const routeMap = { "/symsearch": "/search", "/browse": "/browse", "/explorer": "/explorer", "/series": "/series", "/quote": "/quote", "/symdir-health": "/health" };
       const ttlMap = { "/symsearch": 120, "/browse": 300, "/explorer": 300, "/series": 900, "/quote": 600, "/symdir-health": 30 };
+      const isSearch = url.pathname === "/symsearch";
       const upath = routeMap[url.pathname];
       const ttl = ttlMap[url.pathname];
       let base = (env && env.SYMDIR_URL) ? String(env.SYMDIR_URL).replace(/\/+$/, "") : "";
@@ -2181,33 +2183,42 @@ export default {
       }
       if (!base) {
         return new Response(JSON.stringify({ error: "symbol directory endpoint not published yet", rows: [], obs: [] }),
-          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+          { status: 503, headers: { "Content-Type": "application/json", ...(isSearch ? { "Cache-Control": "no-store" } : {}), ...corsHeaders() } });
       }
       const nocache = url.searchParams.get("nocache") === "1";
-      const SYMDIR_VER = "v5116a";
+      const SYMDIR_VER = isSearch ? "resident-20261001" : "v5116a";
       const cacheKey = new Request(`${url.origin}/__symdir_${SYMDIR_VER}__${upath}?${url.searchParams.toString()}`, { method: "GET" });
       const cache = caches.default;
       let resp = nocache ? null : await cache.match(cacheKey);
+      if (resp && isSearch && !searchCacheSeconds(resp, Date.now(), ttl)) resp = null;
       let status = "HIT";
       if (!resp) {
         status = "MISS";
         let up;
+        const started = Date.now();
         try {
           up = await fetch(base + upath + url.search, { headers: { "User-Agent": "justhodl-data-proxy" } });
         } catch (e) {
           return new Response(JSON.stringify({ error: "symdir fetch failed", detail: String(e), rows: [], obs: [] }),
-            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } });
+            { status: 502, headers: { "Content-Type": "application/json", ...(isSearch ? { "Cache-Control": "no-store" } : {}), ...corsHeaders() } });
         }
         const body = await up.arrayBuffer();
         resp = new Response(body, { status: up.status, headers: {
           "Content-Type": "application/json",
-          "Cache-Control": `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}`,
+          "Cache-Control": isSearch ? "no-store" : `public, max-age=${Math.min(ttl, 60)}, s-maxage=${ttl}`,
+          ...(isSearch ? { "X-Symdir-Cached-At": String(started), "X-Symdir-Cache-Until": String(nocache ? started : searchDeadline(up, started, ttl)) } : {}),
           "X-Symdir-Upstream": up.status === 200 ? "ok" : String(up.status),
           ...corsHeaders() } });
-        if (up.ok && !nocache) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
+        const remaining = isSearch ? searchCacheSeconds(resp, Date.now(), ttl) : ttl;
+        if (isSearch) resp.headers.set("Cache-Control", searchCacheControl(remaining));
+        if (up.ok && !nocache && remaining > 0) ctx.waitUntil(cache.put(cacheKey, resp.clone()));
       }
       const h = new Headers(resp.headers);
       h.set("X-Edge-Cache", status);
+      if (isSearch) {
+        h.set("Cache-Control", searchCacheControl(searchCacheSeconds(resp, Date.now(), ttl)));
+        h.delete("X-Symdir-Cached-At"); h.delete("X-Symdir-Cache-Until");
+      }
       return new Response(resp.body, { status: resp.status, headers: h });
     }
 

@@ -56,7 +56,7 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
     USER_DATA: {
       async get(key, options) {
         if (key === 'owner:uids') return null;
-        assert.equal(key, KIND); state.reads++; if (state.barrier) await state.barrier;
+        assert.equal(key, KIND); state.reads++; if (state.onLegacyRead) state.onLegacyRead(); if (state.barrier) await state.barrier;
         if (state.legacy === null) return null;
         assert.equal(options.type, 'arrayBuffer');
         return typeof state.legacy === 'string' ? encoder.encode(state.legacy).buffer : state.legacy;
@@ -68,7 +68,9 @@ async function fixture(legacy = '{"legacy":true,"zero":0,"null":null,"unknown":"
       get(name) { return { async fetch(request) {
         state.routes.push({ method: request.method, name });
         if (!objects.has(name)) objects.set(name, new WorkspaceCoordinator({ storage }, env));
-        return objects.get(name).fetch(request);
+        const pending = objects.get(name).fetch(request);
+        if (state.onEnqueued) state.onEnqueued(request);
+        return pending;
       } }; },
     },
   };
@@ -251,13 +253,29 @@ test('publication identity must match complete snapshot binding, including value
   assert.ok(!f.storage.map.has('risk:current'));
 });
 
-test('external legacy await is serialized with later publication and reservations', async () => {
+test('external legacy await is serialized with later publication and reservations', { timeout: 5000 }, async () => {
   const f = await fixture(), first = await f.reserve(), second = await f.reserve();
-  let release; f.state.barrier = new Promise(resolve => { release = resolve; });
-  const old = f.publish(first), newer = f.publish(second);
-  await new Promise(resolve => setTimeout(resolve, 10)); assert.ok(!f.storage.map.has('risk:current'));
+  let release, entered, enqueued; const legacyEntered = new Promise(resolve => { entered = resolve; });
+  const bothQueued = new Promise(resolve => { enqueued = resolve; }), methods = [];
+  f.state.barrier = new Promise(resolve => { release = resolve; }); f.state.onLegacyRead = entered;
+  // Publish hashes the request asynchronously before reaching the coordinator.
+  // Establish actual queue order; a timer cannot prove which hash completed first.
+  const old = f.publish(first); await legacyEntered;
+  f.state.onEnqueued = request => { methods.push(request.method); if (methods.length === 2) enqueued(); };
+  const newer = f.publish(second), reserved = f.reserve(); await bothQueued;
+  assert.deepEqual(methods.sort(), ['POST', 'PUT']); assert.ok(!f.storage.map.has('risk:current'));
+  assert.equal(f.storage.map.get('risk:counter'), 2); assert.equal(f.state.reads, 1);
   f.state.barrier = null; release(); assert.equal((await old).status, 200); assert.equal((await newer).status, 200);
+  assert.equal((await reserved).revision, 3);
   assert.equal(await (await f.call()).text(), f.packet(second));
+});
+
+test('later preparation can enter first and legitimately supersede an older reservation', async () => {
+  const f = await fixture(), first = await f.reserve(), second = await f.reserve();
+  let release; const preparation = new Promise(resolve => { release = resolve; });
+  const old = (async () => { await preparation; return f.publish(first); })();
+  assert.equal((await f.publish(second)).status, 200); release();
+  assert.equal((await old).status, 409); assert.equal(await (await f.call()).text(), f.packet(second));
 });
 
 test('complete request framing rejects length/encoding/oversize and cancels a stalled read', async () => {

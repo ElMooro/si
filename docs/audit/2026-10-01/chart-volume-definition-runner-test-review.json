@@ -1,0 +1,169 @@
+{
+  "prior": {
+    "path": "tests/fixtures/chart-volume-definition/runner-predecessor/worker-portfolio-publication.test.js.txt",
+    "sha256": "bb0c9428cfa4ae3d0e4cb866dad1ec3bbcb0dffde0d7a99703ffa97d2101a1fd"
+  },
+  "current": {
+    "path": "tests/worker-portfolio-publication.test.js",
+    "sha256": "63ac8a65009e0574ebf028fa90978bcb816ad2407d844629c45752bad5f59ff4"
+  },
+  "unchanged": [
+    {
+      "key": "outer:0",
+      "sha256": "f08693f9e147fc1ebeba3f14d7657c8426b56c5b2e8df932b55379777d927ffe"
+    },
+    {
+      "key": "outer:1",
+      "sha256": "418fc58d48c9f644f46d21e7e07e480bc393bae83a81a3dccd2602064a6c45f0"
+    },
+    {
+      "key": "outer:2",
+      "sha256": "a41665cd680f1679433e591636e348dc2cc6330722a52e3384a5dbefd9a4ddd6"
+    },
+    {
+      "key": "outer:3",
+      "sha256": "a33c69d919e6464c1e7651f1623e205a69d0bef431b02d0a0c3e515e4c750d75"
+    },
+    {
+      "key": "outer:4",
+      "sha256": "6434bcc1a8b94a9f8acca2dc199fbb37a35584544ec32e15cf93d0e41e74d08c"
+    },
+    {
+      "key": "outer:5",
+      "sha256": "296dfcfc44481def404c85c0e0d3c7aa9be75807606804dc351337bcab063851"
+    },
+    {
+      "key": "outer:6",
+      "sha256": "73ccd8923b12a21fc9b818acee0caffeed51cd92b7b76e697f30b9caa6150db6"
+    },
+    {
+      "key": "outer:7",
+      "sha256": "67ff928aa386ccc9f605d5979426e1eba94b1449d45d35b23b0900ec934270c7"
+    },
+    {
+      "key": "outer:8",
+      "sha256": "a3c19ccb00460c96ff8faecc329a4461896e7f31221484c265daaf2d5145ac10"
+    },
+    {
+      "key": "outer:9",
+      "sha256": "970a1287c1b7bd79aa925292136cbb32ba5a9ba6194ed775be9681c768611199"
+    },
+    {
+      "key": "outer:10",
+      "sha256": "f5d8eefea3500ece87187257435060165515b530e045be18e119c35abe492a3d"
+    },
+    {
+      "key": "outer:11",
+      "sha256": "9df728a4551e6db9e66c7e26e9e396e3b98cbf89d373cd97f2d78b40216b00d4"
+    },
+    {
+      "key": "outer:12",
+      "sha256": "199382e54955b858e99f60e8d867d4db67b6670673349c88d29fe9cf18793abd"
+    },
+    {
+      "key": "outer:13",
+      "sha256": "37a3224144e2aae661154477d29b0cd584d720e0bcca20505d4cfa8c39feb607"
+    },
+    {
+      "key": "test:legacy full packets and existing authorized reads remain usable before activation",
+      "sha256": "5d3cf9324c1a9a5ed1fd96eea98d9f1260643ca52313412f0ba11f1a27b88c01"
+    },
+    {
+      "key": "test:all aliases preserve owner/service boundary and cannot reserve as owner",
+      "sha256": "0d32219f5addfb3fd4e9231ad994aee07acfa994af1beb3296af98ebe638e9a1"
+    },
+    {
+      "key": "test:durable revisions survive restart, monotonic minimum and bounded reservations",
+      "sha256": "e9acec959ba7ef01e226689d44356f1876142beb0351101191355b8eebb83349"
+    },
+    {
+      "key": "test:later reserved packet wins; older and legacy arrivals cannot roll it back",
+      "sha256": "540faf399ef8377cce8ce98e16d17724032d6f4b76012efdc76f64bcb85b8ec6"
+    },
+    {
+      "key": "test:same revision exact retry is idempotent; token or bytes conflict is rejected",
+      "sha256": "8c9fa7446edc8b21d857262104150f26a0f660e4f373b03fe120bc6587dc0c40"
+    },
+    {
+      "key": "test:complete 3 MiB Unicode packet is chunked under platform limits and survives restart",
+      "sha256": "8a2e2d01d21d7c045f12354e005f77db35107d6b951ccc6a19e5c7a20e42fcd5"
+    },
+    {
+      "key": "test:chunk/pointer transaction rollback preserves prior full body and allows safe retry",
+      "sha256": "e1d3ef8667f8392d8479335a3b79301d9c7dcb7c2b6f9a070dab9443d42f075a"
+    },
+    {
+      "key": "test:first migration transaction failure never changes KV or leaves partial chunks",
+      "sha256": "d4f575b187dbfe667e110a660345f145864dae37882b34ee55b0d9927a06e0f4"
+    },
+    {
+      "key": "test:stored missing/corrupt chunk or lost pointer cannot fall back to stale KV",
+      "sha256": "f7c04de473d8b396e18b337ff4b5e47285478063cac28330a9558540a5c6e124"
+    },
+    {
+      "key": "test:no legacy body is valid; malformed legacy bytes block migration without loss",
+      "sha256": "e247808ddc0e6cf29c7ece9951c54ce50cc5817d4af2d1055f11f7a78e3f54f9"
+    },
+    {
+      "key": "test:strict incoming JSON, proofs, and revision types fail without publication writes",
+      "sha256": "e4b98151ab75396e47d3b57ab3b4c0433ba961733bab7aa8be34599cf64129e7"
+    },
+    {
+      "key": "test:unissued or pruned reservation is rejected and cannot manufacture future rank",
+      "sha256": "930c77610d25afaba4357b2b9c5b1c1b02fde0cbba9af8f06909ba9815eaa1d0"
+    },
+    {
+      "key": "test:invalid/exhausted counters and minimum revisions fail explicitly",
+      "sha256": "a40a7f1247c77d00fcaf9283206e5cae3956dfe9f27fc62668e23fa663e37c1a"
+    },
+    {
+      "key": "test:publication identity must match complete snapshot binding, including value types",
+      "sha256": "074e8016482e5c882760e92a9250922c7f99df9d26839aab69203feb721a319b"
+    },
+    {
+      "key": "test:complete request framing rejects length/encoding/oversize and cancels a stalled read",
+      "sha256": "0b86ee5cc99910bbec175605132e6cc131bc1a643994c11316e717d991e3c19c"
+    },
+    {
+      "key": "test:missing coordinator refuses private reads without falling through to KV",
+      "sha256": "f49ebb524357a8e1f4d6148f3602b0326087de9fd8c9a8262eb42bf5783a83c9"
+    },
+    {
+      "key": "test:whole original synthetic evidence fixture remains available and unmodified",
+      "sha256": "afe9536b69e11881b25ae86c130c9b00e44e602aa853c8fa70abe47d23ee5a99"
+    }
+  ],
+  "changed": [
+    {
+      "key": "function:fixture",
+      "prior_sha256": "1f8edbb4f532b57d7a53d3efec432db730fe7e46bab46ec92d381dc1642ab3ce",
+      "current_sha256": "9fcebbd846fa9b7e4b8e7b86c0db05c8629be44ac17f82e6d6d626f86acf0a0a"
+    },
+    {
+      "key": "test:external legacy await is serialized with later publication and reservations",
+      "prior_sha256": "0e120c517109cbb84419247c86b8bc96db564d44cb3d17d4cec1350136832ed9",
+      "current_sha256": "163a96a39081b29297c0f5ef299b1a31c6c946d5295fcf2db3c1473f00b6cc5a"
+    }
+  ],
+  "added": [
+    {
+      "key": "test:later preparation can enter first and legitimately supersede an older reservation",
+      "sha256": "8ee0d0b8fa8b5ac1948b5e35d3edcbf7ecee8856ffa221881af9d58953ad66b2"
+    }
+  ],
+  "failed_run": 36838223922,
+  "failed_job": 110290732106,
+  "failure": "External legacy await test expected 200 for an older request that could legitimately enter after a newer revision because request-digest preparation is asynchronous.",
+  "reproductions": {
+    "old_test_with_delayed_first_preparation": "Fails 409 versus 200, reproducing the runner failure without changing production code.",
+    "revised_test_with_queue_bypassed": "Fails counter 3 versus 2, proving serialization protection remains covered."
+  },
+  "fix": "Explicit legacy-read entry and coordinator enqueue events replace the 10 ms order assumption. The old success/body assertions are retained; queued reservation blocking and reverse preparation order are explicitly tested.",
+  "production_sources_unchanged": {
+    "jh-chart-engine.js": "22790bc09ce26cdbe10c4f296889eb97c9df7a2d7a26431580d7fc00e2258348",
+    "cloudflare/workers/justhodl-data-proxy/src/index.js": "7f4ecf64910ca5b63f3e70a2d021bfcb6960a7a95f2d1799060a2fdffbc8bbee",
+    "cloudflare/workers/justhodl-data-proxy/src/portfolio-publication.js": "fc39ea1d61ed09fb57ac43bf9fed6e942b5bf882f578523ca3b2414b4b382419"
+  },
+  "actual_account_data_reads": 0,
+  "network_data_requests": 0
+}

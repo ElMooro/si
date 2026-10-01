@@ -29,6 +29,10 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
+October 1 UTC, after Stage 510 (following Stage 511): all ten institutional workstreams remain open. Prior native, edge, publication, chart observation, volume and render-lifecycle acceptance remains retained. The reproduced chart-label injection paths and missing-negative-sign display are repaired, with 78 exact static artifacts, 898 engine records and 599 page contracts. Next: the documented FINRA dataset/category contract, benchmark-label misuse and Bond TRACE 30-row boundary failure. Other HTML sinks, numerical extremes, auxiliary consumers and mobile metadata remain unqualified. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+
+### Retained Stage 482 checkpoint
+
 September 30 UTC, after Stage 482: all ten workstreams remain open. Stage 470 native snapshot/storage configuration remains accepted; actual private delivery and reconciled account consequences remain unverified. Cumulative static build acceptance is complete under `65ba3089f3a60a5092d3430b3308b8ef849475a7`: all 36 inspected static artifacts, 893 complete engine records, 543 navigation entries and 599 full page contracts match one coherent served build. Source-only pages preserve unchecked availability and exact served asset hashes. Term Premium's September 30 13:45:28 retained original archive now fully replays all 17,070 rows, 529,232 cells, 60 series and 240 comparisons. Read-only operation 6376 verifies its exact native receipt/package/resources/original schedule before and after replay. It does not inspect the current pointer, private journals or consumers, and does not establish schedule causation, first-release availability or investment authority. Final Stage 476 tests: 911 deployment/fifteen shell, 20 native and nine whole invented archive cases; prior frontend 2,129 remains accepted. Pending original-source qualification, account reconciliation, model validity, consumer migration and the remaining fleet/page work stay open. The subsequent complete-transport repair is now native/static accepted as `5c03c2d10aa9766de9ebe2461bb8019a3cb09007`: 28 native and 913 deployment/fifteen shell checks pass; the full original computation is unchanged under repaired transport, and all 39 static assets match the coherent served build. A normal publication from this new release remains pending the original schedule. The three reproduced Term Premium browser integrity faults are now repaired and accepted as `832710ee59b0b3f5070aa0176dc68d1ef1ca4f59`: all 39 exact static assets, 24 focused browser cases and 2,141 frontend tests pass, with complete retained original tables replayed in the browser module. FI/FX original-archive replay is now accepted: every one of 92,029 rows and 626,115 scalar checks reproduces, but only four of 18 sources were usable at the run clock. Complete native transport is now deployed and accepted with exact prior-archive replay. Browser repairs are accepted as `69eb7e3106ddb9e6e1f57eccc83b751afe6aedff`, with 45 exact static assets and 2,165 passing frontend tests. FRED API acquisition and its source-window page are now exact-release accepted as `1129b6d6a66f4afe9ff0c35f368fc45530a5c964`, including full historical compatibility. New API delivery awaits the unchanged normal 21:20 UTC publication.
 
 ### Retained Stage 371 checkpoint
@@ -7026,3 +7030,317 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - A failed provider-search refresh retains or restores the old SQLite bytes; same-clock replacements use the full artifact identity. Manifest failure stays explicitly unavailable, and independent native search results remain usable. No actual index/catalog/master, private/current/account/consumer body, provider request or producer invocation was used. Normal service execution, actual AWS capacity/latency, independent real-source replay and concurrent manifest writer ordering remain unverified. All ten institutional workstreams remain OPEN; storage integrity grants no investment authority.
 
 - After the exact static inspection, concurrent ETF proxy-label merge `ca5462aebca056c1d097363a9068032886a0f0db` was reviewed and preserved. Its five native synthetic and four label/renderer cases pass. It changes a different engine and two other pages; this acceptance remains pinned to the stated native commit and observed static build, without claiming acceptance of subsequent live builds. Publication-order repair 6408 is reserved next.
+
+
+### Stage 496 conditional directory publication candidate
+
+- Two complete invented native builds reproduce an older manifest replacing a newer one. The whole 171,274-byte preceding handler, complete acquisition boundaries, every output body and the interleaving are retained. No actual provider, directory or consumer packet was accessed.
+- The candidate retains complete docs/index/catalog artifacts, selects a manifest with ETag conditions and orders participating builds by start and completion clocks. It retains legacy copies with independent conditional updates. These are explicitly not a multi-object transaction; uncooperative writers and legacy consumers remain outside the new guarantee.
+- Whole-handler integration caught a frozen retry-clock error, corrected by reevaluating time on each conflict retry. Review also caught scheduled success responses hiding copy errors. Copy failures now raise through the native handler after preserving the committed immutable generation; deliberate supersession remains explicit. All 85 native tests pass, including sixteen new publication cases. AST comparison confirms only the build function changes.
+- Exact seven-source acceptance 6408 is reserved. Full deployment checks, native release, normal publication, actual capacity, independent source replay and all ten institutional workstreams remain OPEN. No new investment authority, sources, schedules or AWS resources are introduced.
+
+
+- Final Stage 496 candidate passes 85 native, five acceptance, 1013 deployment, fifteen shell and 2,244 frontend cases. The complete engine inventory, dependency map and page contracts were regenerated from this source; all 599 page graphs and 143 companion wires pass. Exact native/static release acceptance remains pending.
+
+
+### Stage 496 exact conditional publication release acceptance
+
+- Source `11bc431ce89ad57cf7a4858a2210fa58d95af6fe` is accepted with the exact public receipt and CodeSha256 `A0x7WUGijpE1fhVOHyzSf2va8FB1ex26wPkEXguzWQ0=`. Read-only 6408, run `36814708347`, confirms seven packaged sources, original 6144 MB / 900 seconds / 2048 MB temporary storage / Python 3.12 / x86_64 controls and all seven original schedules. Report commit: `e227de0eee71c30f8f4196b91abdd818ea96a501`.
+- All 58 inspected static artifacts match one complete Pages build `11bc431ce89ad57cf7a4858a2210fa58d95af6fe`, with complete source-inventory and page-contract replay. The source audit retains the full final test counts, whole overlapping-build reproduction and both integration-review corrections.
+- Upgraded publishers conditionally select complete immutable generations; old or conflicting builds cannot blindly replace newer heads. Legacy copies remain separate and can lag; failed copies raise without rolling back committed evidence. No actual current/private/account/consumer data, provider request or producer invocation was used. Normal publication, actual capacity, independent replay, uncooperative writers and legacy-reader migration remain unverified. All ten institutional workstreams remain OPEN; this grants no investment authority.
+
+
+### Stage 497 bounded resident-search cache candidate
+
+- A complete fixture against accepted publication source 11bc431ce8 shows a resident process never checking the new generation during ordinary searches. The same whole query finds the new identifier only after forced refresh. Both entire compressed generations, whole native responses and preceding handler are retained; no actual service/provider data was accessed.
+- Each active process now checks the head within a five-minute window, detects same-clock content changes and uses the existing validated download/rollback path. UTC and monotonic time both constrain the window. Ordinary failures retain searchable rows with explicit unavailable-check metadata and zero HTTP cache lifetime; retries are bounded to thirty seconds. Cold and explicit failures still raise.
+- Candidate review caught a lost-population fallback that could have returned after unrecoverable recovery; it now raises and has a regression case. Fifteen isolated cache and three whole-native cases pass. Full combined checks and exact eight-source acceptance 6409 remain pending. Seven original schedules/resources, source acquisition and non-search handlers remain unchanged. All ten institutional workstreams remain OPEN.
+- Consumer tracing found that the public proxy replaced every native cache directive with two minutes. The first check run was deliberately stopped before the full deployment gate, and the related worker correction joined this batch. Thirteen focused cases execute the actual worker and complete predecessor: zero-cache/error/bypass responses are not stored, valid cache hits age toward one fixed expiry, invalid metadata is rejected and every other worker branch is preserved. Native and worker receipts must both match this batch before acceptance; no real route or private data was queried.
+
+- Final Stage 497 candidate passes 104 native, five acceptance, 1018 deployment, fifteen shell and 2,257 frontend cases. The pinned complete Worker build also passes thirteen compiled search cases and twenty-five local workerd/SQLite cases with zero external requests. The complete engine inventory, dependency map and page contracts were regenerated from this source; all 599 page graphs and 143 companion wires pass. Exact native, Worker and static release acceptance remains pending.
+
+
+### Stage 497 exact native and edge cache release acceptance
+
+- One source batch `fd9fb328e6aba2dd1cb969b14e3211155716d809` is accepted by the exact Lambda receipt, CodeSha256 `o7XggJfFtzOOrjZ60lnjqD0ZVe/G6WTS2PPkfM9C3AI=` and Worker receipt. Read-only 6409, run `36816729838`, confirms eight native sources, original 6144 MB / 900 seconds / 2048 MB temporary storage / Python 3.12 / x86_64 controls and all seven original schedules. Report commit: `b146573dbbcd621746c0ecb52cdcb3e5b39798d6`.
+- Complete Worker bundle `3798b69af3ef5af59acc050a4ec500f2b065912ecee91768c818a5a1bbd41811`, active version `0b828b73-b399-4726-91de-212f7b9286d8`, matches the pinned local build and every recorded build input. Original Worker settings and schedules are unchanged. Complete before/after source capture was retained in `3f08a307ca631d335259ea4acd91e9f0a583bd24`; verification fetched the public release receipt but no application-data route or private body. All 58 inspected static artifacts match one complete Pages build `fd9fb328e6aba2dd1cb969b14e3211155716d809`, with whole 898-engine and 599-page-contract replay.
+- Resident processes discover new and same-clock generations through bounded ordinary-request checks. Failed checks preserve a usable population with explicit degraded metadata; lost populations fail. Native and edge HTTP lifetimes cannot extend the last successful check window, and degraded responses are not stored by the upgraded search proxy. Full candidate counts and compiled runtime evidence are retained in the companion audit.
+- Normal production execution, actual latency/capacity, independent source replay, browser catalog retry/refresh and visible cached-result warnings remain unverified or pending. Complete invented browser reproduction confirms initial catalog failure persists for that page session. All ten institutional workstreams remain OPEN; cache integrity grants no investment authority.
+
+
+### Stage 498 browser search recovery
+
+- Complete retained catalog source and invented packets reproduce a permanent failed-session cache: the same sources work only after a new page session. The replacement retries failed sources after 30 seconds, refreshes good sources after five minutes of search activity, bounds each request, and atomically retains a complete old population on invalid replacements. Unknown populations are null; empty validated populations remain zero.
+- The full search UI displays cached/unavailable catalog, directory and warehouse states. Query sequence IDs reject stale results, including A → B → A and delayed FRED fallback; catalog repaints retain received remote rows. Identity selection remains explicit and source strings remain text. Optional on-chain enrichment is labelled unverified because its module owns an independent cache.
+- Two complete offline Edge search suites pass desktop and mobile interaction checks with all requests intercepted. Whole-module regressions preserve every unrelated existing function and outer statement. The first new browser harness had a wrong public opener argument and a detached-element measurement; the harness now uses the existing opener and measures the current DOM synchronously. Full deployment/frontend checks and exact static acceptance remain pending.
+- No Lambda, Worker, schedule or data source is changed. No producer or actual data route is invoked. Source freshness, independent source qualification, actual capacity, standalone history/enrichment caches and all ten institutional workstreams remain OPEN.
+
+
+- Final Stage 498 candidate: 1018 deployment/fifteen shell, 2,283 frontend (including 26 new search/cache cases), 104 unchanged native regressions, 599 page graphs and 143 companion wires pass. Both complete browser suites pass at 1440 and 390 pixels, with source bytes bound before/after the run and no actual data requests. Review preserved the legacy explicit-failure FRED fallback. Exact Pages release acceptance is the remaining gate for this batch.
+
+
+### Stage 498 runner test ordering repair
+
+- Pages run 36818832534 rejected the source batch because an existing snapshot test assumed asynchronous hashes would complete in launch order. A newer request reaching the Worker first correctly causes a 409 for the older revision. No Worker defect is established by that failure; production source remains unchanged.
+- The test now synchronizes at the actual held legacy read and verifies that both later publication and reservation wait. A second test deliberately reverses digest completion and proves the complete newer body survives the older 409. The complete preceding test and exact failure context are retained.
+- Runner-version Node 22.23.2 passes all 2,284 frontend cases, including 22 snapshot cases; native 104 and deployment 1,018 plus fifteen shell checks pass. Official Node archive checksum verified. Exact Pages acceptance remains pending; no real private/account/consumer data was read or producer invoked.
+
+- Before the repair push, peer PR29 merged at `cfa7f41305d1d4bf0e8f7b8dc8b31d5e6b70148d`. Its additive Khalid qualification and UI are preserved. Combined checks pass: 2,290 frontend, 70 Khalid, 104 symbol-directory and 1,018 deployment plus fifteen shell tests. The only incoming chart HTML edit is the removed Khalid script version: the complete HTML produced by each existing offline browser harness is byte-identical, as are both exercised chart modules and both harnesses. Whole-source equivalence is retained in the audit. No live Khalid/portfolio packet was read.
+
+- PR31 then added opt-in holdings diagnostics at `5c797c0534ab5724b4d7b6bebfad6671a69411cb`. Preserved the peer change and ran all shared ETF suites and both consuming native engine runners. Full frontend/deployment validation remains explicitly bound to the preceding PR29 base; the intervening delta changes no browser, pipeline or symbol-directory source. No real holdings data or external source was accessed.
+
+- Peer PR30 then withdrew unsupported backtest Mode A qualification at `c0f2565eb0d66b9463b7b225dcefc9f35d95adf8`. All three native runners and the complete revised frontend (2293 cases), plus public page parsing, pass. This preserves the independent lane; it is not a corrected backtest or live scorecard acceptance.
+
+
+### Stage 498 exact static acceptance
+
+- Source `43876d5221d9594a2e1e124554d28fdcab1f39e1` is accepted against one complete served Pages build `43876d5221d9594a2e1e124554d28fdcab1f39e1`. All 58 inspected static artifacts match, including the complete chart catalog and engine, their content-versioned HTML references, the whole 898-engine inventory and all 599 page contracts. No actual engine/account/consumer packet or application-data route was fetched.
+- The full check bases and the incremental peer-change checks are retained explicitly: 104 symbol-directory tests; 1,018 deployment/fifteen shell checks at the PR29 base; 2,293 frontend cases at the final PR30 base; and both complete offline desktop/mobile search suites. Incoming PR31 also passes 121 shared ETF cases and its 78/53 native runners; PR30 passes all three affected native runners. Browser source bytes and whole invented inputs/results are retained in the companion audit. Scope is deployed source, reproducible source-level behavior and static publication, not normal execution against real data or source qualification.
+- Next reproduced defect: the chart catalog's CQ and CISS adapters and the separate on-chain module turn null, boolean, blank-string and empty-array observations into zero. A complete offline reproduction retains all three outputs and original modules. Do not present these as measured zeros. All ten institutional workstreams remain OPEN.
+
+## Stage 499: scalar source histories and chart identity
+
+The complete prior CQ/catalog/CISS paths reproduce false zeros, substring/first-row substitution and an unqualified proxy join. Monthly values were silently anchored to day one, not rejected. The new shared browser contract preserves exact numeric/calendar meaning, every source record, complete packets and separate proxies; it never grants original-provider or investment qualification.
+
+Review and isolated browser execution also exposed stripped CQ/CISS tab/cache identities, stock-return/fundamental panels for scalar values, replay identity loss and stale plots after failure. These paths now retain exact identity or withhold the unsupported display. The complete source inspector paginates all records and exports the entire transformation. All existing unrelated module code is checked against whole predecessors.
+
+Local final deployment checks and exact static release acceptance are pending. Actual CQ/CISS packets and the drawing vendor were not executed; legacy scalar caches, snapshot/metadata paths and other platform work remain open. No native producer was invoked or private packet read.
+
+- Stage 499 final checks: 2,326 frontend, 1018 deployment/fifteen shell, 104 unchanged native checks; 599 page graphs and wiring checked. Twenty-two focused observation regressions and all four whole browser suites pass at 1440/390px. PR32 correlation source/refresh fixes are preserved and included in this final base. Complete whole inputs/outputs/screenshots are retained. Exact Pages acceptance remains pending; all broader workstreams stay open.
+
+
+### Stage 499 exact static acceptance
+
+- Source `4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7` is accepted against its exact served Pages build (run 36824520696). All 64 inspected whole static artifacts match one manifest, including the new scalar parser, full 368,270-byte chart engine, CQ fuse/catalog, source inspector, content-versioned chart/crypto HTML and the peer's correlation page. The generated 898-engine inventory and 599 complete page contracts also match the offline source replay.
+- The atomic native Git push carried all 56 related files, including the complete large engine and retained predecessors. It used neither a connector write nor a partial target file. No Lambda source changed in this batch; no new native release or invocation is claimed.
+- Final source passed 2,326 frontend cases, 1,018 deployment and fifteen shell checks, 104 unchanged symbol-directory cases, all page/wiring gates and four isolated desktop/mobile Edge suites. Both the drawing mock and the whole pinned 4.2.3 library preserve explicit zero, negative and small values and complete source evidence. Every browser request was intercepted; no actual private/current-consumer packet was fetched.
+- Next defects reproduced from these exact complete modules: permanent CQ/CISS history caches, initial failure cached indefinitely, a reset/late-request overwrite race and coercible invalid CQ snapshot values rendered as numbers. These are the next repair. Unavailable-series diagnostic inspection and other legacy/chart-plugin paths remain open. All ten institutional workstreams remain OPEN.
+
+
+### Stage 500 — bounded observation recovery (release pending)
+
+- Complete predecessor reproduction demonstrated permanent successful and failed CQ/CISS caches plus a reset race that let an old request overwrite a newer generation. The new shared loader bounds success/failure reuse, fetch/JSON decoding and fallback; rejects late writes; preserves the last good packet and decoded rejection separately; and shares source requests across chart, enrichment and companion desk.
+- CQ numeric formatting no longer converts booleans/containers to measured zero. Chartability and displayed spans use only valid exact primary observations, with proxy histories separate. Missing source counts stay null. Forecast/snapshot labels no longer imply independently verified freshness, guaranteed future harvests or a proved forecast scorecard. Whole original source documents remain retained.
+- Focused deterministic checks and isolated desktop/mobile browser failure/recovery pass. Full deployment/frontend/source graph gates and exact static release acceptance remain pending. No native code, provider settings, schedules or actual data access changed. All institutional workstreams remain OPEN.
+
+- Stage 500 final checks: 2,348 frontend; 1018 deployment and fifteen shell; 104 unchanged native cases; 599 page graphs and wiring checked. Sixty focused regressions include 22 new cache/preservation cases. Five offline suites pass at 1440/390px, including the complete pinned drawing library and failed/recovered CQ panel. Whole inputs, outputs, rejected packets and screenshots are retained. Exact Pages acceptance remains pending.
+
+
+### Stage 500 exact static acceptance
+
+- Source `2e113edac4993b8602f00f33a28ac7647b352e9c` is accepted against its exact served Pages build (run 36827703153). All 66 inspected whole static artifacts match one manifest, including the shared cache, full chart engine/catalog/fuse/source inspector, companion on-chain module and both content-versioned chart/crypto consumers. The complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final source passed 2,348 frontend cases, 1018 deployment and fifteen shell checks, 104 unchanged native cases, sixty focused cases and five desktop/mobile offline suites. Cache deadlines are enforced at result acceptance as well as by a timer. Whole original/rejected packets, dependency preservation and failure recovery are retained in the audit. No actual application/private/current-consumer data or producer invocation was involved.
+- Remaining work includes unavailable-series diagnostic inspection, scalar display-calendar semantics, broader legacy crypto/chart correctness, independent original-source qualification, normal scheduled publication and reconciled portfolio consequences. The legacy two-week scalar projection has been reproduced labeling pre-epoch Monday/Tuesday measurements on a later Thursday; it remains outside this cache repair. All ten institutional workstreams remain OPEN.
+
+
+## Stage 501: unavailable histories and scalar calendars (candidate)
+
+- Whole received CQ/CISS source diagnostics now remain bound to an empty chart frame for inspection/export. Unknown identity, ambiguity, malformed histories and rejected observations remain distinct; unavailable counts do not become zero. Stale responses cannot relabel a newer symbol, interval or generation.
+- Scalar single/sparse histories now follow the declared UTC calendar grouping. Fortnights use a Monday anchor with pre-epoch floor arithmetic; source periods and the last scalar period are distinguished from the display group coordinate. Market grouping remains unchanged under whole-function comparison.
+- Category labels no longer inherit Object.prototype names. Offline visual review found a further stale prior-ticker watermark on an unavailable chart; the candidate now clears it and tests the real drawing library's watermark option. Prior complete source and reproduced failures are preserved.
+- Focused and browser regressions are being checked. Full source/static release acceptance is pending. No native engine, schedule, provider, private/current-consumer packet, paid API or investment authority changes. All ten workstreams remain OPEN.
+
+- Stage 501 final candidate checks: 2,361 frontend; 1018 deployment and fifteen shell; 104 unchanged native cases; thirty focused regressions, including thirteen new diagnostic/preservation cases. Five offline suites pass at 1440/390px, including the complete drawing library, unavailable histories and pre-epoch groups. Exact Pages acceptance remains pending.
+
+- Stage 501 final combined-source checks after preserving PR33 and the nightly section registry: 2,370 frontend; 1018 deployment and fifteen shell; 104 unchanged native cases; thirty focused regressions, including thirteen new diagnostic/preservation cases. Five offline suites pass at 1440/390px, including the complete drawing library, unavailable histories and pre-epoch groups. Exact Pages acceptance remains pending.
+
+
+### Stage 501 exact static acceptance
+
+- Source `2cb92648c2c886d5268cfb832669f78d856daea5` is accepted against its exact served Pages build (successful Pages run 36831000447). All 70 inspected complete static artifacts match one manifest. The complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final source passed 2,370 frontend cases, 1018 deployment and fifteen shell checks, 104 unchanged native cases, thirty focused cases and five desktop/mobile offline suites. Empty diagnostic frames retain received evidence and unknown counts. Calendar groups retain every contributing original ordinal. Tests and screenshots verify that the prior DOM ticker watermark is cleared. No actual application/private/current-consumer data or producer invocation was involved.
+- The general warehouse chart decoder still coerces null/boolean/blank/array values into numbers and accepts an impossible date. Whole invented input/output reproduces this separately; it is the next repair. Original-provider qualification, gap-aware presentation, broader page correctness, normal scheduled publication and reconciled portfolio consequences remain open. All ten institutional workstreams remain OPEN.
+
+
+## Stage 502: warehouse scalar identity and transport evidence (candidate)
+
+- General warehouse /series packets use the same strict finite-scalar, calendar, complete-row and source-inspection contract as CQ/CISS. Existing native normalization is explicitly unqualified: received monthly normalized days do not become inferred period ends or first-publication dates.
+- Wrong provider/id replacements are withheld with the complete decoded body; a failed refresh keeps the previously accepted packet with a visible error. Eight catalog cache entries bound retention and abort evicted pending generations. Scalar frames no longer accumulate in the unused market bar cache.
+- Actual resolver tests found and fixed recursion in the unfinished candidate. Warehouse row decoding was corrected before shipping. Browser review also reproduced initial URL uppercasing of a scalar id; the initial load now preserves its spelling. Named exchange symbols cannot inherit a macro alias, while explicit legacy macro aliases retain both identities.
+- Focused checks pass; whole offline browser, deployment/frontend and exact static acceptance are being completed. No native source/schedule, private/current-consumer data, provider invocation, paid API or investment authority change. All ten workstreams remain OPEN.
+
+- Stage 502 combined source passed 2,398 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five offline desktop/mobile suites pass, including the pinned drawing library. Exact static release acceptance remains pending.
+
+- Stage 502 combined source passed 2,406 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five offline desktop/mobile suites pass, including the pinned drawing library. Exact static release acceptance remains pending.
+
+
+### Stage 502 exact static acceptance
+
+- Source `50bfd36472a509bc620abbc9ac50d8ce47669416` is accepted against its exact served Pages build (successful Pages run 36835533154). All 71 inspected complete static artifacts match one manifest. The complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final combined source passed 2,406 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Twenty new warehouse/preservation regressions and five desktop/mobile offline suites pass. Tests use complete invented packets, include the pinned drawing library, and preserve prior source and peer changes. No actual application/private/current-consumer data or producer invocation was involved.
+- General warehouse measurements preserve complete received evidence, validate values/dates/identities and display bounded cache failures. Source spelling and explicit macro aliases remain traceable. Native upstream normalization still prevents original-provider precision/revision qualification. Gap-aware scalar presentation, floating-point axis formatting, legacy market-volume calculations and wider platform correctness remain open. All ten institutional workstreams remain OPEN.
+
+
+## Stage 503: one explicit retained-frame RVOL definition (candidate)
+
+- Quote/detail, crosshair, oscillator and volume candles now divide by exactly twenty preceding chart volumes. Short or invalid windows and zero denominators remain unavailable; measured zero remains 0.00x. The current bar no longer dilutes its own oscillator baseline.
+- Invalid windows retain their coordinates, valid runs draw separately, and stale older values cannot appear as the current axis value. Reference lines describe 1x/2x prior mean rather than overbought/oversold. Candle intensity uses the retained input, before display-only zero defaults.
+- Fourteen numerical/preservation cases and whole invented desktop/mobile browser cases pass. Visual review caught a missing chrome module in the first fixture; the complete existing module is now loaded and visible canvas dimensions are checked. Full combined gates and exact static acceptance are pending.
+- Market provider parsing/defaulting, volume-unit/completed-bar qualification, OBV and wider platform issues remain open. No producer, native schedule, paid API, actual application/private/current-consumer read, Calls eligibility or sizing change. All ten institutional workstreams remain OPEN.
+
+- Stage 503 combined source passed 2,420 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen incoming risk-engine cases. Fourteen new numerical/preservation regressions and five offline desktop/mobile suites pass. Exact static release remains pending.
+
+- First Stage 503 Pages run 36838223922 failed in an existing publication test. The first request's asynchronous digest could finish after the newer request, making a correct supersession return 409 rather than the test's assumed 200. A complete retained predecessor plus controlled preparation delay reproduces it. Explicit queue/read synchronization replaces the timer assumption; original success/body checks remain and blocked reservations/reverse preparation are covered. Bypassing the production queue fails the revised test (counter 3 vs 2). Production chart/Worker code is unchanged. Corrective full gates pass 2,421 frontend, 1,018 deployment and fifteen shell checks; exact live acceptance is still pending.
+
+- The corrective push guard stopped for incoming PR37 (`fd6d7b6b4`) before committing. Its presentation-only timing warning/help is preserved; source, eleven complete invented tests and retained classifiers were reviewed without reading foreign review/benchmark bodies. Combined gates pass 2,432 frontend, 1,018 deployment and fifteen shell checks. Five desktop/mobile suites plus a scrolling follow-up verify the new warning, help, Escape and readable caveat with the RVOL repair. Exact corrective release remains pending; no production Worker change or actual private/account data access occurred.
+
+
+### Stage 503 exact static acceptance
+
+- Source `5ce0d146bdc823bd0d103ae763b72e8f34c94ee6` matches its exact served Pages build (successful Pages run 36840271890). All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Final combined checks passed 2,432 frontend cases, 1018 deployment and fifteen shell checks, 104 directory and fifteen risk-engine cases. Fourteen new numerical/preservation cases, nineteen publication cases and eleven preserved peer annotation cases pass. Five offline desktop/mobile suites plus a scrolling follow-up cover the complete indicator chrome and pinned chart library. The initial runner failure and deterministic test repair remain recorded. No actual application/private/current-consumer data or producer invocation was involved.
+- RVOL definitions now agree across the main chart views, incomplete windows remain unavailable, zero survives and oscillator gaps stay visible. Incoming PR37 timing disclosures are preserved; the publication-test correction changes no production Worker code. Provider defaults/units/completed bars, OBV and other market calculations remain unqualified. All ten institutional workstreams remain OPEN.
+
+
+## Stage 504: retained-chart signed-volume arithmetic (candidate)
+
+- OBV now leaves unchanged closes unchanged, keeps its first retained point as an explicit zero anchor and withholds a broken cumulative chain instead of coercing missing/string volumes or restarting later. Unrepresentable cumulative arithmetic stays unavailable; later windows do not hide the missing contribution.
+- The pane makes unknown current OBV explicit and suppresses a stale prior numeric axis label. Stock-desk relative-volume arithmetic now preserves the difference between genuine zero and underflow of a nonzero numerator.
+- Complete predecessors and invented counterexamples are retained; focused, browser and combined gates are being completed. Provider acquisition/defaults, volume units/completed bars, predictive validity and investment authority remain unqualified. No producer, native schedule, paid API or actual application/private/current-consumer read. All ten institutional workstreams remain OPEN.
+
+- Stage 504 combined source passed 2,446 frontend cases, 1018 deployment and fifteen shell checks. Fourteen new numerical/preservation regressions and three offline desktop/mobile suites pass. Exact static release remains pending.
+
+- Incoming PR41 accessibility repair (`941ce0618`) is preserved. Its source/eight unit cases and isolated browser were checked without foreign review bodies. Two browser-fixture assumptions were repaired: native focus restoration bypasses a JS focus override, and a nonmodal popover may cover the nearby test button. Existing fallback assertions remain; actual focus refusal and successful native restoration are separate cases. A deliberately broken fallback is still detected. Combined checks pass 2,454 frontend, 1,018 deployment and fifteen shell cases; three whole-chart suites and isolated help checks pass on desktop/mobile. Exact release remains pending.
+
+
+### Stage 504 exact static acceptance
+
+- Source `0bdbf6cc44cfd15e5e93f16b89984c089066bc23` matches the exact served Pages build, run 36843486334. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,454 frontend cases, 1018 deployment and fifteen shell checks, including fourteen new numerical/preservation cases. Three offline real-library desktop/mobile suites retain complete invented frames and tested failure/recovery paths.
+- OBV flat-close arithmetic, broken cumulative-chain handling and stock-desk nonzero-ratio underflow are repaired. No actual application/private/current-consumer data or producer invocation was involved. Original provider defaults/units, calendar completeness, predictive validity and portfolio authority remain unqualified. All ten institutional workstreams remain OPEN.
+
+
+## Stage 505: scalar observations without inferred continuity (candidate)
+
+- Source charts, split panes and the navigator now show retained scalar observations as points. Rejected or unreported periods are no longer crossed by a connecting line or filled area. Every original record, accepted scalar and grouping ordinal is preserved.
+- Single-observation split panes no longer drop a genuine zero; the navigator restores market area styling when switching back to a security. Source/market calculations and authority are unchanged.
+- Nine focused rendering/preservation cases pass; complete original fixtures and browser label expectations remain retained. Full browser/deployment/static acceptance is pending. Visual review confirms the separate existing axis tick-formatting noise and crowded mobile metadata remain open. No actual private/current-consumer/provider data or producer execution. All ten institutional workstreams remain OPEN.
+
+- Stage 505 combined source passed 2,464 frontend cases, 1018 deployment and fifteen shell checks. Ten new rendering/preservation regressions and six offline desktop/mobile suites pass. Exact static release remains pending.
+
+
+### Stage 505 exact static acceptance
+
+- Source `78ff25d50f0837961993b510802f5a1f4bddf034` matches the exact served Pages build, run 36845399763. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,464 frontend cases, 1018 deployment and fifteen shell checks, including ten new rendering/preservation cases. Six offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Scalar views no longer imply continuity across excluded or unreported periods. Single-point split panes and navigator recovery are repaired, while every source observation and existing calculation stays intact. Existing axis tick-formatting noise, crowded mobile metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 506: source-bound scalar axis labels (candidate)
+
+- Reproduced a theme switch changing an independent scalar pane to percentage labels when the main security chart uses YTD. Each scalar pane now retains its own frame-bound formatter.
+- Generated axis noise may be shortened only below a 0.05-pixel difference; exact source values retain their full numeric representation at every scale. Market arithmetic, observations and permissions are unchanged.
+- Thirteen new focused formatting/preservation cases and complete invented desktop/mobile browser cases cover the repair. Full combined checks and exact static release remain pending. Two early test expectations were corrected to distinguish harmless subpixel shortening from distinguishable zoomed ticks; the product rule did not change.
+- Visual review confirms clean scalar ticks and preserved split-pane units. Crowded mobile metadata, stale market-recovery loading text and unqualified extreme library scales stay open. No actual application/private/current-consumer/provider data or producer invocation. All ten institutional workstreams remain OPEN.
+
+- Stage 506 combined checks passed 2,477 frontend cases, 1018 deployment and fifteen shell checks. Thirteen new cases and seven offline desktop/mobile suites pass; exact static release remains pending.
+
+
+### Stage 506 exact static acceptance
+
+- Source `4735d3b0bcbdde6967bad8c2fdcd0bd77df71f35` matches the exact served Pages build, run 36847549974. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,477 frontend cases, 1018 deployment and fifteen shell checks, including thirteen new formatting/preservation cases. Seven offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Scalar panes preserve their source units through theme changes. Generated tick noise is shortened only below 0.05 pixels; source measurements remain exact. Crowded mobile metadata, stale market-recovery loading text, extreme library scales, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 507: unavailable market volume and frame replacement (candidate)
+
+- Reproduced absent/null/boolean/negative volume becoming zero and a generic price/value becoming volume. The decoder and core transforms now preserve unavailable quantities and reject conflicting aliases. Complete invented packets and original source remain retained.
+- Volume bars preserve missing coordinates; complete twenty-bar means recover at the correct inclusive boundary without connecting across unavailable windows. RVOL and OBV keep their existing separate definitions. Legacy core volume overlays withhold incomplete frames pending individual window qualification.
+- Real-library review exposed removeSeries callbacks recreating an old volume profile during a frame switch. Clearing ownership before removal and clearing hover state fixes that path; no stale number is intentionally retained as a fallback.
+- Forty focused checks pass, including twenty new numerical/preservation cases. Nine offline desktop/mobile suites, full combined checks and exact publication remain pending. Actual providers, extended annotation modules, transformed-candle volume, original lineage, numerical qualification of legacy formulas and all institutional workstreams remain OPEN. No producer invocation or actual private/current-consumer data read.
+
+- Stage 507 combined checks passed 2,497 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.
+
+- Stage 507 combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.
+
+
+### Stage 507 exact static acceptance
+
+- Source `8724ecc74e20d259c19af65e4317508e7f9eaf27` matches the exact served Pages build, run 36852646529. All 74 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks, including twenty new volume/preservation cases. Nine offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Missing volume remains unavailable through the core decoder, aggregation, histogram and moving-average windows. Removing obsolete series ownership prevents a prior-symbol profile from reappearing during symbol replacement. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 508: delayed chart response ownership (candidate)
+
+- Whole desktop/mobile reproduction confirms a prior benchmark response replacing the quote after a new symbol finished loading: the chart retained 305 while the quote reverted to 105 and the old volume. The complete invented inputs and predecessor are retained.
+- Main render continuations, shared benchmark state and post-paint load continuations now require the same sequence, symbol, interval and acquisition generation. Current optional-benchmark failure still permits rendering; stale success and stale failure cannot publish a tail.
+- Nineteen focused ownership checks pass. The unchanged predecessor fails sixteen of them, while the three current-data behavior checks still pass. Desktop/mobile candidate cases pass for delayed success, failure and calendar responses. Full regression and exact release remain pending; all institutional workstreams remain OPEN.
+
+- Stage 508 combined checks passed 2,526 frontend cases, 1018 deployment and fifteen shell checks. Twenty-two new cases and twelve offline desktop/mobile suites pass; exact static release remains pending.
+
+
+### Stage 508 exact static acceptance
+
+- Source `55c3f3bd818a7b9ef49886ecfa67d140daeb0654` matches the exact served Pages build, run 36854538690. All 74 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,526 frontend cases, 1018 deployment and fifteen shell checks, including twenty-two new ownership/preservation cases. Twelve offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Delayed main render responses, shared benchmark state and post-paint load continuations stay bound to their original sequence, symbol, interval and acquisition generation. Old success and failure cannot replace a newer quote; current optional-benchmark failure still allows rendering. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 509: refresh settings separated from market freshness (candidate)
+
+- The complete predecessor labels another symbol's retained entry, future/typed timestamps and a recent bar recap LIVE. Absent tape or paused refresh produces EOD. The stored reproduction preserves all invented inputs and returned labels.
+- The footer now describes only AUTO, PAUSED or REPLAY. A separate descriptive tooltip uses usable reported timestamps belonging to the selected symbol and explains that entry age does not establish live chart prices or exchange-session status. Initial HTML makes no live claim; existing cadence and setting/replay behavior are preserved.
+- Nine focused behavior checks and an isolated whole-module real-library desktop/mobile prototype pass. Four preservation cases bind the four functions and one HTML replacement. Full combined regression and exact publication are pending. All institutional workstreams remain OPEN.
+
+- Stage 509 browser regression exposed disposed drawing objects. Publication remains held. Complete error stacks and real-library resize calls reproduce retained callbacks after removal. The candidate now cleans up mkChart's observer, two timers and window listener before removal; queued callbacks cannot resize a retired chart. Seven focused cases and five desktop/mobile prototype repetitions pass. The full combined suite is being repeated after this repair; all institutional workstreams remain OPEN.
+
+- Stage 509 combined checks passed 2,546 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and fourteen offline desktop/mobile suites pass after the lifecycle repair; exact static release remains pending.
+
+- Stage 509 integrated incoming tape/industry qualification, market-tape vocabulary and FINRA/issuer helpers without overwriting peer source. Combined checks now pass 2,560 frontend cases, 1018 deployment and fifteen shell checks; ten native qualification cases and 31 legacy harness checks pass. Three incoming renderers pass the isolated desktop/mobile browser fixture. Two native receipts match merge 81fd96b257; normal data execution is unverified. Mixed-type FINRA breadth dates reproduce a TypeError offline and remain queued for repair.
+
+
+### Stage 509 exact static acceptance
+
+- Source `7a96c14e2a9653c4d38cfff29283c23a1baab3e8` matches the exact served Pages build, run 36859499377. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,560 frontend cases, 1018 deployment and fifteen shell checks, including twenty new refresh-status/lifecycle/preservation cases. Fourteen offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Refresh status describes AUTO, PAUSED or REPLAY; the reported age of usable selected-symbol tape entries is separate and grants no chart-freshness or session claim. Existing polling, settings and replay behavior are preserved. Removed mkChart objects release their resize observer, timers and window listener; queued callbacks cannot resize them. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
+
+
+## Stage 511: chart HTML labels (candidate; prioritized before Stage 510)
+
+- Complete invented URL input reproduced executable DOM content at desktop and mobile widths. The candidate encodes user/source labels at 21 engine functions and the indicator UX legend while preserving original identities, calculations and interactions.
+- Eight focused cases pass and all eight fail on the predecessor. Expanded whole-module browser cases retain literal notes/attributes, query/hash entry, tab recovery, alert deletion and comparison-removal identity. Combined checks and exact publication are pending; this is not a complete security audit.
+- The signed-volume Stage 510 prototype remains unpublished, and must be rebased after this security repair. No actual/private/current-consumer data, producer invocation or investment authority change. All ten institutional workstreams OPEN.
+
+- Stage 511 combined checks passed 2,578 frontend cases, 1018 deployment and fifteen shell checks. Thirteen new behavior/preservation cases and fifteen offline desktop/mobile suites pass. Literal label/identity preservation is verified within this scope; exact static release remains pending.
+
+
+### Stage 511 exact static acceptance
+
+- Source `4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2` matches the exact served Pages build, run 36862246172. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- 2,578 frontend cases, 1018 deployment and fifteen shell checks pass. Thirteen new cases and fifteen offline real-library desktop/mobile suites verify literal symbols, notes, labels and quoted IDs, including query/hash entry, navigation recovery, alert deletion and comparison removal. The previous source fails all eight focused cases.
+- This closes the reproduced chart-label injection paths. It does not establish that every HTML sink, other page, annotation, URL, CSS value or dependency is safe. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
+
+
+## Stage 510: signed display and explicit OHLC volume estimate (candidate)
+
+- The complete predecessor browser shows a computed −100 as Δ 100. The quantity is a close-location multiplier times volume, not measured signed trade flow. Whole invented inputs and predecessor source are retained.
+- The quote now names CLV × Vol and discloses its formula and limits. Nonflat measured-zero volume remains zero; flat, invalid and numerically unrepresentable estimates remain unavailable. Ordinary complete-frame arithmetic is preserved. A shared signed formatter retains negative signs in the quote and existing QR summary without qualifying upstream tape measurements.
+- Eleven focused cases and desktop/mobile whole-module prototypes pass. Four preservation cases bind unchanged source and all earlier assertions. Full combined regression and exact publication remain pending; all institutional workstreams remain OPEN.
+
+- Stage 510 combined checks passed 2,593 frontend cases, 1018 deployment and fifteen shell checks. Fifteen new behavior/preservation cases and sixteen offline desktop/mobile suites pass. Signed labels and the bounded close-location estimate are verified within this scope; exact static release remains pending.
+
+- Stage 510 after incoming source integration: 2,600 frontend, 1,018 deployment and fifteen shell checks pass. The incoming Tape Reader whole-page invented browser cases also pass. A separate native short-interest suite exposes one pre-existing squeeze-pretrigger reader guard regression (38/39 pass); it is queued for the immediately following engine batch and is not covered by static chart acceptance. Operation 6411 is a read-only native control baseline, not a producer invocation.
+
+- Stage 510 final incoming review: peer fixture migration retires an obsolete squeeze reader expectation; rerunning the native short-interest suite exposes the analogous obsolete equity-enrich expectation (38/39 still pass). Source review confirms both now read a separate descriptive ticker packet. The earlier missing-guard diagnosis is not evidence of a scoring regression; direct coverage of the new readers and removal of unsupported legacy forecast/sizing prose remain open. No application source changed after the full combined checks.
+
+
+### Stage 510 exact static acceptance
+
+- Source `4a998e454ae8822bafbfe64f63677cac9f839a55` matches the exact served Pages build, run 36867097135. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- 2,600 frontend cases, 1018 deployment and fifteen shell checks pass. Fifteen new cases and sixteen offline real-library desktop/mobile suites verify signed quote/QR summaries and the close-location estimate, while retaining the previously accepted literal-label and navigation checks. The whole predecessor reproduces the missing minus sign.
+- The displayed quantity is named CLV × Vol with its limits; unavailable estimates remain unavailable and genuine zeros survive. Tape acquisition, other volume studies and provider definitions remain unqualified. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
+
+
+## Stage 512: documented FINRA aggregates and bond consumers (candidate)
+
+- Corporate breadth now uses the documented dataset, category identity and observation date; complete returned rows and canonical response hashes are retained. Treasury observations use returned dates from a bounded window. Invalid, duplicate and saturated responses are unavailable. Current API volume units remain explicitly unverified.
+- Benchmark labels remain labels. Unsupported price dislocation, dealer positioning and individual-print fields stay null with reasons. A separately versioned history compares only earlier unique observations under this definition; legacy history is not migrated. A 30-row ETF boundary no longer raises.
+- Intelligence renders the actual ratio value, removes unsupported absolute-price-ratio posture inference, distinguishes dates, preserves missingness and uses a scrollable mobile table. Website synthesis withholds unqualified bond context. Its separate paid-API path and other input qualification still require repair; no model or producer is invoked by these checks.
+- Thirty-six isolated helper/whole-producer tests, three synthesis tests, nine page tests and full-page invented desktop/mobile prototypes pass before adoption. Full integration and native/static acceptance remain pending. All ten workstreams remain OPEN.
+
+- Stage 512 integrated candidate checks: 2,609 frontend, 1018 deployment and fifteen shell checks pass, together with 36 bond, three new plus seven preserved synthesis, and six native acceptance checks. Whole-producer invented fixtures reproduce the old 30-row crash; desktop/mobile browser fixtures reproduce the old object-rendering and unsupported ratio interpretation. Exact native/static release is pending. Duplicate bond triggers, legacy notifications, no-paid synthesis transport and new short-interest consumer coverage remain open.
+
+- Stage 512 final integration retains peer changes. Own operation 6412 collided with another lane and was renamed to 6413, with a separate published reservation. Only the report identity changed; its six controls tests and the deployment suite were rerun. Generated source references were rebuilt after an incoming docstring line change. The unchanged frontend/browser evidence is retained with exact source hashes. Incoming short-interest and industry-metadata tests pass 39 and 16 invented cases respectively; no foreign report was read or accepted.

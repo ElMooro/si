@@ -7,6 +7,7 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 const fuseSrc = fs.readFileSync(path.join(root, "jh-cq-fuse.js"), "utf8");
 const catalog = fs.readFileSync(path.join(root, "jh-chart-catalog.js"), "utf8");
+const observations = fs.readFileSync(path.join(root, "jh-observation-series.js"), "utf8");
 const engine = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
 const search = fs.readFileSync(path.join(root, "jh-chart-tvsearch.js"), "utf8");
 const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
@@ -134,10 +135,12 @@ function fixtureFetch(url) {
 }
 
 function loadFuse() {
-  const ctx = { window: {}, fetch: fixtureFetch, Date, Math, isFinite, Number, String, Object, Array, Promise, console };
+  const ctx = { window: {}, fetch: fixtureFetch, Date, Math, isFinite, Number, String, Object, Array, Promise, setTimeout, clearTimeout, AbortController, console };
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  vm.runInContext(observations, ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-cache.js"), "utf8"), ctx);
   vm.runInContext(fuseSrc, ctx);
   return ctx;
 }
@@ -159,7 +162,7 @@ test("chart.html and crypto desk load the CQ fuse", () => {
   assert.match(engine, /CQDOC/);
   assert.match(engine, /\(FRED\|CQ\|CQSNAP\|CQARM\|CQDOC\|CISS\|DESK\|DATA\|NYFED\):/);
   assert.match(catalog, /JHCqFuse/);
-  assert.match(search, /cq-feed live print/);
+  assert.match(search, /cq-feed reported snapshot/);
 });
 
 test("fuse search finds harvest series and extra snapshots, never invents history", async () => {
@@ -172,7 +175,7 @@ test("fuse search finds harvest series and extra snapshots, never invents histor
   const hashrate = ctx.JHCqFuse.searchHits("hashrate");
   assert.ok(hashrate.some(function (h) { return h.s === "CQ:btc_hashrate" && h.chartable === true; }));
   const asopr = ctx.JHCqFuse.searchHits("a_sopr");
-  assert.ok(asopr.some(function (h) { return /a_sopr/.test(h.s) && h.chartable === false && /1\.01/.test(h.extra) && /live print/.test(h.extra); }));
+  assert.ok(asopr.some(function (h) { return /a_sopr/.test(h.s) && h.chartable === false && /1\.01/.test(h.extra) && /reported snapshot/.test(h.extra); }));
   const house = ctx.JHCqFuse.searchHits("in-house");
   assert.ok(house.some(function (h) { return h.chartable === false && /in-house/.test(h.s + h.name + h.extra); }));
   const snapK = await ctx.JHCqFuse.klines("CQSNAP:btc/market-indicator/sopr:a_sopr");
@@ -181,10 +184,10 @@ test("fuse search finds harvest series and extra snapshots, never invents histor
   assert.match(pane, /Chart CQ:btc_mvrv/);
   assert.match(pane, /chart\.html\?s=CQ:btc_hashrate/);
   assert.match(pane, /a_sopr/);
-  assert.match(pane, /LIVE CQ-FEED INDICATORS/);
+  assert.match(pane, /REPORTED CQ-FEED SNAPSHOTS/);
   assert.doesNotMatch(pane, /NO HARVEST SERIES/);
   assert.match(pane, /id='pane-cq'/);
-  assert.match(pane, /AWAITING FIRST EOD PULL/);
+  assert.match(pane, /PRIMARY HISTORY UNAVAILABLE/);
   assert.match(pane, /CATALOG-ONLY/);
 });
 
@@ -192,7 +195,7 @@ test("feed prints CDD / MVRV Z / ETH2 / lightning as live numbers — dormancy s
   const ctx = loadFuse();
   await ctx.JHCqFuse.load();
   const cdd = ctx.JHCqFuse.searchHits("cdd");
-  assert.ok(cdd.some(function (h) { return /^CQSNAP:/.test(h.s) && /cdd/i.test(h.s + h.name) && h.chartable === false && /live print/.test(h.extra); }));
+  assert.ok(cdd.some(function (h) { return /^CQSNAP:/.test(h.s) && /cdd/i.test(h.s + h.name) && h.chartable === false && /reported snapshot/.test(h.extra); }));
   const dorm = ctx.JHCqFuse.searchHits("dormancy");
   assert.ok(dorm.some(function (h) { return /^CQARM:/.test(h.s) && h.chartable === false; }));
   const z = ctx.JHCqFuse.searchHits("mvrv z");
@@ -200,21 +203,22 @@ test("feed prints CDD / MVRV Z / ETH2 / lightning as live numbers — dormancy s
   const eth2 = ctx.JHCqFuse.searchHits("eth2");
   assert.ok(eth2.some(function (h) { return /^CQSNAP:/.test(h.s) && h.chartable === false; }));
   const ln = ctx.JHCqFuse.searchHits("lightning");
-  assert.ok(ln.some(function (h) { return /lightning/i.test(h.s + h.name + h.extra + (h.blob || "")) && /live print/.test(h.extra); }));
+  assert.ok(ln.some(function (h) { return /lightning/i.test(h.s + h.name + h.extra + (h.blob || "")) && /reported snapshot/.test(h.extra); }));
   assert.equal(await ctx.JHCqFuse.klines("CQSNAP:btc/network-indicator/cdd:cdd"), null);
   assert.equal(await ctx.JHCqFuse.klines("CQARM:btc_network_indicator_cdd_cdd"), null);
   assert.equal(await ctx.JHCqFuse.klines("CQDOC:discovery_path"), null);
 });
 
-test("fuse klines merges twins on overlap like catalog", async () => {
+test("fuse klines keeps unqualified proxy history separate from exact harvest", async () => {
   const ctx = loadFuse();
   const r = await ctx.JHCqFuse.klines("CQ:btc_mvrv");
   assert.ok(r && r.d && r.d.length >= 10);
-  assert.equal(r.d[0].close, 0.4);
+  assert.equal(r.d[0].close, 2.1);
+  assert.equal(r.evidence.proxy_histories[0].joined, false);
   const byDay = {};
   r.d.forEach(function (b) { byDay[new Date(b.time * 1000).toISOString().slice(0, 10)] = b.close; });
   assert.equal(byDay["2025-07-02"], 2.1);
-  assert.match(r.src, /twins\+harvest/);
+  assert.match(r.src, /proxy history retained separately/);
 });
 
 test("catalog still plots CQ without fuse and routes snapshots to the crypto desk", async () => {
@@ -224,14 +228,17 @@ test("catalog still plots CQ without fuse and routes snapshots to the crypto des
     }
     throw new Error("unexpected " + url);
   };
-  const ctx = { window: {}, fetch, Date, Math, isFinite, Number, String, Object, Array, Promise, console, location: { href: "" } };
+  const ctx = { window: {}, fetch, Date, Math, isFinite, Number, String, Object, Array, Promise, setTimeout, clearTimeout, AbortController, console, location: { href: "" } };
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  vm.runInContext(observations, ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-cache.js"), "utf8"), ctx);
   vm.runInContext(catalog, ctx);
   const r = await ctx.JHChartCatalog.klines("CQ:btc_mvrv");
   assert.ok(r && r.d && r.d.length >= 10);
-  assert.equal(r.d[0].close, 0.4);
+  assert.equal(r.d[0].close, 2.1);
+  assert.equal(r.evidence.proxy_histories[0].joined, false);
   assert.equal(await ctx.JHChartCatalog.klines("CQSNAP:btc/market-indicator/sopr:a_sopr"), null);
   assert.equal(ctx.JHChartCatalog.go("CQSNAP:btc/market-indicator/sopr:a_sopr"), true);
   assert.match(ctx.location.href, /\/crypto\/\?tab=cq&snap=/);
@@ -249,14 +256,16 @@ test("catalog still plots CQ without fuse and routes snapshots to the crypto des
 
 test("catalog + fuse search is harvest-dynamic", async () => {
   const ctx = loadFuse();
+  vm.runInContext(observations, ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-cache.js"), "utf8"), ctx);
   vm.runInContext(catalog, ctx);
   await ctx.JHCqFuse.load();
   const hits = ctx.JHChartCatalog.suggest("a_sopr", 40);
-  assert.ok(hits.some(function (h) { return /a_sopr/.test(h.s) && /live print/i.test(h.extra); }));
+  assert.ok(hits.some(function (h) { return /a_sopr/.test(h.s) && /reported snapshot/i.test(h.extra); }));
   const h2 = ctx.JHChartCatalog.suggest("hashrate", 40);
   assert.ok(h2.some(function (h) { return h.s === "CQ:btc_hashrate"; }));
   const h3 = ctx.JHChartCatalog.suggest("cdd", 40);
-  assert.ok(h3.some(function (h) { return /^CQSNAP:/.test(h.s) && /live print/i.test(h.extra); }));
+  assert.ok(h3.some(function (h) { return /^CQSNAP:/.test(h.s) && /reported snapshot/i.test(h.extra); }));
   const h4 = ctx.JHChartCatalog.suggest("cryptoquant", 400);
   assert.ok(h4.length >= 12, "cq catalog query returns the harvest, not 16 stock hits");
 });

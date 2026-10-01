@@ -1,10 +1,5 @@
-"""justhodl-tape-truth -- is the move genuine or manufactured?
-Marker: tape-truth v1.1.0
-Honesty ledger: CVD is BAR-APPROXIMATED (minute close-in-range
-delta, never claimed as tick data); GEX uses the standard
-dealer-positioning assumption (long calls, short puts vs
-customers); verdicts are hypotheses that cite every number they
-rest on, and go INSUFFICIENT rather than guess.
+"""Dated tape research observations; no signed-flow or participant verdicts.
+Measurement arithmetic and existing fetch cadence are unchanged.
 """
 import gzip
 import json
@@ -13,8 +8,9 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from tape_truth_qualification import CONTRACT, clock, qualification, qualify_symbol, withheld
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/tape-truth.json"
@@ -143,7 +139,8 @@ def gex_block(sym, today):
     spot = d.get("current_price") or d.get("close")
     opts = d.get("options") or []
     if not spot or not opts:
-        return {"status": "MISSING", "why": "empty chain"}
+        return {"status": "MISSING", "why": "empty chain",
+                "source_timestamp": j.get("timestamp")}
     cutoff = (today + timedelta(days=NEAR_DTE)) \
         .strftime("%y%m%d")
     near5 = (today + timedelta(days=5)).strftime("%y%m%d")
@@ -192,6 +189,7 @@ def gex_block(sym, today):
     walls = sorted(by_strike.items(),
                    key=lambda x: -abs(x[1]))[:5]
     return {"status": "LIVE", "spot": spot,
+            "source_timestamp": j.get("timestamp"),
             "n_contracts_used": n_used,
             "net_gex_bn": round(net / 1e9, 2),
             "call_gex_bn": round(call_g / 1e9, 2),
@@ -236,104 +234,8 @@ def conviction(parts):
 
 
 def verdict(sym, cv, fin, gex):
-    if cv.get("status") != "LIVE" or cv.get("n_days", 0) < 5:
-        return {"call": "WARMING",
-                "why": "cvd ledger %d days -- verdicts need "
-                       ">=5" % cv.get("n_days", 0)}
-    ev, parts = [], []
-    p5 = cv["price_chg_5d_pct"]
-    c5 = cv["cvd_5d"]
-    up = p5 > 0.5
-    dn = p5 < -0.5
-    ev.append("price 5d %+0.2f%%" % p5)
-    ev.append("bar-CVD 5d %+0.0f sh" % c5)
-    call = "NEUTRAL"
-    if up and c5 < 0:
-        call = "FAKE_UP_DISTRIBUTION"
-        ev.append("price up on negative delta -- classic "
-                  "exit-liquidity pattern")
-        parts.append(("cvd_conflict", 15))
-    elif dn and c5 > 0:
-        call = "SHAKEOUT_ACCUMULATION"
-        ev.append("price down on positive delta -- "
-                  "accumulation into fear")
-        parts.append(("cvd_conflict", 15))
-    elif up and c5 > 0:
-        call = "GENUINE_UP"
-        parts.append(("cvd_align", 15))
-    elif dn and c5 < 0:
-        call = "GENUINE_DOWN"
-        parts.append(("cvd_align", 15))
-    vr = cv.get("vol_ratio_20d")
-    if vr is not None and (up or dn):
-        if vr >= 1.2:
-            parts.append(("volume_confirms", 10))
-            ev.append("volume x%.2f of 20d avg -- "
-                      "participation confirms" % vr)
-        elif vr <= 0.8:
-            parts.append(("volume_thin", -10))
-            ev.append("volume x%.2f of 20d avg -- thin tape, "
-                      "move suspect" % vr)
-    vw = cv.get("close_vs_vwap_pct")
-    if vw is not None:
-        agree = (vw > 0 and up) or (vw < 0 and dn)
-        parts.append(("vwap", 8 if agree else -8))
-        ev.append("close %+0.2f%% vs session VWAP%s"
-                  % (vw, "" if agree else
-                     " -- fighting the average price"))
-    clv = cv.get("clv_session")
-    if clv is not None and abs(clv) >= 0.6:
-        strong = (clv > 0 and up) or (clv < 0 and dn)
-        parts.append(("clv", 6 if strong else -6))
-        ev.append("close-location %.2f (%s of range)"
-                  % (clv, "top" if clv > 0 else "bottom"))
-    if cv.get("churn_flag"):
-        parts.append(("effort_no_result", -9))
-        ev.append("heavy volume, no progress -- "
-                  "absorption/churn (Wyckoff effort vs "
-                  "result)")
-    if cv.get("top_divergence"):
-        parts.append(("top_div", -12 if not dn else 12))
-        ev.append("20d price high with lower CVD high -- "
-                  "top-divergence flag")
-    if cv.get("bottom_divergence"):
-        parts.append(("bot_div", 12 if not dn else -12))
-        ev.append("20d price low with higher CVD low -- "
-                  "bottom-divergence flag")
-    if fin and fin.get("z_20d") is not None:
-        ev.append("short-vol ratio %.2f (z %+0.2f)"
-                  % (fin["ratio"], fin["z_20d"]))
-        if fin["z_20d"] > 1.2 and up:
-            parts.append(("short_absorb", -8))
-            ev.append("elevated short-flow into strength -- "
-                      "absorption watch")
-    if gex and gex.get("status") == "LIVE":
-        ev.append("net GEX %+0.2fbn (%s gamma)"
-                  % (gex["net_gex_bn"],
-                     gex["regime"].lower()))
-        if gex["regime"] == "NEGATIVE" \
-                and call.startswith("GENUINE"):
-            parts.append(("neg_gamma", -6))
-            ev.append("negative gamma -- dealers accelerate; "
-                      "moves overshoot, genuine != stable")
-        d2f = gex.get("dist_to_flip_pct")
-        if d2f is not None and abs(d2f) < 1.0:
-            parts.append(("near_flip", -6))
-            ev.append("spot %+0.2f%% from gamma flip -- "
-                      "regime unstable" % d2f)
-        d5 = gex.get("dte5_vol_share_pct")
-        if d5 is not None and d5 > 40:
-            parts.append(("dte5_noise", -6))
-            ev.append("%.1f%% of option volume in DTE<=5 -- "
-                      "gamma-day noise, informational value "
-                      "low" % d5)
-    conv = conviction(parts)
-    if conv < 35 and call not in ("NEUTRAL",):
-        ev.append("conviction %d < 35 -- downgraded to "
-                  "SUSPECT" % conv)
-        call = "SUSPECT_" + call
-    return {"call": call, "conviction": conv,
-            "score_parts": parts, "evidence": ev}
+    """These inputs cannot qualify a directional/participant verdict."""
+    return withheld()
 
 
 def build(event=None):
@@ -343,7 +245,10 @@ def build(event=None):
     doc = {"v": VERSION, "engine": "justhodl-tape-truth",
            "as_of": today.isoformat(),
            "generated_at": now.isoformat(),
-           "status": "LIVE",
+           "status": "RESEARCH",
+           "measurement_contract": CONTRACT,
+           "qualification": qualification(),
+           "publication_clock": clock(now.isoformat(), "timestamp", now),
            "method": {
                "cvd": "bar-approximated: per-minute "
                       "v*(2*(c-l)/(h-l)-1), summed per "
@@ -353,9 +258,8 @@ def build(event=None):
                       "puts - (standard dealer assumption); "
                       "flip = strike-ladder crossover "
                       "approximation" % NEAR_DTE,
-               "verdicts": "evidence-cited hypotheses; "
-                           "INSUFFICIENT/WARMING over "
-                           "guessing"}}
+               "verdicts": "Withheld: these observations do not establish "
+                           "aggressor direction or participant intent"}}
     led = _g(CVD_LEDGER) or {"note": "session bar-CVD in "
                              "shares + close", "rows": {}}
     fled = _g(FINRA_LEDGER) or {"rows": {}}
@@ -476,17 +380,20 @@ def build(event=None):
         if fdays:
             vals = [f[k] for k in fdays]
             fin = {"ratio": vals[-1], "n_days": len(vals),
-                   "z_20d": zlast(vals[-20:])}
-        symbols[sym] = {"cvd": cv, "short_vol": fin,
+                   "z_20d": zlast(vals[-20:]),
+                   "observation_date": fdays[-1]}
+        symbols[sym] = qualify_symbol({"cvd": cv, "short_vol": fin,
                         "gex": gex.get(sym),
                         "verdict": verdict(sym, cv, fin,
-                                           gex.get(sym))}
-    if cvd_fetch_err and not poly:
-        doc["status"] = "PARTIAL"
+                                           gex.get(sym))}, now)
+    doc["refresh"] = {"cvd": "ERROR" if cvd_fetch_err else
+                      "ATTEMPTED" if poly else "NOT_CONFIGURED"}
+    if cvd_fetch_err:
+        doc["refresh"]["cvd_reason"] = "Refresh failed for at least one symbol; retained ledger observations are not refreshed by publication."
     if not poly:
         doc["why"] = "POLYGON_API_KEY absent -- CVD leg dead"
     doc["symbols"] = symbols
-    doc["gex_index"] = gex.get("_SPX")
+    doc["gex_index"] = qualify_symbol({"gex": gex.get("_SPX")}, now)
     _put(OUT_KEY, doc)
     return doc
 

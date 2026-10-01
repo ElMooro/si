@@ -47,6 +47,7 @@ and the raw file is a multi-hundred-MB scan); never fabricate a name -- a
 series without a title shows its code.
 """
 import bisect
+from directory_resident import load as resident_load, evidence as resident_evidence
 import csv
 import gzip
 import hashlib
@@ -74,6 +75,7 @@ from directory_identity import evidence as identifier_evidence, population as id
 from directory_index import (descriptor as index_descriptor, refresh as refresh_index,
                              manifest as index_manifest, refresh_needed as index_refresh_needed)
 from warehouse_cache import materialize as warehouse_materialize, evidence as warehouse_cache_evidence
+from directory_publication import publish as publish_directory
 
 VERSION = "1.10.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -1086,18 +1088,9 @@ def build(event, context):
                            "docs_sha256": hashlib.sha256(gz1).hexdigest(), **derived}, protocol=5)
     gz2 = gzip.compress(blob_i, 5)
     generation = index_descriptor(gz1, gz2, SD)
-    # Complete immutable bodies land before any mutable alias or manifest.
-    # The content-derived keys are idempotent; a reader pins this exact pair.
-    for name, body in (("docs", gz1), ("index", gz2)):
-        s3.put_object(Bucket=BUCKET, Key=generation["files"][name]["key"], Body=body,
-                      ContentType="application/octet-stream", CacheControl="private, max-age=31536000, immutable")
-    s3.put_object(Bucket=BUCKET, Key=SD + "docs.pkl.gz", Body=gz1, ContentType="application/octet-stream", CacheControl="no-cache")
-    s3.put_object(Bucket=BUCKET, Key=SD + "index.pkl.gz", Body=gz2, ContentType="application/octet-stream", CacheControl="no-cache")
     instruments.sort(key=lambda r: -r[5])
     ib = gzip.compress(json.dumps({"built_at": built_at, "n": len(instruments), "cols": ["symbol", "name", "exchange", "type", "market", "pop"],
                                    "rows": instruments}, separators=(",", ":")).encode(), 7)
-    s3.put_object(Bucket=BUCKET, Key=SD + "instruments.json.gz", Body=ib, ContentType="application/json", ContentEncoding="gzip",
-                  CacheControl="public, max-age=21600")
     prov_counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
     for d in docs:
         prov_counts[d[D_PROV]][d[D_KIND]] += 1
@@ -1106,8 +1099,9 @@ def build(event, context):
            "bytes": {"docs_pkl_gz": len(gz1), "index_pkl_gz": len(gz2), "instruments_json_gz": len(ib)},
            "providers": {k: dict(v) for k, v in prov_counts.items()}, "sources": log["sources"], "skipped": log["skipped"],
            "errors": log["errors"], "series_level_via_tier1": {"eurostat": 564204235, "ecb": 3240832}}
-    _put_json(SD + "manifest.json", man, cache="public, max-age=120")
-    return man
+    man["build_started_at"] = log["started_at"]
+    return publish_directory(s3, BUCKET, SD, man,
+                             {"docs": gz1, "index": gz2, "instruments": ib}, _iso)
 
 
 def fetch_titles(event, context):
@@ -1440,14 +1434,21 @@ def fred_fresh(event, context):
 # ================================================================ RUNTIME INDEX
 
 _IDX = {"loaded_at": None, "docs": None, "pop": None, "index": None, "toklist": None, "ids": None, "bare": None, "built_at": None}
+_ICHECK = {}
 _WIDX = {"generated_at": None, "path": None}
 _T0CACHE, _T1CACHE = {}, {}
 
 
-def load_index(force=False):
-    if _IDX["docs"] is not None and not force:
-        return _IDX
-    return refresh_index(_IDX, s3, BUCKET, SD, index_for_docs, _iso)
+def load_index(force=False, check=False):
+    return resident_load(_IDX, _ICHECK,
+                         lambda: refresh_index(_IDX, s3, BUCKET, SD, index_for_docs, _iso),
+                         lambda: index_manifest(s3, BUCKET, SD),
+                         lambda head, cache: index_refresh_needed(head, cache, SD),
+                         _iso, time.monotonic, force=force, check=check)
+
+
+def index_cache_evidence():
+    return resident_evidence(_IDX, _ICHECK, _iso, time.monotonic)
 
 
 def _warehouse_db(force=False):
@@ -3212,15 +3213,11 @@ def lambda_handler(event, context):
     if mode == "ustbank":
         return ust_bank(event, context)
     if mode == "warm" or path == "/warm":
-        # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
+        # Every resident process also checks during ordinary search traffic.
         force = qs.get("force") == "1"
-        if not force and _IDX["docs"] is not None:
-            # Surface failed generation checks; a cached index is not evidence
-            # that the latest manifest was checked successfully.
-            man = index_manifest(s3, BUCKET, SD)
-            force = index_refresh_needed(man, _IDX, SD)
-        ix = load_index(force=force)
-        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force, "index_integrity": ix.get("index_integrity")}
+        ix = load_index(force=force, check=True)
+        force = force or bool(_ICHECK.get("reloaded"))
+        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force, "index_integrity": index_cache_evidence()}
         try:
             warehouse_path = _warehouse_db(force=force)
             out["warehouse_ready"] = bool(warehouse_path)
@@ -3240,8 +3237,8 @@ def lambda_handler(event, context):
             out = search(q, lim, prov=(qs.get("provider") or None), kind=(qs.get("kind") or None))
             out["ms"] = int((time.time() - t) * 1000)
             out["built_at"] = _IDX.get("built_at")
-            out["index_integrity"] = _IDX.get("index_integrity")
-            return _resp(out, ttl=120)
+            out["index_integrity"] = index_cache_evidence()
+            return _resp(out, ttl=out["index_integrity"]["head_check"]["http_max_age_s"])
         except Exception as e:  # noqa: BLE001
             return _resp({"q": q, "rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
     if mode == "browse" or path == "/browse":

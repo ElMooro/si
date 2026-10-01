@@ -1,0 +1,9 @@
+{
+  "commit": "2cb92648c2c886d5268cfb832669f78d856daea5",
+  "path": "jh-chart-engine.js",
+  "source_sha256": "10ef4a5a9950f8024d355355913a2f5ed32d6c8dc821bf2ed42a1b3f7f5dd888",
+  "functions": {
+    "rvolSeries": "function rvolSeries(d,n){ n=n||20; var o=[],s=0,i; for(i=0;i<d.length;i++){ s+=d[i].volume; if(i>=n) s-=d[i-n].volume; if(i>=n-1){ var avg=s/n; o.push({time:d[i].time,value:avg?d[i].volume/avg:1}); } } return o; }",
+    "obv": "function obv(d){ var o=[],v=0,i; for(i=0;i<d.length;i++){ if(i) v+= d[i].close>=d[i-1].close? d[i].volume : -d[i].volume; o.push({time:d[i].time,value:v}); } return o; }"
+  }
+}

@@ -15,6 +15,7 @@ import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, urllib.request
 from datetime import datetime, timezone
 import boto3
+from backtest_harness_authority import harness_context, alpha_context
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -26,7 +27,7 @@ EXTRA_SOURCES = [
     ("data/signal-board.json", "Signal Board research availability and qualification limits; no investment vote"),
     ("data/research-papers.json", "AI research-paper library index (debated theses)"),
     ("data/stock-valuations.json", "S&P valuations + HP scores + underlooked boards"),
-    ("data/backtest-harness.json", "walk-forward backtests + live signal grades"),
+    ("data/backtest-harness.json", "Mode A qualification unavailable; unchanged Mode B live signal grades"),
     ("data/meta-labeler.json", "gatekeeper model + pending TAKE/SKIP verdicts"),
     ("data/crisis-canaries.json", "30-canary crisis composite"),
     ("data/crisis-knowledge-base.json", "1091-rule crisis knowledge base"),
@@ -46,7 +47,7 @@ ANSWER_SYS = (
   "advice. Sources are SLIMMED (long lists truncated) — never declare a #1 or "
   "ranking unless the source field is explicitly a ranked list like "
   "underlooked_top; if data looks truncated, say so.")
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 
 def claude(system, user, models, max_tokens=1100):
@@ -111,6 +112,10 @@ def fetch_slim(key):
         d = json.loads(S3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
         if key == "data/signal-board.json":
             return json.dumps(__import__("signal_board_authority").context(d))
+        if key == "data/backtest-harness.json":
+            d = harness_context(d)
+        elif key == "data/alpha-decay.json":
+            d = alpha_context(d)
         return json.dumps(slim(d), default=str)[:5200]
     except Exception as e:
         return json.dumps({"error": f"feed unavailable: {str(e)[:60]}"})

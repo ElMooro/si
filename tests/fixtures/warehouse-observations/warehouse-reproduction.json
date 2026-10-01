@@ -1,0 +1,128 @@
+{
+  "scope": "Whole actual catalog, whole invented packet, fully intercepted fetch; no external requests",
+  "source_sha256": "295504a9d0483054b0dbf51d39eb2839f390fe62296dd79fdccbd906a0f1580b",
+  "whole_input": {
+    "id": "FRED:INVENTED",
+    "provider": "fred",
+    "provider_name": "Invented source",
+    "freq": "D",
+    "unit": "invented",
+    "obs": [
+      [
+        "2026-01-01",
+        null
+      ],
+      [
+        "2026-01-02",
+        false
+      ],
+      [
+        "2026-01-03",
+        ""
+      ],
+      [
+        "2026-01-04",
+        []
+      ],
+      [
+        "2026-01-05",
+        true
+      ],
+      [
+        "2026-01-06",
+        -2
+      ],
+      [
+        "2026-01-07",
+        0
+      ],
+      [
+        "2026-02-30",
+        3
+      ]
+    ],
+    "note": "Entirely invented diagnosis; no actual network"
+  },
+  "requests": [
+    "https://justhodl-data-proxy.raafouis.workers.dev/series?id=FRED%3AINVENTED"
+  ],
+  "whole_output": {
+    "d": [
+      {
+        "time": 1767225600,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1767312000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1767398400,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1767484800,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1767571200,
+        "open": 1,
+        "high": 1,
+        "low": 1,
+        "close": 1,
+        "volume": 0
+      },
+      {
+        "time": 1767657600,
+        "open": -2,
+        "high": -2,
+        "low": -2,
+        "close": -2,
+        "volume": 0
+      },
+      {
+        "time": 1767744000,
+        "open": 0,
+        "high": 0,
+        "low": 0,
+        "close": 0,
+        "volume": 0
+      },
+      {
+        "time": 1772409600,
+        "open": 3,
+        "high": 3,
+        "low": 3,
+        "close": 3,
+        "volume": 0
+      }
+    ],
+    "src": "Invented source · 8 pts  →  · D"
+  },
+  "inherited_provider_classification": {
+    "constructor": true,
+    "prototype": true
+  },
+  "findings": [
+    "Null, boolean, blank and array values are coerced into numeric measurements.",
+    "An impossible calendar date is normalized into another date.",
+    "Missing volume is displayed as zero and whole source evidence is lost.",
+    "Warehouse classification inherits prototype keys."
+  ]
+}

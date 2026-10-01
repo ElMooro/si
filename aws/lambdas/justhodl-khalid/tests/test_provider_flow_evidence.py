@@ -99,6 +99,9 @@ def test_full_output_decision_parity_against_preintegration_handler():
     import lambda_function as candidate
     text=(SOURCE/'lambda_function.py').read_text(encoding='utf-8')
     baseline_text=text.replace('from provider_flow_evidence import project as project_provider_flow_evidence\n','').replace('    output["provider_flow_research"] = project_provider_flow_evidence(None if (metas.get("capital_flow") or {}).get("error") else feeds.get("capital_flow"), now)\n','')
+    # Separately tested additive qualification projection; preserve this baseline digest.
+    baseline_text=baseline_text.replace('from qualification import publish_qualification\n','').replace('    publish_qualification(output, ranked)\n','')
+    baseline_text=baseline_text.replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n', "")
     import hashlib
     assert hashlib.sha256(baseline_text.encode()).hexdigest() == 'e399a30dcfbb4526317d88836539e15a2b0a574d5d1d4f4c14ea3cf8a71adc04'
     module=types.ModuleType('pre_provider_evidence');module.__file__=str(SOURCE/'lambda_function.py')
@@ -109,7 +112,7 @@ def test_full_output_decision_parity_against_preintegration_handler():
             feeds={'capital_flow':radar,'khalid_risk':risk,'fortress':{'board':[base_row()],'etfs':[],'ledger':[]}}
             metas={k:{'last_modified':NOW.isoformat(),'error':None} for k in feeds}
             before=copy.deepcopy(feeds);a=module.build_output(feeds,metas,NOW,[]);b=candidate.build_output(feeds,metas,NOW,[])
-            del b['provider_flow_research'];assert a==b and feeds==before
+            del b['risk_authority_diagnostics'];del b['provider_flow_research'];del b['qualification_evidence'];assert a==b and feeds==before
 
 
 def test_loader_error_with_retained_payload_is_unavailable():

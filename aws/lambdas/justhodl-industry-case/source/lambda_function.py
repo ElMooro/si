@@ -13,8 +13,9 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+from tape_truth_qualification import project_tape
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/industry-case.json"
@@ -142,7 +143,9 @@ def build(event=None):
                   ((earn.get("growth_calls") or {})
                    .get("picks") or [])}
     tape = _g("data/tape-truth.json") or {}
+    tape = tape if isinstance(tape, dict) else {}
     tape_by_t = tape.get("symbols") or {}
+    tape_by_t = tape_by_t if isinstance(tape_by_t, dict) else {}
     closes = (_g(CLOSES_KEY) or {}).get("closes") or {}
 
     def ret12(sym):
@@ -246,9 +249,7 @@ def build(event=None):
                 pk.get("pick_score")
         tp = tape_by_t.get(t)
         if tp:
-            v = tp.get("verdict") or {}
-            c["tape"] = {"call": v.get("call"),
-                         "conviction": v.get("conviction")}
+            c["tape"] = project_tape(tape, t, now)
         cases[t] = c
     ai_done = 0
     for tname in sorted(cases,

@@ -1,0 +1,81 @@
+{
+  "release_commit": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+  "accepted_implementation": "868eb509bec7cc1b7a6c281a08819eaeb09bbebc",
+  "lambda_run": "https://github.com/ElMooro/si/actions/runs/36820409050",
+  "pages_run": "https://github.com/ElMooro/si/actions/runs/36820409017",
+  "receipts": [
+    {
+      "function": "justhodl-backtest-harness",
+      "commit": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+      "verified": true,
+      "deployed_at": "2026-10-01T05:38:46Z",
+      "code_sha256": "lbijOYePOYMws2vnvBQbmJ+535/J0a06Jl0xHE76T4Y=",
+      "zip_sha256_hex": "95b8a339878f398330b36be7bc141b989fb9df9fc9d1ad3a265d311c4efa4f86",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36820409050",
+      "expected_source_sha256": "809e29c0b0470c741672c11e007171faf1f440b50774bfbd1d50eeaaa8b92ec0",
+      "receipt_source_sha256": "809e29c0b0470c741672c11e007171faf1f440b50774bfbd1d50eeaaa8b92ec0",
+      "source_matches": true,
+      "release_matches": true
+    },
+    {
+      "function": "justhodl-alpha-decay",
+      "commit": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+      "verified": true,
+      "deployed_at": "2026-10-01T05:37:57Z",
+      "code_sha256": "5dyYVaQ7/6fb7FYnP5DM2iDCsGyrUeJe5FPThO+IweQ=",
+      "zip_sha256_hex": "e5dc9855a43bffa7dbec56273f90ccda20c2b06cab51e25ee453d384ef88c1e4",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36820409050",
+      "expected_source_sha256": "7ca24e7db7779b984f5739e0c019632a3c05ec9b763c082416192acacb56dd5d",
+      "receipt_source_sha256": "7ca24e7db7779b984f5739e0c019632a3c05ec9b763c082416192acacb56dd5d",
+      "source_matches": true,
+      "release_matches": true
+    },
+    {
+      "function": "justhodl-ask-desk",
+      "commit": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+      "verified": true,
+      "deployed_at": "2026-10-01T05:38:28Z",
+      "code_sha256": "lcEPEetvLVlC8s77ALs2tOsPgx0wA714oGYA/CpmIr4=",
+      "zip_sha256_hex": "95c10f11eb6f2d5942f2cefb00bb36b4eb0f831d3003bd78a06600fc2a6622be",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36820409050",
+      "expected_source_sha256": "cbb38ffd039bb2a2e6c3bd4b6a32e54a0cdb4444da78e89d10928a17215c9b62",
+      "receipt_source_sha256": "cbb38ffd039bb2a2e6c3bd4b6a32e54a0cdb4444da78e89d10928a17215c9b62",
+      "source_matches": true,
+      "release_matches": true
+    }
+  ],
+  "pages": {
+    "build_commit": "c0f2565eb0d66b9463b7b225dcefc9f35d95adf8",
+    "normalized_sha256": "7f7d8c9ee9eb553fa01593f20ea2441c420ea5eee7913fdcbc33363dbd35dce0",
+    "only_edge_difference": "one Cloudflare Insights beacon script",
+    "match": true
+  },
+  "edge_renderer_replay": {
+    "source": "exact HTTPS edge renderer + current public legacy harness artifact",
+    "legacy_pass_rows": 1,
+    "rendered_blocked_rows": 8,
+    "rendered_pass_rows": 0
+  },
+  "current_artifact_guards": [
+    {
+      "source": "data/backtest-harness.json",
+      "generated_at": "2026-09-30T22:04:41.075140+00:00",
+      "public_version": "1.1.1",
+      "published_blocked_contract": null,
+      "ask_reader_status": "BLOCKED",
+      "qualified_rules": 0,
+      "verification": "deployed-source-hash-matched reader executed locally against current public artifact; no live Ask Desk/LLM invocation"
+    },
+    {
+      "source": "data/alpha-decay.json",
+      "generated_at": "2026-09-30T13:45:13.105205+00:00",
+      "public_version": "1.0",
+      "published_blocked_contract": null,
+      "ask_reader_status": "BLOCKED",
+      "qualified_rules": 0,
+      "verification": "deployed-source-hash-matched reader executed locally against current public artifact; no live Ask Desk/LLM invocation"
+    }
+  ],
+  "browser_acceptance": "PENDING: local Chromium ERR_CERT_AUTHORITY_INVALID, no TLS bypass; parent managed browser needed",
+  "natural_publication_acceptance": "PENDING: public artifacts still pre-release; no producer or paid LLM invocation for QA"
+}

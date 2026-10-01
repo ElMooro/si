@@ -1,69 +1,14 @@
-"""
-justhodl-tape-reader — Institutional tape-activity detector.
+"""Daily aggregate activity statistics, not participant or trade-direction evidence.
 
-WHY THIS EXISTS
-───────────────
-The platform has options-flow but NO equity-side tape reader. Block trades,
-dark-pool prints, and unusual volume relative to baseline are the highest-
-frequency institutional-footprint signals, and they were invisible.
-
-ALGORITHM (v1)
-──────────────
-For every name in the S&P 500 universe, daily after market close:
-
-  1. PULL today's snapshot via Polygon /v3/snapshot/locale/us/markets/stocks/tickers
-     (single bulk call returns ~9000 tickers with day.v, prevDay.v, todaysChangePerc,
-      day.h/l, day.vw, etc.)
-
-  2. PULL last 20 trading days of grouped daily bars
-     (/v2/aggs/grouped/locale/us/market/stocks/{date}, 20 calls)
-     Build per-ticker 20d avg volume + 20d avg dollar volume + 20d avg range.
-
-  3. SCORE each ticker:
-       rel_volume       = today_vol / avg_20d_vol            (cap 30 pts)
-       rel_dollar_vol   = today_dollar_vol / avg_20d_dvol     (cap 25 pts)
-       range_expansion  = today_range_pct / avg_20d_range_pct (cap 20 pts)
-       avg_trade_size   = today_vol / today_n_trades          (block proxy, cap 25 pts)
-
-     Block proxy: when AVG TRADE SIZE is unusually large relative to baseline,
-     it means institutions are crossing big prints (often via dark pool or block
-     desk). High avg_trade_size + high relative volume = institutional footprint.
-
-  4. RANK top 30 by composite score. Tag with "loud tape" classifications:
-       BLOCK_PRINTS   — avg_trade_size z >= 2.0
-       VOLUME_SURGE   — rel_volume >= 3.0
-       RANGE_EXP      — range_expansion >= 2.0
-       NOTIONAL_LOAD  — dollar_volume >= 99th pct (>$1B for liquid names)
-
-OUTPUT
-──────
-  s3://justhodl-dashboard-live/data/tape-reader.json
-  {
-    as_of, n_universe, n_with_data,
-    top_loud_tape: [
-      { ticker, score, classification[],
-        rel_volume, rel_dollar_volume, range_expansion,
-        avg_trade_size_today, avg_trade_size_baseline,
-        today_vol, today_dollar_vol, today_n_trades,
-        change_pct,
-        rationale (1-line)
-      }, ... x30
-    ],
-    market_breadth: { advance, decline, unch, advance_decline_ratio }
-  }
-
-SCHEDULE
-────────
-  cron(30 21 * * MON-FRI *)  — 5:30 PM ET on weekdays after market close
-                                (90min after close, gives Polygon time to settle)
-
-ZERO DETERIORATION
-  ✓ No Lambda touched
-  ✓ Polygon premium key already paid for — same /v3/snapshot used by other lambdas
-  ✓ ~21 API calls per run (1 snapshot + 20 grouped daily)
-  ✓ Failure-safe: if grouped daily fails, falls back to prevDay comparison
+Existing grouped-daily source, universe, baseline window and request cadence are
+unchanged. Relative volume (30), relative dollar volume (25), range expansion
+(20), and valid relative average transaction size (25) supply the score. The
+last term is omitted when either size operand is unavailable, without rescaling
+other terms. Average size describes volume / transaction count, not block prints,
+institutional identity, venue activity or signed order flow.
 """
 import json
+import math
 import os
 import statistics
 import time
@@ -179,6 +124,29 @@ def fetch_universe():
     ]
 
 
+def finite_number(value):
+    """JSON numbers only; booleans, strings and nonfinite values are unavailable."""
+    if type(value) not in (int, float):
+        return None
+    try:
+        return value if math.isfinite(value) else None
+    except OverflowError:
+        return None
+
+
+def transaction_count(value):
+    value = finite_number(value)
+    return value if value is not None and value >= 0 and value == int(value) else None
+
+
+def average_trade_size(volume, count):
+    volume = finite_number(volume)
+    count = transaction_count(count)
+    if volume is None or volume < 0 or count is None or count <= 0:
+        return None
+    return finite_number(volume / count)
+
+
 def build_baseline(n_days, universe_set, exclude_date=None):
     """For each baseline trading day, pull grouped daily and accumulate per ticker.
     Excludes exclude_date (typically today_date) so baseline is strictly historical."""
@@ -209,12 +177,14 @@ def build_baseline(n_days, universe_set, exclude_date=None):
             h = b.get("h"); l = b.get("l"); c = b.get("c")
             if h and l and c:
                 ranges.append((h - l) / c if c else 0)
-        n_txns = [b.get("n", 0) or 0 for b in bars]
+        n_txns = [transaction_count(b.get("n")) for b in bars]
+        size_complete = all(average_trade_size(b.get("v"), b.get("n")) is not None for b in bars)
         baseline[sym] = {
             "avg_vol": statistics.mean(vols) if vols else 0,
             "avg_dollar_vol": statistics.mean(d_vols) if d_vols else 0,
             "avg_range_pct": statistics.mean(ranges) if ranges else 0,
-            "avg_n_txns": statistics.mean(n_txns) if n_txns else 0,
+            "avg_n_txns": statistics.mean(n_txns) if all(n is not None for n in n_txns) else None,
+            "avg_trade_size_baseline": average_trade_size(sum(b["v"] for b in bars), sum(n_txns)) if size_complete else None,
             "n_bars_used": len(bars),
         }
     print(f"[tape] Baseline built: {len(baseline)} tickers from {successes}/{len(dates)} days")
@@ -225,12 +195,14 @@ def score_ticker(today_bar, baseline_rec):
     """Compute score components from a grouped-daily bar.
     today_bar fields: T (ticker), v (volume), vw (vwap), o, c, h, l, n (n_trades)
     """
-    today_vol = today_bar.get("v", 0) or 0
+    today_vol = finite_number(today_bar.get("v"))
+    if today_vol is None or today_vol < 0:
+        return 0, None, [], None
     today_close = today_bar.get("c", 0) or 0
     today_high = today_bar.get("h", 0) or 0
     today_low = today_bar.get("l", 0) or 0
     today_open = today_bar.get("o", 0) or 0
-    today_n_trades = today_bar.get("n", 0) or 0
+    today_n_trades = transaction_count(today_bar.get("n"))
     today_vwap = today_bar.get("vw", today_close) or today_close
     today_dollar_vol = today_vol * today_vwap
     today_range_pct = (today_high - today_low) / today_close if today_close else 0
@@ -239,7 +211,6 @@ def score_ticker(today_bar, baseline_rec):
     avg_vol = baseline_rec.get("avg_vol", 0) or 0
     avg_dollar_vol = baseline_rec.get("avg_dollar_vol", 0) or 0
     avg_range_pct = baseline_rec.get("avg_range_pct", 0) or 0
-    avg_n_txns = baseline_rec.get("avg_n_txns", 0) or 0
 
     if today_dollar_vol < MIN_DOLLAR_VOL or avg_vol == 0:
         return 0, None, [], change_pct
@@ -247,14 +218,19 @@ def score_ticker(today_bar, baseline_rec):
     rel_volume = today_vol / max(avg_vol, 1)
     rel_dollar_vol = today_dollar_vol / max(avg_dollar_vol, 1)
     rel_range = today_range_pct / max(avg_range_pct, 0.001)
-    avg_trade_size_today = today_vol / max(today_n_trades, 1)
-    avg_trade_size_base = avg_vol / max(avg_n_txns, 1)
-    block_ratio = avg_trade_size_today / max(avg_trade_size_base, 1)
+    avg_trade_size_today = average_trade_size(today_vol, today_n_trades)
+    avg_trade_size_base = finite_number(baseline_rec.get("avg_trade_size_baseline"))
+    if avg_trade_size_base is not None and avg_trade_size_base < 0:
+        avg_trade_size_base = None
+    # Preserve the legacy denominator floor for valid data in this bounded fix.
+    block_ratio = (finite_number(avg_trade_size_today / max(avg_trade_size_base, 1))
+                   if avg_trade_size_today is not None and avg_trade_size_base is not None
+                   and avg_trade_size_base > 0 else None)
 
     s_vol = min(30, max(0, (rel_volume - 1) * 15))
     s_dvol = min(25, max(0, (rel_dollar_vol - 1) * 12))
     s_range = min(20, max(0, (rel_range - 1) * 10))
-    s_block = min(25, max(0, (block_ratio - 1) * 15))
+    s_block = min(25, max(0, (block_ratio - 1) * 15)) if block_ratio is not None else 0
     score = s_vol + s_dvol + s_range + s_block
 
     classifications = []
@@ -262,8 +238,8 @@ def score_ticker(today_bar, baseline_rec):
         classifications.append("VOLUME_SURGE")
     if rel_range >= 2.0:
         classifications.append("RANGE_EXPANSION")
-    if block_ratio >= 1.8:
-        classifications.append("BLOCK_PRINTS")
+    if block_ratio is not None and block_ratio >= 1.8:
+        classifications.append("LARGE_AVG_TRADE_SIZE")
     if today_dollar_vol >= 1_000_000_000:
         classifications.append("MEGA_NOTIONAL")
 
@@ -271,23 +247,29 @@ def score_ticker(today_bar, baseline_rec):
         "rel_volume": round(rel_volume, 2),
         "rel_dollar_volume": round(rel_dollar_vol, 2),
         "range_expansion": round(rel_range, 2),
-        "block_ratio": round(block_ratio, 2),
+        "block_ratio": round(block_ratio, 2) if block_ratio is not None else None,
+        "trade_size_status": "available" if block_ratio is not None else "unavailable",
+        "trade_size_score": round(s_block, 1),
+        "trade_count_status": ("unavailable" if today_n_trades is None else
+                               "reported_zero" if today_n_trades == 0 else "reported"),
         "today_vol": int(today_vol),
         "today_dollar_vol": int(today_dollar_vol),
         "today_n_trades": today_n_trades,
-        "avg_trade_size_today": round(avg_trade_size_today, 0),
-        "avg_trade_size_baseline": round(avg_trade_size_base, 0),
+        "avg_trade_size_today": round(avg_trade_size_today, 0) if avg_trade_size_today is not None else None,
+        "avg_trade_size_baseline": round(avg_trade_size_base, 0) if avg_trade_size_base is not None else None,
     }, classifications, round(change_pct, 2)
 
 
 def synth_rationale(ticker, components, classifications, change_pct):
     parts = [f"vol {components['rel_volume']}× baseline"]
-    if components["block_ratio"] > 1.5:
-        parts.append(f"avg trade size {components['block_ratio']}× normal (block prints)")
+    if components["block_ratio"] is None:
+        parts.append("average-size comparison unavailable; size score omitted")
+    elif components["block_ratio"] > 1.5:
+        parts.append(f"aggregate avg trade size {components['block_ratio']}× baseline")
     if components["range_expansion"] > 1.5:
         parts.append(f"range {components['range_expansion']}× normal")
     if change_pct is not None:
-        parts.append(f"close {'+' if change_pct >= 0 else ''}{change_pct:.1f}%")
+        parts.append(f"open-to-close {'+' if change_pct >= 0 else ''}{change_pct:.1f}%")
     return " · ".join(parts)
 
 
@@ -344,7 +326,11 @@ def lambda_handler(event, context):
     top = results[:30]
 
     payload = {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
+        "measurement_contract": "tape-reader-activity.v2",
+        "meaning": "Unsigned daily aggregate activity; no participant identity, block-trade detection or trade direction.",
+        "score_scope": "30 volume + 25 dollar volume + 20 range + up to 25 valid average-size points; unavailable size contributes no points, with no rescaling.",
+        "units": {"avg_trade_size_today": "shares per transaction", "avg_trade_size_baseline": "shares per transaction", "block_ratio": "relative average size (legacy field name; denominator floored at one share)", "today_n_trades": "transactions"},
         "method": "tape_reader_v1_grouped_daily",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "today_date": today_date,

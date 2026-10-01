@@ -1,0 +1,284 @@
+{
+  "scope": "Whole modules and invented packets only; zero network",
+  "whole_inputs": {
+    "/data/cryptoquant-series.json": {
+      "series": {
+        "x": {
+          "d": [
+            "2026-01-01"
+          ],
+          "v": [
+            0
+          ]
+        }
+      }
+    },
+    "/data/cryptoquant-onchain.json": {
+      "metrics": {
+        "x": {
+          "category": "__proto__"
+        }
+      }
+    },
+    "/data/cq-feed.json": {
+      "metrics": {}
+    },
+    "/data/cq-catalog.json": {
+      "catalog": {}
+    },
+    "/data/config/cryptoquant-spec.json": {
+      "metrics": []
+    },
+    "/cq-universe.json": {
+      "rows": []
+    }
+  },
+  "whole_pack": {
+    "generated_at": "",
+    "plan_note": "No source plan note reported",
+    "source_documents": {
+      "series": {
+        "series": {
+          "x": {
+            "d": [
+              "2026-01-01"
+            ],
+            "v": [
+              0
+            ]
+          }
+        }
+      },
+      "onchain": {
+        "metrics": {
+          "x": {
+            "category": "__proto__"
+          }
+        }
+      },
+      "feed": {
+        "metrics": {}
+      },
+      "catalog": {
+        "catalog": {}
+      },
+      "spec": {
+        "metrics": []
+      },
+      "universe": {
+        "rows": []
+      }
+    },
+    "series": {
+      "x": {
+        "d": [
+          "2026-01-01"
+        ],
+        "v": [
+          0
+        ]
+      }
+    },
+    "twins": {},
+    "btc": null,
+    "onchain": {
+      "metrics": {
+        "x": {
+          "category": "__proto__"
+        }
+      }
+    },
+    "feed": {
+      "metrics": {}
+    },
+    "spec": {
+      "metrics": []
+    },
+    "catalog": {},
+    "universe": {
+      "rows": []
+    },
+    "chartable": [
+      {
+        "id": "x",
+        "s": "CQ:x",
+        "name": "X",
+        "category": "__proto__",
+        "unit": "",
+        "n": 1,
+        "first": "2026-01-01",
+        "last": "2026-01-01",
+        "twin": false,
+        "extra": "x · 1 scalar observations · unit unverified · frequency unverified · 0 excluded records · observation dates, not release times",
+        "chartable": true,
+        "type": "onchain",
+        "cat": "chain",
+        "blob": "x x x __proto__ cryptoquant onchain cq"
+      }
+    ],
+    "snaps": [],
+    "armed": [],
+    "docs": [],
+    "n_series": 1,
+    "n_chartable": 1,
+    "n_snaps": 0,
+    "n_armed": 0,
+    "n_docs": 0,
+    "n_feed": 0,
+    "n_twins": 0,
+    "n_v1": null,
+    "n_v2": null,
+    "source_cache": {
+      "series": {
+        "contract": "observation-cache.v1",
+        "source_id": "series",
+        "packet_path": "/data/cryptoquant-series.json",
+        "accepted_path": "/data/cryptoquant-series.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.872Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.872Z",
+        "attempted_at": "2026-10-01T06:55:58.870Z",
+        "checked_at": "2026-10-01T06:55:58.872Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/data/cryptoquant-series.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "onchain": {
+        "contract": "observation-cache.v1",
+        "source_id": "onchain",
+        "packet_path": "/data/cryptoquant-onchain.json",
+        "accepted_path": "/data/cryptoquant-onchain.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.873Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.873Z",
+        "attempted_at": "2026-10-01T06:55:58.871Z",
+        "checked_at": "2026-10-01T06:55:58.873Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/data/cryptoquant-onchain.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "feed": {
+        "contract": "observation-cache.v1",
+        "source_id": "feed",
+        "packet_path": "/data/cq-feed.json",
+        "accepted_path": "/data/cq-feed.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.873Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.873Z",
+        "attempted_at": "2026-10-01T06:55:58.871Z",
+        "checked_at": "2026-10-01T06:55:58.873Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/data/cq-feed.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "catalog": {
+        "contract": "observation-cache.v1",
+        "source_id": "catalog",
+        "packet_path": "/data/cq-catalog.json",
+        "accepted_path": "/data/cq-catalog.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.873Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.873Z",
+        "attempted_at": "2026-10-01T06:55:58.871Z",
+        "checked_at": "2026-10-01T06:55:58.873Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/data/cq-catalog.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "spec": {
+        "contract": "observation-cache.v1",
+        "source_id": "spec",
+        "packet_path": "/data/config/cryptoquant-spec.json",
+        "accepted_path": "/data/config/cryptoquant-spec.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.873Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.873Z",
+        "attempted_at": "2026-10-01T06:55:58.871Z",
+        "checked_at": "2026-10-01T06:55:58.873Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/data/config/cryptoquant-spec.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      },
+      "universe": {
+        "contract": "observation-cache.v1",
+        "source_id": "universe",
+        "packet_path": "/cq-universe.json",
+        "accepted_path": "/cq-universe.json",
+        "state": "checked_within_interval",
+        "has_packet": true,
+        "received_at": "2026-10-01T06:55:58.873Z",
+        "last_successful_check_at": "2026-10-01T06:55:58.873Z",
+        "attempted_at": "2026-10-01T06:55:58.871Z",
+        "checked_at": "2026-10-01T06:55:58.873Z",
+        "retry_after_s": 300,
+        "last_error": null,
+        "attempts": [
+          {
+            "path": "/cq-universe.json",
+            "status": "accepted"
+          }
+        ],
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false
+      }
+    },
+    "coverage_complete": true,
+    "source_freshness_verified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false
+  },
+  "whole_html": "<div class='pane' id='pane-cq'><div class='card' data-cq-cache><div class='card-title'>SOURCE DOWNLOAD STATUS</div><p>Download checks do not verify observation freshness. Cached packets and rejected replacements remain separate. Counts describe received subsets only.</p><div style='overflow:auto' tabindex='0' role='region' aria-label='Observation source download status'><table><tr><th>Source</th><th>Download state</th><th>Packet received</th><th>Retry</th></tr><tr><td>/data/cryptoquant-series.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.872Z</td><td>300 s</td></tr><tr><td>/data/cryptoquant-onchain.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.873Z</td><td>300 s</td></tr><tr><td>/data/cq-feed.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.873Z</td><td>300 s</td></tr><tr><td>/data/cq-catalog.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.873Z</td><td>300 s</td></tr><tr><td>/data/config/cryptoquant-spec.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.873Z</td><td>300 s</td></tr><tr><td>/cq-universe.json</td><td>Download checked within five minutes</td><td>2026-10-01T06:55:58.873Z</td><td>300 s</td></tr></table></div></div><style>.cq-chart{display:inline-block;font-size:10px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:2px 8px;border-radius:4px;letter-spacing:.4px}.cq-chart:hover{background:var(--bbg)}.cq-snap td{font-size:10px}</style><div class='grid g3' style='margin-bottom:12px'><div class='card'><div class='card-title'>COMPOSITE ON-CHAIN RISK (z)</div><div class='stat-xl mono '>—</div><div class='stat-sm'>cryptoquant-onchain · 1 received primary series · 0 separate proxy histories</div></div><div class='card'><div class='card-title'>HARVEST FUSE</div><div class='metric'><span class='metric-name'>received primary series</span><span class='metric-val mono'>1</span></div><div class='metric'><span class='metric-name'>cq-feed paths</span><span class='metric-val mono'>0</span></div><div class='metric'><span class='metric-name'>reported snapshots (cq-feed)</span><span class='metric-val mono'>0</span></div><div class='metric'><span class='metric-name'>configured, no history</span><span class='metric-val mono'>0</span></div><div class='metric'><span class='metric-name'>catalog-only</span><span class='metric-val mono'>0</span></div><div class='metric'><span class='metric-name'>public v1+v2</span><span class='metric-val mono'>—</span></div><div class='metric'><span class='metric-name'>generated</span><span class='metric-val mono'></span></div></div><div class='card'><div class='card-title'>REPORTED SOURCE NOTE</div><div class='stat-sm'>No source plan note reported</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2, lightning, XRP). Snapshot dates and plan notes are source claims, not verified freshness or guaranteed history. Only valid exact primary observations are plotted. Proxy histories are separate; token/symbol/pair and age matrices stay catalog-only.</div></div></div><div class='card' style='margin-bottom:12px'><input id='cqf' placeholder='filter MVRV, CDD, dormancy, a_sopr, ETH2, lightning…' style='width:100%;background:var(--bg1);border:1px solid var(--brd);color:var(--t1);padding:8px 10px;border-radius:6px;font:12px IBM Plex Mono,monospace' oninput='window.JHCqFuse&&JHCqFuse.filterPane(this.value)'></div><div class='card-title' style='margin:14px 0 8px'>[object Object] · 1</div><div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:12px'><div class='card' data-cqhit='x x x __proto__ cryptoquant onchain cq'><div class='card-title'>X</div><div class='stat-big mono'>0</div><div class='stat-sm '>z —</div><div style='margin-top:8px'><a class='cq-chart' href='/chart.html?s=CQ:x'>Chart CQ:x</a></div><div class='stat-sm' style='margin-top:4px'>x · 1 scalar observations · unit unverified · frequency unverified · 0 excluded records · observation dates, not release times</div></div></div></div>",
+  "finding": "Prototype-like category is safely stored but the legacy display-name lookup still inherits Object.prototype."
+}

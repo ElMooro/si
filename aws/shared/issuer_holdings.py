@@ -296,8 +296,10 @@ def _extract_preamble_as_of(rows):
 def _parse_decimal(text):
     """Source-native decimal as a plain string; None for missing/invalid.
 
-    Commas and currency symbols are stripped; parenthesised negatives are
-    honoured. No rescaling: the value keeps the source's own units.
+    Commas, currency symbols, and a single trailing percent sign (with
+    optional whitespace, e.g. "7.12 %") are stripped; parenthesised
+    negatives are honoured. No rescaling: the value keeps the source's
+    own units, so "7.12%" parses to "7.12", not "0.0712".
     """
     if text is None:
         return None
@@ -307,6 +309,9 @@ def _parse_decimal(text):
     negative = cleaned.startswith("(") and cleaned.endswith(")")
     if negative:
         cleaned = cleaned[1:-1]
+    cleaned = cleaned.rstrip()
+    if cleaned.endswith("%"):
+        cleaned = cleaned[:-1].rstrip()
     if not re.fullmatch(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", cleaned):
         return None
     try:

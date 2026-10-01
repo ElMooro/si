@@ -1,0 +1,203 @@
+TAP version 13
+# Subtest: current charts retain their sizing, original options and resize triggers
+ok 1 - current charts retain their sizing, original options and resize triggers
+  ---
+  duration_ms: 2.5424
+  type: 'test'
+  ...
+# Subtest: removal disconnects only owned observer, timers and window listener before destruction
+not ok 2 - removal disconnects only owned observer, timers and window listener before destruction
+  ---
+  duration_ms: 1.9784
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:13:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:14:118)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: already queued callbacks cannot resize a removed chart when its host is reused
+not ok 3 - already queued callbacks cannot resize a removed chart when its host is reused
+  ---
+  duration_ms: 1.8875
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:16:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   [
+    +     900,
+    +     400
+    +   ],
+    +   [
+    +     900,
+    +     400
+    +   ],
+    +   [
+    +     900,
+    +     400
+    +   ],
+    +   [
+    +     900,
+    +     400
+    +   ]
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      0: 900
+      1: 400
+    1:
+      0: 900
+      1: 400
+    2:
+      0: 900
+      1: 400
+    3:
+      0: 900
+      1: 400
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:17:175)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: repeated removal never destroys the same drawing object twice
+not ok 4 - repeated removal never destroys the same drawing object twice
+  ---
+  duration_ms: 0.8792
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:19:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:20:79)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cleanup still works without ResizeObserver support
+not ok 5 - cleanup still works without ResizeObserver support
+  ---
+  duration_ms: 0.8299
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:22:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:23:151)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: replacing one chart leaves another chart and its callbacks working
+not ok 6 - replacing one chart leaves another chart and its callbacks working
+  ---
+  duration_ms: 0.7128
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:26:81)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: resource cleanup survives an underlying chart removal failure
+not ok 7 - resource cleanup survives an underlying chart removal failure
+  ---
+  duration_ms: 1.1022
+  type: 'test'
+  location: 'C:\\Users\\Adam\\Documents\\Codex\\2026-09-16\\think-how-you-can-improbe-this\\work\\stage509-lifecycle.test.cjs:28:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\Adam\Documents\Codex\2026-09-16\think-how-you-can-improbe-this\work\stage509-lifecycle.test.cjs:29:129)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 1
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.4205

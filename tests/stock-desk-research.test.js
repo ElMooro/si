@@ -119,7 +119,7 @@ test('the actual download includes every bar, all pairs and limitations without 
 const source=fs.readFileSync(require.resolve('../jh-chart-engine.js'),'utf8');
 test('actual chart publication binds to acquired array identity, never repaint-time labels',()=>{
  const start=source.indexOf('  var barEvidence=new WeakMap();'),end=source.indexOf('  var calCache=',start);
- const publication=source.split('\n').find(l=>l.includes('window.jhChartEvidence='));
+ const publication=source.split('\n').find(l=>l.includes('var evidence=barEvidence.get(d)')&&l.includes('window.jhChartEvidence='));
  const context={window:{},wipe(){},active:'SPY',tf:'1d',INDS:[],OSC:[],paint(){},lastSource:'wrong racing source',volOn:true,d:bars()};vm.createContext(context);
  vm.runInContext(source.slice(start,end)+'\nidentifyBars(d,"SPY","1d","real returned frame");\n'+publication,context);
  assert.equal(context.window.jhChartEvidence.source,'real returned frame');assert.equal(context.window.jhChartEvidence.bars,context.d);

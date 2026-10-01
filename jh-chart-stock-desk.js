@@ -19,7 +19,27 @@
   const count=model.patterns.length,pages=Math.max(1,Math.ceil(count/25));index=Math.max(0,Math.min(Number.isInteger(index)?index:0,pages-1));
   return {index,pages,total:count,first:count?index*25+1:0,last:Math.min((index+1)*25,count),rows:model.patterns.slice(index*25,(index+1)*25)};
  }
+ function observationMarkup(model){
+  const e=model.observations,c=e.transport_cache;
+  const reasons={warehouse_packet_unavailable:'No accepted warehouse packet is available',packet_identity_mismatch:'The packet does not identify the requested series',unknown_series_identity:'No exact matching source series',ambiguous_series_identity:'More than one source series matches',malformed_series:'The selected series is malformed',malformed_series_list:'The source series list is malformed',malformed_parallel_arrays:'Source dates or values are not arrays',malformed_points:'Source points are not an array',no_valid_observations:'No source observations passed validation'};
+  const reason=Object.prototype.hasOwnProperty.call(reasons,e.reason)?reasons[e.reason]:'Source history unavailable';
+  const diagnostics=e.status==='unavailable'?'<p data-stock-observation-unavailable><strong>History unavailable</strong>: '+esc(reason)+'. No other series is substituted. The complete received packet and any decoded rejected replacement remain downloadable.</p>':'';
+  const count=v=>Number.isInteger(v)&&v>=0?String(v):'Unavailable';
+  const selected=typeof e.selected_id==='string'?e.selected_id:'No uniquely selected series';
+  const warehouse=e.received_calendar_basis?'<p data-stock-warehouse>Reported provider: '+esc(e.reported_provider||'Unavailable')+'<br>Reported source: '+esc(e.reported_source||'Unavailable')+'<br>Packet as_of: '+esc(e.packet_reported_as_of||'Unavailable')+' (packet construction metadata; not first publication). '+esc(e.received_calendar_basis)+'</p>':'';
+  const alias=e.chart_alias?'<p>Chart identifier '+esc(e.chart_alias.requested)+' resolves to '+esc(e.chart_alias.resolved)+'. '+esc(e.chart_alias.rule)+'.</p>':'';
+  const cacheLabel={checked_within_interval:'Download checked within five minutes',cached_after_failure:'Using previous packet after download failure',unavailable:'Unavailable',refreshing:'Checking download',overdue:'Download check overdue',superseded:'Request replaced'};
+  const cache=c?'<p data-stock-cache>'+esc(typeof cacheLabel[c.state]==='string'?cacheLabel[c.state]:'Download status unavailable')+'<br>Packet received: '+esc(c.received_at||'Unavailable')+'<br>Last successful check: '+esc(c.last_successful_check_at||'Unavailable')+'. Download checks do not establish observation freshness. Whole rejected replacements, when decoded, remain in the export.</p>':'<p data-stock-cache>Download status unavailable. Source freshness unverified.</p>';
+  return '<section data-stock-observations><b>SOURCE OBSERVATIONS</b><p>'+esc(model.symbol)+' · '+esc(selected)+'<br>'+esc(e.packet_path)+' · '+esc(e.selected_path||'No selected source path')+'</p>'+diagnostics+
+   '<p>Unit: '+esc(e.unit||'Unverified')+' · reported frequency: '+esc(e.source_frequency||'Unverified')+'. '+count(e.plotted_points)+' valid source points; '+model.bars.length+' displayed points; '+count(e.rejected_records)+' excluded source records. Explicit zero and negative values remain observations.</p>'+
+   '<p>These are scalar measurements. Equal OHLC coordinates are for plotting; market OHLC and trading volume are unavailable. '+esc(e.display_projection||e.plotting_projection||'No plotting transformation')+'. '+(e.received_calendar_basis?'Received warehouse days retain their dates before display grouping; original provider period precision is unverified.':'Monthly source periods use their calendar month end before display grouping; this is not a publication or availability time.')+'</p>'+
+   '<p>Packet generated: '+esc(e.packet_generated_at||'Unavailable')+'<br>Source acquired: '+esc(e.source_acquired_at||'Unavailable')+'<br>Source published: '+esc(e.source_published_at||'Unavailable')+'. Source clocks are reported metadata; freshness, original-provider replay and cross-provider equivalence are unverified here. No Calls vote, price-pattern qualification or position size is granted.</p>'+
+   cache+warehouse+alias+'<p>Scope: '+esc(e.points_scope||'No uniquely selected series history; whole received packet retained')+'. '+(e.proxy_histories?.length||0)+' matching proxy histories are retained separately in the export; they are not joined to this plotted series.</p>'+
+   '<details data-stock-observation-details><summary>Inspect all '+e.records.length+' received source records</summary><div style="overflow:auto;max-width:100%;max-height:450px" tabindex="0" role="region" aria-label="Complete source observation records"><table><thead><tr><th>Ordinal</th><th>'+(e.received_calendar_basis?'Received date':'Original period')+'</th><th>Original value</th><th>Disposition</th></tr></thead><tbody data-stock-observation-rows></tbody></table></div><button type="button" data-stock-observation-prev>Previous records</button> <span data-stock-observation-range role="status" aria-live="polite"></span> <button type="button" data-stock-observation-next>Next records</button></details>'+
+   '<button type="button" data-stock-observation-export>Download complete source packet and chart transformation</button></section>';
+ }
  function markup(model){
+  if(model.kind==='scalar_observations')return observationMarkup(model);
   const title='<b>CHART PRICE / VOLUME OBSERVATIONS</b>';
   if(!model.valid)return title+'<p>Research unavailable: '+model.errors.map(esc).join('; ')+'. Complete input rows remain in the chart; no zero or trade instruction is substituted.</p>';
   const r=model.relative_volume,b=model.bollinger;
@@ -54,11 +74,31 @@
    }
    // Compare complete content, not just length/last close: an interior revision
    // must invalidate the calculation too. Invalid numbers remain explicit.
-   const raw=JSON.stringify({symbol:frame.symbol,interval:frame.interval,source:frame.source,bars:frame.bars},
+   const raw=JSON.stringify({symbol:frame.symbol,interval:frame.interval,source:frame.source,bars:frame.bars,observations:frame.observations||null},
     (key,value)=>typeof value==='number'&&!Number.isFinite(value)?{invalid_number:String(value)}:value);
-   if(raw===previous&&(model?.valid?host.querySelector('[data-stock-pairs]'):host.innerHTML===lastHTML))return;
+   if(raw===previous&&(model?.kind==='scalar_observations'?host.querySelector('[data-stock-observations]'):model?.valid?host.querySelector('[data-stock-pairs]'):host.innerHTML===lastHTML))return;
    lastHTML=null;
    previous=raw;const snapshot=JSON.parse(raw);snapshot.published_at=frame.published_at;
+   if(snapshot.observations?.contract==='chart-observations.v1'){
+    model={...snapshot,kind:'scalar_observations',valid:snapshot.observations.status!=='unavailable'&&snapshot.bars.length>0,calls_eligible:false,sizing_eligible:false};
+    replace(markup(model));let index=0;
+    const records=model.observations.records,pages=Math.max(1,Math.ceil(records.length/25));
+    const show=()=>{
+     const start=index*25,rows=records.slice(start,start+25);
+     host.querySelector('[data-stock-observation-rows]').innerHTML=rows.map(r=>'<tr><td>'+r.ordinal+'</td><td>'+esc(r.raw_period)+'</td><td>'+esc(JSON.stringify(r.raw_value))+'</td><td>'+esc(r.reason||(r.accepted?'Accepted':'Unavailable'))+'</td></tr>').join('');
+     host.querySelector('[data-stock-observation-range]').textContent=(records.length?start+1:0)+'–'+Math.min(start+25,records.length)+' of '+records.length;
+     host.querySelector('[data-stock-observation-prev]').disabled=index===0;host.querySelector('[data-stock-observation-next]').disabled=index+1===pages;
+    };
+    host.querySelector('[data-stock-observation-details]').addEventListener('toggle',show);
+    host.querySelector('[data-stock-observation-prev]').onclick=()=>{index=Math.max(0,index-1);show();};
+    host.querySelector('[data-stock-observation-next]').onclick=()=>{index=Math.min(pages-1,index+1);show();};
+    host.querySelector('[data-stock-observation-export]').onclick=()=>{
+     const url=win.URL.createObjectURL(new win.Blob([JSON.stringify(model,null,2)+'\n'],{type:'application/json'}));
+     const link=win.document.createElement('a');link.href=url;link.download='chart-source-observations.json';link.click();
+     win.setTimeout(()=>win.URL.revokeObjectURL(url),1000);
+    };
+    return;
+   }
    model=core.calculate(snapshot);pairPage=0;replace(markup(model));if(!model.valid)return;
    const details=host.querySelector('[data-stock-pairs]');details.addEventListener('toggle',()=>{if(details.open)paintPairs();});
    host.querySelector('[data-stock-prev]').onclick=()=>{pairPage--;paintPairs();};

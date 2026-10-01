@@ -1,0 +1,87 @@
+{
+  "script": "1058_targeted_read",
+  "read_at": "2026-10-01T11:54:54Z",
+  "upgrades_map": {
+    "unexpected_type": "list"
+  },
+  "upgrades_keys": [],
+  "report_1051": {
+    "started_at": "2026-09-30T18:57:31.476311+00:00",
+    "schedules": {
+      "justhodl-factor-decomposition": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-fx-decomposition": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-fedwatch-rate-probability": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-cftc-deep-view": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-sec-filing-diff": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-transcript-query": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-peer-comparison": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-screen-builder": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      },
+      "justhodl-supply-chain-linkage": {
+        "result": "ERROR",
+        "error": "An error occurred (ValidationException) when calling the CreateSchedule operation: The execution role you provide must allow AWS EventBridge Scheduler to assume the role."
+      }
+    },
+    "completed_at": "2026-09-30T18:57:44.942743+00:00"
+  },
+  "scheduler_scan": {
+    "matches": [
+      {
+        "name": "justhodl-peer-comparison-daily",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-screen-builder-universe-daily",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-fedwatch-rate-probability-daily",
+        "state": "DISABLED"
+      },
+      {
+        "name": "justhodl-sec-filing-diff-daily",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-supply-chain-linkage-daily",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-factor-decomposition-weekly",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-fx-decomposition-daily",
+        "state": "ENABLED"
+      },
+      {
+        "name": "justhodl-cftc-deep-view-fri",
+        "state": "ENABLED"
+      }
+    ],
+    "count": 8
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "script": "1062_finra_diag",
+  "read_at": "2026-10-01T12:28:08Z",
+  "probes": {
+    "treasury_equal_2026-09-25": {
+      "http": 200,
+      "rows": 22,
+      "keys": [
+        "atsInterdealerCount",
+        "atsInterdealerVolume",
+        "benchmark",
+        "dealerCustomerCount",
+        "dealerCustomerVolume",
+        "productCategory",
+        "tradeDate",
+        "volumeWeightedAveragePrice",
+        "yearsToMaturity"
+      ],
+      "body": ""
+    },
+    "treasury_equal_2026-09-30": {
+      "http": 200,
+      "rows": 22,
+      "keys": [
+        "atsInterdealerCount",
+        "atsInterdealerVolume",
+        "benchmark",
+        "dealerCustomerCount",
+        "dealerCustomerVolume",
+        "productCategory",
+        "tradeDate",
+        "volumeWeightedAveragePrice",
+        "yearsToMaturity"
+      ],
+      "body": ""
+    },
+    "treasury_equal_2026-10-01": {
+      "http": -1,
+      "rows": -1,
+      "keys": [],
+      "body": "JSONDecodeError"
+    },
+    "trace_equal_2026-09-25": {
+      "http": 404,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":404,\"statusDescription\":\"Not Found\",\"requestId\":\"e1b0454b-8f91-43bd-ab6c-036c249040cf\",\"message\":\"Unable to find the specified dataset. \",\"dataRequest\":{\"async\":false,\"compareFilters\":[{\"fieldName\":\"tradeDate\",\"compareType\":\"EQUAL\",\"fieldValue\":\"2026-09-25\"}],\"dataVersion\":1,\"datasetNa"
+    },
+    "trace_equal_2026-09-30": {
+      "http": 404,
+      "rows": -1,
+      "keys": [],
+      "body": "{\"statusCode\":404,\"statusDescription\":\"Not Found\",\"requestId\":\"9aeb6540-cff1-488e-986a-019c8964cdc4\",\"message\":\"Unable to find the specified dataset. \",\"dataRequest\":{\"async\":false,\"compareFilters\":[{\"fieldName\":\"tradeDate\",\"compareType\":\"EQUAL\",\"fieldValue\":\"2026-09-30\"}],\"dataVersion\":1,\"datasetNa"
+    },
+    "metadata_group_fixedIncomeMarket": {
+      "http": 403,
+      "preview": "{ \"reason\": \"DEFAULT_4XX\", \"statusDescription\" : \"Invalid Request\", \"message\": \"Invalid request. Check base url,path or other request details.\", \"requestId\" : \"53a99214-9efc-4d8f-977b-54dd2e1b478c\"}"
+    },
+    "metadata_groups": {
+      "http": 403,
+      "preview": "{ \"reason\": \"DEFAULT_4XX\", \"statusDescription\" : \"Invalid Request\", \"message\": \"Invalid request. Check base url,path or other request details.\", \"requestId\" : \"e2bc0a4b-35ee-4224-a8b9-3e223033ebd1\"}"
+    },
+    "metadata_group_fixedIncomeMarket_name_corporateDebtMarketBreadth": {
+      "http": 404,
+      "preview": "{\"statusCode\":404,\"statusDescription\":\"Not Found\",\"requestId\":\"7ed65da8-b6b8-4af5-8572-f15568bd23cb\",\"message\":\"Unable to find specified metadata.\",\"metaDataRequest\":{\"action\":\"GET\",\"datasetName\":\"corporatedebtmarketbreadth\",\"datasetGroup\":\"fixedincomemarket\",\"dataVersion\":1}}\n"
+    }
+  }
+}

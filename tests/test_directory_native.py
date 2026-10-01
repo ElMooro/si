@@ -12,15 +12,21 @@ FIXTURE=ROOT/'tests/fixtures/symbol-directory'
 sys.path.insert(0,str(SOURCE))
 
 
-def build(document=None,use_default=True,predecessor=False,write_observer=None):
+def build(document=None,use_default=True,predecessor=False,write_observer=None, stamp="2000-01-01T00:00:00+00:00", client_override=None):
+    from test_directory_publication import Store as FixtureStore
     evidence=json.loads((FIXTURE/'build-reproduction.json').read_bytes())
     docs=deepcopy(evidence['invented_inputs'])
     if not use_default:docs['data/symbology/master.json']=deepcopy(document)
     before=deepcopy(docs);reads=[];lists=[];requests=[];puts={}
+    backing=client_override if client_override is not None else FixtureStore()
     class Storage:
         def put_object(self,**kw):
             if write_observer:write_observer(kw)
+            result=backing.put_object(**kw)
             puts[kw['Key']]=kw
+            return result
+        def get_object(self,**kw):return backing.get_object(**kw)
+        def head_object(self,**kw):return backing.head_object(**kw)
         def list_objects_v2(self,**kw):return {}
     client=Storage();m=ModuleType('whole_directory_test');m.__file__='/invented/symdir/lambda_function.py'
     source=FIXTURE/'pre-integrity-lambda.py.txt' if predecessor else SOURCE/'lambda_function.py'
@@ -47,12 +53,14 @@ def build(document=None,use_default=True,predecessor=False,write_observer=None):
         raise ValueError('Invented absent provider fixture')
     m._get_json=get_json;m._get=get_bytes;m._list=list_keys;m._http_json=http_json
     m._http=lambda *a,**kw:(_ for _ in ()).throw(AssertionError('Real HTTP forbidden'))
-    m._iso=lambda:'2000-01-01T00:00:00+00:00'
+    m._iso=lambda:stamp() if callable(stamp) else stamp
     with patch('time.time',return_value=946684800.0),patch('urllib.request.urlopen',side_effect=AssertionError('Real HTTP forbidden')):
         result=m.lambda_handler({'mode':'build'},SimpleNamespace(get_remaining_time_in_millis=lambda:900000))
     assert reads==evidence['reads'] and lists==evidence['list_prefixes'] and requests==evidence['invented_http_requests']
     assert docs==before
-    indexed=pickle.loads(gzip.decompress(puts['data/symdir/docs.pkl.gz']['Body']))
+    key=((result.get('index_generation') or {}).get('files',{}).get('docs') or {}).get('key')
+    row=puts.get(key) or puts.get('data/symdir/docs.pkl.gz')
+    indexed=pickle.loads(gzip.decompress(row['Body'])) if row is not None else None
     return m,result,indexed,puts,evidence
 
 

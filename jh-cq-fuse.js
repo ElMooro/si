@@ -1,13 +1,12 @@
-/* Shared CryptoQuant harvest fuse — series + twins + onchain + cq-feed snapshots
- * + public catalog (armed / catalog-only). Chartable = harvest series (twins
- * extend some to 2010). Extra cq-feed fields without a series bank are EOD
- * snapshots, never a 2-bar fake chart. Armed spec rows await the next EOD
- * pull (1y Professional window). Catalog-only rows are not banked.
+/* Shared CryptoQuant series, separate proxy histories, reported snapshots and catalog.
+ * Only exact primary observations are chartable. Configured/catalog-only rows
+ * have no accepted history. Download success does not establish source freshness.
  * Does not call api.cryptoquant.com. Does not invent pre-harvest history.
  */
 (function (global) {
   "use strict";
-  var PACK = null, PENDING = null;
+  var PACK = null, PENDING = null, LOAD_GENERATION = 0;
+  var SOURCE_KEYS = ["series", "onchain", "feed", "catalog", "spec", "universe"];
   var CATN = {
     market_indicator: "Valuation & cycle",
     exchange_flows: "Exchange flows",
@@ -83,8 +82,9 @@
     });
   }
   function fmt(v) {
-    if (v == null || v === "" || !isFinite(+v)) return "—";
-    v = +v;
+    v = global.JHObservationSeries ? global.JHObservationSeries.numeric(v) : null;
+    if (v === null) return "—";
+    if (v === 0) return "0";
     var a = Math.abs(v);
     if (a >= 1e12) return (v / 1e12).toFixed(2) + "T";
     if (a >= 1e9) return (v / 1e9).toFixed(2) + "B";
@@ -95,8 +95,8 @@
     return v.toExponential(2);
   }
   function zcol(z) {
-    z = +z;
-    if (!isFinite(z)) return "";
+    z = global.JHObservationSeries ? global.JHObservationSeries.numeric(z) : null;
+    if (z === null) return "";
     if (z > 0.5) return "dn";
     if (z < -0.5) return "up";
     return "nt";
@@ -133,32 +133,20 @@
     for (i = 0; i < arguments.length; i++) if (arguments[i]) parts.push(String(arguments[i]));
     return parts.join(" ").toLowerCase();
   }
-  function seriesRow(id, ser, twin, onM, specM) {
-    var label = (onM && onM.label) || (specM && specM.label) || nice(id);
-    var cat = (onM && onM.category) || (specM && specM.category) || "other";
-    var unit = (onM && onM.unit) || (specM && specM.unit) || "";
-    var first = (twin && twin.d && twin.d[0]) || (ser && ser.d && ser.d[0]) || "";
-    var last = (ser && ser.d && ser.d[ser.d.length - 1]) || (twin && twin.d && twin.d[twin.d.length - 1]) || "";
-    var n = ((ser && ser.d && ser.d.length) || 0);
-    if (twin && twin.d && twin.d.length > n) n = twin.d.length;
-    var extra = "CryptoQuant EOD · " + n + " pts " + String(first).slice(0, 10) + " → " + String(last).slice(0, 10);
-    extra += (String(first).slice(0, 4) < "2025") ? " · twins+harvest" : " · harvest (not live)";
-    return {
-      id: id,
-      s: "CQ:" + id,
-      name: label,
-      category: cat,
-      unit: unit,
-      n: n,
-      first: first,
-      last: last,
-      twin: !!(twin && twin.d && twin.d.length),
-      extra: extra,
-      chartable: true,
-      type: "onchain",
-      cat: "chain",
-      blob: blobOf(id, id.replace(/_/g, " "), label, cat, unit, "cryptoquant onchain cq")
-    };
+  function seriesRow(id, ser, twin, onM, specM, sourceDoc) {
+    var reportedLabel = (onM && onM.label) || (specM && specM.label);
+    var label = typeof reportedLabel === "string" && reportedLabel.trim() ? reportedLabel : nice(id);
+    var reportedCategory = (onM && onM.category) || (specM && specM.category);
+    var cat = typeof reportedCategory === "string" && reportedCategory.trim() ? reportedCategory : "other";
+    var doc = sourceDoc;
+    var parsed = global.JHObservationSeries ? global.JHObservationSeries.cq(doc, "CQ:" + id) : null;
+    var bars = parsed ? parsed.d : [], records = parsed ? parsed.evidence.records.filter(function(r){return r.accepted;}) : [];
+    var dates = records.map(function(r){return r.coordinate.original_period;}).sort();
+    var unit = parsed && parsed.evidence.unit || "";
+    return { id:id, s:"CQ:"+id, name:label, category:cat, unit:unit, n:bars.length,
+      first:dates[0]||"", last:dates[dates.length-1]||"", twin:!!twin,
+      extra:parsed ? parsed.src : "Observation parser unavailable", chartable:bars.length>0,
+      type:"onchain", cat:"chain", blob:blobOf(id,id.replace(/_/g," "),label,cat,unit,"cryptoquant onchain cq") };
   }
 
   function build(docs) {
@@ -172,9 +160,9 @@
     var twins = seriesDoc.twins || {};
     var metrics = onchain.metrics || {};
     var specRows = Array.isArray(spec.metrics) ? spec.metrics : [];
-    var specByName = {};
-    var specByPath = {};
-    var covered = {};
+    var specByName = Object.create(null);
+    var specByPath = Object.create(null);
+    var covered = Object.create(null);
     specRows.forEach(function (m) {
       if (!m || !m.name) return;
       specByName[m.name] = m;
@@ -184,10 +172,10 @@
     });
     var chartable = [];
     Object.keys(series).forEach(function (id) {
-      chartable.push(seriesRow(id, series[id], twins[id], metrics[id], specByName[id]));
+      chartable.push(seriesRow(id, series[id], twins[id], metrics[id], specByName[id], seriesDoc));
     });
     chartable.sort(function (a, b) { return a.id < b.id ? -1 : a.id > b.id ? 1 : 0; });
-    var liveCover = {};
+    var liveCover = Object.create(null);
     chartable.forEach(function (row) {
       var sm = specByName[row.id] || {};
       var p = stripPath(sm.path);
@@ -195,7 +183,7 @@
     });
     var feedMetrics = feed.metrics || {};
     var snaps = [];
-    var snapCover = {};
+    var snapCover = Object.create(null);
     Object.keys(feedMetrics).forEach(function (pk) {
       var row = feedMetrics[pk] || {};
       var path = stripPath(row.path || pk.replace(/_/g, "/"));
@@ -207,9 +195,11 @@
         var s = "CQSNAP:" + path + ":" + fk;
         var aliases = FIELD_Q[fk] || [];
         var name = nice((path.split("/")[0] || "btc").toUpperCase() + " " + fk);
-        var dlt = (typeof fields[fk] === "number" && typeof prev[fk] === "number") ? (fields[fk] - prev[fk]) : null;
+        var numeric = global.JHObservationSeries && global.JHObservationSeries.numeric;
+        var current = numeric ? numeric(fields[fk]) : null, previous = numeric ? numeric(prev[fk]) : null;
+        var dlt = current !== null && previous !== null && Number.isFinite(current - previous) ? current - previous : null;
         var extra = fmt(fields[fk]) + " · " + String(row.asof || "").slice(0, 10);
-        extra += " · cq-feed live print · 1y series on harvest";
+        extra += " · cq-feed reported snapshot · freshness unverified";
         snapCover[path + "|" + fk] = 1;
         snaps.push({
           s: s,
@@ -224,7 +214,7 @@
           chartable: false,
           type: "onchain",
           cat: "chain",
-          blob: blobOf(s, path, path.replace(/[\/\-]+/g, " "), fk, fk.replace(/_/g, " "), name, aliases.join(" "), "snapshot cryptoquant cq-feed live print")
+          blob: blobOf(s, path, path.replace(/[\/\-]+/g, " "), fk, fk.replace(/_/g, " "), name, aliases.join(" "), "snapshot cryptoquant cq-feed reported print")
         });
       });
     });
@@ -251,7 +241,7 @@
           name: label,
           group: r.group || "",
           category: r.category || "",
-          extra: "CryptoQuant armed · 1y Professional window on next EOD pull · not live, no invented history",
+          extra: "CryptoQuant configured · accepted primary history unavailable",
           chartable: false,
           type: "onchain",
           cat: "chain",
@@ -276,7 +266,8 @@
     });
     return {
       generated_at: onchain.generated_at || seriesDoc.generated_at || feed.generated_at || "",
-      plan_note: onchain.plan_note || spec.plan_note || universe.plan_note || "Professional tier: 1y API window; series accrue daily toward 2000d; 2010+ context via Coin Metrics twins",
+      plan_note: onchain.plan_note || spec.plan_note || universe.plan_note || "No source plan note reported",
+      source_documents: docs,
       series: series,
       twins: twins,
       btc: seriesDoc.btc || null,
@@ -289,44 +280,37 @@
       snaps: snaps,
       armed: armed,
       docs: docsOnly,
-      n_series: chartable.length,
-      n_snaps: snaps.length,
-      n_armed: armed.length,
-      n_docs: docsOnly.length,
-      n_feed: Object.keys(feedMetrics).length,
-      n_twins: Object.keys(twins).length,
-      n_v1: universe.n_v1 || 0,
-      n_v2: universe.n_v2 || 0
+      n_series: docs.series ? chartable.length : null,
+      n_chartable: docs.series ? chartable.filter(function(r){return r.chartable;}).length : null,
+      n_snaps: docs.feed ? snaps.length : null,
+      n_armed: docs.universe ? armed.length : null,
+      n_docs: docs.universe ? docsOnly.length : null,
+      n_feed: docs.feed ? Object.keys(feedMetrics).length : null,
+      n_twins: docs.series ? Object.keys(twins).length : null,
+      n_v1: Number.isSafeInteger(universe.n_v1) && universe.n_v1 >= 0 ? universe.n_v1 : null,
+      n_v2: Number.isSafeInteger(universe.n_v2) && universe.n_v2 >= 0 ? universe.n_v2 : null
     };
   }
 
   function load(fetchFn) {
-    if (PACK) return Promise.resolve(PACK);
     if (PENDING) return PENDING;
-    fetchFn = fetchFn || global.fetch;
-    PENDING = Promise.all([
-      loadJson("/data/cryptoquant-series.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/data/cryptoquant-onchain.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/data/cq-feed.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/data/cq-catalog.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/data/config/cryptoquant-spec.json", fetchFn).catch(function () { return {}; }),
-      loadJson("/cq-universe.json", fetchFn).catch(function () {
-        return loadJson("/assets/cq-universe.json", fetchFn).catch(function () { return {}; });
-      })
-    ]).then(function (arr) {
-      PACK = build({ series: arr[0], onchain: arr[1], feed: arr[2], catalog: arr[3], spec: arr[4], universe: arr[5] });
-      PENDING = null;
-      return PACK;
-    }, function (err) {
-      PENDING = null;
-      throw err;
-    });
+    if (!global.JHObservationCache) return Promise.reject(new Error("Observation cache unavailable"));
+    var generation = LOAD_GENERATION, cache = global.JHObservationCache.shared();
+    PENDING = Promise.all(SOURCE_KEYS.map(function(key){return cache.read(key, fetchFn);})).then(function(results){
+      if (generation !== LOAD_GENERATION) throw new Error("Observation load superseded");
+      var docs = {}, statuses = {};
+      results.forEach(function(result,index){docs[SOURCE_KEYS[index]]=result.packet;statuses[SOURCE_KEYS[index]]=result.cache;});
+      var next = build(docs); next.source_cache = statuses;
+      next.coverage_complete = results.every(function(result){return result.packet !== null;});
+      next.source_freshness_verified = false; next.calls_eligible = false; next.sizing_eligible = false;
+      PACK = next; PENDING = null; return PACK;
+    }).catch(function(error){if(generation===LOAD_GENERATION)PENDING=null;throw error;});
     return PENDING;
   }
 
   function pack() { return PACK; }
 
-  function reset() { PACK = null; PENDING = null; }
+  function reset() { LOAD_GENERATION++; PACK = null; PENDING = null; if(global.JHObservationCache)global.JHObservationCache.shared().reset(SOURCE_KEYS); }
 
   function searchHits(q, limit) {
     limit = limit || 24;
@@ -347,7 +331,7 @@
     for (i = 0; i < PACK.chartable.length; i++) {
       row = PACK.chartable[i];
       sc = score(row.blob, row.s, row.name);
-      if (sc) out.push({ s: row.s, name: row.name, extra: row.extra, type: "onchain", cat: "chain", chartable: true, score: sc, suggest: true });
+      if (sc) out.push({ s: row.s, name: row.name, extra: row.extra, type: "onchain", cat: "chain", chartable: row.chartable, score: sc, suggest: true });
     }
     for (i = 0; i < PACK.snaps.length; i++) {
       row = PACK.snaps[i];
@@ -376,8 +360,9 @@
   }
 
   function isChartable(sym) {
-    var k = String(sym || "").replace(/^CQ:/i, "");
-    return !!(PACK && PACK.series && PACK.series[k]);
+    var k=String(sym||"").replace(/^CQ:/i,"").toLowerCase();
+    var matches=PACK?PACK.chartable.filter(function(row){return row.id.toLowerCase()===k;}):[];
+    return matches.length===1 && matches[0].chartable;
   }
 
   function cqRow(k) {
@@ -403,17 +388,20 @@
 
   function klines(sym) {
     var s = String(sym || "");
-    if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return Promise.resolve(null);
     if (!/^CQ:/i.test(s)) return Promise.resolve(null);
-    return load().then(function () {
-      var row = cqRow(s.replace(/^CQ:/i, ""));
-      if (!row) return null;
-      var d = dvBars(row.d, row.v);
-      if (d.length < 8) return null;
-      var src = "CryptoQuant EOD · " + d.length + " pts " + String(row.d[0]).slice(0, 10) + " → " + String(row.d[row.d.length - 1]).slice(0, 10);
-      src += (String(row.d[0]).slice(0, 4) < "2025") ? " · twins+harvest" : " · harvest (not live)";
-      return { d: d, src: src };
+    if (!global.JHObservationSeries || !global.JHObservationCache) return Promise.resolve({d:[],src:"Observation history unavailable: required module not loaded"});
+    return global.JHObservationCache.shared().read("series").then(function(result){
+      var parsed=global.JHObservationSeries.cq(result.packet,s);parsed.evidence.transport_cache=result.cache;
+      parsed.src += " · download " + result.cache.state + " · source freshness unverified";
+      return parsed;
     });
+  }
+
+  function cacheHTML() {
+    if(!global.JHObservationCache)return "<p>Observation downloads unavailable: cache module missing.</p>";
+    var cache=global.JHObservationCache.shared();
+    return "<div class='card' data-cq-cache><div class='card-title'>SOURCE DOWNLOAD STATUS</div><p>Download checks do not verify observation freshness. Cached packets and rejected replacements remain separate. Counts describe received subsets only.</p><div style='overflow:auto' tabindex='0' role='region' aria-label='Observation source download status'><table><tr><th>Source</th><th>Download state</th><th>Packet received</th><th>Retry</th></tr>"+
+      SOURCE_KEYS.map(function(key){var c=cache.status(key);return "<tr><td>"+esc(c.packet_path)+"</td><td>"+esc(global.JHObservationCache.label(c.state))+"</td><td>"+esc(c.received_at||"Unavailable")+"</td><td>"+c.retry_after_s+" s"+(c.last_error?" · "+esc(c.last_error.kind):"")+"</td></tr>";}).join("")+"</table></div></div>";
   }
 
   function filterPane(q) {
@@ -430,8 +418,8 @@
   function paneHTML(intel) {
     intel = intel || {};
     var P = PACK;
-    var h = "<div class='pane' id='pane-cq'>";
-    if (!P || !(P.n_series || P.n_armed || P.n_docs)) {
+    var h = "<div class='pane' id='pane-cq'>" + cacheHTML();
+    if (!P || !(P.n_series || P.n_snaps || P.n_armed || P.n_docs)) {
       if (intel.status && intel.status !== "ok") {
         return h + "<div class='card'><div class='card-title'>CRYPTOQUANT</div><div class='stat-sm'>feed unavailable: " + esc(intel.error || "no harvest") + "</div></div></div>";
       }
@@ -442,16 +430,16 @@
     var fc = on.forecasts || {};
     h += "<style>.cq-chart{display:inline-block;font-size:10px;color:var(--cyan);text-decoration:none;border:1px solid var(--cyan);padding:2px 8px;border-radius:4px;letter-spacing:.4px}.cq-chart:hover{background:var(--bbg)}.cq-snap td{font-size:10px}</style>";
     h += "<div class='grid g3' style='margin-bottom:12px'>";
-    h += "<div class='card'><div class='card-title'>COMPOSITE ON-CHAIN RISK (z)</div><div class='stat-xl mono " + zcol(on.composite_onchain_risk_z) + "'>" + fmt(on.composite_onchain_risk_z) + "</div><div class='stat-sm'>cryptoquant-onchain · " + P.n_series + " harvest series · " + P.n_twins + " twins to 2010</div></div>";
+    h += "<div class='card'><div class='card-title'>COMPOSITE ON-CHAIN RISK (z)</div><div class='stat-xl mono " + zcol(on.composite_onchain_risk_z) + "'>" + fmt(on.composite_onchain_risk_z) + "</div><div class='stat-sm'>cryptoquant-onchain · " + fmt(P.n_series) + " received primary series · " + fmt(P.n_twins) + " separate proxy histories</div></div>";
     h += "<div class='card'><div class='card-title'>HARVEST FUSE</div>";
-    h += "<div class='metric'><span class='metric-name'>series (chartable)</span><span class='metric-val mono'>" + P.n_series + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>cq-feed paths</span><span class='metric-val mono'>" + P.n_feed + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>live prints (cq-feed)</span><span class='metric-val mono'>" + P.n_snaps + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>armed (next EOD)</span><span class='metric-val mono'>" + P.n_armed + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>catalog-only</span><span class='metric-val mono'>" + P.n_docs + "</span></div>";
-    h += "<div class='metric'><span class='metric-name'>public v1+v2</span><span class='metric-val mono'>" + ((P.n_v1 || 0) + (P.n_v2 || 0) || "—") + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>received primary series</span><span class='metric-val mono'>" + fmt(P.n_series) + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>cq-feed paths</span><span class='metric-val mono'>" + fmt(P.n_feed) + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>reported snapshots (cq-feed)</span><span class='metric-val mono'>" + fmt(P.n_snaps) + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>configured, no history</span><span class='metric-val mono'>" + fmt(P.n_armed) + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>catalog-only</span><span class='metric-val mono'>" + fmt(P.n_docs) + "</span></div>";
+    h += "<div class='metric'><span class='metric-name'>public v1+v2</span><span class='metric-val mono'>" + (P.n_v1 !== null && P.n_v2 !== null ? fmt(P.n_v1 + P.n_v2) : "—") + "</span></div>";
     h += "<div class='metric'><span class='metric-name'>generated</span><span class='metric-val mono'>" + esc(String(P.generated_at).slice(0, 16).replace("T", " ")) + "</span></div></div>";
-    h += "<div class='card'><div class='card-title'>PLAN WINDOW</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2, lightning, XRP). Live cq-feed prints show the latest number. Chart only when a harvest series exists — never a fake 2-bar. Token/symbol/pair and age matrices stay catalog-only.</div></div>";
+    h += "<div class='card'><div class='card-title'>REPORTED SOURCE NOTE</div><div class='stat-sm'>" + esc(P.plan_note) + "</div><div class='stat-sm' style='margin-top:8px'>Search any id from chart.html (CQ:btc_mvrv, CDD, dormancy, MVRV Z, ETH2, lightning, XRP). Snapshot dates and plan notes are source claims, not verified freshness or guaranteed history. Only valid exact primary observations are plotted. Proxy histories are separate; token/symbol/pair and age matrices stay catalog-only.</div></div>";
     h += "</div>";
     var im = (intel.metrics) || {};
     var intelKeys = Object.keys(im);
@@ -464,7 +452,7 @@
       h += "</div></div>";
     }
     h += "<div class='card' style='margin-bottom:12px'><input id='cqf' placeholder='filter MVRV, CDD, dormancy, a_sopr, ETH2, lightning…' style='width:100%;background:var(--bg1);border:1px solid var(--brd);color:var(--t1);padding:8px 10px;border-radius:6px;font:12px IBM Plex Mono,monospace' oninput='window.JHCqFuse&&JHCqFuse.filterPane(this.value)'></div>";
-    var byCat = {};
+    var byCat = Object.create(null);
     P.chartable.forEach(function (row) {
       var c = row.category || "other";
       if (!byCat[c]) byCat[c] = [];
@@ -477,15 +465,17 @@
     catOrder.forEach(function (ck) {
       var rows = byCat[ck];
       if (!rows || !rows.length) return;
-      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(CATN[ck] || nice(ck)) + " · " + rows.length + "</div>";
+      h += "<div class='card-title' style='margin:14px 0 8px'>" + esc(Object.prototype.hasOwnProperty.call(CATN,ck)?CATN[ck]:nice(ck)) + " · " + rows.length + "</div>";
       h += "<div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:12px'>";
       rows.forEach(function (row) {
         var mm = m[row.id] || {};
-        var z = mm.z365;
+        var numeric = global.JHObservationSeries && global.JHObservationSeries.numeric;
+        var z = numeric ? numeric(mm.z365) : null, percentile = numeric ? numeric(mm.pctl_1y) : null;
+        if(percentile !== null && (percentile < 0 || percentile > 100)) percentile = null;
         h += "<div class='card' data-cqhit='" + esc((row.blob || "").replace(/'/g, "")) + "'>";
-        h += "<div class='card-title'>" + esc(row.name) + (row.twin ? " · 2010→" : "") + "</div>";
+        h += "<div class='card-title'>" + esc(row.name) + (row.twin ? " · separate proxy" : "") + "</div>";
         h += "<div class='stat-big mono'>" + fmt(mm.value != null ? mm.value : (P.series[row.id] && P.series[row.id].v && P.series[row.id].v[P.series[row.id].v.length - 1])) + "</div>";
-        h += "<div class='stat-sm " + zcol(z) + "'>z " + (isFinite(+z) ? ((+z > 0 ? "+" : "") + Number(z).toFixed(2)) : "—") + (isFinite(+mm.pctl_1y) ? " · " + mm.pctl_1y + "th pctl" : "") + "</div>";
+        h += "<div class='stat-sm " + zcol(z) + "'>z " + (z !== null ? ((z > 0 ? "+" : "") + fmt(z)) : "—") + (percentile !== null ? " · " + esc(fmt(percentile)) + "th pctl (reported)" : "") + "</div>";
         if (mm.hist_read) h += "<div class='stat-sm' style='margin-top:6px'>" + esc(String(mm.hist_read).slice(0, 220)) + "</div>";
         h += "<div style='margin-top:8px'><a class='cq-chart' href='/chart.html?s=CQ:" + esc(row.id) + "'>Chart CQ:" + esc(row.id) + "</a></div>";
         h += "<div class='stat-sm' style='margin-top:4px'>" + esc(row.extra) + "</div></div>";
@@ -493,8 +483,8 @@
       h += "</div>";
     });
     if (P.snaps.length) {
-      h += "<div class='card-title' style='margin:14px 0 8px'>LIVE CQ-FEED INDICATORS · " + P.snaps.length + " PRINTS</div>";
-      h += "<div class='stat-sm' style='margin-bottom:8px'>Every numeric field on the Professional cq-feed (latest+prev). Numbers are live EOD prints — not a 2-bar chart. Chart button appears only after the 1y series bank lands.</div>";
+      h += "<div class='card-title' style='margin:14px 0 8px'>REPORTED CQ-FEED SNAPSHOTS · " + P.snaps.length + " PRINTS</div>";
+      h += "<div class='stat-sm' style='margin-bottom:8px'>Every received cq-feed field and previous value is retained. Invalid values stay unavailable; dates are reported, freshness is unverified. Snapshots do not create historical bars.</div>";
       h += "<div class='grid' style='grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-bottom:12px'>";
       P.snaps.forEach(function (sn) {
         var dc = sn.dlt == null ? "" : (sn.dlt > 0 ? "up" : sn.dlt < 0 ? "dn" : "");
@@ -508,8 +498,8 @@
       h += "</div>";
     }
     if (P.armed && P.armed.length) {
-      h += "<div class='card' style='margin-top:12px'><div class='card-title'>ARMED · " + P.armed.length + " · AWAITING FIRST EOD PULL</div>";
-      h += "<div class='stat-sm' style='margin-bottom:8px'>In the Professional spec (CDD, dormancy, ETH2, lightning, XRP/TRX, v2 MVRV Z / apparent demand, …). History starts at the 1y API window on the next harvest — not invented, not a 2-bar chart. Click a search hit to land here.</div>";
+      h += "<div class='card' style='margin-top:12px'><div class='card-title'>ARMED · " + P.armed.length + " · PRIMARY HISTORY UNAVAILABLE</div>";
+      h += "<div class='stat-sm' style='margin-bottom:8px'>In the Professional spec (CDD, dormancy, ETH2, lightning, XRP/TRX, v2 MVRV Z / apparent demand, …). No history or timing of a future successful harvest is guaranteed. Click a search hit to land here.</div>";
       h += "<table class='cq-snap'><tr><th>id</th><th>field</th><th>path</th><th>group</th></tr>";
       P.armed.forEach(function (row) {
         h += "<tr data-cqhit='" + esc((row.blob || "").replace(/'/g, "")) + "' data-arm='" + esc(row.id) + "'><td class='mono'>" + esc(row.id) + "</td><td class='mono'>" + esc(row.field || "") + "</td><td class='mono'>" + esc(row.path || "") + "</td><td>" + esc(row.group || row.category || "") + "</td></tr>";
@@ -526,15 +516,15 @@
       h += "</table></div>";
     }
     if (fc && (fc.btc || fc.method)) {
-      h += "<div class='card' style='margin-top:12px'><div class='card-title'>FORECASTS · PROVISIONAL · LEDGER-GRADED</div>";
+      h += "<div class='card' style='margin-top:12px'><div class='card-title'>REPORTED FORECASTS · QUALIFICATION UNVERIFIED</div>";
       h += "<table><tr><th>asset</th><th>1m</th><th>3m</th><th>6m</th><th>1y</th></tr>";
       ["btc", "eth", "alt_basket"].forEach(function (A) {
         var F = fc[A] || {};
         h += "<tr><td class='mono'>" + esc(A) + "</td>";
         [30, 90, 180, 365].forEach(function (hz) {
           var c = F["h" + hz];
-          var e = c && c.exp_pct;
-          h += "<td class='mono " + (e > 0 ? "up" : e < 0 ? "dn" : "") + "'>" + (isFinite(+e) ? ((e > 0 ? "+" : "") + e + "%") : "—") + "</td>";
+          var e = global.JHObservationSeries ? global.JHObservationSeries.numeric(c && c.exp_pct) : null;
+          h += "<td class='mono " + (e > 0 ? "up" : e < 0 ? "dn" : "") + "'>" + (e !== null ? ((e > 0 ? "+" : "") + esc(e) + "%") : "—") + "</td>";
         });
         h += "</tr>";
       });

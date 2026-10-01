@@ -1,23 +1,19 @@
-"""Shared FINRA TRACE / fixed-income aggregate fetcher (Bloomberg parity 6/10).
+"""FINRA fixed-income aggregate client.
 
-Docs-shaped client for the FINRA Data API fixedIncomeMarket group:
-  - treasuryDailyAggregates   (daily Treasury trading aggregates by bucket)
-  - corporateDebtMarketBreadth (daily corporate market breadth snapshot)
-  - trace                     (per-print TRACE records; aggregated client-side in Phase 1)
+Uses documented treasuryDailyAggregates and corporateMarketBreadth datasets.
+Aggregate reports are not executable quotes, individual trades, dealer
+positions or fund flows. API entitlement/reachability and source completeness
+remain separate qualifications. Existing optional OAuth credentials are used
+when available; no credential provisioning or paid data subscription occurs.
 
-AUTH: tries keyless first, falls back to OAuth2 via finra_si's helpers.
-FINRA Gateway registration is NOT required for the keyless path — if the
-endpoint demands auth and no SSM creds exist, every function fail-softs to
-None and consumers keep running on their proxy fallback.
-
-USAGE in a Lambda (shared modules are bundled into every Lambda zip):
-
-    import finra_trace
-    rows = finra_trace.fetch_treasury_daily("2026-09-29")
-
-All public functions fail-soft: they return None on any network, auth,
-or parsing failure. No exceptions escape this module.
+Requests fail softly on network/auth/JSON errors. Dated snapshots retain the
+complete bounded response and its canonical hash; an invalid or saturated
+response is unavailable rather than silently truncated. The deprecated
+fetch_trace_aggregates API returns None without making a request.
 """
+import datetime
+import hashlib
+import math
 import json
 import urllib.error
 import urllib.request
@@ -120,6 +116,17 @@ def query(dataset, compare_filters=None, date_range_filters=None,
     return None
 
 
+def _weekday_window(n):
+    """Return (start, end) ISO date strings covering the last n weekdays."""
+    days = []
+    d = datetime.date.today()
+    while len(days) < n:
+        if d.weekday() < 5:
+            days.append(d.isoformat())
+        d -= datetime.timedelta(days=1)
+    return days[-1], days[0]
+
+
 # ---------- Dataset-specific fetchers ----------
 
 TREASURY_FIELDS = (
@@ -130,110 +137,157 @@ TREASURY_FIELDS = (
 )
 
 
-def fetch_treasury_daily(trade_date):
-    """Fetch treasuryDailyAggregates rows for one tradeDate (YYYY-MM-DD).
-
-    Returns a list of per-bucket dicts (documented fields only), or None.
-    """
-    rows = query(
-        "treasuryDailyAggregates",
-        date_range_filters=[{
-            "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
-        }],
-        limit=5000,
-        sort_fields=["yearsToMaturity"],
-    )
-    if not rows:
-        return None
-    out = []
-    for r in rows:
-        if not isinstance(r, dict):
-            continue
-        out.append({f: r.get(f) for f in TREASURY_FIELDS})
-    return out or None
-
-
+# Existing aliases are retained; only the all-securities row can populate them.
 CORPORATE_BREADTH_FIELDS = (
     "tradeDate", "numberOfIssues", "numberOfIssuesAdvancing",
     "numberOfIssuesDeclining", "numberOfIssuesUnchanged",
     "parValueTraded", "numberOfTrades", "averagePriceChange",
 )
+BREADTH_DATASET = "corporateMarketBreadth"
+BREADTH_DATE_FIELD = "tradeReportDate"
+_BREADTH_FIELD_MAP = {
+    "tradeDate": "tradeReportDate",
+    "numberOfIssuesAdvancing": "advances",
+    "numberOfIssuesDeclining": "declines",
+    "numberOfIssuesUnchanged": "unchanged",
+    "numberOfTrades": "totalTrades",
+    "parValueTraded": "totalVolume",
+}
 
 
-def fetch_corporate_breadth():
-    """Fetch the latest corporateDebtMarketBreadth snapshot.
+def _calendar_date(value):
+    """Only an exact ISO calendar date can identify an observation."""
+    if type(value) is not str:
+        return None
+    try:
+        day = datetime.date.fromisoformat(value)
+        return value if day.isoformat() == value else None
+    except ValueError:
+        return None
 
-    Returns a dict of documented fields, or None.
+
+def _finite_number(value, count=False):
+    """Preserve missingness; JSON booleans and strings are not measurements."""
+    if type(value) not in (int, float):
+        return None
+    try:
+        number = float(value)
+    except (OverflowError, ValueError):
+        return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    if count and (number > 9007199254740991 or not number.is_integer()):
+        return None
+    return int(number) if count else number
+
+
+def _snapshot(dataset, date_field, rows, start, end, limit, dimensions):
+    """Bind a complete bounded response to dated, unique category identities.
+
+    Saturation cannot establish completeness. Any malformed date or duplicate
+    category/date rejects this response rather than choosing an arbitrary row.
+    All returned row fields are retained; this function does not normalize units.
     """
-    rows = query(
-        "corporateDebtMarketBreadth",
-        limit=1,
-        sort_fields=["-tradeDate"],
-    )
-    if not rows:
+    if not isinstance(rows, list) or not rows or len(rows) >= limit:
         return None
-    r = rows[0]
-    if not isinstance(r, dict):
+    seen = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            return None
+        day = _calendar_date(row.get(date_field))
+        if day is None or not start <= day <= end:
+            return None
+        identity = [day]
+        for field in dimensions:
+            value = row.get(field)
+            if value is not None and (type(value) is not str or not value.strip()):
+                return None
+            if field == 'productCategory' and value is None:
+                return None
+            identity.append(value)
+        identity = tuple(identity)
+        if identity in seen:
+            return None
+        seen.add(identity)
+    try:
+        canonical = json.dumps(rows, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('utf-8')
+    except (TypeError, ValueError, OverflowError):
         return None
-    return {f: r.get(f) for f in CORPORATE_BREADTH_FIELDS}
-
-
-def fetch_trace_aggregates(trade_date):
-    """Fetch per-print trace rows for a tradeDate and aggregate client-side.
-
-    Phase 1 keeps this coarse: total volume, print count, and average
-    price change across whatever rows the endpoint returns (limit 5000).
-    Returns a dict, or None.
-    """
-    rows = query(
-        "trace",
-        date_range_filters=[{
-            "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
-        }],
-        limit=5000,
-        sort_fields=["-tradeDate"],
-    )
-    if not rows:
-        return None
-    total_volume = 0.0
-    n_prints = 0
-    px_changes = []
-    for r in rows:
-        if not isinstance(r, dict):
-            continue
-        n_prints += 1
-        vol = r.get("volume")
-        if vol is None:
-            vol = r.get("parValueTraded")
-        try:
-            if vol is not None:
-                total_volume += float(vol)
-        except (TypeError, ValueError):
-            pass
-        pc = r.get("priceChange")
-        if pc is None:
-            pc = r.get("averagePriceChange")
-        try:
-            if pc is not None:
-                px_changes.append(float(pc))
-        except (TypeError, ValueError):
-            pass
+    latest = max(row[date_field] for row in rows)
+    selected = [dict(row) for row in rows if row[date_field] == latest]
     return {
-        "trade_date": trade_date,
-        "n_prints": n_prints,
-        "total_volume": total_volume,
-        "avg_price_change": (
-            sum(px_changes) / len(px_changes) if px_changes else None
-        ),
-        "n_with_price_change": len(px_changes),
+        'contract_version': 'finra-aggregates-v1',
+        'dataset': dataset,
+        'source_url': f'{FINRA_DATA_BASE}/{FIXED_INCOME_GROUP}/{dataset}',
+        'documentation_url': 'https://developer.finra.org/docs',
+        'observation_date': latest,
+        'observation_date_field': date_field,
+        'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        'request_window': {'start': start, 'end': end, 'limit': limit},
+        'returned_rows': len(rows),
+        'query_limit_reached': False,
+        'response_sha256': hashlib.sha256(canonical).hexdigest(),
+        'rows': selected,
+        'source_rows': [dict(row) for row in rows],
+        'coverage': 'returned distinct categories; expected provider coverage not certified',
     }
 
 
-# ---------- Health check ----------
+def fetch_treasury_daily(trade_date):
+    """Compatibility API: one exact, validated observation date, or None."""
+    if _calendar_date(trade_date) is None:
+        return None
+    rows = query('treasuryDailyAggregates', compare_filters=[{
+        'fieldName': 'tradeDate', 'compareType': 'EQUAL', 'fieldValue': trade_date,
+    }], limit=5000, sort_fields=['yearsToMaturity'])
+    snapshot = _snapshot('treasuryDailyAggregates', 'tradeDate', rows,
+                         trade_date, trade_date, 5000,
+                         ('productCategory', 'yearsToMaturity', 'benchmark'))
+    return snapshot['rows'] if snapshot else None
+
+
+def fetch_treasury_latest():
+    """Use returned dates, not the run date; FINRA publishes prior-day data."""
+    start, end = _weekday_window(5)
+    rows = query('treasuryDailyAggregates', date_range_filters=[{
+        'fieldName': 'tradeDate', 'startDate': start, 'endDate': end,
+    }], limit=5000)
+    return _snapshot('treasuryDailyAggregates', 'tradeDate', rows, start, end,
+                     5000, ('productCategory', 'yearsToMaturity', 'benchmark'))
+
+
+def fetch_corporate_breadth():
+    """Return dated corporateMarketBreadth categories without adding subsets."""
+    start, end = _weekday_window(5)
+    rows = query(BREADTH_DATASET, date_range_filters=[{
+        'fieldName': BREADTH_DATE_FIELD, 'startDate': start, 'endDate': end,
+    }], limit=500)
+    snapshot = _snapshot(BREADTH_DATASET, BREADTH_DATE_FIELD, rows, start,
+                         end, 500, ('productCategory',))
+    if snapshot is None:
+        return None
+    all_rows = [row for row in snapshot['rows'] if row['productCategory'] == 'all securities']
+    all_row = all_rows[0] if len(all_rows) == 1 else {}
+    for legacy, field in _BREADTH_FIELD_MAP.items():
+        snapshot[legacy] = snapshot['observation_date'] if legacy == 'tradeDate' else _finite_number(all_row.get(field), count=field != 'totalVolume')
+    counts = [snapshot[key] for key in ('numberOfIssuesAdvancing', 'numberOfIssuesDeclining', 'numberOfIssuesUnchanged')]
+    total = sum(counts) if all(value is not None for value in counts) else None
+    snapshot['numberOfIssues'] = total if total is not None and total <= 9007199254740991 else None
+    snapshot['averagePriceChange'] = None
+    snapshot['legacy_alias_scope'] = 'all securities row only; category subsets are not summed'
+    snapshot['parValueTraded_unit'] = 'source_native_unverified'
+    return snapshot
+
+
+def fetch_trace_aggregates(trade_date):
+    """Deprecated compatibility API: no documented per-print dataset here.
+
+    The separate TRACE API is not a fixedIncomeMarket Data API dataset. Do
+    not request an invented endpoint or call a capped sample a market total.
+    """
+    return None
+
+
 def health_check():
     """Returns a dict describing auth/data reachability. Does NOT raise."""
     out = {
@@ -245,8 +299,14 @@ def health_check():
     try:
         tok = get_token()
         out["token_available"] = bool(tok)
-        rows = query("treasuryDailyAggregates", limit=1,
-                     sort_fields=["-tradeDate"])
+        start, end = _weekday_window(5)
+        rows = query("treasuryDailyAggregates",
+                     date_range_filters=[{
+                         "fieldName": "tradeDate",
+                         "startDate": start,
+                         "endDate": end,
+                     }],
+                     limit=1)
         if rows:
             out["data_api_reachable"] = True
             out["latest_treasury_row"] = (

@@ -4,12 +4,30 @@
   else root.JHMarketTape = factory();
 }(typeof window !== "undefined" ? window : this, function () {
   "use strict";
+  // 8/10 quote-freshness compatibility: prefer the new badge vocabulary
+  // (LIVE/DELAYED/SESSION/STALE/OFFLINE from aws/shared/quote_meta.py),
+  // fall back to legacy quality.status ("fresh"/"delayed") for old packets.
+  // Returns one of: fresh, delayed, session, stale, offline, unknown.
+  function badgeState(item) {
+    var badge = item && item.badge;
+    if (badge === "LIVE") return "fresh";
+    if (badge === "DELAYED") return "delayed";
+    if (badge === "SESSION") return "session";
+    if (badge === "STALE") return "stale";
+    if (badge === "OFFLINE") return "offline";
+    var legacy = item && item.quality && item.quality.status;
+    if (legacy === "fresh" || legacy === "delayed") return legacy;
+    return "unknown";
+  }
   function describe(item) {
+    var bs = badgeState(item);
     return [item.definition || item.label, "Unit: " + (item.unit || "unverified"),
       "Observed: " + (item.observed_at || item.observation_date || "unknown"),
       item.comparison_date ? "Comparison: " + item.comparison_date : "",
       item.seasonal_adjustment || "", "Source: " + (item.src || item.source || item.series_id || "unknown"),
-      item.quality && item.quality.status === "delayed" ? "Delayed quote" : "",
+      bs === "delayed" ? "Delayed quote" : "",
+      bs === "session" ? "Last session close" : "",
+      bs === "stale" ? "Stale quote" : "",
       item.evidence ? "Archived source evidence available in /data/market-tape.json" : ""].filter(Boolean).join(" · ");
   }
   function render(doc, target, packet, now) {
@@ -22,8 +40,8 @@
     }
     (packet.items || []).forEach(function (item) {
       if (!item || typeof item.value !== "number" || !Number.isFinite(item.value) || !item.observation_date || !item.unit) return;
-      var state = item.quality && item.quality.status;
-      if (state !== "fresh" && state !== "delayed") return;
+      var state = badgeState(item);
+      if (state === "offline" || state === "unknown") return;
       var sp = doc.createElement("span"); sp.className = "jhc-chip";
       sp.setAttribute("data-sym", item.label || "");
       sp.setAttribute("tabindex", "0"); sp.title = describe(item);
@@ -38,6 +56,8 @@
       date.textContent = " · " + (item.frequency === "quote" && item.observed_at
         ? item.observed_at.slice(5, 16).replace("T", " ") + "Z" : item.observation_date);
       if (state === "delayed") date.textContent += " delayed";
+      else if (state === "session") date.textContent += " last close";
+      else if (state === "stale") { date.textContent += " stale"; sp.className += " jhc-stale"; }
       sp.appendChild(label); sp.appendChild(value); sp.appendChild(date); target.appendChild(sp);
     });
     var evidence = doc.createElement("a"); evidence.href = "/data/market-tape.json";
