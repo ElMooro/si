@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 504: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503. OBV cumulative arithmetic and stock-desk ratio underflow are accepted through Stage 504 with 72 exact static artifacts, 898 engine records and 599 page contracts. Next: scalar presentation across rejected records and legacy upstream market-volume defaults. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 505: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering, single-observation split panes and navigator recovery are accepted through Stage 505 with 72 exact static artifacts, 898 engine records and 599 page contracts. Next: source-bound scalar axis formatting, crowded mobile metadata and legacy upstream market-volume defaults. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7217,3 +7217,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Nine focused rendering/preservation cases pass; complete original fixtures and browser label expectations remain retained. Full browser/deployment/static acceptance is pending. Visual review confirms the separate existing axis tick-formatting noise and crowded mobile metadata remain open. No actual private/current-consumer/provider data or producer execution. All ten institutional workstreams remain OPEN.
 
 - Stage 505 combined source passed 2,464 frontend cases, 1018 deployment and fifteen shell checks. Ten new rendering/preservation regressions and six offline desktop/mobile suites pass. Exact static release remains pending.
+
+
+### Stage 505 exact static acceptance
+
+- Source `78ff25d50f0837961993b510802f5a1f4bddf034` matches the exact served Pages build, run 36845399763. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,464 frontend cases, 1018 deployment and fifteen shell checks, including ten new rendering/preservation cases. Six offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Scalar views no longer imply continuity across excluded or unreported periods. Single-point split panes and navigator recovery are repaired, while every source observation and existing calculation stays intact. Existing axis tick-formatting noise, crowded mobile metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
