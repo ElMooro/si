@@ -42,3 +42,24 @@ test('signal count and preview contradictions remain incomplete without rescorin
  const d=packet();d.names=[{...issuer(),signal:'CREDIT_LEADS_DOWN'},{...issuer(),ticker:'WAIT',signal:'INSUFFICIENT_HISTORY'}, {...issuer(),ticker:'NONE'}];d.n_names=3;d.n_leads=1;d.n_awaiting_history=1;d.leads=[d.names[0]];
  const {elements:e}=await render(d);assert.match(e.evidence.innerHTML,/Published packet received/);assert.equal((e.tb.innerHTML.match(/<tr>/g)||[]).length,3);
 });
+
+test('missing and invalid measurements have no percent or bp suffix in rows or leads',async()=>{
+ for(const value of [undefined,null,'0',false,{},[],NaN,Infinity,-Infinity]){
+  const d=packet();d.names=[{...issuer(),ticker:'GOOGL',signal:'CREDIT_LEADS_UP',d_price_pct:value,synthetic_cds_bp:value,default_prob_5y_pct:value}];d.leads=d.names;d.n_leads=1;
+  const {elements:e}=await render(d);
+  assert.match(e.tb.innerHTML,/>Unavailable<\/td>/);
+  assert.match(e.leads.innerHTML,/CDS Unavailable \(/);
+  assert.match(e.leads.innerHTML,/price Unavailable · 5y PD Unavailable ·/);
+  for(const key of ['tb','leads'])assert.doesNotMatch(e[key].innerHTML,/Unavailable(?:%|bp)/);
+ }
+});
+test('finite measurements retain exact signs precision and units including literal zero',async()=>{
+ for(const value of [0,1.234,-1.234]){
+  const d=packet();d.names=[{...issuer(),signal:'CREDIT_LEADS_UP',d_price_pct:value,synthetic_cds_bp:value,default_prob_5y_pct:value}];d.leads=d.names;d.n_leads=1;
+  const {elements:e}=await render(d),signed=(value>0?'+':'')+value.toFixed(2);
+  assert.ok(e.tb.innerHTML.includes('>'+signed+'%</td>'));
+  assert.ok(e.leads.innerHTML.includes('CDS '+value.toFixed(1)+'bp ('));
+  assert.ok(e.leads.innerHTML.includes('price '+signed+'% · 5y PD '+value.toFixed(2)+'%'));
+  assert.match(e.hero.innerHTML,/±0%/);
+ }
+});

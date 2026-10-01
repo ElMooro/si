@@ -18,7 +18,8 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Retail Flow email sentiment display only: finite 0–100 and zero preserved; unavailable for invalid/missing; offline regressions and independent review; codex/retail-flow-sentiment-display. No joining, analyst/NET, delivery, recipient, schedule or deployment changes; Secretary PR40 separate. | none | S-codex#retail1001d8 | 2026-10-01 |
+| Credit-before-equity missing-value unit suffix only; codex/credit-unavailable-units; preserve numeric formatting/signals, regression and independent review before release | none | S-codex#cbeunits1001m | 2026-10-01 |
+| PR50 meta-labeler TAKE/SKIP leakage withholding accepted 71c493105; authorized integration and Actions release, exact receipts/served assets and natural publication verification; no causal restoration, schedules, providers or manual invoke. | none | S-codex#mlcausal1001v7 | 2026-10-01 14:10 |
 | Khalid additive user_scope_evidence research projection and shared sniper scope display only; codex/khalid-user-scope-evidence; preserve legacy qualification and every decision; PR48 accepted 3e936889d; user authorized integration/review and release 13:47 UTC; deployment verification pending. Risk diagnostics, tape and chart/SymDir unchanged. | none | S-codex#scope1001b7 | 2026-10-01 |
 | Industry-case missing cls renderer helper only; restore league/drilldown and typed neutral display, actual-renderer tests; separate draft codex/industry-case-render-helper. PR43 and tape-reader notice unchanged; no backend/date/navigation/policy/cosmetic changes or deploy. | none | S-codex#iccls1001r7 | 2026-10-01 11:51 |
 | PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
@@ -70,6 +71,7 @@ weekly official series. Recommend: official-pulse degrades honestly to
 RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 /datadownload, rel=H41, csv) direct probe for the custody memo item.
 My duplicate ops_4864_*.py removed from pending (failed, inert).
+| Retail Flow email sentiment display only: finite 0–100 and zero preserved; unavailable for invalid/missing; offline regressions and independent review; codex/retail-flow-sentiment-display. No joining, analyst/NET, delivery, recipient, schedule or deployment changes; Secretary PR40 separate. | none | S-codex#retail1001d8 | 2026-10-01 |
 
 ## Done (this arc)
 
