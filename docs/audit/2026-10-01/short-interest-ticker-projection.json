@@ -1,0 +1,95 @@
+{
+  "status": "candidate_tests_passed_native_baseline_pending",
+  "scope": "Source-only and invented fixtures; no actual AWS/provider/current/private/account body reads or producer invocation.",
+  "candidate_tests": {
+    "combined_existing_and_new": 84,
+    "new_projection_head_loader_publication_cases": 45,
+    "existing_engine_cases": 39,
+    "whole_native_handler_cases": 3
+  },
+  "candidate_files": {
+    "lambda_function.py": "4cbf44ef157a7284458d40b2a32afe372516e19afc3a6c121735e2227ebf9180",
+    "ops_6425_short_interest_ticker_controls.py": "2dadc83453eb8ebbbf57b233b48b1987d57c76c67b4b1eed36db9803b4e9fbdb",
+    "short_interest_tickers.py": "601b1eab3b3f8673a38b3cbcb85fe25ae41295a60d6476bcf8a428d4691e9968",
+    "test_short_interest_ticker_controls.py": "97d8867dfdf83e07ea6e1b0ce4366515bf9091fc16fec6722b46eed0fd6a61cf",
+    "test_short_interest_ticker_head.py": "9b70ad8644b90b1f45d8ade50ccbb900bbe5f6469d9f65b95e4e04a2b965e4a1",
+    "test_short_interest_ticker_identity.py": "881375b5405fac0db83a41f1e4cb409450fa8fed5a3fb4a302afaece4ee4058d",
+    "test_short_interest_ticker_loader.py": "99e9610f8c82f21adc5a59f814ef29b0bc3a8adc5af4b4b370394e7d03c07293",
+    "test_short_interest_ticker_publication.py": "80602fd2e1874ecb7a4382b0844976ab9b0bdd190b886d0e666924c977b3a720"
+  },
+  "remaining": [
+    "Read-only native control baseline for both packaged importers",
+    "Final independent source review and budget/memory/retention review",
+    "Adopt complete related batch and regression archives, run integrated suites and both engine runners",
+    "Verify atomic source push, both release receipts/native packages and normal publication on original cadence"
+  ],
+  "operation_number": "6425 proposed only; not reserved; recheck against main before adoption",
+  "baseline_operation": "aws/ops/staged/ops_6425_short_interest_ticker_controls.py",
+  "native_controls_verified": false,
+  "source_release_deployed": false,
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "source_findings": [
+    {
+      "id": "distinct_issues_collapsed",
+      "invented_source_issue_count": 2,
+      "output_symbol_count": 1,
+      "selected_issue": "Invented issue B",
+      "risk": "Highest share count breaks an identity tie; surviving ticker context hides issue ambiguity."
+    },
+    {
+      "id": "non_boolean_latest_promoted",
+      "input_latest": "false",
+      "output_latest": true,
+      "risk": "Malformed history flag can enter latest-only ranked lists."
+    },
+    {
+      "id": "unconditional_current_publication",
+      "write_keys": [
+        "Bucket",
+        "CacheControl",
+        "ContentType",
+        "Key"
+      ],
+      "risk": "No prior-read, conditional head guard or immutable consumer-body retention in this helper."
+    }
+  ],
+  "current_source_closures": {
+    "justhodl-short-interest": {
+      "source_count": 8,
+      "sources": {
+        "aws/lambdas/justhodl-short-interest/source/lambda_function.py": "e06b7eb8c46564856f192a42ff14d2b48a8014cba4d8cfa165718781ab5c423a",
+        "aws/shared/offexchange_measurements.py": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18",
+        "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+        "aws/shared/short_interest_measurements.py": "9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63",
+        "aws/shared/short_interest_producer.py": "73d62965bcef38be200f6c1d39e56a3059ebda5af3f4d0c007a1825ae02cf9b7",
+        "aws/shared/short_interest_research_model.py": "11716dc109a04b4b7b34b40d5b5602abe26c518e5dd9708649257f091b0ba831",
+        "aws/shared/short_interest_research_store.py": "5b84503baf1268a4537f16d55f89be903a7ccf24cc64779205cb58d64f1c5dc2",
+        "aws/shared/short_interest_tickers.py": "216ae79d7bc7294f60764c925a32e77147d0025cd512a8fa0916d19b3bad61fe"
+      }
+    },
+    "justhodl-microcap-float-squeeze": {
+      "source_count": 6,
+      "sources": {
+        "aws/lambdas/justhodl-microcap-float-squeeze/source/float_observations.py": "7a545897a6f4a1e6a44725b78b4141cd2a1f7671c24af06bd7c7f6e82d049b7e",
+        "aws/lambdas/justhodl-microcap-float-squeeze/source/lambda_function.py": "1bc3e2cd0d16292da967deb44fdd330244106823ed0c053352dad8aa881801a1",
+        "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+        "aws/shared/offexchange_measurements.py": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18",
+        "aws/shared/short_interest_measurements.py": "9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63",
+        "aws/shared/short_interest_tickers.py": "216ae79d7bc7294f60764c925a32e77147d0025cd512a8fa0916d19b3bad61fe"
+      }
+    }
+  },
+  "candidate_scope": "Issue-safe descriptive projection, typed latest flags, source-head and shard integrity, bounded reader, retained compiler/input/output and conditional ticker publication. Candidate code remains outside repository pending control baseline and final integration.",
+  "baseline_validation": {
+    "invented_control_cases": 8,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass"
+  },
+  "baseline_source_hashes": {
+    "aws/ops/staged/ops_6425_short_interest_ticker_controls.py": "2dadc83453eb8ebbbf57b233b48b1987d57c76c67b4b1eed36db9803b4e9fbdb",
+    "aws/ops/checks/test_short_interest_ticker_controls.py": "4a74653cee10ddb6805df92555a032302bd70047f6253db9109a95f2091ee9ae"
+  }
+}
