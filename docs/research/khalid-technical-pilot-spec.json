@@ -1,0 +1,31 @@
+{
+  "contract": "khalid-technical-pilot.v1",
+  "status": "frozen_exploratory_subset_before_outcome_run",
+  "frozen_at": "2026-10-01T03:26:00Z",
+  "scorer_path": "jh-khalid-sniper.js",
+  "scorer_sha256": "849b64de3e545d88d49363696b8a0269e60120ba235e69f3f43186d56efe08d6",
+  "window_start": "2020-09-05",
+  "window_end": "2026-09-25",
+  "assets": ["BTC", "ETH", "AAPL"],
+  "benchmark_audit_only": "SPY",
+  "warmup_bars": 504,
+  "gates_in_order": ["offhigh", "rsi", "bb", "spread", "exhaust"],
+  "gate_definitions": {
+    "offhigh": "Close at least 50% below trailing 504-bar high",
+    "rsi": "Existing browser Wilder RSI(14) <=45; scorer truncates input to latest 560 bars",
+    "bb": "Existing browser 20-bar Bollinger bandwidth <=20th percentile of approximately 252 bars",
+    "spread": "Median last 10 bar ranges/close <=75% of earlier 40 bars within last 60",
+    "exhaust": "Existing browser capitulation at i-90..i-3: return <=-3%, volume >=1.7x preceding 20-bar median, close location >=0.25"
+  },
+  "horizons_native_bars": [21, 63, 126],
+  "sampling": "Every eligible daily close after full in-window warm-up; do not deduplicate events before displaying the gate funnel",
+  "universe": "Convenience sample of publicly accessible existing warehouse objects, not a historical investable universe",
+  "conflicting_duplicate_policy": "Exclude entire affected asset; exact duplicates may be counted then collapsed",
+  "calendar_policy": "Require consecutive calendar dates for BTC/ETH; equity session calendar unverified",
+  "returns": "Retrospective close-to-close gross price changes; not executable fills, total returns, strategy NAV or OOS validation",
+  "omitted": ["3m support unresolved", "SPX decline/resilience definition unresolved", "historical ETF inflow availability unavailable", "point-in-time biotech/smallcap exclusions unavailable", "holdings/classification history unavailable", "all remaining browser/backend gates outside this technical subset"],
+  "uncertainty": "Report overlap-connected event clusters; no confidence interval or significance claim from this convenience sample",
+  "authority": {"research_only": true, "decision_eligible": false, "validated_strategy": false},
+  "costs": "No commissions, spread, slippage, impact, borrow, funding or dividend model; gross observations only",
+  "training": "No fitting; PR19 validator must exclude labels lacking historical availability, without inventing clocks"
+}
