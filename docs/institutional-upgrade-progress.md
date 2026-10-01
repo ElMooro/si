@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 503: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502. Retained-frame RVOL definitions, unavailable windows and gap rendering are now accepted through Stage 503 with 72 exact static artifacts, 898 engine records and 599 page contracts. Next: reproduced OBV accumulator defects, legacy upstream market-volume defaults and scalar presentation. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 504: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503. OBV cumulative arithmetic and stock-desk ratio underflow are accepted through Stage 504 with 72 exact static artifacts, 898 engine records and 599 page contracts. Next: scalar presentation across rejected records and legacy upstream market-volume defaults. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7201,3 +7201,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Stage 504 combined source passed 2,446 frontend cases, 1018 deployment and fifteen shell checks. Fourteen new numerical/preservation regressions and three offline desktop/mobile suites pass. Exact static release remains pending.
 
 - Incoming PR41 accessibility repair (`941ce0618`) is preserved. Its source/eight unit cases and isolated browser were checked without foreign review bodies. Two browser-fixture assumptions were repaired: native focus restoration bypasses a JS focus override, and a nonmodal popover may cover the nearby test button. Existing fallback assertions remain; actual focus refusal and successful native restoration are separate cases. A deliberately broken fallback is still detected. Combined checks pass 2,454 frontend, 1,018 deployment and fifteen shell cases; three whole-chart suites and isolated help checks pass on desktop/mobile. Exact release remains pending.
+
+
+### Stage 504 exact static acceptance
+
+- Source `0bdbf6cc44cfd15e5e93f16b89984c089066bc23` matches the exact served Pages build, run 36843486334. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,454 frontend cases, 1018 deployment and fifteen shell checks, including fourteen new numerical/preservation cases. Three offline real-library desktop/mobile suites retain complete invented frames and tested failure/recovery paths.
+- OBV flat-close arithmetic, broken cumulative-chain handling and stock-desk nonzero-ratio underflow are repaired. No actual application/private/current-consumer data or producer invocation was involved. Original provider defaults/units, calendar completeness, predictive validity and portfolio authority remain unqualified. All ten institutional workstreams remain OPEN.
