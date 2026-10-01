@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Khalid additive user_scope_evidence research projection and shared sniper scope display only; codex/khalid-user-scope-evidence; preserve legacy qualification and every decision; draft + independent review, no release. Risk diagnostics, tape and chart/SymDir unchanged. | none | S-codex#scope1001b7 | 2026-10-01 |
 | PR42 presentation-only publication/contract-withholding notice; tape-reader.html and opt-in jh-enhance path only, other 59 importers unchanged; separate draft codex/tape-reader-publication-notice. PR43 stays immutable. No backend/requests/schedules/deploy. | none | S-codex#trnotice1001p5 | 2026-10-01 10:57 |
 | Tape-truth observation qualification and industry-case projection; tape-truth.html, industry-case.html and only why.html IC_/TT_ modules with ticker bus preserved; separate draft codex/tape-truth-qualification. No math/provider/schedule/capital/LLM prompt changes. | none | S-codex#ttqual1001u4 | 2026-10-01 10:29 |
 | PR38 risk explanation projection/display accepted d867fb3d2; authorized release verification; preserve policy/actions/clocks; no manual invokes, providers or schedules | none | S-codex#kdiagui1001t9 | 2026-10-01 08:59 |
