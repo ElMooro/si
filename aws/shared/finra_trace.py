@@ -18,6 +18,7 @@ USAGE in a Lambda (shared modules are bundled into every Lambda zip):
 All public functions fail-soft: they return None on any network, auth,
 or parsing failure. No exceptions escape this module.
 """
+import datetime
 import json
 import urllib.error
 import urllib.request
@@ -120,6 +121,17 @@ def query(dataset, compare_filters=None, date_range_filters=None,
     return None
 
 
+def _weekday_window(n):
+    """Return (start, end) ISO date strings covering the last n weekdays."""
+    days = []
+    d = datetime.date.today()
+    while len(days) < n:
+        if d.weekday() < 5:
+            days.append(d.isoformat())
+        d -= datetime.timedelta(days=1)
+    return days[-1], days[0]
+
+
 # ---------- Dataset-specific fetchers ----------
 
 TREASURY_FIELDS = (
@@ -135,12 +147,15 @@ def fetch_treasury_daily(trade_date):
 
     Returns a list of per-bucket dicts (documented fields only), or None.
     """
+    # FINRA rejects sortFields unless the partition key (tradeDate) is pinned
+    # with an EQUAL compareFilter (HTTP 400 otherwise); a dateRangeFilter
+    # alone does not satisfy the rule.
     rows = query(
         "treasuryDailyAggregates",
-        date_range_filters=[{
+        compare_filters=[{
             "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
+            "compareType": "EQUAL",
+            "fieldValue": trade_date,
         }],
         limit=5000,
         sort_fields=["yearsToMaturity"],
@@ -167,14 +182,25 @@ def fetch_corporate_breadth():
 
     Returns a dict of documented fields, or None.
     """
+    # Cannot EQUAL-pin an unknown latest date, and FINRA forbids sortFields
+    # without one — pull the last 5 weekdays unsorted and pick the latest
+    # tradeDate client-side.
+    start, end = _weekday_window(5)
     rows = query(
         "corporateDebtMarketBreadth",
-        limit=1,
-        sort_fields=["-tradeDate"],
+        date_range_filters=[{
+            "fieldName": "tradeDate",
+            "startDate": start,
+            "endDate": end,
+        }],
+        limit=500,
     )
     if not rows:
         return None
-    r = rows[0]
+    dated = [r for r in rows if isinstance(r, dict) and r.get("tradeDate")]
+    if not dated:
+        return None
+    r = max(dated, key=lambda x: x["tradeDate"])
     if not isinstance(r, dict):
         return None
     return {f: r.get(f) for f in CORPORATE_BREADTH_FIELDS}
@@ -189,13 +215,12 @@ def fetch_trace_aggregates(trade_date):
     """
     rows = query(
         "trace",
-        date_range_filters=[{
+        compare_filters=[{
             "fieldName": "tradeDate",
-            "startDate": trade_date,
-            "endDate": trade_date,
+            "compareType": "EQUAL",
+            "fieldValue": trade_date,
         }],
         limit=5000,
-        sort_fields=["-tradeDate"],
     )
     if not rows:
         return None
@@ -245,8 +270,14 @@ def health_check():
     try:
         tok = get_token()
         out["token_available"] = bool(tok)
-        rows = query("treasuryDailyAggregates", limit=1,
-                     sort_fields=["-tradeDate"])
+        start, end = _weekday_window(5)
+        rows = query("treasuryDailyAggregates",
+                     date_range_filters=[{
+                         "fieldName": "tradeDate",
+                         "startDate": start,
+                         "endDate": end,
+                     }],
+                     limit=1)
         if rows:
             out["data_api_reachable"] = True
             out["latest_treasury_row"] = (
