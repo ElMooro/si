@@ -1,0 +1,96 @@
+{
+  "script": "1087_resweep",
+  "read_at": "2026-10-01T23:03:40Z",
+  "units": [
+    {
+      "name": "SEC 8-K enrichment",
+      "lambda": "justhodl-sec-8k-enrich",
+      "schedule": {
+        "enabled": true,
+        "state": "ENABLED"
+      },
+      "invocation": {
+        "invocations_since_fix": 20,
+        "errors_since_fix": 0,
+        "has_success": true
+      },
+      "artifact": {
+        "exists": false
+      },
+      "green": false
+    },
+    {
+      "name": "FINRA short-interest",
+      "lambda": "justhodl-short-interest",
+      "schedule": {
+        "enabled": true,
+        "state": "ENABLED"
+      },
+      "invocation": {
+        "invocations_since_fix": 1,
+        "errors_since_fix": 0,
+        "has_success": true
+      },
+      "artifact": {
+        "exists": false
+      },
+      "green": false
+    },
+    {
+      "name": "SEC XBRL",
+      "lambda": "justhodl-xbrl-fundamentals",
+      "schedule": {
+        "enabled": true,
+        "state": "ENABLED"
+      },
+      "invocation": {
+        "invocations_since_fix": 0,
+        "errors_since_fix": 0,
+        "has_success": false
+      },
+      "artifact": {
+        "exists": false
+      },
+      "green": false
+    },
+    {
+      "name": "Corporate actions",
+      "lambda": "justhodl-corporate-actions",
+      "schedule": {
+        "enabled": true,
+        "state": "ENABLED"
+      },
+      "invocation": {
+        "invocations_since_fix": 1,
+        "errors_since_fix": 0,
+        "has_success": true
+      },
+      "artifact": {
+        "exists": false
+      },
+      "green": false
+    },
+    {
+      "name": "ETF issuer holdings",
+      "lambda": "justhodl-etf-issuer-holdings",
+      "schedule": {
+        "enabled": true,
+        "state": "ENABLED"
+      },
+      "invocation": {
+        "invocations_since_fix": 1,
+        "errors_since_fix": 0,
+        "has_success": true
+      },
+      "artifact": {
+        "exists": true,
+        "last_modified": "2026-10-01T23:00:59Z",
+        "age_hours": 0.0,
+        "fresh": true
+      },
+      "green": true
+    }
+  ],
+  "green_count": 1,
+  "total": 5
+}
