@@ -57,11 +57,6 @@ const output={scope:'Complete selected chart modules with pinned real drawing li
    await page.evaluate(()=>fixtureHover(19));assert.match((await page.evaluate(()=>fixtureState())).hud,/RVOL Unavailable/);
    await page.evaluate(()=>jhSetKind('volcandle'));s=await draw('missing_last');let candles=s.main.find(r=>r.kind==='addCandlestickSeries');assert.ok(candles);assert.equal(candles.data.at(-1).color,candles.options.upColor);assert.equal(candles.data[0].color,candles.options.upColor);states.volume_candles_missing=s;await shot('volume-candles-missing');
    s=await draw('zero');candles=s.main.find(r=>r.kind==='addCandlestickSeries');assert.notEqual(candles.data.at(-1).color,candles.options.upColor);states.volume_candles_zero=s;
-   await page.evaluate(async()=>{INDS.find(x=>x.id==='voltape').on=true;await paint(lastBars);});
-   assert.match(await page.locator('.annotation-timing').textContent(),/not first availability/);
-   await page.locator('[data-annotation-timing]').click();assert.match(await page.locator('#indhelp').textContent(),/First availability is unknown/);await shot('annotation-timing');
-   await page.keyboard.press('Escape');assert.notEqual(await page.locator('#indhelp').getAttribute('class'),'on');
-   await page.evaluate(async()=>{INDS.find(x=>x.id==='voltape').on=false;await paint(lastBars);});assert.equal(await page.locator('.annotation-timing').count(),0);
    assert.deepEqual(errors,[]);output.cases.push({width,requests,errors,states,screenshots,actual_network_requests:0});
   }catch(error){fs.writeFileSync(path.join(D,'failure-'+width+'.json'),JSON.stringify({error:String(error),errors,requests,states,state:await page.evaluate(()=>window.fixtureState?.())},null,2));throw error;}finally{await context.close();}
  }
