@@ -1,6 +1,6 @@
 {
   "stage": 525,
-  "status": "tested_source_batch_awaiting_native_release",
+  "status": "exact_native_release_checked",
   "scope": "Bound decimal compatibility formatting and make descriptive composite ordering exact; no new economic metric, forecast, provider or permission.",
   "functions": [
     "justhodl-short-interest",
@@ -115,9 +115,8 @@
   "candidate_scope": "Complete related source batch adopted and tested; original source acquisition and native controls unchanged.",
   "operation_number": "6426 baseline accepted; 6427 reserved for exact native acceptance",
   "remaining": [
-    "Exact release receipts and native package/control verification",
     "Normal publication on original cadence remains unverified",
-    "Provider and investment qualification remain open"
+    "Provider truth, security continuity and investment qualification remain open"
   ],
   "validation": {
     "short_interest_tests": 99,
@@ -131,5 +130,227 @@
     "private_reads": 0,
     "account_reads": 0,
     "invented_cases_only": true
+  },
+  "source_commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74",
+  "source_release_deployed": true,
+  "native_acceptance": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-short-interest/source/lambda_function.py": "570f68ab5ad828e20ef4c2ec74552df59add7d2a82cc91ff0d4480a8f7661d68",
+      "aws/shared/context_evidence_store.py": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7",
+      "aws/shared/offexchange_measurements.py": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18",
+      "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+      "aws/shared/short_interest_measurements.py": "9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63",
+      "aws/shared/short_interest_producer.py": "73d62965bcef38be200f6c1d39e56a3059ebda5af3f4d0c007a1825ae02cf9b7",
+      "aws/shared/short_interest_research_model.py": "11716dc109a04b4b7b34b40d5b5602abe26c518e5dd9708649257f091b0ba831",
+      "aws/shared/short_interest_research_store.py": "5b84503baf1268a4537f16d55f89be903a7ccf24cc64779205cb58d64f1c5dc2",
+      "aws/shared/short_interest_tickers.py": "73e56c656b5eda24b1c53311d4a8cc07a65ae5c13c564826f1ce1a29f0fa35db",
+      "aws/lambdas/justhodl-microcap-float-squeeze/source/float_observations.py": "7a545897a6f4a1e6a44725b78b4141cd2a1f7671c24af06bd7c7f6e82d049b7e",
+      "aws/lambdas/justhodl-microcap-float-squeeze/source/lambda_function.py": "1bc3e2cd0d16292da967deb44fdd330244106823ed0c053352dad8aa881801a1",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+    },
+    "native_before": {
+      "justhodl-short-interest": {
+        "code_sha256": "YR16fMxotratTOV7g7hTW+voYNIbfxcI6XpIEPaC39A=",
+        "source_files_checked": 9,
+        "handler_bytes": 9396,
+        "timeout": 360,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-microcap-float-squeeze": {
+        "code_sha256": "e1Ys9JQQWdSl7V+643ytQzBY/MaqhvqYAqbOP4VomcM=",
+        "source_files_checked": 8,
+        "handler_bytes": 30289,
+        "timeout": 600,
+        "memory_mb": 2048,
+        "receipt": {
+          "status": "matched",
+          "commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "native_after": {
+      "justhodl-short-interest": {
+        "code_sha256": "YR16fMxotratTOV7g7hTW+voYNIbfxcI6XpIEPaC39A=",
+        "source_files_checked": 9,
+        "handler_bytes": 9396,
+        "timeout": 360,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-microcap-float-squeeze": {
+        "code_sha256": "e1Ys9JQQWdSl7V+643ytQzBY/MaqhvqYAqbOP4VomcM=",
+        "source_files_checked": 8,
+        "handler_bytes": 30289,
+        "timeout": 600,
+        "memory_mb": 2048,
+        "receipt": {
+          "status": "matched",
+          "commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "original_controls": {
+      "justhodl-short-interest": {
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 360,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-microcap-float-squeeze": {
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory_mb": 2048,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "run_id": 36916838352,
+    "operation_commit": "14c1883dd7edf22f3cfdb2ab7ab5763f05b12e74",
+    "report_commit": "fabf047ebacff3b86814c43f6674b352fea0524a",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6427_short_interest_numeric_acceptance.md",
+      "bytes": 6372,
+      "sha256": "c86480152a8252f3578e7f9f7aba37c1cdda137750535eb8b2441e03fe7da861"
+    }
   }
 }
