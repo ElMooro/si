@@ -495,8 +495,22 @@ def lambda_handler(event, context):
     actionable = [s for s in setups if s["confidence"] in ("HIGH", "MODERATE")]
     headline = setups[0] if setups else None
 
+    # ── Ticker-360 cross-engine enrichment: attach 360° coverage context
+    #    to each setup subject. Diagnostic inventory only — never another
+    #    independent vote in the conviction score. Fail-soft.
+    try:
+        from ticker_coverage_context import load as _t360_load
+        _t360_ctx = _t360_load(s3, S3_BUCKET)
+        _t360_by = _t360_ctx.get("by_ticker", {}) if _t360_ctx else {}
+        for _s in setups:
+            _tv = _t360_by.get(_s.get("subject", ""))
+            _s["t360_coverage"] = _tv["coverage_count"] if _tv else None
+            _s["t360_domains"] = _tv["domains"] if _tv else []
+    except Exception as _t360_e:
+        print(f"[conviction] t360 enrichment skipped: {_t360_e}")
+
     out = {
-        "schema_version": "1.0",
+        "schema_version": "1.1-t360",
         "method": "skill_weighted_decorrelated_conviction_synthesis",
         "generated_at": now.isoformat(),
         "elapsed_s": round(time.time() - t0, 2),
