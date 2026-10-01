@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-01T14:08:03.088238+00:00",
+  "observed_at": "2026-10-01T14:08:12.659630+00:00",
   "runs": [
     {
       "id": 36873374909,
@@ -346,50 +346,58 @@
             {
               "number": 23,
               "name": "Build complete producer-to-page data contracts",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-01T14:07:50Z",
-              "completed_at": null
+              "completed_at": "2026-10-01T14:07:56Z"
             },
             {
               "number": 24,
               "name": "Final built page syntax gate",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:07:56Z",
+              "completed_at": "2026-10-01T14:08:01Z"
             },
             {
               "number": 25,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:08:01Z",
+              "completed_at": "2026-10-01T14:08:02Z"
             },
             {
               "number": 26,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:08:02Z",
+              "completed_at": "2026-10-01T14:08:03Z"
             },
             {
               "number": 51,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:08:03Z",
+              "completed_at": "2026-10-01T14:08:04Z"
             },
             {
               "number": 52,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:08:04Z",
+              "completed_at": "2026-10-01T14:08:04Z"
+            },
+            {
+              "number": 53,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T14:08:04Z",
+              "completed_at": "2026-10-01T14:08:04Z"
             }
           ]
         }
