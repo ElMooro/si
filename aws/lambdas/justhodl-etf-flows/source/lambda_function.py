@@ -1,33 +1,13 @@
-"""
-justhodl-etf-flows — ETF creation/redemption tracker
+"""Legacy ETF trading-activity proxies from Polygon daily price/volume bars.
 
-Tracks where institutional money is actually going by monitoring daily
-shares outstanding changes in liquid ETFs. Creation units = inflows,
-redemptions = outflows.
-
-Method:
-  1. Pull last 30d of daily aggregates per ETF from Polygon
-     (price + volume — but no shares outstanding directly)
-  2. Pull current shares outstanding from Polygon /v3/reference/tickers
-  3. Compute estimated AUM = shares_outstanding * latest_close
-  4. Compute volume-weighted price = VWAP proxy
-  5. Track aggregate net dollar flow per ETF category
-
-Approach for FLOW estimation (since Polygon doesn't expose historical
-shares outstanding directly for free):
-  - Use ETF.com sourced data IF available
-  - Fall back to FRED ETF holdings indicator
-  - Use volume × price as proxy for dollar volume traded
-  - Compute z-score of daily $ volume vs 60d trailing — high z = unusual flow
-
-What we actually publish:
-  - Per-ETF: 1d, 5d, 20d return, 5d / 20d / 60d $ volume, $ vol z-score
-  - By category: net flow direction (relative volume z-scores)
-  - Notable: ETFs with $ vol z > 2σ today vs 60d (unusual flow)
-
+Dollar-volume proxy is close times shares traded, not creations, redemptions or net
+fund flows. Historical flow-named keys/enums remain for consumer compatibility;
+price_volume_measurement labels their actual measurement and observed bar clock.
+No ETF.com/FRED flow fallback or historical shares-outstanding change is measured.
 Output: data/etf-flows.json
 """
 import json
+import math
 import os
 import time
 import boto3
@@ -121,8 +101,41 @@ def fetch_polygon_ticker(ticker):
         return None
 
 
+def price_volume_measurement(bar=None):
+    """Additive source description; never changes legacy calculations or votes."""
+    bar = bar if isinstance(bar, dict) else {}
+    def number(value):
+        try:
+            return type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            return False
+    as_of = None
+    stamp = bar.get("t")
+    if number(stamp):
+        try:
+            as_of = datetime.fromtimestamp(stamp / 1000, timezone.utc).isoformat()
+        except (ValueError, OverflowError, OSError):
+            pass
+    close, volume = bar.get("c"), bar.get("v")
+    traded = close * volume if number(close) and close > 0 and number(volume) and volume >= 0 else None
+    if not number(traded):
+        traded = None
+    return {
+        "measurement_type": "price_volume_proxy",
+        "source": "Polygon /v2/aggs daily bars",
+        "as_of": as_of,
+        "as_of_basis": "Provider daily-bar start timestamp; not acquisition or publication time",
+        "close_times_volume_usd": traded,
+        "unit": "USD (daily close times shares traded approximation), not net fund flow",
+        "net_fund_flow_usd": None,
+        "actual_fund_flows_measured": False,
+        "missing_fields": [key for key, value in (("as_of", as_of), ("close_times_volume_usd", traded)) if value is None],
+        "legacy_signal_basis": "Dollar-volume z-score/activity change and price-return direction; no issuance/redemption inference",
+    }
+
+
 def analyze_etf(ticker, category, spy_closes=None):
-    """Compute return + flow + A/D + pattern vs SPY."""
+    """Compute returns, trading-activity proxies, A/D and pattern vs SPY."""
     bars = fetch_polygon_aggs(ticker, days=160)
     info = fetch_polygon_ticker(ticker)
     if not bars or len(bars) < 25:
@@ -219,6 +232,7 @@ def analyze_etf(ticker, category, spy_closes=None):
 
     return {
         "ticker": ticker,
+        "price_volume_measurement": price_volume_measurement(bars_sorted[-1]),
         "category": category,
         "name": (info or {}).get("name", ""),
         "latest_close": latest_close,
@@ -248,15 +262,9 @@ def analyze_etf(ticker, category, spy_closes=None):
 
 
 def classify_flow_signal(etf):
-    """
-    Classify based on z-score + return direction.
-    Flow signal interpretations:
-      - HEAVY_INFLOW: z > 2 + price up (real buying, accumulation)
-      - HEAVY_OUTFLOW: z > 2 + price down (forced selling, capitulation)
-      - UNUSUAL_VOL: |z| > 2 + flat price (rotation or block trades)
-      - ROTATION_IN: dvol_5d > dvol_20d by 25%+ + return positive
-      - ROTATION_OUT: dvol_5d > dvol_20d by 25%+ + return negative
-      - QUIET: low z, no notable flow
+    """Legacy enum classification from trading activity and return direction.
+
+    Flow-named enums are compatibility identifiers, not measured cash flows.
     """
     z = etf.get("dvol_z_score")
     r1d = etf.get("return_1d_pct") or 0
@@ -345,6 +353,9 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "version": "1.2",
+        "measurement_type": "price_volume_proxy",
+        "measurement_source": "Polygon daily close/volume bars; per-ETF price_volume_measurement carries the bar clock",
+        "actual_fund_flows_measured": False,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "n_etfs_analyzed": len(by_etf),
         "by_etf": by_etf,
@@ -360,12 +371,12 @@ def lambda_handler(event=None, context=None):
             "ticker_meta": "Polygon /v3/reference/tickers (shares outstanding)",
         },
         "signal_definitions": {
-            "HEAVY_INFLOW": "$ volume z>2 + price up (accumulation)",
-            "HEAVY_OUTFLOW": "$ volume z>2 + price down (capitulation/forced selling)",
-            "UNUSUAL_VOL": "$ volume |z|>2 with flat price (rotation/block trades)",
+            "HEAVY_INFLOW": "Trading dollar-volume z>2 + price up; not measured fund inflow",
+            "HEAVY_OUTFLOW": "Trading dollar-volume z>2 + price down; not measured fund outflow",
+            "UNUSUAL_VOL": "Trading dollar-volume |z|>2 after directional branches; no investor-flow attribution",
             "ROTATION_IN": "5d vs 20d $ vol up 25%+ + price up",
             "ROTATION_OUT": "5d vs 20d $ vol up 25%+ + price down",
-            "QUIET": "no notable flow signal",
+            "QUIET": "No flagged trading-activity pattern; not a measured zero fund flow",
             "ad_phase": "20d Chaikin money flow vs 21d return (ACCUMULATION / DISTRIBUTION / ABSORPTION / HIDDEN SELLING)",
         },
         "spy": {
