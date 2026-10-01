@@ -1,49 +1,13 @@
-executing-against: cca5d6db72d618139bdab617ec43089304a83322
+executing-against: 73996a72c4a6251f627cd7d421bca6a916e90187
 {
-  "script": "1069_si_errors",
-  "read_at": "2026-10-01T13:40:53Z",
-  "fix_deployed_at": "2026-10-01T13:33:00Z",
-  "hourly_errors": [
-    {
-      "hour": "20:40",
-      "errors": 3
-    },
-    {
-      "hour": "11:40",
-      "errors": 3
-    }
-  ],
-  "recent_error_events": [
-    {
-      "at": "2026-10-01T12:20:48Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    },
-    {
-      "at": "2026-10-01T12:21:43Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    },
-    {
-      "at": "2026-10-01T12:23:54Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    },
-    {
-      "at": "2026-09-30T21:15:29Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    },
-    {
-      "at": "2026-09-30T21:16:23Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    },
-    {
-      "at": "2026-09-30T21:18:27Z",
-      "after_fix": false,
-      "msg": "[ERROR] ValueError: Reviewed research read required\nTraceback (most recent call last):\n\u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler\n\u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or ev"
-    }
-  ],
-  "post_fix_errors_seen": false
+  "1/10 FRED macro regime": "DEGRADED",
+  "2/10 SEC 8-K enrichment": "DEGRADED",
+  "3/10 FINRA short-interest": "DEGRADED",
+  "4/10 SEC XBRL": "FAIL",
+  "5/10 CBOE options": "DEGRADED",
+  "6/10 FINRA TRACE (bond)": "PASS",
+  "7/10 Corporate actions": "FAIL",
+  "8/10 Price redundancy": "PASS",
+  "9/10 Symbology/OpenFIGI": "DEGRADED",
+  "10/10 ETF issuer holdings": "FAIL"
 }
