@@ -77,6 +77,11 @@ SOURCES = {
                             "context": None, "kind": "packet"},
 }
 
+# Domains that describe the market as a whole, not individual tickers.
+# They enrich every ticker's view (regime, dollar, futures...).
+MARKET_WIDE = {"macro-regime", "dollar", "futures", "fx", "gold-rotation",
+               "flow-confluence", "cboe-options"}
+
 # decision_view keys that may hold per-ticker rows
 _TICKER_LIST_KEYS = ("by_ticker", "tickers", "stocks", "rows", "items",
                      "board", "squeeze_candidates", "top_squeeze",
@@ -184,7 +189,11 @@ def _domain_view(s3, domain, spec, ticker, cache):
         # domain counts as available if the packet parsed, even when this
         # ticker has no row (coverage is reported separately)
         out["available"] = True
-        out["ticker_covered"] = td is not None
+        # market-wide domains enrich every ticker (regime/dollar/futures...)
+        out["ticker_covered"] = td is not None or domain in MARKET_WIDE
+        if domain in MARKET_WIDE and td is None:
+            out["ticker_data"] = {"market_wide": True,
+                                  "summary": out.get("summary")}
         return out
     except Exception as e:  # noqa: BLE001 - fail-soft per domain
         out["reason"] = "error: %s" % str(e)[:80]
