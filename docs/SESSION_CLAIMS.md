@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Offline Katlin label-boundary evidence validator and mutation tests only; production backtest feeds live priors, so source/consumers untouched; draft codex/katlin-offline-label-boundary | none | S-codex#klb1001n4 | 2026-10-01 03:40 |
 | Legacy ETF price/volume proxy provenance + Livermore/Wyckoff display labels; etf-flows writer and dormant jh-etf-engine annotations; no shared brief/compiler or vote changes; draft agent/shopiz/etf-proxy-labels | none | S-shopiz#proxy1001a | 2026-10-01 03:00 |
 | Official-stats evidence-only repair: preserve required legacy join and decision gates; additive canary clocks/qualification, tests; agent/shopiz/official-stats-evidence, draft only | none | S-shopiz#ose1001c | 2026-10-01 01:57 |
 | PR15/16 and PR17 public browser-only production QA at 1440/390; normal TLS, one staged probe, no AWS/app writes | 6396 | S-shopiz#browser0930a | 2026-09-30 23:40 |
