@@ -1,0 +1,77 @@
+{
+  "sources": {
+    "aws/shared/equity_enrich.py": {
+      "file": "tests/fixtures/no-paid-research/equity_enrich.py.txt",
+      "sha256": "f5e9080da36d52848d0535aa5e3026f6f10e86632f6b177a0933a66f9b6d4b3c",
+      "bytes": 25404
+    },
+    "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": {
+      "file": "tests/fixtures/no-paid-research/alpha.py.txt",
+      "sha256": "e0797dcba8e218d2c35b747cc45e972edf24a23bdbb886c6eb0753b37e5dabb8",
+      "bytes": 15159
+    },
+    "aws/lambdas/justhodl-opportunities-research/source/lambda_function.py": {
+      "file": "tests/fixtures/no-paid-research/opportunities.py.txt",
+      "sha256": "0d290cb9b4787f40a94821ff4cc18092147fa727f8155a6debdf9014b68e7176",
+      "bytes": 12084
+    },
+    "aws/lambdas/justhodl-alpha-research/config.json": {
+      "file": "tests/fixtures/no-paid-research/alpha-config.json.txt",
+      "sha256": "f74307cca573a2adafabf85fab688d8354537373e3b2cd1f6a3fd19d0d18b405",
+      "bytes": 766
+    },
+    "aws/lambdas/justhodl-opportunities-research/config.json": {
+      "file": "tests/fixtures/no-paid-research/opportunities-config.json.txt",
+      "sha256": "9f129c18e181333e97b0d3580f5aaa9b7530e382b182f6e139a165d9bf3c4708",
+      "bytes": 808
+    }
+  },
+  "edits": {
+    "aws/shared/equity_enrich.py": [
+      [
+        "import boto3\nfrom llm_router import complete\n",
+        "import boto3\n"
+      ],
+      [
+        "def make_thesis(name, tk, ind, signals_block, system, max_tokens=440):\n    \"\"\"Generic plain-English thesis + bear case. Engine supplies signals_block + system prompt.\"\"\"\n    prompt = (f\"Stock: {name} ({tk}); industry: {ind}.\\n{signals_block}\\n\"\n              \"Write the plain-English thesis for why this stock could work, then the bear case.\")\n    try:\n        out = complete(prompt, tier=\"bulk\", max_tokens=max_tokens, system=system)\n        txt = (out or \"\").strip()\n        if not txt or any(x in txt for x in (\"Draft\", \"Critique\", \"Analyze the Request\", \"**\")):\n            return None, None\n        thesis, bear = txt, None\n        if \"BEAR:\" in txt:\n            a, b = txt.split(\"BEAR:\", 1)\n            thesis, bear = a, b.strip()\n        thesis = thesis.replace(\"THESIS:\", \"\").strip()\n        return (thesis or None), (bear or None)\n    except Exception as e:\n        print(f\"[enrich] thesis fail {tk}: {str(e)[:80]}\")\n        return None, None\n",
+        "def narrative_status():\n    \"\"\"No provider request or cached model prose is needed to report abstention.\"\"\"\n    return {\"contract\": \"deterministic-unqualified-research.v1\", \"status\": \"unqualified\",\n            \"model_requests_enabled\": False, \"independent_investment_votes\": 0,\n            \"calls_eligible\": False, \"sizing_eligible\": False,\n            \"execution_eligible\": False, \"forecast_qualified\": False}\n\n\ndef make_thesis(name, tk, ind, signals_block, system, max_tokens=440):\n    \"\"\"Compatibility tuple for deterministic status; paid narrative is disabled.\"\"\"\n    return (\n        \"Research context only. No validated investment thesis is available from these inputs.\",\n        \"Source freshness, security identity and independent evidence require verification. \"\n        \"This context does not justify a position change or portfolio sizing.\"\n    )\n"
+      ]
+    ],
+    "aws/lambdas/justhodl-alpha-research/source/lambda_function.py": [
+      [
+        "VERSION = \"1.0.0\"",
+        "VERSION = \"1.1.0\""
+      ],
+      [
+        "THESIS_VER = \"alpha-1\"",
+        "THESIS_VER = \"deterministic-unqualified-v1\""
+      ],
+      [
+        "        cached = cache.get(tk, {})\n        ts = cached.get(\"thesis_at\"); fresh = False\n        if ts:\n            try:\n                fresh = (now - datetime.fromisoformat(ts)).total_seconds() < THESIS_CACHE_HRS * 3600\n            except Exception:\n                fresh = False\n        rec[\"thesis\"], rec[\"thesis_at\"], rec[\"bear\"] = cached.get(\"thesis\"), cached.get(\"thesis_at\"), cached.get(\"bear\")\n        if not (fresh and cached.get(\"thesis\") and cached.get(\"thesis_ver\") == THESIS_VER):\n            need.append(tk)\n        else:\n            rec[\"thesis_ver\"] = THESIS_VER\n",
+        "        # Do not re-publish cached model prose, even with a matching version label.\n        rec[\"thesis\"], rec[\"bear\"] = EE.make_thesis(None, None, None, None, None)\n        rec[\"thesis_at\"] = now.isoformat()\n        rec[\"thesis_ver\"] = THESIS_VER\n"
+      ],
+      [
+        "        \"confirmation_feeds\": confirmation_feeds,",
+        "        \"narrative\": EE.narrative_status(),\n        \"narrative_statuses\": len(out),\n        \"confirmation_feeds\": confirmation_feeds,"
+      ]
+    ],
+    "aws/lambdas/justhodl-opportunities-research/source/lambda_function.py": [
+      [
+        "VERSION = \"1.0.0\"",
+        "VERSION = \"1.1.0\""
+      ],
+      [
+        "THESIS_VER = \"opp-1\"",
+        "THESIS_VER = \"deterministic-unqualified-v1\""
+      ],
+      [
+        "        cached = cache.get(tk, {})\n        ts = cached.get(\"thesis_at\"); fresh = False\n        if ts:\n            try:\n                fresh = (now - datetime.fromisoformat(ts)).total_seconds() < THESIS_CACHE_HRS * 3600\n            except Exception:\n                fresh = False\n        rec[\"thesis\"], rec[\"thesis_at\"], rec[\"bear\"] = cached.get(\"thesis\"), cached.get(\"thesis_at\"), cached.get(\"bear\")\n        if not (fresh and cached.get(\"thesis\") and cached.get(\"thesis_ver\") == THESIS_VER):\n            need.append(tk)\n        else:\n            rec[\"thesis_ver\"] = THESIS_VER\n",
+        "        # Do not re-publish cached model prose, even with a matching version label.\n        rec[\"thesis\"], rec[\"bear\"] = EE.make_thesis(None, None, None, None, None)\n        rec[\"thesis_at\"] = now.isoformat()\n        rec[\"thesis_ver\"] = THESIS_VER\n"
+      ],
+      [
+        "        \"confirmation_feeds\": confirmation_feeds,",
+        "        \"narrative\": EE.narrative_status(),\n        \"narrative_statuses\": len(out),\n        \"confirmation_feeds\": confirmation_feeds,"
+      ]
+    ]
+  }
+}

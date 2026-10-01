@@ -11,6 +11,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Per-ticker research + bull/bear scorecard for the Alpha Scoreboard (cross-system convergence). Reuses equity_enrich. Writes data/alpha-scoreboard-research.json + logs calls for SPY track record.",
   "environment_keys": [
+    "ANTHROPIC_API_KEY",
     "FMP_KEY"
   ],
   "inherit_env": true,

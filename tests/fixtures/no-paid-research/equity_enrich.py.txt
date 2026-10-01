@@ -18,6 +18,7 @@ import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 import boto3
+from llm_router import complete
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
@@ -481,21 +482,24 @@ def _on_or_after(series_dates, target):
 
 
 
-def narrative_status():
-    """No provider request or cached model prose is needed to report abstention."""
-    return {"contract": "deterministic-unqualified-research.v1", "status": "unqualified",
-            "model_requests_enabled": False, "independent_investment_votes": 0,
-            "calls_eligible": False, "sizing_eligible": False,
-            "execution_eligible": False, "forecast_qualified": False}
-
-
 def make_thesis(name, tk, ind, signals_block, system, max_tokens=440):
-    """Compatibility tuple for deterministic status; paid narrative is disabled."""
-    return (
-        "Research context only. No validated investment thesis is available from these inputs.",
-        "Source freshness, security identity and independent evidence require verification. "
-        "This context does not justify a position change or portfolio sizing."
-    )
+    """Generic plain-English thesis + bear case. Engine supplies signals_block + system prompt."""
+    prompt = (f"Stock: {name} ({tk}); industry: {ind}.\n{signals_block}\n"
+              "Write the plain-English thesis for why this stock could work, then the bear case.")
+    try:
+        out = complete(prompt, tier="bulk", max_tokens=max_tokens, system=system)
+        txt = (out or "").strip()
+        if not txt or any(x in txt for x in ("Draft", "Critique", "Analyze the Request", "**")):
+            return None, None
+        thesis, bear = txt, None
+        if "BEAR:" in txt:
+            a, b = txt.split("BEAR:", 1)
+            thesis, bear = a, b.strip()
+        thesis = thesis.replace("THESIS:", "").strip()
+        return (thesis or None), (bear or None)
+    except Exception as e:
+        print(f"[enrich] thesis fail {tk}: {str(e)[:80]}")
+        return None, None
 
 
 def grade_track_record(signal_type, out_key, windows=(5, 21, 63)):

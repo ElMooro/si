@@ -19,6 +19,7 @@ from test_confirmation_loader import healthy, KEYS, load, deny, ReadFailure
 
 ARCHIVE = ROOT / 'tests/fixtures/confirmation-reader'
 MANIFEST = json.loads((ARCHIVE / 'predecessors.json').read_bytes())
+POLICY = json.loads((ROOT / 'tests/fixtures/no-paid-research/preservation.json').read_bytes())
 NOW = datetime(2026, 10, 1, 12, tzinfo=timezone.utc)
 
 
@@ -76,7 +77,8 @@ def run_handler(name, feeds=None, predecessor=False, cold=False):
         thesis_calls.append(args)
         return 'Invented generated prose.', 'Invented risk.'
 
-    ee.make_thesis = invented_thesis if cold else deny
+    if predecessor:
+        ee.make_thesis = invented_thesis if cold else deny
     fake = {'boto3': types.SimpleNamespace(client=lambda *a, **kw: client, resource=deny),
             'equity_enrich': ee, 'short_position_context': ee._fixture_context}
     path = ARCHIVE / (name + '.py.txt') if predecessor else ROOT / f'aws/lambdas/justhodl-{name}-research/source/lambda_function.py'
@@ -106,6 +108,11 @@ class WholeHandlers(unittest.TestCase):
             self.assertEqual(len(raw), entry['bytes'])
             self.assertEqual(hashlib.sha256(raw).hexdigest(), entry['sha256'])
             current = (ROOT / source).read_text(encoding='utf-8')
+            # Reverse only the separately tested no-paid policy change before
+            # applying the original confirmation-reader preservation assertions.
+            for before, after in reversed(POLICY['edits'].get(source, [])):
+                self.assertEqual(current.count(after), 1)
+                current = current.replace(after, before)
             original = raw.decode('utf-8')
             if source.endswith('equity_enrich.py'):
                 def unrelated(text):
@@ -126,6 +133,13 @@ class WholeHandlers(unittest.TestCase):
             new, _ = run_handler(name)
             new.pop('confirmation_feeds')
             new['by_ticker']['TEST'].pop('short_position_context')
+            self.assertEqual(new.pop('narrative')['status'], 'unqualified')
+            self.assertEqual(new.pop('narrative_statuses'), 1)
+            self.assertEqual(new.pop('version'), '1.1.0')
+            self.assertEqual(old.pop('version'), '1.0.0')
+            for key in ('thesis', 'bear', 'thesis_at', 'thesis_ver'):
+                new['by_ticker']['TEST'].pop(key)
+                old['by_ticker']['TEST'].pop(key)
             self.assertEqual(new, old, name)
 
     def test_bad_feed_cannot_abort_remaining_reads_or_publication(self):
@@ -182,12 +196,14 @@ class WholeHandlers(unittest.TestCase):
                 self.assertFalse(row[key])
             self.assertIsNone(row['score'])
 
-    def test_context_does_not_silently_enter_narrative_prompt(self):
+    def test_context_is_not_sent_to_a_model_and_old_prompt_path_is_reproduced(self):
         for name in ('alpha', 'opportunities'):
             old, old_calls = run_handler(name, predecessor=True, cold=True)
             new, new_calls = run_handler(name, cold=True)
-            self.assertEqual(new_calls, old_calls)
-            self.assertEqual(new['new_theses'], 1)
+            self.assertEqual(len(old_calls), 1)
+            self.assertEqual(new_calls, [])
+            self.assertEqual(new['new_theses'], 0)
+            self.assertEqual(new['narrative']['model_requests_enabled'], False)
 
 
 if __name__ == '__main__':
