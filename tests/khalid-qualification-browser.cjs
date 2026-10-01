@@ -59,12 +59,22 @@ const evidence={scope:'Actual page HTML/CSS, complete shared qualification modul
   assert.ok(geometry.scroll<=geometry.client+1,JSON.stringify(geometry));
   const state=await panel.locator('.sn-card').first().textContent();
   await page.screenshot({path:path.join(out,pageName+'-'+width+'.png')});
+  assert.equal(requests.filter(x=>x==='/data/khalid.json').length,1,'page/controller/panel must share one request');
+  // Same revision cannot preserve a previously valid result for a new body.
+  packet.qualification_evidence.schema_version='future.v999';
+  await panel.getByRole('button',{name:'Refresh data',exact:true}).click();
+  await panel.getByText(/Missing or unsupported/).waitFor();
+  assert.equal(await panel.locator('.sn-card').count(),0);
+  packet.qualification_evidence.schema_version=fixture.qualification_evidence.schema_version;
+  await panel.getByRole('button',{name:'Refresh data',exact:true}).click();
+  await panel.locator('.sn-card').first().waitFor();
+  assert.equal(requests.filter(x=>x==='/data/khalid.json').length,3);
   const freshnessCases=[];
   for(const mode of ['deadline','visibilitychange','pageshow','focus','publication']) {
    packet.qualification_evidence.expires_at=mode==='publication'?'2026-10-01T05:00:00Z':fixture.qualification_evidence.expires_at;
    await page.evaluate(async ({packet,pageName})=>{
     __now=Date.parse('2026-10-01T04:05:00Z');__visibility='visible';window.__fixtureFeed=packet;
-    await jhSniperMount(document.getElementById(pageName==='chart.html'?'ws-sniper':'k-sniper-host'));
+    await jhSniperMount(document.getElementById(pageName==='chart.html'?'ws-sniper':'k-sniper-host'),{force:true});
    },{packet,pageName});
    assert.match(await panel.textContent(),/Existing backend qualification — PASS/);
    const edge=Date.parse(mode==='publication'?'2026-10-01T05:00:00Z':'2026-10-01T06:00:00Z');
@@ -98,6 +108,8 @@ const evidence={scope:'Actual page HTML/CSS, complete shared qualification modul
    await page.getByText(/No backend qualification for ABSENT/).waitFor();
    assert.equal(await page.locator('.sn-card').count(),0);
    await page.keyboard.press('Escape');assert.equal(await page.locator('#ws-overlay').getAttribute('class'),'');
+   assert.equal(await page.evaluate(()=>document.getElementById('ws-sniper')._qualificationCleanup),null);
+   assert.equal(await page.locator('#ws-sniper').textContent(),'');
   }
   assert.deepEqual(errors,[]);
   assert.ok(!requests.some(x=>/yf-ohlc|yahoo|sp500.json|bottom.json/.test(x)));

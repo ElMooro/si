@@ -342,6 +342,101 @@
     return { valid: true, status: "AVAILABLE", rows: rows, packet: p };
   }
   root.jhSniperQualification = project;
+
+  // One owned JSON snapshot per document. Revision strings never key a cache of
+  // untrusted objects: every newly fetched body is validated before it is reused.
+  var snapshotGeneration = 0, currentSnapshot = null, pendingSnapshot = null;
+  var snapshotListeners = new Set(), REUSE_MS = 60000;
+  function freezeTree(value) {
+    if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+    Object.keys(value).forEach(function (key) { freezeTree(value[key]); });
+    return Object.freeze(value);
+  }
+  function snapshotEvent(event) {
+    Array.from(snapshotListeners).forEach(function (listener) { listener(event); });
+  }
+  function superseded() { var error = new Error("Snapshot request superseded"); error.name = "AbortError"; return error; }
+  function makeSnapshot(feed, generation, now) {
+    var projection = project(feed, now), byTicker = new Map(), lastTime = now, expired = false;
+    var deadline = projection.valid ? revalidationDeadline(projection.packet) : now;
+    freezeTree(feed); freezeTree(projection);
+    if (projection.valid) projection.rows.forEach(function (row) {
+      if (!byTicker.has(row.ticker)) byTicker.set(row.ticker, []);
+      byTicker.get(row.ticker).push(row);
+    });
+    byTicker.forEach(function (rows, ticker) {
+      byTicker.set(ticker, Object.freeze({valid: true, status: "AVAILABLE", rows: Object.freeze(rows), packet: projection.packet}));
+    });
+    return Object.freeze({feed: feed, loadedAt: now, deadline: deadline,
+      revision: projection.valid ? projection.packet.revision : null,
+      isCurrent: function () { return generation === snapshotGeneration; },
+      view: function (time, ticker) {
+        if (generation !== snapshotGeneration) return unavailable("Snapshot superseded; reload required.");
+        if (!projection.valid) return projection;
+        if (expired || !Number.isFinite(time) || time < lastTime || time >= deadline) {
+          expired = true;
+          return unavailable("Qualification publication/source freshness expired or clock moved backwards; reload required.");
+        }
+        lastTime = time;
+        return ticker ? byTicker.get(ticker) || unavailable("No backend qualification for " + ticker + ". Browser measurements cannot supply it.") : projection;
+      }});
+  }
+  function loadSnapshot(options) {
+    options = options || {};
+    var now = Date.now();
+    if (!options.force && pendingSnapshot) return pendingSnapshot.promise;
+    if (!options.force && currentSnapshot && now >= currentSnapshot.loadedAt && now - currentSnapshot.loadedAt < REUSE_MS &&
+        (currentSnapshot.view(now).valid || currentSnapshot.revision === null)) return Promise.resolve(currentSnapshot);
+    var generation = ++snapshotGeneration;
+    if (pendingSnapshot && pendingSnapshot.controller) pendingSnapshot.controller.abort();
+    currentSnapshot = null;
+    var controller = typeof root.AbortController === "function" ? new root.AbortController() : null;
+    var request = {controller: controller, promise: null};
+    pendingSnapshot = request;
+    snapshotEvent({status: "loading"});
+    // Preserve the dashboard's existing public-proxy fallback. Neither URL can
+    // invoke a producer; both read the same published object.
+    var proxy = (root.JUSTHODL_AUTH_CONFIG && root.JUSTHODL_AUTH_CONFIG.syncBase) || "https://justhodl-data-proxy.raafouis.workers.dev";
+    var paths = ["/data/khalid.json", proxy + "/data/khalid.json"];
+    function read(index) {
+      return Promise.resolve().then(function () {
+        if (generation !== snapshotGeneration) throw superseded();
+        return root.fetch(paths[index], {cache: "no-store", headers: {Accept: "application/json"}, signal: controller ? controller.signal : undefined});
+      }).then(function (response) {
+        if (!response.ok) throw new Error("Backend publication unavailable: HTTP " + response.status);
+        return response;
+      }).catch(function (error) {
+        if (generation !== snapshotGeneration || error.name === "AbortError") throw superseded();
+        if (index + 1 < paths.length) return read(index + 1);
+        throw error;
+      });
+    }
+    // A malformed successful body is not permission to reuse a fallback artifact.
+    request.promise = read(0).then(function (response) { return response.json(); }).then(function (feed) {
+      if (generation !== snapshotGeneration) throw superseded();
+      var snapshot = makeSnapshot(feed, generation, Date.now());
+      currentSnapshot = snapshot; pendingSnapshot = null;
+      snapshotEvent({status: "ready", snapshot: snapshot});
+      return snapshot;
+    }).catch(function (error) {
+      if (generation !== snapshotGeneration) throw superseded();
+      pendingSnapshot = null; currentSnapshot = null;
+      snapshotEvent({status: "error"});
+      throw error;
+    });
+    return request.promise;
+  }
+  root.jhKhalidSnapshot = Object.freeze({load: loadSnapshot, subscribe: function (listener) {
+    snapshotListeners.add(listener);
+    return function () {
+      snapshotListeners.delete(listener);
+      if (!snapshotListeners.size && pendingSnapshot) {
+        ++snapshotGeneration;
+        if (pendingSnapshot.controller) pendingSnapshot.controller.abort();
+        pendingSnapshot = null;
+      }
+    };
+  }});
   if (typeof document === "undefined") return;
 
   function el(tag, text, cls) {
@@ -409,15 +504,35 @@
     var symbol = options.ticker || (root.location && root.location.pathname === "/chart.html" && root.jhActive) || null;
     var ticket = {}; host._qualificationTicket = ticket;
     host.replaceChildren(el("p", "Loading backend qualification evidence…"));
-    // Exactly one static publication. No bars, vendor proxy, source fetch or local scoring.
-    return root.fetch("/data/khalid.json", { cache: "no-store" }).then(function (r) {
-      if (!r.ok) throw new Error("Backend publication unavailable"); return r.json();
-    }).then(function (feed) {
-      if (host._qualificationTicket !== ticket) return;
-      var projection = project(feed, Date.now(), symbol);
+    var renderCleanup = function () {}, lastSnapshot = null;
+    function active() { return host._qualificationTicket === ticket && host.isConnected; }
+    function clearRender() { renderCleanup(); renderCleanup = function () {}; lastSnapshot = null; }
+    var unsubscribe = root.jhKhalidSnapshot.subscribe(function (event) {
+      if (!active()) { cleanupMount(); return; }
+      if (event.status === "ready") renderSnapshot(event.snapshot);
+      else {
+        clearRender();
+        host.replaceChildren(el("p", event.status === "loading" ? "Loading backend qualification evidence…" : "UNAVAILABLE — Backend qualification could not be loaded."));
+      }
+    });
+    function cleanupMount() {
+      unsubscribe(); clearRender();
+      if (host._qualificationTicket === ticket) host._qualificationTicket = null;
+      if (host._qualificationCleanup === cleanupMount) host._qualificationCleanup = null;
+    }
+    host._qualificationCleanup = cleanupMount;
+    function renderSnapshot(snapshot) {
+      if (!active() || !snapshot.isCurrent() || lastSnapshot === snapshot) return;
+      clearRender(); lastSnapshot = snapshot;
+      var projection = snapshot.view(Date.now(), symbol);
       var shell = el("section", null, "sn-evidence"); shell.append(el("style", STYLE), el("h2", "Backend readiness and requested strategy"));
       shell.append(el("p", "Existing backend readiness and the requested strategy have separate contracts. Technical chart measurements have no qualification authority."));
-      if (!projection.valid) { shell.append(el("p", "UNAVAILABLE — " + projection.reason)); host.replaceChildren(shell); return; }
+      if (!projection.valid) {
+        shell.append(el("p", "UNAVAILABLE — " + projection.reason));
+        var retry = el("button", "Refresh data"); retry.type = "button";
+        retry.addEventListener("click", function () { root.jhKhalidSnapshot.load({force: true}).catch(function () {}); });
+        shell.append(retry); host.replaceChildren(shell); return;
+      }
       var p = projection.packet;
       shell.append(el("p", "Published " + p.generated_at + "; display expires " + p.expires_at + "."));
       shell.append(el("p", p.historical_validation));
@@ -427,14 +542,16 @@
       var catlabel = el("label", "Asset class"), select = el("select");
       ["ALL"].concat(Array.from(new Set(projection.rows.map(function (r) { return r.asset_class; }))).sort()).forEach(function (cat) { var opt = el("option", cat); opt.value = cat; select.append(opt); }); catlabel.append(select);
       var button = el("button", "Show backend-ready only"); button.type = "button"; button.setAttribute("aria-pressed", "false");
-      controls.append(label, catlabel, button); shell.append(controls);
+      var reload = el("button", "Refresh data"); reload.type = "button";
+      reload.addEventListener("click", function () { root.jhKhalidSnapshot.load({force: true}).catch(function () {}); });
+      controls.append(label, catlabel, button, reload); shell.append(controls);
       var count = el("p"); count.setAttribute("role", "status"); var list = el("div"); shell.append(count, list); host.replaceChildren(shell);
       var onlyReady = false, pageIndex = 0, pageSize = 10;
       var previous = el("button", "Previous"), next = el("button", "Next"); previous.type = next.type = "button";
       controls.append(previous, next);
       function renderRows() {
         // Revalidate time on every interaction; an old mounted panel cannot remain qualified.
-        var current = project(feed, Date.now(), symbol);
+        var current = snapshot.view(Date.now(), symbol);
         list.replaceChildren();
         if (!current.valid) { count.textContent = "UNAVAILABLE — " + current.reason; return false; }
         var shown = current.rows.filter(function (r) {
@@ -464,22 +581,22 @@
         document.removeEventListener("visibilitychange", onVisibility);
         root.removeEventListener("pageshow", refreshValidity);
         root.removeEventListener("focus", refreshValidity);
-        if (host._qualificationCleanup === cleanup) host._qualificationCleanup = null;
       }
       function refreshValidity() {
         if (timer !== null) root.clearTimeout(timer);
         timer = null;
         if (host._qualificationTicket !== ticket || !host.isConnected) { cleanup(); return; }
         if (!renderRows()) { cleanup(); return; }
-        timer = root.setTimeout(refreshValidity, Math.max(1, revalidationDeadline(p) - Date.now()));
+        timer = root.setTimeout(refreshValidity, Math.max(1, snapshot.deadline - Date.now()));
       }
       function onVisibility() { if (document.visibilityState !== "hidden") refreshValidity(); }
-      host._qualificationCleanup = cleanup;
+      renderCleanup = cleanup;
       document.addEventListener("visibilitychange", onVisibility);
       root.addEventListener("pageshow", refreshValidity);
       root.addEventListener("focus", refreshValidity);
       refreshValidity();
-    }).catch(function () { if (host._qualificationTicket === ticket) host.replaceChildren(el("p", "UNAVAILABLE — Backend qualification could not be loaded.")); });
+    }
+    return root.jhKhalidSnapshot.load({force: options.force === true}).then(renderSnapshot).catch(function () {});
   }
   root.jhSniperMount = mount;
   function boot() { var host = document.getElementById("k-sniper-host"); if (host) mount(host); }
