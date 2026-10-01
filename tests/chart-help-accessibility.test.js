@@ -19,5 +19,31 @@ test('removed opener falls back to replacement Timing; late close event cannot h
 test('help copy and classifier sources are not part of the accessibility repair',()=>{
  const old=source('tests/fixtures/chart-help-indux-predecessor.js.txt'),current=source('jh-chart-indux.js');
  const copy=s=>s.slice(s.indexOf('    var TAPE = {'),s.indexOf('    var d = ',s.indexOf('    var TAPE = {')));
- assert.equal(copy(current),copy(old));assert.match(current,/#indhelp\[open\]\{display:flex\}/);assert.doesNotMatch(current,/aria-modal/,'native showModal supplies modality, not a false ARIA assertion');
+ assert.equal(copy(current),copy(old));assert.match(current,/#indhelp\[open\]\{display:flex\}/);assert.doesNotMatch(current,/setAttribute\("aria-modal"/,'fallback must not claim modality');
+});
+
+test('hidden, collapsed, removed, disabled, inert, display:none and focus-refusing openers try visible fallback',()=>{
+ for(const state of ['hidden','collapse','removed','disabled','inert','displayNone','refused','throws']) {
+  const {w,nodes,document,node}=chrome();w.jhInduxLegend(context());const fallback=nodes.get('legend').querySelector('[data-annotation-timing]'),trigger=node('button');
+  trigger.focus();w.jhInduxHelp('sc',trigger);
+  if(state==='hidden'||state==='collapse') trigger.computedStyle={visibility:state,display:'block'};
+  if(state==='removed') trigger.isConnected=false;
+  if(state==='disabled')trigger.disabled=true;
+  if(state==='inert')trigger.closest=()=>({});
+  if(state==='displayNone')trigger.getClientRects=()=>[];
+  if(state==='refused')trigger.focus=()=>{};
+  if(state==='throws')trigger.focus=()=>{throw new Error('focus refused');};
+  click(nodes.get('helpx'));assert.equal(document.activeElement,fallback,state);
+ }
+});
+test('focus refusal by first fallback continues to a later visible control',()=>{
+ const {w,nodes,document,node}=chrome(),parent=node(),first=node('button'),second=node('button'),trigger=node('button');parent.querySelectorAll=()=>[first,second];trigger.closest=()=>parent;
+ w.jhInduxHelp('sc',trigger);trigger.isConnected=false;first.focus=()=>{};click(nodes.get('helpx'));assert.equal(document.activeElement,second);
+});
+test('unsupported showModal keeps nonmodal help readable and keyboard dismissible without a trap',()=>{
+ const {w,nodes,document,node}=chrome();const create=document.createElement;document.createElement=tag=>{const n=create(tag);if(tag==='dialog')n.showModal=undefined;return n;};
+ const trigger=node('button');trigger.focus();w.jhInduxHelp('volume-timing',trigger);const d=nodes.get('indhelp');assert.equal(d.tagName,'DIV');assert.equal(d.role,'dialog');assert.equal(d['aria-modal'],undefined);assert.equal(d.dataset.helpNonmodal,'1');assert.equal(d.open,true);assert.equal(document.activeElement,nodes.get('helpx'));
+ const tab=event();tab.key='Tab';d.onkeydown(tab);assert.equal(tab.prevented,undefined,'Tab remains native and unconfined');
+ d.onkeydown(event());assert.equal(d.open,false);assert.equal(document.activeElement,trigger);
+ w.jhInduxHelp('sc',trigger);click(nodes.get('helpx'));assert.equal(d.open,false);assert.equal(document.activeElement,trigger);
 });

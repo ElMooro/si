@@ -68,6 +68,8 @@
     "#indhelp{display:none;position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;box-sizing:border-box;z-index:80;background:rgba(0,0,0,.55);align-items:flex-start;justify-content:center;padding:8vh 0 0;overscroll-behavior:contain}",
     "#indhelp[open]{display:flex}",
     "#indhelp::backdrop{background:transparent}",
+    "#indhelp[data-help-nonmodal]{inset:8vh 3vw auto auto;width:min(520px,94vw);height:auto;padding:0;background:transparent}",
+    "#indhelp[data-help-nonmodal] .box{width:100%}",
     "#indhelp button:focus-visible{outline:2px solid #90b4ff;outline-offset:2px}",
     "#indhelp .box{width:min(520px,94vw);max-height:min(78vh,640px);background:#1e222d;border:1px solid #2a2e39;border-radius:8px;color:#d1d4dc;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column}",
     "#indhelp .sh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #2a2e39}",
@@ -528,7 +530,9 @@
 
   var helpReturn = null, helpParent = null;
   function usableHelpTarget(n) {
-    return n && n !== document.body && n !== document.documentElement && n.isConnected && typeof n.focus === "function" && !n.disabled && !n.closest("[inert]") && n.getClientRects().length;
+    if (!n || n === document.body || n === document.documentElement || !n.isConnected || typeof n.focus !== "function" || n.disabled || n.closest("[inert], [hidden]") || (n.matches && n.matches(":disabled")) || !n.getClientRects().length) return false;
+    var style = window.getComputedStyle(n);
+    return style.visibility !== "hidden" && style.visibility !== "collapse" && style.display !== "none";
   }
   function finishHelp(d) {
     if (d.open) return; // A queued close event must not close a newly opened help.
@@ -536,21 +540,31 @@
     var target = helpReturn, parent = helpParent;
     helpReturn = helpParent = null;
     if (!target && !parent) return;
-    if (!usableHelpTarget(target)) {
-      target = parent && parent.isConnected && parent.querySelector("button");
-      if (!usableHelpTarget(target)) target = document.querySelector("[data-annotation-timing]");
-      if (!usableHelpTarget(target)) target = document.querySelector("#legend .leg-dia");
+    var candidates = [target];
+    if (parent && parent.isConnected) candidates = candidates.concat(Array.prototype.slice.call(parent.querySelectorAll("button")));
+    candidates.push(document.querySelector("[data-annotation-timing]"), document.querySelector("#legend .leg-dia"));
+    for (var i = 0; i < candidates.length; i++) {
+      var n = candidates[i];
+      if (!usableHelpTarget(n)) continue;
+      try { n.focus({ preventScroll: true }); } catch (err) { continue; }
+      // Layout/visibility are only eligibility checks. A control may refuse focus.
+      if (document.activeElement === n) break;
     }
-    if (usableHelpTarget(target)) target.focus({ preventScroll: true });
   }
   function dismissHelp(d) {
-    if (d.open) d.close();
+    if (d.dataset.helpNonmodal) { d.open = false; d.removeAttribute("open"); }
+    else if (d.open) d.close();
     finishHelp(d);
   }
   function helpDialog() {
     var d = document.getElementById("indhelp");
     if (!d) {
       d = document.createElement("dialog");
+      if (typeof d.showModal !== "function") {
+        d = document.createElement("div");
+        d.dataset.helpNonmodal = "1";
+        d.setAttribute("role", "dialog"); // Nonmodal: no aria-modal or focus trap.
+      }
       d.id = "indhelp";
       d.setAttribute("aria-labelledby", "indhelp-title");
       document.body.appendChild(d);
@@ -679,7 +693,10 @@
     d.querySelectorAll("[data-kind]").forEach(function (b) {
       b.onclick = function (e) { e.stopPropagation(); window.jhInduxHelp(b.getAttribute("data-kind"), b); };
     });
-    if (!d.open) d.showModal();
+    if (!d.open) {
+      if (d.dataset.helpNonmodal) { d.open = true; d.setAttribute("open", ""); }
+      else d.showModal();
+    }
     d.className = "on";
     document.getElementById("helpx").focus({ preventScroll: true });
   };

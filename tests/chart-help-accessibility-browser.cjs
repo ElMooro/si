@@ -22,6 +22,20 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
    await openPointer();await page.evaluate(()=>jhInduxLegend(testCtx));await page.getByRole('button',{name:'Close help',exact:true}).click();assert.ok(await page.locator('[data-annotation-timing]').evaluate(n=>n===document.activeElement));
    await openPointer();await page.mouse.click(2,2);assert.equal(await page.locator('#indhelp').evaluate(n=>n.open),false);
    assert.ok(await page.locator('[data-annotation-timing]').evaluate(n=>n===document.activeElement));
+   for(const state of ['hidden','refused']) {
+    await page.locator('#other').click();
+    await page.evaluate(state=>{const n=document.getElementById('other');if(state==='hidden')n.style.visibility='hidden';else n.focus=()=>{};},state);
+    await page.getByRole('button',{name:'Close help',exact:true}).click();
+    assert.ok(await timing.evaluate(n=>n===document.activeElement));
+    await page.evaluate(()=>{const n=document.getElementById('other');n.style.visibility='';delete n.focus;});
+   }
+   await page.evaluate(()=>{document.getElementById('indhelp').remove();Object.defineProperty(HTMLDialogElement.prototype,'showModal',{value:undefined,configurable:true});});
+   await openPointer();
+   assert.equal(await page.locator('#indhelp').evaluate(n=>n.tagName),'DIV');
+   assert.equal(await page.locator('#indhelp').getAttribute('aria-modal'),null);
+   await page.locator('#z-minus').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'z-minus');
+   await page.getByRole('button',{name:'Close help',exact:true}).focus();await page.keyboard.press('Escape');
+   assert.ok(await timing.evaluate(n=>n===document.activeElement));
    console.log(JSON.stringify({width,keyboard_and_pointer:'PASS',scope:'isolated synthetic UI, no live chart data'}));await page.close();
   }
  }finally{await browser.close();}

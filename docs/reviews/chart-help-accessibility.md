@@ -48,7 +48,7 @@ Retained complete help predecessor:
 `tests/fixtures/chart-help-indux-predecessor.js.txt`.
 
 `node --test tests/chart-help-accessibility.test.js tests/chart-annotation-honesty.test.js`
-passes 16 tests. The added lifecycle tests execute the whole script using the
+passes 19 tests. The added lifecycle tests execute the whole script using the
 existing DOM contract stub, extended with focus/native-dialog contracts. They
 cover repeated opening/closing, different explicit/implicit triggers, detail
 navigation, Escape, cancel, backdrop, external close, removed opener and a queued
@@ -70,6 +70,24 @@ of the draft at desktop/mobile widths, including accessibility role/name and
 keyboard behavior. Parent production observations concern the predecessor, not
 acceptance of this draft. No merge/deployment requested by this PR.
 
-Full frontend/worker gate: **2,437 passed**. Public page syntax: **599 graphs**,
+Full frontend/worker gate: **2,440 passed**. Public page syntax: **599 graphs**,
 zero errors. Wiring: **36 pages / 143 entries**, no missing/stale entries.
 Page regressions **6**, sovereign assets **3**, offline-page tests **6** pass.
+
+## Independent-review correction
+
+The original draft treated layout rectangles as proof of focusability. Corrected:
+restoration rejects computed visibility:hidden/collapse and display:none, as well
+as disconnected, disabled, hidden-attribute and inert targets. It tries each
+eligible parent-panel button and the existing fallback controls in sequence,
+continuing if focus throws or document.activeElement does not become that target.
+No successful restoration is inferred from layout alone. Added hidden/collapsed,
+removed/disabled/inert/display:none, focus-refusal and fallback-refusal coverage.
+
+If showModal is absent, help uses a named nonmodal role=dialog DIV, styled as a
+bounded panel rather than a full-screen blocking backdrop. It focuses Close and
+supports Escape while focus is inside, topic navigation and restoration, but
+leaves Tab and background controls available. It never sets aria-modal. The
+normal native modal path is unchanged. The browser harness now includes hidden
+and refusing openers plus forced showModal absence/background access at both
+widths; those browser assertions remain pending the normal-runtime gate.

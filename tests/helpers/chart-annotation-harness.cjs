@@ -7,7 +7,7 @@ const source = name => fs.readFileSync(path.join(root, name), 'utf8');
 function chrome(code = source('jh-chart-indux.js'), w = {}) {
   const nodes = new Map(), timers = [], listeners = {};
   function node(tagName = "div") {
-    return { tagName: tagName.toUpperCase(), isConnected: true, open: false, focus() { document.activeElement = this; }, closest() { return null; }, getClientRects() { return this.isConnected ? [{}] : []; }, setAttribute(k,v) { this[k]=v; }, showModal() { this.open=true; }, close() { this.open=false; if(this.onclose)this.onclose(); }, id: '', className: '', textContent: '', dataset: {}, children: new Map(),
+    return { tagName: tagName.toUpperCase(), isConnected: true, open: false, focus() { document.activeElement = this; }, closest() { return null; }, getClientRects() { return this.isConnected ? [{}] : []; }, setAttribute(k,v) { if(k !== "open") this[k]=v; }, removeAttribute(k) { if(k !== "open") delete this[k]; }, showModal() { this.open=true; }, close() { this.open=false; if(this.onclose)this.onclose(); }, id: '', className: '', textContent: '', dataset: {}, children: new Map(),
       appendChild(n) { if (n.id) nodes.set(n.id, n); },
       set innerHTML(s) {
         this.html = s; for (const n of this.children.values()) n.isConnected = false; this.children.clear();
@@ -27,6 +27,7 @@ function chrome(code = source('jh-chart-indux.js'), w = {}) {
   nodes.set('legend', node());
   const document = { readyState: 'loading', createElement: node, getElementById: id => nodes.get(id) || null,
     documentElement: node(), body: node(), activeElement: null, querySelector(sel) { for (const n of nodes.values()) { const found=n.querySelector(sel); if(found)return found; } return null; }, addEventListener() {}, querySelectorAll() { return []; } };
+  w.getComputedStyle = n => n.computedStyle || { visibility: "visible", display: "block" };
   w.addEventListener = (name, fn) => { listeners[name] = fn; };
   const localStorage = { getItem() { return null; }, setItem() {} };
   new Function('window', 'document', 'localStorage', 'setTimeout', code)(w, document, localStorage, fn => timers.push(fn));
