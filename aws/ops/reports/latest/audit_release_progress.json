@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-01T14:08:12.659630+00:00",
+  "observed_at": "2026-10-01T14:08:19.023997+00:00",
   "runs": [
     {
       "id": 36873374909,
@@ -154,10 +154,10 @@
       "id": 36873374838,
       "path": ".github/workflows/pages.yml",
       "head_sha": "e07b169de250ecec26d85fa0ecbf44a6b96d0981",
-      "status": "in_progress",
+      "status": "queued",
       "conclusion": null,
       "created_at": "2026-10-01T14:03:35Z",
-      "updated_at": "2026-10-01T14:04:16Z",
+      "updated_at": "2026-10-01T14:08:08Z",
       "jobs": [
         {
           "id": 110406776654,
@@ -400,6 +400,15 @@
               "completed_at": "2026-10-01T14:08:04Z"
             }
           ]
+        },
+        {
+          "id": 110408495901,
+          "name": "deploy",
+          "status": "queued",
+          "conclusion": null,
+          "started_at": "2026-10-01T14:08:06Z",
+          "completed_at": null,
+          "steps": []
         }
       ]
     },
