@@ -24,21 +24,22 @@ function clock(value,kind,now=Date.now()){
  return {value,kind,status};
 }
 function qualified(q){return object(q)&&q.contract===QUALIFICATION&&q.status==='WITHHELD'&&q.calls_eligible===false&&q.sizing_eligible===false&&q.freshness==='UNKNOWN';}
+function legs(s){return object(s)&&['cvd','short_vol','gex'].every(k=>s[k]==null||object(s[k]));}
 function clocks(s,now){return {cvd:clock(s.cvd?.last_day,'date',now),short_vol:clock(s.short_vol?.observation_date,'date',now),gex:clock(s.gex?.source_timestamp,'timestamp',now)};}
 function view(packet,ticker,now=Date.now()){
- if(!object(packet)||packet.measurement_contract!==CONTRACT||packet.status!=='RESEARCH'||!qualified(packet.qualification)||clock(packet.generated_at,'timestamp',now).status!=='VALID')return {available:false};
+ if(!object(packet)||!object(packet.symbols)||packet.measurement_contract!==CONTRACT||packet.status!=='RESEARCH'||!qualified(packet.qualification)||clock(packet.generated_at,'timestamp',now).status!=='VALID')return {available:false};
  const s=ticker==='_SPX'?packet.gex_index:packet.symbols?.[ticker];
- if(!object(s)||!qualified(s.qualification))return {available:false};
+ if(!legs(s)||!qualified(s.qualification))return {available:false};
  return {available:true,observations:s,clocks:clocks(s,now),publication:packet.generated_at};
 }
 function projection(p,now=Date.now()){
- if(!object(p)||p.contract!==PROJECTION||p.availability!=='AVAILABLE'||p.source_key!=='data/tape-truth.json'||!qualified(p.qualification)||clock(p.source_generated_at,'timestamp',now).status!=='VALID'||!object(p.observations))return {available:false};
+ if(!object(p)||p.contract!==PROJECTION||p.availability!=='AVAILABLE'||p.source_key!=='data/tape-truth.json'||!qualified(p.qualification)||clock(p.source_generated_at,'timestamp',now).status!=='VALID'||!legs(p.observations))return {available:false};
  return {available:true,observations:p.observations,clocks:clocks(p.observations,now),publication:p.source_generated_at};
 }
 function stamp(c){return c.status==='VALID'?c.value:c.status.toLowerCase()+' source date/time';}
 function summary(v){
  if(!v.available)return unavailable;
- return reason+' Published '+v.publication+'; CVD ledger session: '+stamp(v.clocks.cvd)+'; FINRA file date: '+stamp(v.clocks.short_vol)+'; GEX provider timestamp: '+stamp(v.clocks.gex)+'. Freshness UNKNOWN: no authoritative observation SLA.';
+ return reason+' Tape source published '+v.publication+'; CVD ledger session: '+stamp(v.clocks.cvd)+'; FINRA file date: '+stamp(v.clocks.short_vol)+'; GEX provider timestamp: '+stamp(v.clocks.gex)+'. Freshness UNKNOWN: no authoritative observation SLA.';
 }
 function legText(v,key){return v.available?stamp(v.clocks[key])+' · freshness UNKNOWN':'unavailable';}
 function fmt(x,d=2){return finite(x)?x.toLocaleString('en-US',{maximumFractionDigits:d}):'—';}

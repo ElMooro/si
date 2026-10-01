@@ -81,6 +81,13 @@ def qualified(value):
             and value.get("sizing_eligible") is False and value.get("freshness") == "UNKNOWN")
 
 
+def observation_shape(value):
+    """Null/missing legs are explicit gaps; scalar/array legs are not records."""
+    return isinstance(value, dict) and all(
+        value.get(key) is None or isinstance(value.get(key), dict)
+        for key in ("cvd", "short_vol", "gex"))
+
+
 def project_tape(packet, ticker, now):
     """Retain source observations; a new projection cannot refresh their clocks."""
     packet = packet if isinstance(packet, dict) else {}
@@ -96,7 +103,7 @@ def project_tape(packet, ticker, now):
     if (packet.get("measurement_contract") != CONTRACT or packet.get("status") != "RESEARCH"
             or not qualified(packet.get("qualification"))
             or publication["status"] != "VALID" or not isinstance(symbol, dict)
-            or not qualified(symbol.get("qualification"))):
+            or not qualified(symbol.get("qualification")) or not observation_shape(symbol)):
         return out
     out.update({"availability": "AVAILABLE", "observations": {
         key: deepcopy(symbol.get(key)) for key in ("cvd", "short_vol", "gex")},

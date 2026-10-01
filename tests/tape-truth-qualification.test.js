@@ -47,6 +47,17 @@ test('all unknown/legacy contracts and invalid publication clocks are unavailabl
  for(const value of [null,'2026-10-01','2027-01-01T00:00:00Z',false]){const p=structuredClone(fixture.tape);p.generated_at=value;assert.equal(T.view(p,'SPY',NOW).available,false);const q=structuredClone(fixture.industry.cases.SPY.tape);q.source_generated_at=value;assert.equal(T.projection(q,NOW).available,false);}
  assert.equal(T.projection({call:'GENUINE_UP',conviction:99},NOW).available,false);
 });
+test('known contracts reject array symbol maps and malformed legs while retaining explicit gaps',()=>{
+ const array=structuredClone(fixture.tape);array.symbols=[array.symbols.SPY];assert.equal(T.view(array,'0',NOW).available,false);
+ for(const leg of ['cvd','short_vol','gex']){
+  for(const value of [[],true,'bad',3]){
+   const p=structuredClone(fixture.tape);p.symbols.SPY[leg]=value;assert.equal(T.view(p,'SPY',NOW).available,false,leg);
+   const q=structuredClone(fixture.industry.cases.SPY.tape);q.observations[leg]=value;assert.equal(T.projection(q,NOW).available,false,leg);
+  }
+  const p=structuredClone(fixture.tape);p.symbols.SPY[leg]=null;assert.equal(T.view(p,'SPY',NOW).available,true);
+ }
+ assert.equal(T.view(fixture.tape,'_SPX',NOW).available,true);
+});
 test('missing and malformed observation dates remain explicit without removing source measurements',()=>{
  const p=structuredClone(fixture.tape);delete p.symbols.SPY.cvd.last_day;delete p.symbols.SPY.short_vol.observation_date;p.symbols.SPY.gex.source_timestamp='bad';
  const v=T.view(p,'SPY',NOW);assert.equal(v.available,true);assert.equal(v.observations.cvd.session_cvd,fixture.tape.symbols.SPY.cvd.session_cvd);

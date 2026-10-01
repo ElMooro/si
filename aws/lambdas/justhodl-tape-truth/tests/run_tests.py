@@ -134,6 +134,19 @@ class QualificationTests(unittest.TestCase):
         out,_,_=industry(legacy);self.assertEqual(out['cases']['SPY']['tape']['availability'],'UNAVAILABLE')
         for shape in [[],True,'bad',{'symbols':['SPY']}]:industry(shape)
 
+    def test_known_contract_malformed_legs_and_symbol_collections_are_unavailable(self):
+        original,_,_=tape()
+        for leg in ['cvd','short_vol','gex']:
+            for value in [[],True,'bad',3]:
+                d=deepcopy(original);d['symbols']['SPY'][leg]=value
+                p=project_tape(d,'SPY',NOW)
+                self.assertEqual(p['availability'],'UNAVAILABLE',(leg,value))
+                self.assertIsNone(p['observations'])
+            d=deepcopy(original);d['symbols']['SPY'][leg]=None
+            self.assertEqual(project_tape(d,'SPY',NOW)['availability'],'AVAILABLE')
+        d=deepcopy(original);d['symbols']=[d['symbols']['SPY']]
+        self.assertEqual(project_tape(d,'0',NOW)['availability'],'UNAVAILABLE')
+
     def test_old_source_new_projection_and_missing_source_dates(self):
         d,_,_=tape();d['generated_at']='2026-01-06T22:00:00Z';d['symbols']['SPY']['cvd'].pop('last_day');d['symbols']['SPY']['short_vol'].pop('observation_date')
         p=project_tape(d,'SPY',NOW);self.assertEqual(p['source_generated_at'],'2026-01-06T22:00:00Z');self.assertEqual(p['projected_at'],NOW.isoformat())

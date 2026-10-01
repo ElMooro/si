@@ -60,7 +60,8 @@ storage/HTTP/LLM calls. Both complete original producers are frozen byte-for-byt
 Fresh, failed-refresh, missing-key and FINRA fallback scenarios preserve fetch
 calls, every existing observation value and ledger writes. The stale-ledger
 counterexample reproduces old GENUINE_UP and verifies withdrawal. Missing,
-malformed, naive and future clocks, old/unknown contracts, old-source/new-wrapper
+malformed, naive and future clocks, old/unknown contracts, malformed known-contract symbol maps and observation
+legs, old-source/new-wrapper
 projections, unrelated industry results, prompts and capital abstention are checked.
 
 `node --test tests/tape-truth-qualification.test.js` runs the actual generated
