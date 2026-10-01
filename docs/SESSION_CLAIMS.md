@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Wyckoff Candle spread/Accumulation Katlin permission notice only; codex/wyckoff-katlin-permission; display and tests, independent exact-head review then authorized Pages release; no shared capital/chart/backend changes | none | S-codex#wkperm1001z8 | 2026-10-01 14:52 |
 | PR49 industry producer/page repair accepted ac90ff8eb; authorized code/page release via existing pinned industry-only Lambda and explicit Pages dispatch. Standard configuration reconciliation allowed; no schedules, paid activation, invokes, IAM/security policy changes or tape redeploy. Verification pending. | none | S-codex#icrepair1001q9 | 2026-10-01 |
 | Credit-before-equity missing-value unit suffix only; codex/credit-unavailable-units; preserve numeric formatting/signals, regression and independent review before release | none | S-codex#cbeunits1001m | 2026-10-01 |
 | PR50 meta-labeler TAKE/SKIP leakage withholding accepted 71c493105; authorized integration and Actions release, exact receipts/served assets and natural publication verification; no causal restoration, schedules, providers or manual invoke. | none | S-codex#mlcausal1001v7 | 2026-10-01 14:10 |
