@@ -172,7 +172,7 @@ def enrich_with_crypto_intel(d):
     rs=ci.get("risk_score",{})
     if isinstance(rs,dict) and rs.get("regime"):
         d["ml_regime"]=rs["regime"]+" -> "+rs.get("action","")
-    fr=__import__("crypto_funding_observations").funding_context(ci.get("funding"))["rates"]
+    fr=ci.get("funding",{}).get("rates",[])
     if isinstance(fr,list):
         d["funding_rates"]=fr[:5]
     oi=ci.get("onchain_ratios",{})
@@ -301,7 +301,9 @@ def cmd_crypto(chat_id):
     market_cap_ratio=d.get("market_cap_to_mean_ratio")
     fund_text=""
     for item in d.get("funding_rates",[])[:5]:
-        fund_text+="  - "+__import__("crypto_funding_observations").funding_line(item)+"\n"
+        sym=item.get("symbol",""); pct=item.get("funding_rate_pct",0); sent=item.get("sentiment","")
+        sign="+" if float(pct)>=0 else ""
+        fund_text+=f"  - {sym}: {sign}{float(pct):.4f}% ({sent})\n"
     if not fund_text: fund_text="  - See justhodl.ai/crypto-intel.html\n"
     text=(f"*Crypto Intelligence*\n\n"
           f"- BTC: ${n(btc,0)}\n"

@@ -1174,10 +1174,6 @@ function cryptoMarketCapText(ratios){
  var value=cryptoMarketCapRatio(ratios);
  return value==null?"Unavailable":(value!==0&&(value<0.001||value>=1e9)?value.toExponential(4):String(Math.round(value*10000)/10000))+"×";
 }
-function cryptoRiskText(risk){
-  if(!risk||typeof risk!=="object"||risk.calls_eligible===false)return "Unavailable";
-  var value=risk.score;return typeof value==="number"&&Number.isFinite(value)&&value>=0&&value<=100?String(value):"Unavailable";
-}
 function renderCrypto(crypto){
   const el = document.getElementById('cardCrypto');
   if (!crypto) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
@@ -1187,7 +1183,7 @@ function renderCrypto(crypto){
 
   const fgScore = fg.score || fg;
   const fgLabel = fg.label || (fgScore < 25 ? 'EXTREME FEAR' : fgScore < 45 ? 'FEAR' : fgScore < 55 ? 'NEUTRAL' : fgScore < 75 ? 'GREED' : 'EXTREME GREED');
-  const rs = cryptoRiskText(risk);
+  const rs = risk.score || risk.regime || risk;
   const marketCapRatio = cryptoMarketCapText(oc);
 
   const fgCls = fgScore < 25 ? 'green' : fgScore < 45 ? 'green' : fgScore < 55 ? 'amber' : fgScore < 75 ? 'red' : 'red';
@@ -1200,8 +1196,8 @@ function renderCrypto(crypto){
     </div>
     <div>
       <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:var(--size-1)">RISK SCORE</div>
-      <div style="font-family:var(--font-mono); font-size:var(--type-2xl); font-weight:500">${rs}</div>
-      <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); margin-top:var(--size-1); letter-spacing:0.05em">${rs === 'Unavailable' ? 'WAIT — no qualified risk score' : 'Descriptive source score; investment validity unverified'}</div>
+      <div style="font-family:var(--font-mono); font-size:var(--type-2xl); font-weight:500">${typeof rs === 'string' ? rs : fmt(rs, 0)}</div>
+      <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); margin-top:var(--size-1); letter-spacing:0.05em">${typeof risk === 'object' ? (risk.action || risk.regime || '—') : '—'}</div>
     </div>
   </div>
   <div class="bar-track" style="margin-top:var(--size-4); margin-bottom:var(--size-4)">

@@ -282,7 +282,7 @@ def extract_metrics(data,weights):
     btc=next((c for c in coins if c.get("symbol")=="BTC"),{})
     eth=next((c for c in coins if c.get("symbol")=="ETH"),{})
     oc=crypto.get("onchain_ratios",{})
-    fund_rates=__import__("crypto_funding_observations").funding_context(crypto.get("funding"))["rates"]
+    fund_rates=crypto.get("funding",{}).get("rates",[])
     btc_fund=next((r for r in fund_rates if r.get("symbol")=="BTC"),{})
     eth_fund=next((r for r in fund_rates if r.get("symbol")=="ETH"),{})
     ki=d.get("khalid_index")
@@ -439,12 +439,11 @@ def extract_metrics(data,weights):
         "btc_7d":btc.get("change_7d"),
         "btc_ath_chg":btc.get("ath_change"),
         "btc_funding_pct":btc_fund.get("funding_rate_pct"),
-        "btc_funding_annual":None,
-        "btc_funding_observation":__import__("crypto_funding_observations").funding_line(btc_fund),
-        "btc_sentiment":"UNAVAILABLE",
+        "btc_funding_annual":btc_fund.get("annualized_pct"),
+        "btc_sentiment":btc_fund.get("sentiment"),
         "eth_price":eth.get("price"),
         "eth_24h":eth.get("change_24h"),
-        "eth_sentiment":"UNAVAILABLE",
+        "eth_sentiment":eth_fund.get("sentiment"),
         "mvrv":None,
         "market_cap_to_mean_ratio":__import__("crypto_market_cap_extension").reported_extension(oc),
         "onchain_signal":"UNAVAILABLE",
@@ -1238,7 +1237,7 @@ def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "PLUMBING: Stress:"+str(m["stress_score"])+"/100 ("+str(m["stress_status"])+") Phase:"+str(m["stress_phase"])+" RedFlags:"+str(m["red_flags"])+" Flags:"+str(", ".join(m["flags"]) or "none"),
         "CRYPTO: F&G:"+str(m["fg"])+"/100 ("+str(m["fg_label"])+") CryptoRisk:"+str(m["crypto_risk"])+"/100 ("+str(m["crypto_regime"])+") Action:"+str(m["crypto_action"]),
         "BTC: $"+str(m["btc_price"])+" 24h:"+str(m["btc_24h"])+"% 7d:"+str(m["btc_7d"])+"% ATH_down:"+str(m["btc_ath_chg"])+"%",
-        "BTC_FUNDING: "+str(m["btc_funding_observation"]),
+        "BTC_FUNDING: "+str(m["btc_funding_pct"])+"% ("+str(m["btc_funding_annual"])+"% annual) Sentiment:"+str(m["btc_sentiment"]),
         "ETH: $"+str(m["eth_price"])+" 24h:"+str(m["eth_24h"])+"% Sentiment:"+str(m["eth_sentiment"]),
         "ONCHAIN: BTC market cap / returned-observation mean:"+str(m["market_cap_to_mean_ratio"])+" (descriptive only; MVRV and 30-day momentum unavailable; no valuation vote)",
         "CRYPTO_FLOWS: ExchFlows:"+str(m["crypto_exchange_flow_regime"])+" ("+str(m["crypto_exchange_flow_pctile"])+"th) CME-COT-AsstMgr:"+str(m["crypto_cot_asset_mgr"])+" CB-prem:"+str(m["crypto_coinbase_premium_pct"])+"% Stables:"+str(m["crypto_stablecoin_status"])+" RealizedPx:$"+str(m["crypto_realized_price"])+" ("+str(m["crypto_price_vs_realized_pct"])+"% vs cost-basis, NUPL "+str(m["crypto_nupl_zone"])+")",

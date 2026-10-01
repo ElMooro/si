@@ -41,8 +41,8 @@
       "page": "desk-v2.html",
       "predecessor": "tests/fixtures/website-research-status/pre513-imports/desk-v2.html.txt",
       "previous_sha256": "eee2bca693aafdc917e3f9f9d295cae8c0c6850ebceba60657b4c0d4bf49d8bc",
-      "sha256": "23612a0061ab0b7f7b9bb3416a130ad2fcaef69133b0d7185638468fc2a41b3b",
-      "bytes": 49386,
+      "sha256": "99faabf47fc99def1d5f47d1166f3ffbceaa4ddd51d0faa229274626b41b98e1",
+      "bytes": 49143,
       "additional_replacements": [
         [
           "FEAR / GREED \u00b7 MVRV",
@@ -63,22 +63,6 @@
         [
           "  html += rowsHTML(rows);\n  el.innerHTML = html;\n}\n\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n// Main loader",
           "  html += rowsHTML(rows);\n  html += '<p class=\"dim\" style=\"font-size:12px;overflow-wrap:anywhere\">Market-cap comparison is descriptive only; sampling, source timing and investment validity remain unverified.</p>';\n  el.innerHTML = html;\n}\n\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n// Main loader"
-        ],
-        [
-          "function renderCrypto(crypto){",
-          "function cryptoRiskText(risk){\n  if(!risk||typeof risk!==\"object\"||risk.calls_eligible===false)return \"Unavailable\";\n  var value=risk.score;return typeof value===\"number\"&&Number.isFinite(value)&&value>=0&&value<=100?String(value):\"Unavailable\";\n}\nfunction renderCrypto(crypto){"
-        ],
-        [
-          "  const rs = risk.score || risk.regime || risk;",
-          "  const rs = cryptoRiskText(risk);"
-        ],
-        [
-          "${typeof rs === 'string' ? rs : fmt(rs, 0)}",
-          "${rs}"
-        ],
-        [
-          "${typeof risk === 'object' ? (risk.action || risk.regime || '\u2014') : '\u2014'}",
-          "${rs === 'Unavailable' ? 'WAIT \u2014 no qualified risk score' : 'Descriptive source score; investment validity unverified'}"
         ]
       ]
     },

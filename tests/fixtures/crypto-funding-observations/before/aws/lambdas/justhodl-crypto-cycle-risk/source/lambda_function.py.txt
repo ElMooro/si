@@ -185,14 +185,18 @@ def lambda_handler(event=None, context=None):
     }
 
     # ── 3. Funding / leverage froth ──
-    from crypto_funding_observations import funding_context
     funding = crypto.get("funding") or {}
-    factors["funding_leverage"] = {
-        "weight": 0.10, "risk": None, "avg_funding_pct": None,
-        "status": "unqualified_settlement_comparability",
-        "reported_observations": funding_context(funding),
-        "note": "Per-event funding is descriptive only; no comparable aggregate or positioning vote.",
-    }
+    rates = funding.get("rates") or []
+    avg_funding = None
+    if rates:
+        vals = [r.get("funding_rate_pct") for r in rates if isinstance(r, dict) and r.get("funding_rate_pct") is not None]
+        if vals: avg_funding = sum(vals) / len(vals)
+    if avg_funding is not None:
+        fund_risk = max(0, min(100, (avg_funding / 0.05) * 60 + 30)) if avg_funding > 0 else max(0, 30 + avg_funding * 200)
+        fnote = f"avg perp funding {round(avg_funding,4)}% ({'frothy longs' if avg_funding>0.03 else 'neutral' if avg_funding>-0.01 else 'shorts paying'})"
+    else:
+        fund_risk = 50; fnote = "funding unavailable"
+    factors["funding_leverage"] = {"weight": 0.10, "risk": round(fund_risk), "avg_funding_pct": round(avg_funding, 4) if avg_funding is not None else None, "note": fnote}
 
     # ── 4. Fear & Greed extreme ──
     fg = crypto.get("fear_greed")

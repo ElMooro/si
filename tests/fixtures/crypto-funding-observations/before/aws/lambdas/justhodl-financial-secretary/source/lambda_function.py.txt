@@ -560,7 +560,7 @@ def fetch_tier2():
             "stablecoin_burning": sc.get("burning_count"),
             "fear_greed_value": (fg.get("current") if isinstance(fg, dict) else None),
             "fear_greed_label": (fg.get("label") if isinstance(fg, dict) else None) or (fg.get("classification") if isinstance(fg, dict) else None),
-            "funding_summary": __import__("crypto_funding_observations").funding_context(funding),
+            "funding_summary": (funding.get("summary") if isinstance(funding, dict) else None) or funding,
             "mvrv_approx": None,
             "mvrv_status": "unavailable_no_qualified_realized_capitalization",
             "market_cap_to_mean_ratio": __import__("crypto_market_cap_extension").reported_extension(ratios),

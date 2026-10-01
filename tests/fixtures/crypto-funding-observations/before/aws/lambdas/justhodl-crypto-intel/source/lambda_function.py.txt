@@ -1991,8 +1991,77 @@ def fetch_yields():
 
 
 def fetch_funding():
-    from crypto_funding_observations import collect_funding
-    return collect_funding(urllib.request.urlopen)
+    # Primary: OKX public API — no auth, Lambda-friendly
+    instrs = ['BTC-USDT-SWAP','ETH-USDT-SWAP','SOL-USDT-SWAP',
+              'XRP-USDT-SWAP','DOGE-USDT-SWAP','ADA-USDT-SWAP',
+              'AVAX-USDT-SWAP','LINK-USDT-SWAP','DOT-USDT-SWAP','BNB-USDT-SWAP']
+    out = []
+    try:
+        ids = ','.join(instrs)
+        req = urllib.request.Request(
+            'https://www.okx.com/api/v5/public/funding-rate?instId=' + instrs[0],
+            headers={'User-Agent': 'JustHodl/2.0', 'Accept': 'application/json'}
+        )
+        # Fetch each instrument
+        for inst in instrs:
+            try:
+                req2 = urllib.request.Request(
+                    'https://www.okx.com/api/v5/public/funding-rate?instId=' + inst,
+                    headers={'User-Agent': 'JustHodl/2.0'}
+                )
+                with urllib.request.urlopen(req2, timeout=8) as r:
+                    d = json.loads(r.read().decode('utf-8'))
+                if d.get('code') == '0' and d.get('data'):
+                    item = d['data'][0]
+                    rate = float(item.get('fundingRate', 0))
+                    sym = inst.replace('-USDT-SWAP', '')
+                    out.append({
+                        'symbol': sym,
+                        'funding_rate': rate,
+                        'funding_rate_pct': round(rate * 100, 4),
+                        'sentiment': 'LONG' if rate > 0 else 'SHORT',
+                        'annualized_pct': round(rate * 3 * 365 * 100, 2)
+                    })
+            except Exception:
+                continue
+    except Exception as e:
+        print('OKX funding err: ' + str(e))
+    # Fallback: Bybit funding history (Binance hardblocked from AWS us-east-1)
+    if not out:
+        try:
+            for sym in ('BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','DOGEUSDT',
+                        'ADAUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','BNBUSDT'):
+                d4 = http_get(f'https://api.bybit.com/v5/market/funding/history?category=linear&symbol={sym}&limit=1', timeout=8)
+                if not d4 or d4.get('retCode') != 0:
+                    continue
+                lst = (d4.get('result') or {}).get('list') or []
+                if not lst:
+                    continue
+                rate = float(lst[0].get('fundingRate', 0))
+                out.append({
+                    'symbol': sym.replace('USDT',''),
+                    'funding_rate': rate,
+                    'funding_rate_pct': round(rate*100, 4),
+                    'sentiment': 'LONG' if rate>0 else 'SHORT',
+                    'annualized_pct': round(rate*3*365*100, 2),
+                })
+        except Exception as e:
+            print('Bybit funding fallback err: ' + str(e))
+    if not out:
+        return {'status': 'error', 'rates': [], 'bias': 'unknown',
+                'error': 'All funding rate sources unavailable'}
+    avg = sum(r['funding_rate'] for r in out) / len(out)
+    bias = ('HEAVILY_LONG' if avg > 0.0003 else 'LONG' if avg > 0.0001
+            else 'HEAVILY_SHORT' if avg < -0.0002 else 'SHORT' if avg < -0.0001
+            else 'NEUTRAL')
+    return {
+        'status': 'success',
+        'rates': out,
+        'avg_rate_pct': round(avg * 100, 4),
+        'leverage_sentiment': bias,
+        'long_count': sum(1 for r in out if r['funding_rate'] > 0),
+        'short_count': sum(1 for r in out if r['funding_rate'] < 0)
+    }
 
 def fetch_oi():
     # v5.1: OKX public OI (Bybit 403s from AWS us-east-1 — probe-verified)
@@ -2938,7 +3007,7 @@ BTC Dom: {gl.get('btc_dominance','?')}% | TVL: {tvl.get('total_tvl_fmt','?')}
 
 
 
-Funding: per-event observations only. Comparable average, annual yield and positioning signal unavailable; no investment vote.
+Funding: {fn.get('avg_funding','?')}% | Sent: {fn.get('leverage_sentiment','?')} | L/S: {fn.get('positive_count','?')}/{fn.get('negative_count','?')}
 
 
 
@@ -3363,19 +3432,19 @@ def risk(fg,fn,st,gl,tech):
 
 
 
-    af=None  # Per-event rates have no qualified cross-contract aggregate.
+    af=fn.get('avg_funding',0) if isinstance(fn,dict) else 0
 
 
 
 
 
-    if af is not None and abs(af)>0.05:s+=10;sg.append('     Extreme funding')
+    if abs(af)>0.05:s+=10;sg.append('     Extreme funding')
 
 
 
 
 
-    elif af is not None and abs(af)>0.02:s+=5;sg.append('     Elevated funding')
+    elif abs(af)>0.02:s+=5;sg.append('     Elevated funding')
 
 
 
@@ -3453,8 +3522,7 @@ def risk(fg,fn,st,gl,tech):
 
 
 
-    from crypto_funding_observations import apply_funding_risk_boundary
-    return apply_funding_risk_boundary({'score':s,'regime':rg,'action':'REDUCE' if s>=80 else 'HEDGE' if s>=65 else 'CAUTION' if s>=50 else 'NORMAL' if s>=35 else 'ACCUMULATE','signals':sg}, fn)
+    return {'score':s,'regime':rg,'action':'REDUCE' if s>=80 else 'HEDGE' if s>=65 else 'CAUTION' if s>=50 else 'NORMAL' if s>=35 else 'ACCUMULATE','signals':sg}
 
 
 
