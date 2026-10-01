@@ -33,3 +33,11 @@ test('dormant legacy desk annotations preserve zero versus missing without repla
  assert.equal(voo.flow1d,undefined);assert.equal(voo.flowMeasurement,'unavailable');assert.equal(voo.flowAsOf,null);
  assert.equal(out.netFlow,0);assert.equal(out.inflows.length,0);assert.equal(out.outflows.length,0);
 });
+test('visible ETF prompt examples describe trading activity rather than fund flows',()=>{
+ for(const page of ['livermore','wyckoff']){
+  const html=fs.readFileSync(require('node:path').join(__dirname,'..',page+'.html'),'utf8');
+  const placeholder=html.match(/<textarea\b[^>]*\bid="q"[^>]*\bplaceholder="([^"]*)"/)[1];
+  assert.doesNotMatch(placeholder,/\b(?:flows?|inflows?|outflows?)\b/i,page+' must not present a price/volume proxy as fund flow');
+  assert.match(placeholder,/trading (?:activity|volume)/i);
+ }
+});
