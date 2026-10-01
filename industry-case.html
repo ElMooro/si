@@ -46,6 +46,7 @@ tr:last-child td{border-bottom:none}
 <div id="inds"></div></div>
 <div class="note">Engine: justhodl-industry-case &middot; daily 13:00 UTC. Value-chain edges (who supplies whom) are DEFERRED until readthrough event&rarr;edge aggregation is proven &mdash; stated, never guessed. AI narratives self-heal on Anthropic credits.</div>
 </div>
+<script src="/jh-tape-truth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 const fN=(v,d)=>v==null?"\u2013":(v>0?"+":"")+v.toFixed(d==null?1:d);
@@ -64,7 +65,7 @@ function qa(t,c){
     ["5. Is the industry hot right now?", b?("Boom score "+b.score+" \u2014 rank "+b.rank+" of "+b.of+" industries"+(b.rank<=Math.ceil(b.of*0.1)?" (top decile).":".")):"industry not in the boom league \u2014 stated, not guessed."],
     ["6. Is institutional money moving in?", b&&b.inst_net_bps!=null?("Industry 13F net "+fN(b.inst_net_bps,1)+"bps of mcap; insider buys 30d: "+(b.insider_buys_30d==null?"\u2013":b.insider_buys_30d)+"."):"institutional legs not covered for this industry."],
     ["7. Did it just prove itself on earnings?", c.earn?("Beat-league rank #"+c.earn.beat_rank+" (score "+fN(c.earn.beat_score)+", EPS surprise "+fN(c.earn.eps_surprise_pct)+"%)"+(c.earn.growth_pick_score?" \u00b7 transcript growth pick "+c.earn.growth_pick_score+".":".")):"not in the current 35-day reporter window."],
-    ["8. Is today's move genuine?", c.tape?("Tape-truth: "+(c.tape.call||"").replace(/_/g," ")+(c.tape.conviction!=null?" (conviction "+c.tape.conviction+")":"")+" \u2014 full evidence on the tape-truth desk."):"not on the 12-name tape watchlist yet."],
+    ["8. What dated tape observations are available?", JHTapeTruth.esc(JHTapeTruth.summary(JHTapeTruth.projection(c.tape)))],
     ["9. Who supplies it / who depends on it?", "DEFERRED \u2014 value-chain edges ship once readthrough event\u2192edge aggregation is proven. Never guessed."]];
   let h="";
   for(const[q,a]of rows)h+='<div class="card" style="margin-bottom:8px"><div class="k">'+q+'</div><div class="s" style="font-size:12px;color:var(--fg-1);margin-top:4px">'+a+'</div></div>';
