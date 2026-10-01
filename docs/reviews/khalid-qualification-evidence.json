@@ -1,0 +1,160 @@
+{
+  "scope": "Actual page HTML/CSS, complete shared qualification module and chart workspace module. Actual Khalid page controller included; unrelated scripts removed; invented backend data only. All browser requests intercepted.",
+  "browser_cases": [
+    {
+      "page": "khalid.html",
+      "width": 1440,
+      "geometry": {
+        "client": 1158,
+        "scroll": 1158,
+        "viewport": 1440,
+        "box": {
+          "x": 239.1875,
+          "y": 118.25,
+          "width": 1157.625,
+          "height": 1732.78125,
+          "top": 118.25,
+          "right": 1396.8125,
+          "bottom": 1851.03125,
+          "left": 239.1875
+        }
+      },
+      "keyboard_filter_toggle_details": true,
+      "unknown_chart_symbol_unavailable": false,
+      "errors": [],
+      "requests": [
+        "/khalid.html",
+        "/jh-theme.css",
+        "/khalid.css",
+        "/jh-khalid-sniper.js",
+        "/khalid.js",
+        "/data/khalid.json",
+        "/data/khalid.json",
+        "/fonts/mono/IBMPlexMono-Bold.woff2",
+        "/fonts/mono/IBMPlexMono-Regular.woff2",
+        "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+        "/fonts/mono/IBMPlexMono-Medium.woff2",
+        "/fonts/sans/IBMPlexSans-Regular.woff2"
+      ]
+    },
+    {
+      "page": "khalid.html",
+      "width": 390,
+      "geometry": {
+        "client": 347,
+        "scroll": 347,
+        "viewport": 390,
+        "box": {
+          "x": 28,
+          "y": 148.25,
+          "width": 347,
+          "height": 3596,
+          "top": 148.25,
+          "right": 375,
+          "bottom": 3744.25,
+          "left": 28
+        }
+      },
+      "keyboard_filter_toggle_details": true,
+      "unknown_chart_symbol_unavailable": false,
+      "errors": [],
+      "requests": [
+        "/khalid.html",
+        "/jh-theme.css",
+        "/khalid.css",
+        "/jh-khalid-sniper.js",
+        "/khalid.js",
+        "/data/khalid.json",
+        "/fonts/mono/IBMPlexMono-Bold.woff2",
+        "/fonts/mono/IBMPlexMono-Regular.woff2",
+        "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+        "/fonts/mono/IBMPlexMono-Medium.woff2",
+        "/data/khalid.json",
+        "/fonts/sans/IBMPlexSans-Regular.woff2"
+      ]
+    },
+    {
+      "page": "chart.html",
+      "width": 1440,
+      "geometry": {
+        "client": 1320,
+        "scroll": 1320,
+        "viewport": 1440,
+        "box": {
+          "x": 60.1875,
+          "y": 99.609375,
+          "width": 1319.625,
+          "height": 1711.78125,
+          "top": 99.609375,
+          "right": 1379.8125,
+          "bottom": 1811.390625,
+          "left": 60.1875
+        }
+      },
+      "keyboard_filter_toggle_details": true,
+      "unknown_chart_symbol_unavailable": true,
+      "errors": [],
+      "requests": [
+        "/chart.html",
+        "/jh-khalid-sniper.js",
+        "/jh-chart-tvrail.js",
+        "/data/khalid.json",
+        "/data/khalid.json"
+      ]
+    },
+    {
+      "page": "chart.html",
+      "width": 390,
+      "geometry": {
+        "client": 333,
+        "scroll": 333,
+        "viewport": 390,
+        "box": {
+          "x": 28.6875,
+          "y": 86.609375,
+          "width": 332.625,
+          "height": 3647,
+          "top": 86.609375,
+          "right": 361.3125,
+          "bottom": 3733.609375,
+          "left": 28.6875
+        }
+      },
+      "keyboard_filter_toggle_details": true,
+      "unknown_chart_symbol_unavailable": true,
+      "errors": [],
+      "requests": [
+        "/chart.html",
+        "/jh-khalid-sniper.js",
+        "/jh-chart-tvrail.js",
+        "/data/khalid.json",
+        "/data/khalid.json"
+      ]
+    }
+  ],
+  "payload_benchmark": [
+    {
+      "invented_candidates": 1,
+      "compact_evidence_bytes": 21193,
+      "fixture_and_projection_seconds": 0.0013
+    },
+    {
+      "invented_candidates": 100,
+      "compact_evidence_bytes": 277270,
+      "fixture_and_projection_seconds": 0.0623
+    },
+    {
+      "invented_candidates": 1000,
+      "compact_evidence_bytes": 2609170,
+      "fixture_and_projection_seconds": 0.7019
+    }
+  ],
+  "source_sha256": {
+    "jh-khalid-sniper.js": "e419aaafc8f1a9a6483f59b631fca179e386dc67da1e36aab00eab8d52f9fd94",
+    "aws/lambdas/justhodl-khalid/source/qualification.py": "4652b0ce3b7a748c169410bd2c33421d19cc1fd96b6fae75501f7adff89660e8",
+    "tests/khalid-qualification-browser.cjs": "b3cdf594d0b3762842d3a21374415af168bc117021112baae3690e662ed7ee7b"
+  },
+  "native_tests": 70,
+  "frontend_tests": 2247,
+  "production_acceptance": false
+}
