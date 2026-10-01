@@ -8,8 +8,8 @@ function setup(){
  const ctx={Date,Number,Math,console,active:'SPY',tf:'1d',lastBars:rows(),barEvidence:new WeakMap(),quotes:{},news:[],
   finCache:{_pSPY:1,_fSPY:1},document:{getElementById:id=>elements[id]},bare:s=>s.replace(/^US:/,''),classifySym:()=> 'ETF',
   escHtml:esc,fmt:x=>x==null?'Unavailable':String(x),fmtVol:x=>String(x),UP:'green',DN:'red',showInfo(){},fetch(){throw Error('unexpected network');}};
- ctx.barEvidence.set(ctx.lastBars,{symbol:'SPY',interval:'1d',source:'synthetic'});vm.createContext(ctx);
- vm.runInContext(source.slice(source.indexOf('  function observationId('),source.indexOf('  function paintObservations('))+slice,ctx);
+ ctx.window=ctx;ctx.barEvidence.set(ctx.lastBars,{symbol:'SPY',interval:'1d',source:'synthetic'});vm.createContext(ctx);
+ vm.runInContext(source.slice(source.indexOf('  function resolveSym('),source.indexOf('  function nyOffset('))+source.slice(source.indexOf('  function observationId('),source.indexOf('  function paintObservations('))+slice,ctx);
  return {ctx,elements};
 }
 test('empty, malformed, future or wrong-identity frames cannot display finite sentinels or another ticker prices',()=>{

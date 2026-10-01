@@ -7,7 +7,7 @@
   'use strict';
   var CONTRACT='observation-cache.v1',OK_MS=300000,RETRY_MS=30000,DEADLINE_MS=10000,sharedInstance=null;
   function object(v){return v!==null&&typeof v==='object'&&!Array.isArray(v);}
-  var definitions={
+  var BUILTIN_SOURCES={
     series:{paths:['/data/cryptoquant-series.json'],valid:function(v){return object(v)&&object(v.series);}},
     onchain:{paths:['/data/cryptoquant-onchain.json'],valid:function(v){return object(v)&&object(v.metrics);}},
     feed:{paths:['/data/cq-feed.json'],valid:function(v){return object(v)&&object(v.metrics);}},
@@ -18,6 +18,16 @@
   };
   function create(options){
     options=options||{};
+    var definitions=BUILTIN_SOURCES;
+    if(options.sources!==undefined){
+      if(!object(options.sources)||!Object.keys(options.sources).length)throw new Error('Invalid observation source definitions');
+      definitions=Object.create(null);
+      Object.keys(options.sources).forEach(function(id){
+        var def=options.sources[id];
+        if(!object(def)||!Array.isArray(def.paths)||!def.paths.length||Array.from(def.paths).some(function(p){return typeof p!=='string'||!p.length;})||typeof def.valid!=='function')throw new Error('Invalid observation source definition');
+        definitions[id]={paths:def.paths.slice(),valid:def.valid};
+      });
+    }
     var states=Object.create(null),now=options.now||function(){return Date.now();};
     var mono=options.monotonic||function(){return root.performance&&typeof root.performance.now==='function'?root.performance.now():now();};
     var later=options.setTimeout||function(fn,ms){return root.setTimeout(fn,ms);};

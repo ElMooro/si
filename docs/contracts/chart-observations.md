@@ -13,3 +13,5 @@ Source inspection exposes exact packet/path/ID/unit/frequency, reported clocks, 
 Validation uses complete retained predecessors, complete invented packets, actual modules and isolated Edge at desktop/mobile sizes. All network requests are intercepted; both an inert drawing mock and the exact retained 4.2.3 drawing library are exercised. Public static acceptance must compare complete bytes with a commit-bound build manifest. No actual private/current-consumer data is required or inspected. Other separately loaded chart plugins are not qualified by these isolated tests.
 
 Stage 501: [unavailable histories and scalar calendar groups](observation-diagnostics.md) retain empty diagnostic frames and distinguish source periods from display group coordinates.
+
+Stage 502: [warehouse scalar histories](warehouse-observations.md) extend strict received-value/date/identity handling and bounded download evidence to existing native directory series. Upstream original precision remains unverified.

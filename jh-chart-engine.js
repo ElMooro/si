@@ -331,7 +331,7 @@
     if(/^(BTCUSD|ETHUSD)$/.test(t)) return true;
     return false;
   }
-  function resolveSym(raw){
+  function resolveSym(raw, classificationOnly){
     var orig=String(raw||"").trim();
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(orig) && !/^(CQ|CISS|DESK|DATA):/i.test(orig)){
       var p0=orig.split(":")[0];
@@ -353,7 +353,7 @@
     if(ALIAS[s]) s=ALIAS[s];
     if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
     else ticker=s;
-    if(ALIAS[ticker] && ALIAS[ticker]!==s){
+    if(ALIAS[ticker] && ALIAS[ticker]!==s && (!venue || venue==="TVC")){
       s=ALIAS[ticker];
       if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
       else { venue=""; ticker=s; }
@@ -387,6 +387,8 @@
     if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA" || venue==="CQSNAP" || venue==="CQARM" || venue==="CQDOC"){
       return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
     }
+    // Classification must not re-enter bare() through yahooSym().
+    if(classificationOnly)return {engine:"equity"};
     var ys=yahooSym(ticker);
     if(/^\^/.test(ticker) || ticker==="DX-Y.NYB") ys=ticker;
     return {raw:s, venue:venue, ticker:ticker, yahoo:ys, engine:"equity"};
@@ -1844,7 +1846,11 @@
     }
     if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){
       try{
-        var catBars=await window.JHChartCatalog.klines(sym, tfId, quiet);
+        var requested=scalar&&rs.raw?rs.raw:sym;
+        var catBars=await window.JHChartCatalog.klines(requested, tfId, quiet);
+        if(scalar&&requested!==sym&&catBars&&catBars.evidence&&catBars.evidence.requested_id===requested){
+          catBars=Object.assign({},catBars,{evidence:Object.assign({},catBars.evidence,{requested_id:sym,chart_alias:{requested:sym,resolved:requested,rule:"Existing explicit chart resolver; provider identity independently unverified"}})});
+        }
         var exactObservation=scalar&&catBars&&catBars.evidence&&catBars.evidence.contract==="chart-observations.v1"&&catBars.evidence.requested_id===sym;
         if(exactObservation&&Array.isArray(catBars.d)&&!catBars.d.length){
           return identifyBars(catBars.d,sym,tfId,catBars.src,Object.assign({},catBars.evidence,{display_interval:tfId,display_points:[],display_projection:"No plotted values; received source diagnostics retained without substitution."}));
@@ -1856,14 +1862,14 @@
             var observations=catBars.evidence||null;
             if(observations) observations=Object.assign({},observations,{display_interval:tfId,display_points:cd0,
               display_projection:"UTC calendar display groups retain first/minimum/maximum/last scalar; the line shows the last scalar. Weeks start Monday; two-week groups are anchored at 1970-01-05; 2/3/5-day groups are anchored at 1970-01-01; months and quarters start on their first day. Group starts are not source observation or release times. Original periods and every contributing ordinal remain retained. Missing volume stays unavailable."});
-            barCache[key]={d:cd0, at:now, src:catBars.src||"catalog",observations:observations};
+            if(!scalar)barCache[key]={d:cd0, at:now, src:catBars.src||"catalog",observations:observations};
             return identifyBars(cd0,sym,tfId,catBars.src||"catalog",observations);
           }
         }
       }catch(eCat){}
     }
     // A measurement ID cannot become a similarly named exchange ticker.
-    if(/^CQ:|^CISS:/i.test(String(sym||""))){
+    if(scalar){
       // Scalar download completion cannot publish a label for a superseded selection.
       return [];
     }
@@ -2004,7 +2010,7 @@
       var hs=new URLSearchParams(String(location.hash||"").replace(/^#/,""));
       function pick(k){ return qs.get(k) || hs.get(k); }
       var s=pick("s")||pick("symbol");
-      if(s) active=String(s).toUpperCase();
+      if(s) active=observationId(s)?String(s):String(s).toUpperCase();
       if(pick("tf")) tf=pick("tf");
       if(pick("k")) kind=pick("k");
       if(pick("m")) mode=pick("m");
@@ -2132,7 +2138,12 @@
     else if(kind==="range") rows=toRange(d, 0.01);
     return roundBars(sanitizeBars(rows||[]));
   }
-  function observationId(sym){ return /^CQ:|^CISS:/i.test(String(sym||"")); }
+  function observationId(sym){
+    if(/^CQ:|^CISS:/i.test(String(sym||"")))return true;
+    if((!window.JHChartCatalog||typeof window.JHChartCatalog.isWarehouse!=="function")&&/^[^:]+:/.test(String(sym||""))&&!/^(NASDAQ|NYSE|AMEX|ARCA|CBOE|TVC|BINANCE|INDEX|FX|CRYPTO|CME|COMEX|NYMEX|OTC|BATS|IEX|OPRA):/i.test(String(sym)))return true;
+    var resolved=resolveSym(sym,true);
+    return resolved.engine==="fred"||resolved.engine==="series";
+  }
   function scalarPanel(id){
     if(!observationId(active))return false;
     var el=document.getElementById(id);

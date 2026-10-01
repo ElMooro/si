@@ -51,18 +51,18 @@
     e.points_scope = row.points_scope || 'Received series only; full upstream history is unverified';
     e.volume = { value: null, reason: 'Not reported by this scalar observation series' };
     e.plotting_projection = 'Open/high/low/close are the same scalar, not market OHLC';
-    var ds = row.d, vs = row.v, ps = row.points, n;
+    var ds = row.d, vs = row.v, ps = format === 'warehouse' ? row.obs : row.points, n;
     if (format === 'dv' && (!Array.isArray(ds) || !Array.isArray(vs))) { e.reason = 'malformed_parallel_arrays'; return result; }
-    if (format === 'points' && !Array.isArray(ps)) { e.reason = 'malformed_points'; return result; }
+    if (format !== 'dv' && !Array.isArray(ps)) { e.reason = 'malformed_points'; return result; }
     n = format === 'dv' ? Math.max(ds.length, vs.length) : ps.length;
     var groups = new Map();
     for (var i = 0; i < n; i++) {
-      var p = format === 'points' ? ps[i] : null;
+      var p = format !== 'dv' ? ps[i] : null;
       var paired = format === 'dv' ? i in ds && i in vs : Array.isArray(p) && p.length >= 2;
       var rawDate = format === 'dv' ? ds[i] : Array.isArray(p) ? p[0] : null;
       var rawValue = format === 'dv' ? vs[i] : Array.isArray(p) ? p[1] : null;
-      var stamp = period(rawDate, e.source_frequency), value = numeric(rawValue);
-      var record = { ordinal: i, source_path: pointer + (format === 'dv' ? '.d/.v[' : '.points[') + i + ']',
+      var stamp = period(rawDate, format === 'warehouse' ? 'D' : e.source_frequency), value = numeric(rawValue);
+      var record = { ordinal: i, source_path: pointer + (format === 'dv' ? '.d/.v[' : format === 'warehouse' ? '.obs[' : '.points[') + i + ']',
         raw_period: rawDate === undefined ? null : rawDate, raw_value: rawValue === undefined ? null : rawValue,
         accepted: false, reason: !paired ? 'unpaired_or_malformed_row' : !stamp ? 'invalid_period_or_frequency' : value === null ? 'missing_or_invalid_scalar' : null,
         coordinate: stamp, value: value };
@@ -112,5 +112,21 @@
     result.evidence.identity_alias = alias ? { requested: 'ea', canonical_key: EA } : null;
     return result;
   }
-  return { contract: VERSION, numeric: numeric, period: period, cq: cq, ciss: ciss };
+  function warehouse(doc, sym, path) {
+    var want = String(sym || ''), packetPath = path || '/series?id=' + encodeURIComponent(want);
+    if (!object(doc)) return unavailable(doc, want, packetPath, 'warehouse_packet_unavailable');
+    if (!/^[^:\s]+:.+$/.test(want) || typeof doc.id !== 'string' || doc.id.toLowerCase() !== want.toLowerCase())
+      return unavailable(doc, want, packetPath, 'packet_identity_mismatch', object(doc) && typeof doc.id === 'string' ? [doc.id] : []);
+    var result = compile(doc, want, packetPath, doc.id, doc, 'warehouse', '$'), e = result.evidence;
+    e.reported_provider = typeof doc.provider === 'string' ? doc.provider : null;
+    e.reported_source = typeof doc.source === 'string' ? doc.source : null;
+    e.packet_reported_as_of = typeof doc.as_of === 'string' ? doc.as_of : null;
+    e.received_calendar_basis = 'Warehouse-normalized calendar dates. Native normalization may collapse periods and duplicates; original provider rows and period precision are unverified.';
+    e.points_scope = 'Complete received warehouse obs array; upstream original history and transformations remain unverified';
+    e.upstream_originals_verified = false;
+    e.identity_resolution = { requested: want, reported: doc.id, rule: 'Full native directory id, case-insensitive; no suffix or substring matching' };
+    e.transformations.push('Validate received normalized calendar dates without interpreting packet as_of as observation acquisition or first publication');
+    return result;
+  }
+  return { contract: VERSION, numeric: numeric, period: period, cq: cq, ciss: ciss, warehouse: warehouse };
 });

@@ -1,0 +1,330 @@
+{
+  "scope": "Actual complete engine functions, whole invented packets, no network or provider calls",
+  "source_sha256": "10ef4a5a9950f8024d355355913a2f5ed32d6c8dc821bf2ed42a1b3f7f5dd888",
+  "whole_inputs": [
+    {
+      "series": {
+        "x": {
+          "freq": "D",
+          "unit": "invented",
+          "d": [
+            "2026-01-01",
+            "2026-01-02"
+          ],
+          "v": [
+            1,
+            2
+          ]
+        }
+      },
+      "note": "whole invented original"
+    },
+    {
+      "series": {
+        "x": {
+          "freq": "D",
+          "unit": "invented",
+          "d": [
+            "2026-01-01",
+            "2026-01-02"
+          ],
+          "v": [
+            3,
+            4
+          ]
+        }
+      },
+      "note": "whole invented replacement"
+    }
+  ],
+  "whole_retained_cache": {
+    "CQ:x|1d": {
+      "d": [
+        {
+          "time": 1767225600,
+          "open": 1,
+          "high": 1,
+          "low": 1,
+          "close": 1,
+          "volume": null,
+          "observation_ordinals": [
+            0
+          ]
+        },
+        {
+          "time": 1767312000,
+          "open": 2,
+          "high": 2,
+          "low": 2,
+          "close": 2,
+          "volume": null,
+          "observation_ordinals": [
+            1
+          ]
+        }
+      ],
+      "at": 1790840132680,
+      "src": "x · 2 scalar observations · unit invented · D · 0 excluded records · observation dates, not release times",
+      "observations": {
+        "contract": "chart-observations.v1",
+        "requested_id": "CQ:x",
+        "packet_path": "/data/cryptoquant-series.json",
+        "status": "observations",
+        "reason": null,
+        "matches": [],
+        "whole_packet": {
+          "series": {
+            "x": {
+              "freq": "D",
+              "unit": "invented",
+              "d": [
+                "2026-01-01",
+                "2026-01-02"
+              ],
+              "v": [
+                1,
+                2
+              ]
+            }
+          },
+          "note": "whole invented original"
+        },
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "records": [
+          {
+            "ordinal": 0,
+            "source_path": "series[\"x\"].d/.v[0]",
+            "raw_period": "2026-01-01",
+            "raw_value": 1,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767225600,
+              "original_period": "2026-01-01",
+              "period_end": "2026-01-01",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 1
+          },
+          {
+            "ordinal": 1,
+            "source_path": "series[\"x\"].d/.v[1]",
+            "raw_period": "2026-01-02",
+            "raw_value": 2,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767312000,
+              "original_period": "2026-01-02",
+              "period_end": "2026-01-02",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 2
+          }
+        ],
+        "transformations": [
+          "Strict finite scalar and calendar validation; sorted by period coordinate; equal duplicates plotted once; conflicting duplicates withheld; all records retained"
+        ],
+        "observation_kind": "scalar",
+        "selected_id": "x",
+        "selected_path": "series[\"x\"]",
+        "selected_series": {
+          "freq": "D",
+          "unit": "invented",
+          "d": [
+            "2026-01-01",
+            "2026-01-02"
+          ],
+          "v": [
+            1,
+            2
+          ]
+        },
+        "source_frequency": "D",
+        "unit": "invented",
+        "packet_generated_at": null,
+        "source_acquired_at": null,
+        "source_published_at": null,
+        "source_quality": null,
+        "points_scope": "Received series only; full upstream history is unverified",
+        "volume": {
+          "value": null,
+          "reason": "Not reported by this scalar observation series"
+        },
+        "plotting_projection": "Open/high/low/close are the same scalar, not market OHLC",
+        "rejected_records": 0,
+        "accepted_records": 2,
+        "plotted_points": 2,
+        "proxy_histories": [],
+        "display_interval": "1d",
+        "display_points": [
+          {
+            "time": 1767225600,
+            "open": 1,
+            "high": 1,
+            "low": 1,
+            "close": 1,
+            "volume": null,
+            "observation_ordinals": [
+              0
+            ]
+          },
+          {
+            "time": 1767312000,
+            "open": 2,
+            "high": 2,
+            "low": 2,
+            "close": 2,
+            "volume": null,
+            "observation_ordinals": [
+              1
+            ]
+          }
+        ],
+        "display_projection": "UTC calendar display groups retain first/minimum/maximum/last scalar; the line shows the last scalar. Weeks start Monday; two-week groups are anchored at 1970-01-05; 2/3/5-day groups are anchored at 1970-01-01; months and quarters start on their first day. Group starts are not source observation or release times. Original periods and every contributing ordinal remain retained. Missing volume stays unavailable."
+      }
+    },
+    "CQ:x|2d": {
+      "d": [
+        {
+          "time": 1767225600,
+          "open": 3,
+          "high": 4,
+          "low": 3,
+          "close": 4,
+          "volume": null,
+          "observation_ordinals": [
+            0,
+            1
+          ]
+        }
+      ],
+      "at": 1790840132684,
+      "src": "x · 2 scalar observations · unit invented · D · 0 excluded records · observation dates, not release times",
+      "observations": {
+        "contract": "chart-observations.v1",
+        "requested_id": "CQ:x",
+        "packet_path": "/data/cryptoquant-series.json",
+        "status": "observations",
+        "reason": null,
+        "matches": [],
+        "whole_packet": {
+          "series": {
+            "x": {
+              "freq": "D",
+              "unit": "invented",
+              "d": [
+                "2026-01-01",
+                "2026-01-02"
+              ],
+              "v": [
+                3,
+                4
+              ]
+            }
+          },
+          "note": "whole invented replacement"
+        },
+        "source_freshness_verified": false,
+        "source_equivalence_verified": false,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "records": [
+          {
+            "ordinal": 0,
+            "source_path": "series[\"x\"].d/.v[0]",
+            "raw_period": "2026-01-01",
+            "raw_value": 3,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767225600,
+              "original_period": "2026-01-01",
+              "period_end": "2026-01-01",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 3
+          },
+          {
+            "ordinal": 1,
+            "source_path": "series[\"x\"].d/.v[1]",
+            "raw_period": "2026-01-02",
+            "raw_value": 4,
+            "accepted": true,
+            "reason": null,
+            "coordinate": {
+              "time": 1767312000,
+              "original_period": "2026-01-02",
+              "period_end": "2026-01-02",
+              "clock": "source_calendar_date_UTC_display_coordinate",
+              "source_availability_at": null,
+              "date_precision": "day"
+            },
+            "value": 4
+          }
+        ],
+        "transformations": [
+          "Strict finite scalar and calendar validation; sorted by period coordinate; equal duplicates plotted once; conflicting duplicates withheld; all records retained"
+        ],
+        "observation_kind": "scalar",
+        "selected_id": "x",
+        "selected_path": "series[\"x\"]",
+        "selected_series": {
+          "freq": "D",
+          "unit": "invented",
+          "d": [
+            "2026-01-01",
+            "2026-01-02"
+          ],
+          "v": [
+            3,
+            4
+          ]
+        },
+        "source_frequency": "D",
+        "unit": "invented",
+        "packet_generated_at": null,
+        "source_acquired_at": null,
+        "source_published_at": null,
+        "source_quality": null,
+        "points_scope": "Received series only; full upstream history is unverified",
+        "volume": {
+          "value": null,
+          "reason": "Not reported by this scalar observation series"
+        },
+        "plotting_projection": "Open/high/low/close are the same scalar, not market OHLC",
+        "rejected_records": 0,
+        "accepted_records": 2,
+        "plotted_points": 2,
+        "proxy_histories": [],
+        "display_interval": "2d",
+        "display_points": [
+          {
+            "time": 1767225600,
+            "open": 3,
+            "high": 4,
+            "low": 3,
+            "close": 4,
+            "volume": null,
+            "observation_ordinals": [
+              0,
+              1
+            ]
+          }
+        ],
+        "display_projection": "UTC calendar display groups retain first/minimum/maximum/last scalar; the line shows the last scalar. Weeks start Monday; two-week groups are anchored at 1970-01-05; 2/3/5-day groups are anchored at 1970-01-01; months and quarters start on their first day. Group starts are not source observation or release times. Original periods and every contributing ordinal remain retained. Missing volume stays unavailable."
+      }
+    }
+  },
+  "decoder_reads": 3,
+  "finding": "The scalar branch bypasses barCache reads but retains complete old packet evidence there for each symbol/interval. These strong references are unnecessary for active-frame inspection."
+}

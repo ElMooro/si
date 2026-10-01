@@ -6,6 +6,7 @@
   "use strict";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var CQ = null, CISS = null, SYM = null, IND = null, INST = null, PROV = null, IDX_P = null;
+  var WAREHOUSE_CACHES=new Map(),WAREHOUSE_CACHE_CAPACITY=8;
   var EXCH = { NASDAQ:1, NYSE:1, AMEX:1, ARCA:1, CBOE:1, TVC:1, BINANCE:1, INDEX:1, FX:1, CRYPTO:1, CME:1, COMEX:1, NYMEX:1, OTC:1, BATS:1, IEX:1, OPRA:1 };
   var SERIES_PROV = { fred:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, "ofr-fsi":1, "ofr-hfm":1, "ofr-bsrm":1, "ofr-site":1, bls:1, census:1, "census-us":1, bea:1, treasury:1, boe:1, eia:1, te:1, "te-mirror":1, "te-feed":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, "official-yields":1, tic:1, "kr-ecos":1, "taiwan-moea":1, "peru-copper":1, "cl-datos":1, "hk-data":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, "fed-board":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, "indicator-bus":1, "nyfed-research":1, "sec-edgar":1, "sec-midas":1, "sec-dera":1, "sec-bulk":1 };
   var CHIPS = [
@@ -196,7 +197,7 @@
     var p = s.split(":")[0];
     if (!p || s.indexOf(":") < 0) return false;
     if (EXCH[p.toUpperCase()]) return false;
-    return !!SERIES_PROV[p.toLowerCase()];
+    return Object.prototype.hasOwnProperty.call(SERIES_PROV,p.toLowerCase());
   }
 
   function tabMatch(tab, cls, type, s) {
@@ -711,17 +712,28 @@
     return ser || twin || null;
   }
 
+  function loadWarehouse(sym) {
+    // Capacity bounds retained complete packets. Eviction aborts and supersedes
+    // a pending request; it never publishes its late body into a newer entry.
+    var key=String(sym),cache=WAREHOUSE_CACHES.get(key);
+    if(cache){WAREHOUSE_CACHES.delete(key);WAREHOUSE_CACHES.set(key,cache);}
+    else{
+      if(WAREHOUSE_CACHES.size>=WAREHOUSE_CACHE_CAPACITY){var oldest=WAREHOUSE_CACHES.keys().next().value;WAREHOUSE_CACHES.get(oldest).reset();WAREHOUSE_CACHES.delete(oldest);}
+      var path=PROXY+"/series?id="+encodeURIComponent(key);
+      cache=global.JHObservationCache.create({sources:{warehouse:{paths:[path],valid:function(doc){return doc!==null&&typeof doc==='object'&&!Array.isArray(doc)&&Array.isArray(doc.obs)&&typeof doc.id==='string'&&doc.id.toLowerCase()===key.toLowerCase();}}}});
+      WAREHOUSE_CACHES.set(key,cache);
+    }
+    return cache.read('warehouse');
+  }
+
   async function klines(sym) {
     var s = String(sym || "");
     if (isWarehouse(s) && !/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) {
-      try {
-        var ser = await loadJson(PROXY + "/series?id=" + encodeURIComponent(s));
-        var d0 = ptsBars(ser && ser.obs);
-        if (d0.length >= 8) {
-          var src0 = (ser.provider_name || ser.provider || "warehouse") + " · " + d0.length + " pts " + (ser.first || "") + " → " + (ser.last || "") + " · " + (ser.freq || "series");
-          return { d: d0, src: src0 };
-        }
-      } catch (eWh) {}
+      if(!global.JHObservationSeries||typeof global.JHObservationSeries.warehouse!=="function"||!global.JHObservationCache)return {d:[],src:"Observation history unavailable: required module not loaded"};
+      var received=await loadWarehouse(s), parsed=global.JHObservationSeries.warehouse(received.packet,s,PROXY+"/series?id="+encodeURIComponent(s));
+      parsed.evidence.transport_cache=received.cache;
+      parsed.src+=" · download "+received.cache.state+" · upstream original evidence unverified";
+      return parsed;
     }
     if (/^CQSNAP:|^CQARM:|^CQDOC:/i.test(s)) return null;
     if (/^CQ:|^CISS:/i.test(s)) {

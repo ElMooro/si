@@ -1,0 +1,4056 @@
+{
+  "scope": "Complete chart HTML/CSS and two chart modules; chart drawing inert, all requests intercepted, complete invented sources only.",
+  "whole_inputs": {
+    "/data/symbology/master.json": {
+      "by_ticker": {
+        "ZZRECOVERED": {
+          "name": "Invented recovered issuer"
+        }
+      }
+    },
+    "/data/indicator-bus.json": {
+      "indicators": {}
+    },
+    "/data/provider-catalog.json": {
+      "providers": []
+    },
+    "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+      "rows": [],
+      "cols": []
+    },
+    "/data/symdir/instruments.json.gz": {
+      "rows": [],
+      "cols": []
+    },
+    "/data/cryptoquant-series.json": {
+      "series": {}
+    }
+  },
+  "whole_cached_search": {
+    "rows": [
+      {
+        "id": "ZZREMOTE",
+        "name": "Invented remote entry",
+        "provider": "instrument",
+        "kind": "instrument"
+      }
+    ],
+    "facets": [],
+    "index_integrity": {
+      "head_check": {
+        "status": "unavailable",
+        "checked_at": "2026-09-01T00:00:00Z",
+        "serving_cached_generation": true
+      }
+    },
+    "warehouse_integrity": {
+      "status": "unavailable"
+    }
+  },
+  "cases": [
+    {
+      "width": 1440,
+      "requests": [
+        {
+          "host": "invented.justhodl.test",
+          "path": "/chart.html",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/fixture-catalog.js",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/fixture-engine.js",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=tv-watchlists.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=jh-internals.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=finviz-news.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=QQQ&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=AAPL&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=MSFT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=NVDA&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=AMZN&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=META&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TSLA&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=XLE&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=GLD&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/tv-watchlists.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/finviz-news.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/jh-internals.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-fund",
+          "query": "?ticker=SPY",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-fund",
+          "query": "?ticker=SPY",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=QQQ&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=AAPL&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=MSFT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=NVDA&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=AMZN&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=META&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TSLA&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=XLE&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=GLD&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/indicator-bus.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/data/symdir/instruments.json.gz",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/provider-catalog.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/cryptoquant-series.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=ZZREC&limit=80",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=ZZREC",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=ZZREC",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/indicator-bus.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/provider-catalog.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/data/symdir/instruments.json.gz",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/cryptoquant-series.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=FAIL&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=FAIL",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=FAIL",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-A&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-B&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=query-B",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=query-B",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-A&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=query-A",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=query-A",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=ZZRECOVER&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=ZZRECOVER",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=ZZRECOVER",
+          "method": "GET",
+          "mode": "malformed"
+        }
+      ],
+      "errors": [],
+      "recovered_dom": "<div class=\"cell\" role=\"status\" data-search-status=\"\" style=\"display:block;white-space:normal;overflow-wrap:anywhere;padding:10px 14px\">Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.</div><div class=\"cell\" role=\"status\">Choose a specific result with the arrow keys and Enter, or click a row.</div><div class=\"ss-sec\">RESULTS</div><button type=\"button\" class=\"ss-hit\" data-i=\"0\"><i class=\"ss-logo\" style=\"background:#ff6d00\">Z</i><span><span class=\"nm\">ZZRECOVERED</span><span class=\"ds\">Invented recovered issuer</span></span><span class=\"ss-ex\">SEC ticker source \u00b7 security relationship unverified \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVERED\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"1\"><i class=\"ss-logo\" style=\"background:#2962ff\">Z</i><span><span class=\"nm\">ZZREC</span><span class=\"ds\">Open ZZREC</span></span><span class=\"ss-ex\">direct \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREC\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"2\"><i class=\"ss-logo\" style=\"background:#7e57c2\">Z</i><span><span class=\"nm\">ZZREMOTE</span><span class=\"ds\">Invented remote entry</span></span><span class=\"ss-ex\">symbol \u00b7 instrument \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREMOTE\" title=\"More\">\u25be</span></button>",
+      "final_dom": "<div class=\"cell\" role=\"status\" data-search-status=\"\" style=\"display:block;white-space:normal;overflow-wrap:anywhere;padding:10px 14px\">Using cached catalogs: Security directory. Failed downloads retry on a search after 29 seconds. Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.</div><div class=\"cell\" role=\"status\">Choose a specific result with the arrow keys and Enter, or click a row.</div><div class=\"ss-sec\">RESULTS</div><button type=\"button\" class=\"ss-hit\" data-i=\"0\"><i class=\"ss-logo\" style=\"background:#ff6d00\">Z</i><span><span class=\"nm\">ZZRECOVERED</span><span class=\"ds\">Invented recovered issuer</span></span><span class=\"ss-ex\">SEC ticker source \u00b7 security relationship unverified \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVERED\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"1\"><i class=\"ss-logo\" style=\"background:#26c6da\">Z</i><span><span class=\"nm\">ZZRECOVER</span><span class=\"ds\">Open ZZRECOVER</span></span><span class=\"ss-ex\">direct \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVER\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"2\"><i class=\"ss-logo\" style=\"background:#7e57c2\">Z</i><span><span class=\"nm\">ZZREMOTE</span><span class=\"ds\">Invented remote entry</span></span><span class=\"ss-ex\">symbol \u00b7 instrument \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREMOTE\" title=\"More\">\u25be</span></button>",
+      "layout": {
+        "width": 638,
+        "scroll": 638,
+        "height": 104,
+        "viewport": 1440,
+        "left": 401,
+        "right": 1039,
+        "text": "Using cached catalogs: Security directory. Failed downloads retry on a search after 29 seconds. Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.",
+        "css": {
+          "whiteSpace": "normal",
+          "display": "block",
+          "boxSizing": "border-box",
+          "overflowWrap": "anywhere",
+          "width": "638px"
+        }
+      },
+      "screenshot": {
+        "path": "docs/audit/2026-10-01/warehouse-observations-search-recovery-view-1440.png",
+        "bytes": 88695,
+        "sha256": "e7e96a6a165b8dd8e2760a14d370361833b0dceb7cc639d30330f8e06028ccf8"
+      },
+      "recovered_without_reload": true,
+      "malformed_replacement_preserved": true,
+      "remote_rows_preserved_after_catalog_repaint": true,
+      "cached_generation_visible": true,
+      "old_query_withheld": true,
+      "actual_network_requests": 0
+    },
+    {
+      "width": 390,
+      "requests": [
+        {
+          "host": "invented.justhodl.test",
+          "path": "/chart.html",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/fixture-catalog.js",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/fixture-engine.js",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=tv-watchlists.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=jh-internals.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/warehouse",
+          "query": "?file=finviz-news.json",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=QQQ&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=AAPL&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=MSFT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=NVDA&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=AMZN&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=META&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TSLA&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=XLE&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=GLD&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/tv-watchlists.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/jh-internals.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/finviz-news.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-fund",
+          "query": "?ticker=SPY",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-fund",
+          "query": "?ticker=SPY",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=QQQ&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=AAPL&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=MSFT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/data/symdir/instruments.json.gz",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/indicator-bus.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/provider-catalog.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/cryptoquant-series.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=NVDA&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=AMZN&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=META&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TSLA&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=XLE&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=GLD&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=QQQ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=AAPL&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=MSFT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=NVDA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=AMZN&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=META&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TSLA&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=XLE&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=GLD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/QQQ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AAPL.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/MSFT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/NVDA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/AMZN.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/META.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TSLA.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/XLE.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GLD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/SPY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/CMDY.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/COMT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EEM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZ.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/EWZS.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/GSG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/HYG.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IAT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IEI.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IVV.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/IWM.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LOCK.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/LQD.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "justhodl.ai",
+          "path": "/data/series/TLT.json",
+          "query": "",
+          "method": "GET",
+          "mode": "unavailable"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=ZZREC&limit=80",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=ZZREC",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=ZZREC",
+          "method": "GET",
+          "mode": "recovered"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/symbology/master.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/indicator-bus.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/provider-catalog.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/data/symdir/instruments.json.gz",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/data/cryptoquant-series.json",
+          "query": "",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=FAIL&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=FAIL",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=FAIL",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-A&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-B&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=query-B",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=query-B",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=query-A&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=query-A",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=query-A",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/symsearch",
+          "query": "?q=ZZRECOVER&limit=80",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "justhodl-data-proxy.raafouis.workers.dev",
+          "path": "/tv-search",
+          "query": "?text=ZZRECOVER",
+          "method": "GET",
+          "mode": "malformed"
+        },
+        {
+          "host": "invented.justhodl.test",
+          "path": "/api/yahoo-search",
+          "query": "?q=ZZRECOVER",
+          "method": "GET",
+          "mode": "malformed"
+        }
+      ],
+      "errors": [],
+      "recovered_dom": "<div class=\"cell\" role=\"status\" data-search-status=\"\" style=\"display:block;white-space:normal;overflow-wrap:anywhere;padding:10px 14px\">Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.</div><div class=\"cell\" role=\"status\">Choose a specific result with the arrow keys and Enter, or click a row.</div><div class=\"ss-sec\">RESULTS</div><button type=\"button\" class=\"ss-hit\" data-i=\"0\"><i class=\"ss-logo\" style=\"background:#ff6d00\">Z</i><span><span class=\"nm\">ZZRECOVERED</span><span class=\"ds\">Invented recovered issuer</span></span><span class=\"ss-ex\">SEC ticker source \u00b7 security relationship unverified \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVERED\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"1\"><i class=\"ss-logo\" style=\"background:#2962ff\">Z</i><span><span class=\"nm\">ZZREC</span><span class=\"ds\">Open ZZREC</span></span><span class=\"ss-ex\">direct \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREC\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"2\"><i class=\"ss-logo\" style=\"background:#7e57c2\">Z</i><span><span class=\"nm\">ZZREMOTE</span><span class=\"ds\">Invented remote entry</span></span><span class=\"ss-ex\">symbol \u00b7 instrument \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREMOTE\" title=\"More\">\u25be</span></button>",
+      "final_dom": "<div class=\"cell\" role=\"status\" data-search-status=\"\" style=\"display:block;white-space:normal;overflow-wrap:anywhere;padding:10px 14px\">Using cached catalogs: Security directory. Failed downloads retry on a search after 29 seconds. Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.</div><div class=\"cell\" role=\"status\">Choose a specific result with the arrow keys and Enter, or click a row.</div><div class=\"ss-sec\">RESULTS</div><button type=\"button\" class=\"ss-hit\" data-i=\"0\"><i class=\"ss-logo\" style=\"background:#ff6d00\">Z</i><span><span class=\"nm\">ZZRECOVERED</span><span class=\"ds\">Invented recovered issuer</span></span><span class=\"ss-ex\">SEC ticker source \u00b7 security relationship unverified \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVERED\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"1\"><i class=\"ss-logo\" style=\"background:#26c6da\">Z</i><span><span class=\"nm\">ZZRECOVER</span><span class=\"ds\">Open ZZRECOVER</span></span><span class=\"ss-ex\">direct \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZRECOVER\" title=\"More\">\u25be</span></button><button type=\"button\" class=\"ss-hit\" data-i=\"2\"><i class=\"ss-logo\" style=\"background:#7e57c2\">Z</i><span><span class=\"nm\">ZZREMOTE</span><span class=\"ds\">Invented remote entry</span></span><span class=\"ss-ex\">symbol \u00b7 instrument \ud83c\uddfa\ud83c\uddf8</span><span class=\"ss-more\" data-more=\"ZZREMOTE\" title=\"More\">\u25be</span></button>",
+      "layout": {
+        "width": 365,
+        "scroll": 365,
+        "height": 167,
+        "viewport": 390,
+        "left": 12.703125,
+        "right": 377.296875,
+        "text": "Using cached catalogs: Security directory. Failed downloads retry on a search after 29 seconds. Directory results use a cached generation; its latest check is unavailable or overdue. Provider warehouse search is unavailable. Download checks do not verify observation freshness or security identity.",
+        "css": {
+          "whiteSpace": "normal",
+          "display": "block",
+          "boxSizing": "border-box",
+          "overflowWrap": "anywhere",
+          "width": "364.594px"
+        }
+      },
+      "screenshot": {
+        "path": "docs/audit/2026-10-01/warehouse-observations-search-recovery-view-390.png",
+        "bytes": 58804,
+        "sha256": "d93059865b8722d2b9689bffd6e1fc4acae117f642d0c0cae0ef4bd51edac3ab"
+      },
+      "recovered_without_reload": true,
+      "malformed_replacement_preserved": true,
+      "remote_rows_preserved_after_catalog_repaint": true,
+      "cached_generation_visible": true,
+      "old_query_withheld": true,
+      "actual_network_requests": 0
+    }
+  ]
+}
