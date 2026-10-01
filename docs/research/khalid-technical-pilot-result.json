@@ -1,0 +1,1311 @@
+{
+  "contract": "khalid-technical-pilot-result.v1",
+  "specification_sha256": "6e76232cdf5774d1b463b2c02634e1d37b65fc53fd767a808ed2c6090c89f34d",
+  "runner_sha256": "8240a1e60abc31300c9dbeabfac4071a0ddb25a49b9f3926c2e580d0f92e8edc",
+  "availability_validator_sha256": "3b1928edf01a535b5c46bb1227ae0c5306e2c6e7df49eb4e839dd335a4fc39a8",
+  "specification": {
+    "contract": "khalid-technical-pilot.v1",
+    "status": "frozen_exploratory_subset_before_outcome_run",
+    "frozen_at": "2026-10-01T03:26:00Z",
+    "scorer_path": "jh-khalid-sniper.js",
+    "scorer_sha256": "849b64de3e545d88d49363696b8a0269e60120ba235e69f3f43186d56efe08d6",
+    "window_start": "2020-09-05",
+    "window_end": "2026-09-25",
+    "assets": [
+      "BTC",
+      "ETH",
+      "AAPL"
+    ],
+    "benchmark_audit_only": "SPY",
+    "warmup_bars": 504,
+    "gates_in_order": [
+      "offhigh",
+      "rsi",
+      "bb",
+      "spread",
+      "exhaust"
+    ],
+    "gate_definitions": {
+      "offhigh": "Close at least 50% below trailing 504-bar high",
+      "rsi": "Existing browser Wilder RSI(14) <=45; scorer truncates input to latest 560 bars",
+      "bb": "Existing browser 20-bar Bollinger bandwidth <=20th percentile of approximately 252 bars",
+      "spread": "Median last 10 bar ranges/close <=75% of earlier 40 bars within last 60",
+      "exhaust": "Existing browser capitulation at i-90..i-3: return <=-3%, volume >=1.7x preceding 20-bar median, close location >=0.25"
+    },
+    "horizons_native_bars": [
+      21,
+      63,
+      126
+    ],
+    "sampling": "Every eligible daily close after full in-window warm-up; do not deduplicate events before displaying the gate funnel",
+    "universe": "Convenience sample of publicly accessible existing warehouse objects, not a historical investable universe",
+    "conflicting_duplicate_policy": "Exclude entire affected asset; exact duplicates may be counted then collapsed",
+    "calendar_policy": "Require consecutive calendar dates for BTC/ETH; equity session calendar unverified",
+    "returns": "Retrospective close-to-close gross price changes; not executable fills, total returns, strategy NAV or OOS validation",
+    "omitted": [
+      "3m support unresolved",
+      "SPX decline/resilience definition unresolved",
+      "historical ETF inflow availability unavailable",
+      "point-in-time biotech/smallcap exclusions unavailable",
+      "holdings/classification history unavailable",
+      "all remaining browser/backend gates outside this technical subset"
+    ],
+    "uncertainty": "Report overlap-connected event clusters; no confidence interval or significance claim from this convenience sample",
+    "authority": {
+      "research_only": true,
+      "decision_eligible": false,
+      "validated_strategy": false
+    },
+    "costs": "No commissions, spread, slippage, impact, borrow, funding or dividend model; gross observations only",
+    "training": "No fitting; PR19 validator must exclude labels lacking historical availability, without inventing clocks"
+  },
+  "source_manifest": [
+    {
+      "symbol": "BTC",
+      "url": "https://justhodl.ai/data/warm/katlin/crypto-bars/BTC.json.gz",
+      "file": "BTC.json",
+      "sha256": "003e571cc8270f6696cf19f629d9b8bf72a11a744ae639dd813101679f3c7df0",
+      "bytes": 142678,
+      "acquired_at": "2026-10-01T03:25:00.383294+00:00",
+      "source": "polygon X:BTCUSD daily",
+      "source_as_of": "2026-09-30T03:47:40Z",
+      "first_date": null,
+      "last_date": null
+    },
+    {
+      "symbol": "ETH",
+      "url": "https://justhodl.ai/data/warm/katlin/crypto-bars/ETH.json.gz",
+      "file": "ETH.json",
+      "sha256": "47518ac9ef748026251f524051c8cc091e18fe1c8bc081074c3f2b990b2dc2a2",
+      "bytes": 136387,
+      "acquired_at": "2026-10-01T03:25:00.484249+00:00",
+      "source": "polygon X:ETHUSD daily",
+      "source_as_of": "2026-09-30T03:47:40Z",
+      "first_date": null,
+      "last_date": null
+    },
+    {
+      "symbol": "AAPL",
+      "url": "https://justhodl.ai/data/warm/tv-bars/universe/NASDAQ__AAPL.json.gz",
+      "file": "AAPL.json",
+      "sha256": "8460aa5629b778c5d7e27f311c02a334c1f298da16a51d5e24dcde1be9e95441",
+      "bytes": 1212326,
+      "acquired_at": "2026-10-01T03:25:00.585708+00:00",
+      "source": "yahoo-chart:AAPL",
+      "source_as_of": "2026-10-01T02:30:07+00:00",
+      "first_date": "1980-12-12",
+      "last_date": "2026-09-30"
+    },
+    {
+      "symbol": "SPY",
+      "url": "https://justhodl.ai/data/warm/tv-bars/universe/US__SPY.json.gz",
+      "file": "SPY.json",
+      "sha256": "f242e3515a1952be1ea757f3b1767fac41a36217282b1d0242a31f78602eaeae",
+      "bytes": 781070,
+      "acquired_at": "2026-10-01T03:25:00.670530+00:00",
+      "source": "yahoo-chart:SPY",
+      "source_as_of": "2026-10-01T02:31:08+00:00",
+      "first_date": "1993-01-29",
+      "last_date": "2026-09-30"
+    }
+  ],
+  "quality": [
+    {
+      "symbol": "BTC",
+      "window_rows": 2212,
+      "invalid_rows": 0,
+      "duplicate_rows": 0,
+      "conflicting_dates": 0,
+      "crypto_calendar_gaps": 0,
+      "excluded_reasons": [],
+      "first": "2020-09-05",
+      "last": "2026-09-25",
+      "corporate_action_basis_verified": false,
+      "historical_availability_verified": false
+    },
+    {
+      "symbol": "ETH",
+      "window_rows": 2212,
+      "invalid_rows": 0,
+      "duplicate_rows": 0,
+      "conflicting_dates": 0,
+      "crypto_calendar_gaps": 0,
+      "excluded_reasons": [],
+      "first": "2020-09-05",
+      "last": "2026-09-25",
+      "corporate_action_basis_verified": false,
+      "historical_availability_verified": false
+    },
+    {
+      "symbol": "AAPL",
+      "window_rows": 1527,
+      "invalid_rows": 0,
+      "duplicate_rows": 18,
+      "conflicting_dates": 18,
+      "crypto_calendar_gaps": null,
+      "excluded_reasons": [
+        "conflicting_same_date_bars"
+      ],
+      "first": "2020-09-08",
+      "last": "2026-09-25",
+      "corporate_action_basis_verified": false,
+      "historical_availability_verified": false
+    },
+    {
+      "symbol": "SPY",
+      "window_rows": 1520,
+      "invalid_rows": 0,
+      "duplicate_rows": 0,
+      "conflicting_dates": 0,
+      "crypto_calendar_gaps": null,
+      "excluded_reasons": [],
+      "first": "2020-09-08",
+      "last": "2026-09-25",
+      "corporate_action_basis_verified": false,
+      "historical_availability_verified": false
+    }
+  ],
+  "full_strategy_status": "UNTESTABLE_WITH_AVAILABLE_POINT_IN_TIME_INPUTS",
+  "technical_subset_status": "RETROSPECTIVE_EXPLORATORY_ONLY",
+  "studies": {
+    "BTC": {
+      "funnel": {
+        "after_warmup": 1709,
+        "offhigh": 367,
+        "rsi": 160,
+        "bb": 36,
+        "spread": 15,
+        "exhaust": 13
+      },
+      "outcomes": {
+        "21": {
+          "summary": {
+            "events": 13,
+            "unique_assets": 1,
+            "unique_dates": 13,
+            "overlap_connected_clusters": 3,
+            "mean_gross_price_return_pct": 24.828974713251654,
+            "median_gross_price_return_pct": 26.574476023026918,
+            "min_gross_price_return_pct": 2.2093703372127793,
+            "max_gross_price_return_pct": 37.86380808633816,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 0,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 21,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 13,
+            "accepted_count": 0,
+            "excluded_count": 13,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "BTC@2022-08-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-27",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2023-01-01",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2026-07-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2026-08-01",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2026-08-14",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2026-08-15",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2026-08-16",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 13
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "BTC",
+              "date": "2022-08-19",
+              "endpoint_date": "2022-09-09",
+              "entry_index": 713,
+              "endpoint_index": 734,
+              "gross_price_return_pct": 2.541691984714145
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-01-08",
+              "entry_index": 834,
+              "endpoint_index": 855,
+              "gross_price_return_pct": 2.2093703372127793
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-27",
+              "endpoint_date": "2023-01-17",
+              "entry_index": 843,
+              "endpoint_index": 864,
+              "gross_price_return_pct": 26.574476023026918
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-01-18",
+              "entry_index": 844,
+              "endpoint_index": 865,
+              "gross_price_return_pct": 24.998276869052937
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-01-19",
+              "entry_index": 845,
+              "endpoint_index": 866,
+              "gross_price_return_pct": 26.793394592514197
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-01-20",
+              "entry_index": 846,
+              "endpoint_index": 867,
+              "gross_price_return_pct": 36.56429780543493
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-01-21",
+              "entry_index": 847,
+              "endpoint_index": 868,
+              "gross_price_return_pct": 37.86380808633816
+            },
+            {
+              "symbol": "BTC",
+              "date": "2023-01-01",
+              "endpoint_date": "2023-01-22",
+              "entry_index": 848,
+              "endpoint_index": 869,
+              "gross_price_return_pct": 36.741176938015506
+            },
+            {
+              "symbol": "BTC",
+              "date": "2026-07-31",
+              "endpoint_date": "2026-08-21",
+              "entry_index": 2155,
+              "endpoint_index": 2176,
+              "gross_price_return_pct": 24.670780681215867
+            },
+            {
+              "symbol": "BTC",
+              "date": "2026-08-01",
+              "endpoint_date": "2026-08-22",
+              "entry_index": 2156,
+              "endpoint_index": 2177,
+              "gross_price_return_pct": 22.76813852482786
+            },
+            {
+              "symbol": "BTC",
+              "date": "2026-08-14",
+              "endpoint_date": "2026-09-04",
+              "entry_index": 2169,
+              "endpoint_index": 2190,
+              "gross_price_return_pct": 26.518268543532763
+            },
+            {
+              "symbol": "BTC",
+              "date": "2026-08-15",
+              "endpoint_date": "2026-09-05",
+              "entry_index": 2170,
+              "endpoint_index": 2191,
+              "gross_price_return_pct": 26.679075671923048
+            },
+            {
+              "symbol": "BTC",
+              "date": "2026-08-16",
+              "endpoint_date": "2026-09-06",
+              "entry_index": 2171,
+              "endpoint_index": 2192,
+              "gross_price_return_pct": 27.85391521446239
+            }
+          ]
+        },
+        "63": {
+          "summary": {
+            "events": 8,
+            "unique_assets": 1,
+            "unique_dates": 8,
+            "overlap_connected_clusters": 2,
+            "mean_gross_price_return_pct": 33.06012263137716,
+            "median_gross_price_return_pct": 36.87214322508325,
+            "min_gross_price_return_pct": -8.008134412674083,
+            "max_gross_price_return_pct": 44.91978513876455,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 5,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 63,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 8,
+            "accepted_count": 0,
+            "excluded_count": 8,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "BTC@2022-08-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-27",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2023-01-01",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 8
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "BTC",
+              "date": "2022-08-19",
+              "endpoint_date": "2022-10-21",
+              "entry_index": 713,
+              "endpoint_index": 776,
+              "gross_price_return_pct": -8.008134412674083
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-02-19",
+              "entry_index": 834,
+              "endpoint_index": 897,
+              "gross_price_return_pct": 44.91978513876455
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-27",
+              "endpoint_date": "2023-02-28",
+              "entry_index": 843,
+              "endpoint_index": 906,
+              "gross_price_return_pct": 38.532690809420835
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-03-01",
+              "entry_index": 844,
+              "endpoint_index": 907,
+              "gross_price_return_pct": 42.965453945244334
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-03-02",
+              "entry_index": 845,
+              "endpoint_index": 908,
+              "gross_price_return_pct": 41.1300875589339
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-03-03",
+              "entry_index": 846,
+              "endpoint_index": 909,
+              "gross_price_return_pct": 34.68701995771111
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-03-04",
+              "entry_index": 847,
+              "endpoint_index": 910,
+              "gross_price_return_pct": 35.21159564074567
+            },
+            {
+              "symbol": "BTC",
+              "date": "2023-01-01",
+              "endpoint_date": "2023-03-05",
+              "entry_index": 848,
+              "endpoint_index": 911,
+              "gross_price_return_pct": 35.042482412871
+            }
+          ]
+        },
+        "126": {
+          "summary": {
+            "events": 8,
+            "unique_assets": 1,
+            "unique_dates": 8,
+            "overlap_connected_clusters": 1,
+            "mean_gross_price_return_pct": 61.28064108650692,
+            "median_gross_price_return_pct": 72.65679750475124,
+            "min_gross_price_return_pct": -19.47560204157055,
+            "max_gross_price_return_pct": 77.93121728182362,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 5,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 126,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 8,
+            "accepted_count": 0,
+            "excluded_count": 8,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "BTC@2022-08-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-27",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "BTC@2023-01-01",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 8
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "BTC",
+              "date": "2022-08-19",
+              "endpoint_date": "2022-12-23",
+              "entry_index": 713,
+              "endpoint_index": 839,
+              "gross_price_return_pct": -19.47560204157055
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-04-23",
+              "entry_index": 834,
+              "endpoint_index": 960,
+              "gross_price_return_pct": 64.68504923903313
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-27",
+              "endpoint_date": "2023-05-02",
+              "entry_index": 843,
+              "endpoint_index": 969,
+              "gross_price_return_pct": 71.77593745153077
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-05-03",
+              "entry_index": 844,
+              "endpoint_index": 970,
+              "gross_price_return_pct": 75.57041680421483
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-05-04",
+              "entry_index": 845,
+              "endpoint_index": 971,
+              "gross_price_return_pct": 73.53765755797173
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-05-05",
+              "entry_index": 846,
+              "endpoint_index": 972,
+              "gross_price_return_pct": 77.93121728182362
+            },
+            {
+              "symbol": "BTC",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-05-06",
+              "entry_index": 847,
+              "endpoint_index": 973,
+              "gross_price_return_pct": 74.84602564374016
+            },
+            {
+              "symbol": "BTC",
+              "date": "2023-01-01",
+              "endpoint_date": "2023-05-07",
+              "entry_index": 848,
+              "endpoint_index": 974,
+              "gross_price_return_pct": 71.37442675531165
+            }
+          ]
+        }
+      }
+    },
+    "ETH": {
+      "funnel": {
+        "after_warmup": 1709,
+        "offhigh": 675,
+        "rsi": 300,
+        "bb": 56,
+        "spread": 25,
+        "exhaust": 10
+      },
+      "outcomes": {
+        "21": {
+          "summary": {
+            "events": 10,
+            "unique_assets": 1,
+            "unique_dates": 10,
+            "overlap_connected_clusters": 2,
+            "mean_gross_price_return_pct": 11.914499871330325,
+            "median_gross_price_return_pct": 11.03134016755478,
+            "min_gross_price_return_pct": -16.197424575730235,
+            "max_gross_price_return_pct": 38.291218413810356,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 0,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 21,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 10,
+            "accepted_count": 0,
+            "excluded_count": 10,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "ETH@2022-12-17",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 10
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "ETH",
+              "date": "2022-12-17",
+              "endpoint_date": "2023-01-07",
+              "entry_index": 833,
+              "endpoint_index": 854,
+              "gross_price_return_pct": 6.476504978686859
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-01-08",
+              "entry_index": 834,
+              "endpoint_index": 855,
+              "gross_price_return_pct": 9.008552209038978
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-19",
+              "endpoint_date": "2023-01-09",
+              "entry_index": 835,
+              "endpoint_index": 856,
+              "gross_price_return_pct": 13.054128126070585
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-01-18",
+              "entry_index": 844,
+              "endpoint_index": 865,
+              "gross_price_return_pct": 27.0416400390165
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-01-19",
+              "entry_index": 845,
+              "endpoint_index": 866,
+              "gross_price_return_pct": 29.27634320769501
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-01-20",
+              "entry_index": 846,
+              "endpoint_index": 867,
+              "gross_price_return_pct": 38.291218413810356
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-01-21",
+              "entry_index": 847,
+              "endpoint_index": 868,
+              "gross_price_return_pct": 36.105417276720345
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-28",
+              "endpoint_date": "2025-04-18",
+              "entry_index": 1665,
+              "endpoint_index": 1686,
+              "gross_price_return_pct": -16.197424575730235
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-29",
+              "endpoint_date": "2025-04-19",
+              "entry_index": 1666,
+              "endpoint_index": 1687,
+              "gross_price_return_pct": -11.739147089564906
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-30",
+              "endpoint_date": "2025-04-20",
+              "entry_index": 1667,
+              "endpoint_index": 1688,
+              "gross_price_return_pct": -12.172233872440252
+            }
+          ]
+        },
+        "63": {
+          "summary": {
+            "events": 10,
+            "unique_assets": 1,
+            "unique_dates": 10,
+            "overlap_connected_clusters": 2,
+            "mean_gross_price_return_pct": 38.23076441731964,
+            "median_gross_price_return_pct": 39.21663310095589,
+            "min_gross_price_return_pct": 30.889834042198316,
+            "max_gross_price_return_pct": 45.90870161014049,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 0,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 63,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 10,
+            "accepted_count": 0,
+            "excluded_count": 10,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "ETH@2022-12-17",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 10
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "ETH",
+              "date": "2022-12-17",
+              "endpoint_date": "2023-02-18",
+              "entry_index": 833,
+              "endpoint_index": 896,
+              "gross_price_return_pct": 42.521860731555286
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-02-19",
+              "entry_index": 834,
+              "endpoint_index": 897,
+              "gross_price_return_pct": 41.9928675252679
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-19",
+              "endpoint_date": "2023-02-20",
+              "entry_index": 835,
+              "endpoint_index": 898,
+              "gross_price_return_pct": 45.90870161014049
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-03-01",
+              "entry_index": 844,
+              "endpoint_index": 907,
+              "gross_price_return_pct": 40.022199051495065
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-03-02",
+              "entry_index": 845,
+              "endpoint_index": 908,
+              "gross_price_return_pct": 37.35225965625884
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-03-03",
+              "entry_index": 846,
+              "endpoint_index": 909,
+              "gross_price_return_pct": 30.889834042198316
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-03-04",
+              "entry_index": 847,
+              "endpoint_index": 910,
+              "gross_price_return_pct": 31.078853796276928
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-28",
+              "endpoint_date": "2025-05-30",
+              "entry_index": 1665,
+              "endpoint_index": 1728,
+              "gross_price_return_pct": 33.56861379714182
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-29",
+              "endpoint_date": "2025-05-31",
+              "entry_index": 1666,
+              "endpoint_index": 1729,
+              "gross_price_return_pct": 38.41106715041671
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-30",
+              "endpoint_date": "2025-06-01",
+              "entry_index": 1667,
+              "endpoint_index": 1730,
+              "gross_price_return_pct": 40.561386812445036
+            }
+          ]
+        },
+        "126": {
+          "summary": {
+            "events": 10,
+            "unique_assets": 1,
+            "unique_dates": 10,
+            "overlap_connected_clusters": 2,
+            "mean_gross_price_return_pct": 67.83057463308631,
+            "median_gross_price_return_pct": 59.616887539417704,
+            "min_gross_price_return_pct": 56.53474919565906,
+            "max_gross_price_return_pct": 93.50913789001333,
+            "confidence_interval": null,
+            "uncertainty_reason": "Convenience sample with overlapping events; no independence or significance claim"
+          },
+          "right_censored_events": 0,
+          "native_bar_unit": "calendar_day",
+          "audit_usage": "Availability diagnostic at freeze instant, not a historical train/test split",
+          "training_availability_audit": {
+            "contract": "katlin-offline-label-boundary.v1",
+            "status": "no_eligible_training_evidence",
+            "research_only": true,
+            "validated_strategy": false,
+            "decision_eligible": false,
+            "horizon_sessions": 126,
+            "fold": {
+              "test_start_index": 2212,
+              "test_start_at": "2026-10-01T03:26:00+00:00",
+              "rule": "Entry, label endpoint and label availability strictly precede test start"
+            },
+            "input_count": 10,
+            "accepted_count": 0,
+            "excluded_count": 10,
+            "accepted_ids": [],
+            "excluded": [
+              {
+                "id": "ETH@2022-12-17",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-18",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-19",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2022-12-31",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-28",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-29",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              },
+              {
+                "id": "ETH@2025-03-30",
+                "reasons": [
+                  "missing_or_invalid_boundary_evidence"
+                ]
+              }
+            ],
+            "exclusion_reason_counts": {
+              "missing_or_invalid_boundary_evidence": 10
+            },
+            "limitations": [
+              "Supplied availability and source references require independent verification.",
+              "Current-universe selection is not point-in-time membership; survivorship remains unresolved.",
+              "Historical flows, fundamentals, holdings and catalysts are not established by price labels.",
+              "No portfolio performance, execution costs, capacity or strategy validation is established."
+            ]
+          },
+          "events": [
+            {
+              "symbol": "ETH",
+              "date": "2022-12-17",
+              "endpoint_date": "2023-04-22",
+              "entry_index": 833,
+              "endpoint_index": 959,
+              "gross_price_return_pct": 57.88755412531803
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-18",
+              "endpoint_date": "2023-04-23",
+              "entry_index": 834,
+              "endpoint_index": 960,
+              "gross_price_return_pct": 57.34543487813948
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-19",
+              "endpoint_date": "2023-04-24",
+              "entry_index": 835,
+              "endpoint_index": 961,
+              "gross_price_return_pct": 57.774066461116846
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-28",
+              "endpoint_date": "2023-05-03",
+              "entry_index": 844,
+              "endpoint_index": 970,
+              "gross_price_return_pct": 60.26117520433218
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-29",
+              "endpoint_date": "2023-05-04",
+              "entry_index": 845,
+              "endpoint_index": 971,
+              "gross_price_return_pct": 56.53474919565906
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-30",
+              "endpoint_date": "2023-05-05",
+              "entry_index": 846,
+              "endpoint_index": 972,
+              "gross_price_return_pct": 66.43816195479944
+            },
+            {
+              "symbol": "ETH",
+              "date": "2022-12-31",
+              "endpoint_date": "2023-05-06",
+              "entry_index": 847,
+              "endpoint_index": 973,
+              "gross_price_return_pct": 58.97259987450323
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-28",
+              "endpoint_date": "2025-08-01",
+              "entry_index": 1665,
+              "endpoint_index": 1791,
+              "gross_price_return_pct": 83.91916058682958
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-29",
+              "endpoint_date": "2025-08-02",
+              "entry_index": 1666,
+              "endpoint_index": 1792,
+              "gross_price_return_pct": 85.6637061601519
+            },
+            {
+              "symbol": "ETH",
+              "date": "2025-03-30",
+              "endpoint_date": "2025-08-03",
+              "entry_index": 1667,
+              "endpoint_index": 1793,
+              "gross_price_return_pct": 93.50913789001333
+            }
+          ]
+        }
+      }
+    }
+  },
+  "benchmark_status": "AUDIT_ONLY_NO_CROSS_VENUE_SESSION_ALIGNMENT_OR_RESILIENCE_DEFINITION",
+  "limitations": [
+    "No source first-availability evidence; no out-of-sample validity or training eligibility",
+    "No full strategy, portfolio NAV, capital policy or accuracy inference",
+    "Acquired prices can contain revisions, adjustment changes and vendor errors",
+    "Asset convenience sample and omitted gates preclude population inference"
+  ]
+}
