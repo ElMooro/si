@@ -19,3 +19,7 @@ if __name__ == '__main__':
     from sector_consumer_test_support import SectorBoundaries
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SectorBoundaries))
     if not result.wasSuccessful():raise SystemExit(1)
+
+if __name__ == '__main__':
+    import subprocess
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_katlin_permission.py'))], check=True)

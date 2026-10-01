@@ -46,6 +46,7 @@ TG_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 DEDUP_HOURS = 6
 HISTORY_KEY = "data/alert-history.json"
 STATE_KEY = "alerts-state.json"
+ENGINE_VERSION = "1.0.0"  # First explicit engine identity: current Katlin permission gate.
 
 # WebSocket broadcast endpoint — fans alerts out to all subscribed clients
 # in real time (parallel to the existing Telegram path).
@@ -1062,6 +1063,7 @@ def lambda_handler(event=None, context=None):
         "wss_ok": n_wss_ok,
     }
 
+    history["engine_version"] = ENGINE_VERSION
     write_json(HISTORY_KEY, history)
     write_json(STATE_KEY, state)
 
