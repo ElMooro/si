@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "exact_public_artifact_boundary_checked",
   "source_only_discovery": {
     "scope": "Workflow source and public build-manifest metadata only; no test fixture, application, provider, private or account body fetched.",
     "checked_at": "2026-10-01T18:04:46.521489+00:00",
@@ -31,7 +31,31 @@
   },
   "scope": "Align Pages assembly deny roots with the public route source scanner and reject repository-only roots in the complete artifact before its manifest/upload. No source tree is deleted from Git.",
   "application_or_fixture_bodies_requested": 0,
-  "live_removal_verified": false,
+  "live_removal_verified": true,
   "source_qualified": false,
-  "investment_authority": false
+  "investment_authority": false,
+  "source_commit": "b7775162679f559ae61778983c8d1db675331a2a",
+  "validation": {
+    "invented_copy_loop_and_final_gate_tests": 6
+  },
+  "static_acceptance": {
+    "served_commit": "b7775162679f559ae61778983c8d1db675331a2a",
+    "build_manifest_sha256": "c2a36a18ad2bb0469191d888895e26a2bcd9122e10e7588be9b7d6f3a11c4aa4",
+    "forbidden_root_paths": 0,
+    "removed_path_head_checks": [
+      {
+        "path": "tests/fixtures/wyckoff-desk-before-permission.html",
+        "method": "HEAD",
+        "status": 404,
+        "response_body_bytes_read": 0
+      },
+      {
+        "path": "tests/observation-cache-preservation.test.js",
+        "method": "HEAD",
+        "status": 404,
+        "response_body_bytes_read": 0
+      }
+    ],
+    "test_fixture_body_reads": 0
+  }
 }
