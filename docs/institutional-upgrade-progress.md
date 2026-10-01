@@ -7312,3 +7312,16 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2` matches the exact served Pages build, run 36862246172. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - 2,578 frontend cases, 1018 deployment and fifteen shell checks pass. Thirteen new cases and fifteen offline real-library desktop/mobile suites verify literal symbols, notes, labels and quoted IDs, including query/hash entry, navigation recovery, alert deletion and comparison removal. The previous source fails all eight focused cases.
 - This closes the reproduced chart-label injection paths. It does not establish that every HTML sink, other page, annotation, URL, CSS value or dependency is safe. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
+
+
+## Stage 510: signed display and explicit OHLC volume estimate (candidate)
+
+- The complete predecessor browser shows a computed −100 as Δ 100. The quantity is a close-location multiplier times volume, not measured signed trade flow. Whole invented inputs and predecessor source are retained.
+- The quote now names CLV × Vol and discloses its formula and limits. Nonflat measured-zero volume remains zero; flat, invalid and numerically unrepresentable estimates remain unavailable. Ordinary complete-frame arithmetic is preserved. A shared signed formatter retains negative signs in the quote and existing QR summary without qualifying upstream tape measurements.
+- Eleven focused cases and desktop/mobile whole-module prototypes pass. Four preservation cases bind unchanged source and all earlier assertions. Full combined regression and exact publication remain pending; all institutional workstreams remain OPEN.
+
+- Stage 510 combined checks passed 2,593 frontend cases, 1018 deployment and fifteen shell checks. Fifteen new behavior/preservation cases and sixteen offline desktop/mobile suites pass. Signed labels and the bounded close-location estimate are verified within this scope; exact static release remains pending.
+
+- Stage 510 after incoming source integration: 2,600 frontend, 1,018 deployment and fifteen shell checks pass. The incoming Tape Reader whole-page invented browser cases also pass. A separate native short-interest suite exposes one pre-existing squeeze-pretrigger reader guard regression (38/39 pass); it is queued for the immediately following engine batch and is not covered by static chart acceptance. Operation 6411 is a read-only native control baseline, not a producer invocation.
+
+- Stage 510 final incoming review: peer fixture migration retires an obsolete squeeze reader expectation; rerunning the native short-interest suite exposes the analogous obsolete equity-enrich expectation (38/39 still pass). Source review confirms both now read a separate descriptive ticker packet. The earlier missing-guard diagnosis is not evidence of a scoring regression; direct coverage of the new readers and removal of unsupported legacy forecast/sizing prose remain open. No application source changed after the full combined checks.
