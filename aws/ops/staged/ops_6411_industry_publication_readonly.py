@@ -217,7 +217,7 @@ def observe(api):
             result[key] = {'status': 'unavailable', 'reason': 'invalid_response'}
             result['read_errors'].append(key)
     result['api_calls'] = api.calls
-    result['bounded_reads_complete'] = not result['read_errors'] and not any(result[k].get('bounded_scope_incomplete') for k in ('rules', 'schedules')) and all(v.get('api_complete', False) for v in result.get('metrics', {}).get('series', {}).values()) and bool(result.get('metrics', {}).get('series'))
+    result['bounded_reads_complete'] = not result['read_errors'] and not any(result[k].get('bounded_scope_incomplete') for k in ('rules', 'schedules')) and all(v.get('api_complete', False) and v.get('status') == 'observed' for v in result.get('metrics', {}).get('series', {}).values()) and bool(result.get('metrics', {}).get('series'))
     return result
 
 

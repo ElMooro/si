@@ -80,7 +80,8 @@ class ProbeTests(unittest.TestCase):
         self.assertFalse(r['metrics']['series']['invocations']['all_minutes_reported'])
 
     def test_absent_metrics_stay_unknown(self):
-        for rows in ([], [{'Id':'invocations','StatusCode':'Complete','Values':[],'Timestamps':[]}]):
+        for rows in ([], [{'Id':'invocations','StatusCode':'Complete','Values':[],'Timestamps':[]}],
+                     [{'Id':k,'StatusCode':'Complete','Values':[],'Timestamps':[]} for k in ('invocations','errors','throttles','duration')]):
             f=Fake();f.overrides['get_metric_data']={'MetricDataResults':rows}
             r,_=run(f)
             self.assertIsNone(r['metrics']['series']['invocations']['observed_value'])
