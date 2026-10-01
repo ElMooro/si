@@ -6974,3 +6974,9 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
   replay and all ten institutional workstreams remain OPEN.
 
 - Before shipping, complete offline browser reproduction confirmed attempted first-candidate routing on identifier Enter and HTML/event execution from an invented source name. The same atomic batch repairs this UI boundary, old-query asynchronous repaint, row identity selection and mobile metadata wrapping. Eleven focused policy/renderer tests and the final full cycle pass. Desktop/mobile search QA passes at 1440/390 pixels with zero page exceptions or actual network requests; screenshots are retained in the audit. Browser tests isolate full chart/catalog modules with full chart HTML/CSS, disable unrelated scripts and replace chart drawing with an inert fixture.
+
+
+### Stage 493 runtime acceptance ordering correction
+
+- Native receipt and 58 static files match source `c814ee9d14ba888d196664c77dcc4e92341ac7ef`. Runtime operation 6404 failed in run `36805763655` before returning selected runtime evidence; report commit `0cf6254ed` is retained. No native acceptance is claimed from that run. Its validator compared ordered scheduler arrays before its normalization step. A reversed complete invented seven-schedule fixture reproduces that error.
+- New read-only operation 6405 sorts complete schedule rows before the same exact control validation. Regression cases accept order changes only, preserve the original input, and reject every changed cadence, duplicate, omitted or malformed binding. All native source hashes and required resource values remain unchanged. A successful new native inspection is still required.

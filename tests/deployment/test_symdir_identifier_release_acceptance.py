@@ -3,7 +3,7 @@ from copy import deepcopy
 from types import SimpleNamespace
 import importlib.util,sys
 ROOT=Path(__file__).resolve().parents[2]
-spec=importlib.util.spec_from_file_location('symdir_release_operation',ROOT/'aws/ops/staged/ops_6404_symdir_identifier_integrity_acceptance.py')
+spec=importlib.util.spec_from_file_location('symdir_release_operation',ROOT/'aws/ops/staged/ops_6405_symdir_ordered_runtime_acceptance.py')
 op=importlib.util.module_from_spec(spec);spec.loader.exec_module(op)
 
 def value():
@@ -33,6 +33,25 @@ def test_symdir_acceptance_refuses_every_other_object_or_write():
     wrapper.get_object(Bucket=op.BUCKET,Key='data/ops/releases/'+op.FN+'.json')
     reject(lambda:wrapper.get_object(Bucket=op.BUCKET,Key='data/symdir/master.json'))
     assert len(calls)==1 and not hasattr(wrapper,'put_object')
+
+def test_symdir_schedule_order_is_not_control_drift():
+    original=value();reversed_value=deepcopy(original)
+    reversed_value['schedules'].reverse()
+    assert op.normalized(reversed_value,'a'*40)==op.normalized(original,'a'*40)
+    assert reversed_value['schedules']==list(reversed(original['schedules']))
+    # This is the exact predecessor failure: validation ran before sorting.
+    reject(lambda:op.validate(reversed_value,'a'*40))
+
+
+def test_symdir_order_normalization_preserves_every_real_difference():
+    for bad in (None,[None],[{'kind':True}],[] ):
+        reject(lambda:op.normalized({**value(),'schedules':bad},'a'*40))
+    for index in range(7):
+        changed=value();changed['schedules'].reverse();changed['schedules'][index]['expression']='rate(2 minutes)'
+        reject(lambda:op.normalized(changed,'a'*40))
+    for mutate in (lambda rows:rows.append(deepcopy(rows[0])),lambda rows:rows.pop()):
+        changed=value();mutate(changed['schedules']);reject(lambda:op.normalized(changed,'a'*40))
+
 
 if __name__=='__main__':
     tests=[v for k,v in globals().copy().items() if k.startswith('test_') and callable(v)]
