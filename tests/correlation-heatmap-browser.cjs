@@ -1,0 +1,31 @@
+// Entire page, synthetic packets, all requests intercepted; no production/provider access.
+const {chromium}=require('playwright'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const html=fs.readFileSync(path.join(__dirname,'../correlation.html'),'utf8');
+const warm={schema_version:'1.0',generated_at:'2026-10-01T00:00:00Z',status:'warming_up',message:'Insufficient aligned data: 0 dates (need ≥312)',n_dates_aligned:0,n_instruments:2,instruments:['SP500','DGS10'],labels:{SP500:'S&P 500',DGS10:'10Y Yield'}};
+const valid={...warm,status:'ok',signal:'NORMAL',interpretation:'Invented backend interpretation preserved',n_dates_aligned:400,window_days:60,latest_matrix:[[1,0],[null,1]],delta_matrix:[[0,-0.25],[0.25,null]]};
+(async()=>{const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});try{for(const width of [1440,390]){
+const page=await browser.newPage({viewport:{width,height:950}}),errors=[];let packet=warm,feedReads=0;page.on('pageerror',e=>errors.push(e.message));
+await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.hostname==='heatmap-preview.invalid'&&url.pathname==='/correlation.html')return route.fulfill({contentType:'text/html',body:html});if(url.pathname==='/data/correlation-breaks.json'){feedReads++;return route.fulfill({contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify(packet)});}return route.abort();});
+await page.goto('https://heatmap-preview.invalid/correlation.html');await page.locator('#heatmap-table').getByText('Latest matrix is unavailable',{exact:false}).waitFor();
+for(const mode of ['prior','delta','latest','prior','delta','latest']){await page.locator('#hm-'+mode).click();assert.match(await page.locator('#heatmap-table').innerText(),new RegExp(mode==='prior'?'Prior matrix is not published':mode==='delta'?'Delta matrix is unavailable':'Latest matrix is unavailable'));assert.match(await page.locator('#heatmap-table').innerText(),/0 dates \(need ≥312\)/);assert.equal(await page.locator('.heatmap-toggle [aria-pressed="true"]').getAttribute('id'),'hm-'+mode);}
+assert.equal(feedReads,1);await page.locator('#hm-latest').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'hm-prior');await page.keyboard.press('Enter');assert.equal(await page.locator('#hm-prior').getAttribute('aria-pressed'),'true');await page.keyboard.press('Tab');await page.keyboard.press('Space');assert.equal(await page.locator('#hm-delta').getAttribute('aria-pressed'),'true');await page.keyboard.press('Tab');assert.equal(await page.locator('.heatmap-wrap').evaluate(e=>e===document.activeElement),true);
+await page.locator('#heatmap-section').screenshot({path:'/tmp/correlation-empty-'+width+'.png'});
+packet=valid;await page.evaluate(()=>loadData());assert.match(await page.locator('#heatmap-table').innerText(),/-0\.25/);assert.equal(await page.locator('#hm-delta').getAttribute('aria-pressed'),'true');assert.equal(await page.locator('.heatmap-cell').count(),4);assert.equal(await page.locator('#footer-ts').innerText(),valid.generated_at);assert.equal(await page.locator('#composite-desc').innerText(),valid.interpretation);
+for(const mode of ['latest','prior','delta','latest']){await page.locator('#hm-'+mode).click();if(mode==='prior')assert.equal(await page.locator('.heatmap-cell').count(),0);else{assert.equal(await page.locator('.heatmap-cell').count(),4);assert.match(await page.locator('#heatmap-table').innerText(),/0\.00/);}}
+assert.equal(feedReads,2);await page.locator('#heatmap-section').screenshot({path:'/tmp/correlation-valid-'+width+'.png'});
+packet=warm;await page.evaluate(()=>loadData());assert.match(await page.locator('#heatmap-table').innerText(),/Latest matrix is unavailable/);assert.equal(await page.locator('.heatmap-cell').count(),0);
+await page.evaluate(async ({valid,warm})=>{
+ const original=window.fetch;let release,started;const pending=new Promise(resolve=>release=resolve),began=new Promise(resolve=>started=resolve);
+ try {window.fetch=async()=>({ok:true,json:()=>{started();return pending;}});const older=loadData();await began;
+ window.fetch=async()=>({ok:true,json:async()=>({...warm,generated_at:'2026-10-01T03:00:00Z'})});await loadData();release(valid);await older;
+ } finally {window.fetch=original;}
+},{valid,warm});
+assert.equal(await page.locator('.heatmap-cell').count(),0);assert.equal(await page.locator('#footer-ts').innerText(),'2026-10-01T03:00:00Z');
+packet=valid;await page.evaluate(()=>loadData());assert.equal(await page.locator('.heatmap-cell').count(),4);
+await page.evaluate(async()=>{const original=window.fetch;try{window.fetch=async()=>{throw Error('Synthetic current refresh failure');};await loadData();}finally{window.fetch=original;}});
+for(const mode of ['prior','delta','latest','prior','latest']){await page.locator('#hm-'+mode).click();assert.equal(await page.locator('.heatmap-cell').count(),0);assert.equal(await page.locator('#hm-'+mode).getAttribute('aria-pressed'),'true');}
+assert.match(await page.locator('#errorBanner').innerText(),/Failed to load/);assert.equal(await page.locator('#footer-ts').innerText(),'Unavailable');
+packet=valid;await page.evaluate(()=>loadData());assert.equal(await page.locator('.heatmap-cell').count(),4);assert.equal(await page.locator('#errorBanner').isVisible(),false);
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
+console.log(JSON.stringify({width,missingViews:true,repeatedSwitches:true,validMatrices:true,refreshClearsStale:true,overlapGuard:true,failedRefreshSwitching:true,keyboard:true,noPageOverflow:true,feedReads,externalNetwork:false}));await page.close();
+}}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
