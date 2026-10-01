@@ -1,0 +1,379 @@
+{
+  "stage": 492,
+  "status": "baseline_accepted_repair_in_progress",
+  "baseline": {
+    "run_id": 36799748881,
+    "operation_commit": "9216a8caecb41c3e780d31b40a054fed6537c704",
+    "report_commit": "b44751606aa7db5066964c86374db58e1f4968d0",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6401_coverage_runtime_baseline.md",
+      "bytes": 2528,
+      "sha256": "f105b0d582413676ccb956b3f3d20b97d5f187e75708735b31a44229764804de"
+    },
+    "evidence": {
+      "status": "baseline_observed",
+      "repository_source_commit": "281862152ccba8f7f324580068b349d13a9d55f7",
+      "commit_bound_release_verified": false,
+      "reviewed_source_hashes": {
+        "aws/lambdas/justhodl-coverage-gap-report/source/lambda_function.py": "cfe938f70fc781c211088d0ec1e60bb95043e559759d25955dfdeae7a5912258"
+      },
+      "native_before": {
+        "code_sha256": "MCBwqgoD43tK+OnCP6USHDFy5f/AE6Z4ChIGFMNpNc4=",
+        "source_files_checked": 1,
+        "handler_bytes": 3310,
+        "timeout": 120,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "missing_predecessor_receipt"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-coverage-gap-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 6 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-coverage-gap-report",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "native_after": {
+        "code_sha256": "MCBwqgoD43tK+OnCP6USHDFy5f/AE6Z4ChIGFMNpNc4=",
+        "source_files_checked": 1,
+        "handler_bytes": 3310,
+        "timeout": 120,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "missing_predecessor_receipt"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-coverage-gap-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 6 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-coverage-gap-report",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "declared_settings": {
+        "function_name": "justhodl-coverage-gap-report",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory_mb": 1024,
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role"
+      },
+      "declared_settings_match": true,
+      "all_observed_schedules_enabled": true,
+      "normal_publication_verified": false,
+      "source_replay_verified": false,
+      "investment_authority": false,
+      "native_invocations": 0,
+      "provider_requests": 0,
+      "current_packet_reads": 0,
+      "private_reads": 0,
+      "account_reads": 0,
+      "consumer_reads": 0,
+      "native_writes": 0,
+      "schedule_changes": 0,
+      "application_log_queries": 0,
+      "scope": "Exact native package, public release receipt and selected resource/schedule controls only. No environment values, signed package URL, source summaries, original archive, current report or logs are returned."
+    }
+  },
+  "predecessor_reproductions": {
+    "source_sha256": "cfe938f70fc781c211088d0ec1e60bb95043e559759d25955dfdeae7a5912258",
+    "whole_predecessor_bytes": 3310,
+    "cases": {
+      "failed_inputs_claim_measured_zeros": {
+        "inputs": {},
+        "reads": [
+          "data/symbology/master.json",
+          "data/warm/edgar-filings/latest-summary.json",
+          "data/warm/nyfed/latest-summary.json",
+          "data/audit/data-source-rollup.json"
+        ],
+        "output": {
+          "as_of": "2026-10-01T00:45:14+00:00",
+          "spec": "E11 coverage-gap report",
+          "metrics": [
+            {
+              "metric": "us_tickers",
+              "actual": null,
+              "target": 320000,
+              "pct_of_target": null,
+              "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+            },
+            {
+              "metric": "figi_ids",
+              "actual": null,
+              "target": 0,
+              "pct_of_target": null,
+              "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+            },
+            {
+              "metric": "cusips",
+              "actual": 0,
+              "target": 500000,
+              "pct_of_target": 0.0,
+              "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+            },
+            {
+              "metric": "edgar_filings_qtd",
+              "actual": null,
+              "target": null,
+              "pct_of_target": null,
+              "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+            },
+            {
+              "metric": "nyfed_reference_rates",
+              "actual": 0,
+              "target": 5,
+              "pct_of_target": 0.0,
+              "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+            },
+            {
+              "metric": "fred_feeds_in_use",
+              "actual": null,
+              "target": 45000,
+              "pct_of_target": null,
+              "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+            }
+          ],
+          "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+        },
+        "error": null
+      },
+      "declared_count_and_invalid_figi_counted": {
+        "inputs": {
+          "data/symbology/master.json": {
+            "as_of": "2001-01-01T00:00:00Z",
+            "n_tickers": 999,
+            "by_ticker": {
+              "TEST": {
+                "cik": "0000000123",
+                "figi": true,
+                "cusip": "123456789"
+              }
+            }
+          },
+          "data/warm/edgar-filings/latest-summary.json": {
+            "n_filings": 2,
+            "complete": false
+          },
+          "data/warm/nyfed/latest-summary.json": {
+            "rates": {
+              "SOFR": {
+                "n_obs": true
+              },
+              "NOT_A_RATE": {
+                "n_obs": 1
+              }
+            }
+          },
+          "data/audit/data-source-rollup.json": {
+            "global_feed_counts": {
+              "fred": true
+            }
+          }
+        },
+        "reads": [
+          "data/symbology/master.json",
+          "data/warm/edgar-filings/latest-summary.json",
+          "data/warm/nyfed/latest-summary.json",
+          "data/audit/data-source-rollup.json"
+        ],
+        "output": {
+          "as_of": "2026-10-01T00:45:14+00:00",
+          "spec": "E11 coverage-gap report",
+          "metrics": [
+            {
+              "metric": "us_tickers",
+              "actual": 999,
+              "target": 320000,
+              "pct_of_target": 0.31,
+              "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+            },
+            {
+              "metric": "figi_ids",
+              "actual": 1,
+              "target": 999,
+              "pct_of_target": 0.1,
+              "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+            },
+            {
+              "metric": "cusips",
+              "actual": 0,
+              "target": 500000,
+              "pct_of_target": 0.0,
+              "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+            },
+            {
+              "metric": "edgar_filings_qtd",
+              "actual": 2,
+              "target": null,
+              "pct_of_target": null,
+              "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+            },
+            {
+              "metric": "nyfed_reference_rates",
+              "actual": 2,
+              "target": 5,
+              "pct_of_target": 40.0,
+              "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+            },
+            {
+              "metric": "fred_feeds_in_use",
+              "actual": true,
+              "target": 45000,
+              "pct_of_target": 0.0,
+              "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+            }
+          ],
+          "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+        },
+        "error": null
+      },
+      "existing_cusip_still_zero": {
+        "inputs": {
+          "data/symbology/master.json": {
+            "n_tickers": 1,
+            "by_ticker": {
+              "TEST": {
+                "cik": "0000000123",
+                "figi": null,
+                "cusip": "123456789"
+              }
+            }
+          },
+          "data/warm/edgar-filings/latest-summary.json": {},
+          "data/warm/nyfed/latest-summary.json": {},
+          "data/audit/data-source-rollup.json": {}
+        },
+        "reads": [
+          "data/symbology/master.json",
+          "data/warm/edgar-filings/latest-summary.json",
+          "data/warm/nyfed/latest-summary.json",
+          "data/audit/data-source-rollup.json"
+        ],
+        "output": {
+          "as_of": "2026-10-01T00:45:14+00:00",
+          "spec": "E11 coverage-gap report",
+          "metrics": [
+            {
+              "metric": "us_tickers",
+              "actual": 1,
+              "target": 320000,
+              "pct_of_target": 0.0,
+              "method": "E1 symbology master (SEC registrants) vs Bloomberg global universe incl. delisted+funds"
+            },
+            {
+              "metric": "figi_ids",
+              "actual": 0,
+              "target": 1,
+              "pct_of_target": 0.0,
+              "method": "FIGIs resolved vs E1 spine (converges ~2500/night)"
+            },
+            {
+              "metric": "cusips",
+              "actual": 0,
+              "target": 500000,
+              "pct_of_target": 0.0,
+              "method": "HONEST ZERO \u2014 13F cusip-map join not yet landed"
+            },
+            {
+              "metric": "edgar_filings_qtd",
+              "actual": null,
+              "target": null,
+              "pct_of_target": null,
+              "method": "E3 full-index, complete for current quarter (no external target: completeness is the target and it is met)"
+            },
+            {
+              "metric": "nyfed_reference_rates",
+              "actual": 0,
+              "target": 5,
+              "pct_of_target": 0.0,
+              "method": "E8 histories loaded of SOFR/EFFR/OBFR/TGCR/BGCR"
+            },
+            {
+              "metric": "fred_feeds_in_use",
+              "actual": null,
+              "target": 45000,
+              "pct_of_target": null,
+              "method": "PROXY: E12 rollup feed-count, not a series census \u2014 series-level census is a stated TODO (E4)"
+            }
+          ],
+          "note": "Every number is read from a live platform artifact this run; unknowns are null and zeros are honest."
+        },
+        "error": null
+      },
+      "malformed_optional_row_crashes_report": {
+        "inputs": {
+          "data/symbology/master.json": {
+            "n_tickers": 1,
+            "by_ticker": {
+              "TEST": 5
+            }
+          },
+          "data/warm/edgar-filings/latest-summary.json": {},
+          "data/warm/nyfed/latest-summary.json": {},
+          "data/audit/data-source-rollup.json": {}
+        },
+        "reads": [
+          "data/symbology/master.json",
+          "data/warm/edgar-filings/latest-summary.json",
+          "data/warm/nyfed/latest-summary.json",
+          "data/audit/data-source-rollup.json"
+        ],
+        "output": null,
+        "error": "AttributeError"
+      }
+    },
+    "actual_data_reads": 0,
+    "provider_requests": 0,
+    "native_invocations": 0
+  },
+  "source_contracts_reviewed": [
+    {
+      "url": "https://www.openfigi.com/docs/figi-allocation-rules.pdf",
+      "version": "30.0, August 2025",
+      "section": "1.1.2",
+      "scope": "Character structure only; no assumption of one certified-provider prefix, no assignment/checksum/issuer-security proof. PDF text parsed; screenshot facility unavailable."
+    },
+    {
+      "url": "https://www.openfigi.com/about/overview",
+      "scope": "Current character structure and separation of identifier from metadata"
+    },
+    {
+      "url": "https://www.cusip.com/identifiers.html",
+      "scope": "CUSIP/CINS issuer/issue/check structure; not a country or checksum validation"
+    }
+  ],
+  "checks": {
+    "baseline_focused": 3,
+    "deployment": 987,
+    "shell": 15,
+    "candidate_projection": 18,
+    "candidate_storage": 13,
+    "candidate_not_installed": true
+  },
+  "normal_publication_verified": false,
+  "source_replay_verified": false,
+  "investment_authority": false,
+  "all_ten_workstreams": "OPEN"
+}
