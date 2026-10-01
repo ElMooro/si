@@ -1,0 +1,22 @@
+{
+  ".github/workflows/deploy-lambdas.yml": {
+    "predecessor_sha256": "898037b22717cd445e05001e3b9f461d13bccab7c120715aefca90c774d8468c",
+    "archive": "deploy-before-numpy.yml.txt",
+    "edits": [
+      [
+        "python3 -m pip install -q boto3 pytest jsonschema",
+        "python3 -m pip install -q boto3 pytest jsonschema numpy==2.3.5"
+      ]
+    ]
+  },
+  "tests/deployment/test_preflight_test_dependencies.py": {
+    "predecessor_sha256": "1c790acc2dad9477cd3a89f6e5fdd5f6549340a7e6768a7d8d657ec163b01d30",
+    "archive": "preflight-dependency-tests.before.txt",
+    "edits": [
+      [
+        "{'boto3','pytest','jsonschema'}<=installed",
+        "{'boto3','pytest','jsonschema','numpy'}<=installed"
+      ]
+    ]
+  }
+}

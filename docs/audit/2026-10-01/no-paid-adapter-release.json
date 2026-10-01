@@ -1,6 +1,6 @@
 {
   "stage": 526,
-  "status": "tested_source_batch_awaiting_native_release",
+  "status": "initial_preflight_failed_dependency_repair_integrated",
   "scope": "No-paid shared adapter entrypoints and five caller repairs; no account-wide egress/spend assertion.",
   "functions": [
     "justhodl-a2a-bus",
@@ -284,7 +284,8 @@
     "aws/lambdas/justhodl-weekly-ai-review/source/lambda_function.py": "4f8df41d4b2956a90ca6fa285345a4362e016aada9e7f03c01dda81b5140a2dc",
     "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
     "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
-    "aws/ops/staged/ops_6428_model_adapter_controls.py": "ab73227d5f1cfd51c83ee929429a30e92a8ddefa4eb413e4c9e00b000ac31143"
+    "aws/ops/staged/ops_6428_model_adapter_controls.py": "ab73227d5f1cfd51c83ee929429a30e92a8ddefa4eb413e4c9e00b000ac31143",
+    ".github/workflows/deploy-lambdas.yml": "ef9054b609e519210037ffd600d5095c788212ec00c99b561533f72f8a34c94c"
   },
   "source_counts": {
     "justhodl-a2a-bus": 5,
@@ -3184,5 +3185,24 @@
     "actual_application_packet_reads": 0,
     "private_reads": 0,
     "account_reads": 0
+  },
+  "release_repair": {
+    "initial_source_commit": "6b9f66f85ad60be6038e30a877f7d14599c058ec",
+    "failed_run": 36921057789,
+    "failure_report": "aws/ops/reports/deploy-failures/6b9f66f-36921057789.md",
+    "failure_report_sha256": "a3906271b2d6a6d215dbe3985a67e6e361af548a77ecab158f0e6e9f49ae7cc6",
+    "reason": "Runner lacked NumPy for the existing AI engine factory model regression",
+    "repair": "Install locally tested numpy==2.3.5 before all selected engine tests; all existing tests remain mandatory",
+    "aws_functions_updated_by_failed_run": 0,
+    "recovery_required": true,
+    "recovery_base": "2b31ed988a87ad3745faec25da4570cfa05cc074",
+    "validation": {
+      "deployment_cases": 1020,
+      "shell_cases": 15,
+      "ai_runner": "24/24 plus factory sub-suites",
+      "native_acceptance_cases": 9,
+      "baseline_cases": 15,
+      "preflight": "pass"
+    }
   }
 }

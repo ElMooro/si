@@ -215,7 +215,7 @@ jobs:
           # checks complete before the deployment step can mutate AWS.
           # A custom run_tests.py may launch pytest too. Install its test runtime
           # before either runner branch; schema checks must not silently skip.
-          python3 -m pip install -q boto3 pytest jsonschema numpy==2.3.5
+          python3 -m pip install -q boto3 pytest jsonschema
           python3 scripts/check_secrets.py
           python3 tests/deployment/run_tests.py
           if [ -f tests/test_brain_public_boundaries.py ]; then
