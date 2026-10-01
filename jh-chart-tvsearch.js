@@ -279,22 +279,22 @@
   async function cqPack(t) {
     t = jhFundTicker(t);
     if (!CQ_PROXIES[t]) return { proxy: false };
-    try {
-      if (window.JHCqFuse && typeof window.JHCqFuse.load === "function") {
-        await window.JHCqFuse.load().catch(function () { return null; });
-      }
-      if (!CQ_ONCHAIN) { var r = await fetch("/data/cryptoquant-onchain.json", { cache: "no-store" }); CQ_ONCHAIN = r.ok ? await r.json() : {}; }
-      if (!CQ_SERIES) { var r2 = await fetch("/data/cryptoquant-series.json", { cache: "no-store" }); CQ_SERIES = r2.ok ? await r2.json() : {}; }
-    } catch (e) { CQ_ONCHAIN = CQ_ONCHAIN || {}; CQ_SERIES = CQ_SERIES || {}; }
-    return { proxy: true, onchain: CQ_ONCHAIN, series: CQ_SERIES, fuse: (window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack()) || null };
+    if (!window.JHObservationCache) return {proxy:true,onchain:null,series:null,fuse:null,source_cache:null};
+    var cache=window.JHObservationCache.shared(),fuse=null;
+    if(window.JHCqFuse && typeof window.JHCqFuse.load==="function")fuse=await window.JHCqFuse.load().catch(function(){return null;});
+    var packets=await Promise.all([cache.read("onchain"),cache.read("series")]);
+    CQ_ONCHAIN=packets[0].packet;CQ_SERIES=packets[1].packet;
+    return {proxy:true,onchain:CQ_ONCHAIN,series:CQ_SERIES,fuse:fuse,
+      source_cache:{onchain:packets[0].cache,series:packets[1].cache}};
   }
   function cqMetric(m, keys) {
     for (var i = 0; i < keys.length; i++) { var v = m[keys[i]]; if (v && typeof v === "object") return v; }
     return null;
   }
   function cqFmt(v) {
-    if (v == null || !isFinite(+v)) return "—";
-    v = +v;
+    v = window.JHObservationSeries ? window.JHObservationSeries.numeric(v) : null;
+    if (v === null) return "—";
+    if (v === 0) return "0";
     var a = Math.abs(v);
     if (a >= 1e12) return (v / 1e12).toFixed(2) + "T";
     if (a >= 1e9) return (v / 1e9).toFixed(2) + "B";
@@ -310,9 +310,10 @@
     var ser = serDoc.series || {};
     var twins = serDoc.twins || {};
     var ids = Object.keys(ser);
+    var downloads = c && c.source_cache ? "<div class=note>Download checks do not establish source freshness.<br>"+Object.keys(c.source_cache).map(function(k){var x=c.source_cache[k];return esc(k)+": "+esc(window.JHObservationCache.label(x.state))+"; received "+esc(x.received_at||"Unavailable");}).join("<br>")+"</div>" : "<div class=note>Download status unavailable; source freshness unverified.</div>";
     if (!ids.length) {
       if (!c || !c.proxy) return "<div class=note>On-chain: no CQ series — this symbol is not a BTC/ETH proxy (IBIT, FBTC, BITB, ETHA, MSTR, COIN, MARA, RIOT, BTC, ETH). Search CQ:btc_mvrv (or any harvest id) on the chart.</div>";
-      return "<div class=note>CryptoQuant harvest present but series empty</div>";
+      return downloads+"<div class=note>No primary series available in the received packet. No measurement is substituted.</div>";
     }
     var m = (c && c.onchain && c.onchain.metrics) || {};
     var head = [
@@ -327,15 +328,13 @@
     }).join("");
     var label = (c && c.onchain && c.onchain.label) || "CryptoQuant EOD on-chain";
     var stamp = (c && c.onchain && (c.onchain.generated_at || c.onchain.as_of)) || serDoc.generated_at;
-    var html = "<table class=cqtab><thead><tr><th>Series</th><th>Last</th><th>Span</th><th>n</th><th></th></tr></thead><tbody>";
+    var html = "<table class=cqtab><thead><tr><th>Series</th><th>Latest valid</th><th>Primary span</th><th>Valid points</th><th></th></tr></thead><tbody>";
     ids.forEach(function (k) {
       var row = ser[k] || {};
       var twin = twins[k];
-      var last = row.v && row.v.length ? row.v[row.v.length - 1] : null;
-      var first = (twin && twin.d && twin.d[0]) || (row.d && row.d[0]) || "";
-      var lastD = (row.d && row.d[row.d.length - 1]) || "";
-      var n = (row.d && row.d.length) || 0;
-      if (twin && twin.d && twin.d.length > n) n = twin.d.length;
+      var parsed=window.JHObservationSeries ? window.JHObservationSeries.cq(serDoc,"CQ:"+k) : null;
+      var bars=parsed?parsed.d:[],dates=parsed?parsed.evidence.records.filter(function(r){return r.accepted;}).map(function(r){return r.raw_period;}).sort():[];
+      var last=bars.length?bars[bars.length-1].close:null,first=dates[0]||"",lastD=dates[dates.length-1]||"",n=bars.length;
       html += "<tr><td>" + esc(k) + "</td><td>" + esc(cqFmt(last)) + "</td><td>" +
         esc(String(first).slice(0, 10) + " → " + String(lastD).slice(0, 10)) + "</td><td>" +
         esc(String(n)) + "</td><td><button type=button data-cq=\"" + esc(k) + "\">Chart</button></td></tr>";
@@ -344,17 +343,17 @@
     var fuse = (c && c.fuse) || (window.JHCqFuse && window.JHCqFuse.pack && window.JHCqFuse.pack());
     var snapHtml = "";
     if (fuse && fuse.snaps && fuse.snaps.length) {
-      snapHtml = "<table class=cqtab><thead><tr><th>Live print</th><th>Path</th><th>Latest</th><th>As of</th><th></th></tr></thead><tbody>";
+      snapHtml = "<table class=cqtab><thead><tr><th>Reported snapshot</th><th>Path</th><th>Latest</th><th>As of</th><th></th></tr></thead><tbody>";
       fuse.snaps.forEach(function (sn) {
         snapHtml += "<tr><td>" + esc(sn.name || sn.field) + "</td><td>" + esc(sn.path) + "</td><td>" + esc(cqFmt(sn.value)) + "</td><td>" +
-          esc(String(sn.asof || "").slice(0, 10)) + "</td><td><span class=note>cq-feed live print</span></td></tr>";
+          esc(String(sn.asof || "").slice(0, 10)) + "</td><td><span class=note>cq-feed reported snapshot · freshness unverified</span></td></tr>";
       });
       snapHtml += "</tbody></table>";
     }
-    return "<div class=kpi>" + kp + "</div>" +
-      blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (cadence EOD; never LIVE; twins extend some series to 2010; not blended with ETF or FMP)",
+    return downloads + "<div class=kpi>" + kp + "</div>" +
+      blk("On-chain — " + esc(label) + (stamp ? " · as of " + esc(String(stamp).slice(0, 10)) : "") + " (reported source dates; freshness unverified; proxy histories stay separate; not blended with ETF or FMP)",
         html) +
-      (snapHtml ? blk("LIVE CQ-FEED INDICATORS — EOD prints (not plotted until 1y harvest). Search CDD / dormancy / MVRV Z / ETH2 / lightning / XRP from the symbol box.", snapHtml) : "");
+      (snapHtml ? blk("REPORTED CQ-FEED SNAPSHOTS — freshness unverified, not historical bars. Search CDD / dormancy / MVRV Z / ETH2 / lightning / XRP from the symbol box.", snapHtml) : "");
   }
   function renderValFmp(f) {
     var r = f.row;

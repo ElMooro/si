@@ -11,7 +11,7 @@ function installDrawingCapture(){
   const remove=chart.removeSeries.bind(chart);chart.removeSeries=series=>{state.series=[];return remove(series);};return chart;
  }});
 }
-const scripts=['jh-observation-series.js','jh-cq-fuse.js','jh-chart-catalog.js','jh-chart-engine.js','jh-stock-desk-research.js','jh-chart-stock-desk.js'];
+const scripts=['jh-observation-series.js','jh-observation-cache.js','jh-cq-fuse.js','jh-chart-catalog.js','jh-chart-engine.js','jh-stock-desk-research.js','jh-chart-stock-desk.js'];
 const html=fs.readFileSync(path.join(R,'chart.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'');
 const served=html.replace('</body>',(realLibrary?'<script src="/fixture-drawing.js"></script><script src="/fixture-drawing-capture.js"></script>':'')+scripts.map(p=>'<script src="/'+p+'"></script>').join('')+'</body>');
 const dates=Array.from({length:65},(_,i)=>new Date(Date.UTC(2026,6,1+i)).toISOString().slice(0,10));
@@ -20,7 +20,7 @@ const inputs={'/data/cryptoquant-series.json':{generated_at:'2026-10-01T00:00:00
  '/data/cryptoquant-onchain.json':{metrics:{}},'/data/cq-feed.json':{metrics:{}},'/data/cq-catalog.json':{catalog:{}},'/data/config/cryptoquant-spec.json':{metrics:[]},'/cq-universe.json':{rows:[]},
  '/data/ciss-stress.json':{generated_at:'2026-10-01T00:00:00Z',series:[{id:'MONTHLY',key:'INVENTED.MONTHLY',freq:'M',unit:'dimensionless_index',points:[['2024-01',-1],['2024-02',0],['2024-03',1]]}]},
  '/data/symbology/master.json':{by_ticker:{}},'/data/warehouse/catalog.json':{datasets:[]},'/data/engine_inventory.json':{engines:[]}};
-const output={scope:'Whole chart HTML/CSS and six complete modules. Every request intercepted; no actual site execution or provider/private/current-consumer reads.',drawing_library:realLibrary?'Pinned complete 4.2.3 library, rendered offline':'Inert mock',whole_inputs:inputs,cases:[]};
+const output={scope:'Whole chart HTML/CSS and seven complete modules. Every request intercepted; no actual site execution or provider/private/current-consumer reads.',drawing_library:realLibrary?'Pinned complete 4.2.3 library, rendered offline':'Inert mock',whole_inputs:inputs,cases:[]};
 (async()=>{const browser=await chromium.launch({channel:process.env.PLAYWRIGHT_CHROMIUM_CHANNEL||undefined,headless:true});try{
  for(const width of [1440,390]){
   const context=await browser.newContext({viewport:{width,height:1000},hasTouch:width===390,isMobile:width===390,serviceWorkers:'block'}),page=await context.newPage();

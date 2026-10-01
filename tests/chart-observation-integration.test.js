@@ -6,7 +6,7 @@ function fixture(){return {'/data/cryptoquant-series.json':{generated_at:'2026-1
 function setup(fuse=false,helper=true){
  const docs=fixture(),requests=[],c={setTimeout,clearTimeout};c.window=c;
  c.fetch=async url=>{assert.ok(Object.hasOwn(docs,url),url);requests.push(url);return {ok:true,json:async()=>structuredClone(docs[url])};};
- if(helper)vm.runInNewContext(read('jh-observation-series.js'),c);
+ if(helper){vm.runInNewContext(read('jh-observation-series.js'),c);vm.runInNewContext(read('jh-observation-cache.js'),c);}
  if(fuse)vm.runInNewContext(read('jh-cq-fuse.js'),c);
  vm.runInNewContext(read('jh-chart-catalog.js'),c);return {c,docs,requests};
 }
@@ -46,7 +46,7 @@ test('failed or absent catalog never sends a scalar ID to market-price endpoints
 test('cache and aggregation retain full evidence, contributing ordinals and unavailable volume',async()=>{
  const doc=fixture()['/data/cryptoquant-series.json'],h=engineContext({klines:async s=>core.cq(doc,s)});
  const native=await h.c.klines('CQ:invented_metric','1d'),cached=await h.c.klines('CQ:invented_metric','1d');
- assert.equal(cached,native);assert.equal(h.c.barEvidence.get(cached).observations.whole_packet,doc);
+ assert.deepEqual(cached,native);assert.equal(h.c.barEvidence.get(cached).observations.whole_packet,doc);
  const projected=h.c.resampleToTf(native,'1w');assert.ok(projected.length<native.length);assert.ok(projected.every(b=>b.volume===null));
  assert.deepEqual(Array.from(projected.flatMap(b=>b.observation_ordinals)).sort((a,b)=>a-b),Array.from(native.flatMap(b=>b.observation_ordinals)).sort((a,b)=>a-b));
 });

@@ -43,7 +43,7 @@ test("catalog preserves every curated CryptoQuant harvest id and routes history 
   assert.match(catalog, /stablecoin_supply_total/);
   assert.match(catalog, /function cqOscSpecs/);
   assert.match(catalog, /function mergeDv/);
-  assert.match(catalog, /history\.cq\(await loadCQ\(\), s\)/);
+  assert.match(catalog, /history\.cq\(cq\.packet, s\)/);
   assert.match(catalog, /function cqRow/);
 });
 
@@ -51,7 +51,7 @@ test("on-chain desk charts every harvest series", () => {
   assert.match(search, /data-cq=/);
   assert.match(search, /class=cqtab/);
   assert.match(search, /BTCUSDT: 1/);
-  assert.match(search, /twins extend some series to 2010/);
+  assert.match(search, /proxy histories stay separate/);
 });
 
 test("mergeBarsPrefer keeps warehouse prints on overlap and prepends Yahoo", async () => {
@@ -91,11 +91,12 @@ test("catalog klines retains the primary harvest and keeps the entire proxy hist
     }
     throw new Error("unexpected " + url);
   };
-  const ctx = { window: {}, fetch, Date, Math, isFinite, Number, String, Object, Array, Promise, console };
+  const ctx = { window: {}, fetch, Date, Math, isFinite, Number, String, Object, Array, Promise, setTimeout, clearTimeout, AbortController, console };
   ctx.window = ctx;
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-series.js"), "utf8"), ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, "jh-observation-cache.js"), "utf8"), ctx);
   vm.runInContext(catalog, ctx);
   const r = await ctx.JHChartCatalog.klines("CQ:btc_mvrv");
   assert.equal(r.d.length, 8);

@@ -8,6 +8,7 @@ const clean=tree=>JSON.parse(JSON.stringify(tree,(k,v)=>['start','end'].includes
 function body(raw,file){const call=parse(raw).body.find(n=>n.expression?.type==='CallExpression').expression;return file==='jh-chart-stock-desk.js'?call.arguments[1].body.body:call.callee.body.body;}
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 function normalize(raw,file){
+ raw=require("./observation-cache-preservation.cjs").normalize(raw,file);
  const record=manifest.entries[file];assert.ok(record,file);
  const old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
  const a=body(old,file),b=body(raw,file),oldFns=new Map(a.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,n]));

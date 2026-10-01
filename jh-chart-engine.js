@@ -1830,15 +1830,15 @@
   async function klines(sym, tfId, quiet){
     if(/^CQSNAP:|^CQARM:|^CQDOC:/i.test(String(sym||""))){
       if(!quiet){
-        if(/^CQSNAP:/i.test(sym)) lastSource="CryptoQuant EOD snapshot · live print · no 1y series yet";
-        else if(/^CQARM:/i.test(sym)) lastSource="CryptoQuant armed · 1y window on next EOD pull · no invented history";
+        if(/^CQSNAP:/i.test(sym)) lastSource="CryptoQuant reported snapshot · freshness unverified · no historical bars";
+        else if(/^CQARM:/i.test(sym)) lastSource="CryptoQuant configured · accepted primary history unavailable";
         else lastSource="CryptoQuant catalog-only · not harvested";
       }
       return [];
     }
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var scalar=observationId(sym), key=(scalar?String(sym):t)+"|"+tfId, now=Date.now(), minimum=scalar?1:8;
-    if(barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=minimum){
+    if(!scalar && barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=minimum){
       if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(barCache[key].d,sym,tfId,barCache[key].src,barCache[key].observations);
     }
     if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){

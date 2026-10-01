@@ -1,0 +1,15 @@
+# Observation packet cache
+
+The chart, CQ enrichment and companion on-chain desk share a transport cache for the existing seven CQ/CISS sources. A successful accepted download is rechecked on the next read after five minutes. A failed attempt retries on the next read after thirty seconds. Fetch, JSON decoding and the existing universe-path fallback share a ten-second deadline. Concurrent requests for one source are shared; different sources have independent failure/retry state.
+
+Both wall and monotonic clocks bound each interval. A rollback invalidates reuse. Reset aborts and settles old requests; their late responses cannot overwrite newer packets or a newly built CQ aggregate. Scalar chart loads use this cache directly instead of extending its interval through the separate one-minute market-bar cache. Source selection never creates a new provider request or accepts a nearby identifier.
+
+Only a structurally accepted packet replaces the last good packet. A malformed decoded replacement is retained separately in the cache evidence; an HTTP error body is not parsed. Request, HTTP, decode, schema and timeout failures remain distinct. Missing source populations have null counts. Valid empty populations retain measured zero counts. Primary chartability requires at least one valid exact observation; case-ambiguous IDs and entirely invalid rows cannot advertise a valid chart.
+
+The inspection panel and CQ pane distinguish previous packets after failed downloads, unavailable sources and recent download checks. Complete received packets and cache evidence remain in chart exports. The last decoded rejection is retained for the current attempt, not a durable archive of every prior attempt. The on-chain source-status table is keyboard focusable and scrollable on small screens.
+
+Download checks establish neither observation freshness nor source definition equivalence. No Calls vote, forecast qualification or sizing permission is granted. Source clocks/plan notes are reported metadata. Snapshot and forecast formatting accepts only strict finite scalars; booleans, containers, missing values and underflowing nonzero strings stay unavailable. Snapshot changes require two valid finite values. Proxy histories stay separate from primary spans and counts.
+
+These changes do not qualify the generic warehouse adapters, other chart plugins, every crypto page metric or the crypto page's legacy global LIVE header. Unknown/all-invalid selected chart evidence is still cleared from the visible chart rather than offered through a separate unavailable-source inspector. Those issues remain open. The cache has no automatic background timer or producer invocation: the next existing read triggers a due check.
+
+Validation uses complete retained predecessors, complete invented packets, deterministic request/clock races and isolated desktop/mobile Edge. Browser requests are intercepted; public verification compares complete static files with the exact commit-bound Pages manifest. No private/current-consumer packet, provider probe or producer invocation is required.

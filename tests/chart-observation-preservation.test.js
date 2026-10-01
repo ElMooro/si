@@ -6,7 +6,7 @@ test('whole catalog, fuse, engine and inspection modules preserve all unrelated 
 });
 test('both consumers load the exact observation parser before the existing modules and preserve remaining HTML',()=>{
  for(const p of ['chart.html','crypto/index.html']){
-  const prior=fs.readFileSync(path.join(__dirname,'fixtures/chart-observations/pre499',p+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,p),'utf8');
+  const prior=fs.readFileSync(path.join(__dirname,'fixtures/chart-observations/pre499',p+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,p),'utf8').replace('<script src="/jh-observation-cache.js?v=20261001"></script>\n','');
   const added='<script src="/jh-observation-series.js?v=20261001"></script>\n';assert.equal(current.split(added).length,2);assert.equal(current.replace(added,''),prior);
   assert.ok(current.indexOf('jh-observation-series.js')<current.indexOf('jh-cq-fuse.js'));
  }
