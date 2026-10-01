@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Exact issuer-holdings binding read-only runner diagnosis; no engine/config/schedule mutation; agent/shopiz/issuer-binding-probe | 6400 RESERVED | S-shopiz#issuer1001a | 2026-10-01 00:40 |
 | PR15/16 and PR17 public browser-only production QA at 1440/390; normal TLS, one staged probe, no AWS/app writes | 6396 | S-shopiz#browser0930a | 2026-09-30 23:40 |
 | Equity symbology identity/recovery continuation: whole prior preservation + conditional publication, typed FIGI outcomes, consistent CUSIP/ISIN/LEI and ticker/CIK binding. Six complete invented failures reproduced. Bond repair fa8e1f3ab exact native/static accepted; normal data publication unverified. | 6397–6398 ACCEPTED; 6399 acceptance RESERVED | S-codex#symb0930a | 2026-10-01 00:25 |
 | Qualified canonical holdings summary: model/store replay, offline benchmarks and dependent cohort UI in jh-etf-holdings.js / both existing pages; agent/shopiz/qualified-holdings-summary; combined draft, no deployment | none | S-shopiz#qhs0930b | 2026-09-30 21:17 |
