@@ -1,0 +1,40 @@
+{
+  "status": "tested_awaiting_workflow_acceptance",
+  "base": "6fc8ead24d9d7ec0fe1f994a05f3857673933209",
+  "workflows": {
+    ".github/workflows/deploy-lambdas.yml": {
+      "archive": "tests/fixtures/release-queue/deploy-lambdas.yml.before.txt",
+      "predecessor_sha256": "ef9054b609e519210037ffd600d5095c788212ec00c99b561533f72f8a34c94c",
+      "edits": [
+        [
+          "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n",
+          "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n  queue: max\n"
+        ]
+      ],
+      "group": "deploy-lambdas-production"
+    },
+    ".github/workflows/run-ops-direct.yml": {
+      "archive": "tests/fixtures/release-queue/run-ops-direct.yml.before.txt",
+      "predecessor_sha256": "f0199a578379f10201617f11ce607d8c782df1d40c88eaed8cd981b79b305d1a",
+      "edits": [
+        [
+          "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n",
+          "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n  queue: max\n"
+        ]
+      ],
+      "group": "run-ops-direct"
+    }
+  },
+  "official_contract": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+  "waiting_capacity_per_group": 100,
+  "cancel_running": false,
+  "aws_code_changed": false,
+  "limits": [
+    "Queue ordering is waiting-time order, not commit order",
+    "Additional arrivals beyond 100 pending runs are canceled",
+    "No cross-workflow lock or automatic recovery guarantee",
+    "Actual overlapping multi-run queue behavior is not reproduced by static tests"
+  ],
+  "deployment_tests": 1024,
+  "shell_tests": 15
+}

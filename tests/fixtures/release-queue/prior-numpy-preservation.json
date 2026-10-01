@@ -6,10 +6,6 @@
       [
         "python3 -m pip install -q boto3 pytest jsonschema",
         "python3 -m pip install -q boto3 pytest jsonschema numpy==2.3.5"
-      ],
-      [
-        "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n",
-        "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n  queue: max\n"
       ]
     ]
   },

@@ -445,3 +445,22 @@ git pull --rebase origin main && git push origin main
 # then, once the run finishes:
 python scripts/verify_release.py <fn> --commit $(git rev-parse HEAD)
 ```
+
+
+## Waiting Lambda releases and direct acceptance operations
+
+Lambda deployments and direct operations retain their existing separate serial
+concurrency groups, with `cancel-in-progress: false` and `queue: max`. This keeps
+up to 100 waiting runs per group; GitHub cancels additional arrivals if that
+queue is full. The default single pending slot could replace a waiting source
+release or a named acceptance operation when another arrived.
+
+The queue preserves waiting jobs; it does not prove deployment, guarantee commit
+order, or provide a cross-workflow lock. GitHub orders by when runs start waiting,
+which can differ from dispatch order. Continue to pin intended commits, avoid
+concurrent overlapping releases, verify every run and exact receipt, and inspect
+a canceled or failed run before any recovery. Do not blindly dispatch again.
+Native acceptance must still precede changes to a workflow that its source
+manifest pins. Other workflow queues are unchanged by this scoped repair.
+
+Contract: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency

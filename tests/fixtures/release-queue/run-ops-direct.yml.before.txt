@@ -13,7 +13,6 @@ permissions:
 concurrency:
   group: run-ops-direct
   cancel-in-progress: false
-  queue: max
 jobs:
   direct:
     runs-on: ubuntu-latest

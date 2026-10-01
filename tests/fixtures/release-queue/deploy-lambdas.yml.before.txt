@@ -59,7 +59,6 @@ permissions:
 concurrency:
   group: deploy-lambdas-production
   cancel-in-progress: false
-  queue: max
 
 jobs:
   deploy:
