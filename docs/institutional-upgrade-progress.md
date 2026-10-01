@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 506: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering and independent axis ownership are accepted through Stage 506 with 72 exact static artifacts, 898 engine records and 599 page contracts. Next: crowded mobile metadata, stale market-recovery loading text and legacy upstream market-volume defaults. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 507: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering, independent axis ownership and core volume missingness are accepted through Stage 507 with 74 exact static artifacts, 898 engine records and 599 page contracts. Next: delayed chart-paint ownership, legacy volume calculation windows/numerical qualification and crowded metadata. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7253,3 +7253,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Stage 507 combined checks passed 2,497 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.
 
 - Stage 507 combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks. Twenty new cases and nine offline desktop/mobile suites pass; exact static release remains pending.
+
+
+### Stage 507 exact static acceptance
+
+- Source `8724ecc74e20d259c19af65e4317508e7f9eaf27` matches the exact served Pages build, run 36852646529. All 74 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,504 frontend cases, 1018 deployment and fifteen shell checks, including twenty new volume/preservation cases. Nine offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Missing volume remains unavailable through the core decoder, aggregation, histogram and moving-average windows. Removing obsolete series ownership prevents a prior-symbol profile from reappearing during symbol replacement. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
