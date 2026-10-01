@@ -38,9 +38,18 @@ def inspect(lam, s3, out, reader):
         item = reader.read(lam.get_function_configuration, FunctionName=name)
         if not item or (item.get('Environment') or {}).get('Error'):
             raise probe.Stop('configuration_unavailable')
-        declared = json.loads((ROOT/'aws/lambdas'/name/'config.json').read_text(encoding='utf-8'))['env']
+        config = json.loads((ROOT/'aws/lambdas'/name/'config.json').read_text(encoding='utf-8'))
+        declared = config['env']
         env = (item.get('Environment') or {}).get('Variables') or {}
         matches = {key: env.get(key) == declared[key] for key in keys}
+        if name == DETECTOR:
+            out.kv(cost_detector_release_controls={
+                'other_declared_environment_matches': all(env.get(k) == v for k,v in declared.items() if k != 'MONTHLY_BUDGET_USD'),
+                'memory_matches': item.get('MemorySize') == config['memory'],
+                'timeout_matches': item.get('Timeout') == config['timeout'],
+                'architectures_match': item.get('Architectures') == config['architectures'],
+                'tracing_already_active': item.get('TracingConfig', {}).get('Mode') == 'Active',
+                'dlq_already_standard': item.get('DeadLetterConfig', {}).get('TargetArn') == 'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default'})
         out.kv(function=name, declared_setting_matches=matches,
                code_sha256=item.get('CodeSha256'), state=item.get('State'),
                memory_mb=item.get('MemorySize'), timeout_seconds=item.get('Timeout'))
