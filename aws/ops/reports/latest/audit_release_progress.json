@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-01T03:36:42.656071+00:00",
+  "observed_at": "2026-10-01T03:37:17.236039+00:00",
   "runs": [
     {
       "id": 36811043426,
@@ -170,18 +170,18 @@
       "id": 36811022764,
       "path": ".github/workflows/pages.yml",
       "head_sha": "e3fb7b2be9359c805b55c6c626dbf779b196b7c3",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-10-01T03:33:02Z",
-      "updated_at": "2026-10-01T03:33:06Z",
+      "updated_at": "2026-10-01T03:36:54Z",
       "jobs": [
         {
           "id": 110205880982,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-10-01T03:33:05Z",
-          "completed_at": null,
+          "completed_at": "2026-10-01T03:36:36Z",
           "steps": [
             {
               "number": 1,
@@ -402,12 +402,87 @@
             {
               "number": 52,
               "name": "Post Run actions/checkout@v4",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-01T03:36:33Z",
-              "completed_at": null
+              "completed_at": "2026-10-01T03:36:33Z"
+            },
+            {
+              "number": 53,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:33Z",
+              "completed_at": "2026-10-01T03:36:33Z"
             }
           ]
+        },
+        {
+          "id": 110206712076,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T03:36:41Z",
+          "completed_at": "2026-10-01T03:36:53Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:42Z",
+              "completed_at": "2026-10-01T03:36:43Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:43Z",
+              "completed_at": "2026-10-01T03:36:50Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:50Z",
+              "completed_at": "2026-10-01T03:36:50Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:50Z",
+              "completed_at": "2026-10-01T03:36:51Z"
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-01T03:36:51Z",
+              "completed_at": "2026-10-01T03:36:51Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-01T03:36:51Z",
+              "completed_at": "2026-10-01T03:36:51Z"
+            }
+          ]
+        },
+        {
+          "id": 110206777542,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T03:36:54Z",
+          "completed_at": "2026-10-01T03:36:53Z",
+          "steps": []
         }
       ]
     },
