@@ -13,6 +13,8 @@ import etf_holdings_model as holdings_model
 CONTRACT = 'etf-desk-original-research.v1'
 PREFIX = 'data/etf-desk-research/'
 CURRENT = 'data/etf-desk-research.json'
+SUPPLEMENT_POLICY = 'desk-extra-qualified-membership.v1'
+SUPPLEMENT_FUNDS = frozenset('BKLN BND ECH EFNL EPU FALN FXE FXY IEFA MOAT PPLT QQQM RSP SGOV USHY VCIT'.split())
 MAX_PUBLIC_ARTIFACT = 16 * 1024 * 1024
 sha, encoded, clock = profile.sha, profile.encoded, profile.clock
 PERMISSIONS = flow_model.PERMISSIONS
@@ -63,7 +65,7 @@ def profile_changes(current, prior):
         'scope': 'Profile field differences on their own effective dates. No annualization, issuer transaction, fee conversion, or holdings change is inferred.'}
 
 
-def extra_holdings(pair, read, generated_at, emit):
+def extra_holdings(pair, read, generated_at, emit, summary=None):
     snapshots = [holdings.reconstruct_or_reject(pair[role], read, generated_at) for role in ('current', 'prior')]
     a, b = [holdings_model.retain_snapshot(s, emit) for s in snapshots]
     comparison = holdings.compare(*snapshots); parts = []
@@ -73,8 +75,11 @@ def extra_holdings(pair, read, generated_at, emit):
     body = {k: v for k, v in comparison.items() if k != 'rows'}
     body.update(contract='etf-holdings-position-comparison.v1', parts=parts,
         current_snapshot=a['snapshot'], prior_snapshot=b['snapshot'], compared_identities=len(comparison['rows']))
+    comparison_ref = holdings_model.artifact(body, 'comparisons', emit)
+    if summary is not None:
+        summary.add(a['ticker'], *snapshots, comparison, a['snapshot'], b['snapshot'], comparison_ref, {})
     return {'ticker': a['ticker'], 'current': a, 'prior': b,
-        'comparison': holdings_model.artifact(body, 'comparisons', emit),
+        'comparison': comparison_ref,
         'comparable_snapshots': body['comparable_snapshots'], 'comparison_status_counts': body['identity_status_counts'],
         **permissions()}
 
@@ -106,7 +111,12 @@ def legacy_history(ticker, contexts, read):
 
 
 def build(inputs, read, emit, canonical_flow, canonical_holdings, previous=None):
-    if inputs.get('contract') != 'etf-desk-inputs.v1': raise ValueError('Reviewed desk inputs required')
+    contract = inputs.get('contract')
+    if contract not in ('etf-desk-inputs.v1', 'etf-desk-inputs.v2'): raise ValueError('Reviewed desk inputs required')
+    enabled = contract == 'etf-desk-inputs.v2'
+    if (enabled and inputs.get('extra_holdings_summary_policy') != SUPPLEMENT_POLICY
+            or not enabled and 'extra_holdings_summary_policy' in inputs):
+        raise ValueError('Reviewed versioned desk supplement policy required')
     generated = inputs['generated_at']; now = clock(generated); query = profile.day(inputs['query_date'])
     if query > now.date(): raise ValueError('Desk query cutoff after compilation')
     if canonical_flow.get('contract') != flow_model.CONTRACT or canonical_holdings.get('contract') != holdings_model.CONTRACT:
@@ -118,6 +128,9 @@ def build(inputs, read, emit, canonical_flow, canonical_holdings, previous=None)
     universe = set(catalog.DESK); extras = universe - set(canonical_flow['funds'])
     if set(inputs['profiles']) != universe or set(inputs['extra_flows']) != extras or set(inputs['extra_holdings']) != extras:
         raise ValueError('Complete desk source coverage required, including every additional fund')
+    if enabled and (not extras <= SUPPLEMENT_FUNDS or len(catalog.DESK) != len(universe)):
+        raise ValueError('Bounded unique desk supplement inventory required')
+    summary = holdings_model.OwnershipSummary(generated, len(extras)) if enabled else None
     grid = checked(canonical_flow['reference'], read)
     if grid['contract'] != 'provider-reporting-reference.v1' or grid['ticker'] != 'SPY': raise ValueError('Canonical SPY reporting grid required')
     dates = grid['dates']; end = canonical_flow['reference']['end_date']; funds = {}
@@ -147,7 +160,7 @@ def build(inputs, read, emit, canonical_flow, canonical_holdings, previous=None)
                 expected = query if role == 'current' else query - timedelta(days=30)
                 if holdings_pair[role]['ticker'] != ticker or holdings_pair[role]['cutoff'] != expected.isoformat(): raise ValueError('Additional holdings identity/cutoff differs')
             f = extra_flow(ticker, flow_collection, read, generated, dates, end, emit)
-            h = extra_holdings(holdings_pair, read, generated, emit); basis = 'additional_desk_originals'
+            h = extra_holdings(holdings_pair, read, generated, emit, summary); basis = 'additional_desk_originals'
         else:
             f = canonical_flow['funds'][ticker]; h = canonical_holdings['funds'][ticker]; basis = 'canonical_original_replay'
         profile_current = profiles['current']; holdings_current = h['current']
@@ -175,7 +188,7 @@ def build(inputs, read, emit, canonical_flow, canonical_holdings, previous=None)
     for n in flow_model.WINDOWS:
         eligible = {t: f for t, f in flow_funds.items() if funds[t]['quality']['flow_current_eligible']}
         totals[str(n)] = flow_model.aggregate(sorted(universe), eligible, n, end)
-    return {'contract': CONTRACT, 'version': '2.0.0', 'engine': 'justhodl-etf-global-desk',
+    result = {'contract': CONTRACT, 'version': '2.0.0', 'engine': 'justhodl-etf-global-desk',
         'generated_at': generated, 'query_date': query.isoformat(), 'funds': funds,
         'canonical_sources': {'flows': {'generated_at': canonical_flow['generated_at'], 'replay': canonical_flow['replay'], 'retained': inputs['canonical_flows']},
             'holdings': {'generated_at': canonical_holdings['generated_at'], 'replay': canonical_holdings['replay'], 'retained': inputs['canonical_holdings']}},
@@ -197,3 +210,10 @@ def build(inputs, read, emit, canonical_flow, canonical_holdings, previous=None)
             'canonical_views_reused': ['provider-fund-flow-research','etf-holdings-research'], 'additional_independent_investment_votes': 0},
         'private_account_reads': 0, 'paid_ai_calls': 0, 'notifications_sent': 0, 'signals_emitted': 0, 'portfolio_writes': 0,
         **permissions()}
+
+    if summary is not None:
+        result.update(version='2.1.0', extra_holdings_summary={
+            'scope': 'additional_desk_funds_only', 'configured_funds': sorted(extras),
+            'canonical_overlap_excluded': len(universe) - len(extras),
+            **summary.finish(emit)})
+    return result

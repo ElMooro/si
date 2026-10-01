@@ -1,0 +1,105 @@
+{
+  "base_commit": "0035bf47da741a2916a0e34df173934e5ae297aa",
+  "measurement": "offline synthetic only; supplied aggregate row counts, invented identity distribution and qualification; not live replay",
+  "public_readback": "HTTPS normal-TLS GET of public desk returned 403; no bypass or direct AWS attempted",
+  "reducer_before_edit": [
+    {
+      "additional_holdings_shards": 0,
+      "additional_invocations": 0,
+      "additional_payload_bytes": 8999102,
+      "additional_put_attempts_per_compile": 123,
+      "additional_vendor_requests": 0,
+      "case": "one_qualified",
+      "configured_funds": 16,
+      "current_rows": 22809,
+      "manifest_bytes": 35862,
+      "pages": 122,
+      "peak_rss_mib": 87.91796875,
+      "prior_rows": 25252,
+      "records": 24372,
+      "seconds": 0.7571475379999981,
+      "status": "complete",
+      "synthetic": true
+    },
+    {
+      "additional_holdings_shards": 0,
+      "additional_invocations": 0,
+      "additional_payload_bytes": 17735633,
+      "additional_put_attempts_per_compile": 243,
+      "additional_vendor_requests": 0,
+      "case": "all_qualified",
+      "configured_funds": 16,
+      "current_rows": 22809,
+      "manifest_bytes": 60092,
+      "pages": 242,
+      "peak_rss_mib": 138.41015625,
+      "prior_rows": 25252,
+      "records": 48061,
+      "seconds": 0.973207092000024,
+      "status": "complete",
+      "synthetic": true
+    }
+  ],
+  "producer_after_edit": [
+    {
+      "additional_invocations": 0,
+      "additional_vendor_requests": 0,
+      "case": "producer-old",
+      "compile_seconds": 0.04318463399999928,
+      "get_attempts": 278,
+      "new_payload_bytes": 541868,
+      "peak_rss_mib": 26.22265625,
+      "put_attempts": 32,
+      "replay_put_attempts": 0,
+      "replay_seconds": 0.04668937700000697,
+      "retain_including_replay_seconds": 0.04757248100003153,
+      "root_bytes": 134874,
+      "synthetic": true,
+      "unique_new_objects": 32
+    },
+    {
+      "additional_invocations": 0,
+      "additional_vendor_requests": 0,
+      "case": "producer-new",
+      "compile_seconds": 0.05217422999999144,
+      "get_attempts": 280,
+      "new_payload_bytes": 545742,
+      "peak_rss_mib": 26.12109375,
+      "put_attempts": 34,
+      "replay_put_attempts": 0,
+      "replay_seconds": 0.03524269100000765,
+      "retain_including_replay_seconds": 0.05338567899997315,
+      "root_bytes": 135270,
+      "synthetic": true,
+      "unique_new_objects": 34
+    }
+  ],
+  "production_increment_while_switch_absent": {
+    "put_attempts": 0,
+    "payload_bytes": 0,
+    "vendor_requests": 0,
+    "invocations": 0
+  },
+  "enabled_cost_envelope": {
+    "per_compile_additional_summary_put_attempts": [
+      123,
+      243
+    ],
+    "30_daily_publications_additional_summary_put_attempts": [
+      3690,
+      7290
+    ],
+    "30_daily_publications_max_new_summary_payload_bytes_for_measured_cases": [
+      269973060,
+      532068990
+    ],
+    "existing_reducer_hard_limits": {
+      "total_bytes": 50331648,
+      "pages": 768,
+      "manifest_objects": 1,
+      "records": 100000,
+      "observations": 300000
+    },
+    "notes": "One immutable PUT attempt and readback per additional summary object; retained replay verifies with no PUTs. The existing output/input/manifest object counts do not grow, but their bytes do. Compiler bodies change once. Requests on existing immutable objects still count as attempts. Costs exclude existing acquisition, base publication, consumer traffic, and network latency; no pricing/billing claim."
+  }
+}
