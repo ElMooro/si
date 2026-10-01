@@ -1,0 +1,79 @@
+{
+  "status": "candidate_not_deployed",
+  "functions": [
+    "justhodl-squeeze-pretrigger"
+  ],
+  "reviewed_source_hashes": {
+    "aws/lambdas/justhodl-squeeze-pretrigger/source/lambda_function.py": "59f369f151a79fab73301745b5295e699fdf36e4f24400dabe20eb3650b996a5",
+    "aws/lambdas/justhodl-squeeze-pretrigger/source/squeeze_research_model.py": "7c3496251eec9472943cc1bdad81a2538e290e1c5a20ed529a2fba75bc07702b",
+    "aws/shared/context_evidence_store.py": "d3ac1a61721c5d7926e652ecd85a7371f1655a16cab7cdf43aa6029698ea1ce7",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/shared/short_position_context.py": "4254e629803838e6bc4a3c8ea01b0016451c762df2ffd5f8e10b0e65310b896c",
+    "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480"
+  },
+  "expected_controls": {
+    "justhodl-squeeze-pretrigger": {
+      "function_name": "justhodl-squeeze-pretrigger",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 540,
+      "memory_mb": 768,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-squeeze-pretrigger-daily",
+          "state": "ENABLED",
+          "expression": "cron(30 23 * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1
+        }
+      ]
+    }
+  },
+  "native_source_counts": {
+    "justhodl-squeeze-pretrigger": 6
+  },
+  "scope": "Retain exact existing feed bodies and compiler bytes before a deterministic descriptive projection and conditional head publication. Disable legacy hard-coded forecasts, provider probes, credentials, state and notifications. Compatible abstention displays accompany the same batch.",
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "application_packet_reads": 0,
+  "native_invocations": 0,
+  "candidate_browser_scenarios": 4,
+  "screenshots_visually_reviewed": true,
+  "open_limits": [
+    "Three retained donor packets do not establish underlying provider truth, source identity or observation freshness.",
+    "Full original-provider capture, qualified borrow/float data and out-of-sample outcomes remain open.",
+    "Consumers donate no votes from the new packet but their older cached signals and other feeds need separate qualification.",
+    "Other squeeze-page short-interest leaderboards remain separately unqualified.",
+    "All ten institutional workstreams remain OPEN."
+  ],
+  "integration_repairs": {
+    "signal_board_test_support": "Preserve all assertions and distinguish retained null/scalar/array JSON from object packets; reject false authority and wrong hashes. Production Signal Board unchanged.",
+    "older_chart_preservation_gate": "Normalize only the whole exact reviewed Squeeze renderer delta, retain preceding helper, and reject extra edits.",
+    "initial_failures_preserved_in_host_logs": true,
+    "public_artifact_boundary_repair_bundled": true
+  },
+  "validation": {
+    "engine_runner_tests": 39,
+    "frontend_tests": 2680,
+    "native_acceptance_tests": 6,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "preflight": "pass",
+    "page_graphs": 599,
+    "page_contracts": 599,
+    "wiring": "36 pages / 143 declarations",
+    "offline_browser_scenarios": 4,
+    "actual_application_packets_read": 0,
+    "actual_model_requests": 0,
+    "invented_cases_only": true
+  }
+}

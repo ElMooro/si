@@ -82,8 +82,6 @@ jobs:
           exit $BAD
       - name: Offline build boundary regression gate
         run: python3 tests/test_offline_pages.py
-      - name: Public artifact boundary regression
-        run: python3 tests/test_public_artifact_boundary.py
       - name: Assemble lean site artifact
         run: |
           mkdir -p _site
@@ -99,7 +97,7 @@ jobs:
           # 404'd at the edge (crypto/index.html existed in repo, not in artifact).
           # Rule: any top-level dir containing .html is a site page dir, minus the
           # infra denylist. Dynamic — new page dirs deploy with zero workflow edits.
-          DENY=" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site tests vendor .git "
+          DENY=" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site "
           for d in */; do
             d="${d%/}"
             case "$DENY" in *" $d "*) continue ;; esac
@@ -154,8 +152,6 @@ jobs:
         run: python3 scripts/build_page_data_contracts.py --site _site
       - name: Final built page syntax gate
         run: python3 scripts/check_page_scripts.py _site
-      - name: Block repository-only directories in public artifact
-        run: python3 scripts/check_public_site_artifact.py _site
       - name: Stamp every page and asset in commit-bound build manifest
         run: python3 scripts/stamp_build_manifest.py _site
       - uses: actions/upload-pages-artifact@v3

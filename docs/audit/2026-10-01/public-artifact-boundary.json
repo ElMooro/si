@@ -1,0 +1,37 @@
+{
+  "status": "candidate_not_deployed",
+  "source_only_discovery": {
+    "scope": "Workflow source and public build-manifest metadata only; no test fixture, application, provider, private or account body fetched.",
+    "checked_at": "2026-10-01T18:04:46.521489+00:00",
+    "served_commit": "e7aae66836fb5e97bbced53679641e997f390fe7",
+    "build_manifest_sha256": "858e9797388f9792e217375c60f14012a74b2d2f083e36ea14a6dbcfcb0e1b54",
+    "workflow_deny": [
+      "aws",
+      ".github",
+      "scripts",
+      "ci",
+      "config",
+      "cloudflare",
+      "ops",
+      "docs",
+      "supabase",
+      "tools-src",
+      "chrome-extension",
+      "node_modules",
+      "_partials",
+      "_site"
+    ],
+    "test_directories_with_html": [
+      "tests"
+    ],
+    "published_tests_paths_count": 2324,
+    "published_test_html_count": 1,
+    "tests_excluded_from_source_route_scanner": true,
+    "test_or_application_bodies_fetched": 0
+  },
+  "scope": "Align Pages assembly deny roots with the public route source scanner and reject repository-only roots in the complete artifact before its manifest/upload. No source tree is deleted from Git.",
+  "application_or_fixture_bodies_requested": 0,
+  "live_removal_verified": false,
+  "source_qualified": false,
+  "investment_authority": false
+}

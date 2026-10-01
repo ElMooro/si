@@ -1307,7 +1307,16 @@
       blk("Reasons", table((r.reasons || []).slice(0, 8).map(function (x) { return ["", esc(String(x))]; })));
   }
   function renderSqueeze(d) {
-    return "<div class=note>Squeeze forecasts, borrow pressure and exit difficulty are unqualified. WAIT means abstain.</div><div class=empty>No qualified squeeze score or trade is available for this symbol. Missing context does not mean zero risk or no setups. <a href='/squeeze.html'>Open source research and limitations</a>.</div>";
+    var p = d && d.sqz || {};
+    var r = p.row;
+    var doc = p.doc || {};
+    var note = "<div class=note>Crowding / borrow / short pressure. Estimate of exit difficulty, not a squeeze clock. State: " + esc(doc.state || "—") + "</div>";
+    if (!r) return note + "<div class=empty>No squeeze-pretrigger row for this symbol today.</div>";
+    return note + "<div class=kpi>" + [
+      kpi("Score", fmt(num(r.score))),
+      kpi("Ticker", esc(r.ticker || "—")),
+      kpi("Posture", esc(r.posture || r.tag || "—"))
+    ].join("") + "</div>";
   }
 
   function renderPressure(d) {

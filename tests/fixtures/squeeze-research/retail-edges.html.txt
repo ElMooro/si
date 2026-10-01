@@ -121,8 +121,6 @@ h1 .icon{margin-right:8px}
 }
 </style>
 <script src="/ai-brief-kit.js"></script>
-<script src="/jh-squeeze-research.js?v=20261001"></script>
-<style>.jh-squeeze-research a{color:var(--cyan,#67d5ff)}.jh-squeeze-research summary{cursor:pointer}.jh-squeeze-research a:focus-visible,.jh-squeeze-research summary:focus-visible{outline:2px solid #67d5ff;outline-offset:3px}</style>
 </head>
 <body>
 
@@ -188,7 +186,7 @@ const ENGINES = [
     render: renderFailedPattern, category:'tactical' },
   { key:'squeeze-pretrigger', s3:'data/squeeze-pretrigger.json',
     title:'Short Squeeze Pre-Trigger', icon:'🚀',
-    desc:'Retained short-position and trade-flow research. Squeeze forecasts and trade sizing remain unqualified; WAIT means abstain.',
+    desc:'Mid/large caps with 4-5 of 5 squeeze conditions: SI/float >18%, days-to-cover >6, util >80%, z-score, catalyst <30d. Mcap $1B-$50B.',
     render: renderSqueeze, category:'positioning' },
   { key:'catalyst-skew-premove', s3:'data/catalyst-skew-premove.json',
     title:'Catalyst + Options Skew', icon:'⚡',
@@ -597,7 +595,38 @@ function renderFailedPattern(d) {
 }
 
 function renderSqueeze(d) {
-  return window.JHSqueezeResearch?.render(d)||'<div class="empty">Squeeze research unavailable. Forecast and trade withheld.</div>';
+  if (!d) return '<div class="error">Engine offline.</div>';
+  const imm = d.imminent_setups || [];
+  const pre = d.pretrigger_setups || [];
+  const early = d.early_setups || [];
+  const all = [...imm, ...pre, ...early];
+  const exp = d.forward_expectations || {};
+  let h = `
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Imminent (5/5)</div><div class="kpi-value gold">${imm.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Pre-Trigger (4/5)</div><div class="kpi-value cyan">${pre.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Early (3/5)</div><div class="kpi-value">${early.length}</div></div>
+      <div class="kpi"><div class="kpi-label">2m exp.</div><div class="kpi-value gold">+${exp['2m'] ?? '-'}%</div></div>
+    </div>`;
+  if (all.length) {
+    h += `<table class="setup-table"><thead><tr><th>Tkr</th><th>Quality</th><th>SI/F</th><th>DTC</th><th>Util</th><th>Catalyst</th><th></th></tr></thead><tbody>`;
+    all.slice(0,15).forEach((r,i)=>{
+      const id = `sqz-${i}`;
+      const cat = r.catalysts_30d && r.catalysts_30d[0];
+      h += `<tr id="${id}" class="row-clickable" onclick="toggleRow('${id}', \`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\/g,'')}\`)">
+        <td class="ticker-cell">${r.ticker}</td>
+        <td>${r.setup_quality}</td>
+        <td>${r.score_components?.si_pct_float?.toFixed(0)}%</td>
+        <td>${r.score_components?.days_to_cover?.toFixed(1)}</td>
+        <td>${r.score_components?.short_utilization?.toFixed(0)}%</td>
+        <td style="font-size:10px;color:var(--muted)">${cat ? `${cat.type} in ${cat.dte}d` : '-'}</td>
+        <td style="color:var(--muted);font-size:10px">click</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  } else h += '<div class="empty">No qualifying setups today.</div>';
+  if (d.why_now_explainer) h += `<div class="why-now"><h4>Why Now</h4>${d.why_now_explainer.replace(/\*\*/g,'').replace(/###/g,'').replace(/\n\n/g,'<br><br>')}</div>`;
+  return h;
 }
 
 function renderCatalystSkew(d) {

@@ -1,0 +1,183 @@
+{
+  "scope": "Complete predecessor source/config/pages and exact reviewed transformations; no captured application input.",
+  "files": {
+    "aws/lambdas/justhodl-squeeze-pretrigger/source/lambda_function.py": {
+      "predecessor": "tests/fixtures/squeeze-research/aws__lambdas__justhodl-squeeze-pretrigger__source__lambda_function.py.txt",
+      "bytes": 27706,
+      "sha256": "36987d371bd5ba35188711a84a77a8f390d146c4c36cc4cd4a425eda1ee2ef79",
+      "edits": [
+        [
+          "FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), (\"/justhodl/fmp/api-key\",))\n",
+          "FMP_KEY = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.\n"
+        ],
+        [
+          "TELEGRAM_TOKEN = os.environ.get(\"TELEGRAM_BOT_TOKEN\",\n                                managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), (\"/justhodl/telegram/bot_token\",)))\n",
+          "TELEGRAM_TOKEN = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.\n"
+        ],
+        [
+          "TELEGRAM_CHAT = os.environ.get(\"TELEGRAM_CHAT_ID\", \"8678089260\")\n",
+          "TELEGRAM_CHAT = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.\n"
+        ],
+        [
+          "def lambda_handler(event, context):\n",
+          "def _legacy_lambda_handler(event, context):\n    raise RuntimeError(\"Legacy squeeze forecasts and notifications are disabled\")\n"
+        ]
+      ],
+      "prefix": "\"\"\"Active contract: retained descriptive squeeze research with mandatory abstention.\n\nThe historical methods below are retained for continuity and regression only.\nThey do not describe the active handler. Legacy forecasts, profile/price probes,\ncredential resolution, state writes and notifications are disabled. The active\nhandler preserves the three existing feed bodies and compiler bytes before a\nconditional research publication. Observation/forecast qualification stays open.\n\"\"\"\n",
+      "suffix": "\n\n# Active publication boundary; event payload cannot select the legacy path.\ndef lambda_handler(event, context):\n    from pathlib import Path\n    from botocore.config import Config\n    import context_evidence_store\n    import short_position_context\n    import short_volume_context\n    import squeeze_research_model as research\n    from context_evidence_store import ContextStore\n    here=Path(__file__).resolve().parent\n    private='audit-private/20260909-originals/squeeze-pretrigger-research/'\n    client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))\n    store=ContextStore(client,'justhodl-dashboard-live','data/squeeze-pretrigger.json',research.INPUTS,private,research.CONTRACT,\n        {'lambda_function.py':Path(__file__),'squeeze_research_model.py':here/'squeeze_research_model.py',\n         'context_evidence_store.py':Path(context_evidence_store.__file__),\n         'short_position_context.py':Path(short_position_context.__file__),\n         'short_volume_context.py':Path(short_volume_context.__file__)},acquisition_budget_s=180,publication_budget_s=240)\n    def project(attempts,sources,generated_at):\n        return research.project(attempts,sources,generated_at,context_evidence_store.validate_ref,private)\n    packet,ref=store.publish(project)\n    return {'statusCode':200,'body':json.dumps({'status':'unqualified','contract':research.CONTRACT,\n        'generated_at':packet['generated_at'],'state':'UNQUALIFIED','portfolio_action':'WAIT','call':None,\n        'output_sha256':ref['sha256'],'model_requests':0,'provider_requests':0,'notifications_sent':0})}\n"
+    },
+    "aws/lambdas/justhodl-squeeze-pretrigger/config.json": {
+      "predecessor": "tests/fixtures/squeeze-research/aws__lambdas__justhodl-squeeze-pretrigger__config.json.txt",
+      "bytes": 825,
+      "sha256": "6666c119e8045afa828ce06d2653e5f35ac1f8788021185988ce85f7c6b96faf",
+      "edits": [
+        [
+          "\"Mid/large cap short squeeze pre-trigger. 5-condition score: SI/float >18%, days-to-cover >6, short util >80%, z-score >0.5, catalyst 30d. IMMINENT (5/5) / PRE_TRIGGER (4/5) / EARLY (3/5). Mcap $1B-$50B; rejects already +30% in 20d. Daily 23:30 UTC.\"",
+          "\"Retained descriptive short-position, short-volume and catalyst research. Forecast/portfolio authority unqualified; WAIT means abstain. No provider enrichment, model calls, state mutation or notifications. Existing daily 23:30 UTC schedule.\""
+        ]
+      ],
+      "prefix": "",
+      "suffix": ""
+    },
+    "aws/lambdas/justhodl-squeeze-pretrigger/tests/run_tests.py": {
+      "predecessor": "tests/fixtures/squeeze-research/aws__lambdas__justhodl-squeeze-pretrigger__tests__run_tests.py.txt",
+      "bytes": 363,
+      "sha256": "ff24ce5e38bfabd9aa538f21ab3647b9a63ba041583bc9b059a6f14c8f9c3f6e",
+      "edits": [
+        [
+          "from pathlib import Path\nimport sys,unittest\nROOT=Path(__file__).resolve().parents[4]\nsys.path[:0]=[str(ROOT/'tests'),str(ROOT/'aws/shared')]\nif __name__=='__main__':\n    suite=unittest.defaultTestLoader.discover(str(ROOT/'tests'),pattern='test_short_volume_consumers.py')\n    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)\n",
+          "from pathlib import Path\nimport sys,unittest\nROOT=Path(__file__).resolve().parents[4]\nsys.path[:0]=[str(ROOT/'tests'),str(ROOT/'aws/shared')]\nif __name__=='__main__':\n    suite=unittest.TestSuite()\n    for pattern in ('test_short_volume_consumers.py','test_squeeze_research_*.py'):\n        suite.addTests(unittest.defaultTestLoader.discover(str(ROOT/'tests'),pattern=pattern))\n    sys.exit(0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1)\n"
+        ]
+      ],
+      "prefix": "",
+      "suffix": ""
+    },
+    "squeeze.html": {
+      "predecessor": "tests/fixtures/squeeze-research/squeeze.html.txt",
+      "bytes": 23597,
+      "sha256": "edec9d264e7b3272ade3b45490c3db535306348114cf7aa359e28847bff6a8fe",
+      "edits": [
+        [
+          "</head>",
+          "<script src=\"/jh-squeeze-research.js?v=20261001\"></script>\n</head>"
+        ],
+        [
+          "    <p class=\"subtitle\">Unified short-squeeze intelligence across five engines. <b>Pre-trigger</b> (mid/large cap, 5-condition score: SI/float &gt;18%, days-to-cover &gt;6, short utilization &gt;80%, FINRA z-score &gt;0.5, catalyst within 30d) sits at the top \u2014 the institutional setup map. Beneath: <b>crowded shorts</b> and <b>covering</b> from FINRA bi-monthly SI; <b>live tape pressure</b> from Polygon daily short-volume normalized to 20-day baseline; <b>FINRA market composite</b> across ~11.5k tickers; and <a href=\"/microcap-float-squeeze.html\">Microcap market-flow observations</a> with source coverage; these observations do not establish float or squeeze potential. Squeezes are catalysts for explosive returns when crowded positioning meets a fundamental jolt \u2014 and they cut the other way when the thesis breaks.</p>",
+          "    <p class=\"subtitle\">Research on reported short positions and daily trade flows. The pre-trigger forecast is unqualified and abstains. Other source views below have separate definitions and limitations; their presence does not establish independent evidence, borrow utilization or a tradable squeeze.</p>"
+        ],
+        [
+          "  <h2>SETUP LEADERBOARDS <span class=\"sub\">5-condition score \u00b7 mcap $1B\u2013$50B \u00b7 rejects names already +30% in 20d (no chasing)</span></h2>\n  <div class=\"cardw\" style=\"padding:8px 14px\"><div id=\"boardSetups\"><div class=\"loading\">\u2026</div></div></div>\n  <div class=\"legend\">\n    <span><b>C1</b> SI&gt;18% of float</span>\n    <span><b>C2</b> Days-to-cover &gt;6</span>\n    <span><b>C3</b> FINRA utilization &gt;80%</span>\n    <span><b>C4</b> Short-vol z-score &gt;+0.5</span>\n    <span><b>C5</b> Catalyst within 30d</span>\n  </div>\n\n",
+          "  <h2>FORECAST QUALIFICATION <span class=\"sub\">unavailable forecasts are not zero setups</span></h2>\n  <div class=\"cardw\" style=\"padding:8px 14px\"><div id=\"boardSetups\"><div class=\"loading\">\u2026</div></div></div>\n\n"
+        ],
+        [
+          "  // ---------- REGIME BANNER (from squeeze-pretrigger) ----------\n  const regEl=document.getElementById(\"regime\");\n  if(pre){\n    const cls=stClean(pre.state);\n    regEl.innerHTML=`\n      <div class=\"stateBox st-${cls}\">\n        <div class=\"label\">Squeeze Regime</div>\n        <div class=\"name\">${esc(pre.state||\"\u2014\")}</div>\n        <div class=\"strength\">SIGNAL ${pre.signal_strength||0}/100</div>\n      </div>\n      <div class=\"desc\">\n        ${esc(pre.state_description||\"\")}\n        <div class=\"meta\">As of ${fmtDate(pre.as_of)} \u00b7 Engine v${esc(pre.version||\"?\")} \u00b7 Prev state: ${esc(pre.previous_state||\"\u2014\")}</div>\n      </div>`;\n  } else {\n    regEl.innerHTML=`<div class=\"empty\" style=\"grid-column:1/-1\">Squeeze pre-trigger feed unavailable.</div>`;\n  }\n\n  // ---------- 4 KPIs ----------\n  const k=[];\n  if(pre){\n    const s=pre.summary||{};\n    k.push([\"Imminent (5/5)\",s.n_imminent_5of5||0,\"all 5 conditions firing\",\"red\"]);\n    k.push([\"Pre-Trigger (4/5)\",s.n_pretrigger_4of5||0,\"4 of 5 conditions\",\"orange\"]);\n    k.push([\"Early (3/5)\",s.n_early_3of5||0,\"3 of 5 conditions\",\"yellow\"]);\n    k.push([\"Evaluated\",s.n_candidates_evaluated||0,\"universe scanned today\",\"cyan\"]);\n  } else if(si){\n    const n=Object.keys(si.by_ticker||{}).length;\n    k.push([\"Crowded Shorts\",(si.top_crowded_shorts||[]).length,\"tracked\",\"red\"]);\n    k.push([\"High DTC\",(si.top_high_dtc||[]).length,\"tracked\",\"orange\"]);\n    k.push([\"Squeeze Risk\",(si.top_squeeze_risk||[]).length,\"tracked\",\"yellow\"]);\n    k.push([\"SI Collapse\u00b7Flat\",(si.top_si_collapse_flat_price||[]).length,\"#19\",\"green\"]);\n    k.push([\"Names With Data\",n,\"FINRA + Polygon\",\"cyan\"]);\n  }\n  document.getElementById(\"kpis\").innerHTML=k.length?\n    k.map(([t,v,s,c])=>`<div class=\"card ${c}\"><h3>${esc(t)}</h3><div class=\"big\">${v}</div><div class=\"sub\">${esc(s)}</div></div>`).join(\"\")\n    :`<div class=\"card\" style=\"grid-column:1/-1\"><div class=\"empty\">No KPI feeds available.</div></div>`;\n\n  // ---------- SETUP LEADERBOARDS (Imminent + Pre-trigger + Early merged) ----------\n  const boardEl=document.getElementById(\"boardSetups\");\n  const allSetups=[].concat(pre?.imminent_setups||[],pre?.pretrigger_setups||[],pre?.early_setups||[]).slice(0,30);\n  if(allSetups.length){\n    let h=`<table><thead><tr>\n      <th>Ticker</th><th>Sector</th><th class=\"num\">Mcap</th>\n      <th class=\"num\">Price</th><th class=\"num\">20d \u0394</th>\n      <th class=\"num\">SI%</th><th class=\"num\">DTC</th><th class=\"num\">Util%</th><th class=\"num\">Z</th>\n      <th>Conditions</th><th class=\"num\">Score</th><th>Setup</th>\n    </tr></thead><tbody>`;\n    for(const r of allSetups){\n      const c=r.conditions||{};\n      const sc=r.score_components||{};\n      const flags=[\n        cflag(c[\"si_float_>18pct\"],\"SI/float >18%\"),\n        cflag(c[\"dtc_>6\"],\"Days-to-cover >6\"),\n        cflag(c[\"util_>80pct\"],\"FINRA util >80%\"),\n        cflag(c[\"z_score_>0.5\"],\"Z-score >+0.5\"),\n        cflag(c[\"catalyst_30d\"],\"Catalyst 30d\"),\n      ].join(\"\");\n      const runup=r.recent_runup_20d_pct;\n      const rcol=runup>=20?\"var(--red)\":runup>=10?\"var(--orange)\":runup<0?\"var(--green)\":\"var(--mute)\";\n      const strength=r.signal_strength||0;\n      const sbcol=strength>=80?\"var(--red)\":strength>=60?\"var(--orange)\":\"var(--yellow)\";\n      h+=`<tr>\n        <td class=\"tk\">${esc(r.ticker)}<span class=\"nm\">${esc(r.name||\"\")}</span></td>\n        <td style=\"color:var(--dim)\">${esc(r.sector||\"\")}</td>\n        <td class=\"num\">${fmtMcap(r.mcap_usd)}</td>\n        <td class=\"num\">${fmtUSD(r.price_usd)}</td>\n        <td class=\"num\" style=\"color:${rcol}\">${runup>0?\"+\":\"\"}${fmtPct(runup,1)}</td>\n        <td class=\"num\">${fmtPct(sc.si_pct_float,1)}</td>\n        <td class=\"num\">${fmtNum(sc.days_to_cover,1)}</td>\n        <td class=\"num\">${fmtPct(sc.short_utilization,0)}</td>\n        <td class=\"num\">${fmtZ(sc.z_score)}</td>\n        <td><div class=\"cflags\">${flags}</div></td>\n        <td class=\"num\" style=\"color:${sbcol};font-weight:700\">${strength}</td>\n        <td><span class=\"pill p-${r.setup_quality}\">${esc(r.setup_quality||\"\")}</span></td>\n      </tr>`;\n    }\n    boardEl.innerHTML=h+`</tbody></table>`;\n  } else {\n    boardEl.innerHTML=`<div class=\"empty\">\n      <b style=\"color:var(--mute)\">No setups today.</b><br>\n      Pre-trigger engine evaluated ${pre?.summary?.n_candidates_evaluated||0} candidates and found 0 with 3+/5 conditions. <br>\n      Squeeze regimes cluster; this is a normal QUIET window between waves. <br>\n      Check the leaderboards below for early positioning.\n    </div>`;\n  }\n\n",
+          "  // Squeeze forecast stays unavailable for both legacy and research packets.\n  document.getElementById(\"regime\").innerHTML=window.JHSqueezeResearch?.render(pre)||'<p>Squeeze research unavailable. Forecast and trade withheld.</p>';\n  document.getElementById(\"kpis\").innerHTML=['Squeeze probability','Expected return','Position size','Qualifying setups'].map(label=>'<div class=\"card\"><h3>'+label+'</h3><div class=\"big\">Unavailable</div><div class=\"sub\">Qualification incomplete</div></div>').join('');\n  document.getElementById(\"boardSetups\").textContent='No qualified setup count or leaderboard is available. This does not establish an empty opportunity set or a quiet market.';\n\n"
+        ],
+        [
+          "  document.getElementById(\"why\").innerHTML=pre?.why_now_explainer?\n    \"<b>What this is.</b> \"+esc(pre.why_now_explainer).replace(/\\n\\n/g,\"<br><br>\").replace(/^### .+\\n+/g,\"\").replace(/\\n/g,\" \")+\n    \"<br><br><b>Sources:</b> \"+(pre.sources||[]).map(esc).join(\" \u00b7 \")\n    :\"\";\n",
+          "  document.getElementById(\"why\").textContent='Pre-trigger inputs are retained for audit and descriptive research. Source identity, freshness, float/borrow data and out-of-sample forecasts require qualification before investment use.';\n"
+        ],
+        [
+          "</head>",
+          "<style>.jh-squeeze-research a{color:var(--cyan,#67d5ff)}.jh-squeeze-research summary{cursor:pointer}.jh-squeeze-research a:focus-visible,.jh-squeeze-research summary:focus-visible{outline:2px solid #67d5ff;outline-offset:3px}#kpis{grid-template-columns:repeat(4,minmax(0,1fr))}#kpis .card{min-width:0}#kpis .big{font-size:clamp(15px,2.5vw,23px);overflow-wrap:anywhere}@media(max-width:880px){#kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>\n</head>"
+        ]
+      ],
+      "prefix": "",
+      "suffix": ""
+    },
+    "retail-edges.html": {
+      "predecessor": "tests/fixtures/squeeze-research/retail-edges.html.txt",
+      "bytes": 50027,
+      "sha256": "23553034c0bcbf7e03a45b4b0cbc192631aeb4c85c350167ead4e3195f0c25d1",
+      "edits": [
+        [
+          "</head>",
+          "<script src=\"/jh-squeeze-research.js?v=20261001\"></script>\n</head>"
+        ],
+        [
+          "desc:'Mid/large caps with 4-5 of 5 squeeze conditions: SI/float >18%, days-to-cover >6, util >80%, z-score, catalyst <30d. Mcap $1B-$50B.',",
+          "desc:'Retained short-position and trade-flow research. Squeeze forecasts and trade sizing remain unqualified; WAIT means abstain.',"
+        ],
+        [
+          "function renderSqueeze(d) {\n  if (!d) return '<div class=\"error\">Engine offline.</div>';\n  const imm = d.imminent_setups || [];\n  const pre = d.pretrigger_setups || [];\n  const early = d.early_setups || [];\n  const all = [...imm, ...pre, ...early];\n  const exp = d.forward_expectations || {};\n  let h = `\n    <div class=\"kpi-row\">\n      <div class=\"kpi\"><div class=\"kpi-label\">Imminent (5/5)</div><div class=\"kpi-value gold\">${imm.length}</div></div>\n      <div class=\"kpi\"><div class=\"kpi-label\">Pre-Trigger (4/5)</div><div class=\"kpi-value cyan\">${pre.length}</div></div>\n      <div class=\"kpi\"><div class=\"kpi-label\">Early (3/5)</div><div class=\"kpi-value\">${early.length}</div></div>\n      <div class=\"kpi\"><div class=\"kpi-label\">2m exp.</div><div class=\"kpi-value gold\">+${exp['2m'] ?? '-'}%</div></div>\n    </div>`;\n  if (all.length) {\n    h += `<table class=\"setup-table\"><thead><tr><th>Tkr</th><th>Quality</th><th>SI/F</th><th>DTC</th><th>Util</th><th>Catalyst</th><th></th></tr></thead><tbody>`;\n    all.slice(0,15).forEach((r,i)=>{\n      const id = `sqz-${i}`;\n      const cat = r.catalysts_30d && r.catalysts_30d[0];\n      h += `<tr id=\"${id}\" class=\"row-clickable\" onclick=\"toggleRow('${id}', \\`${renderTicketDetails(r.trade_ticket).replace(/`/g,'').replace(/\\\\/g,'')}\\`)\">\n        <td class=\"ticker-cell\">${r.ticker}</td>\n        <td>${r.setup_quality}</td>\n        <td>${r.score_components?.si_pct_float?.toFixed(0)}%</td>\n        <td>${r.score_components?.days_to_cover?.toFixed(1)}</td>\n        <td>${r.score_components?.short_utilization?.toFixed(0)}%</td>\n        <td style=\"font-size:10px;color:var(--muted)\">${cat ? `${cat.type} in ${cat.dte}d` : '-'}</td>\n        <td style=\"color:var(--muted);font-size:10px\">click</td>\n      </tr>`;\n    });\n    h += `</tbody></table>`;\n  } else h += '<div class=\"empty\">No qualifying setups today.</div>';\n  if (d.why_now_explainer) h += `<div class=\"why-now\"><h4>Why Now</h4>${d.why_now_explainer.replace(/\\*\\*/g,'').replace(/###/g,'').replace(/\\n\\n/g,'<br><br>')}</div>`;\n  return h;\n}\n",
+          "function renderSqueeze(d) {\n  return window.JHSqueezeResearch?.render(d)||'<div class=\"empty\">Squeeze research unavailable. Forecast and trade withheld.</div>';\n}\n"
+        ],
+        [
+          "</head>",
+          "<style>.jh-squeeze-research a{color:var(--cyan,#67d5ff)}.jh-squeeze-research summary{cursor:pointer}.jh-squeeze-research a:focus-visible,.jh-squeeze-research summary:focus-visible{outline:2px solid #67d5ff;outline-offset:3px}</style>\n</head>"
+        ]
+      ],
+      "prefix": "",
+      "suffix": ""
+    },
+    "jh-chart-tvsearch.js": {
+      "predecessor": "tests/fixtures/squeeze-research/jh-chart-tvsearch.js.txt",
+      "bytes": 97927,
+      "sha256": "4de3f0c93e64bd2ff43081204da130de24ec15ec103f2f579cbf9a34e3cfd9ba",
+      "edits": [
+        [
+          "  function renderSqueeze(d) {\n    var p = d && d.sqz || {};\n    var r = p.row;\n    var doc = p.doc || {};\n    var note = \"<div class=note>Crowding / borrow / short pressure. Estimate of exit difficulty, not a squeeze clock. State: \" + esc(doc.state || \"\u2014\") + \"</div>\";\n    if (!r) return note + \"<div class=empty>No squeeze-pretrigger row for this symbol today.</div>\";\n    return note + \"<div class=kpi>\" + [\n      kpi(\"Score\", fmt(num(r.score))),\n      kpi(\"Ticker\", esc(r.ticker || \"\u2014\")),\n      kpi(\"Posture\", esc(r.posture || r.tag || \"\u2014\"))\n    ].join(\"\") + \"</div>\";\n  }\n",
+          "  function renderSqueeze(d) {\n    return \"<div class=note>Squeeze forecasts, borrow pressure and exit difficulty are unqualified. WAIT means abstain.</div><div class=empty>No qualified squeeze score or trade is available for this symbol. Missing context does not mean zero risk or no setups. <a href='/squeeze.html'>Open source research and limitations</a>.</div>\";\n  }\n"
+        ]
+      ],
+      "prefix": "",
+      "suffix": ""
+    },
+    "tests/signal_board_native_test_support.py": {
+      "predecessor": "tests/fixtures/squeeze-research/tests__signal_board_native_test_support.py.txt",
+      "bytes": 3177,
+      "sha256": "c22fe9132f8b648b4f9fd04ab4d44a5a25472ecb4957f2ed585f9fa11e188c72",
+      "prefix": "",
+      "suffix": "",
+      "edits": [
+        [
+          "        assert out['sources'][key]['status'] == 'derived_packet_retained'",
+          "        expected_status = 'derived_packet_retained' if isinstance(packet, dict) else 'non_object_json'\n        assert out['sources'][key]['status'] == expected_status"
+        ],
+        [
+          "            if packet.get(permission) is True:",
+          "            if isinstance(packet, dict) and packet.get(permission) is True:"
+        ]
+      ]
+    },
+    "tests/helpers/observation-cache-preservation.cjs": {
+      "predecessor": "tests/fixtures/squeeze-research/tests__helpers__observation-cache-preservation.cjs.txt",
+      "bytes": 3363,
+      "sha256": "735e0f1d75863a3e99e692ee84a451f4bfd260a1cfb726f8e592fb0213a74d83",
+      "prefix": "",
+      "suffix": "",
+      "edits": [
+        [
+          "function normalize(raw,file){",
+          "function normalize(raw,file){\n raw=require('./squeeze-research-preservation.cjs').normalize(raw,file);"
+        ]
+      ]
+    },
+    "tests/warehouse-observation-preservation.test.js": {
+      "predecessor": "tests/fixtures/squeeze-research/tests__warehouse-observation-preservation.test.js.txt",
+      "bytes": 3341,
+      "sha256": "40b70c94f1544f11ff3ec0f850c2f6993ecbd2d657fac13745b7dc5b83fcf2ef",
+      "prefix": "",
+      "suffix": "",
+      "edits": [
+        [
+          "  assert.equal(current,prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));",
+          "  const squeezeHook=file==='observation-cache'?\"\\n raw=require('./squeeze-research-preservation.cjs').normalize(raw,file);\":'';\n  assert.equal(current,prior.replace('function normalize(raw,file){','function normalize(raw,file){'+squeezeHook+hook));"
+        ]
+      ]
+    },
+    "tests/chart-refresh-status-preservation.test.js": {
+      "predecessor": "tests/fixtures/squeeze-research/tests__chart-refresh-status-preservation.test.js.txt",
+      "bytes": 2491,
+      "sha256": "34d6f0b0c1a4892c82b1c79d3ee1b3fcc6b0cc506d2959ca316a2a9caa9fd970",
+      "prefix": "",
+      "suffix": "",
+      "edits": [
+        [
+          ".normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8').split(",
+          ".normalizeLegacyTest(require('./helpers/squeeze-research-preservation.cjs').normalizeTest(fs.readFileSync(path.join(R,file),'utf8'),file).split("
+        ]
+      ]
+    }
+  }
+}

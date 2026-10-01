@@ -1,11 +1,3 @@
-"""Active contract: retained descriptive squeeze research with mandatory abstention.
-
-The historical methods below are retained for continuity and regression only.
-They do not describe the active handler. Legacy forecasts, profile/price probes,
-credential resolution, state writes and notifications are disabled. The active
-handler preserves the three existing feed bodies and compiler bytes before a
-conditional research publication. Observation/forecast qualification stays open.
-"""
 """
 justhodl-squeeze-pretrigger -- Mid/Large Cap Short Squeeze Pre-Trigger
 ========================================================================
@@ -56,12 +48,13 @@ import urllib.request
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-FMP_KEY = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/squeeze-pretrigger.json"
 SSM_KEY = "/justhodl/squeeze-pretrigger/state"
-TELEGRAM_TOKEN = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.
-TELEGRAM_CHAT = None  # Legacy-only name; no credentials resolved for inactive enrichment/alerts.
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN",
+                                managed_secret(('TELEGRAM_BOT_TOKEN', 'TELEGRAM_TOKEN'), ("/justhodl/telegram/bot_token",)))
+TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 
 UA = "JustHodlAI-SqueezePreTrigger/1.0"
 
@@ -360,8 +353,7 @@ def build_trade_ticket(ticker, score_components, n_fired, price, mcap, runup, ca
     }
 
 
-def _legacy_lambda_handler(event, context):
-    raise RuntimeError("Legacy squeeze forecasts and notifications are disabled")
+def lambda_handler(event, context):
     started = time.time()
     s3 = boto3.client("s3", region_name="us-east-1")
     ssm = boto3.client("ssm", region_name="us-east-1")
@@ -626,28 +618,3 @@ def _legacy_lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"error": str(e),
                                      "trace": traceback.format_exc()[:1500]})}
-
-
-# Active publication boundary; event payload cannot select the legacy path.
-def lambda_handler(event, context):
-    from pathlib import Path
-    from botocore.config import Config
-    import context_evidence_store
-    import short_position_context
-    import short_volume_context
-    import squeeze_research_model as research
-    from context_evidence_store import ContextStore
-    here=Path(__file__).resolve().parent
-    private='audit-private/20260909-originals/squeeze-pretrigger-research/'
-    client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=2,read_timeout=3,retries={'max_attempts':0}))
-    store=ContextStore(client,'justhodl-dashboard-live','data/squeeze-pretrigger.json',research.INPUTS,private,research.CONTRACT,
-        {'lambda_function.py':Path(__file__),'squeeze_research_model.py':here/'squeeze_research_model.py',
-         'context_evidence_store.py':Path(context_evidence_store.__file__),
-         'short_position_context.py':Path(short_position_context.__file__),
-         'short_volume_context.py':Path(short_volume_context.__file__)},acquisition_budget_s=180,publication_budget_s=240)
-    def project(attempts,sources,generated_at):
-        return research.project(attempts,sources,generated_at,context_evidence_store.validate_ref,private)
-    packet,ref=store.publish(project)
-    return {'statusCode':200,'body':json.dumps({'status':'unqualified','contract':research.CONTRACT,
-        'generated_at':packet['generated_at'],'state':'UNQUALIFIED','portfolio_action':'WAIT','call':None,
-        'output_sha256':ref['sha256'],'model_requests':0,'provider_requests':0,'notifications_sent':0})}

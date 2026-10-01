@@ -27,8 +27,7 @@ def assert_abstention(key, packets):
         assert [(r['engine'], r['category'], r['source_key']) for r in out['engines']] == [
             (r['engine'], r['category'], r['source_key']) for r in rows]
         assert any(r['source_key'] == key for r in out['engines'])
-        expected_status = 'derived_packet_retained' if isinstance(packet, dict) else 'non_object_json'
-        assert out['sources'][key]['status'] == expected_status
+        assert out['sources'][key]['status'] == 'derived_packet_retained'
         assert out['sources'][key]['original']['sha256'] == digest
         assert out['n_live'] == 0
         assert out['composite_signal'] is None
@@ -47,5 +46,5 @@ def assert_abstention(key, packets):
         for row in out['engines']:
             assert row['signal'] is None and row['signal_label'] == 'ABSTAIN'
         for permission in candidate.PERMISSIONS:
-            if isinstance(packet, dict) and packet.get(permission) is True:
+            if packet.get(permission) is True:
                 assert out['sources'][key]['permission_declarations'][permission] == 'declared_true'

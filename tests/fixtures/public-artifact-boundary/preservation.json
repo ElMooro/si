@@ -1,0 +1,19 @@
+{
+  "source_sha256": "c5ffffd09d3df87e4c2d2bec7d0b248cb0dd0447f2590d71cb8b352610b4a1d0",
+  "source_bytes": 11430,
+  "candidate_sha256": "265e9dc85e3c168f9ee04cc28d61cd1ee2a7d1a25c2042e40e26bcf5a5ade3c6",
+  "edits": [
+    [
+      "          DENY=\" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site \"",
+      "          DENY=\" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site tests vendor .git \""
+    ],
+    [
+      "      - name: Assemble lean site artifact",
+      "      - name: Public artifact boundary regression\n        run: python3 tests/test_public_artifact_boundary.py\n      - name: Assemble lean site artifact"
+    ],
+    [
+      "      - name: Stamp every page and asset in commit-bound build manifest",
+      "      - name: Block repository-only directories in public artifact\n        run: python3 scripts/check_public_site_artifact.py _site\n      - name: Stamp every page and asset in commit-bound build manifest"
+    ]
+  ]
+}

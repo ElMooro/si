@@ -6,7 +6,6 @@ const parse=raw=>parser.exports.parse(raw,{ecmaVersion:'latest'}),hash=x=>crypto
 const clean=tree=>JSON.parse(JSON.stringify(tree,(k,v)=>['start','end'].includes(k)?undefined:v));
 function body(raw,file){const call=parse(raw).body.find(n=>n.expression?.type==='CallExpression').expression;return file==='jh-chart-stock-desk.js'?call.arguments[1].body.body:call.callee.body.body;}
 function normalize(raw,file){
- raw=require('./squeeze-research-preservation.cjs').normalize(raw,file);
  const later=require('./warehouse-observation-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);
  const next=require('./observation-diagnostics-preservation.cjs');if(next.manifest.entries[file])raw=next.normalize(raw,file);
  const record=manifest.entries[file];assert.ok(record,file);const old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
