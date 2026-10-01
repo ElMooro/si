@@ -1,0 +1,172 @@
+{
+  "scope": "Read-only public packet projections, not the exact asynchronous inputs consumed by a previous publication. No raw original/provider/private/account data retained.",
+  "base_commit": "fde532d4e",
+  "sources": {
+    "risk-gate": {
+      "url": "https://justhodl.ai/data/risk-gate.json",
+      "fetched_at": "2026-10-01T07:19:13.787480+00:00",
+      "bytes": 424487,
+      "sha256": "0fe870b6500412fc86c23c779bcf4d9a8a7445728c411c85c28c216305799c4d",
+      "selected": {
+        "engine": "justhodl-risk-gate",
+        "contract": "risk-gate-research.v1",
+        "schema_version": "risk-gate.v3",
+        "version": "3.0.0",
+        "generated_at": "2026-10-01T06:40:16.448201+00:00",
+        "posture": "UNAVAILABLE",
+        "composite": null,
+        "sizing_multiplier": null,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "eurodollar-stress": {
+      "url": "https://justhodl.ai/data/eurodollar-stress.json",
+      "fetched_at": "2026-10-01T07:19:13.304936+00:00",
+      "bytes": 56256,
+      "sha256": "ebad13e096d85b137722624a89faeee8a04b164593aefceb42005c9f0b80143e",
+      "selected": {
+        "engine": "justhodl-eurodollar-stress",
+        "contract": "eurodollar-native-research.v1",
+        "version": "2.0.0",
+        "generated_at": "2026-09-30T21:16:22.456624+00:00",
+        "as_of": "2026-09-30T21:16:22.456624+00:00",
+        "composite_score": null,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "credit-composite": {
+      "url": "https://justhodl.ai/data/credit-composite.json",
+      "fetched_at": "2026-10-01T07:19:13.440000+00:00",
+      "bytes": 56011,
+      "sha256": "92a2394cb07efad7e71c03b2d21727321074503665b69e6a56d0f0c74906f3e2",
+      "selected": {
+        "contract": "credit-composite-abstention.v1",
+        "version": "1.1.0",
+        "generated_at": "2026-09-30T21:40:17.081531+00:00",
+        "composite": null,
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false
+      }
+    },
+    "khalid-risk": {
+      "url": "https://justhodl.ai/data/khalid-risk.json",
+      "fetched_at": "2026-10-01T07:19:13.442298+00:00",
+      "bytes": 19559,
+      "sha256": "01069094943de16bc854a673747e6eca571787c0af4b2f2d02b9caec3c6d1335",
+      "selected": {
+        "engine": "justhodl-khalid-risk",
+        "schema_version": "1.0.0",
+        "version": "1.0.0",
+        "generated_at": "2026-10-01T06:20:53.762391+00:00",
+        "as_of": "2026-10-01T06:15:55.288923+00:00",
+        "critical_health": [
+          {
+            "name": "risk_gate",
+            "status": "INVALID",
+            "error": "missing required fields: composite, sizing_multiplier",
+            "as_of": "2026-10-01T05:40:16.284412+00:00",
+            "age_h": 0.68,
+            "max_age_h": 30
+          },
+          {
+            "name": "crisis",
+            "status": "FRESH",
+            "error": null,
+            "as_of": "2026-10-01T06:15:55.288923+00:00",
+            "age_h": 0.08,
+            "max_age_h": 8
+          },
+          {
+            "name": "bond_warroom",
+            "status": "INVALID",
+            "error": "bond risk fields missing: eurodollar_shortage.score/state",
+            "as_of": "2026-09-30T23:15:49+00:00",
+            "age_h": 7.08,
+            "max_age_h": 84
+          },
+          {
+            "name": "eurodollar_stress",
+            "status": "INVALID",
+            "error": "missing required fields: composite_score",
+            "as_of": "2026-09-30T21:16:22.456624+00:00",
+            "age_h": 9.08,
+            "max_age_h": 30
+          },
+          {
+            "name": "credit_composite",
+            "status": "INVALID",
+            "error": "missing all alternative fields: composite, composite_score",
+            "as_of": "2026-09-30T21:40:17.081531+00:00",
+            "age_h": 8.68,
+            "max_age_h": 30
+          }
+        ],
+        "policy": {
+          "mode": "DATA_HOLD",
+          "allows_new_entries": false,
+          "sizing_multiplier": 0.0,
+          "exposure_cap_pct": 0
+        },
+        "exposure_cap_pct": 0
+      }
+    },
+    "bond-warroom": {
+      "url": "https://justhodl.ai/data/bond-warroom.json",
+      "fetched_at": "2026-10-01T07:19:14.015540+00:00",
+      "bytes": 5717811,
+      "sha256": "d2ced66aed598b5ef64e6553b2da5e0f18fe76e57bf0b3487e46ae8136f49290",
+      "selected": {
+        "version": "1.3.2",
+        "generated_at": "2026-09-30T23:15:49+00:00",
+        "eurodollar_shortage": {
+          "state": "UNQUALIFIED",
+          "score": null,
+          "points": null,
+          "calls_eligible": false,
+          "sizing_eligible": false
+        }
+      }
+    }
+  },
+  "release_receipts": {
+    "risk-gate": {
+      "url": "https://justhodl.ai/data/ops/releases/justhodl-risk-gate.json",
+      "commit": "16b164d2ab27cdf31dfdbd586e9c79114e3ff456",
+      "deployed_at": "2026-09-25T23:24:33Z",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36200832497",
+      "native_source_matches": {
+        "donor_contracts.py": true,
+        "lambda_function.py": true,
+        "risk_gate_research_inputs.py": true,
+        "risk_gate_research_store.py": true
+      }
+    },
+    "eurodollar-stress": {
+      "url": "https://justhodl.ai/data/ops/releases/justhodl-eurodollar-stress.json",
+      "commit": "fcadc6d7f5d06e2199fa3546701721c2b8994da3",
+      "deployed_at": "2026-09-20T17:13:00Z",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/35525070831",
+      "native_source_matches": {
+        "_fred_shim.py": true,
+        "eurodollar_research_model.py": true,
+        "eurodollar_research_store.py": true,
+        "lambda_function.py": true,
+        "legacy_eurodollar_stress.py": true
+      }
+    },
+    "credit-composite": {
+      "url": "https://justhodl.ai/data/ops/releases/justhodl-credit-composite.json",
+      "commit": "8f48fc660a266e93b03e42b4a8a8826aa420a36f",
+      "deployed_at": "2026-09-28T17:58:32Z",
+      "run_url": "https://github.com/ElMooro/si/actions/runs/36461449072",
+      "native_source_matches": {
+        "lambda_function.py": true
+      }
+    }
+  }
+}
