@@ -29,7 +29,7 @@ import boto3
 from holdings_derived_boundary import DIRECT, CLUSTER, exclusions
 from capital_research_boundary import context as capital_context
 
-VERSION = "1.3"
+VERSION = "1.3"  # t360 wiring live
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/flow-confluence.json"
 s3 = boto3.client("s3", "us-east-1")
