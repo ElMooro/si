@@ -119,6 +119,7 @@ class OptionalVotes(unittest.TestCase):
         with patch.multiple(mod,**replacements):
             result=mod.lambda_handler({})
         self.assertTrue(result['ok']);daily=writes[0];self.assert_abstains(daily['war_room'])
+        self.assertEqual(daily['version'],'2.5.2');self.assertEqual(daily['schema'],'1.1')
         research=copy.deepcopy(daily);research['research_generated_at']=fixture._iso(2)
         lookup={FEEDS[k]:feeds[k] for k in FEEDS}
         lookup.update({'data/risk-gate.json':feeds['risk_gate'],'data/khalid-risk.json':feeds['khalid_risk'],
@@ -133,6 +134,7 @@ class OptionalVotes(unittest.TestCase):
         with patch.object(mod,'s3',Memory()):
             result=mod.lambda_handler({'mode':'permission_refresh'})
         self.assertTrue(result['ok']);refresh=writes[-1];self.assert_abstains(refresh['war_room'])
+        self.assertEqual(refresh['version'],'2.5.2');self.assertEqual(refresh['schema'],'1.1')
         self.assertEqual(refresh['research_generated_at'],research['research_generated_at'])
         self.assertEqual(refresh['picks'],daily['picks'])
         self.assertEqual(refresh['war_room']['research_context'],daily['war_room']['research_context'])

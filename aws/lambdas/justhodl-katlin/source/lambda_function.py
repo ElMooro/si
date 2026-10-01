@@ -88,7 +88,7 @@ from bottom_context import context_rows
 
 VALIDATION_ONLY = False
 
-VERSION = "2.5.1"   # Fresh BOTTOM context only; historical scoring and binding capital authority preserved.
+VERSION = "2.5.2"   # Required funding hold and optional research-vote qualification; schema unchanged.
 ENGINE = "justhodl-katlin"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/katlin.json"
