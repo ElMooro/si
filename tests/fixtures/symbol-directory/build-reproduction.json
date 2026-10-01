@@ -1,0 +1,333 @@
+{
+  "source_sha256": "c01eb8da74516e96ca246f0e347aab0a3c406622841e7352c71d80b403cf6266",
+  "whole_source_bytes": 171303,
+  "invented_inputs": {
+    "data/finviz-universe.json": {
+      "by_ticker": {}
+    },
+    "data/symbology/master.json": {
+      "by_ticker": {
+        "ZZTEST": {
+          "cik": "0000000111",
+          "isin": "US0000000000",
+          "identity_qualification": {
+            "investment_authority": false
+          }
+        }
+      }
+    },
+    "data/symbol-dictionary.json": {
+      "dictionary": {}
+    },
+    "data/symbol-aliases.json": {
+      "aliases": {}
+    },
+    "data/search/provider-shards.json": {
+      "schema_version": 1,
+      "shards": []
+    }
+  },
+  "invented_polygon_row": {
+    "ticker": "ZZTEST",
+    "name": "Invented replacement issuer",
+    "cik": "0000000222",
+    "type": "CS",
+    "primary_exchange": "TEST"
+  },
+  "reads": [
+    "data/finviz-universe.json",
+    "data/symbology/master.json",
+    "data/symbol-dictionary.json",
+    "data/symbol-aliases.json",
+    "data/symdir/fred-titles.json",
+    "data/warm/eurostat/catalog.json.gz",
+    "data/index/eurostat/flows.json.gz",
+    "data/warm/ecb/catalog.json.gz",
+    "data/index/ecb/flows.json.gz",
+    "data/warm/oecd/catalog.json.gz",
+    "data/warm/oecd/flow-triplets.json.gz",
+    "data/warm/bis/catalog.json.gz",
+    "data/warm/imf-full/catalog.json.gz",
+    "data/warm/imf-full/catalog.json",
+    "data/warm/imf-full/manifest.json",
+    "data/warm/imf/catalog.json.gz",
+    "data/warm/statcan/cube-catalog.json.gz",
+    "data/warm/ofr-fsi/fsi.csv",
+    "data/warm/census-us/catalog.json.gz",
+    "data/vix-curve-history.json",
+    "data/warm/worldbank-full/indicators.json.gz",
+    "data/warm/worldbank-full/catalog.json.gz",
+    "data/warm/worldbank/catalog.json.gz",
+    "data/search/provider-shards.json"
+  ],
+  "list_prefixes": [
+    "data/warm/fred-catalog/series-meta/",
+    "data/warm/te-mirror/",
+    "data/warm/archived-fred/",
+    "data/warm/imf-full/src/",
+    "data/warm/statcan/data/",
+    "data/warm/ofr/",
+    "data/warm/ofr-hfm/series/",
+    "data/warm/ofr-bsrm/series/",
+    "data/warm/treasury/",
+    "data/warm/boe-full/iadb/",
+    "data/warm/boj-full/api/",
+    "data/warm/bls-full/src/"
+  ],
+  "storage_listings": [
+    {
+      "Bucket": "invented-bucket",
+      "Prefix": "data/warm/fred-scoped/",
+      "Delimiter": "/"
+    }
+  ],
+  "invented_http_requests": [
+    "https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=1000&apiKey=invented-key",
+    "https://api.polygon.io/v3/reference/tickers?market=otc&active=true&limit=1000&apiKey=invented-key",
+    "https://api.polygon.io/v3/reference/tickers?market=indices&active=true&limit=1000&apiKey=invented-key",
+    "https://api.polygon.io/v3/reference/tickers?market=crypto&active=true&limit=1000&apiKey=invented-key",
+    "https://api.polygon.io/v3/reference/tickers?market=fx&active=true&limit=1000&apiKey=invented-key",
+    "https://api.worldbank.org/v2/indicator?format=json&per_page=30000"
+  ],
+  "whole_build_result": {
+    "version": "1.10.0",
+    "built_at": "2000-01-01T00:00:00+00:00",
+    "finished_at": "2000-01-01T00:00:00+00:00",
+    "elapsed_s": 0.0,
+    "docs": 13,
+    "tokens": 39,
+    "postings": 133,
+    "instruments": 1,
+    "bytes": {
+      "docs_pkl_gz": 810,
+      "index_pkl_gz": 723,
+      "instruments_json_gz": 159
+    },
+    "providers": {
+      "nyfed": {
+        "series": 10,
+        "dataset": 0,
+        "instrument": 0
+      },
+      "ofr-fsi": {
+        "series": 2,
+        "dataset": 0,
+        "instrument": 0
+      },
+      "instrument": {
+        "series": 0,
+        "dataset": 0,
+        "instrument": 1
+      }
+    },
+    "sources": {
+      "instruments": {
+        "counts": {
+          "stocks": 1
+        },
+        "finviz": 0,
+        "symbology": 1,
+        "docs": 1,
+        "s": 0.0
+      },
+      "fred": {
+        "meta_pages": 0,
+        "catalog": 0,
+        "banked": 0,
+        "untitled_banked": 0,
+        "titles_fetched_now": 0,
+        "titles_ledger": 0,
+        "te_mirror": 0,
+        "archived": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "eurostat": {
+        "flows": 0,
+        "tier0": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "ecb": {
+        "flows": 0,
+        "tier0": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "oecd": {
+        "flows": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "bis": {
+        "flows": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "imf": {
+        "flows": 0,
+        "catalog": null,
+        "docs": 0,
+        "s": 0.0
+      },
+      "statcan": {
+        "cubes": 0,
+        "banked": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "nyfed": {
+        "series": 10,
+        "docs": 10,
+        "s": 0.0
+      },
+      "ofr": {
+        "series": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "ofr-fsi": {
+        "series": 2,
+        "rows": 1,
+        "docs": 2,
+        "s": 0.0
+      },
+      "treasury": {
+        "series": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "boe": {
+        "series": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "census": {
+        "series": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "cboe": {
+        "docs": 0,
+        "s": 0.0
+      },
+      "boj": {
+        "parts": 0,
+        "series": 0,
+        "dbs": 0,
+        "partial": false,
+        "docs": 0,
+        "s": 0.0
+      },
+      "worldbank": {
+        "docs": 0,
+        "s": 0.0,
+        "error": "Invented absent provider fixture"
+      },
+      "bls": {
+        "series": 0,
+        "files": 0,
+        "docs": 0,
+        "s": 0.0
+      },
+      "provider-shards": {
+        "providers": 0,
+        "docs": 0,
+        "manifest_docs": null,
+        "index": null,
+        "generated_at": null,
+        "s": 0.0
+      }
+    },
+    "skipped": [],
+    "errors": {
+      "eurostat-names": "Real HTTP forbidden",
+      "worldbank": "Invented absent provider fixture | Traceback (most recent call last):\n  File \"/invented/symdir/lambda_function.py\", line 392, in stage\n  File \"/invented/symdir/lambda_function.py\", line 747, in st_worldbank\n  File \"/invented/symdir-build-reproducer.py\", line 35, in http_json\nValueError: Invented absent provider fixture\n"
+    },
+    "series_level_via_tier1": {
+      "eurostat": 564204235,
+      "ecb": 3240832
+    }
+  },
+  "whole_writes": {
+    "data/symdir/fred-untitled.json": {
+      "Bucket": "invented-bucket",
+      "Key": "data/symdir/fred-untitled.json",
+      "ContentType": "application/json",
+      "CacheControl": "no-cache",
+      "body_base64": "eyJpZHMiOltdLCJiYW5rZWRfcm9vdCI6e30sImFzX29mIjoiMjAwMC0wMS0wMVQwMDowMDowMCswMDowMCJ9"
+    },
+    "data/symdir/docs.pkl.gz": {
+      "Bucket": "invented-bucket",
+      "Key": "data/symdir/docs.pkl.gz",
+      "ContentType": "application/octet-stream",
+      "CacheControl": "no-cache",
+      "body_base64": "H4sIAIBDbTgA/5WVTU/bMBjHeWnpYLA3cQF2yICJMtY2HZx6WKWWtkKMltFuB7SpShOnzkiTyna6FQmJD2CJA94BPs7Om7SvsO20y267z3bTt9FCcZMmcezn94/9/O3T4GcrNCbLCQvTUAMgbLkOo1PxaFyNqozeqXiWTcoaYXThhaqqETXOj5KqJuSxIf8ZDRiujtl7FuYHnXGaJjASlaqOGA3KB0ZXU8jVDCUHHIA0W0m7tq0ReXvAr0o4lUsfrHMwBsgCmOWSf0xZaGgfIB04XMD4Nsvn6WNDI1rso4ZqMRk6JjjRD9h1otVj3gD0SACmiRicpisZ0wQ6sRpAyQJDUrOeY2CfnclmORve7UDhLJwbhBLxhqDcSgu1XOCD6FhVSJSU5hxJjuVUfVIhNSJJhBtCwm6LtFYEuoeAoXSJWcvRHL2LKxZGxImYQ3BETCPHhUvIiuxriDSHT2JJTuIIPDJgzu5zDRETWwkuupwt7jAa8msYXeR17a/jtCJBAGNlxzHAJ4n7fSHKJQ36VXN0pputDK7Sha4CP2iMn1EdN9juuMj9oGkBm+dpSJIkXbMtDQOZ1jDc8+KB2RGCpRAG6KyIjwEpO1oNMLjsyU962HVCouHanng1TZ9db4VWQyW8WnFaY/lrUxY6yWvY4PHs98AJg2t0uhWnzPvgXjEih3vErF9rjWFaYHwUgwgdcKuPLvK6hx6+zi23hfd7ZgBcZHkPPHKjgW6roN9GAxSQ/kyI3uyp20ogVzKhLWGx7a+d/NtMvpTZLqcLe/uFPL9n8Ald8vM7wW3V4OstHxfdrdVdR6y9Avzz7F3475czuALn4Cr/PZXG4Zn2aFCHdeGaPbgBnwMYafth6vCwlCmWGJ2xHG4d/mFiXV/q9Eegbms6ENWKhbEH+MrzOpf83tqi8rIIs05wj9NAK1SANOuA0Qm+/9DJ2hERewhx9SP+GLCwxTez2TdFtVOYBwCdrLt1vjVpCGlNRufL8qaMgO5KWTpxETsXi4Lfwr+e8z3IZLv30lubmzj5//nt66vk5cXClfPH8XxybOz0JSPsgHnRf3sGInp0BwAA"
+    },
+    "data/symdir/index.pkl.gz": {
+      "Bucket": "invented-bucket",
+      "Key": "data/symdir/index.pkl.gz",
+      "ContentType": "application/octet-stream",
+      "CacheControl": "no-cache",
+      "body_base64": "H4sIAIBDbTgA/6WVTW/TQBCGm3jtfFWioB4Q4sCBQw60aiUOqOoBtU2gSptUTaigAgXH2WSsuutobYemAqkHVHHwAamLxIEDB34o48jJri1cSok0sjXz7Mw7s+vNhf7toLgw/X0S1bAwptyzXSZCY311fW11TYS6zfr0TERRwk2fosfk3JyIcLk7felyarnM83lg+S4XVwjOiPh5JcLcrmgY29WoTg4tj6ahETQDrYAWySihldGELw5FmA88AcUqVGDx3xeXLddxUC83HSXJ0oKyUMJ6j7tmX+GmMzHm8cKQsptl0ga0f3vRGqMfbr+a9IYWz26CTFx+cvvsOpv8V28lOhhQy7fHVJWYi/l4zlhhELB+NkEwC78+QWqj0gn+kr9nMnVIxXzcTNyEi18Is4fgq0dhNoBZ0zMtWMlmw+xsxO0lm0kVG9jMZFYqhZYs4lEr4Il9SRHEc5NFkmHN57YaJYlN00cm9yfZceKnjlwybOC1QD31Ky7qGKxI+ahtZeDZ2YSWUp+MxrdTZnw2wuSJSFW4tr4xdp3gVD2zy9fcWD12M7BoszFlfnLfoqKLUrrlno5chpTCEEXY+blPvURQLi7b0xv5NLVaAhVOR45p0WzCsD0voPyPwSAs+O6JY2P5d6IKL6EKIdyHZRDwFDbhETyHZ3ABr+Ez7MABPISP8AO+wi94DGvQgTPwYQ8AdPgJb+E9jMCBPizBF3gC32mo2X0vyhuWm2/qtZ2NrRfbh6KxcCnCu9KxcdTae7Vfw78V9MdgrV5HMCfByDEHCxJsbUVgXoKRYw4WJdhuRaAmwcgxB0sS7Ew1Egl2VI1l9D/AlSv19u7GbvOo1uzUdrrbrf2DVhPfRaOCwJ0ZgM8uPkVDR69xfNyptRFZvBQ0up44nc6GyKkQ2fe9rOREtlxI5CeyRSKbMNTpGuoEDXVKhjoJQ+mWBqu/AWafVghbCAAA"
+    },
+    "data/symdir/instruments.json.gz": {
+      "Bucket": "invented-bucket",
+      "Key": "data/symdir/instruments.json.gz",
+      "ContentType": "application/json",
+      "ContentEncoding": "gzip",
+      "CacheControl": "public, max-age=21600",
+      "body_base64": "H4sIAIBDbTgA/y2LzQrCMBCEX6Xs1SrbgpfcPXi2p5YgaVy0NH8kqVrEd3dThGHm253dD4zLZPJVZRDQIuIeG1aHKDbtNocaHIimBu1NAjFAWu3oTVkrSxz01g/l7gXzGkpYFWfKDMEHkDVE/yqfA/R9d7p0XJzdk1ymWxUpGKXJ8lRNKS0Uuf0f6cSWstczAx7ao5TfH6/5sIy0AAAA"
+    },
+    "data/symdir/manifest.json": {
+      "Bucket": "invented-bucket",
+      "Key": "data/symdir/manifest.json",
+      "ContentType": "application/json",
+      "CacheControl": "public, max-age=120",
+      "body_base64": "eyJ2ZXJzaW9uIjoiMS4xMC4wIiwiYnVpbHRfYXQiOiIyMDAwLTAxLTAxVDAwOjAwOjAwKzAwOjAwIiwiZmluaXNoZWRfYXQiOiIyMDAwLTAxLTAxVDAwOjAwOjAwKzAwOjAwIiwiZWxhcHNlZF9zIjowLjAsImRvY3MiOjEzLCJ0b2tlbnMiOjM5LCJwb3N0aW5ncyI6MTMzLCJpbnN0cnVtZW50cyI6MSwiYnl0ZXMiOnsiZG9jc19wa2xfZ3oiOjgxMCwiaW5kZXhfcGtsX2d6Ijo3MjMsImluc3RydW1lbnRzX2pzb25fZ3oiOjE1OX0sInByb3ZpZGVycyI6eyJueWZlZCI6eyJzZXJpZXMiOjEwLCJkYXRhc2V0IjowLCJpbnN0cnVtZW50IjowfSwib2ZyLWZzaSI6eyJzZXJpZXMiOjIsImRhdGFzZXQiOjAsImluc3RydW1lbnQiOjB9LCJpbnN0cnVtZW50Ijp7InNlcmllcyI6MCwiZGF0YXNldCI6MCwiaW5zdHJ1bWVudCI6MX19LCJzb3VyY2VzIjp7Imluc3RydW1lbnRzIjp7ImNvdW50cyI6eyJzdG9ja3MiOjF9LCJmaW52aXoiOjAsInN5bWJvbG9neSI6MSwiZG9jcyI6MSwicyI6MC4wfSwiZnJlZCI6eyJtZXRhX3BhZ2VzIjowLCJjYXRhbG9nIjowLCJiYW5rZWQiOjAsInVudGl0bGVkX2JhbmtlZCI6MCwidGl0bGVzX2ZldGNoZWRfbm93IjowLCJ0aXRsZXNfbGVkZ2VyIjowLCJ0ZV9taXJyb3IiOjAsImFyY2hpdmVkIjowLCJkb2NzIjowLCJzIjowLjB9LCJldXJvc3RhdCI6eyJmbG93cyI6MCwidGllcjAiOjAsImRvY3MiOjAsInMiOjAuMH0sImVjYiI6eyJmbG93cyI6MCwidGllcjAiOjAsImRvY3MiOjAsInMiOjAuMH0sIm9lY2QiOnsiZmxvd3MiOjAsImRvY3MiOjAsInMiOjAuMH0sImJpcyI6eyJmbG93cyI6MCwiZG9jcyI6MCwicyI6MC4wfSwiaW1mIjp7ImZsb3dzIjowLCJjYXRhbG9nIjpudWxsLCJkb2NzIjowLCJzIjowLjB9LCJzdGF0Y2FuIjp7ImN1YmVzIjowLCJiYW5rZWQiOjAsImRvY3MiOjAsInMiOjAuMH0sIm55ZmVkIjp7InNlcmllcyI6MTAsImRvY3MiOjEwLCJzIjowLjB9LCJvZnIiOnsic2VyaWVzIjowLCJkb2NzIjowLCJzIjowLjB9LCJvZnItZnNpIjp7InNlcmllcyI6Miwicm93cyI6MSwiZG9jcyI6MiwicyI6MC4wfSwidHJlYXN1cnkiOnsic2VyaWVzIjowLCJkb2NzIjowLCJzIjowLjB9LCJib2UiOnsic2VyaWVzIjowLCJkb2NzIjowLCJzIjowLjB9LCJjZW5zdXMiOnsic2VyaWVzIjowLCJkb2NzIjowLCJzIjowLjB9LCJjYm9lIjp7ImRvY3MiOjAsInMiOjAuMH0sImJvaiI6eyJwYXJ0cyI6MCwic2VyaWVzIjowLCJkYnMiOjAsInBhcnRpYWwiOmZhbHNlLCJkb2NzIjowLCJzIjowLjB9LCJ3b3JsZGJhbmsiOnsiZG9jcyI6MCwicyI6MC4wLCJlcnJvciI6IkludmVudGVkIGFic2VudCBwcm92aWRlciBmaXh0dXJlIn0sImJscyI6eyJzZXJpZXMiOjAsImZpbGVzIjowLCJkb2NzIjowLCJzIjowLjB9LCJwcm92aWRlci1zaGFyZHMiOnsicHJvdmlkZXJzIjowLCJkb2NzIjowLCJtYW5pZmVzdF9kb2NzIjpudWxsLCJpbmRleCI6bnVsbCwiZ2VuZXJhdGVkX2F0IjpudWxsLCJzIjowLjB9fSwic2tpcHBlZCI6W10sImVycm9ycyI6eyJldXJvc3RhdC1uYW1lcyI6IlJlYWwgSFRUUCBmb3JiaWRkZW4iLCJ3b3JsZGJhbmsiOiJJbnZlbnRlZCBhYnNlbnQgcHJvdmlkZXIgZml4dHVyZSB8IFRyYWNlYmFjayAobW9zdCByZWNlbnQgY2FsbCBsYXN0KTpcbiAgRmlsZSBcIi9pbnZlbnRlZC9zeW1kaXIvbGFtYmRhX2Z1bmN0aW9uLnB5XCIsIGxpbmUgMzkyLCBpbiBzdGFnZVxuICBGaWxlIFwiL2ludmVudGVkL3N5bWRpci9sYW1iZGFfZnVuY3Rpb24ucHlcIiwgbGluZSA3NDcsIGluIHN0X3dvcmxkYmFua1xuICBGaWxlIFwiL2ludmVudGVkL3N5bWRpci1idWlsZC1yZXByb2R1Y2VyLnB5XCIsIGxpbmUgMzUsIGluIGh0dHBfanNvblxuVmFsdWVFcnJvcjogSW52ZW50ZWQgYWJzZW50IHByb3ZpZGVyIGZpeHR1cmVcbiJ9LCJzZXJpZXNfbGV2ZWxfdmlhX3RpZXIxIjp7ImV1cm9zdGF0Ijo1NjQyMDQyMzUsImVjYiI6MzI0MDgzMn19"
+    }
+  },
+  "indexed_row": [
+    "ZZTEST",
+    "instrument",
+    "Invented replacement issuer",
+    "instrument",
+    0.25,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    {
+      "ex": "TEST",
+      "type": "cs",
+      "mkt": "stocks",
+      "isin": "US0000000000"
+    }
+  ],
+  "search_row": {
+    "id": "ZZTEST",
+    "symbol": "ZZTEST",
+    "name": "Invented replacement issuer",
+    "provider": "instrument",
+    "provider_name": "Market",
+    "kind": "instrument",
+    "chartable": true,
+    "asset_class": "equity",
+    "unit": null,
+    "freq": null,
+    "first": null,
+    "last": null,
+    "n": null,
+    "pop": 0.25,
+    "ex": "TEST",
+    "type": "cs",
+    "mkt": "stocks"
+  },
+  "finding": "Ticker-only merge copies an ISIN across conflicting issuer CIKs into the stored index. Current doc_row excludes ISIN, so no direct search-response ISIN exposure is claimed.",
+  "actual_data_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "repository_changes": false
+}

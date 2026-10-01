@@ -1,0 +1,229 @@
+{
+  "source_sha256": "d0b8bd87be26b43d2dcc3199de8b01f476ddfd63586dbf396b8803ccf47a428e",
+  "whole_source_bytes": 34419,
+  "cases": {
+    "unqualified_identifier_routes": {
+      "inputs": {
+        "/data/symbology/master.json": {
+          "by_ticker": {
+            "ZZOLD": {
+              "name": "Invented legacy issuer",
+              "cik": "0000000111",
+              "isin": "US0000000000",
+              "isin_match_qualified": false
+            }
+          }
+        },
+        "/data/indicator-bus.json": {
+          "indicators": {}
+        },
+        "/data/provider-catalog.json": {
+          "providers": []
+        },
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+          "rows": [],
+          "cols": []
+        },
+        "/data/cryptoquant-series.json": {
+          "series": {}
+        }
+      },
+      "query": "US0000000000",
+      "requests": [
+        "/data/symbology/master.json",
+        "/data/indicator-bus.json",
+        "/data/provider-catalog.json",
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+        "/data/cryptoquant-series.json"
+      ],
+      "counts": {
+        "n_sym": 1,
+        "n_ind": 0,
+        "n_inst": 0,
+        "n_prov": 0
+      },
+      "lookup_result": "ZZOLD",
+      "lookup_error": null,
+      "suggestions": [
+        {
+          "s": "ZZOLD",
+          "name": "Invented legacy issuer",
+          "extra": "ISIN US0000000000 · OpenFIGI / SEC spine",
+          "type": "stock",
+          "cat": "stocks",
+          "suggest": true,
+          "score": 55
+        }
+      ]
+    },
+    "duplicate_identifier_first_wins": {
+      "inputs": {
+        "/data/symbology/master.json": {
+          "by_ticker": {
+            "ZZFIRST": {
+              "name": "Invented first issuer",
+              "cik": "0000000111",
+              "isin": "US0000000000",
+              "isin_match_qualified": false
+            },
+            "ZZSECOND": {
+              "name": "Invented second issuer",
+              "cik": "0000000222",
+              "isin": "US0000000000",
+              "isin_match_qualified": false
+            }
+          }
+        },
+        "/data/indicator-bus.json": {
+          "indicators": {}
+        },
+        "/data/provider-catalog.json": {
+          "providers": []
+        },
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+          "rows": [],
+          "cols": []
+        },
+        "/data/cryptoquant-series.json": {
+          "series": {}
+        }
+      },
+      "query": "US0000000000",
+      "requests": [
+        "/data/symbology/master.json",
+        "/data/indicator-bus.json",
+        "/data/provider-catalog.json",
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+        "/data/cryptoquant-series.json"
+      ],
+      "counts": {
+        "n_sym": 2,
+        "n_ind": 0,
+        "n_inst": 0,
+        "n_prov": 0
+      },
+      "lookup_result": "ZZFIRST",
+      "lookup_error": null,
+      "suggestions": [
+        {
+          "s": "ZZFIRST",
+          "name": "Invented first issuer",
+          "extra": "ISIN US0000000000 · OpenFIGI / SEC spine",
+          "type": "stock",
+          "cat": "stocks",
+          "suggest": true,
+          "score": 55
+        },
+        {
+          "s": "ZZSECOND",
+          "name": "Invented second issuer",
+          "extra": "ISIN US0000000000 · OpenFIGI / SEC spine",
+          "type": "stock",
+          "cat": "stocks",
+          "suggest": true,
+          "score": 55
+        }
+      ]
+    },
+    "malformed_identifier_crashes_lookup": {
+      "inputs": {
+        "/data/symbology/master.json": {
+          "by_ticker": {
+            "ZZBAD": {
+              "name": "Invented malformed record",
+              "cusip": true
+            }
+          }
+        },
+        "/data/indicator-bus.json": {
+          "indicators": {}
+        },
+        "/data/provider-catalog.json": {
+          "providers": []
+        },
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+          "rows": [],
+          "cols": []
+        },
+        "/data/cryptoquant-series.json": {
+          "series": {}
+        }
+      },
+      "query": "unrelated",
+      "requests": [
+        "/data/symbology/master.json",
+        "/data/indicator-bus.json",
+        "/data/provider-catalog.json",
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+        "/data/cryptoquant-series.json"
+      ],
+      "counts": {
+        "n_sym": 1,
+        "n_ind": 0,
+        "n_inst": 0,
+        "n_prov": 0
+      },
+      "lookup_result": null,
+      "lookup_error": {
+        "name": "TypeError",
+        "message": "r.cusip.replace is not a function"
+      },
+      "suggestions": []
+    },
+    "hyphenated_ticker_cannot_resolve": {
+      "inputs": {
+        "/data/symbology/master.json": {
+          "by_ticker": {
+            "TEST-A": {
+              "name": "Invented class A",
+              "cik": "0000000111"
+            }
+          }
+        },
+        "/data/indicator-bus.json": {
+          "indicators": {}
+        },
+        "/data/provider-catalog.json": {
+          "providers": []
+        },
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz": {
+          "rows": [],
+          "cols": []
+        },
+        "/data/cryptoquant-series.json": {
+          "series": {}
+        }
+      },
+      "query": "TEST-A",
+      "requests": [
+        "/data/symbology/master.json",
+        "/data/indicator-bus.json",
+        "/data/provider-catalog.json",
+        "https://justhodl-data-proxy.raafouis.workers.dev/data/symdir/instruments.json.gz",
+        "/data/cryptoquant-series.json"
+      ],
+      "counts": {
+        "n_sym": 1,
+        "n_ind": 0,
+        "n_inst": 0,
+        "n_prov": 0
+      },
+      "lookup_result": "",
+      "lookup_error": null,
+      "suggestions": [
+        {
+          "s": "TEST-A",
+          "name": "Invented class A",
+          "extra": "OpenFIGI / SEC spine",
+          "type": "stock",
+          "cat": "stocks",
+          "suggest": true,
+          "score": 100
+        }
+      ]
+    }
+  },
+  "actual_data_reads": 0,
+  "network_requests": 0,
+  "browser_execution": false
+}

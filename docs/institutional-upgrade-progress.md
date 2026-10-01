@@ -6927,3 +6927,27 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
 - Source `2d1f4c6285102dd36501bc720185348ee496f04c` is accepted with exact public receipt and CodeSha256 `QtbutQg5wLuz7SFB86IruWKOCIl8n7iHNC/dGWjVfeI=`. Read-only 6402, run `36802291659`, confirms all three packaged source files and unchanged 1024 MB / 120 seconds / 512 MB temporary storage / Python 3.12 / x86_64 and original daily 06:45 UTC rule, before and after inspection. Report commit: `f0d2a2eaa7b123f4865bace9c06c7703731a0abd`.
 - All 55 inspected static files match one exact build. The full source inventory preserves 898 engine records, 599 page contracts, 543 navigation destinations and 143 companion wires. The final source passes 39 native, three operation, 990 deployment, fifteen shell and 2,213 frontend checks. The final cycle includes functional publication reachability, corrected metadata, strict framing and extreme-clock regressions.
 - No actual queue, master, account, private/current consumer body, provider request or producer invocation was used. Normal new-code publication, independent source replay and global inventory completeness remain unverified. No investment authority is granted. A complete invented directory build reproduces the next stored-index defect: copying an ISIN across conflicting issuer identities. Current search responses omit that ISIN, so display exposure is not claimed. All ten platform workstreams remain OPEN.
+
+
+## Stage 493: symbol-directory integrity baseline
+
+- Complete invented native build reproduces ticker-only copying of an ISIN across
+  different issuer CIKs into stored index metadata. Current search responses omit
+  that field, so this is not a claim of observed public identifier exposure.
+- Complete native loader reproductions accept a mixed docs/index population and
+  discard a known working cache before a forced replacement read succeeds. These
+  remain separate repairs requiring generation and resource-bound review.
+- Existing tests pass: three fiscal, eight provider-search and seven warehouse
+  cases. The engine runner currently selects only the first three. The first
+  standalone provider-search run lacked its shared source path; the corrected
+  harness passes with live HTTP blocked. No actual data or provider was accessed.
+- Read-only 6403 will inspect the whole native package and original controls
+  before a source change. Its three focused, 993 deployment and fifteen shell checks pass; native
+  baseline and source repair remain pending. Normal publication and all
+  ten workstreams remain OPEN.
+
+- Whole chart-catalog source in an isolated VM reproduces four additional consumer
+  defects: unqualified identifier conversion, duplicate first-match selection,
+  malformed identifier exceptions and lost hyphenated ticker lookup. No browser
+  page, real packet or external endpoint is executed. The separate chart renderer
+  also warrants text-escaping review; an exploit is not claimed from source review.

@@ -1,0 +1,119 @@
+{
+  "source_sha256": "c01eb8da74516e96ca246f0e347aab0a3c406622841e7352c71d80b403cf6266",
+  "whole_inputs": {
+    "data/symdir/docs.pkl.gz": "H4sIADq4vWoC/2tgnXqdAQJqp2j0sJelFhVn5udN6WEz1DM00DOY0sORVJqZUxKfWDKlR9LIwMBA18AQiEIMDKzASBtMTulhSclPLp4SC4RAU/x9XEJcg0Om9HBl5hWXFJXmpuYBtQt75pUBGakpCvk5KQqZxcWlqUVTMjjd7R9AHOAHAamJPcwF+QVTelgTi4oSK6f0iMSDGfFFqcn5YOOSS/KLpkwGWgRTAaUnT+lhTJvizefMAjTNfkrJlKAppXoAtpDDF+IAAAA=",
+    "data/symdir/index.pkl.gz": "H4sIADq4vWoC/2tgnbqQAQJqp2j0sJelFhVn5udN6WEz1DM00DOY0sOamZeSWjGldkoPe15qeUlqcQlQLLGoKLFySo9IPJgRX5SanJ9XXFJUmlySXzRlMtAgmAooPXlKD6PnFG82ZxaQTVNKpgRNKe5hL8nPzskEmhc7JYM1sYc5M6UYyOxh93MND3ENDpnizdA2JbGHJSmxKBUoXqoHACAzvkusAAAA"
+  },
+  "whole_mixed_result": {
+    "loaded_at": "2000-01-01T00:00:00+00:00",
+    "docs": [
+      [
+        "OLDTEST",
+        "instrument",
+        "Invented old issuer",
+        "instrument",
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "pop": {
+      "typecode": "f",
+      "values": [
+        0.5
+      ]
+    },
+    "index": {
+      "newtest": {
+        "typecode": "I",
+        "values": [
+          0
+        ]
+      }
+    },
+    "toklist": [
+      "newtest"
+    ],
+    "ids": [
+      [
+        "NEWTEST",
+        0
+      ]
+    ],
+    "bare": [],
+    "built_at": "2000-01-01T00:00:00+00:00",
+    "load_s": 0.0
+  },
+  "before_forced_failure": {
+    "loaded_at": "2000-01-01T00:00:00+00:00",
+    "docs": [
+      [
+        "OLDTEST",
+        "instrument",
+        "Invented old issuer",
+        "instrument",
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "pop": {
+      "typecode": "f",
+      "values": [
+        0.5
+      ]
+    },
+    "index": {
+      "newtest": {
+        "typecode": "I",
+        "values": [
+          0
+        ]
+      }
+    },
+    "toklist": [
+      "newtest"
+    ],
+    "ids": [
+      [
+        "NEWTEST",
+        0
+      ]
+    ],
+    "bare": [],
+    "built_at": "2000-01-01T00:00:00+00:00",
+    "load_s": 0.0
+  },
+  "after_forced_failure": {
+    "loaded_at": "2000-01-01T00:00:00+00:00",
+    "docs": null,
+    "pop": null,
+    "index": null,
+    "toklist": null,
+    "ids": null,
+    "bare": null,
+    "built_at": "2000-01-01T00:00:00+00:00",
+    "load_s": 0.0
+  },
+  "reads": [
+    "data/symdir/docs.pkl.gz",
+    "data/symdir/index.pkl.gz"
+  ],
+  "findings": [
+    "Separate docs and index heads can be accepted as an inconsistent population.",
+    "Forced refresh clears the whole known-good in-memory index before a new read succeeds."
+  ],
+  "actual_data_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0
+}
