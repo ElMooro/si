@@ -29,7 +29,7 @@ import boto3
 from holdings_derived_boundary import DIRECT, CLUSTER, exclusions
 from capital_research_boundary import context as capital_context
 
-VERSION = "1.2"
+VERSION = "1.3"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/flow-confluence.json"
 s3 = boto3.client("s3", "us-east-1")
@@ -202,6 +202,24 @@ def lambda_handler(event, context):
         by_posture[p] = [b for b in book if b["posture"] == p][:25]
     multi = [b for b in book if b["n_engines"] >= 2]
 
+    # Cross-engine enrichment via ticker-360 hub (additive, fail-soft).
+    # Each ticker gets its full 360-degree domain coverage attached.
+    t360 = {}
+    try:
+        t360_raw = s3.get_object(Bucket=BUCKET, Key="data/ticker-360.json")["Body"].read()
+        t360 = (json.loads(t360_raw).get("tickers") or {})
+    except Exception:
+        t360 = {}
+    for b in book:
+        tk = b["ticker"]
+        tv = t360.get(tk) or {}
+        b["t360_coverage"] = tv.get("coverage_count", 0)
+        b["t360_domains"] = sorted((tv.get("domains") or {}).keys())
+    # cross-validated: flow posture + 3+ domain coverage
+    cross_validated = [b["ticker"] for b in book
+                       if b.get("t360_coverage", 0) >= 3 and b["posture"] in
+                       ("SHORT_SQUEEZE_SETUP", "ACCUMULATION", "STEALTH_ACCUMULATION")]
+
     out = {"engine": "flow-confluence", "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "holdings_exclusions": exclusions(holding_inputs),
@@ -209,14 +227,17 @@ def lambda_handler(event, context):
            "thesis": "Heuristic flow/positioning screen. Direct 13F, smart-money clusters and CapitalFlow contribute no score or agreement count. Other indirect paths, independence and predictive performance remain unqualified.",
            "alpha_gate": "ALPHA_NEGATIVE flow engines dropped (e.g. etf_rotation) via engine-trust.",
            "counts": {"names": len(book), "multi_engine": len(multi),
+                      "t360_indexed": len(t360), "cross_validated": len(cross_validated),
                       **{p.lower(): len(v) for p, v in by_posture.items()}},
            "multi_engine_confluence": multi[:40],
            "by_posture": by_posture,
            "ticker_map": {b["ticker"]: {"posture": b["posture"], "score": b["score"], "n_engines": b["n_engines"], "engines": b["engines"],
-                                        "heavy_short": b["heavy_short"], "stealth": b["stealth"], "tags": b["tags"]}
+                                        "heavy_short": b["heavy_short"], "stealth": b["stealth"], "tags": b["tags"],
+                                        "t360_coverage": b.get("t360_coverage", 0), "t360_domains": b.get("t360_domains", [])}
                           for b in book},
            "overlays": {"regime_haircut": hair, "regime_state": state or None,
                         "forensic_flagged": len(bad)},
+           "cross_validated_tickers": cross_validated[:40],
            "note": "New synthesizer — consumable by best-setups/master-ranker so flow confluence counts as one coherent factor."}
     out["options_scanner_exclusion"] = scanner_exclusion
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
