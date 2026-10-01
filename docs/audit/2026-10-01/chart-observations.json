@@ -1,6 +1,6 @@
 {
   "stage": 499,
-  "status": "full_candidate_checks_passed_exact_static_release_pending",
+  "status": "exact_static_release_accepted_normal_data_execution_unverified",
   "base_commit": "5669459eda66ebfe37642df0c2b8e2b7ac6dfa02",
   "source": [
     {
@@ -535,9 +535,7 @@
       "tests/yield-curve-view.test.js": "21a3804ec2befc16fbc6d36822992c4347358a3b8cc47a7fec95defc95fc096e"
     }
   },
-  "validation_pending": [
-    "exact_static_release"
-  ],
+  "validation_pending": [],
   "browser_source": {
     "chart.html": {
       "path": "chart.html",
@@ -590,5 +588,544 @@
       "sha256": "ac5b73a93c46215cb666d217c51a599d447602f2b111cb5e86998bf7ef002c27"
     }
   },
-  "test_migration": "Old proxy-merge assertions now require exact primary history plus complete separate proxy data. Partial-function test harnesses load actual scalar dependencies and target the actual identified-publication line. Complete preceding tests retained. The initial unconfigured full-run failure used another Python lacking time-zone data; final run uses the established bundled runtime and dependency path."
+  "test_migration": "Old proxy-merge assertions now require exact primary history plus complete separate proxy data. Partial-function test harnesses load actual scalar dependencies and target the actual identified-publication line. Complete preceding tests retained. The initial unconfigured full-run failure used another Python lacking time-zone data; final run uses the established bundled runtime and dependency path.",
+  "acceptance": {
+    "source_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+    "pages_run": 36824520696,
+    "page_gate_run": 36824520596,
+    "static": {
+      "platform": {
+        "checked_at": "2026-10-01T06:31:18.478218+00:00",
+        "intended_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "served_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "assets": {
+          "term-premium.html": {
+            "bytes": 11119,
+            "sha256": "c5c4eed20a7e8e115788bfad2fce3b158401047504636dd4ac79c2970d4e8f51",
+            "matches_manifest": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "099f3ef0a7e3c434415e80b8a963fa7984b0969063dd2a34208278247cb2234b",
+            "matches_manifest": true,
+            "embedded_home_configuration_hashes_match_exact_served_files": true
+          },
+          "portfolio-manager.html": {
+            "bytes": 30627,
+            "sha256": "835b78135e3a2f9d4a8c8f6edd04e86e64b9b120f8c4ea6c97d89181241b84aa",
+            "matches_manifest": true
+          },
+          "portfolio/index.html": {
+            "bytes": 48427,
+            "sha256": "dcb87efb78c0048521e6f33157e6c64e24b056d8e0b58942409a3d2be2caada0",
+            "matches_manifest": true,
+            "helper_content_version_matches_reviewed_source": true
+          },
+          "position-sizer.html": {
+            "bytes": 11687,
+            "sha256": "06b9bd7978229bf00c394aa9b46aecc052bce5dc3ce2965a3d18e5433222482a",
+            "matches_manifest": true,
+            "model_sri_matches_reviewed_source": true
+          },
+          "cb-injection.html": {
+            "bytes": 14823,
+            "sha256": "c94eb4ffd4915f5d0a4755651b99c3e550a4f15b2482d4c531b17766c89311f9",
+            "matches_manifest": true
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "34bd7138ae529f2f643fd1d4681ef1bca6a1c9b7e71c0ce1a91f425b5ce881f3",
+            "matches_manifest": true
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "9aa32c7cd82a1ed8e10412ccac0ddbffbc4d3cf78819048eae20fe985856ef8a",
+            "matches_manifest": true
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "64835e58f8f1c23eb3bf85ba612827a8ae4188d239011d96cde5bc8bb9236aa2",
+            "matches_manifest": true
+          },
+          "capitulation.html": {
+            "bytes": 9023,
+            "sha256": "452615fc1bc966c2ec5e31e3e6a2ae8185b3e4ed394ad90e2bb6af690410aadf",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "market-extremes.html": {
+            "bytes": 10103,
+            "sha256": "3994be32e1ea235b155a49483a093a7b38651e696c73b0ce8d0eade41bf230a5",
+            "matches_manifest": true,
+            "embedded_primary_contract_matches_source": true
+          },
+          "jh-term-premium-research.js": {
+            "bytes": 20425,
+            "sha256": "3c54790c0c4cda463c77f917643aa7112afc6b7c80de2e88f333ac6a73d43780",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-term-premium-research.css": {
+            "bytes": 3683,
+            "sha256": "33d5380d45b69ac06505bc84bd455cf09d769cc1679385b717de22e76b9ba49d",
+            "matches_manifest": true
+          },
+          "jh-portfolio-research.js": {
+            "bytes": 5693,
+            "sha256": "c64ec474d1154f915eba5857e30191f0f4bade8ba56de2120867a0245e34f819",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-research-page.js": {
+            "bytes": 7876,
+            "sha256": "34e1fd819f4306ea98f8dcc8597bb0be3dc0f6ba1adcdb2664eee56edaaeb917",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes.js": {
+            "bytes": 7020,
+            "sha256": "6cd0b549ffb9c4af2b729d1aad110c3f95dab6fe48bcc2ce6cee560e671d2de7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-quotes-page.js": {
+            "bytes": 8073,
+            "sha256": "e41a803fb16bb70bf8a45b2f19bc8656384a4372c24aeee1edb69b38ae1b6358",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "private-artifacts.js": {
+            "bytes": 13930,
+            "sha256": "46c7756d1aca94b665018d061e69f31ee6c1bc78b78520032b185877b6d9fff7",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-evidence-io.js": {
+            "bytes": 5002,
+            "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-binding.js": {
+            "bytes": 3954,
+            "sha256": "6eacaae1b6c57623f6a1bcaa91550cbed7b15167e05e1ac7b92a1ce248d6fd88",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-risk-contract.js": {
+            "bytes": 11530,
+            "sha256": "733cfa9ebd22cc01fad56204b8f702cf9be916d1020e40b411bec11f5b17391b",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario.js": {
+            "bytes": 7387,
+            "sha256": "b57f2ae734e5361da388e5821e0ebe0a6e4dc03fad0ed3e23db94c651d879512",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-io.js": {
+            "bytes": 3035,
+            "sha256": "d086206d726dc95a0dea5c4761a32265650c9682eddb60bfe7bf8b94471cfc1e",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-portfolio-scenario-page.js": {
+            "bytes": 9325,
+            "sha256": "6956ee0c069450746e095d8b527f247fac11bfbc8c3d20d095cd907a0c51323f",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-research.js": {
+            "bytes": 15703,
+            "sha256": "257483f30ef8aa5dba8a02b618a801d3a57f4850fa119e84e0b0d122b6e95ce1",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-cb-page.js": {
+            "bytes": 1072,
+            "sha256": "6b65197f31be70ddedf8de79eca973e9a793aeb14de21ada75e3ade099e82a78",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-liquidity-research.js": {
+            "bytes": 6746,
+            "sha256": "5e5275e5ada32b104faba487f951c63222d90d2713bf83296ad868ac8ba90886",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "calls-page.js": {
+            "bytes": 13589,
+            "sha256": "7895b04c97165bbb512e23645f4f2a1abf7ea73016f4af15c9d8100be6e5b7c8",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-public-brief.js": {
+            "bytes": 25766,
+            "sha256": "abcc09346c3aa21463b706524e029ae24906c9da10ca8f9a033beadf6604b05d",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-extremes-research.js": {
+            "bytes": 16212,
+            "sha256": "2fd70fb891878b317f10de9aefc0dfc56f2caede3bcbc24b56539c1b55b99139",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "jh-data-inspector.js": {
+            "bytes": 34117,
+            "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+            "matches_manifest": true,
+            "matches_source_after_declared_build_transform": true
+          },
+          "engine-manifest.json": {
+            "bytes": 3097593,
+            "sha256": "14844e90874667252fad1f4f6a91e5d13454c654f64e2e615aad3bb48c9b252a",
+            "matches_manifest": true,
+            "complete_inventory_matches_excluding_generated_at": true,
+            "inventory_replayed_from_commit_source": true,
+            "engines": 898
+          },
+          "nav-manifest.json": {
+            "bytes": 36317,
+            "sha256": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9",
+            "matches_manifest": true
+          },
+          "assets/vendor/world-atlas-2.0.2-countries-110m.json": {
+            "bytes": 107761,
+            "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8",
+            "matches_manifest": true
+          },
+          "config/home-layout.json": {
+            "bytes": 562,
+            "sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2",
+            "matches_manifest": true
+          },
+          "config/section-registry.json": {
+            "bytes": 1305504,
+            "sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3",
+            "matches_manifest": true
+          },
+          "config/page-data-contracts.json": {
+            "bytes": 7716455,
+            "sha256": "fedd4f517258e41ac8b88dea0d76339c824e6053e5b66c333d691bebb50a3af6",
+            "matches_manifest": true,
+            "complete_contract_matches_source_and_exact_built_asset_bindings": true,
+            "pages": 599
+          },
+          "engines.html": {
+            "bytes": 961290,
+            "sha256": "4663acd51dc123b0ed797d1114b15016d5a857ca6caadacb315b3dab95818e0c",
+            "matches_manifest": true
+          },
+          "config/engine-registry.json": {
+            "bytes": 196073,
+            "sha256": "a3d99d94e90880c8a7daec2ac5c4fa1dceafd4857c19ef291bde19ad5fd9990a",
+            "matches_manifest": true
+          }
+        },
+        "scope": "Whole static HTML, existing scripts and generated source registries only. No execution or current/private/derived packet requests.",
+        "source_inventory_replay": {
+          "build_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+          "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a",
+          "whole_engine_records": 898,
+          "whole_page_contracts": 599,
+          "inventory_generated_at": "2026-10-01T06:26:43.902596+00:00",
+          "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+          "generators": {
+            "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+            "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+          },
+          "generated_repository_assets": {
+            "engine-manifest.json": "14844e90874667252fad1f4f6a91e5d13454c654f64e2e615aad3bb48c9b252a",
+            "nav-manifest.json": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9"
+          },
+          "working_tree_unchanged": true
+        },
+        "generated_asset_bindings": {
+          "navigation_replayed_from_source_at_recorded_build_date": true,
+          "rows": [
+            {
+              "page": "index.html",
+              "key": "config/home-layout.json",
+              "source_sha256": "0ead03947b9bb0b54ad1e10a45ab32ff8ac84ee388ec32fa45d31027000872d1",
+              "built_sha256": "63b3226fe39a929569d88af7959a7bf08ac04ccbc884a8f1a69081c581afcfe2"
+            },
+            {
+              "page": "index.html",
+              "key": "config/section-registry.json",
+              "source_sha256": "886996bb301b1bc9ed26d389931b273bd86b606a049de4d08826e0891a3a028e",
+              "built_sha256": "abbdc0a30ae93b3ef6edaa8ec39959b68232b9916bc0a42f346b7f7b705411c3"
+            }
+          ]
+        },
+        "offline_build": {
+          "complete_engine_rows": 898,
+          "complete_source_registry_matches_manifest": true,
+          "all_concrete_outputs_unchecked_with_null_measurements": true,
+          "counts": {
+            "no-outs": 70,
+            "wired-unverified-feed": 670,
+            "declared-unverified": 158
+          },
+          "rails": [
+            {
+              "page": "calls.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            },
+            {
+              "page": "liquidity.html",
+              "all_reference_modification_times_unknown": true,
+              "references": 1
+            }
+          ],
+          "source_references_are_not_runtime_health": true
+        },
+        "intended_static_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "static_sources_unchanged_between_commits": true,
+        "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a",
+        "same_build_manifest_before_after": true
+      },
+      "assets": {
+        "checked_at": "2026-10-01T06:31:18.402095+00:00",
+        "served_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "scope": "Whole China and FI/FX static HTML/script/style only, no page execution or current/private/consumer requests.",
+        "assets": {
+          "fifx-vol.html": {
+            "bytes": 11213,
+            "sha256": "823c703e10185032e02ff2023176dbfc9db7fa6238a1122173abcee83fec8793",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "bond-desk.html": {
+            "bytes": 30701,
+            "sha256": "66c47cde058e3e8c2ffb6b41f1475c4d682dae820742ca2b19ff69c40047ab3f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "3dc66033b5a8e54b971d4ec87a00551979ee7a19c66f38291bb67f5b6350f0d0",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "signal-board.html": {
+            "bytes": 20200,
+            "sha256": "931d093f09553183a7c3377c5651e7befef9397984d6055393d824436d73771a",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.js": {
+            "bytes": 21919,
+            "sha256": "fe2ba9e5342223027fb112de6fe75ae7372f32a82fec53a4432fd988f8cde837",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-fifx-research.css": {
+            "bytes": 3417,
+            "sha256": "297f89dbdb5f4336012d92428efd394dc48049ab2354094cd6f0d78974549831",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "05e3c0e8633f3ca087e15596c1279567494783a35750d08bd1748c0078107fe8",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-china-calendar.js": {
+            "bytes": 13841,
+            "sha256": "57f47d02452bfb9e3212a6686428ccdd557d57d16cfda9b6490ed6733dfd123e",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.js": {
+            "bytes": 10079,
+            "sha256": "726ceb462d284de6f4e2925aa71f9d9c19bd2153b9d28949b1c343da276a2100",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          },
+          "jh-ici-research.css": {
+            "bytes": 2372,
+            "sha256": "bbe76633cbc1ca39d8a7149e989beb0c171601006b38380219a6057f31eed52f",
+            "matches_exact_build": true,
+            "source_unchanged": true
+          }
+        },
+        "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a"
+      },
+      "navigation": {
+        "checked_at": "2026-10-01T06:31:20.300235+00:00",
+        "served_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "scope": "Static navigation/home code and complete local dependency closure, no page execution or consumer data requests",
+        "assets": {
+          "auth-config.js": {
+            "bytes": 1406,
+            "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+            "matches_source_transform_and_build": true
+          },
+          "auth.js": {
+            "bytes": 20821,
+            "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+            "matches_source_transform_and_build": true
+          },
+          "home.js": {
+            "bytes": 95417,
+            "sha256": "cb25ef27d9c3cf7ad688bcec48d6adc683f1aacddc78bcfcff20ff495747abf9",
+            "matches_source_transform_and_build": true
+          },
+          "jh-market-tape.js": {
+            "bytes": 3401,
+            "sha256": "8e73601eeb861880a9d5ce3d12669a86b20e102daeeff3de5df8de450450fea1",
+            "matches_source_transform_and_build": true
+          },
+          "jh-nav-drawer.js": {
+            "bytes": 31948,
+            "sha256": "11f00277d99e195aeda4d580fb1115a1e03e5326d3570c1b191aab09cfd53f86",
+            "matches_source_transform_and_build": true
+          },
+          "jh-theme.css": {
+            "bytes": 10031,
+            "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+            "matches_source_transform_and_build": true
+          },
+          "index.html": {
+            "bytes": 18300,
+            "sha256": "099f3ef0a7e3c434415e80b8a963fa7984b0969063dd2a34208278247cb2234b",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "calls.html": {
+            "bytes": 28216,
+            "sha256": "9aa32c7cd82a1ed8e10412ccac0ddbffbc4d3cf78819048eae20fe985856ef8a",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "ici-flows.html": {
+            "bytes": 12178,
+            "sha256": "3dc66033b5a8e54b971d4ec87a00551979ee7a19c66f38291bb67f5b6350f0d0",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "macro-leads.html": {
+            "bytes": 55793,
+            "sha256": "05e3c0e8633f3ca087e15596c1279567494783a35750d08bd1748c0078107fe8",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "liquidity.html": {
+            "bytes": 68370,
+            "sha256": "34bd7138ae529f2f643fd1d4681ef1bca6a1c9b7e71c0ce1a91f425b5ce881f3",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          },
+          "engine-data.html": {
+            "bytes": 3125,
+            "sha256": "64835e58f8f1c23eb3bf85ba612827a8ae4188d239011d96cde5bc8bb9236aa2",
+            "matches_build": true,
+            "exact_drawer_version": "529d2cc3"
+          }
+        },
+        "dependency_mode": "topo",
+        "drawer_version": "529d2cc3",
+        "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a",
+        "verification_notes": [
+          "Temporary reconstruction explicitly reproduces Linux UTF-8/LF writes and the exact reskin skip rules; served bytes are never normalized.",
+          "The separate portfolio/index.html application does not declare the shared drawer; its whole static HTML is checked by platform acceptance."
+        ]
+      },
+      "chart": {
+        "checked_at": "2026-10-01T06:31:18.360799+00:00",
+        "served_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+        "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a",
+        "scope": "Whole static chart source and exact built HTML only. No browser execution, current data or provider requests.",
+        "assets": {
+          "jh-observation-series.js": {
+            "bytes": 8353,
+            "sha256": "8684fc867320911ceeeb9cdec6813defebf78a57821f3322239d7fdbfb3833f0",
+            "md5": "d73626c2cef89ce7ada901cf48ca442f",
+            "matches_exact_build": true
+          },
+          "jh-cq-fuse.js": {
+            "bytes": 27375,
+            "sha256": "c9fbfdfafce3bf2ed0c85e2a08c6298db6977f2d30daa698e1766922bfe36b01",
+            "md5": "1690a8132c0f433cb7e3086f6cadd038",
+            "matches_exact_build": true
+          },
+          "jh-chart-catalog.js": {
+            "bytes": 39391,
+            "sha256": "7bcd1e5c6546b8c0aca0a024ae17afc5e8c4788a3f72d54c68086b760aaf7d56",
+            "md5": "4501effa4dabad9457eac285b9edbc2b",
+            "matches_exact_build": true
+          },
+          "jh-chart-engine.js": {
+            "bytes": 368270,
+            "sha256": "810b7175e6cee54426830ff224446e79721b941919753951bc7b8becff75487d",
+            "md5": "b65def1a325eb32975a12778693f4e3a",
+            "matches_exact_build": true
+          },
+          "jh-chart-stock-desk.js": {
+            "bytes": 12556,
+            "sha256": "bd34dad4ec7bb7325473fa80db2f97708cb6a937e561b2886f7f6d179cf0bfcd",
+            "md5": "de7f86290afcb459ed7895ebf10cdb3d",
+            "matches_exact_build": true
+          },
+          "jh-stock-desk-research.js": {
+            "bytes": 7080,
+            "sha256": "405076c7dd5e5cf962a7f949c6948f32dd6597e8a9959583fcd0575a4ed9609f",
+            "md5": "5c35650ce8416edc0a4a3e4ac4a45390",
+            "matches_exact_build": true
+          },
+          "chart.html": {
+            "bytes": 52383,
+            "sha256": "3d8797e935cd5b2bba5d9cf8874173d33f9a8b3c3df7fa13ae262efb5e9d576a",
+            "md5": "2bd9ddf1fb96a61c47763b8c223a5c37",
+            "matches_exact_build": true
+          },
+          "crypto/index.html": {
+            "bytes": 108417,
+            "sha256": "9ebe85e5bb79bc5ee6c0192d937b2a49f21a8f99a797942ee117f6dda1b56165",
+            "md5": "ba44eca7c2353dd591d5ffb7e3d30341",
+            "matches_exact_build": true
+          },
+          "correlation.html": {
+            "bytes": 65717,
+            "sha256": "9bd8bd957b42e5fa38a3fd9befd16b582ea5fa6915d0b132eed7de75c3a0353a",
+            "md5": "6aae56d7d22479e062a765fbcaf3b9a7",
+            "matches_exact_build": true
+          }
+        }
+      }
+    },
+    "unique_static_files": 64,
+    "whole_generation_replay": {
+      "build_commit": "4b22f8a7610b6d9ea09a94dd1a6e1db22304e0c7",
+      "build_manifest_sha256": "05266bc347dbaa1b5383bab7b36418586980c7888515cff338331fc0e94a5e6a",
+      "whole_engine_records": 898,
+      "whole_page_contracts": 599,
+      "inventory_generated_at": "2026-10-01T06:26:43.902596+00:00",
+      "scope": "Complete offline ownership inventory and page contract replay using exact checked-in source; no engine code execution or actual data reads.",
+      "generators": {
+        "scripts/gen_engine_manifest.py": "4c0fa8d8e51b4bde42705a8448db60e211240616500977d2055aadc9be23b858",
+        "scripts/build_page_data_contracts.py": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c"
+      },
+      "generated_repository_assets": {
+        "engine-manifest.json": "14844e90874667252fad1f4f6a91e5d13454c654f64e2e615aad3bb48c9b252a",
+        "nav-manifest.json": "183dbd00dc169abf680504f0c3d42c95b6bb55c1d9088d1f81c2de3395e56be9"
+      },
+      "working_tree_unchanged": true
+    },
+    "actual_application_data_requests": 0,
+    "producer_invocations": 0,
+    "normal_data_execution_verified": false,
+    "investment_authority": false,
+    "native_release_required": false,
+    "large_git_push": {
+      "atomic_related_files": 56,
+      "chart_engine_source_bytes": 368270,
+      "push_target": "main",
+      "connector_used": false
+    }
+  }
 }
