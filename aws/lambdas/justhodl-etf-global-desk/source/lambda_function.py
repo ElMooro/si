@@ -18,7 +18,7 @@ def lambda_handler(event=None,context=None):
     if event.get('validate_only') is True:
         return {'statusCode':200,'body':json.dumps({'validation_only':True,'contract':CONTRACT,'published':False})}
     client=boto3.client('s3',region_name='us-east-1',config=Config(connect_timeout=5,read_timeout=20,
-        retries={'max_attempts':2},max_pool_connections=24,tcp_keepalive=True))
+        retries={'total_max_attempts':3,'mode':'legacy'},max_pool_connections=24,tcp_keepalive=True))
     bucket='justhodl-dashboard-live'
     if (event.get('requestContext') or {}).get('http') or event.get('httpMethod') or event.get('action')=='current_state':
         try:packet=json.loads(reader(client,bucket)(PUBLISHED_KEY))
