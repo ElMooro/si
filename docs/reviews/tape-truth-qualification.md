@@ -85,3 +85,66 @@ Full repository gates and independent review must bind to the final committed
 head before release. This document does not authorize release. Runtime receipts,
 publication and live-browser acceptance remain future checks; legacy packets will
 stay unavailable after a future page deployment until compatible publication.
+
+## PR43 review repair (2026-10-01)
+
+Took over the existing draft at b0248538bc6fcc0c212b644afc2dcbb83e5222e3
+(tree da546cae2b2e63615ca522d67722dc26a606487a). No partial local edits were
+present. The separate tape-reader branch remains untouched.
+
+The actual tape page now validates text before conversion and isolates index,
+qualification, symbol and individual observation-section failures. Failed sections
+identify themselves and retain a full-source JSON link. CVD chart work is bounded
+to the last 1,000 supplied rows, with explicit received/subset counts and a warning
+that earlier rows are neither validated nor plotted. Extrema use iteration rather
+than argument spreading; scaled normalization avoids finite-endpoint overflow.
+Invalid retained rows do not become zero. The source packet is never mutated.
+
+Regression proof: the new actual-renderer cases against the reviewed predecessor
+reproduce TypeError for `gex.regime={toString:null}` and RangeError for a 200,000-row
+CVD series. Corrected rendering preserves other symbols, FINRA and CVD measurements.
+Injected section and symbol failures also preserve unaffected output. Intercepted
+Chromium checks the malformed regime and large series together, the 1,000-point
+SVG and full-source link, in addition to the existing three-page/control checks.
+
+Legacy harnesses now expect intentionally withheld/null verdicts and unavailable
+legacy projections. The tape fixture clock is frozen at 2026-08-17T22:00:00Z so
+its September option contracts do not expire with the wall clock. At the PR base
+1b1b6bb522a3d5ae379bdc4cf81a7173181bfedb, the unmodified tape harness fails its
+GEX DTE arithmetic assertion on 2026-10-01; the base industry harness passes.
+At the reviewed PR head, obsolete tape verdict assertions additionally fail/crash
+and the industry legacy tape join assertion fails. After these test-only repairs,
+both complete harnesses pass. No production arithmetic was changed to satisfy them.
+
+Timestamp precision differences between Python and JavaScript remain a review
+limit; they confer no freshness or authority (freshness remains UNKNOWN and
+calls/sizing ineligible). The pre-existing industry `cls` warning remains separate.
+No live publication, deployment, provider/AWS call, private Brain read, schedule,
+LLM input, ticker bus, capital behavior or separate notice PR was changed.
+
+Repair acceptance commands (offline/intercepted):
+
+- `python3 -B aws/lambdas/justhodl-tape-truth/tests/run_tests.py`: 10 pass.
+- `node --test tests/tape-truth-qualification.test.js`: 14 pass.
+- `node tests/tape-truth-browser.cjs`: pass, intercepted Chromium.
+- `node --test tests/*.test.js`: 2,498 pass.
+- `python3 -B aws/ops/audit/harness_tape_truth_local.py` and
+  `python3 -B aws/ops/audit/harness_industry_case_local.py`: both pass; shared
+  helper import paths are set in the harnesses themselves.
+- Secret scan, Brain publication boundaries, page script regression/syntax,
+  sovereign asset dependency, offline Pages boundary, wiring registry,
+  selected Lambda source/config validation, preflight and forbidden-literal
+  checks: pass. No private Brain content was accessed.
+
+The six-file repair inventory is the tape page, both `aws/ops/audit/harness_*`
+files named above, both `tests/tape-truth-*` renderer/browser test files and this
+review note. Production Python and all shared helpers remain byte-identical to
+the reviewed head. Draft branch append only; current-main integration and parent
+independent exact-head review remain release prerequisites.
+
+Deployment validation: all 1,018 Python checks completed. The runner's final
+shell gate initially failed because its `python3` subprocess used the system
+interpreter without the test dependencies. Rerunning
+`PATH=/tmp/pr43-venv/bin:$PATH bash tests/deployment/test_validated_candidate.sh`
+passed all 15 shell tests. The virtualenv contained boto3, pytest and jsonschema;
+no production dependencies or repository files were altered for this setup.

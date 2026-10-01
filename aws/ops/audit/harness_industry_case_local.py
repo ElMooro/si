@@ -28,6 +28,7 @@ sys.modules["boto3"] = b3
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]
                        / "lambdas" / "justhodl-industry-case"
                        / "source"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "shared"))
 import lambda_function as eng  # noqa: E402
 import os  # noqa: E402
 os.environ.pop("ANTHROPIC_KEY", None)
@@ -123,7 +124,9 @@ def main():
     chk("earnings + tape joins on AAA",
         a["earn"]["beat_rank"] == 3
         and a["earn"]["growth_pick_score"] == 88.0
-        and a["tape"]["call"] == "WARMING")
+        and a["tape"]["call"] is None
+        and a["tape"]["conviction"] is None
+        and a["tape"]["availability"] == "UNAVAILABLE")
     chk("DDD boom joined (Oil rank 2), no earn/tape keys",
         d["cases"]["DDD"]["boom"]["rank"] == 2
         and "earn" not in d["cases"]["DDD"]

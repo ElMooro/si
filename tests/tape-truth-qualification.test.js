@@ -89,3 +89,41 @@ test('all three pages load the same narrow display contract and scope why edits 
  assert.equal(hash(why.slice(0,why.indexOf('<!-- industry-case-module'))),'c990276ee63dd5cba86fdecaba1c804a1b82fa16b0526cacb79b845576468071');
  assert.equal(hash(why.slice(why.indexOf('<!-- bottom-desk module'))),'4aa437c73879fbf55740f22648bcc2c397ef8a5ee998cdeae68af702047452a1');
 });
+
+test('actual renderer rejects non-text GEX regimes without losing numeric GEX, CVD, FINRA or other symbols',async()=>{
+ for(const regime of [{toString:null},{},[],true,42,null]){
+  const p=structuredClone(fixture.tape);p.symbols.SPY.gex.regime=regime;
+  const e=await page('tape-truth.html',p);
+  assert.match(e.elements.gex.innerHTML,/<td>—<\/td>/);
+  assert.match(e.elements.gex.innerHTML,/SPY/);
+  assert.match(e.elements.cvd.innerHTML,/600/);assert.match(e.elements.cvd.innerHTML,/NVDA/);
+  assert.match(e.elements.finra.innerHTML,/0.25/);assert.match(e.elements.verdicts.innerHTML,/NVDA/);
+ }
+});
+test('actual renderer bounds 200000 CVD rows and declares subset coverage without changing the packet',async()=>{
+ const p=structuredClone(fixture.tape);
+ p.symbols.SPY.cvd.series=Array.from({length:200000},(_,i)=>({d:'2026-01-06',close:i,cum_cvd:i%2?Number.MAX_VALUE:-Number.MAX_VALUE}));
+ const e=await page('tape-truth.html',p),html=e.elements.cvd.innerHTML;
+ assert.match(html,/last 1000 of 200000 supplied rows · capped subset; earlier rows not validated or plotted/);
+ assert.match(html,/Full source JSON/);assert.match(html,/NVDA/);assert.match(e.elements.finra.innerHTML,/0.25/);
+ const points=[...html.matchAll(/points="([^"]*)"/g)];assert.equal(points[0][1].split(' ').length,1000);
+ assert.doesNotMatch(html,/NaN|Infinity/);assert.equal(p.symbols.SPY.cvd.series.length,200000);
+});
+test('actual renderer contains independent section failures and preserves other symbols and source access',async()=>{
+ for(const [leg,key,id] of [['gex','net_gex_bn','gex'],['cvd','series','cvd'],['short_vol','ratio','finra']]){
+  const p=structuredClone(fixture.tape);
+  // Deliberately force a renderer exception, beyond JSON field validation.
+  Object.defineProperty(p.symbols.SPY[leg],key,{get(){throw Error('section fault');}});
+  const e=await page('tape-truth.html',p);
+  assert.match(e.elements[id].innerHTML,/display unavailable/);assert.match(e.elements[id].innerHTML,/Full source JSON/);
+  assert.match(e.elements.verdicts.innerHTML,/NVDA/);assert.match(e.elements.cvd.innerHTML,/NVDA/);
+  if(id!=='finra')assert.match(e.elements.finra.innerHTML,/0.25/);
+  if(id!=='cvd')assert.match(e.elements.cvd.innerHTML,/600/);
+ }
+ const p=structuredClone(fixture.tape);Object.defineProperty(p.symbols,'SPY',{get(){throw Error('symbol fault');}});
+ const e=await page('tape-truth.html',p);assert.match(e.elements.verdicts.innerHTML,/SPY · Qualification display unavailable/);assert.match(e.elements.cvd.innerHTML,/NVDA/);
+});
+test('invalid retained chart rows remain unavailable, never converted to zero',async()=>{
+ const p=structuredClone(fixture.tape);p.symbols.SPY.cvd.series=[{d:'2026-01-05',close:null,cum_cvd:5},{d:'2026-01-06',close:10,cum_cvd:20}];
+ const e=await page('tape-truth.html',p);assert.match(e.elements.cvd.innerHTML,/Dated chart unavailable/);assert.match(e.elements.cvd.innerHTML,/last 2 of 2 supplied rows/);assert.match(e.elements.finra.innerHTML,/0.25/);
+});

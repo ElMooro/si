@@ -56,7 +56,14 @@ tr:last-child td{border-bottom:none}
 <script src="/jh-tape-truth.js"></script>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
-const T=JHTapeTruth, E=T.esc, N=T.fmt;
+const T=JHTapeTruth, N=T.fmt;
+// Text fields are strings, not arbitrary values with coercion hooks.
+const E=x=>T.esc(typeof x==='string'?x:'—');
+const sourceLink='<a href="'+PROXY+'/data/tape-truth.json">Full source JSON</a>';
+const failure=(ticker,section,table=false)=>table
+ ? '<tr><td>'+E(ticker)+'</td><td colspan="9">'+section+' display unavailable · '+sourceLink+'</td></tr>'
+ : '<div class="card">'+E(ticker)+' · '+section+' display unavailable · '+sourceLink+'</div>';
+const CHART_LIMIT=1000;
 async function loadTape(){
  const ids=['idxgex','verdicts','gex','cvd','finra'];
  ids.forEach(id=>document.getElementById(id).innerHTML='');
@@ -64,35 +71,48 @@ async function loadTape(){
  let d;
  try{const r=await fetch(PROXY+'/data/tape-truth.json?t='+Date.now());if(r.ok)d=await r.json();}catch(e){}
  const names=d&&d.symbols&&typeof d.symbols==='object'?Object.keys(d.symbols):[];
- const valid=names.some(t=>T.view(d,t).available)||T.view(d,'_SPX').available;
+ const available=t=>{try{return T.view(d,t).available;}catch(e){return false;}};
+ const valid=names.some(available)||available('_SPX');
  if(!valid){document.getElementById('sub').textContent=T.unavailable;return;}
  document.getElementById('sub').textContent='Published '+d.generated_at+' · dated research observations · freshness UNKNOWN. Publication time is not an observation time.';
+ try{
  const idx=T.view(d,'_SPX'),g=idx.observations?.gex;
  if(idx.available&&g?.status==='OBSERVATIONS')document.getElementById('idxgex').innerHTML=
   '<div class="card"><div class="k">SPX assumed net GEX</div><div class="v">'+N(g.net_gex_bn)+' $bn</div><div class="s">'+E(T.legText(idx,'gex'))+'</div></div>'+
   '<div class="card"><div class="k">SPX strike-ladder crossover</div><div class="v">'+N(g.flip_approx)+'</div><div class="s">Approximation · spot '+N(g.spot)+'</div></div>'+
   '<div class="card"><div class="k">SPX put/call OI</div><div class="v">'+N(g.put_call_oi)+'</div><div class="s">volume ratio '+N(g.put_call_vol)+'</div></div>';
+ }catch(e){document.getElementById('idxgex').innerHTML=failure('_SPX','GEX');}
  let cards='',gex='<table><tr><th>symbol / source clock</th><th>spot</th><th>assumed net GEX $bn</th><th>model sign</th><th>crossover~</th><th>P/C OI</th><th>P/C vol</th><th>DTE≤5 vol</th><th>crossover dist</th><th>top wall</th></tr>',cvd='',finra='<table><tr><th>symbol / source clock</th><th>short-vol ratio</th><th>z (20d)</th><th>days</th></tr>';
  for(const ticker of names){
-  const v=T.view(d,ticker),s=v.observations||{},c=s.cvd||{},g=s.gex,f=s.short_vol;
-  cards+='<div class="card"><div class="k">'+E(ticker)+'</div><div class="s">'+E(T.summary(v))+'</div></div>';
+  let v;
+  try{v=T.view(d,ticker);}catch(e){cards+=failure(ticker,'Qualification');continue;}
+  const s=v.observations||{},c=s.cvd||{},g=s.gex,f=s.short_vol;
+  try{cards+='<div class="card"><div class="k">'+E(ticker)+'</div><div class="s">'+E(T.summary(v))+'</div></div>';}catch(e){cards+=failure(ticker,'Qualification');}
   if(!v.available)continue;
-  if(g){
+  const oldGex=gex;
+  try{if(g){
    const label=E(ticker)+'<div class="note">'+E(T.legText(v,'gex'))+'</div>';
    if(g.status!=='OBSERVATIONS')gex+='<tr><td>'+label+'</td><td colspan="9">Model observations unavailable</td></tr>';
    else {const w=g.walls?.[0];gex+='<tr><td>'+label+'</td><td>'+N(g.spot)+'</td><td>'+N(g.net_gex_bn)+'</td><td>'+E(g.regime)+'</td><td>'+N(g.flip_approx)+'</td><td>'+N(g.put_call_oi)+'</td><td>'+N(g.put_call_vol)+'</td><td>'+N(g.dte5_vol_share_pct)+'%</td><td>'+N(g.dist_to_flip_pct)+'%</td><td>'+(w?N(w.strike)+' ('+N(w.net_gex_bn)+'bn)':'—')+'</td></tr>';}
-  }
-  const series=Array.isArray(c.series)?c.series:[];
+  }}catch(e){gex=oldGex+failure(ticker,'GEX',true);}
+  const oldCvd=cvd;
+  try{
+  const received=Array.isArray(c.series)?c.series:[];
+  // Bound validation, allocation and SVG size; do not imply full-ledger coverage.
+  const series=received.slice(-CHART_LIMIT);
   cvd+='<div class="card"><div class="k">'+E(ticker)+'</div><div class="s">'+E(T.legText(v,'cvd'))+' · ledger session keys, not verified bar timestamps</div>';
+  cvd+='<div class="s">Chart coverage: last '+series.length+' of '+received.length+' supplied rows'+(received.length>CHART_LIMIT?' · capped subset; earlier rows not validated or plotted':'')+' · '+sourceLink+'</div>';
   const chartable=series.length>=2&&series.every(x=>x&&T.finite(x.close)&&T.finite(x.cum_cvd)&&T.clock(x.d,'date').status==='VALID');
   if(chartable){
    const W=340,H=90,px=series.map(x=>x.close),cv=series.map(x=>x.cum_cvd);
-   const nx=a=>{const mn=Math.min(...a),mx=Math.max(...a);return a.map(x=>mx===mn?H/2:H-6-(x-mn)/(mx-mn)*(H-16));};
+   const nx=a=>{let mn=Infinity,mx=-Infinity;for(const x of a){mn=Math.min(mn,x);mx=Math.max(mx,x);}const scale=Math.max(Math.abs(mn),Math.abs(mx))||1;return a.map(x=>mx===mn?H/2:H-6-(x/scale-mn/scale)/(mx/scale-mn/scale)*(H-16));};
    const pts=a=>a.map((v,i)=>((i/(a.length-1))*W).toFixed(1)+','+v.toFixed(1)).join(' ');
    cvd+='<svg width="100%" viewBox="0 0 '+W+' '+H+'" aria-label="Separately scaled close and bar CVD proxy"><polyline points="'+pts(nx(px))+'" fill="none" stroke="#6b7688" stroke-width="1.4"/><polyline points="'+pts(nx(cv))+'" fill="none" stroke="#22d3ee" stroke-width="1.6"/></svg><div class="s">'+E(series[0].d)+' to '+E(series.at(-1).d)+'</div>';
   }else cvd+='<div class="s">Dated chart unavailable or fewer than two observations.</div>';
   cvd+='<div class="s">Sessions '+N(c.n_days,0)+' · session bar-CVD '+N(c.session_cvd,0)+' share proxy · 5d proxy '+N(c.cvd_5d,0)+' · price 5d '+N(c.price_chg_5d_pct)+'%</div><div class="s">Legacy computed context (unqualified): volume ratio '+N(c.vol_ratio_20d)+' · close/VWAP '+N(c.close_vs_vwap_pct)+'% · close-in-range '+N(c.clv_session)+' · churn flag '+E(typeof c.churn_flag==='boolean'?String(c.churn_flag):'unavailable')+' · top/bottom divergence flags '+E(typeof c.top_divergence==='boolean'?String(c.top_divergence):'not supplied')+'/'+E(typeof c.bottom_divergence==='boolean'?String(c.bottom_divergence):'not supplied')+'</div></div>';
-  if(f)finra+='<tr><td>'+E(ticker)+'<div class="note">'+E(T.legText(v,'short_vol'))+'</div></td><td>'+N(f.ratio,4)+'</td><td>'+N(f.z_20d)+'</td><td>'+N(f.n_days,0)+'</td></tr>';
+  }catch(e){cvd=oldCvd+failure(ticker,'CVD');}
+  const oldFinra=finra;
+  try{if(f)finra+='<tr><td>'+E(ticker)+'<div class="note">'+E(T.legText(v,'short_vol'))+'</div></td><td>'+N(f.ratio,4)+'</td><td>'+N(f.z_20d)+'</td><td>'+N(f.n_days,0)+'</td></tr>';}catch(e){finra=oldFinra+failure(ticker,'FINRA',true);}
  }
  document.getElementById('verdicts').innerHTML=cards;
  document.getElementById('gex').innerHTML=gex+'</table>';

@@ -25,6 +25,13 @@ const bus=[...why.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]
   await p.goto('http://tape-audit.local/why-scoped.html?ticker=SPY');await p.waitForFunction(()=>document.getElementById('tt_strip').textContent.includes('SPY · selected'));
   await p.evaluate(()=>history.replaceState(null,'','?ticker=NVDA'));assert.match(await p.locator('#tt_strip').innerText(),/NVDA · selected/);assert.doesNotMatch(await p.locator('#tt_strip').innerText(),/SPY · selected/);assert.match(await p.locator('#ic_body').innerText(),/Tape observations/);
  }
+ packets.tape.symbols.SPY.gex.regime={toString:null};
+ packets.tape.symbols.SPY.cvd.series=Array.from({length:200000},(_,i)=>({d:'2026-01-06',close:i,cum_cvd:-i}));
+ await p.goto('http://tape-audit.local/tape-truth.html');await p.waitForSelector('#cvd svg');
+ assert.match(await p.locator('#cvd').innerText(),/last 1000 of 200000 supplied rows/);
+ assert.match(await p.locator('#cvd').innerText(),/NVDA/);assert.match(await p.locator('#finra').innerText(),/0.25/);
+ assert.match(await p.locator('#gex').innerText(),/SPY/);assert.equal(await p.locator('#cvd a').first().getAttribute('href'),'https://justhodl-data-proxy.raafouis.workers.dev/data/tape-truth.json');
+ assert.equal(await p.locator('#cvd polyline').first().evaluate(el=>el.points.numberOfItems),1000);
  delete packets.tape.measurement_contract;packets.tape.status='LIVE';packets.tape.symbols.SPY.verdict={call:'GENUINE_UP',conviction:99};packets.industry.cases.SPY.tape={call:'GENUINE_UP',conviction:99};
  await p.goto('http://tape-audit.local/tape-truth.html');await p.waitForFunction(()=>document.getElementById('sub').textContent.includes('unavailable'));assert.equal(await p.locator('#verdicts').innerText(),'');
  await p.goto('http://tape-audit.local/industry-case.html?t=SPY');await p.waitForFunction(()=>document.getElementById('qa').textContent.includes('Tape observations unavailable'));assert.doesNotMatch(await p.locator('#qa').innerText(),/GENUINE_UP|conviction 99/);
