@@ -11,7 +11,8 @@ with contextlib.redirect_stdout(io.StringIO()):
     _,sizer=st['_run'](st['_base_docs']())
     kt=runpy.run_path(str(ROOT/'aws/lambdas/justhodl-katlin/tests/run_tests.py'))
     katlin=kt['_load']()
-    wr=katlin.war_room({'risk_gate':kt['_gate'](),'khalid_risk':kt['_auth']()})
+    wr=katlin.war_room({'risk_gate':kt['_gate'](),'khalid_risk':kt['_auth'](),'bond_warroom':kt['_funding'](hours_ago=35.5)})
     rows=[{'ticker':f'S{i}','tier':'READY','asset_class':'stock','learned_excess_126s_pct':100 if i==0 else 2,'composite':80,'vol_ann_pct':25} for i in range(3)]
     basket=katlin.build_basket(rows,wr)
-print(json.dumps({'sizer':sizer,'katlin':{'engine':'justhodl-katlin','version':katlin.VERSION,'schema':'1.1','generated_at':datetime.now(timezone.utc).isoformat(),'research_generated_at':datetime.now(timezone.utc).isoformat(),'research_status':'FRESH','session':datetime.now(timezone.utc).date().isoformat(),'expires_at':wr['expires_at'],'war_room':wr,'basket':basket,'picks':rows}},allow_nan=False))
+blocked=katlin.war_room({'risk_gate':kt['_gate'](),'khalid_risk':kt['_auth']()})
+print(json.dumps({'funding_hold':{'war_room':blocked,'expires_at':blocked['expires_at'],'basket':katlin.build_basket(rows,blocked)},'sizer':sizer,'katlin':{'engine':'justhodl-katlin','version':katlin.VERSION,'schema':'1.1','generated_at':datetime.now(timezone.utc).isoformat(),'research_generated_at':datetime.now(timezone.utc).isoformat(),'research_status':'FRESH','session':datetime.now(timezone.utc).date().isoformat(),'expires_at':wr['expires_at'],'war_room':wr,'basket':basket,'picks':rows}},allow_nan=False))

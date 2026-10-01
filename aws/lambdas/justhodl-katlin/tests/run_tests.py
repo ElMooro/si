@@ -55,6 +55,63 @@ def _auth(cap=50, allows=True, mode="SELECTIVE", hours_ago=1, vetoes=None):
 
 
 
+def _funding(state="NONE", hours_ago=1):
+    points = {"NONE": 0, "WATCH": 3, "SHORTAGE SIGNAL": 5}[state]
+    return {"generated_at": _iso(hours_ago), "eurodollar_shortage":
+            {"state": state, "score": points * 12, "points": points}}
+
+
+def test_required_funding_fail_closed_matrix_and_basket(mod):
+    import copy
+    valid = _funding()
+    bad = [None, [], True, "bad", {}, {"generated_at": _iso(1)}]
+    bad += [{**valid, "eurodollar_shortage": v} for v in (None, [], True, "bad", {})]
+    ed = valid["eurodollar_shortage"]
+    bad += [{**valid, "eurodollar_shortage": {**ed, "state": v}} for v in
+            (None, "", "UNQUALIFIED", "UNKNOWN", "NO SHORTAGE", "WATCH UNKNOWN", [], True)]
+    for key in ("score", "points"):
+        bad += [{**valid, "eurodollar_shortage": {**ed, key: v}} for v in
+                (None, "", "0", True, False, [], {}, float("nan"), float("inf"), -1, 10**400)]
+        bad.append({**valid, "eurodollar_shortage": {k: v for k, v in ed.items() if k != key}})
+    for key in ("calls_eligible", "sizing_eligible"):
+        bad += [{**valid, "eurodollar_shortage": {**ed, key: v}} for v in (False, None, 0, 1, "true", [])]
+    bad += [{**valid, "generated_at": v} for v in
+            (None, "bad", _iso(37), _iso(-1/3600), "2026-10-01T12:00:00", 0, [])]
+    rows = [{"ticker":"TEST", "tier":"READY", "asset_class":"stock", "learned_excess_126s_pct":9, "composite":80}]
+    for packet in bad:
+        feeds = {"risk_gate":_gate(), "khalid_risk":_auth(), "bond_warroom":packet}
+        # JSON-like malformed values must neither crash nor acquire permission.
+        out = mod.war_room(feeds)
+        assert out["posture"] == "DATA_HOLD" and out["exposure_cap_pct"] == 0 and out["entries_allowed"] is False, packet
+        assert not any(row["leg"] == "Eurodollar shortage" for row in out["legs"]), packet
+        assert any("required funding" in r for r in out["hold_reasons"])
+        assert datetime.fromisoformat(out["expires_at"]) <= datetime.now(timezone.utc)
+        basket = mod.build_basket(rows, out)
+        assert not basket["core"] and not basket["barbell"] and basket["cash_pct"] == 100
+    out = mod.war_room({"risk_gate":_gate(), "khalid_risk":_auth()})
+    assert out["exposure_cap_pct"] == 0 and not out["entries_allowed"]
+
+
+def test_qualified_funding_mappings_zero_and_expiry(mod):
+    import copy
+    for state, risk in (("NONE",20), ("WATCH",50), ("SHORTAGE SIGNAL",85)):
+        for flags in ({}, {"calls_eligible":True,"sizing_eligible":True}):
+            funding = _funding(state, hours_ago=35.5)
+            funding["eurodollar_shortage"].update(flags)
+            feeds = {"bond_warroom":funding,"risk_gate":_gate(),"khalid_risk":_auth()}
+            before = copy.deepcopy(feeds)
+            out = mod.war_room(feeds)
+            assert feeds == before
+            leg = next(row for row in out["legs"] if row["leg"] == "Eurodollar shortage")
+            assert leg["risk"] == risk and leg["flag"] == {20:"GREEN",50:"AMBER",85:"RED"}[risk]
+            assert out["entries_allowed"] and out["exposure_cap_pct"] > 0
+            deadline = datetime.fromisoformat(funding["generated_at"]) + timedelta(hours=36)
+            assert datetime.fromisoformat(out["expires_at"]) == deadline
+    feeds["risk_gate"] = _gate(sizing=0)
+    out = mod.war_room(feeds)
+    assert out["exposure_cap_pct"] == 0 and not out["entries_allowed"]
+
+
 def test_unqualified_liquidity_never_becomes_a_synthetic_45_point_vote(mod):
     for value in ({"regime":"UNQUALIFIED"}, {"calls_eligible":False,"regime":"EXPANDING","global_impulse_13w_pct":99}):
         packet={**value,"generated_at":_iso(1)}
@@ -63,7 +120,7 @@ def test_unqualified_liquidity_never_becomes_a_synthetic_45_point_vote(mod):
 
 
 def test_authority_cap_binds_and_desk_opinion_is_kept_separately(mod):
-    wr = mod.war_room({"risk_gate": _gate(), "khalid_risk": _auth(cap=50)})
+    wr = mod.war_room({"bond_warroom": _funding(), "risk_gate": _gate(), "khalid_risk": _auth(cap=50)})
     assert wr["local"]["posture"] == "FULL_RISK" and wr["local"]["exposure_cap_pct"] == 100, wr["local"]
     assert wr["exposure_cap_pct"] == 50, wr["exposure_cap_pct"]
     assert wr["posture"] == "SELECTIVE", wr["posture"]
@@ -72,7 +129,7 @@ def test_authority_cap_binds_and_desk_opinion_is_kept_separately(mod):
 
 
 def test_authority_blocks_new_entries_regardless_of_desk_rank(mod):
-    wr = mod.war_room({"risk_gate": _gate(), "khalid_risk": _auth(cap=50, allows=False, mode="SELECTIVE", vetoes=["credit composite STRESS"])})
+    wr = mod.war_room({"bond_warroom": _funding(), "risk_gate": _gate(), "khalid_risk": _auth(cap=50, allows=False, mode="SELECTIVE", vetoes=["credit composite STRESS"])})
     assert wr["entries_allowed"] is False
     assert wr["posture"] == "CASH_OR_TBILLS", wr["posture"]
     assert any(v.startswith("authority:") for v in wr["vetoes"]), wr["vetoes"]
@@ -145,10 +202,11 @@ def test_basket_redistribution_never_exceeds_name_or_total_cap(mod):
 def test_permission_refresh_preserves_research_age_and_uses_conditional_write(mod):
     import io,json
     class FakeS3:
-        def __init__(self,research,conflict=False):
+        def __init__(self,research,conflict=False,funding=None):
             self.research,self.conflict,self.writes=research,conflict,[]
+            self.funding = _funding() if funding is None else funding
         def get_object(self,**kw):
-            data=self.research if kw["Key"]==mod.OUT_KEY else _gate() if kw["Key"]=="data/risk-gate.json" else _auth() if kw["Key"]=="data/khalid-risk.json" else {}
+            data=self.research if kw["Key"]==mod.OUT_KEY else _gate() if kw["Key"]=="data/risk-gate.json" else _auth() if kw["Key"]=="data/khalid-risk.json" else self.funding if kw["Key"]=="data/bond-warroom.json" else {}
             return {"Body":io.BytesIO(json.dumps(data).encode()),"ETag":"version-one"}
         def put_object(self,**kw):
             assert kw.get("IfMatch")=="version-one", "refresh must not overwrite a concurrently rebuilt ranking"
@@ -164,6 +222,14 @@ def test_permission_refresh_preserves_research_age_and_uses_conditional_write(mo
         assert result["ok"] and result["research_generated_at"]==research_at
         assert fake.writes[0]["research_generated_at"]==research_at and fake.writes[0]["war_room"]["entries_allowed"]
         published = fake.writes[0]
+        for funding in ({}, {**_funding(), "eurodollar_shortage":{"state":"UNQUALIFIED","score":None,"points":None,"calls_eligible":False}}, _funding(hours_ago=37)):
+            blocked = FakeS3(research, funding=funding); mod.s3 = blocked
+            result = mod.lambda_handler({"mode":"permission_refresh"})
+            out = blocked.writes[0]
+            assert out["war_room"]["posture"] == "DATA_HOLD" and not out["war_room"]["entries_allowed"]
+            assert out["war_room"]["exposure_cap_pct"] == 0 and out["basket"]["cash_pct"] == 100
+            assert datetime.fromisoformat(out["expires_at"]) <= datetime.now(timezone.utc)
+            assert out["research_generated_at"] == research_at
         dry=FakeS3(research);mod.s3=dry
         validation=mod.lambda_handler({"mode":"permission_refresh","validate_only":True})
         assert validation["ok"] and validation["validation_only"] and validation["schema_version"]=="1.1" and validation["artifact_size_bytes"]>0
