@@ -18,6 +18,7 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
+| Khalid risk withdrawn-authority diagnostics only; codex/khalid-risk-diagnostics; additive health explanations, paired policy-preservation tests and public consumer trace; draft only, no Katlin correction, thresholds, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:19 |
 | PR29 frontend performance follow-up: shared immutable qualification snapshot, one fetch/parse, deadline-safe bounded validation cache; khalid.js, jh-khalid-sniper.js, jh-chart-tvrail.js close cleanup, both script refs and tests; PR33 accepted e4e17f7c3; authorized frontend-only release verification; no backend contract/decisions changes | none | S-codex#kperf1001q7 | 2026-10-01 06:34 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
 | Correlation heatmap view-specific empty states and refresh lifecycle only; agent/codex/correlation-heatmap-state; draft, no backend/narrative/nav/deploy changes | none | S-codex#chm1001s | 2026-10-01 |
