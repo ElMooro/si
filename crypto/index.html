@@ -130,6 +130,26 @@ function renderCryptoCommentary(value){
   return h;
 }
 
+function cryptoMarketCapRatio(ratios){
+ var m=ratios&&ratios.market_cap_extension;
+ if(!m||m.contract!=="btc-market-cap-to-returned-mean.v1"||m.status!=="descriptive"||m.unit!=="ratio")return null;
+ if(m.calls_eligible!==false||m.sizing_eligible!==false||m.execution_eligible!==false||m.forecast_qualified!==false||m.independent_investment_votes!==0)return null;
+ return typeof m.value==="number"&&Number.isFinite(m.value)&&m.value>=0?m.value:null;
+}
+function cryptoMarketCapText(ratios){
+ var value=cryptoMarketCapRatio(ratios);
+ return value==null?"Unavailable":(value!==0&&(value<0.001||value>=1e9)?value.toExponential(4):String(Math.round(value*10000)/10000))+"×";
+}
+function cryptoMarketCapCard(ratios){
+ var value=cryptoMarketCapRatio(ratios),m=ratios&&ratios.market_cap_extension||{},n=m.numerator||{},d=m.denominator||{},w=m.observation_window||{};
+ function number(v){return typeof v==="number"&&Number.isFinite(v)&&v>=0?String(v):"Unavailable";}
+ function date(v){return typeof v==="string"&&/^\d{4}-\d{2}-\d{2}T[0-9:.+-]+$/.test(v)&&Number.isFinite(Date.parse(v))?cryptoText(v):"Unavailable";}
+ var h="<div class='card crypto-market-cap-card' style='overflow-wrap:anywhere'><div class='card-title'>BTC Market Cap / Returned Mean</div><div class='stat-big'>"+cryptoMarketCapText(ratios)+"</div><p style='font-size:12px;color:var(--t2)'>Descriptive comparison. MVRV is unavailable: this source has no realized capitalization. No valuation or investment vote.</p>";
+ h+="<details style='margin-top:12px;font-size:12px;line-height:1.6'><summary>Calculation and source</summary><p>Latest returned market cap ÷ arithmetic mean of all returned observations. The requested 365-day window does not establish daily sampling.</p>";
+ if(value!=null)h+="<dl><dt>Numerator (USD)</dt><dd>"+number(n.value_usd)+"</dd><dt>Denominator (USD)</dt><dd>"+number(d.value_usd)+"</dd><dt>Returned observations</dt><dd>"+(Number.isSafeInteger(d.count)&&d.count>=30?d.count:"Unavailable")+"</dd><dt>First observation</dt><dd>"+date(w.first)+"</dd><dt>Last observation</dt><dd>"+date(w.last)+"</dd></dl>";
+ h+="<p>Series: blockchain.info:market-cap · <a href='https://www.blockchain.com/explorer/charts/market-cap' target='_blank' rel='noopener noreferrer' style='color:var(--blue)'>Source chart</a>. Original HTTP bytes, first-release timing and observation freshness are unverified.</p></details></div>";
+ return h;
+}
 function render(){
 try{
 if(!D)return;
@@ -164,7 +184,7 @@ h+="<div style='font-size:14px;margin:4px 0' class='"+cl(gl.mcap_change_24h)+"'>
 h+=(dominance==null?cryptoUnavailable()+"<div class='stat-sm'>BTC Dom</div>":ring(dominance,80,"var(--orange)",n(dominance,1)+"%","BTC Dom"))+"</div>";
 // Signals
 h+="<div class='card'><div class='card-title'>Key Signals</div>";
-h+="<div class='metric'><span class='metric-name'>MVRV</span><span class='metric-val mono' style='color:"+(onr.signal==="OVERVALUED"?"var(--red)":onr.signal==="UNDERVALUED"?"var(--green)":"var(--yellow)")+"'>"+(onr.mvrv_approx||"-")+" "+(onr.signal||"")+"</span></div>";
+h+="<div class='metric'><span class='metric-name'>BTC cap / mean (descriptive)</span><span class='metric-val mono'>"+cryptoMarketCapText(onr)+"</span></div>";
 h+="<div class='metric'><span class='metric-name'>Stbl Flow</span><span class='metric-val'>"+sig(stNet)+"</span></div>";
 h+="<div class='metric'><span class='metric-name'>ETH Gas</span><span class='metric-val mono'>"+(eg.low||"-")+"/"+(eg.standard||"-")+"/"+(eg.fast||"-")+"</span></div>";
 h+="<div class='metric'><span class='metric-name'>Whales</span><span class='metric-val mono'>"+(wh.whale_count||0)+" txs</span></div>";
@@ -492,8 +512,8 @@ h+="<div class='grid g2' style='margin-bottom:12px'>";
 h+="<div class='card' style='text-align:center'><div class='card-title'>Fear & Greed Index</div><div style='margin:12px 0'>"+cryptoFearGauge(fgv,fg.label,fgClr)+"</div><div class='grid g2' style='margin-top:12px'><div class='metric'><span class='metric-name'>7D Avg</span><span class='metric-val mono'>"+(cryptoScalar(fg.avg_7d,0,100)==null?"Unavailable":fg.avg_7d)+"</span></div><div class='metric'><span class='metric-name'>30D Avg</span><span class='metric-val mono'>"+(cryptoScalar(fg.avg_30d,0,100)==null?"Unavailable":fg.avg_30d)+"</span></div></div></div>";
 // Sentiment components
 h+="<div class='card'><div class='card-title'>Sentiment Components</div>";
-var fundingRaw=cryptoScalar(fn.avg_funding),mvrvRaw=cryptoScalar(onr.mvrv_approx,0);
-var sentItems=[{n:"Fear & Greed",v:fgv,c:fgClr},{n:"Funding display (50 + rate × 500, clamped)",v:fundingRaw==null?null:Math.min(100,Math.max(0,50+fundingRaw*500)),c:"var(--blue)"},{n:"BTC Dominance (%)",v:dominance,c:"var(--orange)"},{n:"Stablecoin category (inflow 75, outflow 25, neutral 50)",v:st.net_signal==="INFLOW"?75:st.net_signal==="OUTFLOW"?25:st.net_signal==="NEUTRAL"?50:null,c:"var(--blue)"},{n:"MVRV display (ratio × 30, capped at 100)",v:mvrvRaw==null?null:Math.min(100,mvrvRaw*30),c:"var(--blue)"}];
+var fundingRaw=cryptoScalar(fn.avg_funding);
+var sentItems=[{n:"Fear & Greed",v:fgv,c:fgClr},{n:"Funding display (50 + rate × 500, clamped)",v:fundingRaw==null?null:Math.min(100,Math.max(0,50+fundingRaw*500)),c:"var(--blue)"},{n:"BTC Dominance (%)",v:dominance,c:"var(--orange)"},{n:"Stablecoin category (inflow 75, outflow 25, neutral 50)",v:st.net_signal==="INFLOW"?75:st.net_signal==="OUTFLOW"?25:st.net_signal==="NEUTRAL"?50:null,c:"var(--blue)"},{n:"MVRV (realized capitalization required)",v:null,c:"var(--blue)"}];
 h+="<p style='font-size:11px;color:var(--t2);margin-bottom:8px'>Display transformations; not validated comparable scores.</p>";
 sentItems.forEach(function(s){var value=cryptoScalar(s.v,0,100);h+="<div class='crypto-sentiment-component' style='margin-bottom:8px;overflow-wrap:anywhere'><div style='display:flex;gap:10px;justify-content:space-between;font-size:11px;margin-bottom:3px'><span>"+s.n+"</span><span class='mono' style='color:var(--t2);white-space:nowrap;flex-shrink:0'>"+(value==null?"Unavailable":value)+"</span></div>";if(value!=null)h+="<div style='height:8px;background:var(--bg4);border-radius:4px'><div style='height:100%;width:"+value+"%;background:"+s.c+";border-radius:4px'></div></div>";h+="</div>";});
 h+="</div></div>";
@@ -532,9 +552,8 @@ var bm=btc.metrics;
 if(bm){Object.keys(bm).forEach(function(k){var v=bm[k];h+="<div class='metric'><span class='metric-name'>"+(v.name||k)+"</span><span class='metric-val mono'>"+(typeof v.value==="number"?v.value.toLocaleString():v.value)+" "+(v.unit||"")+"</span></div>"});}
 else{h+="<div style='color:var(--t3);text-align:center;padding:20px'>Loading...</div>";}
 h+="</div>";
-h+="<div class='card'><div class='card-title'>MVRV Valuation</div><div style='text-align:center;margin:12px 0'>"+ring(Math.min(100,(onr.mvrv_approx||1)*30),100,(onr.signal==="OVERVALUED"?"var(--red)":"var(--green)"),(onr.mvrv_approx||"?").toString(),onr.signal||"?")+"</div>";
-h+="<div class='metric'><span class='metric-name'>Market Cap</span><span class='metric-val mono'>"+(onr.market_cap_fmt||"-")+"</span></div>";
-h+="<div class='metric'><span class='metric-name'>30D Mom</span><span class='metric-val mono "+cl(onr.momentum_30d)+"'>"+pct(onr.momentum_30d)+"</span></div></div></div>";
+h+=cryptoMarketCapCard(onr);
+h+="</div>";
 var wl=wh.large_txs||[];
 if(wl.length>0){h+="<div class='card'><div class='card-title'>Whale TXs (100+ BTC) &mdash; "+(wh.whale_count||0)+"</div><table><thead><tr><th>Hash</th><th style='text-align:right'>BTC</th><th style='text-align:right'>~USD</th><th>I/O</th></tr></thead><tbody>";
 wl.forEach(function(t){h+="<tr><td class='mono' style='font-size:10px'>"+t.hash+"</td><td style='text-align:right' class='mono'>"+t.btc_amount+"</td><td style='text-align:right' class='mono'>"+t.usd_est+"</td><td class='mono' style='font-size:10px'>"+t.inputs+"->"+t.outputs+"</td></tr>"});h+="</tbody></table></div>";}

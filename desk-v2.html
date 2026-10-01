@@ -776,7 +776,7 @@ button:hover{
   <div class="card wide">
     <div class="card-header">
       <div class="card-title"><span class="num">09</span> CRYPTO REGIME</div>
-      <div class="card-meta">FEAR / GREED · MVRV</div>
+      <div class="card-meta">FEAR / GREED · MARKET CAP</div>
     </div>
     <div class="card-body" id="cardCrypto">
       <div class="loading">FETCHING</div>
@@ -1164,6 +1164,16 @@ function renderKa(intel){
   el.innerHTML = html;
 }
 
+function cryptoMarketCapRatio(ratios){
+ var m=ratios&&ratios.market_cap_extension;
+ if(!m||m.contract!=="btc-market-cap-to-returned-mean.v1"||m.status!=="descriptive"||m.unit!=="ratio")return null;
+ if(m.calls_eligible!==false||m.sizing_eligible!==false||m.execution_eligible!==false||m.forecast_qualified!==false||m.independent_investment_votes!==0)return null;
+ return typeof m.value==="number"&&Number.isFinite(m.value)&&m.value>=0?m.value:null;
+}
+function cryptoMarketCapText(ratios){
+ var value=cryptoMarketCapRatio(ratios);
+ return value==null?"Unavailable":(value!==0&&(value<0.001||value>=1e9)?value.toExponential(4):String(Math.round(value*10000)/10000))+"×";
+}
 function renderCrypto(crypto){
   const el = document.getElementById('cardCrypto');
   if (!crypto) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
@@ -1174,7 +1184,7 @@ function renderCrypto(crypto){
   const fgScore = fg.score || fg;
   const fgLabel = fg.label || (fgScore < 25 ? 'EXTREME FEAR' : fgScore < 45 ? 'FEAR' : fgScore < 55 ? 'NEUTRAL' : fgScore < 75 ? 'GREED' : 'EXTREME GREED');
   const rs = risk.score || risk.regime || risk;
-  const mvrv = oc.mvrv_approx;
+  const marketCapRatio = cryptoMarketCapText(oc);
 
   const fgCls = fgScore < 25 ? 'green' : fgScore < 45 ? 'green' : fgScore < 55 ? 'amber' : fgScore < 75 ? 'red' : 'red';
 
@@ -1195,12 +1205,13 @@ function renderCrypto(crypto){
   </div>`;
 
   const rows = [
-    ['mvrv approx', mvrv ? fmt(mvrv, 2) : '—',
-      mvrv > 3 ? 'red' : mvrv < 1 ? 'green' : ''],
+    ['BTC cap / returned mean', marketCapRatio, 'dim'],
+    ['MVRV', 'Unavailable: realized capitalization required', 'dim'],
     ['top coins', `${(crypto.top_coins?.coins ? Object.keys(crypto.top_coins.coins).length : 0)} tracked`, 'dim'],
     ['updated', timeAgo(crypto.timestamp || crypto.as_of), 'dim'],
   ];
   html += rowsHTML(rows);
+  html += '<p class="dim" style="font-size:12px;overflow-wrap:anywhere">Market-cap comparison is descriptive only; sampling, source timing and investment validity remain unverified.</p>';
   el.innerHTML = html;
 }
 

@@ -1,7 +1,7 @@
 {
   "target": "crypto/index.html",
   "predecessor_sha256": "6ebe2ca761773be5a29961784636f141933d9e7ca18f3ee483c0e569577acfc0",
-  "candidate_sha256": "58ba8b1df93743913e73550caa11a1fad2a6accb1250f5974f82c9a4a3fedbd1",
+  "candidate_sha256": "4e3cd6b8a7a87a49b594d3fa8f6bdcc45f7e38fa32f6be366d1615ee2aa85dfb",
   "edits": [
     [
       "function render(){",
@@ -134,6 +134,34 @@
     [
       "var btcD=gl.btc_dominance||60;var ethD=gl.eth_dominance||15;var othD=Math.max(0,100-btcD-ethD);\nh+=\"<div class='card' style='margin-bottom:12px'><div class='card-title'>Dominance</div><div style='display:flex;height:24px;border-radius:12px;overflow:hidden;margin:12px 0'><div style='width:\"+btcD+\"%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700'>BTC \"+btcD+\"%</div><div style='width:\"+ethD+\"%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700'>ETH \"+ethD+\"%</div><div style='width:\"+othD+\"%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)'>Other \"+othD.toFixed(1)+\"%</div></div></div>\";",
       "h+=cryptoDominance(gl);"
+    ],
+    [
+      "function render(){",
+      "function cryptoMarketCapRatio(ratios){\n var m=ratios&&ratios.market_cap_extension;\n if(!m||m.contract!==\"btc-market-cap-to-returned-mean.v1\"||m.status!==\"descriptive\"||m.unit!==\"ratio\")return null;\n if(m.calls_eligible!==false||m.sizing_eligible!==false||m.execution_eligible!==false||m.forecast_qualified!==false||m.independent_investment_votes!==0)return null;\n return typeof m.value===\"number\"&&Number.isFinite(m.value)&&m.value>=0?m.value:null;\n}\nfunction cryptoMarketCapText(ratios){\n var value=cryptoMarketCapRatio(ratios);\n return value==null?\"Unavailable\":(value!==0&&(value<0.001||value>=1e9)?value.toExponential(4):String(Math.round(value*10000)/10000))+\"\u00d7\";\n}\nfunction cryptoMarketCapCard(ratios){\n var value=cryptoMarketCapRatio(ratios),m=ratios&&ratios.market_cap_extension||{},n=m.numerator||{},d=m.denominator||{},w=m.observation_window||{};\n function number(v){return typeof v===\"number\"&&Number.isFinite(v)&&v>=0?String(v):\"Unavailable\";}\n function date(v){return typeof v===\"string\"&&/^\\d{4}-\\d{2}-\\d{2}T[0-9:.+-]+$/.test(v)&&Number.isFinite(Date.parse(v))?cryptoText(v):\"Unavailable\";}\n var h=\"<div class='card crypto-market-cap-card' style='overflow-wrap:anywhere'><div class='card-title'>BTC Market Cap / Returned Mean</div><div class='stat-big'>\"+cryptoMarketCapText(ratios)+\"</div><p style='font-size:12px;color:var(--t2)'>Descriptive comparison. MVRV is unavailable: this source has no realized capitalization. No valuation or investment vote.</p>\";\n h+=\"<details style='margin-top:12px'><summary>Calculation and source</summary><p>Latest returned market cap \u00f7 arithmetic mean of all returned observations. The requested 365-day window does not establish daily sampling.</p>\";\n if(value!=null)h+=\"<dl><dt>Numerator (USD)</dt><dd>\"+number(n.value_usd)+\"</dd><dt>Denominator (USD)</dt><dd>\"+number(d.value_usd)+\"</dd><dt>Returned observations</dt><dd>\"+(Number.isSafeInteger(d.count)&&d.count>=30?d.count:\"Unavailable\")+\"</dd><dt>First observation</dt><dd>\"+date(w.first)+\"</dd><dt>Last observation</dt><dd>\"+date(w.last)+\"</dd></dl>\";\n h+=\"<p>Series: blockchain.info:market-cap \u00b7 <a href='https://www.blockchain.com/explorer/charts/market-cap' target='_blank' rel='noopener noreferrer'>Source chart</a>. Original HTTP bytes, first-release timing and observation freshness are unverified.</p></details></div>\";\n return h;\n}\nfunction render(){"
+    ],
+    [
+      "h+=\"<div class='metric'><span class='metric-name'>MVRV</span><span class='metric-val mono' style='color:\"+(onr.signal===\"OVERVALUED\"?\"var(--red)\":onr.signal===\"UNDERVALUED\"?\"var(--green)\":\"var(--yellow)\")+\"'>\"+(onr.mvrv_approx||\"-\")+\" \"+(onr.signal||\"\")+\"</span></div>\";\n",
+      "h+=\"<div class='metric'><span class='metric-name'>BTC cap / mean (descriptive)</span><span class='metric-val mono'>\"+cryptoMarketCapText(onr)+\"</span></div>\";\n"
+    ],
+    [
+      "var fundingRaw=cryptoScalar(fn.avg_funding),mvrvRaw=cryptoScalar(onr.mvrv_approx,0);",
+      "var fundingRaw=cryptoScalar(fn.avg_funding);"
+    ],
+    [
+      "{n:\"MVRV display (ratio \u00d7 30, capped at 100)\",v:mvrvRaw==null?null:Math.min(100,mvrvRaw*30),c:\"var(--blue)\"}",
+      "{n:\"MVRV (realized capitalization required)\",v:null,c:\"var(--blue)\"}"
+    ],
+    [
+      "h+=\"<div class='card'><div class='card-title'>MVRV Valuation</div><div style='text-align:center;margin:12px 0'>\"+ring(Math.min(100,(onr.mvrv_approx||1)*30),100,(onr.signal===\"OVERVALUED\"?\"var(--red)\":\"var(--green)\"),(onr.mvrv_approx||\"?\").toString(),onr.signal||\"?\")+\"</div>\";\nh+=\"<div class='metric'><span class='metric-name'>Market Cap</span><span class='metric-val mono'>\"+(onr.market_cap_fmt||\"-\")+\"</span></div>\";\nh+=\"<div class='metric'><span class='metric-name'>30D Mom</span><span class='metric-val mono \"+cl(onr.momentum_30d)+\"'>\"+pct(onr.momentum_30d)+\"</span></div></div></div>\";\n",
+      "h+=cryptoMarketCapCard(onr);\nh+=\"</div>\";\n"
+    ],
+    [
+      "<details style='margin-top:12px'><summary>",
+      "<details style='margin-top:12px;font-size:12px;line-height:1.6'><summary>"
+    ],
+    [
+      "rel='noopener noreferrer'>Source chart</a>",
+      "rel='noopener noreferrer' style='color:var(--blue)'>Source chart</a>"
     ]
   ]
 }

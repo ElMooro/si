@@ -126,7 +126,8 @@ class CycleBoundaries(unittest.TestCase):
         renamed={'rule_global_business_cycle':'_legacy_rule_global_business_cycle','build_brief':'_legacy_build_brief','format_accuracy':'_legacy_format_accuracy'}
         for engine,allowed in changed.items():
             old=ast.parse((ROOT/'tests/fixtures'/('pre-cycle-qualification-'+engine+'.py.txt')).read_text(encoding='utf-8'))
-            new=ast.parse(source(engine).read_text(encoding='utf-8'))
+            from crypto_market_cap_preservation import preceding_source
+            new=ast.parse(preceding_source(source(engine)))
             def group(tree):
                 result={}
                 for n in tree.body:

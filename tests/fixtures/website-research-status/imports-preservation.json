@@ -41,8 +41,30 @@
       "page": "desk-v2.html",
       "predecessor": "tests/fixtures/website-research-status/pre513-imports/desk-v2.html.txt",
       "previous_sha256": "eee2bca693aafdc917e3f9f9d295cae8c0c6850ebceba60657b4c0d4bf49d8bc",
-      "sha256": "d45296766c70061d682e210528f6375140b035492d3fdc8c1555276f7dd26d4b",
-      "bytes": 48232
+      "sha256": "99faabf47fc99def1d5f47d1166f3ffbceaa4ddd51d0faa229274626b41b98e1",
+      "bytes": 49143,
+      "additional_replacements": [
+        [
+          "FEAR / GREED \u00b7 MVRV",
+          "FEAR / GREED \u00b7 MARKET CAP"
+        ],
+        [
+          "function renderCrypto(crypto){",
+          "function cryptoMarketCapRatio(ratios){\n var m=ratios&&ratios.market_cap_extension;\n if(!m||m.contract!==\"btc-market-cap-to-returned-mean.v1\"||m.status!==\"descriptive\"||m.unit!==\"ratio\")return null;\n if(m.calls_eligible!==false||m.sizing_eligible!==false||m.execution_eligible!==false||m.forecast_qualified!==false||m.independent_investment_votes!==0)return null;\n return typeof m.value===\"number\"&&Number.isFinite(m.value)&&m.value>=0?m.value:null;\n}\nfunction cryptoMarketCapText(ratios){\n var value=cryptoMarketCapRatio(ratios);\n return value==null?\"Unavailable\":(value!==0&&(value<0.001||value>=1e9)?value.toExponential(4):String(Math.round(value*10000)/10000))+\"\u00d7\";\n}\nfunction renderCrypto(crypto){"
+        ],
+        [
+          "  const mvrv = oc.mvrv_approx;",
+          "  const marketCapRatio = cryptoMarketCapText(oc);"
+        ],
+        [
+          "    ['mvrv approx', mvrv ? fmt(mvrv, 2) : '\u2014',\n      mvrv > 3 ? 'red' : mvrv < 1 ? 'green' : ''],",
+          "    ['BTC cap / returned mean', marketCapRatio, 'dim'],\n    ['MVRV', 'Unavailable: realized capitalization required', 'dim'],"
+        ],
+        [
+          "  html += rowsHTML(rows);\n  el.innerHTML = html;\n}\n\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n// Main loader",
+          "  html += rowsHTML(rows);\n  html += '<p class=\"dim\" style=\"font-size:12px;overflow-wrap:anywhere\">Market-cap comparison is descriptive only; sampling, source timing and investment validity remain unverified.</p>';\n  el.innerHTML = html;\n}\n\n// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n// Main loader"
+        ]
+      ]
     },
     {
       "page": "macro-frontrun.html",

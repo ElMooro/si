@@ -821,9 +821,8 @@ def build_context(message):
             dom = cd.get('dominance', {})
             if isinstance(dom, dict):
                 lines.append(f"[BTC DOMINANCE] {dom.get('btc', dom.get('BTC','N/A'))}%")
-            mvrv = cd.get('mvrv_approx')
-            if mvrv:
-                lines.append(f"[ON-CHAIN MVRV] {mvrv}")
+            ratio = __import__("crypto_market_cap_extension").reported_extension(cd.get("onchain_ratios"))
+            lines.append(f"[BTC MARKET CAP / RETURNED MEAN] {ratio if ratio is not None else 'Unavailable'}; descriptive only. MVRV unavailable; no valuation vote.")
         ef = get_s3('data/exchange-flows.json')
         if ef:
             btc_r = (ef.get('BTC') or {}).get('regime')

@@ -3,6 +3,7 @@ from pathlib import Path
 from copy import deepcopy
 import ast,sys,unittest
 SOURCE=Path(__file__).resolve().parents[1]/'source';sys.path.insert(0,str(SOURCE))
+sys.path.insert(0,str(Path(__file__).resolve().parents[4]/"aws/shared"))
 from bond_vol_boundary import apply_bond_vol_boundary
 class Tests(unittest.TestCase):
     def fixture(self):return {'dump_risk_score':85,'risk_level':'EXTREME','action':'Sell','top_drivers':[{'factor':'macro'}],
@@ -17,8 +18,8 @@ class Tests(unittest.TestCase):
     def test_actual_handler_publishes_guarded_values_and_cannot_trip_high_risk_alert(self):
         tree=ast.parse((SOURCE/'lambda_function.py').read_text(encoding='utf-8'));handler=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='lambda_handler')
         start=next(i for i,n in enumerate(handler.body) if isinstance(n,ast.ImportFrom) and n.module=='bond_vol_boundary')
-        statements=handler.body[start:start+3];self.assertIsInstance(handler.body[start+3],ast.Expr)
-        self.assertIn('s3.put_object',ast.unparse(handler.body[start+3]));scope={'out':self.fixture(),'bond':{'calls_eligible':False}}
+        statements=handler.body[start:start+4];self.assertIsInstance(handler.body[start+4],ast.Expr)
+        self.assertIn('s3.put_object',ast.unparse(handler.body[start+4]));scope={'out':self.fixture(),'bond':{'calls_eligible':False},'onchain':{},'apply_crypto_proxy_boundary':__import__('crypto_market_cap_extension').apply_crypto_proxy_boundary}
         exec(compile(ast.Module(body=statements,type_ignores=[]),'actual-handler-boundary','exec'),scope)
         self.assertIsNone(scope['composite']);self.assertEqual(scope['level'],'UNAVAILABLE');self.assertEqual(scope['drivers'],[])
         tripwire=next(n for n in ast.walk(handler) if isinstance(n,ast.If) and 'prev_level' in ast.unparse(n.test))

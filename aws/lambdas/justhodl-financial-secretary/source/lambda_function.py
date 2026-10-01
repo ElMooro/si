@@ -561,7 +561,9 @@ def fetch_tier2():
             "fear_greed_value": (fg.get("current") if isinstance(fg, dict) else None),
             "fear_greed_label": (fg.get("label") if isinstance(fg, dict) else None) or (fg.get("classification") if isinstance(fg, dict) else None),
             "funding_summary": (funding.get("summary") if isinstance(funding, dict) else None) or funding,
-            "mvrv_approx": (ratios.get("mvrv_approx") if isinstance(ratios, dict) else None),
+            "mvrv_approx": None,
+            "mvrv_status": "unavailable_no_qualified_realized_capitalization",
+            "market_cap_to_mean_ratio": __import__("crypto_market_cap_extension").reported_extension(ratios),
             "risk_score": ci.get("risk_score"),
             "whale_count_24h": whale.get("whale_count"),
             "top_movers": [
@@ -970,6 +972,7 @@ def build_deltas(today_liq, today_risk, today_recs, yesterday):
 
 # ═══ CLAUDE ═══
 def ask_claude(prompt, max_tokens=3000):
+    return "Model commentary unavailable under the no-paid-API policy."
     # Try locked-down AI chat Lambda first (preferred — low token cost)
     result = http_post(
         "https://zh3c6izcbzcqwcia4m6dmjnupy0dbnns.lambda-url.us-east-1.on.aws/",
@@ -1045,10 +1048,10 @@ def generate_ai_briefing(liq, risk, recs, fred, crypto, news, cftc, deltas, tier
         fg_v = crypto_i.get("fear_greed_value")
         fg_l = crypto_i.get("fear_greed_label")
         sc_sig = crypto_i.get("stablecoin_net_signal")
-        mvrv = crypto_i.get("mvrv_approx")
+        market_cap_ratio = crypto_i.get("market_cap_to_mean_ratio")
         crypto_risk = crypto_i.get("risk_score")
         if btc_dom is not None:
-            tier2_str += f"\nCRYPTO: BTC_dom={btc_dom}% total_mcap_chg_24h={mcap_chg}% stablecoins={sc_sig} fear_greed={fg_v}({fg_l}) MVRV={mvrv} crypto_risk={crypto_risk}"
+            tier2_str += f"\nCRYPTO: BTC_dom={btc_dom}% total_mcap_chg_24h={mcap_chg}% stablecoins={sc_sig} fear_greed={fg_v}({fg_l}) BTC_market_cap/returned_mean={market_cap_ratio} (descriptive only; MVRV unavailable; no valuation vote) crypto_risk={crypto_risk}"
         # Sector rotation
         sr = tier2.get("sector_rotation") or {}
         ldrs, lags = format_sector_rotation(sr)

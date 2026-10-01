@@ -13,6 +13,8 @@ from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 import unittest
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "aws/shared"))
 
 
 SOURCE = Path(__file__).resolve().parents[1] / "source/lambda_function.py"
@@ -275,7 +277,10 @@ class PresentationTests(unittest.TestCase):
         # Complete module AST outside the renderer + three pure helpers + html import.
         # Pins producers, ranking, missing defaults, delta/baseline, prompts, delivery,
         # allocation, timestamps and handlers to main fd6d7b6b4 (source 35a7d1af7).
-        nodes = [n for n in TREE.body if not (
+        sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "tests"))
+        from crypto_market_cap_preservation import preceding_source
+        checked_tree = ast.parse(preceding_source(SOURCE))
+        nodes = [n for n in checked_tree.body if not (
             isinstance(n, ast.FunctionDef) and n.name in HELPERS | {"build_email_html"}
             or isinstance(n, ast.ImportFrom) and n.module == "html")]
         digest = hashlib.sha256(ast.dump(ast.Module(body=nodes, type_ignores=[])).encode()).hexdigest()

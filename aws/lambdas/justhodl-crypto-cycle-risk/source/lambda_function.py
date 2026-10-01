@@ -174,15 +174,15 @@ def lambda_handler(event=None, context=None):
         halving_risk = 45; halving_note = f"{months:.0f}mo post-halving — pre-next-halving"
     factors["halving_cycle"] = {"weight": 0.24, "risk": halving_risk, "months_since_halving": round(months, 1) if months else None, "note": halving_note}
 
-    # ── 2. MVRV / price extension ──
+    # ── 2. MVRV is unavailable without qualified realized capitalization ──
+    from crypto_market_cap_extension import reported_extension, apply_crypto_proxy_boundary
     onchain = crypto.get("onchain_ratios") or {}
-    mvrv = onchain.get("mvrv_approx") or onchain.get("mvrv") or (crypto.get("onchain") or {}).get("mvrv_approx")
-    if mvrv is not None:
-        mvrv_risk = max(0, min(100, (mvrv - 1.0) / (3.5 - 1.0) * 100))
-        mnote = f"MVRV ~{round(mvrv,2)} ({'overheated' if mvrv>3 else 'elevated' if mvrv>2 else 'neutral' if mvrv>1 else 'undervalued'})"
-    else:
-        mvrv_risk = 50; mnote = "MVRV unavailable"
-    factors["mvrv_extension"] = {"weight": 0.10, "risk": round(mvrv_risk), "mvrv": mvrv, "note": mnote}
+    factors["mvrv_extension"] = {
+        "weight": 0.10, "risk": None, "mvrv": None,
+        "reported_market_cap_to_mean_ratio": reported_extension(onchain),
+        "status": "unqualified_historical_mean_proxy",
+        "note": "Market cap / returned-observation mean is descriptive only; no MVRV valuation vote.",
+    }
 
     # ── 3. Funding / leverage froth ──
     funding = crypto.get("funding") or {}
@@ -306,14 +306,16 @@ def lambda_handler(event=None, context=None):
                                 "note": f"bond-vol regime {bv_regime or 'unknown'}{pnote} — {'risk-off amplifies crypto beta' if macro_regime_risk>=65 else 'benign'}"}
 
     # ── Composite ──
-    composite = round(sum(f["risk"] * f["weight"] for f in factors.values()), 1)
-    if composite >= 75: level, action = "EXTREME", "Cycle-top risk elevated on multiple fronts — de-risk / take profit / tighten stops."
+    composite = (round(sum(f["risk"] * f["weight"] for f in factors.values()), 1)
+                 if all(f["risk"] is not None for f in factors.values()) else None)
+    if composite is None: level, action = "UNAVAILABLE", "WAIT — required valuation input is unqualified."
+    elif composite >= 75: level, action = "EXTREME", "Cycle-top risk elevated on multiple fronts — de-risk / take profit / tighten stops."
     elif composite >= 60: level, action = "HIGH", "Multiple froth signals — trim, avoid leverage, prepare hedges."
     elif composite >= 45: level, action = "MODERATE", "Mixed signals — normal risk management."
     else: level, action = "LOW", "Cycle/positioning favorable — historically a lower-risk accumulation backdrop."
 
     # honest top contributors
-    contribs = sorted(factors.items(), key=lambda kv: -kv[1]["risk"] * kv[1]["weight"])
+    contribs = sorted(factors.items(), key=lambda kv: -kv[1]["risk"] * kv[1]["weight"]) if composite is not None else []
     drivers = [{"factor": k, "risk": v["risk"], "weight": v["weight"], "note": v["note"]} for k, v in contribs[:4]]
 
     out = {
@@ -335,6 +337,7 @@ def lambda_handler(event=None, context=None):
     }
     from bond_vol_boundary import apply_bond_vol_boundary
     out = apply_bond_vol_boundary(out, bond)
+    out = apply_crypto_proxy_boundary(out, onchain)
     composite, level, action, drivers = out['dump_risk_score'], out['risk_level'], out['action'], out['top_drivers']
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")

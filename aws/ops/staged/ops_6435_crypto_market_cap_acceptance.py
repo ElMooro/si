@@ -1,0 +1,77 @@
+"""Read-only exact Crypto descriptive semantics importer release and native control acceptance.
+
+Only deployed code packages, named public receipts and native configuration/
+schedule metadata are read. No invocation, provider query, application packet,
+account data, environment output or notification is permitted.
+"""
+from pathlib import Path
+import hashlib,json,subprocess,sys,runpy
+ROOT=Path(__file__).resolve().parents[3]
+sys.path[:0]=[str(ROOT/'aws/ops'),str(ROOT/'aws/ops/checks')]
+from market_runtime_evidence import runtime,BUCKET
+ScheduleInventory=runpy.run_path(str(ROOT/'aws/ops/staged/ops_6434_crypto_semantics_controls.py'))['ScheduleInventory']
+SOURCE_HASHES = {'aws/lambdas/justhodl-crypto-intel/source/lambda_function.py': '2daa5e918219e136eba6ee36f904edc8cdb38f9082631e9fc10d5623e1b5e8e9', 'aws/shared/_sentry_lite.py': 'dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44', 'aws/shared/crypto_market_cap_extension.py': '091fa4431f966abdb2f1957ca9d2bd9b194e9e4ef343f2f2f7fca96d879f5886', 'aws/shared/ka_aliases.py': 'e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e', 'aws/shared/llm_cost.py': 'b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84', 'aws/shared/llm_router.py': 'e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33', 'aws/shared/option_population_context.py': 'ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a', 'aws/shared/xai_voice.py': '14936b2dc7791c42241ac6adddab1e5d590c5cda202b84ef87e99691dcf9ef1a', 'aws/lambdas/justhodl-crypto-cycle-risk/source/bond_vol_boundary.py': 'f9fbfb3311305d403ab13415094ee6162ef42eb6b84cf96ae969691708cc2c20', 'aws/lambdas/justhodl-crypto-cycle-risk/source/lambda_function.py': '0a91653aee576dc72d8e4d6641c7a2217d10ba1e4f79b80f0bcd70b07cf0d2bd', 'aws/shared/managed_secret.py': 'afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e', 'aws/lambdas/justhodl-financial-secretary/source/lambda_function.py': 'bed791ea036228f20af79bb3c1edc0522a378ee47f754b37a58701d5cb469fed', 'aws/shared/anthropic_shim.py': 'ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1', 'aws/shared/fmp_book.py': 'fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150', 'aws/lambdas/justhodl-morning-intelligence/source/lambda_function.py': '30e55274951ccc45099377d2f3159a8e007e4b6a8b25d90a89ad38972d79ed9d', 'aws/shared/_fred_shim.py': '1b089a84855ca5b91abdd0084aad1606fe5ee149e6f187f9e50482464686ed48', 'aws/shared/aaii_research.py': 'c9b0321ef57bed19c6f949194df8ceb2e84819eabc910702e114f5a6129c0a88', 'aws/shared/calibration.py': 'b9baba11b44a0115f33d8851c09af00442dbe0dd210c5055fa072aeec72b58ff', 'aws/shared/credit_collection_clock.py': '3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1', 'aws/shared/credit_research.py': 'aed603d204c8d69acd7cace826670df50f73c76623bdf123c6790982663ed81f', 'aws/shared/crisis_authority.py': 'b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c', 'aws/shared/cycle_model_context.py': '96e1aa5acc0c101e9faa66d10065cfba54dd84bb62b2c0f8cb959acf57897435', 'aws/shared/dealer_research_context.py': '96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f', 'aws/shared/dollar_research_context.py': '490c78d24d1cd03674cf1f0d5aa660f3ca8f04946c0dc3ea8de5f31e6cde01ba', 'aws/shared/extremes_research.py': '691cba0c160992d51c30aeaef15640fa78ac499b95171cc8e4de4683993de864', 'aws/shared/gold_rotation_context.py': '14ab452e042208b99473ca630fbf5051edf336c409d09538d44caa10df6c2a1c', 'aws/shared/gsi_authority.py': 'c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef', 'aws/shared/morning_free_research.py': '1d15159417ca94114f499a371b9582e0a39ecce1c9d9cc71a0da615741fd99b7', 'aws/shared/nowcast_research.py': '5580f18d6c0a1be1d137163f8b07b3cce39754e35edf6c6dac5d7ff13269a02d', 'aws/shared/plumbing_authority.py': '5d6008e54eb4b9f372edc7ac08b63b8ba283912e51b834ffe9ef50a61c494c9b', 'aws/shared/research_brief_model.py': '6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c', 'aws/shared/retail_research.py': 'c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3', 'aws/shared/risk_regime_authority.py': '9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642', 'aws/shared/sector_research.py': 'b2131c339b2305fa4565467485266dbbf22fd495b7281461e460bf06c8b33123', 'aws/shared/tenor_research_model.py': '13ed058d105909598fc87c84af3d1e04c667323cf092b8cc96ca0981c35c3acf', 'aws/shared/treasury_instruments.py': 'c256fd14f2f8d5da79ab6b4d10bf2147404c9a6025fe1154767a56295af7d4a6', 'aws/shared/valuation_research.py': 'e7f4353212f25449de877d6395c28daf31714359e1c72815ced251632232d612', 'aws/lambdas/justhodl-telegram-bot/source/lambda_function.py': '2ce8fd3426b106134079d97af629b126df80a472722eaec8def3ddf5d9f478bd', 'aws/lambdas/justhodl-ai-chat/source/lambda_function.py': '3399d338547d49cf9edc7098451e6079e879c6f00f60f77766e6d085c03ae091', 'aws/shared/ciss_readthrough.py': '996789e5c95e4fc31366e74c7edec051b001c265fdd4a7c12384d000b2af4607', 'aws/shared/ciss_source_model.py': 'aceaa814189bc72fc914e4cd4ae7a895cb2e4aeb376b0519fb17fdc4de01313c', 'aws/shared/claude_compat.py': '4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40', 'aws/shared/donor_contract.py': '21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8', 'aws/shared/fred_vintage_model.py': '18a94566ffc74cda5208dd89a4372dbfa5cee40049e83db8006b8b51ccc5b17b', 'aws/shared/lce_research_catalog.py': '94e446b1206391dfceb8dd5e3abbf19e7e80756bf3835720478118dd5a15866e', 'aws/shared/lce_research_model.py': '54854fb6962d976c935b0dde3990c00cdae34978d626f1c342e13d396afbc43c', 'aws/shared/macro_donor_inputs.py': '6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a', 'aws/shared/private_artifact.py': '52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba', 'aws/shared/report_observations.py': 'ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979', 'aws/shared/short_volume_context.py': '743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff', 'aws/ops/checks/market_runtime_evidence.py': 'b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca', 'aws/ops/checks/release_package_evidence.py': 'a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480', 'aws/ops/staged/ops_6434_crypto_semantics_controls.py': '5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230'}
+EXPECTED_CONTROLS = {'justhodl-crypto-intel': {'function_name': 'justhodl-crypto-intel', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 180, 'memory_mb': 1024, 'architectures': ['arm64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-crypto-15min', 'state': 'ENABLED', 'expression': 'rate(15 minutes)', 'native_targets': 1}, {'kind': 'EventBridge rule', 'name': 'justhodl-crypto-fanin', 'state': 'ENABLED', 'expression': None, 'native_targets': 1}]}, 'justhodl-crypto-cycle-risk': {'function_name': 'justhodl-crypto-cycle-risk', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 60, 'memory_mb': 256, 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-crypto-cycle-risk-6h', 'state': 'ENABLED', 'expression': 'rate(6 hours)', 'native_targets': 1}]}, 'justhodl-financial-secretary': {'function_name': 'justhodl-financial-secretary', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 300, 'memory_mb': 1024, 'architectures': ['arm64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-financial-secretary-daily', 'state': 'ENABLED', 'expression': 'cron(45 12 * * ? *)', 'native_targets': 1}, {'kind': 'EventBridge rule', 'name': 'secretary-4h-scan', 'state': 'ENABLED', 'expression': 'rate(4 hours)', 'native_targets': 1}]}, 'justhodl-morning-intelligence': {'function_name': 'justhodl-morning-intelligence', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 120, 'memory_mb': 256, 'architectures': ['arm64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-morning-brief-daily', 'state': 'ENABLED', 'expression': 'rate(1 day)', 'native_targets': 1}]}, 'justhodl-telegram-bot': {'function_name': 'justhodl-telegram-bot', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 90, 'memory_mb': 256, 'architectures': ['arm64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': [{'kind': 'EventBridge rule', 'name': 'justhodl-telegram-alerts', 'state': 'ENABLED', 'expression': 'cron(44 11 * * ? *)', 'native_targets': 1}]}, 'justhodl-ai-chat': {'function_name': 'justhodl-ai-chat', 'runtime': 'python3.12', 'handler': 'lambda_function.lambda_handler', 'timeout': 60, 'memory_mb': 512, 'architectures': ['x86_64'], 'role': 'arn:aws:iam::857687956942:role/lambda-execution-role', 'ephemeral_storage_mb': 512, 'schedules': []}}
+EXPECTED_SOURCE_COUNTS = {'justhodl-crypto-intel': 8, 'justhodl-crypto-cycle-risk': 4, 'justhodl-financial-secretary': 7, 'justhodl-morning-intelligence': 27, 'justhodl-telegram-bot': 7, 'justhodl-ai-chat': 29}
+
+def expected_commit():
+    return subprocess.check_output(['git','log','-1','--format=%H','--',*SOURCE_HASHES],cwd=ROOT,text=True).strip()
+
+class ReceiptOnly:
+    def __init__(self,client):self.client=client
+    def get_object(self,**kw):
+        allowed=[{'Bucket':BUCKET,'Key':'data/ops/releases/'+fn+'.json'} for fn in EXPECTED_CONTROLS]
+        if kw not in allowed:raise ValueError('Exact named public release receipt only')
+        return self.client.get_object(**kw)
+
+def normalize(value,function,commit):
+    if value.get('function_name')!=function or value.get('receipt')!={'status':'matched','commit':commit}:
+        raise ValueError('Exact function and release commit required')
+    if type(value.get('source_files_checked')) is not int or value['source_files_checked']!=EXPECTED_SOURCE_COUNTS[function]:
+        raise ValueError('Whole expected source closure required')
+    for key in ('handler_bytes','timeout','memory_mb','ephemeral_storage_mb'):
+        if type(value.get(key)) is not int or value[key]<=0:raise ValueError('Positive typed native counts required')
+    schedules=value.get('schedules')
+    if not isinstance(schedules,list) or not all(isinstance(row,dict) for row in schedules):
+        raise ValueError('Complete schedule census required, including observed absence')
+    value={**value,'schedules':sorted(schedules,key=lambda row:(row['kind'],row.get('group','default'),row['name']))}
+    expected=EXPECTED_CONTROLS[function]
+    if {k:value.get(k) for k in expected}!=expected:raise ValueError('Original native controls changed')
+    return value
+
+def inspect(clients,commit):
+    def snapshot():
+        lam,s3,events,scheduler=clients
+        inventory=ScheduleInventory(scheduler)
+        result={}
+        for fn in EXPECTED_CONTROLS:
+            try:result[fn]=normalize(runtime(lam,s3,events,inventory,fn),fn,commit)
+            except Exception as exc:
+                # Never leak a signed package URL or credential-bearing error.
+                raise ValueError('Named release acceptance failed: '+fn+' '+type(exc).__name__) from None
+        return result
+    before=snapshot()
+    after=snapshot()
+    if before!=after:raise ValueError('Native package or controls changed during inspection')
+    return before,after
+
+def main():
+    import boto3
+    from ops_report import report
+    if not SOURCE_HASHES or set(EXPECTED_CONTROLS)!=set(EXPECTED_SOURCE_COUNTS) or len(EXPECTED_CONTROLS)!=6:
+        raise ValueError('Reviewed complete acceptance specification required')
+    for path,digest in SOURCE_HASHES.items():
+        if hashlib.sha256((ROOT/path).read_bytes()).hexdigest()!=digest:raise ValueError('Reviewed source changed: '+path)
+    lam,s3,events,scheduler=[boto3.client(name,region_name='us-east-1') for name in ('lambda','s3','events','scheduler')]
+    commit=expected_commit()
+    with report('ops_6435_crypto_market_cap_acceptance') as out:
+        before,after=inspect((lam,ReceiptOnly(s3),events,scheduler),commit)
+        out.kv(evidence={'status':'exact_native_release_checked','expected_commit':commit,'reviewed_source_hashes':SOURCE_HASHES,
+                        'native_before':before,'native_after':after,'original_controls':EXPECTED_CONTROLS,
+                        'normal_publication_verified':False,'source_qualified':False,'investment_authority':False,
+                        'native_invocations':0,'provider_requests':0,'application_packet_reads':0,'private_reads':0,
+                        'account_reads':0,'native_writes':0,'schedule_changes':0,'application_log_queries':0,'other_invocation_routes_verified':False})
+
+if __name__=='__main__':
+    try:main()
+    except Exception:sys.exit(1)

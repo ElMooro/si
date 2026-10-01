@@ -2770,42 +2770,13 @@ def fetch_whales():
 
 
 def fetch_mvrv():
-
-
-
-
-
-    d=http_get("https://api.blockchain.info/charts/market-cap?timespan=365days&format=json")
-
-
-
-
-
-    if not d or 'values' not in d or len(d['values'])<30: return {'status':'error'}
-
-
-
-
-
-    v=d['values'];cur=v[-1]['y'];a365=sum(x['y'] for x in v)/len(v);a30=sum(x['y'] for x in v[-30:])/30
-
-
-
-
-
-    mvrv=cur/a365 if a365>0 else 1;mom=(cur-a30)/a30*100 if a30>0 else 0
-
-
-
-
-
-    sig='OVERVALUED' if mvrv>3 else 'EXPENSIVE' if mvrv>2 else 'FAIR' if mvrv>0.8 else 'UNDERVALUED'
-
-
-
-
-
-    return {'status':'ok','mvrv_approx':round(mvrv,2),'signal':sig,'market_cap':round(cur),'market_cap_fmt':fmt(cur),'momentum_30d':round(mom,2)}
+    """Retain the legacy entrypoint while publishing a correctly named proxy."""
+    from crypto_market_cap_extension import build_market_cap_extension
+    document = http_get('https://api.blockchain.info/charts/market-cap?timespan=365days&format=json')
+    out = build_market_cap_extension(document)
+    if out['market_cap'] is not None:
+        out['market_cap_fmt'] = fmt(out['market_cap'])
+    return out
 
 
 

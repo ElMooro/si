@@ -177,11 +177,13 @@ def enrich_with_crypto_intel(d):
         d["funding_rates"]=fr[:5]
     oi=ci.get("onchain_ratios",{})
     if isinstance(oi,dict):
-        d["mvrv"]=oi.get("mvrv_approx")
-        d["onchain_signal"]=oi.get("signal")
+        d["mvrv"]=None
+        d["market_cap_to_mean_ratio"]=__import__("crypto_market_cap_extension").reported_extension(oi)
+        d["onchain_signal"]="UNAVAILABLE"
     return d
 
 def ask_claude(question,context=None):
+    return "Model commentary unavailable under the no-paid-API policy."
     system="You are JustHodl.AI institutional market intelligence. Be concise, use bullets with -, bold with *. Max 400 chars. No disclaimers."
     user=question
     if context:
@@ -296,7 +298,7 @@ def cmd_crypto(chat_id):
     fear=d.get("fear_greed","N/A"); defi=d.get("defi_tvl","N/A")
     gas=d.get("eth_gas","N/A"); ml=d.get("ml_regime","N/A")
     mcap=d.get("total_mcap"); mcap_str=f"${round(float(mcap)/1e12,2)}T" if mcap else "N/A"
-    mvrv=d.get("mvrv"); oc_sig=d.get("onchain_signal","")
+    market_cap_ratio=d.get("market_cap_to_mean_ratio")
     fund_text=""
     for item in d.get("funding_rates",[])[:5]:
         sym=item.get("symbol",""); pct=item.get("funding_rate_pct",0); sent=item.get("sentiment","")
@@ -311,7 +313,8 @@ def cmd_crypto(chat_id):
           f"- DeFi TVL: ${n(defi,1)}B\n"
           f"- ETH Gas: {n(gas,2)} Gwei\n"
           f"- ML Regime: {ml}\n"
-          f"- MVRV: {n(mvrv,2)} ({oc_sig})\n\n"
+          f"- BTC market cap / returned mean: {n(market_cap_ratio,2)} (descriptive only)\n"
+          "- MVRV unavailable; no valuation vote.\n\n"
           f"*Funding Rates*\n{fund_text}\n"
           f"_Full terminal: justhodl.ai/crypto-intel.html_")
     send_message(chat_id,text)

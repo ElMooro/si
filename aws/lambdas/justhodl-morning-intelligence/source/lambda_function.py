@@ -110,7 +110,7 @@ def load_templates():
             "Requirements: 1) Use REAL numbers only - no placeholders. "
             "2) Lead with Khalid Index and calibrated weight. "
             "3) Flag top 2-3 signals by calibrated weight. "
-            "4) Include BTC price, MVRV, funding sentiment. "
+            "4) Include reported BTC price; market-cap/mean is descriptive only, not MVRV. "
             "5) ONE clear actionable takeaway at end. "
             "6) Emphasize signals system trusts most. "
             "Format with emojis and Markdown bold headers."
@@ -444,9 +444,10 @@ def extract_metrics(data,weights):
         "eth_price":eth.get("price"),
         "eth_24h":eth.get("change_24h"),
         "eth_sentiment":eth_fund.get("sentiment"),
-        "mvrv":oc.get("mvrv_approx"),
-        "onchain_signal":oc.get("signal"),
-        "onchain_momentum":oc.get("momentum_30d"),
+        "mvrv":None,
+        "market_cap_to_mean_ratio":__import__("crypto_market_cap_extension").reported_extension(oc),
+        "onchain_signal":"UNAVAILABLE",
+        "onchain_momentum":None,
         "cape":vals.get("cape") or vals.get("CAPE"),
         "buffett":vals.get("buffett_indicator") or vals.get("market_cap_gdp"),
         "pc":flow.get("put_call_ratio") or flow.get("pc_ratio"),
@@ -1238,7 +1239,7 @@ def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "BTC: $"+str(m["btc_price"])+" 24h:"+str(m["btc_24h"])+"% 7d:"+str(m["btc_7d"])+"% ATH_down:"+str(m["btc_ath_chg"])+"%",
         "BTC_FUNDING: "+str(m["btc_funding_pct"])+"% ("+str(m["btc_funding_annual"])+"% annual) Sentiment:"+str(m["btc_sentiment"]),
         "ETH: $"+str(m["eth_price"])+" 24h:"+str(m["eth_24h"])+"% Sentiment:"+str(m["eth_sentiment"]),
-        "ONCHAIN: MVRV:"+str(m["mvrv"])+" Signal:"+str(m["onchain_signal"])+" Momentum30d:"+str(m["onchain_momentum"]),
+        "ONCHAIN: BTC market cap / returned-observation mean:"+str(m["market_cap_to_mean_ratio"])+" (descriptive only; MVRV and 30-day momentum unavailable; no valuation vote)",
         "CRYPTO_FLOWS: ExchFlows:"+str(m["crypto_exchange_flow_regime"])+" ("+str(m["crypto_exchange_flow_pctile"])+"th) CME-COT-AsstMgr:"+str(m["crypto_cot_asset_mgr"])+" CB-prem:"+str(m["crypto_coinbase_premium_pct"])+"% Stables:"+str(m["crypto_stablecoin_status"])+" RealizedPx:$"+str(m["crypto_realized_price"])+" ("+str(m["crypto_price_vs_realized_pct"])+"% vs cost-basis, NUPL "+str(m["crypto_nupl_zone"])+")",
         "CRYPTO_ETF_FLOWS: spot BTC ETFs "+str(m["crypto_etf_btc_regime"])+" ($"+str(round((m["crypto_etf_btc_30d_usd"] or 0)/1e9,1))+"B/30d) | spot ETH ETFs "+str(m["crypto_etf_eth_regime"])+" ($"+str(round((m["crypto_etf_eth_30d_usd"] or 0)/1e9,1))+"B/30d) [marginal buyer; flows lead price]",
         "CRYPTO_PERP_LEVERAGE: Hyperliquid OI $"+str(round((m["crypto_hl_total_oi_usd"] or 0)/1e9,1))+"B | BTC funding "+str(m["crypto_hl_btc_funding_ann"])+"%/yr | regime "+str(m["crypto_hl_leverage_regime"]),
@@ -1328,7 +1329,7 @@ def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
                "Edge: "+str(m["edge_score"])+" Phase: "+str(m["phase"])+"\n"
                "SPY:"+str(m["spy"])+"% TLT:"+str(m["tlt"])+"% GLD:"+str(m["gld"])+"%\n"
                "BTC $"+str(m["btc_price"])+" ("+str(m["btc_24h"])+"% 24h) Funding:"+str(m["btc_sentiment"])+"\n"
-               "MVRV:"+str(m["mvrv"])+" ("+str(m["onchain_signal"])+")\n"
+               "BTC market cap / returned mean:"+str(m["market_cap_to_mean_ratio"])+" (descriptive only; MVRV unavailable)\n"
                "F&G:"+str(m["fg"])+"/100 ("+str(m["fg_label"])+")\n"
                "Plumbing:"+str(m["stress_score"])+"/100\n"
                "Picks: "+str(", ".join(m["picks"][:3])))
