@@ -158,6 +158,8 @@ class Replay(unittest.TestCase):
                         self.assertEqual(repeated,result);self.assertEqual(db.objects,saved)
                         inputs=json.loads(db.objects[result['retained_input']['key']])
                         self.assertEqual('ownership_summary_policy' in inputs,value=='true')
+                        self.assertEqual('ownership_diagnostic_policy' in inputs,value=='true')
+                        if value=='true':self.assertEqual(inputs['ownership_diagnostic_policy'],model.DIAGNOSTIC_POLICY)
                         self.assertEqual('ownership_summary' in packet,value=='true')
                         if value=='true':digests.append(packet['ownership_summary']['manifest']['sha256'])
                         # Immutable output bytes reconstructed under either current switch state.
@@ -192,7 +194,7 @@ class Replay(unittest.TestCase):
                 result=store.run(db,'fixture','holdings','off','off-exec')
                 self.assertTrue(result['published'])
                 packet=json.loads(db.objects[model.CURRENT]);self.assertNotIn('ownership_summary',packet)
-                retained=json.loads(db.objects[result['retained_input']['key']]);self.assertNotIn('ownership_summary_policy',retained)
+                retained=json.loads(db.objects[result['retained_input']['key']]);self.assertNotIn('ownership_summary_policy',retained);self.assertNotIn('ownership_diagnostic_policy',retained)
                 self.assertEqual(packet['funds']['SPY']['current']['quality']['status'],'complete_returned_snapshot')
                 self.assertEqual(fake.collect.call_count,1)
                 self.assertEqual(store.replay(packet['replay'],store.reader(db,'fixture')),{k:v for k,v in packet.items() if k!='replay'})

@@ -18,16 +18,10 @@ test("Khalid sniper sits next to Alert and opens on the chart", () => {
   assert.match(rail, /kind === "sniper"/);
   assert.match(eng, /jhOpenSymbol/);
   const sniper = fs.readFileSync(path.join(root, "jh-khalid-sniper.js"), "utf8");
-  ["Below the 250-day", "At least 50% off the high", "RSI washed out", "Very tight price spread",
-    "Tight Bollinger bands", "Shrinking volume", "Flat moving average", "On 3-month support",
-    "Higher low", "Selling climax or capitulation", "Double bottom", "PEG under 1",
-    "ETH or BTC turned while this is still on its low", "Small caps versus large caps"
-  ].forEach((label) => assert.match(sniper, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))));
-  assert.match(sniper, /only on bitcoin treasuries, ether treasuries, and altcoin ETFs/);
-  assert.match(sniper, /id='sn-cat'/);
-  assert.match(sniper, /Criteria this engine starts from/);
-  assert.doesNotMatch(sniper, /MARA:/);
-  assert.doesNotMatch(sniper, /COIN:/);
+  assert.match(sniper, /Existing backend qualification/);
+  assert.match(sniper, /Requested strategy qualification/);
+  assert.match(sniper, /Technical chart measurements have no qualification authority/);
+  assert.doesNotMatch(sniper, /function scanAll|function barsFor|\/yf-ohlc|next 63 sessions of QQQ were/);
   const iPump = eng.indexOf("id=btn-pump");
   const iSnip = eng.indexOf("id=btn-snip");
   const iAlrt = eng.indexOf("id=btn-alrt");
@@ -67,6 +61,7 @@ test("a higher-low base can pass and an uptrend cannot", () => {
   }
   const hit = score(d, { assetClass: "COMMODITY", flows: "Persistent flow score" });
   assert.equal(hit.sniper, true);
+  assert.equal(hit.qualification_authority, false);
   const up = [];
   let q = 50;
   for (let i = 0; i < 560; i++) {

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 from typing import Any
+from qualification import backend_observation
 
 
 ACTION_ORDER = {
@@ -391,6 +392,21 @@ def score_candidate(
             "calibrated_probability": False,
         }
     return {
+        "backend_gate_observation": backend_observation(ticker, asset_class, action, {
+            "location": (vs200 is not None and vs200 <= 0, vs200),
+            "compression": (compression_ok, bb_pctile), "supply": (supply_ok, volume_dryup),
+            "structure": (structural_ok, structural_ok),
+            "legacy_flow": (len(evidence["flows"]) >= 1, len(evidence["flows"])),
+            "catalyst": (len(evidence["catalysts"]) >= 1, len(evidence["catalysts"])),
+            "rsi": (rsi_reset, rsi), "dilution": (dilution_checked, dilution_checked),
+            "confidence": (confidence_ok, candidate_confidence), "vetoes": (not vetoes, len(vetoes)),
+            "reward_risk": (rr is not None and rr >= 2.5, rr),
+            "risk_permission": (risk_allows_entries, risk_allows_entries),
+            "trigger": (trigger_observed, trigger_observed),
+        }, input_sources=src.split("+") + [name for name, present in (
+            ("accumulation", bool(bottom_confirmation)), ("floor", bool(floor)),
+            ("buyback", bool(buyback)), ("khalid_risk", True),
+        ) if present]),
         "source": src,
         "katlin": katlin_block,
         "ticker": ticker,

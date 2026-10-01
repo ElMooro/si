@@ -32,6 +32,11 @@ COMPATIBLE_COMPILERS = {'etf_holdings_store': COMPATIBLE_IO_STORES | frozenset((
     'etf_holdings_native': frozenset(('55c8b5ba85517743476d4767f4904075b07b89db67333457a45cbbe18a841b77',))}
 
 
+# Pre-diagnostic deployed sources; absent retained diagnostic policy preserves exact bytes.
+COMPATIBLE_COMPILERS['etf_holdings_model'] |= frozenset(('13a3cc577eac2101ad303971d7b52d04e4574b14bdc5ddd947d5b4d588487cc9',))
+COMPATIBLE_COMPILERS['etf_holdings_store'] |= frozenset(('564e975a150bbee905ba39d129960323cf0a6dc8265008d756ee686ee162b81b',))
+
+
 def now(): return datetime.now(timezone.utc).isoformat()
 def code(exc): return str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
 def missing(exc): return code(exc) in ('404', 'NoSuchKey')
@@ -379,6 +384,7 @@ def run(client, bucket, kind, request_id, execution_id, credential='', remaining
             # Only the exact configured string enables new summaries; absent/malformed is off.
             if os.environ.get('ETF_OWNERSHIP_SUMMARY_ENABLED') == 'true':
                 inputs['ownership_summary_policy'] = model.OWNERSHIP_POLICY
+                inputs['ownership_diagnostic_policy'] = model.DIAGNOSTIC_POLICY
         else:
             canonical = snapshot(client, bucket, model.CURRENT, read)
             try: previous = snapshot(client, bucket, model.LOOK_CURRENT, read)
