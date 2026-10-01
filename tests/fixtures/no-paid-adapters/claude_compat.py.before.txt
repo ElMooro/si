@@ -1,10 +1,22 @@
-"""No-paid model compatibility boundary.
+"""Drop-in resilience shim for engines that call the Anthropic /v1/messages
+endpoint directly.
 
-Provider and credential entry points are disabled under the standing policy.
-Empty/blocked results preserve compatibility and confer no research authority.
-The retained legacy implementation is unreachable through these entry points.
-Other direct SDK/HTTP integrations require their own audit; this is not an
-account-wide egress or spend assertion.
+The 2026-06 outage showed that 50+ engines were hard-wired to Anthropic with no
+fallback, so they all went silent for ~13 days when credits ran out. This shim
+lets any of them become provider-resilient with a one-line change:
+
+    # before:
+    req  = urllib.request.Request("https://api.anthropic.com/v1/messages", ...)
+    data = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+    # after:
+    import claude_compat
+    data = claude_compat.messages(body)        # body = the same request dict
+
+`messages()` routes through the shared llm_router (GLM-5.1/Z.ai primary with a
+Claude fallback for the reason tier), and returns an **Anthropic-shaped**
+response dict, so existing `data["content"][0]["text"]` parsing is unchanged.
+If the router is unavailable it falls back to a direct Anthropic call, so the
+shim is never worse than the original code.
 """
 import json
 import os
@@ -33,9 +45,6 @@ def messages(body, tier="reason"):
     """Anthropic-shaped {"content":[{"type":"text","text":...}]} via llm_router,
     with a direct-Anthropic last resort. `tier` defaults to 'reason' (GLM primary,
     Claude fallback); pass tier='critical' to force Claude for proprietary data."""
-    return {"content": [{"type": "text", "text": ""}], "stop_reason": None,
-            "_via": "no_paid_policy", "_status": "policy_blocked",
-            "_model_request_attempted": False}
     system, prompt = _flatten(body)
     max_tokens = body.get("max_tokens", 1024)
     # 1) shared router (GLM/Z.ai primary or Claude — survives a single-provider outage)

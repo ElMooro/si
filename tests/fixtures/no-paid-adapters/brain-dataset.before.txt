@@ -25,7 +25,6 @@ import io
 import json
 import math
 import time
-import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -46,13 +45,12 @@ def _get_json(s3, bucket, key, default=None):
         return default
 
 
-def _put_json(s3, bucket, key, obj, gz=False, create_only=False):
+def _put_json(s3, bucket, key, obj, gz=False):
     body = json.dumps(obj, default=str, ensure_ascii=False).encode()
     if gz:
         body = gzip.compress(body)
     s3.put_object(Bucket=bucket, Key=key, Body=body, ContentType="application/json",
-                  ServerSideEncryption="AES256", CacheControl="private, no-store",
-                  **({"IfNoneMatch": "*"} if create_only else {}))
+                  ServerSideEncryption="AES256", CacheControl="private, no-store")
 
 
 def _clean(s: str) -> str:
@@ -101,8 +99,7 @@ def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_char
             r["split"] = "excluded"
         r["label_idx"] = trainable.index(r["label"]) if r["label"] in trainable else -1
     _now = datetime.now(timezone.utc)
-    # Clocks can repeat across processes; identity is separate from the timestamp.
-    ds_id = _now.strftime("%Y%m%dT%H%M%S") + "%06dZ-" % _now.microsecond + uuid.uuid4().hex
+    ds_id = _now.strftime("%Y%m%dT%H%M%S") + "%06dZ" % _now.microsecond   # microsecond suffix: two builds in one second never collide
     base = "ai/datasets/brain/%s/" % ds_id
     # rows.jsonl.gz (private) -- text lives ONLY here
     buf = io.BytesIO()
@@ -110,7 +107,7 @@ def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_char
         for r in rows:
             gz.write((json.dumps(r, ensure_ascii=False) + "\n").encode())
     s3.put_object(Bucket=private_bucket, Key=base + "rows.jsonl.gz", Body=buf.getvalue(), ContentType="application/gzip",
-                  ServerSideEncryption="AES256", IfNoneMatch="*")
+                  ServerSideEncryption="AES256")
     n_train = sum(1 for r in rows if r["split"] == "train")
     n_valid = sum(1 for r in rows if r["split"] == "validation")
     manifest = {
@@ -123,7 +120,7 @@ def build_brain_dataset(s3, public_bucket: str, private_bucket: str, *, min_char
         "text_chars_median": sorted(len(r["text"]) for r in rows)[len(rows) // 2] if rows else 0,
         "rows_key": base + "rows.jsonl.gz", "embeddings": {},
     }
-    _put_json(s3, private_bucket, base + "manifest.json", manifest, create_only=True)
+    _put_json(s3, private_bucket, base + "manifest.json", manifest)
     # pointer to the latest dataset
     _put_json(s3, private_bucket, "ai/datasets/brain/latest.json", {"dataset_id": ds_id, "manifest_key": base + "manifest.json", "built_at": manifest["built_at"]})
     return manifest

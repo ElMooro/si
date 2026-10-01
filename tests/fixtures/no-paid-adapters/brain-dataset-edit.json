@@ -1,0 +1,30 @@
+{
+  "target": "aws/lambdas/justhodl-ai/source/brain_dataset.py",
+  "predecessor_sha256": "ba18d33b33cd7b53ba1dfb825a93162735e7b35bff583937148f80183a7980ad",
+  "edits": [
+    [
+      "import time\n",
+      "import time\nimport uuid\n"
+    ],
+    [
+      "def _put_json(s3, bucket, key, obj, gz=False):",
+      "def _put_json(s3, bucket, key, obj, gz=False, create_only=False):"
+    ],
+    [
+      "                  ServerSideEncryption=\"AES256\", CacheControl=\"private, no-store\")",
+      "                  ServerSideEncryption=\"AES256\", CacheControl=\"private, no-store\",\n                  **({\"IfNoneMatch\": \"*\"} if create_only else {}))"
+    ],
+    [
+      "    ds_id = _now.strftime(\"%Y%m%dT%H%M%S\") + \"%06dZ\" % _now.microsecond   # microsecond suffix: two builds in one second never collide",
+      "    # Clocks can repeat across processes; identity is separate from the timestamp.\n    ds_id = _now.strftime(\"%Y%m%dT%H%M%S\") + \"%06dZ-\" % _now.microsecond + uuid.uuid4().hex"
+    ],
+    [
+      "                  ServerSideEncryption=\"AES256\")\n    n_train",
+      "                  ServerSideEncryption=\"AES256\", IfNoneMatch=\"*\")\n    n_train"
+    ],
+    [
+      "    _put_json(s3, private_bucket, base + \"manifest.json\", manifest)\n    # pointer",
+      "    _put_json(s3, private_bucket, base + \"manifest.json\", manifest, create_only=True)\n    # pointer"
+    ]
+  ]
+}

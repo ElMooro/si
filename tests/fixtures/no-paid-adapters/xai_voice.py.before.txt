@@ -1,10 +1,5 @@
-"""No-paid model compatibility boundary.
-
-Provider and credential entry points are disabled under the standing policy.
-Empty/blocked results preserve compatibility and confer no research authority.
-The retained legacy implementation is unreachable through these entry points.
-Other direct SDK/HTTP integrations require their own audit; this is not an
-account-wide egress or spend assertion.
+"""Grok voice for justhodl-ai. Key only from env XAI_API_KEY or SSM /justhodl/xai/api-key.
+Never logs the key. Empty string if unset — caller uses deterministic desk.
 """
 from __future__ import annotations
 import json
@@ -18,7 +13,6 @@ _key = None
 
 
 def _key_get():
-    return ""  # Standing no-paid policy: no credential lookup.
     global _key
     if _key is not None:
         return _key
@@ -36,7 +30,6 @@ def _key_get():
 
 
 def complete(prompt, system=None, max_tokens=1800):
-    return ""  # No paid model attempt; callers retain deterministic behavior.
     key = _key_get()
     if not key:
         return ""

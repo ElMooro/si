@@ -1,0 +1,14 @@
+{
+  "target": "aws/lambdas/justhodl-ai/tests/run_tests.py",
+  "predecessor_sha256": "e501b8d565c53e8ac4807693b45ce31815019636eaae733524b88b59d6440750",
+  "edits": [
+    [
+      "    assert read.get(\"voice\") == \"fallback\" and read[\"stocks\"][\"stance\"] == \"SELECTIVE\" and \"glm-5.1 fallback\" in read[\"llm_path\"], read.get(\"llm_path\")\n    assert lr.glm_calls and all(\"eurodollar\" not in pr for pr in lr.glm_calls), \"note text must never reach the fallback provider\"",
+      "    assert read.get(\"voice\") != \"fallback\" and not read.get(\"calls\"), read\n    assert \"model commentary disabled by no-paid policy\" in read[\"llm_path\"], read.get(\"llm_path\")\n    assert not lr.glm_calls, \"the standing no-paid policy must prevent every hosted fallback attempt\""
+    ],
+    [
+      "    assert pub[\"scoreboard\"][\"voice\"].startswith(\"online (fallback voice GLM-5.1\"), pub[\"scoreboard\"][\"voice\"]\n    return \"Claude empty -> GLM-5.1 answered without note text; page voice labelled\"",
+      "    assert pub[\"scoreboard\"][\"voice\"].startswith(\"offline (deterministic desk read, no calls)\"), pub[\"scoreboard\"][\"voice\"]\n    assert \"disabled by no-paid policy\" in pub[\"scoreboard\"][\"voice\"]\n    return \"hosted models absent -> no paid fallback, no calls, explicit offline voice\""
+    ]
+  ]
+}

@@ -53,7 +53,6 @@ def _llm(prompt, system, max_tokens):
     30+ engines that consume it). Falls back to a direct Anthropic call only if
     the router itself is unavailable. NOTE: the reason-tier sends the worldview to
     Z.ai, consistent with the existing reason-tier engines (e.g. cycle-clock)."""
-    return None  # No-paid policy: no direct fallback or provider credential access.
     try:
         from llm_router import complete
         txt = complete(prompt, tier="reason", max_tokens=max_tokens, system=system)

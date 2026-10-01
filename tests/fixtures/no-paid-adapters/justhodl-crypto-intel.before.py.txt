@@ -2829,15 +2829,6 @@ def gen_ai(results, tech):
 
 
 
-    return {"status": "unavailable", "analysis": None, "model": None,
-            "error": "Model commentary is disabled. No validated forecast is available.",
-            "reason": "paid_model_api_disabled", "model_request_attempted": False,
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "macro": {"khalid_index": None, "regime": None, "sofr": None,
-                      "plumbing": None, "ml_risk": None},
-            "calls_eligible": False, "sizing_eligible": False,
-            "execution_eligible": False, "forecast_qualified": False,
-            "independent_investment_votes": 0}
     if not ANTHROPIC_API_KEY: return {'status':'error','error':'No key'}
 
 

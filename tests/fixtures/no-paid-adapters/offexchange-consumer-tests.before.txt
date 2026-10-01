@@ -7,15 +7,7 @@ import offexchange_context as gate
 from release_package_evidence import shared_imports
 LEGACY={'generated_at':'2026-09-24T20:00:00Z','board':[{'ticker':'AAPL','state':'ACCUMULATION','score':99}],
         'dark_map':{'AAPL':999999},'xray_map':{'AAPL':{'score':99}},'distribution':{'accumulation':999},'dix':{'own_dix_pct':99}}
-def native():
-    # Entirely invented evidence: no captured provider, account or current packet.
-    packet={'contract':'offexchange-original-research.v1','generated_at':'2020-01-01T00:00:00Z',
-            'call':None,'signal':None,'score':None,'state':None,'board':[],
-            'decision':{'abstain':True,'eligible_votes':0},**dict.fromkeys(gate.FLAGS,False)}
-    raw=json.dumps(packet,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
-    packet['replay']={'manifest_key':'data/offexchange-research/runs/'+'a'*64+'.json',
-                      'output_sha256':__import__('hashlib').sha256(raw).hexdigest()}
-    return packet
+def native():return json.loads(json.loads((ROOT/'tests/fixtures/offexchange-native.json').read_text(encoding='utf-8'))['objects'][gate.CURRENT])
 def source(name):return (ROOT/f'aws/lambdas/justhodl-{name}/source/lambda_function.py').read_text(encoding='utf-8')
 def functions(name,wanted,scope=None):
     scope={} if scope is None else scope;nodes=[n for n in ast.parse(source(name)).body if isinstance(n,ast.FunctionDef) and n.name in wanted]

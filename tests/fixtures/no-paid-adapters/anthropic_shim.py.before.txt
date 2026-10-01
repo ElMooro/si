@@ -1,14 +1,23 @@
-"""No-paid model compatibility boundary.
+"""anthropic_shim — transparent resilience for direct Anthropic calls.
 
-Provider and credential entry points are disabled under the standing policy.
-Empty/blocked results preserve compatibility and confer no research authority.
-The retained legacy implementation is unreachable through these entry points.
-Other direct SDK/HTTP integrations require their own audit; this is not an
-account-wide egress or spend assertion.
+Importing this module (one line: ``import anthropic_shim``) makes any urllib
+POST to ``api.anthropic.com`` fall back to GLM-5.1 (Z.ai) via the shared
+``llm_router`` when Anthropic itself fails — e.g. the credit-exhaustion /
+billing block that silently took 50+ engines offline for 13 days.
+
+Behaviour is purely ADDITIVE and safe by default:
+  * When Anthropic works, nothing changes and no data leaves Anthropic.
+  * Only on an Anthropic-side failure does it route the SAME request to the
+    fallback provider and return an Anthropic-shaped response, so the calling
+    engine parses ``["content"][0]["text"]`` unchanged.
+  * If the fallback also fails (e.g. Z.ai is empty too), it re-raises the
+    original Anthropic error, so the engine's existing error handling runs
+    exactly as before — never worse than today.
+
+Idempotent: importing it many times patches urllib only once.
 """
 import json
 import urllib.request
-from urllib.parse import urlsplit
 
 _PATCHED_FLAG = "_anthropic_shim_patched"
 
@@ -63,17 +72,7 @@ def _install():
                 url = req
         except Exception:
             url = ""
-        try:
-            host = (urlsplit(url).hostname or "").lower()
-        except (ValueError, TypeError):
-            host = ""
-        if host in {"api.anthropic.com", "api.z.ai", "api.x.ai", "api.perplexity.ai", "api.openai.com"}:
-            # Synthetic compatibility absence, explicitly not a provider answer.
-            # Runs before payload parsing, internal-header bypasses and retries.
-            return _FakeResp(json.dumps({"content": [{"type": "text", "text": ""}],
-                "stop_reason": None, "model": None, "_via": "no_paid_policy",
-                "_status": "policy_blocked", "_model_request_attempted": False}).encode("utf-8"))
-        if host == "api.anthropic.com" and data:
+        if "api.anthropic.com" in url and data:
             # llm_router-originated calls govern themselves -> pass straight through
             try:
                 hdrs = getattr(req, "headers", {}) or {}

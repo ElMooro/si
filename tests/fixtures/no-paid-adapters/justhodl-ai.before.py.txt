@@ -1225,8 +1225,6 @@ def _anthropic_health() -> str:
 
 def _glm_complete(prompt: str, **kw) -> str:
     """Second voice: GLM-5.1 on Z.ai via the router's own client (130s). Never receives operator note text."""
-    _glm_complete.last_path = "model commentary disabled by no-paid policy"
-    return ""
     try:
         import llm_router
         txt, it, ot = llm_router._glm(prompt, getattr(llm_router, "GLM_REASON", "glm-5.1"), int(kw.get("max_tokens") or 2400), kw.get("system"))

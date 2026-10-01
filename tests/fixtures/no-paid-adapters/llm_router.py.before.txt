@@ -1,10 +1,23 @@
-"""No-paid model compatibility boundary.
+"""
+aws/shared/llm_router.py — centralized, tiered LLM routing for the engine fleet.
 
-Provider and credential entry points are disabled under the standing policy.
-Empty/blocked results preserve compatibility and confer no research authority.
-The retained legacy implementation is unreachable through these entry points.
-Other direct SDK/HTTP integrations require their own audit; this is not an
-account-wide egress or spend assertion.
+Strategy (from the 2026-06 audit):
+  - 52 engines already run on Claude Haiku 4.5 — cheapest tier. GLM is NOT
+    worth it there (reasoning-token overhead erases the gap). Keep them.
+  - 9 engines run on Sonnet 4.6 — the real GLM-5.1 target (~1/3 the cost,
+    competitive reasoning). Route via tier="reason" with Claude fallback.
+  - Proprietary data (Khalid Index internals, portfolio, private notes)
+    NEVER leaves Claude — enforced by the data-classification guard.
+
+Tiers:
+  "bulk"     -> Claude Haiku 4.5   (default; summarize/classify/extract)
+  "reason"   -> GLM-5.1 on Z.ai    (fallback: Claude Sonnet on any error)
+  "critical" -> Claude Sonnet 4.6  (high-stakes; never offshored)
+
+contains_proprietary=True forces Claude regardless of tier.
+
+Keys: Anthropic from env (ANTHROPIC_API_KEY or ANTHROPIC_KEY).
+      Z.ai from SSM /justhodl/zai-api-key (cached per warm container).
 """
 import json
 import os
@@ -17,14 +30,14 @@ GLM_REASON = "glm-5.1"
 
 ZAI_BASE_URL = os.environ.get("ZAI_BASE_URL", "https://api.z.ai/api/paas/v4")
 ZAI_SSM_NAME = "/justhodl/zai-api-key"
-_ANTHROPIC_KEY = ""  # No provider credential access at module import.
+_ANTHROPIC_KEY = (os.environ.get("ANTHROPIC_API_KEY")
+                  or os.environ.get("ANTHROPIC_KEY", "")).strip()
 _anthropic_ssm_cache = None
 
 
 def _anthropic_key():
     """Env key (stripped) with SSM fallback — some functions carry stale or
     whitespace-polluted env copies; /justhodl/anthropic/api-key is truth."""
-    return ""  # Standing no-paid policy: do not resolve provider credentials.
     global _anthropic_ssm_cache
     if _ANTHROPIC_KEY:
         return _ANTHROPIC_KEY
@@ -54,7 +67,6 @@ def _trip(kind):
 
 
 def _zai_key():
-    return ""  # Standing no-paid policy: no SSM lookup.
     global _zai_key_cache
     if _zai_key_cache is None:
         import boto3
@@ -68,7 +80,6 @@ def _msgs(prompt):
 
 
 def _claude(prompt, model, max_tokens, system=None):
-    return "", 0, 0  # Provider attempt disabled; caller must handle absence.
     payload = {"model": model, "max_tokens": max_tokens, "messages": _msgs(prompt)}
     if system:
         payload["system"] = system
@@ -86,7 +97,6 @@ def _claude(prompt, model, max_tokens, system=None):
 
 
 def _glm(prompt, model, max_tokens, system=None, kind="glm"):
-    return "", 0, 0  # GLM/xAI are not assumed to be free model APIs.
     if kind == "xai":
         try:
             import xai_voice
@@ -128,7 +138,6 @@ def complete(prompt, tier="bulk", max_tokens=1024, contains_proprietary=False, s
     plain model call. `cache_ttl`/`no_cache` are optional; existing callers are
     unaffected. Preserves the GLM->Sonnet reason-tier fallback.
     """
-    return ""  # No paid model, credential, policy-cache or remote fallback request.
     try:
         import llm_cost
     except Exception:
@@ -256,7 +265,6 @@ _pplx_key_cache = None
 
 
 def _pplx_key():
-    return ""  # Standing no-paid policy: no SSM lookup.
     global _pplx_key_cache
     if _pplx_key_cache is None:
         import boto3
@@ -269,7 +277,6 @@ def _pplx_key():
 def _perplexity(prompt, model=None, max_tokens=1400, system=None):
     """Perplexity chat/completions (OpenAI-compatible). Returns
     (text, citations)."""
-    return "", []  # No provider request or fabricated citation.
     msgs = _msgs(prompt)
     if system:
         msgs = [{"role": "system", "content": system}] + msgs
@@ -297,12 +304,6 @@ def council(question, providers=None, system=None, max_tokens=1400,
     provider outages degrade to per-provider errors, never a crash — the
     council convenes with whoever shows up.
     """
-    # Do not consult any provider, cached model response or credential service.
-    names = providers if isinstance(providers, (list, tuple)) else ("perplexity", "glm", "claude")
-    names = [p if isinstance(p, str) else "invalid_provider" for p in names]
-    return {p: {"ok": False, "provider": p, "answer": "", "citations": [],
-                "model": None, "attempted": False, "error": "Paid model APIs disabled",
-                "error_class": "policy_blocked", "latency_s": None} for p in names}
     import time as _t
     providers = list(providers or ("perplexity", "glm", "claude"))
     q = (context + "\n\n" + question).strip() if context else question

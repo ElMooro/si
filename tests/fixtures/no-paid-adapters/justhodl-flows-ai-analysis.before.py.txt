@@ -351,7 +351,6 @@ def load_flow_history() -> list:
 # ═════════════════════════════════════════════════════════════════════
 def claude_call(user_prompt: str) -> dict:
     """Call Claude Sonnet with 1h cached system prompt. Returns parsed JSON."""
-    raise RuntimeError("paid_model_api_disabled")  # No direct fallback, even if the router cannot import.
     if not ANTHROPIC_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY not set")
 

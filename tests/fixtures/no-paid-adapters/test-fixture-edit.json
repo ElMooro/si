@@ -1,0 +1,10 @@
+{
+  "target": "tests/test_offexchange_consumers.py",
+  "predecessor_sha256": "f8063907500ba02675aae0a1f516e921da493234d104e70bd062f14db5e4d47d",
+  "edits": [
+    [
+      "def native():return json.loads(json.loads((ROOT/'tests/fixtures/offexchange-native.json').read_text(encoding='utf-8'))['objects'][gate.CURRENT])",
+      "def native():\n    # Entirely invented evidence: no captured provider, account or current packet.\n    packet={'contract':'offexchange-original-research.v1','generated_at':'2020-01-01T00:00:00Z',\n            'call':None,'signal':None,'score':None,'state':None,'board':[],\n            'decision':{'abstain':True,'eligible_votes':0},**dict.fromkeys(gate.FLAGS,False)}\n    raw=json.dumps(packet,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()\n    packet['replay']={'manifest_key':'data/offexchange-research/runs/'+'a'*64+'.json',\n                      'output_sha256':__import__('hashlib').sha256(raw).hexdigest()}\n    return packet"
+    ]
+  ]
+}

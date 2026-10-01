@@ -386,11 +386,24 @@ def lambda_handler(event=None, context=None):
            "  conviction: integer 0 to 100\n"
            "  falsifiers: array of strings — specific observables that would prove this read wrong\n"
            "  key_claims: array of objects {claim, horizon_days} — testable directional claims for grading")
-    # No model was attempted. Empty output is absence, never a successful forecast.
+    reasoning = None
     model_used = None
-    reasoning = {"status": "unavailable", "reason": "paid_model_api_disabled",
-                 "model_request_attempted": False,
-                 "note": "Model commentary is disabled. The descriptive fleet summary is not a validated forecast."}
+    try:
+        from llm_router import complete
+        raw = complete(ask, tier="reason", max_tokens=2400, system=SYS)
+        model_used = "glm-reason"
+        parsed, raw_fallback = _parse_json(raw)
+        if parsed and parsed.get("dominant_driver") and "..." not in str(parsed.get("dominant_driver")):
+            reasoning = parsed
+        elif parsed:
+            reasoning = {"raw": json.dumps(parsed)[:1800], "parse_note": "model echoed template; restore stronger model"}
+        else:
+            reasoning = {"raw": (raw_fallback or raw or "")[:1800],
+                         "parse_note": "model returned malformed JSON; raw read preserved"}
+    except Exception as ex:
+        print(f"[strat] reasoning err {str(ex)[:120]}")
+        reasoning = {"error": f"reasoning model unavailable: {str(ex)[:80]}",
+                     "note": "Fleet state assembled; restore an LLM tier to enable interpretation."}
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     payload = {
@@ -405,14 +418,12 @@ def lambda_handler(event=None, context=None):
         "contradictions": contradictions,
         "most_backed_names": [{"ticker": p, "trust_weight": round(w, 1)} for p, w in top_picks],
         "interpretation": reasoning,
-        "calls_eligible": False, "sizing_eligible": False,
-        "execution_eligible": False, "forecast_qualified": False,
-        "independent_investment_votes": 0,
         "briefing_preview": briefing[:1400],
         "caveats": [
             "Generic extractor distills ~430 heterogeneous feeds to a headline verdict — robust at fleet scale "
             "but a single engine's nuance may be flattened; the loudest/highest-trust reads dominate by design.",
-            "Paid model commentary is disabled. No model request or automatic paid fallback was attempted.",
+            "Reasoning runs on GLM (tier=reason) because Anthropic credits are out; auto-upgrades to Sonnet "
+            "(tier=critical) the moment credits are restored — interpretation quality roughly doubles then.",
             "Interpretation is MEASURE-BEFORE-TRUST: key_claims + falsifiers are logged daily for forward grading "
             "(the interpretation scorecard) — until that matures, treat the read as a rigorous hypothesis, not gospel.",
         ],

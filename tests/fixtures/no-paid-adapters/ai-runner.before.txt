@@ -777,14 +777,12 @@ def test_market_read_falls_back_to_glm_without_note_text_when_claude_is_offline(
     body = json.loads(r["body"])
     assert r["statusCode"] == 200, body
     read = body["result"]["read"]
-    assert read.get("voice") != "fallback" and not read.get("calls"), read
-    assert "model commentary disabled by no-paid policy" in read["llm_path"], read.get("llm_path")
-    assert not lr.glm_calls, "the standing no-paid policy must prevent every hosted fallback attempt"
+    assert read.get("voice") == "fallback" and read["stocks"]["stance"] == "SELECTIVE" and "glm-5.1 fallback" in read["llm_path"], read.get("llm_path")
+    assert lr.glm_calls and all("eurodollar" not in pr for pr in lr.glm_calls), "note text must never reach the fallback provider"
     lf.run_inventory(None)
     pub = json.loads(s3.objs[("public-test", "data/ai.json")])
-    assert pub["scoreboard"]["voice"].startswith("offline (deterministic desk read, no calls)"), pub["scoreboard"]["voice"]
-    assert "disabled by no-paid policy" in pub["scoreboard"]["voice"]
-    return "hosted models absent -> no paid fallback, no calls, explicit offline voice"
+    assert pub["scoreboard"]["voice"].startswith("online (fallback voice GLM-5.1"), pub["scoreboard"]["voice"]
+    return "Claude empty -> GLM-5.1 answered without note text; page voice labelled"
 
 
 def test_pipeline_state_machine_end_to_end_and_ladder_failover():
