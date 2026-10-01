@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| PR42 exact 90070667936c09bf74b2816f1c59bf455deb9358 reviewed tape-reader count validity; authorized release and receipt/edge verification; no manual producer calls or schedule changes. Tape-truth separate read-only plan. | none | S-codex#tape1001q42 | 2026-10-01 10:20 |
 | PR38 risk explanation projection/display accepted d867fb3d2; authorized release verification; preserve policy/actions/clocks; no manual invokes, providers or schedules | none | S-codex#kdiagui1001t9 | 2026-10-01 08:59 |
 | PR34 withheld-authority diagnostics accepted 1c890cf748; authorized release verification, policy/thresholds unchanged; no Katlin correction, providers, invokes or schedules | none | S-codex#krdiag1001m8 | 2026-10-01 07:46 |
 | PR30 Mode A withdrawal released c0f2565eb: three verified receipts/source hashes, Pages manifest/edge legacy masking proven; natural blocked publication and managed-browser acceptance PENDING. Mode B/meta-labeler/live health/capital unchanged; no private/paid QA | none | S-codex#hwithdraw1001z6 | 2026-10-01 05:40 |
@@ -67,6 +66,7 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+| PR42 exact reviewed 90070667936 released ee9144908; Lambda 36848417010 receipt/source hash verified and Pages 36848417048 manifest-bound page/script verified (HTML adds Cloudflare beacon). Captured-edge Chromium 1440/390 legacy table/enhancement withholding passed. Natural v2 publication/count coverage and parent managed-browser acceptance pending; no manual invocation/schedule change. Tape-truth remains read-only plan. | none | S-codex#tape1001q42 |
 | PR41 help accessibility f9ce45c43 released 941ce0618; Pages 36842446840 success and six manifest-bound edge assets verified. Implementation claim released; parent owns actual managed-browser focus/confinement/restoration/obstruction acceptance. Exact 1440/390 and unsupported-browser live coverage pending; engine/classifiers unchanged. | none | S-codex#ha11001k4 |
 | PR37 reviewed warning/help 0af0c5007 released fd6d7b6b4; Pages 36839194444 success and six manifest-bound edge assets verified. Engine/classifiers/markers preserved. Implementation claim released; managed-browser visibility/toggles/obstruction and exact-width desktop/mobile acceptance remain with parent. | none | S-codex#vtime1001h9 |
 | PR35 evidence merged b16dfd3d7; PR36 scalar-bar cache correction released 14e29f79a. Pages 36833200528 / 36833350059 successful; five manifest-bound edge assets each and isolated synthetic Chromium 1440/390 correction accepted. Engine/SymDir untouched; RVOL owner handoff, full live-page QA and browser/mobile performance remain with parent. | none | S-codex#vcache1001r8 |
