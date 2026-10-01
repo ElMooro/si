@@ -91,6 +91,10 @@ class Tests(unittest.TestCase):
         old={n.name:n for n in ast.parse(previous.read_text(encoding='utf-8')).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         new={n.name:n for n in ast.parse(source.read_text(encoding='utf-8')).body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         for name,node in old.items():
+            if name in ('run_backtest', 'validation_summary'):
+                from katlin_oos_test_support import assert_oos_only_change
+                assert_oos_only_change(self, node, new[name])
+                continue
             if name in ('s3_json','s3_json_quiet'):
                 guarded=__import__('copy').deepcopy(new[name])
                 expected=ast.parse('if key == "data/volatility-squeeze.json":\n    return _volatility_research_abstention()').body[0]

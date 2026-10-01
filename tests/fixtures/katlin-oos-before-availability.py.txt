@@ -1,0 +1,217 @@
+def run_backtest(event):
+    """walk-forward of the PRICE gates + a learned prior. Universe = a seeded random sample of the tradable stock universe
+    (not today's largest -- that would pick tomorrow's winners) plus ETFs; names must be tradable AT the observation date
+    (20-day $volume >= $2M, price >= $2). Forward exits use the last print when a name stops trading (delisting / takeover),
+    so survivorship does not flatter any cohort. Outputs cohort stats at 21/63/126/252 sessions, per-feature-bucket base
+    rates (the learned prior), a regime split, and a time-split out-of-sample check of the prior itself."""
+    t0 = time.time()
+    keys = session_keys(int(event.get("sessions") or P["sessions"]))
+    F = {"finviz": (s3_json("data/finviz-universe.json", {}) or {}).get("by_ticker") or {}}
+    stocks, etfs, keep = build_universe(F)
+    import random
+    rng = random.Random(int(event.get("seed") or 7))
+    st_all = sorted(stocks.keys())
+    rng.shuffle(st_all)
+    n_st = int(event.get("n_stocks") or 1800)
+    et_all = sorted(t for t, c in etfs.items() if c in ("equity_etf", "country", "commodity", "bond", "real_estate"))
+    rng.shuffle(et_all)
+    n_et = int(event.get("n_etfs") or 320)
+    sample = {t: "stock" for t in st_all[:n_st]}
+    sample.update({t: "etf" for t in et_all[:n_et]})
+    dates, bars = load_bars(keys, set(sample) | {"SPY"})
+    spy = bars.get("SPY")
+    if not spy:
+        raise RuntimeError("no SPY bars")
+    spy_c = [None] * len(dates)
+    for p in range(len(spy.d)):
+        spy_c[spy.d[p]] = spy.c[p]
+    step = int(event.get("step") or 30)
+    obs = []           # one record per (name, date)
+    per_date = []
+    budget_hit = None
+    date_idx = list(range(320, len(dates) - 21, step))
+    for pos_idx in date_idx:
+        if time.time() - t0 > 760:
+            budget_hit = dates[pos_idx]
+            log("backtest budget hit at %s" % budget_hit)
+            break
+        # market regime at the observation date: SPY vs its own 200-day
+        sp = spy.pos_at_or_before(pos_idx)
+        mkt_above = None
+        if sp is not None and sp >= 200:
+            mkt_above = spy.c[sp] > (sum(spy.c[sp - 199:sp + 1]) / 200.0)
+        spy_fwd = {}
+        for hz in HORIZONS:
+            if pos_idx + hz < len(dates) and spy_c[pos_idx] and spy_c[pos_idx + hz]:
+                spy_fwd[hz] = (spy_c[pos_idx + hz] / spy_c[pos_idx] - 1) * 100
+        n_d = 0
+        for tk, cls in sample.items():
+            b = bars.get(tk)
+            if not b:
+                continue
+            p = b.pos_at_or_before(pos_idx)
+            if p is None or b.d[p] != pos_idx or p < 300:
+                continue
+            # point-in-time tradability
+            if b.c[p] < 2.0 or (sum(b.c[q] * b.v[q] for q in range(p - 19, p + 1)) / 20.0) < 2e6:
+                continue
+            g = pit_features(b, p, spy_c, dates, cls, mkt_above)
+            if not g:
+                continue
+            n_d += 1
+            labels = []
+            if g["location"] and not g["knife"]:
+                labels.append("below200")
+                if g["washout"]:
+                    labels.append("below200+washout")
+                if g["oversold"]:
+                    labels.append("below200+oversold")
+                if g["accumulation"]:
+                    labels.append("below200+accum")
+                if g["structure"]:
+                    labels.append("below200+structure")
+                if g["confirmed"]:
+                    labels.append("below200+confirmed")
+                if g["oversold"] and g["accumulation"] and g["structure"]:
+                    labels.append("KATLIN_price_3of3")
+                if g["confirmed"] and g["accumulation"]:
+                    labels.append("confirmed_bottom+accum")
+                if g["confirmed"] and g["oversold"] and g["washout"]:
+                    labels.append("confirmed+oversold+washout")
+            elif g["location"] and g["knife"]:
+                labels.append("knife")
+            else:
+                labels.append("above200")
+            rec = {"t": tk, "i": pos_idx, "cls": cls, "labels": labels, "b": g["b"], "fwd": {}}
+            for hz in HORIZONS:
+                if hz not in spy_fwd:
+                    continue
+                p1 = b.pos_at_or_before(pos_idx + hz)
+                delisted = False
+                if p1 is None:
+                    continue
+                if b.d[p1] < pos_idx + hz - 3:
+                    if b.d[-1] < pos_idx + hz - 3 and p1 == len(b.d) - 1:
+                        delisted = True          # stopped trading before the horizon: exit at the last print
+                    else:
+                        continue                 # a data gap, not an exit
+                ret = (b.c[p1] / b.c[p] - 1) * 100
+                lo = min(b.c[q] for q in range(p, p1 + 1))
+                rec["fwd"][hz] = (ret, ret - spy_fwd[hz], (lo / b.c[p] - 1) * 100, delisted)
+            obs.append(rec)
+        per_date.append({"date": dates[pos_idx], "n": n_d, "spy_above200": mkt_above, "spy_126": rnd(spy_fwd.get(126), 2)})
+    # ---- cohort table
+    cohorts = {}
+    for rec in obs:
+        for lab in rec["labels"]:
+            for hz, (ret, ex, mae, dl) in rec["fwd"].items():
+                c = cohorts.setdefault(lab, {}).setdefault(hz, {"ex": [], "ret": [], "mae": [], "dl": 0})
+                c["ex"].append(ex)
+                c["ret"].append(ret)
+                c["mae"].append(mae)
+                c["dl"] += 1 if dl else 0
+    table = {lab: {"%ds" % hz: _stats(c["ex"], c["ret"], c["mae"], c["dl"]) for hz, c in byh.items()} for lab, byh in cohorts.items()}
+    # ---- regime split (126s) for the hunting-ground cohorts
+    regime = {}
+    for rec in obs:
+        if 126 not in rec["fwd"]:
+            continue
+        for lab in rec["labels"]:
+            if lab in ("below200", "below200+washout", "below200+confirmed", "KATLIN_price_3of3", "knife", "above200"):
+                c = regime.setdefault(lab, {}).setdefault(rec["b"]["mkt"], {"ex": [], "ret": [], "mae": []})
+                ret, ex, mae, dl = rec["fwd"][126]
+                c["ex"].append(ex)
+                c["ret"].append(ret)
+                c["mae"].append(mae)
+    regime_table = {lab: {mk: _stats(c["ex"], c["ret"], c["mae"], 0) for mk, c in bym.items()} for lab, bym in regime.items()}
+
+    # ---- learned prior: per-feature bucket base rates (full history) + time-split out-of-sample check
+    def fit(recs, hz):
+        grand = [rec["fwd"][hz][1] for rec in recs if hz in rec["fwd"]]
+        gm = mean(grand) if grand else 0.0
+        tab = {}
+        for rec in recs:
+            if hz not in rec["fwd"]:
+                continue
+            ex = rec["fwd"][hz][1]
+            for f in FEATURES:
+                bk = rec["b"].get(f)
+                if bk is None:
+                    continue
+                c = tab.setdefault(f, {}).setdefault(bk, {"n": 0, "s": 0.0, "hit": 0, "vals": []})
+                c["n"] += 1
+                c["s"] += ex
+                c["hit"] += 1 if ex > 0 else 0
+                c["vals"].append(ex)
+        out = {}
+        for f, bks in tab.items():
+            out[f] = {}
+            for bk, c in bks.items():
+                out[f][bk] = {"n": c["n"], "mean_excess_pct": rnd(c["s"] / c["n"], 2), "median_excess_pct": rnd(median(c["vals"]), 2),
+                              "hit_rate_pct": rnd(100.0 * c["hit"] / c["n"], 0), "delta_pct": rnd(c["s"] / c["n"] - gm, 2)}
+        return {"grand_mean_excess_pct": rnd(gm, 2), "n": len(grand), "buckets": out}
+
+    def predict(rec, prior, min_n=150):
+        tot = 0.0
+        for f in FEATURES:
+            bk = rec["b"].get(f)
+            c = ((prior.get("buckets") or {}).get(f) or {}).get(bk) if bk is not None else None
+            if c and c["n"] >= min_n:
+                tot += c["delta_pct"]
+        return tot
+
+    feature_stats = {"%ds" % hz: fit(obs, hz) for hz in (63, 126, 252)}
+    split_i = date_idx[int(len(date_idx) * 0.6)] if len(date_idx) >= 5 else None
+    oos = {}
+    if split_i is not None:
+        train = [r_ for r_ in obs if r_["i"] < split_i]
+        test = [r_ for r_ in obs if r_["i"] >= split_i]
+        for hz in (63, 126):
+            prior = fit(train, hz)
+            scored = [(predict(r_, prior), r_["fwd"][hz][1], ("below200" in r_["labels"])) for r_ in test if hz in r_["fwd"]]
+            if len(scored) < 200:
+                continue
+            scored.sort(key=lambda x: x[0])
+            n = len(scored)
+            dec = n // 10
+            bottom = [x[1] for x in scored[:dec]]
+            top = [x[1] for x in scored[-dec:]]
+            xs = [x[0] for x in scored]
+            ys = [x[1] for x in scored]
+            mx, my = mean(xs), mean(ys)
+            cov = sum((a - mx) * (b_ - my) for a, b_ in zip(xs, ys))
+            vx = math.sqrt(sum((a - mx) ** 2 for a in xs)) or 1.0
+            vy = math.sqrt(sum((b_ - my) ** 2 for b_ in ys)) or 1.0
+            hunt = [x for x in scored if x[2]]
+            hd = len(hunt) // 10
+            oos["%ds" % hz] = {"train_obs": prior["n"], "test_obs": n, "split_date": dates[split_i],
+                               "top_decile": {"mean_excess_pct": rnd(mean(top), 2), "median_excess_pct": rnd(median(top), 2), "hit_rate_pct": rnd(100.0 * sum(1 for v in top if v > 0) / len(top), 0)},
+                               "bottom_decile": {"mean_excess_pct": rnd(mean(bottom), 2), "median_excess_pct": rnd(median(bottom), 2), "hit_rate_pct": rnd(100.0 * sum(1 for v in bottom if v > 0) / len(bottom), 0)},
+                               "spread_pct": rnd(mean(top) - mean(bottom), 2), "corr": rnd(cov / (vx * vy), 3),
+                               "below200_top_decile": ({"n": hd, "mean_excess_pct": rnd(mean([x[1] for x in hunt[-hd:]]), 2), "median_excess_pct": rnd(median([x[1] for x in hunt[-hd:]]), 2),
+                                                        "hit_rate_pct": rnd(100.0 * sum(1 for x in hunt[-hd:] if x[1] > 0) / hd, 0),
+                                                        "spread_vs_bottom_pct": rnd(mean([x[1] for x in hunt[-hd:]]) - mean([x[1] for x in hunt[:hd]]), 2)} if hd >= 20 else None)}
+    doc = {"engine": ENGINE, "version": VERSION, "mode": "backtest", "as_of": now_iso(), "sessions": len(dates), "first": dates[0], "last": dates[-1],
+           "n_obs": len(obs), "n_dates": len(per_date), "step": step, "budget_hit": budget_hit,
+           "universe": {"stocks": sum(1 for v in sample.values() if v == "stock"), "etfs": sum(1 for v in sample.values() if v == "etf"),
+                        "sampling": "seeded random sample of the tradable universe; point-in-time $2M ADV / $2 price"},
+           "cohorts": table, "regime_126s": regime_table, "feature_stats": feature_stats, "oos": oos, "per_date": per_date, "elapsed_s": rnd(time.time() - t0, 1),
+           "note": "point-in-time PRICE features only (no flows/fundamentals/catalysts -- they are not stored historically, so they are not backtested). Excess = asset minus SPY over the "
+                   "same window; MAE = worst close inside the window; delisted = exited at the last print. feature_stats are the learned prior the daily engine applies to today's names; "
+                   "oos = the prior fitted on the first 60% of dates and scored on the last 40% (decile spread, correlation)."}
+    s3_put_json(BACKTEST_KEY, doc)
+    log("backtest done: %d obs, %d dates, %.0fs, oos=%s" % (len(obs), len(per_date), time.time() - t0, {k: (v.get("spread_pct"), v.get("corr")) for k, v in oos.items()}))
+    return {"ok": True, "n_obs": len(obs), "n_dates": len(per_date), "elapsed_s": doc["elapsed_s"], "oos": oos}
+
+def validation_summary(bt):
+    if not bt:
+        return {"status": "no backtest yet -- runs Sundays", "cohorts": None}
+    co = bt.get("cohorts") or {}
+    pick = {}
+    for lab in ("above200", "below200", "below200+washout", "below200+oversold", "below200+accum", "below200+structure", "below200+confirmed",
+                "KATLIN_price_3of3", "confirmed_bottom+accum", "confirmed+oversold+washout", "knife"):
+        if lab in co:
+            pick[lab] = co[lab]
+    fs = (bt.get("feature_stats") or {}).get("126s") or {}
+    return {"status": "walk-forward %s..%s, %s obs over %s dates (as of %s, v%s)" % (bt.get("first"), bt.get("last"), bt.get("n_obs"), bt.get("n_dates"), bt.get("as_of"), bt.get("version")),
+            "cohorts": pick, "regime_126s": bt.get("regime_126s"), "oos": bt.get("oos"), "feature_stats_126s": fs, "universe": bt.get("universe"), "note": bt.get("note")}

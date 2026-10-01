@@ -3211,6 +3211,48 @@ def _stats(ex, ret, mae, dl):
             "median_ret_pct": rnd(median(ret), 2), "median_max_adverse_pct": rnd(median(mae), 2), "delisted": dl}
 
 
+def oos_boundary_evidence(obs, split_i, dates, horizons=(63, 126)):
+    """Audit nominal label overlap without inventing historical availability.
+
+    Current observations contain fwd returns, not retained per-label availability
+    or decision instants. Even geometrically nonoverlapping rows cannot certify
+    a historical fit. No row-provided timestamp can self-promote this contract.
+    The SPY leg ends at i+h, including last-print exits on the asset leg.
+    """
+    valid_split = type(split_i) is int and 0 <= split_i < len(dates)
+    folds = {}
+    for horizon in horizons:
+        if type(horizon) is not int or horizon <= 0:
+            raise ValueError("positive integer OOS horizon required")
+        train = [r for r in obs if valid_split and type(r.get("i")) is int
+                 and 0 <= r["i"] < split_i and horizon in (r.get("fwd") or {})]
+        crossing = sum(r["i"] + horizon >= split_i for r in train)
+        test = [r for r in obs if valid_split and type(r.get("i")) is int
+                and r["i"] >= split_i and horizon in (r.get("fwd") or {})]
+        folds["%ds" % horizon] = {
+            "horizon_sessions": horizon,
+            "split_session_index": split_i if valid_split else None,
+            "split_session_date": dates[split_i] if valid_split else None,
+            "split_decision_at": None,
+            "entry_before_split_with_label": len(train),
+            "label_endpoint_at_or_after_split": crossing,
+            "nominal_label_endpoint_before_split": len(train) - crossing,
+            "missing_verified_label_availability": len(train),
+            "eligible_training_observations": 0,
+            "test_observations_with_label": len(test),
+            "status": "BLOCKED_MISSING_POINT_IN_TIME_EVIDENCE",
+        }
+    return {
+        "contract": "katlin-oos-boundary.v1", "status": "BLOCKED",
+        "reason": "Historical label availability and decision instants are not retained; OOS statistics withheld. Session dates are not availability timestamps.",
+        "historical_availability_verified": False, "validated_strategy": False,
+        "folds": folds,
+        "limitations": ["Current-universe sampling is not historical membership; survivorship remains unresolved",
+                        "Historical flows, fundamentals and catalysts are not reconstructed",
+                        "Full-history feature statistics are retrospective priors, not OOS validation"],
+    }
+
+
 def run_backtest(event):
     """walk-forward of the PRICE gates + a learned prior. Universe = a seeded random sample of the tradable stock universe
     (not today's largest -- that would pick tomorrow's winners) plus ETFs; names must be tradable AT the observation date
@@ -3364,54 +3406,23 @@ def run_backtest(event):
                               "hit_rate_pct": rnd(100.0 * c["hit"] / c["n"], 0), "delta_pct": rnd(c["s"] / c["n"] - gm, 2)}
         return {"grand_mean_excess_pct": rnd(gm, 2), "n": len(grand), "buckets": out}
 
-    def predict(rec, prior, min_n=150):
-        tot = 0.0
-        for f in FEATURES:
-            bk = rec["b"].get(f)
-            c = ((prior.get("buckets") or {}).get(f) or {}).get(bk) if bk is not None else None
-            if c and c["n"] >= min_n:
-                tot += c["delta_pct"]
-        return tot
-
+    # Full-history descriptive priors intentionally remain unchanged. They feed
+    # live learned scores and model weights; they are NOT the OOS training set.
     feature_stats = {"%ds" % hz: fit(obs, hz) for hz in (63, 126, 252)}
     split_i = date_idx[int(len(date_idx) * 0.6)] if len(date_idx) >= 5 else None
+    oos_validation = oos_boundary_evidence(obs, split_i, dates)
+    # Purging by entry index alone leaked labels; dates alone cannot establish
+    # that a historical training label was available. Fail closed until a
+    # separately reviewed retained-availability contract can qualify such fits.
     oos = {}
-    if split_i is not None:
-        train = [r_ for r_ in obs if r_["i"] < split_i]
-        test = [r_ for r_ in obs if r_["i"] >= split_i]
-        for hz in (63, 126):
-            prior = fit(train, hz)
-            scored = [(predict(r_, prior), r_["fwd"][hz][1], ("below200" in r_["labels"])) for r_ in test if hz in r_["fwd"]]
-            if len(scored) < 200:
-                continue
-            scored.sort(key=lambda x: x[0])
-            n = len(scored)
-            dec = n // 10
-            bottom = [x[1] for x in scored[:dec]]
-            top = [x[1] for x in scored[-dec:]]
-            xs = [x[0] for x in scored]
-            ys = [x[1] for x in scored]
-            mx, my = mean(xs), mean(ys)
-            cov = sum((a - mx) * (b_ - my) for a, b_ in zip(xs, ys))
-            vx = math.sqrt(sum((a - mx) ** 2 for a in xs)) or 1.0
-            vy = math.sqrt(sum((b_ - my) ** 2 for b_ in ys)) or 1.0
-            hunt = [x for x in scored if x[2]]
-            hd = len(hunt) // 10
-            oos["%ds" % hz] = {"train_obs": prior["n"], "test_obs": n, "split_date": dates[split_i],
-                               "top_decile": {"mean_excess_pct": rnd(mean(top), 2), "median_excess_pct": rnd(median(top), 2), "hit_rate_pct": rnd(100.0 * sum(1 for v in top if v > 0) / len(top), 0)},
-                               "bottom_decile": {"mean_excess_pct": rnd(mean(bottom), 2), "median_excess_pct": rnd(median(bottom), 2), "hit_rate_pct": rnd(100.0 * sum(1 for v in bottom if v > 0) / len(bottom), 0)},
-                               "spread_pct": rnd(mean(top) - mean(bottom), 2), "corr": rnd(cov / (vx * vy), 3),
-                               "below200_top_decile": ({"n": hd, "mean_excess_pct": rnd(mean([x[1] for x in hunt[-hd:]]), 2), "median_excess_pct": rnd(median([x[1] for x in hunt[-hd:]]), 2),
-                                                        "hit_rate_pct": rnd(100.0 * sum(1 for x in hunt[-hd:] if x[1] > 0) / hd, 0),
-                                                        "spread_vs_bottom_pct": rnd(mean([x[1] for x in hunt[-hd:]]) - mean([x[1] for x in hunt[:hd]]), 2)} if hd >= 20 else None)}
     doc = {"engine": ENGINE, "version": VERSION, "mode": "backtest", "as_of": now_iso(), "sessions": len(dates), "first": dates[0], "last": dates[-1],
            "n_obs": len(obs), "n_dates": len(per_date), "step": step, "budget_hit": budget_hit,
            "universe": {"stocks": sum(1 for v in sample.values() if v == "stock"), "etfs": sum(1 for v in sample.values() if v == "etf"),
                         "sampling": "seeded random sample of the tradable universe; point-in-time $2M ADV / $2 price"},
-           "cohorts": table, "regime_126s": regime_table, "feature_stats": feature_stats, "oos": oos, "per_date": per_date, "elapsed_s": rnd(time.time() - t0, 1),
+           "cohorts": table, "regime_126s": regime_table, "feature_stats": feature_stats, "oos": oos, "oos_validation": oos_validation, "per_date": per_date, "elapsed_s": rnd(time.time() - t0, 1),
            "note": "point-in-time PRICE features only (no flows/fundamentals/catalysts -- they are not stored historically, so they are not backtested). Excess = asset minus SPY over the "
                    "same window; MAE = worst close inside the window; delisted = exited at the last print. feature_stats are the learned prior the daily engine applies to today's names; "
-                   "oos = the prior fitted on the first 60% of dates and scored on the last 40% (decile spread, correlation)."}
+                   "OOS statistics withheld: label availability and decision instants are not retained. Full-history priors are descriptive, not OOS evidence."}
     s3_put_json(BACKTEST_KEY, doc)
     log("backtest done: %d obs, %d dates, %.0fs, oos=%s" % (len(obs), len(per_date), time.time() - t0, {k: (v.get("spread_pct"), v.get("corr")) for k, v in oos.items()}))
     return {"ok": True, "n_obs": len(obs), "n_dates": len(per_date), "elapsed_s": doc["elapsed_s"], "oos": oos}
@@ -3529,7 +3540,8 @@ def validation_summary(bt):
             pick[lab] = co[lab]
     fs = (bt.get("feature_stats") or {}).get("126s") or {}
     return {"status": "walk-forward %s..%s, %s obs over %s dates (as of %s, v%s)" % (bt.get("first"), bt.get("last"), bt.get("n_obs"), bt.get("n_dates"), bt.get("as_of"), bt.get("version")),
-            "cohorts": pick, "regime_126s": bt.get("regime_126s"), "oos": bt.get("oos"), "feature_stats_126s": fs, "universe": bt.get("universe"), "note": bt.get("note")}
+            "cohorts": pick, "regime_126s": bt.get("regime_126s"), "oos": {}, "oos_validation": bt.get("oos_validation") or oos_boundary_evidence([], None, []), "feature_stats_126s": fs, "universe": bt.get("universe"),
+            "note": (bt.get("note") or "") + " OOS validation unavailable: retained label availability and historical decision instants are required; legacy OOS metrics are withheld."}
 
 
 def learned_prior(rows, bt, mkt_above200):
