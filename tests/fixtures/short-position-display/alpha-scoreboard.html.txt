@@ -187,19 +187,6 @@ tr.drawer-row>td{background:#0d0d0d;border-bottom:2px solid var(--accent);paddin
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
-<style>
-
-/* Reported short-position context: separate from confirmation or sizing. */
-.jh-short-position{margin:14px 0;padding:12px;border:1px solid var(--border,#334155);border-radius:8px;color:var(--text,#dbe3ed);font-size:12px;line-height:1.55}
-.jh-short-position h5{margin:0 0 8px;font-size:13px}
-.jh-short-position dl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:5px 12px;margin:0}
-.jh-short-position dt,.jh-short-position dd{min-width:0;overflow-wrap:anywhere;margin:0}
-.jh-short-position p{margin:9px 0 0}.jh-short-position code{overflow-wrap:anywhere;white-space:normal}
-.jh-short-position summary{cursor:pointer;margin-top:9px}.jh-short-position summary:focus-visible,.jh-short-position a:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}
-.jh-short-position a{color:var(--accent,#93c5fd)}
-@media(max-width:480px){.jh-short-position dl{grid-template-columns:minmax(0,1fr)}.jh-short-position dd{margin-bottom:6px}}
-</style>
-<script src="/jh-short-position-context.js?v=20261001"></script>
 </head>
 <body>
   <div class="container">
@@ -505,7 +492,7 @@ function drawer(sym){
   const quality=qb.length?'<div class="dsec"><h4>Quality &amp; solvency</h4><div class="kv">'+qb.join('')+'</div></div>':'';
   let cb=[];
   if(v.sm_funds!=null)cb.push('<span class="'+((v.sm_net||0)>0?'good':'')+'">\ud83c\udfe6 13F <b>'+v.sm_funds+' funds</b>'+(v.sm_net!=null?', '+(v.sm_net>=0?'+':'')+v.sm_net+' net':'')+'</span>');
-  // A reported settlement position is not percentage of float.
+  if(v.short_pct!=null)cb.push('<span class="'+(v.short_pct>=20?'bad':'')+'">\ud83d\udcc9 Short <b>'+r1A(v.short_pct)+'%</b></span>');
   if(v.insider_sig)cb.push('<span class="'+(v.insider_sig==='selling'?'bad':v.insider_sig==='buying'?'good':'')+'">\ud83d\udc64 Insiders <b>'+v.insider_sig+'</b></span>');
   if(v.fwd_rev_growth!=null)cb.push('<span class="'+(v.fwd_rev_growth>0?'good':'bad')+'">\ud83d\udd2e Fwd rev <b>'+(v.fwd_rev_growth>=0?'+':'')+r1A(v.fwd_rev_growth)+'%</b></span>');
   const conf=cb.length?'<div class="dsec"><h4>Confirmation \u2014 who else sees it</h4><div class="kv">'+cb.join('')+'</div></div>':'';
@@ -515,8 +502,7 @@ function drawer(sym){
     finHtml='<div class="dsec"><h4>10-year financials</h4>'+sparkA(fins.map(function(f){return f.revenue;}),'#3b82f6')+'<table class="fintbl"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross%</th><th>Op%</th><th>Net%</th><th>Free cash flow</th><th>EPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
   const chartLink='<a class="dlink2" href="/chart-pro.html?ticker='+encodeURIComponent(sym)+'">Open full chart &amp; technicals \u2197</a>';
-  const shortContext=window.JHShortPosition?window.JHShortPosition.render(v.short_position_context,(RMETA.confirmation_feeds||{}).short_interest,sym):'<p>Short-position context is unavailable.</p>';
-  return '<div class="dwrap">'+priceHdr+sysline+scorecard+thesisHtml+bearHtml+what+val+quality+conf+shortContext+finHtml+chartLink+'</div>';
+  return '<div class="dwrap">'+priceHdr+sysline+scorecard+thesisHtml+bearHtml+what+val+quality+conf+finHtml+chartLink+'</div>';
 }
 
 function renderTrust(){

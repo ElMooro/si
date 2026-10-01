@@ -1,0 +1,53 @@
+{
+  "scope": "Whole source page predecessors and exact display-only replacements. Invented renderer/browser inputs only. No current/private/application packets captured.",
+  "pages": {
+    "alpha-scoreboard.html": {
+      "predecessor": "tests/fixtures/short-position-display/alpha-scoreboard.html.txt",
+      "bytes": 38926,
+      "previous_sha256": "641d3628b1762eb1c92084d715838451b1031c886bf92114d5b5d0005784dc6a",
+      "candidate_sha256": "9f1ce543576e200882761b1ef4711a892d295cc1a735abaf73b3d6d6792fbde7",
+      "edits": [
+        [
+          "</head>",
+          "<style>\n\n/* Reported short-position context: separate from confirmation or sizing. */\n.jh-short-position{margin:14px 0;padding:12px;border:1px solid var(--border,#334155);border-radius:8px;color:var(--text,#dbe3ed);font-size:12px;line-height:1.55}\n.jh-short-position h5{margin:0 0 8px;font-size:13px}\n.jh-short-position dl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:5px 12px;margin:0}\n.jh-short-position dt,.jh-short-position dd{min-width:0;overflow-wrap:anywhere;margin:0}\n.jh-short-position p{margin:9px 0 0}.jh-short-position code{overflow-wrap:anywhere;white-space:normal}\n.jh-short-position summary{cursor:pointer;margin-top:9px}.jh-short-position summary:focus-visible,.jh-short-position a:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}\n.jh-short-position a{color:var(--accent,#93c5fd)}\n@media(max-width:480px){.jh-short-position dl{grid-template-columns:minmax(0,1fr)}.jh-short-position dd{margin-bottom:6px}}\n</style>\n<script src=\"/jh-short-position-context.js?v=20261001\"></script>\n</head>"
+        ],
+        [
+          "  if(v.short_pct!=null)cb.push('<span class=\"'+(v.short_pct>=20?'bad':'')+'\">\\ud83d\\udcc9 Short <b>'+r1A(v.short_pct)+'%</b></span>');",
+          "  // A reported settlement position is not percentage of float."
+        ],
+        [
+          "  return '<div class=\"dwrap\">'+priceHdr+sysline+scorecard+thesisHtml+bearHtml+what+val+quality+conf+finHtml+chartLink+'</div>';",
+          "  const shortContext=window.JHShortPosition?window.JHShortPosition.render(v.short_position_context,(RMETA.confirmation_feeds||{}).short_interest,sym):'<p>Short-position context is unavailable.</p>';\n  return '<div class=\"dwrap\">'+priceHdr+sysline+scorecard+thesisHtml+bearHtml+what+val+quality+conf+shortContext+finHtml+chartLink+'</div>';"
+        ]
+      ]
+    },
+    "opportunities.html": {
+      "predecessor": "tests/fixtures/short-position-display/opportunities.html.txt",
+      "bytes": 46820,
+      "previous_sha256": "0a8418ce54c1cb5b9ff9f716a89bf0e6c7e810fbf819490086c9888b239849ef",
+      "candidate_sha256": "215ac014e8dec3f717ba76c81a1cdab89842ec77812b25309dfb4aa3453f9c48",
+      "edits": [
+        [
+          "</head>",
+          "<style>\n\n/* Reported short-position context: separate from confirmation or sizing. */\n.jh-short-position{margin:14px 0;padding:12px;border:1px solid var(--border,#334155);border-radius:8px;color:var(--text,#dbe3ed);font-size:12px;line-height:1.55}\n.jh-short-position h5{margin:0 0 8px;font-size:13px}\n.jh-short-position dl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:5px 12px;margin:0}\n.jh-short-position dt,.jh-short-position dd{min-width:0;overflow-wrap:anywhere;margin:0}\n.jh-short-position p{margin:9px 0 0}.jh-short-position code{overflow-wrap:anywhere;white-space:normal}\n.jh-short-position summary{cursor:pointer;margin-top:9px}.jh-short-position summary:focus-visible,.jh-short-position a:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}\n.jh-short-position a{color:var(--accent,#93c5fd)}\n@media(max-width:480px){.jh-short-position dl{grid-template-columns:minmax(0,1fr)}.jh-short-position dd{margin-bottom:6px}}\n</style>\n<script src=\"/jh-short-position-context.js?v=20261001\"></script>\n</head>"
+        ],
+        [
+          "  if(v.short_pct!=null)cb.push('<span class=\"'+(v.short_pct>=20?'b':'')+'\">\\ud83d\\udcc9 Short <b>'+_r1(v.short_pct)+'%</b></span>');",
+          "  // A reported settlement position is not percentage of float."
+        ],
+        [
+          "let DATA=null, BYSYM={}, RESEARCH={}, FILTER={sector:\"\",verdict:\"\"};",
+          "let DATA=null, BYSYM={}, RESEARCH={}, RESEARCH_META={}, FILTER={sector:\"\",verdict:\"\"};"
+        ],
+        [
+          "RESEARCH=(rj&&rj.by_ticker)||{};",
+          "RESEARCH=(rj&&rj.by_ticker)||{};RESEARCH_META=(rj&&rj.confirmation_feeds)||{};"
+        ],
+        [
+          "  return '<details class=\"deep\"><summary>\\ud83d\\udd2c Deep research \\u2014 thesis, financials, scorecard</summary><div class=\"deepbody\">'+ph+score+th+be+qual+conf+capret+fin+cl+'</div></details>';",
+          "  const shortContext=window.JHShortPosition?window.JHShortPosition.render(v.short_position_context,RESEARCH_META.short_interest,tk):'<p>Short-position context is unavailable.</p>';\n  return '<details class=\"deep\"><summary>\\ud83d\\udd2c Deep research \\u2014 thesis, financials, scorecard</summary><div class=\"deepbody\">'+ph+score+th+be+qual+conf+shortContext+capret+fin+cl+'</div></details>';"
+        ]
+      ]
+    }
+  }
+}

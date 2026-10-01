@@ -1,0 +1,45 @@
+{
+  "status": "candidate_not_deployed",
+  "pages": [
+    "alpha-scoreboard.html",
+    "opportunities.html"
+  ],
+  "asset": "jh-short-position-context.js",
+  "scope": "Reported settlement-position context only; no data request added. All other measurements, scores and page concerns remain open.",
+  "candidate_browser_verification": {
+    "scenarios": 4,
+    "widths": [
+      390,
+      1280
+    ],
+    "invented_data_only": true,
+    "actual_drawer_functions_and_inline_styles": true,
+    "full_page_fetch_and_navigation_verified": false,
+    "network_requests": 0,
+    "page_errors": 0,
+    "keyboard_details_and_source_link": true,
+    "horizontal_overflow": false,
+    "all_four_screenshots_visually_reviewed": true
+  },
+  "open_limits": [
+    "Shared consumer hashes identify received bodies but do not prove immutable original retention or independent source identity.",
+    "Source observation freshness and security identity remain unverified.",
+    "Other financial fields, old scorecards and missing-value displays need separate qualification.",
+    "All ten institutional workstreams remain OPEN."
+  ],
+  "application_packet_reads": 0,
+  "source_qualified": false,
+  "investment_authority": false,
+  "validation": {
+    "frontend_tests": 2673,
+    "deployment_tests": 1018,
+    "shell_tests": 15,
+    "page_graphs": 599,
+    "page_contracts": 599,
+    "engine_inventory_records": 899,
+    "wiring": "36 pages / 143 declarations; no missing or stale declarations",
+    "whole_page_preservation": true,
+    "browser_scenarios": 4,
+    "frontend_fixture_policy": "Host-only invented industry fixture substitute; no captured peer packet read."
+  }
+}

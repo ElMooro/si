@@ -117,19 +117,6 @@ details.deep[open]>summary::before{content:'\25be '}
 .dchart:hover{border-color:var(--cyan)}
 
 </style>
-<style>
-
-/* Reported short-position context: separate from confirmation or sizing. */
-.jh-short-position{margin:14px 0;padding:12px;border:1px solid var(--border,#334155);border-radius:8px;color:var(--text,#dbe3ed);font-size:12px;line-height:1.55}
-.jh-short-position h5{margin:0 0 8px;font-size:13px}
-.jh-short-position dl{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:5px 12px;margin:0}
-.jh-short-position dt,.jh-short-position dd{min-width:0;overflow-wrap:anywhere;margin:0}
-.jh-short-position p{margin:9px 0 0}.jh-short-position code{overflow-wrap:anywhere;white-space:normal}
-.jh-short-position summary{cursor:pointer;margin-top:9px}.jh-short-position summary:focus-visible,.jh-short-position a:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}
-.jh-short-position a{color:var(--accent,#93c5fd)}
-@media(max-width:480px){.jh-short-position dl{grid-template-columns:minmax(0,1fr)}.jh-short-position dd{margin-bottom:6px}}
-</style>
-<script src="/jh-short-position-context.js?v=20261001"></script>
 </head>
 <body>
 <div class="container">
@@ -189,7 +176,7 @@ const RESEARCH_URL="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/d
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const BC={green:"b-green",cyan:"b-cyan",yellow:"b-yellow",orange:"b-orange",red:"b-red",dim:"b-dim"};
 const BORDER={green:"#26ffaf",cyan:"#00d4ff",yellow:"#ffd266",orange:"#ff7a18",red:"#ff5577",dim:"#1c2433"};
-let DATA=null, BYSYM={}, RESEARCH={}, RESEARCH_META={}, FILTER={sector:"",verdict:""};
+let DATA=null, BYSYM={}, RESEARCH={}, FILTER={sector:"",verdict:""};
 let SF={};
 fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/share-flows.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{d=window.JHCapitalStructureContext ? window.JHCapitalStructureContext.decisionView(d) : {};if(d&&d.tickers){SF=d.tickers;try{render()}catch(e){}}}).catch(()=>{});
 function sfChips(t){
@@ -338,7 +325,7 @@ function deepDrawer(tk){
   const qual=qb.length?'<div class="dsub"><h5>Quality &amp; solvency \u2014 the trap-killers</h5><div class="dkv">'+qb.join('')+'</div></div>':'';
   let cb=[];
   if(v.sm_funds!=null)cb.push('<span class="'+((v.sm_net||0)>0?'g':'')+'">\ud83c\udfe6 13F <b>'+v.sm_funds+' funds</b>'+(v.sm_net!=null?', '+(v.sm_net>=0?'+':'')+v.sm_net+' net':'')+'</span>');
-  // A reported settlement position is not percentage of float.
+  if(v.short_pct!=null)cb.push('<span class="'+(v.short_pct>=20?'b':'')+'">\ud83d\udcc9 Short <b>'+_r1(v.short_pct)+'%</b></span>');
   if(v.insider_sig)cb.push('<span class="'+(v.insider_sig==='selling'?'b':v.insider_sig==='buying'?'g':'')+'">\ud83d\udc64 Insiders <b>'+v.insider_sig+'</b></span>');
   if(v.fwd_rev_growth!=null)cb.push('<span class="'+(v.fwd_rev_growth>0?'g':'b')+'">\ud83d\udd2e Fwd rev <b>'+(v.fwd_rev_growth>=0?'+':'')+_r1(v.fwd_rev_growth)+'%</b></span>');
   const conf=cb.length?'<div class="dsub"><h5>Confirmation \u2014 who else is positioned</h5><div class="dkv">'+cb.join('')+'</div></div>':'';
@@ -368,8 +355,7 @@ function deepDrawer(tk){
     fin='<div class="dsub"><h5>10-year financials</h5>'+_spark(F.map(f=>f.revenue),'#00d4ff')+'<table class="dfin"><thead><tr><th class="l">Year</th><th>Revenue</th><th>Gross</th><th>Op</th><th>Net</th><th>Free cash</th><th>EPS</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   }
   const cl='<a class="dchart" href="/chart-pro.html?ticker='+encodeURIComponent(tk)+'">Open full chart &amp; technicals \u2197</a>';
-  const shortContext=window.JHShortPosition?window.JHShortPosition.render(v.short_position_context,RESEARCH_META.short_interest,tk):'<p>Short-position context is unavailable.</p>';
-  return '<details class="deep"><summary>\ud83d\udd2c Deep research \u2014 thesis, financials, scorecard</summary><div class="deepbody">'+ph+score+th+be+qual+conf+shortContext+capret+fin+cl+'</div></details>';
+  return '<details class="deep"><summary>\ud83d\udd2c Deep research \u2014 thesis, financials, scorecard</summary><div class="deepbody">'+ph+score+th+be+qual+conf+capret+fin+cl+'</div></details>';
 }
 
 function card(r,full){
@@ -476,7 +462,7 @@ function buildFilters(){
   try{const r=await fetch(URL_+"?t="+Date.now());if(r.ok)DATA=await r.json();}catch{}
   if(!DATA){document.getElementById("top").innerHTML=`<div class="loading">AWAITING FIRST RUN — the engine runs daily at 14:00 UTC.</div>`;document.getElementById("avoid").innerHTML="";return;}
   (DATA.all||[]).forEach(r=>{BYSYM[r.ticker]=r;});
-  try{const rr=await fetch(RESEARCH_URL+"?t="+Date.now());if(rr.ok){const rj=await rr.json();RESEARCH=(rj&&rj.by_ticker)||{};RESEARCH_META=(rj&&rj.confirmation_feeds)||{};}}catch{}
+  try{const rr=await fetch(RESEARCH_URL+"?t="+Date.now());if(rr.ok){const rj=await rr.json();RESEARCH=(rj&&rj.by_ticker)||{};}}catch{}
 
   const vc=DATA.verdict_counts||{};
   document.getElementById("kpi").innerHTML=
