@@ -64,3 +64,41 @@ def test_official_stats_held_or_missing_gdp_is_not_a_zero(registry, universe, no
     ):
         res = adapter_for(spec, universe, now=now).parse_existing_output(doc, {"last_modified": ts(0)})
         assert res.signals == [], (doc.get("status"), doc.get("mode"), res.diagnostics)
+
+
+def test_canary_context_does_not_change_official_stats_signals(registry, universe, now, monkeypatch):
+    """Real producer → adapter; synthetic warehouse only, legacy gate preserved."""
+    import brief_compiler
+    import brief_contract
+    from jh_adapters import adapter_for
+    from datetime import datetime, timedelta
+    import socket
+    import uuid
+    monkeypatch.setattr(uuid, "uuid4", lambda: uuid.UUID("00000000-0000-4000-8000-000000000001"))
+    monkeypatch.setattr(socket.socket, 'connect', lambda *a, **k: (_ for _ in ()).throw(AssertionError('network forbidden')))
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None): return now
+    monkeypatch.setattr(brief_contract, 'datetime', Clock)
+    monkeypatch.setattr(brief_compiler, '_put', lambda *a: None)
+    monkeypatch.setattr(brief_compiler, '_now', lambda: now)
+    for legacy_asof in [now.isoformat(), (now - timedelta(days=400)).isoformat()]:
+        legacy = {'generated_at': legacy_asof, 'series': {'atlantafed': {'last': {'GDPNOW': '4.4164'}}}}
+        canary = {'schema_version': '2.0', 'generated_at': now.isoformat(),
+                  'GDPNOW': {'value': -100, 'as_of': now.isoformat()}}
+        monkeypatch.setattr(brief_compiler, '_load', lambda s3, key: (
+            legacy if key == 'data/fed-nowcast-join.json' else canary, legacy_asof, None))
+        result = brief_compiler.compile_official_stats(None)
+        assert result['status'] == ('LIVE' if legacy_asof == now.isoformat() else 'HELD')
+        assert result['evidence']['measurements']['GDPNOW']['reported_value'] == -100
+        predecessor_shape = dict(result)
+        predecessor_shape.pop('evidence')
+        adapter = adapter_for(_spec(registry), universe, now=now)
+        before = adapter.parse_existing_output(predecessor_shape, {'last_modified': now.isoformat()})
+        after = adapter.parse_existing_output(result, {'last_modified': now.isoformat()})
+        assert after.signals == before.signals
+        if result['status'] == 'HELD':
+            assert after.signals == []
+        else:
+            assert len(after.signals) == 1
+            assert abs(after.signals[0]['score'] - ((4.4164 - 2.0) / 4.0)) < 1e-6

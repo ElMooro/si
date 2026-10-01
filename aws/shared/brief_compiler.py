@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Tuple
 
 from brief_contract import (
-    BRIEF_SCHEMA, TTL_HOURS, freshness, project_verdict, validate_brief,
+    BRIEF_SCHEMA, TTL_HOURS, freshness, parse_ts, project_verdict, validate_brief,
 )
 
 B = "justhodl-dashboard-live"
@@ -50,7 +51,7 @@ def _inp(required, lm, as_of, ttl, err):
     }
 
 
-def _finalize(s3, key, mode, source, inputs, fields, why, required_ok):
+def _finalize(s3, key, mode, source, inputs, fields, why, required_ok, evidence=None):
     brief = {
         "schema": BRIEF_SCHEMA,
         "mode": mode,
@@ -61,6 +62,8 @@ def _finalize(s3, key, mode, source, inputs, fields, why, required_ok):
         "fields": fields,
         "why": why,
     }
+    if evidence is not None:
+        brief["evidence"] = evidence
     err = validate_brief(brief)
     if brief["status"] == "LIVE" and err:
         brief["status"] = "HELD"
@@ -123,6 +126,102 @@ def compile_plumbing(s3, source="brief-compiler"):
     )
 
 
+def _official_stats_evidence(doc, lm, err, now):
+    """v1: attributed observations only; never a replacement required input.
+
+    A new envelope clock does not refresh an economic period or prove replay.
+    Preserve the source's age policy, including its existing GDPNOW 21-day rule.
+    """
+    def obj(value):
+        return value if isinstance(value, dict) else {}
+
+    def text(value):
+        return value if isinstance(value, str) else None
+
+    def finite(value):
+        try:
+            return type(value) in (int, float) and math.isfinite(value)
+        except OverflowError:
+            return False
+
+    def scalar(value):
+        return value if isinstance(value, str) or finite(value) else None
+
+    def clock(value, name, issues):
+        value = text(value)
+        parsed = parse_ts(value)
+        if parsed is None:
+            issues.append(name + ":missing_or_invalid")
+        elif parsed > now:
+            issues.append(name + ":future")
+        return value
+
+    root = obj(doc)
+    issues = []
+    if err:
+        issues.append("warehouse_read_failed")
+    if root.get("schema_version") != "2.0":
+        issues.append("source_contract_unrecognized")
+    published = clock(root.get("generated_at"), "publication", issues)
+    modified = clock(lm, "last_modified", issues)
+    if freshness(published, TTL_HOURS["official_stats"], now) == "EXPIRED":
+        issues.append("publication_expired")
+    measurements = {}
+    for sid, unit in (("GDPNOW", "Percent change at annual rate"),
+                      ("T10Y3M", "Percentage points")):
+        row = obj(root.get(sid))
+        source = obj(row.get("source"))
+        problems = []
+        value = row.get("value")
+        if not finite(value):
+            value = None
+            problems.append("value_missing_or_invalid")
+        if row.get("contract_version") != "measurement-provenance.v2":
+            problems.append("measurement_contract_unrecognized")
+        if source.get("series_id") != sid or source.get("kind") != "fred":
+            problems.append("source_identity_unverified")
+        if row.get("unit") != unit:
+            problems.append("unit_unverified")
+        if row.get("data_unavailable") is not False:
+            problems.append("source_unavailable_or_unknown")
+        economic = clock(row.get("as_of"), "economic_as_of", problems)
+        received = clock(row.get("received_at"), "received_at", problems)
+        source_published = clock(row.get("published_at"), "source_published_at", problems)
+        policy = obj(row.get("freshness"))
+        if policy.get("status") != "within_age_ceiling":
+            problems.append("source_freshness_not_within_age_ceiling")
+        measurements[sid] = {
+            "reported_value": value, "unit": text(row.get("unit")),
+            "economic_as_of": economic,
+            "observation_period": text(row.get("observation_period")),
+            "received_at": received, "source_published_at": source_published,
+            "source": {k: text(source.get(k)) for k in ("kind", "series_id", "url")},
+            "source_reported_freshness": {
+                k: scalar(policy.get(k))
+                for k in ("status", "policy", "observation_age_days", "maximum_age_days")},
+            "source_reported_evidence": {
+                k: scalar(obj(row.get("evidence")).get(k))
+                for k in ("contract", "key", "sha256", "bytes", "first_received_at")},
+            "qualification": "NOT_DECISION_QUALIFIED",
+            "issues": problems,
+        }
+    return {
+        "schema": "official-stats-evidence.v1",
+        "authority": "context_only", "decision_fields_replaced": False,
+        "integration_state": "legacy_required_input_unmigrated",
+        "qualification_reason": "Current observations do not replace the legacy required gate; "
+                                "economic-period/release semantics and source qualification need review.",
+        "legacy": {"key": "data/fed-nowcast-join.json", "role": "dated_legacy_required_evidence",
+                   "clocks_path": "inputs.data/fed-nowcast-join.json", "values_path": "fields"},
+        "warehouse": {"key": "data/canary-macro.json", "generated_at": published,
+                      "last_modified": modified, "issues": issues, "error": err},
+        "measurements": measurements,
+        "cleveland_model": {"value": None, "reason": "No verified Cleveland model in this projection; "
+                                                   "T10Y3M is a Treasury yield spread, not that model."},
+        "source_replay_verified": False,
+    }
+
+
 def compile_official_stats(s3, source="brief-compiler"):
     ttl = TTL_HOURS["official_stats"]
     doc, lm, err = _load(s3, "data/fed-nowcast-join.json")
@@ -138,6 +237,8 @@ def compile_official_stats(s3, source="brief-compiler"):
         "nowcast_status": (doc or {}).get("status"),
     }
     ok = not err and doc and freshness(as_of, ttl) != "EXPIRED"
+    canary, clm, cerr = _load(s3, "data/canary-macro.json")
+    evidence = _official_stats_evidence(canary, clm, cerr, _now())
     return _finalize(
         s3, "data/official-stats-brief.json", "official_stats", source,
         {"data/fed-nowcast-join.json": _inp(True, lm, as_of, ttl, err)},
@@ -145,7 +246,7 @@ def compile_official_stats(s3, source="brief-compiler"):
         "GDPNow %s on %s; T10Y3M %s on %s" % (
             fields.get("gdpnow"), fields.get("gdpnow_date"),
             fields.get("t10y3m"), fields.get("t10y3m_date")),
-        ok,
+        ok, evidence=evidence,
     )
 
 
