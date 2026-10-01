@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 507: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering, independent axis ownership and core volume missingness are accepted through Stage 507 with 74 exact static artifacts, 898 engine records and 599 page contracts. Next: delayed chart-paint ownership, legacy volume calculation windows/numerical qualification and crowded metadata. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 508: all ten institutional workstreams remain open. Native/edge identity, publication and cache integrity remain accepted through Stage 497; browser search/scalar evidence through Stage 502; retained-frame RVOL through Stage 503; OBV through Stage 504. Scalar point rendering, independent axis ownership, core volume missingness and delayed render ownership are accepted through Stage 508 with 74 exact static artifacts, 898 engine records and 599 page contracts. Next: legacy volume calculation windows/numerical qualification and crowded metadata; auxiliary async consumers remain separately unqualified. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7269,3 +7269,10 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Nineteen focused ownership checks pass. The unchanged predecessor fails sixteen of them, while the three current-data behavior checks still pass. Desktop/mobile candidate cases pass for delayed success, failure and calendar responses. Full regression and exact release remain pending; all institutional workstreams remain OPEN.
 
 - Stage 508 combined checks passed 2,526 frontend cases, 1018 deployment and fifteen shell checks. Twenty-two new cases and twelve offline desktop/mobile suites pass; exact static release remains pending.
+
+
+### Stage 508 exact static acceptance
+
+- Source `55c3f3bd818a7b9ef49886ecfa67d140daeb0654` matches the exact served Pages build, run 36854538690. All 74 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- Combined checks passed 2,526 frontend cases, 1018 deployment and fifteen shell checks, including twenty-two new ownership/preservation cases. Twelve offline real-library desktop/mobile suites retain complete invented frames and recovery cases.
+- Delayed main render responses, shared benchmark state and post-paint load continuations stay bound to their original sequence, symbol, interval and acquisition generation. Old success and failure cannot replace a newer quote; current optional-benchmark failure still allows rendering. Legacy complete-frame numerical extremes, other annotation modules, crowded metadata, source qualification and investment authority remain open. No actual application/private/current-consumer data or producer invocation was involved. All ten institutional workstreams remain OPEN.
