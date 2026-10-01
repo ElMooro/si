@@ -180,16 +180,19 @@ def _fallback_brief(h, warned):
 def render_email_html(out):
     rows = ""
     for h in out["hot_stocks"]:
+        bp = h.get("bull_pct")
+        # Bound before formatting: rejects nonfinite values and arbitrarily large integers.
+        bull_display = str(bp) + "%" if type(bp) in (int, float) and 0 <= bp <= 100 else "unavailable"
         b = h.get("analyst") or {}
         net = (b.get("net") or "").upper()
         col = "#2e7d32" if "early" in net.lower() or "long" in net.lower() else "#b71c1c" if "fade" in net.lower() or "short" in net.lower() else "#555"
         rows += ("<tr><td style='padding:8px 6px;border-bottom:1px solid #eee'><b>%s</b><br>"
-                 "<span style='color:#888;font-size:11px'>heat %.0f · %d venues · bull %s%%</span></td>"
+                 "<span style='color:#888;font-size:11px'>heat %.0f · %d venues · bull %s</span></td>"
                  "<td style='padding:8px 6px;border-bottom:1px solid #eee;font-size:12px'>%s"
                  "<br><span style='color:#2e7d32'>+ %s</span>"
                  "<br><span style='color:#b71c1c'>− %s</span>"
                  "<br><b style='color:%s'>NET: %s</b></td></tr>") % (
-            h["ticker"], h["score"], h.get("venue_count", 0), h.get("bull_pct"),
+            h["ticker"], h["score"], h.get("venue_count", 0), bull_display,
             b.get("why_hot", h.get("why", [""])[0] if h.get("why") else ""), b.get("bull", "—"),
             b.get("bear", "—"), col, b.get("net", "—"))
     warn = ", ".join(w["ticker"] for w in out.get("warnings", [])[:8]) or "none"
