@@ -1,0 +1,85 @@
+{
+  "aws/shared/finra_trace.py": {
+    "prior": {
+      "path": "tests/fixtures/bond-trace-contract/pre512/aws/shared/finra_trace.py.txt",
+      "sha256": "32372fc940d72e506436ebf207d817a7709152d8bc26287df8a226c5147abb9e"
+    },
+    "candidate_sha256": "4a4fcf48bef5a083ad087a2a11a44904d5e38f16725532dd549071d959482fda",
+    "changed_functions": [
+      "fetch_treasury_daily",
+      "fetch_corporate_breadth",
+      "fetch_trace_aggregates"
+    ],
+    "added_functions": [
+      "_calendar_date",
+      "_finite_number",
+      "_snapshot",
+      "fetch_treasury_latest"
+    ],
+    "removed_functions": [],
+    "unchanged_functions": [
+      "_finra_si",
+      "get_token",
+      "_post",
+      "query",
+      "_weekday_window",
+      "health_check"
+    ]
+  },
+  "aws/lambdas/justhodl-bond-trace/source/lambda_function.py": {
+    "prior": {
+      "path": "tests/fixtures/bond-trace-contract/pre512/aws/lambdas/justhodl-bond-trace/source/lambda_function.py.txt",
+      "sha256": "9506469d985012f4c648581d6aa445451ef014a2d16a0a3adcdc8af00f2d3b2e"
+    },
+    "candidate_sha256": "f251da6691fd16fdac1aaadb9ac654fed8fd4f28ade9eedeb390f7575148fb4e",
+    "changed_functions": [
+      "build_trace_layer",
+      "lambda_handler"
+    ],
+    "added_functions": [
+      "_category_breadth",
+      "_dated_history",
+      "_finite_measurement"
+    ],
+    "removed_functions": [],
+    "unchanged_functions": [
+      "http_get",
+      "fetch_aggs",
+      "fred_get",
+      "get_s3_json",
+      "put_s3_json",
+      "_last_trade_date",
+      "_num",
+      "maybe_telegram"
+    ]
+  },
+  "intelligence/index.html": {
+    "prior": {
+      "path": "tests/fixtures/bond-trace-contract/pre512/intelligence/index.html.txt",
+      "sha256": "f4ec81697078ca572c57cceb654396d3dad7d0f9a8289a2bf98454b1c5864cc6"
+    },
+    "candidate_sha256": "691a2a00174f154a7cd1bf97d1c38a6693cdc32f2554081d4d4922db34351b34"
+  },
+  "aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py": {
+    "prior": {
+      "path": "tests/fixtures/bond-trace-contract/pre512/aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py.txt",
+      "sha256": "712c79dc9991e857cdc325b1c6b7f77362a33ac278ad5d8762769acf0e035d8f"
+    },
+    "candidate_sha256": "1a800d4069b4699bc7fa29d3b4d2672bdfd0851e932f9f2b3518eae1f7cfae72",
+    "changed_functions": [
+      "fetch_engine"
+    ],
+    "added_functions": [],
+    "removed_functions": [],
+    "unchanged_functions": [
+      "build_user_prompt",
+      "call_anthropic",
+      "extract_json",
+      "fetch_all_engines",
+      "send_telegram",
+      "maybe_alert_posture_change",
+      "lambda_handler",
+      "_write_error"
+    ]
+  }
+}

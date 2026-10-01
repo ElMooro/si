@@ -1,40 +1,13 @@
-"""
-justhodl-bond-trace — Bloomberg ALLQ / TRACE feed equivalent.
+"""Daily bond research: legacy ETF/OAS heuristic and FINRA aggregate observations.
 
-FINRA TRACE publishes free daily aggregated data on corporate bond trading.
-Public endpoints (no API key needed):
-  https://cdn.cboe.com/api/global/delayed_quotes/options/cbond_summary.json
-  https://www.finra.org/finra-data/browse-catalog/corporate-bond-securities/total
-  https://www.sec.gov/files/dera/data/...
-
-For free coverage, we'll use:
-  • FINRA TRACE daily aggregate ZIP (free, daily) — needs scraping
-  • As fallback, derive bond market stress from FRED:
-    - High-yield ETF (HYG) vs investment-grade (LQD) ratio
-    - HYG/LQD daily price action
-    - Bond ETF flows from /etf-flows sidecar
-
-Computes:
-  • HY/IG spread velocity (5d, 30d)
-  • HY ETF flow direction (in/out)
-  • Stress score 0-100
-
-This is a pragmatic v1 — actual TRACE feed requires FINRA registration. For
-now we synthesize using free ETF + FRED data, with an upgrade path to TRACE
-API when registered.
-
-Phase 1 (schema 2.0): real FINRA TRACE aggregate layer via finra_trace
-(treasuryDailyAggregates, corporateDebtMarketBreadth, trace prints) with
-dealer-positioning z-score, breadth momentum, and VWAP dislocation derived
-stress. The proxy above runs first and is untouched if TRACE fails.
-
-Output: data/bond-trace.json
-  • hy_lq_ratio, hy_30d_perf, lq_30d_perf, ratio_5d_chg, ratio_30d_chg
-  • flow_signal, stress_score, regime
-
-Schedule: cron(0 21 ? * MON-FRI *) — daily after market close.
+These are descriptive, unqualified research inputs. FINRA aggregate reports
+are not individual trades, executable quotes, fund flows or dealer positions.
+Each source retains its own observation date and contract. Neither the legacy
+score nor the aggregate layer has validated Calls or sizing authority.
+The existing normal schedule and acquisition inputs are retained.
 """
 import json
+import math
 import os
 import time
 import urllib.request
@@ -49,7 +22,8 @@ except Exception:
 S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "data/bond-trace.json"
 TRACE_KEY = "data/trace-bond-prints.json"
-TRACE_HISTORY_KEY = "data/trace-bond-prints-history.json"
+TRACE_HISTORY_KEY = "data/trace-bond-prints-history.json"  # legacy; not migrated
+FINRA_HISTORY_KEY = "data/finra-aggregate-history-v1.json"
 POLYGON_KEY = os.environ.get("POLYGON_KEY", "")
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
@@ -125,157 +99,197 @@ def _num(x):
         return None
 
 
-def build_trace_layer(prior):
-    """Fetch FINRA TRACE aggregates and compute derived stress.
+def _finite_measurement(value, count=False):
+    if type(value) not in (int, float):
+        return None
+    try:
+        number = float(value)
+    except (ValueError, OverflowError):
+        return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    if count and (number > 9007199254740991 or not number.is_integer()):
+        return None
+    return int(number) if count else number
 
-    Returns a 'trace' dict for the bond-trace output, or None when the
-    TRACE layer is unavailable (caller then uses the proxy fallback tag).
-    On success it also writes the standalone data/trace-bond-prints.json
-    artifact plus a rolling 30-trade-day history used for z-scoring.
-    All failures are swallowed: the existing proxy output is never harmed.
+
+def _category_breadth(row):
+    counts = [_finite_measurement(row.get(key), count=True)
+              for key in ('advances', 'declines', 'unchanged')]
+    if any(value is None for value in counts):
+        return None
+    total = sum(counts)
+    if total <= 0 or total > 9007199254740991:
+        return None
+    return round((counts[0] - counts[1]) / total * 100, 2)
+
+
+def _dated_history(history, key, observation, value, response_hash):
+    """Only this definition and unique earlier dates enter a comparison.
+
+    Historical packets from the former TRACE/dealer-positioning definition
+    are neither read nor migrated. Same-date refreshes replace their entry.
     """
+    valid = {}
+    for row in history.get(key, []) if isinstance(history.get(key), list) else []:
+        if not isinstance(row, dict) or row.get('contract_version') != 'finra-aggregates-v1':
+            continue
+        day = row.get('observation_date')
+        try:
+            if type(day) is not str or datetime.strptime(day, '%Y-%m-%d').date().isoformat() != day:
+                continue
+        except ValueError:
+            continue
+        number = row.get('value')
+        if type(number) not in (int, float):
+            continue
+        try:
+            number = float(number)
+        except (ValueError, OverflowError):
+            continue
+        if not math.isfinite(number):
+            continue
+        if (key == 'treasury' and not 0 <= number <= 1) or (key == 'corporate' and not -100 <= number <= 100):
+            continue
+        # A duplicated date in imported history is ambiguous, not extra evidence.
+        valid[day] = None if day in valid else dict(row)
+    earlier = [valid[day] for day in sorted(valid) if day < observation and valid[day] is not None]
+    prior_value = earlier[-1]['value'] if earlier else None
+    latest = {
+        'contract_version': 'finra-aggregates-v1', 'observation_date': observation,
+        'value': value, 'response_sha256': response_hash,
+    }
+    # A late older response must not erase already retained newer observations.
+    valid[observation] = latest if value is not None else None
+    history[key] = [valid[day] for day in sorted(valid) if valid[day] is not None][-30:]
+    return prior_value, len(earlier)
+
+
+def build_trace_layer(prior):
+    """Publish explicitly dated aggregates; unavailable per-print fields stay null."""
     try:
         import finra_trace
-    except Exception as e:
-        print(f"[trace-layer] finra_trace import failed: {e}")
+    except Exception as error:
+        print(f'[finra-layer] helper unavailable: {type(error).__name__}')
         return None
-
     try:
-        trade_date = _last_trade_date()
-        treasury = finra_trace.fetch_treasury_daily(trade_date)
+        treasury = finra_trace.fetch_treasury_latest()
         breadth = finra_trace.fetch_corporate_breadth()
-        agg = finra_trace.fetch_trace_aggregates(trade_date)
-        if treasury is None and breadth is None and agg is None:
-            print("[trace-layer] all TRACE fetches returned None")
+        if treasury is None and breadth is None:
             return None
-
-        # --- Dealer positioning from Treasury aggregates ---
-        # dealer_share = dealer-customer volume / total; volume-weighted.
-        dealer_share = None
-        vwap_dislocation = None
         buckets = []
-        if treasury:
-            wsum = 0.0
-            wvol = 0.0
-            max_disloc = 0.0
-            for b in treasury:
-                dc = _num(b.get("dealerCustomerVolume")) or 0.0
-                ats = _num(b.get("atsInterdealerVolume")) or 0.0
-                tot = dc + ats
-                share = (dc / tot) if tot > 0 else None
-                vwap = _num(b.get("volumeWeightedAveragePrice"))
-                bench = _num(b.get("benchmark"))
-                disloc = None
-                if vwap is not None and bench not in (None, 0):
-                    disloc = abs(vwap - bench) / abs(bench)
-                    max_disloc = max(max_disloc, disloc)
-                buckets.append({
-                    "product_category": b.get("productCategory"),
-                    "years_to_maturity": b.get("yearsToMaturity"),
-                    "dealer_share": round(share, 4) if share is not None else None,
-                    "vwap": vwap,
-                    "benchmark": bench,
-                    "vwap_dislocation": round(disloc, 5) if disloc is not None else None,
-                })
-                if share is not None and tot > 0:
-                    wsum += share * tot
-                    wvol += tot
-            if wvol > 0:
-                dealer_share = round(wsum / wvol, 4)
-            vwap_dislocation = round(max_disloc, 5)
-
-        # --- Corporate breadth momentum ---
-        breadth_net_pct = None
-        if breadth:
-            adv = _num(breadth.get("numberOfIssuesAdvancing")) or 0.0
-            dec = _num(breadth.get("numberOfIssuesDeclining")) or 0.0
-            unch = _num(breadth.get("numberOfIssuesUnchanged")) or 0.0
-            tot_issues = adv + dec + unch
-            if tot_issues > 0:
-                breadth_net_pct = round((adv - dec) / tot_issues * 100, 2)
-
-        # --- Rolling history for z-scoring (dealer positioning) ---
-        hist = get_s3_json(TRACE_HISTORY_KEY, []) or []
-        if not isinstance(hist, list):
-            hist = []
-        hist_vals = [_num(h.get("dealer_share")) for h in hist]
-        hist_vals = [v for v in hist_vals if v is not None][-20:]
-        dealer_positioning_z = None
-        if dealer_share is not None and len(hist_vals) >= 5:
-            mean = sum(hist_vals) / len(hist_vals)
-            var = sum((v - mean) ** 2 for v in hist_vals) / len(hist_vals)
-            std = var ** 0.5
-            if std > 0:
-                dealer_positioning_z = round((dealer_share - mean) / std, 2)
-
-        # --- Breadth momentum vs previous run ---
+        shares = []
+        for row in (treasury or {}).get('rows', []):
+            dc = _finite_measurement(row.get('dealerCustomerVolume'))
+            ats = _finite_measurement(row.get('atsInterdealerVolume'))
+            complete = dc is not None and ats is not None
+            total = dc + ats if complete else None
+            if total is not None and not math.isfinite(total):
+                total = None
+            share = dc / total if total is not None and total > 0 else None
+            benchmark = row.get('benchmark')
+            category = row.get('productCategory')
+            maturity = row.get('yearsToMaturity')
+            scope_known = ((category in {'Bills', 'FRNs'} and benchmark is None and maturity is None) or
+                           (category in {'Nominal Coupons', 'TIPS'} and benchmark in ('On-the-run', 'Off-the-run') and type(maturity) is str and bool(maturity.strip())))
+            if not scope_known:
+                share = None
+            shares.append((dc, ats, total, scope_known))
+            buckets.append({
+                'product_category': category,
+                'years_to_maturity': row.get('yearsToMaturity'),
+                'observation_date': row['tradeDate'],
+                'benchmark': benchmark,
+                'vwap': _finite_measurement(row.get('volumeWeightedAveragePrice')),
+                'dealer_customer_volume': dc,
+                'ats_interdealer_volume': ats,
+                'volume_unit': 'source_native_unverified',
+                'dealer_customer_volume_share': round(share, 6) if share is not None else None,
+                'dealer_share': round(share, 6) if share is not None else None,
+                'vwap_dislocation': None,
+                'source_row': row,
+            })
+        aggregate_share = None
+        # Never sum unknown, missing or overlapping category identities. The
+        # shared adapter already rejects duplicate category/maturity/benchmark.
+        if shares and all(total is not None and known for dc, ats, total, known in shares):
+            try:
+                numerator = math.fsum(dc for dc, ats, total, known in shares)
+                denominator = math.fsum(total for dc, ats, total, known in shares)
+                if denominator > 0 and math.isfinite(numerator) and math.isfinite(denominator):
+                    aggregate_share = round(numerator / denominator, 6)
+            except (OverflowError, ValueError):
+                pass
+        categories = []
+        all_breadth = None
+        for row in (breadth or {}).get('rows', []):
+            value = _category_breadth(row)
+            categories.append({'product_category': row['productCategory'],
+                               'observation_date': row['tradeReportDate'],
+                               'net_advancing_pct': value, 'source_row': row})
+            if row['productCategory'] == 'all securities':
+                all_breadth = value
+        history = get_s3_json(FINRA_HISTORY_KEY, {}) or {}
+        if not isinstance(history, dict) or history.get('contract_version') != 'finra-aggregates-v1':
+            history = {'contract_version': 'finra-aggregates-v1', 'treasury': [], 'corporate': []}
         breadth_momentum = None
-        prior_breadth = None
-        for h in reversed(hist):
-            pb = _num(h.get("breadth_net_pct"))
-            if pb is not None:
-                prior_breadth = pb
-                break
-        if breadth_net_pct is not None and prior_breadth is not None:
-            breadth_momentum = round(breadth_net_pct - prior_breadth, 2)
-
-        # Update rolling history (30 trade days max)
-        hist.append({
-            "trade_date": trade_date,
-            "dealer_share": dealer_share,
-            "breadth_net_pct": breadth_net_pct,
-        })
-        hist = hist[-30:]
-        try:
-            put_s3_json(TRACE_HISTORY_KEY, hist, cache="no-cache")
-        except Exception as e:
-            print(f"[trace-layer] history write failed (non-fatal): {e}")
-
-        # Standalone artifact
+        history_counts = {'treasury': 0, 'corporate': 0}
+        if treasury:
+            _, history_counts['treasury'] = _dated_history(history, 'treasury', treasury['observation_date'], aggregate_share, treasury['response_sha256'])
+        if breadth:
+            previous, history_counts['corporate'] = _dated_history(history, 'corporate', breadth['observation_date'], all_breadth, breadth['response_sha256'])
+            if previous is not None and all_breadth is not None:
+                breadth_momentum = round(all_breadth - previous, 2)
+        unavailable = {
+            'trace_prints': 'No documented per-print dataset or entitlement is configured; no endpoint is queried.',
+            'vwap_dislocation': 'benchmark is an on/off-the-run classification, not a numerical reference price.',
+            'dealer_positioning_z': 'Dealer-customer volume share is not dealer inventory or directional positioning.',
+        }
+        quality = {
+            'status': 'unqualified', 'calls_eligible': False, 'sizing_eligible': False,
+            'reason': 'Documented aggregate adapter; normal source delivery, expected coverage, source units and predictive validity remain unqualified.',
+            'treasury_available': treasury is not None, 'corporate_available': breadth is not None,
+            'unavailable': unavailable,
+        }
+        generated_at = datetime.now(timezone.utc).isoformat()
         standalone = {
-            "schema_version": "1.0",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "trade_date": trade_date,
-            "provenance": "finra-trace",
-            "treasury": {
-                "n_buckets": len(buckets),
-                "buckets": buckets,
-                "dealer_share": dealer_share,
-                "vwap_dislocation": vwap_dislocation,
-            },
-            "corporate": {
-                "breadth": breadth,
-                "breadth_net_pct": breadth_net_pct,
-            },
-            "trace_aggregates": agg,
-            "stress_derived": {
-                "dealer_positioning_z": dealer_positioning_z,
-                "breadth_momentum": breadth_momentum,
-                "vwap_dislocation": vwap_dislocation,
-            },
-            "notes": ("Phase 1 aggregate layer. Per-print TRACE detail arrives "
-                      "in Phase 2."),
+            'schema_version': '2.0', 'contract_version': 'finra-aggregates-v1',
+            'generated_at': generated_at, 'trade_date': (treasury or {}).get('observation_date'),
+            'provenance': 'finra-daily-aggregates', 'quality': quality,
+            'treasury': {'n_buckets': len(buckets), 'buckets': buckets,
+                         'observation_date': (treasury or {}).get('observation_date'),
+                         'dealer_customer_volume_share': aggregate_share,
+                         'dealer_share': aggregate_share, 'vwap_dislocation': None,
+                         'share_definition': 'dealerCustomerVolume / (dealerCustomerVolume + atsInterdealerVolume), over returned valid distinct buckets; not directional flow'},
+            'corporate': {'breadth': breadth, 'categories': categories,
+                          'observation_date': (breadth or {}).get('observation_date'),
+                          'breadth_net_pct': all_breadth,
+                          'definition': '100 * (advances - declines) / (advances + declines + unchanged), all securities row only'},
+            'source_snapshots': {'treasury': treasury, 'corporate': breadth},
+            'trace_aggregates': None,
+            'stress_derived': {'dealer_positioning_z': None, 'breadth_momentum': breadth_momentum, 'vwap_dislocation': None},
+            'history': {'key': FINRA_HISTORY_KEY, 'earlier_unique_observations': history_counts},
+            'notes': 'Daily reported aggregates, not individual prints or executable quotes. Category subsets are never added to all securities. Per-leg observation dates remain separate.',
         }
         try:
+            put_s3_json(FINRA_HISTORY_KEY, history, cache='no-cache')
             put_s3_json(TRACE_KEY, standalone)
-        except Exception as e:
-            print(f"[trace-layer] standalone write failed (non-fatal): {e}")
-
+        except Exception as error:
+            print(f'[finra-layer] publication failed: {type(error).__name__}')
+            return None
         return {
-            "provenance": "finra-trace",
-            "trade_date": trade_date,
-            "dealer_positioning_z": dealer_positioning_z,
-            "breadth_momentum": breadth_momentum,
-            "vwap_dislocation": vwap_dislocation,
-            "treasury_dealer_share": dealer_share,
-            "treasury_n_buckets": len(buckets),
-            "corporate_breadth_net_pct": breadth_net_pct,
-            "trace_n_prints": (agg or {}).get("n_prints"),
-            "trace_total_volume": (agg or {}).get("total_volume"),
-            "standalone_key": TRACE_KEY,
+            'provenance': 'finra-daily-aggregates', 'contract_version': 'finra-aggregates-v1',
+            'trade_date': (treasury or {}).get('observation_date'),
+            'observation_dates': {'treasury': (treasury or {}).get('observation_date'), 'corporate': (breadth or {}).get('observation_date')},
+            'quality': quality, 'dealer_positioning_z': None,
+            'dealer_customer_volume_share': aggregate_share,
+            'treasury_dealer_share': aggregate_share,
+            'breadth_momentum': breadth_momentum, 'vwap_dislocation': None,
+            'treasury_n_buckets': len(buckets), 'corporate_breadth_net_pct': all_breadth,
+            'trace_n_prints': None, 'trace_total_volume': None, 'standalone_key': TRACE_KEY,
         }
-    except Exception as e:
-        print(f"[trace-layer] failed: {e}")
+    except Exception as error:
+        print(f'[finra-layer] unavailable: {type(error).__name__}')
         return None
 
 
@@ -309,8 +323,12 @@ def lambda_handler(event, context):
     angl = fetch_aggs("ANGL", 90)  # fallen angels
 
     out = {
-        "schema_version": "2.0",
-        "method": "bond_trace_v1+trace_layer",
+        "schema_version": "2.1",
+        "method": "legacy_bond_proxy+documented_finra_aggregates",
+        "call": None,
+        "calls_eligible": False,
+        "sizing_eligible": False,
+        "quality": {"status": "unqualified", "reason": "Legacy ETF/OAS heuristic is not calibrated; time alignment, source units, missingness and normal delivery require qualification."},
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -344,7 +362,7 @@ def lambda_handler(event, context):
     ratio_30d_pct = None
     if hyg_c and lqd_c and len(hyg_c) >= 30 and len(lqd_c) >= 30:
         ratio_5d_pct = round((hyg_c[-1]/lqd_c[-1]) / (hyg_c[-6]/lqd_c[-6]) * 100 - 100, 2)
-        ratio_30d_pct = round((hyg_c[-1]/lqd_c[-1]) / (hyg_c[-31]/lqd_c[-31]) * 100 - 100, 2)
+        ratio_30d_pct = round((hyg_c[-1]/lqd_c[-1]) / (hyg_c[-31]/lqd_c[-31]) * 100 - 100, 2) if len(hyg_c) > 30 and len(lqd_c) > 30 else None
     out["hyg_lqd_ratio"] = {
         "value": round(hyg_c[-1]/lqd_c[-1], 4) if (hyg_c and lqd_c) else None,
         "change_5d_pct": ratio_5d_pct,
@@ -411,25 +429,24 @@ def lambda_handler(event, context):
     out["regime"] = regime
     out["top_reasons"] = reasons
     out["interpretation"] = (
-        "Credit markets in panic. Equity drawdown likely 10%+ if persists." if score >= 70 else
+        "Legacy credit proxy exceeds its highest heuristic threshold; no equity drawdown probability is established." if score >= 70 else
         "Credit selling underway. Watch HYG/LQD ratio for stabilization." if score >= 45 else
         "Some credit weakness emerging. Monitor for acceleration." if score >= 20 else
-        "Credit markets calm. Risk-on environment supported."
+        "Legacy credit proxy is below its first heuristic threshold; missing inputs and unvalidated calibration limit interpretation."
     )
     out["notes"] = ("Proxy from HYG/LQD/JNK/TLT ETFs + ICE BofA HY OAS. "
-                     "Real TRACE prints require FINRA registration.")
+                     "The FINRA layer contains documented daily aggregates, not individual prints; source qualification remains open.")
     out["duration_s"] = round(time.time()-t0, 1)
 
-    # Phase 1: real FINRA TRACE aggregate layer (fail-soft; proxy untouched
-    # on any failure — the fields above remain authoritative).
+    # Documented aggregate layer; the legacy proxy remains separate and unqualified.
     trace_layer = build_trace_layer(prior)
     if trace_layer is not None:
         out["trace"] = trace_layer
     else:
         out["trace"] = {
             "provenance": "proxy-fallback",
-            "note": ("TRACE fetch unavailable; proxy fields above are "
-                     "authoritative."),
+            "note": ("FINRA aggregate adapter unavailable; proxy fields above "
+                     "remain an unqualified heuristic."),
         }
 
     put_s3_json(S3_KEY, out)
@@ -451,7 +468,7 @@ def lambda_handler(event, context):
             maybe_telegram(
                 f"🚨 <b>HY OAS PANIC WIDENING</b>\n"
                 f"+{out['hy_oas_5d_change_bp']:.0f}bp in 5d (now {out.get('hy_oas_pct')}%)\n"
-                f"Historically: 5d HY OAS +30bp precedes equity drawdown 70% of the time."
+                f"This is a heuristic threshold, not a validated equity drawdown probability."
             )
     except Exception as e:
         print(f"[alerts] err: {e}")
