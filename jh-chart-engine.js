@@ -2772,6 +2772,25 @@
     var st=document.getElementById("stat");
     var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.34"; if(st) st.textContent="v12.40 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
+  function closeLocationVolume(bar){
+    if(!bar||reportedVolume(bar.volume)===null)return null;
+    var high=bar.high,low=bar.low,close=bar.close;
+    if(typeof high!=="number"||typeof low!=="number"||typeof close!=="number"||!Number.isFinite(high)||!Number.isFinite(low)||!Number.isFinite(close)||high<=low||close<low||close>high)return null;
+    var range=high-low,fromLow=close-low,fromHigh=high-close;
+    if(!Number.isFinite(range)||!Number.isFinite(fromLow)||!Number.isFinite(fromHigh))return null;
+    var ratio=fromLow/range;
+    if(!Number.isFinite(ratio)||fromLow>0&&ratio===0)return null;
+    var factor=ratio*2-1;
+    if(factor===0&&fromLow!==fromHigh)return null;
+    var value=factor*bar.volume;
+    if(!Number.isFinite(value)||factor!==0&&bar.volume>0&&value===0)return null;
+    return value===0?0:value;
+  }
+  function fmtSignedVol(value){
+    if(typeof value!=="number"||!Number.isFinite(value))return "Unavailable";
+    if(value===0)return "0";
+    return (value<0?"-":"+")+fmtVol(Math.abs(value));
+  }
   function quoteUI(d){
     if(observationId(active)){["quote","detail"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=observationText(d);});return;}
     var last=d[d.length-1], prev=d[d.length-2]||last;
@@ -2782,8 +2801,7 @@
     var vwLab=intra?"VWAP":"YTD VWAP";
     var tw=twap(d), twv=tw.length?tw[tw.length-1].value:null;
     var rvol=rvolAt(d,d.length-1,20);
-    var deltaEst=reportedVolume(last.volume)===null?null:last.high>last.low? ((last.close-last.low)/(last.high-last.low)*2-1)*last.volume : 0;
-    if(deltaEst!==null&&!Number.isFinite(deltaEst))deltaEst=null;
+    var deltaEst=closeLocationVolume(last);
     var vsPx=vw? (last.close-vw)/vw : null;
     var heat=rvol===null?"":rvol>=2?"HOT":rvol>=1.4?"elevated":rvol>=0.8?"normal":"thin";
     var stance=vw==null?"—": last.close>vw?"above "+vwLab: last.close<vw?"below "+vwLab:"at "+vwLab;
@@ -2803,7 +2821,7 @@
       var yr=lastVsSpx.from?(window.jhInst&&window.jhInst.nyClock?window.jhInst.nyClock(lastVsSpx.from).y:new Date(lastVsSpx.from*1000).getUTCFullYear()):"";
       vsBit=" <span title='Price relative vs S&P 500 cash (GSPC). NY session join, no interpolation. RS rebased 100 at first overlap. Not SPY (1993).'>vs SPX 1d "+fmtXs(L.d1)+" · YTD "+fmtXs(L.ytd)+" · 1y "+fmtXs(L.y)+" · all "+fmtXs(L.all)+(yr?" · "+yr:"")+"</span>";
     }
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+escHtml(active)+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+escHtml(tf)+" · "+escHtml(mode)+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx===null?"":vsPx>=0?"up":"dn")+">"+(vsPx===null?"Unavailable":(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%")+"</span></span> <span>Δ "+(deltaEst===null?"Unavailable":(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst)))+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+(dltTape>=0?"+":"")+fmtVol(Math.abs(dltTape))+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+escHtml(active)+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+escHtml(tf)+" · "+escHtml(mode)+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx===null?"":vsPx>=0?"up":"dn")+">"+(vsPx===null?"Unavailable":(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%")+"</span></span> <span title='Close-location multiplier times reported bar volume: (2*(close-low)/(high-low)-1)*volume. An OHLC estimate, not measured buyer-versus-seller flow. Zero-range bars and invalid inputs are unavailable; source units remain unverified.'>CLV × Vol "+fmtSignedVol(deltaEst)+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+fmtSignedVol(dltTape)+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -2826,7 +2844,7 @@
         "<div class=cell><span>vs SPX all</span><span class='"+(LV.all>=0?"up":"dn")+"'>"+fmtXs(LV.all)+" · RS "+(LV.rs!=null?LV.rs.toFixed(1):"—")+"</span></div>"+
         "<div class=cell><span>β vs SPX 1y</span><span>"+(LV.beta!=null?LV.beta.toFixed(2):"—")+"</span></div>";
     }
-    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+escHtml(active)+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span>Δ bar</span><span class="+(deltaEst===null?"":deltaEst>=0?"up":"dn")+">"+(deltaEst===null?"Unavailable":(deltaEst>=0?"+":"")+fmtVol(Math.abs(deltaEst)))+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
+    document.getElementById("detail").innerHTML="<div style=font-weight:600>"+escHtml(active)+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span title='Close-location multiplier times reported bar volume; an OHLC estimate, not measured trade flow.'>CLV × Vol</span><span class="+(deltaEst===null?"":deltaEst>=0?"up":"dn")+">"+fmtSignedVol(deltaEst)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
   function paintOsc(d){
     var wrap=document.getElementById("oscwrap");
@@ -3307,7 +3325,7 @@
       el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+escHtml(active)+" <span>no tick tape</span></div><div class=qrbody style=padding:10px;color:var(--mut)>No public prints for this symbol (warehouse is daily bars; tick tape is crypto/Binance only)</div>";
       return;
     }
-    el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+escHtml(active)+" <span>"+tape.prints.length+" prints</span> <span>VWAP "+(tape.vwap!=null?fmt(tape.vwap):"—")+"</span> <span class=up>B "+fmtVol(tape.buyVol)+"</span> <span class=dn>S "+fmtVol(tape.sellVol)+"</span> <span>Δ <span class="+(tape.delta>=0?"up":"dn")+">"+(tape.delta>=0?"+":"")+fmtVol(Math.abs(tape.delta))+"</span></span>"+
+    el.innerHTML="<div class=qrbar><b>QR TIME & SALES</b> "+escHtml(active)+" <span>"+tape.prints.length+" prints</span> <span>VWAP "+(tape.vwap!=null?fmt(tape.vwap):"—")+"</span> <span class=up>B "+fmtVol(tape.buyVol)+"</span> <span class=dn>S "+fmtVol(tape.sellVol)+"</span> <span>Δ <span class="+(tape.delta>=0?"up":"dn")+">"+fmtSignedVol(tape.delta)+"</span></span>"+
       ["all","buy","sell","lg"].map(function(f){ return "<button class='qrf "+(filt===f?"on":"")+"' data-f='"+f+"'>"+(f==="lg"?"LARGE":f.toUpperCase())+"</button>"; }).join("")+
       "</div>"+
       "<div class=qrcols><span>TIME</span><span>PX</span><span>SIZE</span><span>SIDE</span></div>"+

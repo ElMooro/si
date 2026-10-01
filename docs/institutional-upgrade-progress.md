@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, after Stage 511: all ten institutional workstreams remain open. Prior native, edge, publication, chart observation, volume and render-lifecycle acceptance remains retained. The reproduced chart URL/label HTML injection paths are repaired and accepted with 78 exact static artifacts, 898 engine records and 599 page contracts. Next: rebase and finish the signed-volume Stage 510 prototype, then repair the reproduced documented FINRA dataset/category contract, benchmark-label misuse and Bond TRACE 30-row boundary. Other HTML sinks, numerical extremes, auxiliary consumers and mobile metadata remain unqualified. Actual normal execution/capacity, original-source qualification and reconciled portfolio consequences remain unverified. Original-publication windows remain Term Premium 13:45 UTC, China 14:30–14:45 UTC, FI/FX 21:20 UTC. Private/account/current-consumer packets remain excluded from these checks.
+October 1 UTC, after Stage 512: all ten institutional workstreams remain open. FINRA aggregate semantics, the Bond TRACE 30-row boundary and the Intelligence consumer have exact native/static release evidence, while original-source and normal-publication qualification remain open. Next: website synthesis without paid AI, truthful deterministic status and no unsupported posture alerts; then direct tests and qualification for the migrated short-interest ticker consumers. Duplicate native Bond TRACE schedules, legacy notifications, original observations and reconciled portfolio consequences remain unfinished. Private/account/current-consumer packet access remains outside these checks.
 
 ### Retained Stage 482 checkpoint
 
@@ -7312,3 +7312,42 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `4ee04eb8f9b86ff44a672bec5454ea19aa0d09c2` matches the exact served Pages build, run 36862246172. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - 2,578 frontend cases, 1018 deployment and fifteen shell checks pass. Thirteen new cases and fifteen offline real-library desktop/mobile suites verify literal symbols, notes, labels and quoted IDs, including query/hash entry, navigation recovery, alert deletion and comparison removal. The previous source fails all eight focused cases.
 - This closes the reproduced chart-label injection paths. It does not establish that every HTML sink, other page, annotation, URL, CSS value or dependency is safe. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
+
+
+## Stage 510: signed display and explicit OHLC volume estimate (candidate)
+
+- The complete predecessor browser shows a computed −100 as Δ 100. The quantity is a close-location multiplier times volume, not measured signed trade flow. Whole invented inputs and predecessor source are retained.
+- The quote now names CLV × Vol and discloses its formula and limits. Nonflat measured-zero volume remains zero; flat, invalid and numerically unrepresentable estimates remain unavailable. Ordinary complete-frame arithmetic is preserved. A shared signed formatter retains negative signs in the quote and existing QR summary without qualifying upstream tape measurements.
+- Eleven focused cases and desktop/mobile whole-module prototypes pass. Four preservation cases bind unchanged source and all earlier assertions. Full combined regression and exact publication remain pending; all institutional workstreams remain OPEN.
+
+- Stage 510 combined checks passed 2,593 frontend cases, 1018 deployment and fifteen shell checks. Fifteen new behavior/preservation cases and sixteen offline desktop/mobile suites pass. Signed labels and the bounded close-location estimate are verified within this scope; exact static release remains pending.
+
+- Stage 510 after incoming source integration: 2,600 frontend, 1,018 deployment and fifteen shell checks pass. The incoming Tape Reader whole-page invented browser cases also pass. A separate native short-interest suite exposes one pre-existing squeeze-pretrigger reader guard regression (38/39 pass); it is queued for the immediately following engine batch and is not covered by static chart acceptance. Operation 6411 is a read-only native control baseline, not a producer invocation.
+
+- Stage 510 final incoming review: peer fixture migration retires an obsolete squeeze reader expectation; rerunning the native short-interest suite exposes the analogous obsolete equity-enrich expectation (38/39 still pass). Source review confirms both now read a separate descriptive ticker packet. The earlier missing-guard diagnosis is not evidence of a scoring regression; direct coverage of the new readers and removal of unsupported legacy forecast/sizing prose remain open. No application source changed after the full combined checks.
+
+
+### Stage 510 exact static acceptance
+
+- Source `4a998e454ae8822bafbfe64f63677cac9f839a55` matches the exact served Pages build, run 36867097135. All 78 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
+- 2,600 frontend cases, 1018 deployment and fifteen shell checks pass. Fifteen new cases and sixteen offline real-library desktop/mobile suites verify signed quote/QR summaries and the close-location estimate, while retaining the previously accepted literal-label and navigation checks. The whole predecessor reproduces the missing minus sign.
+- The displayed quantity is named CLV × Vol with its limits; unavailable estimates remain unavailable and genuine zeros survive. Tape acquisition, other volume studies and provider definitions remain unqualified. Long literal symbols still crowd mobile metadata. All ten institutional workstreams remain OPEN.
+
+
+## Stage 512: documented FINRA aggregates and bond consumers (candidate)
+
+- Corporate breadth now uses the documented dataset, category identity and observation date; complete returned rows and canonical response hashes are retained. Treasury observations use returned dates from a bounded window. Invalid, duplicate and saturated responses are unavailable. Current API volume units remain explicitly unverified.
+- Benchmark labels remain labels. Unsupported price dislocation, dealer positioning and individual-print fields stay null with reasons. A separately versioned history compares only earlier unique observations under this definition; legacy history is not migrated. A 30-row ETF boundary no longer raises.
+- Intelligence renders the actual ratio value, removes unsupported absolute-price-ratio posture inference, distinguishes dates, preserves missingness and uses a scrollable mobile table. Website synthesis withholds unqualified bond context. Its separate paid-API path and other input qualification still require repair; no model or producer is invoked by these checks.
+- Thirty-six isolated helper/whole-producer tests, three synthesis tests, nine page tests and full-page invented desktop/mobile prototypes pass before adoption. Full integration and native/static acceptance remain pending. All ten workstreams remain OPEN.
+
+- Stage 512 integrated candidate checks: 2,609 frontend, 1018 deployment and fifteen shell checks pass, together with 36 bond, three new plus seven preserved synthesis, and six native acceptance checks. Whole-producer invented fixtures reproduce the old 30-row crash; desktop/mobile browser fixtures reproduce the old object-rendering and unsupported ratio interpretation. Exact native/static release is pending. Duplicate bond triggers, legacy notifications, no-paid synthesis transport and new short-interest consumer coverage remain open.
+
+- Stage 512 final integration retains peer changes. Own operation 6412 collided with another lane and was renamed to 6413, with a separate published reservation. Only the report identity changed; its six controls tests and the deployment suite were rerun. Generated source references were rebuilt after an incoming docstring line change. The unchanged frontend/browser evidence is retained with exact source hashes. Incoming short-interest and industry-metadata tests pass 39 and 16 invented cases respectively; no foreign report was read or accepted.
+
+
+### Stage 512 exact native and static acceptance
+
+- Source `e5956182093119f917956e23e9bc2403f5cd751d` is bound to both Lambda receipts and their actual deployed source closures (Bond TRACE: four files; website synthesis: nine). Operation 6413 checked the full packages, exact source hashes and unchanged selected native resources/schedule census against operation 6411 twice, without invoking either producer or reading an application packet. Existing duplicate Bond TRACE triggers remain open.
+- Pages run 36871629488 serves 79 complete inspected artifacts under the same commit. All 898 engine records and 599 page contracts reproduce from source. 2,609 frontend, 1018 deployment and fifteen shell checks pass; 36 bond, three new plus seven preserved synthesis and six native acceptance tests pass. Whole invented desktop/mobile page and producer fixtures cover the reproduced failures.
+- Source semantics and consumer display are repaired within the documented scope. Provider units/coverage, ordinary source publication, original-source replay, legacy proxy/notification behavior and portfolio effects remain unqualified. The paid website-synthesis transport is the next repair. All ten institutional workstreams remain OPEN.

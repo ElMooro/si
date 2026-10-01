@@ -1,0 +1,256 @@
+{
+  "script": "1070_triggers",
+  "read_at": "2026-10-01T13:50:11Z",
+  "upgrades": {
+    "1/10 FRED macro regime": {
+      "lambda": "justhodl-macro-regime",
+      "last_modified": "2026-09-30T20:03:54.000+0000",
+      "timeout": 300,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-macro-regime-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 22 * * ? *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 1,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/macro-regime.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "DEGRADED"
+    },
+    "2/10 SEC 8-K enrichment": {
+      "lambda": "justhodl-sec-8k-enrich",
+      "last_modified": "2026-09-30T20:11:23.000+0000",
+      "timeout": 300,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-sec-8k-enrich-schedule",
+          "state": "ENABLED",
+          "expression": "cron(10,40 * * * ? *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 4,
+        "errors": 1
+      },
+      "artifacts": {
+        "data/8k-filings-enriched.json": {
+          "exists": true,
+          "size": 1106380
+        }
+      },
+      "verdict": "DEGRADED"
+    },
+    "3/10 FINRA short-interest": {
+      "lambda": "justhodl-short-interest",
+      "last_modified": "2026-10-01T13:33:21.000+0000",
+      "timeout": 360,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-short-interest-6h",
+          "state": "ENABLED",
+          "expression": "cron(20 12 * * ? *)"
+        },
+        {
+          "type": "rule",
+          "name": "justhodl-short-interest-sched",
+          "state": "ENABLED",
+          "expression": "cron(15 21 ? * MON,WED *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 6,
+        "errors": 6
+      },
+      "artifacts": {
+        "data/short-interest.json": {
+          "exists": true,
+          "size": 4997602
+        },
+        "data/short-interest-tickers.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "DEGRADED"
+    },
+    "4/10 SEC XBRL": {
+      "lambda": "justhodl-xbrl-fundamentals",
+      "last_modified": "2026-09-30T20:50:10.000+0000",
+      "timeout": 900,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-xbrl-fundamentals-schedule",
+          "state": "ENABLED",
+          "expression": "cron(0 6 ? * SUN *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 0,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/xbrl-fundamentals.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "FAIL"
+    },
+    "5/10 CBOE options": {
+      "lambda": "justhodl-cboe-options-chain",
+      "last_modified": "2026-09-30T21:11:42.000+0000",
+      "timeout": 300,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-cboe-options-chain-schedule",
+          "state": "ENABLED",
+          "expression": "cron(5,35 * * * ? *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 3,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/options-chain.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "DEGRADED"
+    },
+    "6/10 FINRA TRACE (bond)": {
+      "lambda": "justhodl-bond-trace",
+      "last_modified": "2026-10-01T13:54:29.000+0000",
+      "timeout": 120,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-bond-trace-cadence",
+          "state": "ENABLED",
+          "expression": "cron(0 21 ? * MON-FRI *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 2,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/bond-trace.json": {
+          "exists": true,
+          "size": 750
+        }
+      },
+      "verdict": "PASS"
+    },
+    "7/10 Corporate actions": {
+      "lambda": "justhodl-corporate-actions",
+      "last_modified": "2026-09-30T21:59:22.000+0000",
+      "timeout": 300,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-corporate-actions-schedule",
+          "state": "ENABLED",
+          "expression": "cron(30 6 ? * * *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 0,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/corporate-actions.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "FAIL"
+    },
+    "8/10 Price redundancy": {
+      "lambda": "justhodl-price-redundancy",
+      "last_modified": "2026-10-01T12:44:53.000+0000",
+      "timeout": 300,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-price-redundancy-15min",
+          "state": "ENABLED",
+          "expression": "rate(15 minutes)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 101,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/quote-health.json": {
+          "exists": true,
+          "size": 9120
+        }
+      },
+      "verdict": "PASS"
+    },
+    "9/10 Symbology/OpenFIGI": {
+      "lambda": "justhodl-symbology-master",
+      "last_modified": "2026-10-01T01:00:32.000+0000",
+      "timeout": 120,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-symbology-master-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 5 * * ? *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 1,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/symbology.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "DEGRADED"
+    },
+    "10/10 ETF issuer holdings": {
+      "lambda": "justhodl-etf-issuer-holdings",
+      "last_modified": "2026-10-01T12:36:13.000+0000",
+      "timeout": 600,
+      "triggers": [
+        {
+          "type": "rule",
+          "name": "justhodl-etf-issuer-holdings-daily",
+          "state": "ENABLED",
+          "expression": "cron(0 4 * * ? *)"
+        }
+      ],
+      "activity_24h": {
+        "invocations": 0,
+        "errors": 0
+      },
+      "artifacts": {
+        "data/etf-issuer-holdings.json": {
+          "exists": false,
+          "size": null
+        }
+      },
+      "verdict": "FAIL"
+    }
+  }
+}

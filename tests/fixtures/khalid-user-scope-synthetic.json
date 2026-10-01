@@ -1,0 +1,5841 @@
+{
+  "generated_at": "2026-10-01T04:00:00+00:00",
+  "opportunity_radar": [
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST1",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST2",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST3",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST4",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST5",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST6",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST7",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST8",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST9",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST10",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    },
+    {
+      "backend_gate_observation": {
+        "schema_version": "khalid-existing-readiness.v1",
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "reported_action": "READY_TO_SNIPE",
+        "criteria": [
+          {
+            "id": "location",
+            "status": "PASS",
+            "value": -8.0
+          },
+          {
+            "id": "compression",
+            "status": "PASS",
+            "value": 8.0
+          },
+          {
+            "id": "supply",
+            "status": "PASS",
+            "value": 0.62
+          },
+          {
+            "id": "structure",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "legacy_flow",
+            "status": "PASS",
+            "value": 2
+          },
+          {
+            "id": "catalyst",
+            "status": "PASS",
+            "value": 1
+          },
+          {
+            "id": "rsi",
+            "status": "PASS",
+            "value": 38.0
+          },
+          {
+            "id": "dilution",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "confidence",
+            "status": "PASS",
+            "value": 0.9
+          },
+          {
+            "id": "vetoes",
+            "status": "PASS",
+            "value": 0
+          },
+          {
+            "id": "reward_risk",
+            "status": "PASS",
+            "value": 3.0
+          },
+          {
+            "id": "risk_permission",
+            "status": "PASS",
+            "value": true
+          },
+          {
+            "id": "trigger",
+            "status": "PASS",
+            "value": true
+          }
+        ],
+        "input_sources": [
+          "fortress",
+          "khalid_risk"
+        ],
+        "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained."
+      },
+      "source": "fortress",
+      "katlin": null,
+      "ticker": "TEST11",
+      "name": "Test Asset",
+      "asset_class": "STOCK",
+      "industry": null,
+      "sector": null,
+      "category": null,
+      "market_cap": null,
+      "cap_bucket": null,
+      "momentum": null,
+      "criteria": [],
+      "gates": [],
+      "action": "READY_TO_SNIPE",
+      "score": 80.9,
+      "confidence": 0.9,
+      "timeframe": {
+        "thesis": "3M / 1M / weekly",
+        "entry": "daily confirmation, then 4h execution",
+        "rule": "4h and daily may time an entry; they never create the long-term thesis"
+      },
+      "price": 10.0,
+      "technical": {
+        "vs_200d_pct": -8.0,
+        "vs_250d_pct": -12.0,
+        "rsi": 38.0,
+        "bb_width_percentile": 8.0,
+        "higher_lows": 3,
+        "bottom_confirmation": null
+      },
+      "valuation": {
+        "score": 88.0,
+        "pe": null,
+        "forward_pe": 8.0,
+        "peg": 0.7,
+        "ev_ebitda": null,
+        "fcf_yield_pct": null
+      },
+      "dilution": {
+        "yoy_pct": 1.0,
+        "active": null,
+        "net_issuer": null,
+        "net_buyback_yield_pct": null
+      },
+      "risk_reward": {
+        "ratio": 3.0,
+        "pivot": 10.5,
+        "stop": 9.0,
+        "target_1": 13.0,
+        "target_2": 15.0,
+        "empirical_dump_loss_pct": null,
+        "structural_dump_risk": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "asymmetry": 4.0
+      },
+      "dump_risk": {
+        "empirical_loss_pct": null,
+        "structural_estimate": {
+          "label": "STRUCTURAL DUMP-RISK ESTIMATE \u2014 NOT A PROBABILITY",
+          "estimated_loss_pct": 10.0,
+          "method": "Distance from current price to the stated structural stop",
+          "calibrated_probability": false
+        },
+        "evidence": []
+      },
+      "entry_trigger": {
+        "state": "TRIGGERED",
+        "daily": "Close through the base pivot with volume; no gap-chasing",
+        "four_hour": "Retest/hold of the pivot or higher low after breakout",
+        "invalidation": "Close below the base low on expanding volume"
+      },
+      "evidence": {
+        "location": [
+          {
+            "label": "Below 200-day",
+            "value": -8.0,
+            "source": "fortress",
+            "detail": "Required long-term location gate passed"
+          },
+          {
+            "label": "Below 250-day",
+            "value": -12.0,
+            "source": "fortress",
+            "detail": "Preferred deep-location confirmation"
+          }
+        ],
+        "accumulation": [
+          {
+            "label": "Tight Bollinger width",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Bandwidth is in the lowest quintile of its own history"
+          },
+          {
+            "label": "Volatility contraction",
+            "value": true,
+            "source": "fortress",
+            "detail": "Successive contractions suggest supply is drying up"
+          },
+          {
+            "label": "Supply dry-up precondition",
+            "value": 0.62,
+            "source": "fortress",
+            "detail": "Base volume is at least 20% below its reference level; this is not proof by itself"
+          },
+          {
+            "label": "Higher lows",
+            "value": 3,
+            "source": "fortress",
+            "detail": "Base structure is improving"
+          },
+          {
+            "label": "Volume divergence",
+            "value": true,
+            "source": "fortress",
+            "detail": "OBV or accumulation/distribution is improving before price"
+          },
+          {
+            "label": "RSI reset",
+            "value": 38.0,
+            "source": "accumulation-radar",
+            "detail": "Momentum is washed out rather than extended"
+          }
+        ],
+        "flows": [
+          {
+            "label": "Major fund inflow",
+            "value": true,
+            "source": "fortress",
+            "detail": "Industry or ETF flow is large relative to assets"
+          },
+          {
+            "label": "Persistent flow score",
+            "value": 82.0,
+            "source": "fortress",
+            "detail": "Multi-source fund-flow score is strong"
+          }
+        ],
+        "catalysts": [
+          {
+            "label": "Contract catalyst",
+            "value": 75.0,
+            "source": "fortress",
+            "detail": "Recent contracts or an explicit catalyst are material"
+          }
+        ],
+        "valuation": [
+          {
+            "label": "Peer valuation score",
+            "value": 88.0,
+            "source": "fortress",
+            "detail": "Percentile score within the relevant industry"
+          },
+          {
+            "label": "Forward P/E",
+            "value": 8.0,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          },
+          {
+            "label": "PEG",
+            "value": 0.7,
+            "source": "fortress",
+            "detail": "Context metric, not a standalone buy signal"
+          }
+        ],
+        "risk_reward": [
+          {
+            "label": "Entry-based reward/risk",
+            "value": 3.0,
+            "source": "khalid",
+            "detail": "Upside and downside are recomputed from the planned entry, target and stop"
+          }
+        ]
+      },
+      "vetoes": [],
+      "cautions": [],
+      "plain_english": "TEST is 8.0% below its 200-day trend. 6 separate base/accumulation clues agree. 2 capital-flow clues are positive. 1 identifiable catalyst clues could unlock the setup. the long-term thesis and an observed daily/4h trigger pass.",
+      "deep_links": [
+        "/fortress.html",
+        "/accumulation.html",
+        "/dark-pool.html",
+        "/options.html",
+        "/catalyst.html"
+      ],
+      "sources": [
+        "fortress-execution"
+      ]
+    }
+  ],
+  "source_health": [
+    {
+      "name": "fortress",
+      "producer": "justhodl-fortress",
+      "key": "data/fortress.json",
+      "as_of": "2026-10-01T04:00:00+00:00",
+      "status": "FRESH",
+      "max_age_h": 84
+    }
+  ],
+  "qualification_evidence": {
+    "schema_version": "khalid-qualification.v1",
+    "generated_at": "2026-10-01T04:00:00+00:00",
+    "expires_at": "2026-10-02T06:00:00+00:00",
+    "freshness_scope": "26-hour publication display limit only; source statuses/clocks remain separate, no risk-policy change",
+    "historical_validation": "UNAVAILABLE: these contracts do not establish backtest validity or calibrated performance",
+    "backend_definitions": [
+      {
+        "id": "location",
+        "label": "Price at/below the existing 200-day average",
+        "definition": "Existing selected EMA200, otherwise SMA200, distance <= 0 percent.",
+        "unit": "percent",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "compression",
+        "label": "Bollinger compression",
+        "definition": "Existing bb_width_pctile <= 20; the upstream estimator is not redefined here.",
+        "unit": "percentile",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "supply",
+        "label": "Supply dry-up",
+        "definition": "Existing volume_dryup <= 0.8; upstream reference window is not redefined here.",
+        "unit": "ratio",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "structure",
+        "label": "Existing structural confirmation",
+        "definition": "At least two higher lows OR truthy OBV/AD divergence OR bottom phase ACCUMULATION OR flag LIKELY_BOTTOM.",
+        "unit": "boolean",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "legacy_flow",
+        "label": "Existing flow-clue gate",
+        "definition": "At least one existing flows evidence row. These legacy clues are not verified ETF creations/redemptions or signed trades.",
+        "unit": "count",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "catalyst",
+        "label": "Existing catalyst-clue gate",
+        "definition": "At least one existing catalysts evidence row.",
+        "unit": "count",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "rsi",
+        "label": "Existing RSI reset",
+        "definition": "Selected bottom-model RSI, otherwise row RSI/rsi_14, <= 45.",
+        "unit": "index",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "dilution",
+        "label": "Existing dilution coverage",
+        "definition": "Non-stock OR dilution observed OR net_issuer flag observed OR net buyback yield observed. The existing veto gate separately checks severity.",
+        "unit": "boolean",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "confidence",
+        "label": "Existing confidence floor",
+        "definition": "Existing candidate confidence (including its existing fallback) >= 0.60; this is not a calibrated probability.",
+        "unit": "fraction",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "vetoes",
+        "label": "Existing vetoes",
+        "definition": "No existing vetoes: location, observed ADV below $1M, modeled R/R below 2, dilution >= 10%, or net issuer. Missing ADV retains existing behavior.",
+        "unit": "count",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "reward_risk",
+        "label": "Existing entry geometry",
+        "definition": "Valid planned stop < entry < target and (target-entry)/(entry-stop) >= 2.5.",
+        "unit": "ratio",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "risk_permission",
+        "label": "Existing risk permission",
+        "definition": "Existing risk_allows_entries flag is true; this evidence never grants permission.",
+        "unit": "boolean",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      },
+      {
+        "id": "trigger",
+        "label": "Observed entry trigger",
+        "definition": "entry_triggered is True OR daily_4h_triggered is True. Without this, an otherwise qualified entry remains ARMED.",
+        "unit": "boolean",
+        "definition_version": "khalid-existing-readiness.v1",
+        "applicability": "EXISTING_ENTRY_GATE",
+        "provenance": "scoring.py:score_candidate; recorded native gate, not independently validated market evidence"
+      }
+    ],
+    "requested_criteria": [
+      {
+        "id": "universe",
+        "label": "Eligible universe and exclusions",
+        "definition": "Point-in-time index membership, taxonomy, biotechnology and cap exclusions require an agreed definition.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "ma250",
+        "label": "Below the 250-day",
+        "definition": "Average type, session calendar and required/preference role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "offhigh",
+        "label": "At least 50% off the high",
+        "definition": "High anchor, window and corporate-action treatment are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "rsi",
+        "label": "RSI washed out",
+        "definition": "Threshold, estimator, timeframe and warm-up are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "spread",
+        "label": "Very tight price spread",
+        "definition": "Window and threshold are unconfirmed; OHLC range is not a quoted bid/ask spread.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "bb",
+        "label": "Tight Bollinger bands",
+        "definition": "Estimator, window and percentile threshold are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "volatility",
+        "label": "Very low volatility",
+        "definition": "Estimator, reference window and threshold are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "volume",
+        "label": "Shrinking volume",
+        "definition": "Volume normalization, window and threshold are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "flat",
+        "label": "Flat moving average",
+        "definition": "Average, window and slope threshold are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "support_3m",
+        "label": "On 3-month support",
+        "definition": "3m is unresolved: 63 native sessions, rolling calendar months and quarterly bars are different definitions.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "higher_low",
+        "label": "Higher low",
+        "definition": "Pivot detection, windows and minimum separation are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "capitulation",
+        "label": "Selling climax or capitulation",
+        "definition": "Return/volume windows and thresholds are unconfirmed. Close location means (close-low)/(high-low) for nonzero range, not price percent above low.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "demand",
+        "label": "Demand showing",
+        "definition": "Price/volume proxy is not signed buying; accepted evidence and threshold are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "valuation",
+        "label": "Cheap valuation",
+        "definition": "Industry comparables, point-in-time fundamentals and required/preference role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "industry",
+        "label": "Industry ETF near its 200-day",
+        "definition": "ETF mapping, average and tolerance are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "true_flow",
+        "label": "Verified fund flows",
+        "definition": "Exact fund identity, creation/redemption measure, window and publication lag are unconfirmed. Legacy flow scores and holdings are not proof.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "resilience",
+        "label": "Resilience versus exact S&P benchmark",
+        "definition": "Exact benchmark instrument, return treatment and horizon are unconfirmed. SPY is not silently substituted for the S&P index.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "crypto_relative",
+        "label": "ETH/BTC relative turn",
+        "definition": "Eligible crypto-linked taxonomy, leader, lag and relative-return definition are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "ma300",
+        "label": "Below the 300-day preference",
+        "definition": "Average, session calendar and optional/required role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "double_bottom",
+        "label": "Double bottom preference",
+        "definition": "Pivot tolerance, confirmation and optional/required role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "campaign",
+        "label": "Accumulation campaign preference",
+        "definition": "Accepted model and optional/required role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "catalyst",
+        "label": "Catalyst preference",
+        "definition": "Point-in-time evidence and optional/required role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      },
+      {
+        "id": "momentum",
+        "label": "Momentum turning up preference",
+        "definition": "Estimator, timeframe and optional/required role are unconfirmed.",
+        "definition_version": "khalid-requested-strategy.unresolved.v1",
+        "applicability": "UNRESOLVED",
+        "status": "UNRESOLVED",
+        "value": null,
+        "unit": null,
+        "clocks": {
+          "evaluated_at": "2026-10-01T04:00:00+00:00",
+          "effective_at": null,
+          "available_at": null,
+          "clock_note": "No approved definition or qualifying measurement; publication time is not historical availability."
+        },
+        "provenance": "Unconfirmed requested specification; no measurement substituted"
+      }
+    ],
+    "rows": [
+      {
+        "ticker": "TEST",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/0",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST1",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/1",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST1",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST1",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST2",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/2",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST2",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST2",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST3",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/3",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST3",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST3",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST4",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/4",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST4",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST4",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST5",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/5",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST5",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST5",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST6",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/6",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST6",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST6",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST7",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/7",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST7",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST7",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST8",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/8",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST8",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST8",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST9",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/9",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST9",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST9",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST10",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/10",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST10",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST10",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      },
+      {
+        "ticker": "TEST11",
+        "asset_class": "STOCK",
+        "name": "Test Asset",
+        "source_path": "opportunity_radar/11",
+        "existing_backend_qualification": {
+          "schema_version": "khalid-existing-readiness.v1",
+          "ticker": "TEST11",
+          "asset_class": "STOCK",
+          "criteria": [
+            {
+              "id": "location",
+              "status": "PASS",
+              "value": -8.0
+            },
+            {
+              "id": "compression",
+              "status": "PASS",
+              "value": 8.0
+            },
+            {
+              "id": "supply",
+              "status": "PASS",
+              "value": 0.62
+            },
+            {
+              "id": "structure",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "legacy_flow",
+              "status": "PASS",
+              "value": 2
+            },
+            {
+              "id": "catalyst",
+              "status": "PASS",
+              "value": 1
+            },
+            {
+              "id": "rsi",
+              "status": "PASS",
+              "value": 38.0
+            },
+            {
+              "id": "dilution",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "confidence",
+              "status": "PASS",
+              "value": 0.9
+            },
+            {
+              "id": "vetoes",
+              "status": "PASS",
+              "value": 0
+            },
+            {
+              "id": "reward_risk",
+              "status": "PASS",
+              "value": 3.0
+            },
+            {
+              "id": "risk_permission",
+              "status": "PASS",
+              "value": true
+            },
+            {
+              "id": "trigger",
+              "status": "PASS",
+              "value": true
+            }
+          ],
+          "input_sources": [
+            "fortress",
+            "khalid_risk"
+          ],
+          "source_attribution": "Producer inputs are identified; exact per-field lineage through merged rows is not retained.",
+          "scoring_action": "READY_TO_SNIPE",
+          "reported_action": "READY_TO_SNIPE",
+          "status": "PASS",
+          "criterion_definitions_ref": "backend_definitions",
+          "criterion_clocks": "Use this contract's clocks; source freshness is separate from historical availability",
+          "authority": "Existing published backend readiness only; no new capital authority",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "sources": [
+            {
+              "name": "fortress",
+              "key": "data/fortress.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            },
+            {
+              "name": "khalid_risk",
+              "key": "data/khalid-risk.json",
+              "status": "FRESH",
+              "as_of": "2026-10-01T04:00:00+00:00",
+              "s3_modified_at": null,
+              "max_age_h": 26,
+              "critical": true
+            }
+          ],
+          "reason": "Final discovery/lifecycle action is authoritative; gate observations precede those controls."
+        },
+        "requested_strategy_qualification": {
+          "schema_version": "khalid-requested-strategy.unresolved.v1",
+          "ticker": "TEST11",
+          "asset_class": "STOCK",
+          "status": "UNRESOLVED",
+          "complete": false,
+          "authority": "Requested strategy evidence only; cannot change existing readiness or capital permission",
+          "clocks": {
+            "evaluated_at": "2026-10-01T04:00:00+00:00",
+            "effective_at": null,
+            "available_at": null,
+            "clock_note": "Evaluation/publication time is known. Historical per-field effective/availability clocks are not retained."
+          },
+          "criteria_ref": "requested_criteria"
+        },
+        "artifact_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+      }
+    ],
+    "revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09"
+  },
+  "user_scope_evidence": {
+    "schema_version": "khalid-user-scope.v1",
+    "generated_at": "2026-10-01T04:00:00+00:00",
+    "qualification_revision": "f867921157211309556116131dcea06f536c54042a9d1df710a1fd88e183ee09",
+    "identity_ref": "qualification_evidence.rows[i] / opportunity_radar[i]",
+    "check_encoding": "checks follow definitions order; each tuple is [status, value, reason_id]; refs are [source_index, native_row_path]",
+    "authority": "Research-only source-snapshot observations. No full strategy match, eligibility certification, ranking or capital authority.",
+    "attribution": "Only asset scope and exclusions come from the supplied user criteria. The unchanged 23-item legacy contract includes inherited scanner definitions, not 23 newly confirmed user requirements.",
+    "clock_policy": "Existing producer freshness only. Finviz/census clocks name snapshots, not independently freshness-qualified observations. Cap origin can be Finviz or census fallback; both clocks are retained. No historical effective/availability time or new SLA is inferred.",
+    "effective_at": null,
+    "available_at": null,
+    "definitions": [
+      {
+        "id": "instrument",
+        "label": "Source-reported instrument type",
+        "unit": null,
+        "definition": "Stocks, ETFs, metals and crypto are the stated scope. This slice accepts only native STOCK/ETF/CRYPTO source identities. Economic exposure labels, default types and guessed metals remain unavailable."
+      },
+      {
+        "id": "biotech",
+        "label": "Biotechnology exclusion observation",
+        "unit": null,
+        "source_labels": [
+          "Aerospace & Defense",
+          "Airlines",
+          "Airports & Air Services",
+          "Aluminum",
+          "Apparel Retail",
+          "Auto Manufacturers",
+          "Auto Parts",
+          "Banks - Diversified",
+          "Banks - Regional",
+          "Biotechnology",
+          "Building Materials",
+          "Building Products & Equipment",
+          "Coking Coal",
+          "Copper",
+          "Department Stores",
+          "Discount Stores",
+          "Electrical Equipment & Parts",
+          "Engineering & Construction",
+          "Farm & Heavy Construction Machinery",
+          "Furnishings, Fixtures & Appliances",
+          "Gold",
+          "Home Improvement Retail",
+          "Information Technology Services",
+          "Infrastructure Operations",
+          "Insurance - Diversified",
+          "Insurance - Life",
+          "Insurance - Property & Casualty",
+          "Insurance - Reinsurance",
+          "Insurance - Specialty",
+          "Insurance Brokers",
+          "Integrated Freight & Logistics",
+          "Internet Content & Information",
+          "Internet Retail",
+          "Marine Shipping",
+          "Medical Devices",
+          "Medical Instruments & Supplies",
+          "Oil & Gas Drilling",
+          "Oil & Gas E&P",
+          "Oil & Gas Equipment & Services",
+          "Other Industrial Metals & Mining",
+          "Other Precious Metals & Mining",
+          "Railroads",
+          "Residential Construction",
+          "Semiconductor Equipment & Materials",
+          "Semiconductors",
+          "Silver",
+          "Software - Application",
+          "Software - Infrastructure",
+          "Solar",
+          "Specialty Industrial Machinery",
+          "Specialty Retail",
+          "Steel",
+          "Thermal Coal",
+          "Trucking",
+          "Uranium",
+          "Utilities - Renewable"
+        ],
+        "vocabulary_ref": "justhodl-fortress/source/lambda_function.py:IND_ETF keys at 064e4fe5403b073176615291d3c0ce0c792f1692; incomplete label vocabulary only",
+        "definition": "For a source-bound stock, exact Finviz industry Biotechnology fails; another exact label in the bounded existing Fortress IND_ETF vocabulary passes this observation only. Labels outside that vocabulary are unavailable, not assumed non-biotech. Healthcare is not biotechnology. Fund holdings and crypto applicability are unresolved."
+      },
+      {
+        "id": "cap",
+        "label": "Existing stock-cap convention",
+        "unit": "USD",
+        "definition": "Product convention, not a user-chosen cutoff: SMALL is $300M to below $2B; MID $2B to below $10B; LARGE $10B to below $200B; MEGA >=$200B. SMALL fails this convention check; MID/LARGE/MEGA pass it only. Below $300M and non-stock applicability remain unresolved. Fortress further separates MICRO/NANO at $50M; Khalid groups both as MICRO."
+      }
+    ],
+    "reasons": {
+      "observed": "Source-bound observation at the named snapshot; not full strategy qualification or current eligibility certification.",
+      "missing": "No source-bound Fortress/Katlin record for this candidate.",
+      "identity": "Missing, unsupported, duplicate or conflicting source identity/class; no ticker-only cross-asset join is permitted.",
+      "source": "Producer identity, artifact, health, research clock or existing freshness rule did not qualify.",
+      "clock": "Required upstream snapshot clock is absent, malformed or later than research; no observation time was invented.",
+      "industry": "Industry is missing, malformed, non-operating or outside the bounded exact source-label vocabulary; it is not assumed non-biotech.",
+      "conflict": "Source observations disagree; no preferred source or replacement was silently chosen.",
+      "cap": "Cap must be positive, finite numeric USD within the exact JSON integer range; no coercion or unit guessing.",
+      "bucket": "Supplied cap bucket is malformed or inconsistent with the producer's numeric USD convention.",
+      "applicability": "Exclusion applicability to this non-stock instrument is unresolved; absence of a SMALL/biotech label is not a pass.",
+      "below_small": "Below $300M: MICRO/NANO exclusion scope is unresolved; this is not a user-scope pass."
+    },
+    "sources": [
+      {
+        "id": "fortress",
+        "artifact": "data/fortress.json",
+        "producer": "justhodl-fortress",
+        "status": "AVAILABLE",
+        "published_at": "2026-10-01T04:00:00+00:00",
+        "research_at": "2026-10-01T04:00:00+00:00",
+        "expires_at": "2026-10-04T16:00:00+00:00",
+        "max_age_h": 84,
+        "finviz_snapshot_at": "2026-10-01T04:00:00+00:00",
+        "census_snapshot_at": "2026-10-01T04:00:00+00:00",
+        "fields": {
+          "instrument": "container (Fortress) / asset_class (Katlin)",
+          "biotech": "industry",
+          "cap": "market_cap"
+        },
+        "native_research_status": null
+      },
+      {
+        "id": "katlin",
+        "artifact": "data/katlin.json",
+        "producer": "justhodl-katlin",
+        "status": "UNAVAILABLE",
+        "published_at": null,
+        "research_at": null,
+        "expires_at": null,
+        "max_age_h": 36,
+        "finviz_snapshot_at": null,
+        "census_snapshot_at": null,
+        "fields": {
+          "instrument": "container (Fortress) / asset_class (Katlin)",
+          "biotech": "industry",
+          "cap": "mcap"
+        },
+        "native_research_status": null
+      }
+    ],
+    "rows": [
+      {
+        "i": 0,
+        "refs": [
+          [
+            0,
+            "board/0"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "FAIL",
+            "Biotechnology",
+            "observed"
+          ],
+          [
+            "FAIL",
+            500000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 1,
+        "refs": [
+          [
+            0,
+            "board/1"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "FAIL",
+            "Biotechnology",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 2,
+        "refs": [
+          [
+            0,
+            "board/2"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "FAIL",
+            "Biotechnology",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 3,
+        "refs": [
+          [
+            0,
+            "board/3"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "FAIL",
+            500000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 4,
+        "refs": [
+          [
+            0,
+            "board/4"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "UNRESOLVED",
+            40000000.0,
+            "below_small"
+          ]
+        ]
+      },
+      {
+        "i": 5,
+        "refs": [
+          [
+            0,
+            "board/5"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "UNAVAILABLE",
+            null,
+            "cap"
+          ]
+        ]
+      },
+      {
+        "i": 6,
+        "refs": [
+          [
+            0,
+            "board/6"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 7,
+        "refs": [
+          [
+            0,
+            "board/7"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 8,
+        "refs": [
+          [
+            0,
+            "board/8"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 9,
+        "refs": [
+          [
+            0,
+            "board/9"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 10,
+        "refs": [
+          [
+            0,
+            "board/10"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      },
+      {
+        "i": 11,
+        "refs": [
+          [
+            0,
+            "board/11"
+          ]
+        ],
+        "checks": [
+          [
+            "PASS",
+            "STOCK",
+            "observed"
+          ],
+          [
+            "PASS",
+            "Medical Devices",
+            "observed"
+          ],
+          [
+            "PASS",
+            3000000000.0,
+            "observed"
+          ]
+        ]
+      }
+    ]
+  }
+}

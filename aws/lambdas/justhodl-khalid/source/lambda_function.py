@@ -1118,6 +1118,7 @@ def build_output(
     }
     output["provider_flow_research"] = project_provider_flow_evidence(None if (metas.get("capital_flow") or {}).get("error") else feeds.get("capital_flow"), now)
     publish_qualification(output, ranked)
+    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)
     output["_candidate_ledger"] = candidate_ledger
     validate_output(output)
     return output

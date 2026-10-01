@@ -217,11 +217,6 @@
       "reader": "donor_docs.get",
       "count": 1
     },
-    "squeeze-pretrigger": {
-      "method": "wrapped_read",
-      "reader": "read_s3",
-      "count": 1
-    },
     "convexity-scorer": {
       "method": "wrapped_decode",
       "reader": "json.loads",
@@ -237,12 +232,6 @@
       "function": "_j",
       "count": 1
     },
-    "equity-enrich": {
-      "method": "wrapped_read",
-      "reader": "L",
-      "count": 1,
-      "path": "aws/shared/equity_enrich.py"
-    },
     "whats-changed": {
       "method": "descriptive_diff",
       "function": "diff_short_interest"
@@ -257,6 +246,19 @@
       "reader": "donor_docs.get",
       "count": 1,
       "reason": "Replaced with independent original SEC research; no FINRA donor is read."
+    },
+    "squeeze-pretrigger": {
+      "method": "wrapped_read",
+      "reader": "read_s3",
+      "count": 1,
+      "reason": "3/10 rewire (ecc86b6d): reads FINRA short-volume via short_volume_context.decision_view and the purpose-built data/short-interest-tickers.json artifact; data/short-interest.json research packet is no longer read, so the legacy-score strip check does not apply."
+    },
+    "equity-enrich": {
+      "method": "wrapped_read",
+      "reader": "L",
+      "count": 1,
+      "path": "aws/shared/equity_enrich.py",
+      "reason": "3/10 rewire (bfa18974): reads the purpose-built data/short-interest-tickers.json artifact via reader L; data/short-interest.json research packet is no longer read, so the legacy-score strip check does not apply."
     }
   }
 }

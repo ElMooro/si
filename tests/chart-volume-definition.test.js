@@ -8,7 +8,7 @@ function boot(){
  const elements=new Map(),el=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',style:{}});return elements.get(id);};
  const c={Number,Math,UP:'up-default',DN:'down-default',window:{},active:'INVENTED',tf:'1d',mode:'price',lastVP:{poc:null},lastAdr:null,lastOrLv:null,lastVsSpx:null,tape:{delta:0,prints:[]},
   observationId:()=>false,periodVwap:()=>[],twap:()=>[],atr:()=>[],fmt:x=>x===null?'Unavailable':String(x),fmtVol:x=>String(x),document:{getElementById:el}};
- vm.runInNewContext(['escHtml','reportedVolume','rvolAt','rvolSeries','volCandlePaint','quoteUI'].map(n=>fns[n]).join('\n'),c);return {c,el};
+ vm.runInNewContext(['escHtml','reportedVolume','closeLocationVolume','fmtSignedVol','fmtVol','rvolAt','rvolSeries','volCandlePaint','quoteUI'].map(n=>fns[n]).join('\n'),c);return {c,el};
 }
 test('RVOL excludes the current bar and requires exactly the preceding complete window',()=>{
  const {c}=boot(),d=rows([...Array(20).fill(100),1000]);assert.equal(c.rvolAt(d,20,20),10);assert.equal(c.rvolSeries(d,20).at(-1).value,10);

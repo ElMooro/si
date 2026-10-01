@@ -6,6 +6,7 @@ const parse=raw=>parser.exports.parse(raw,{ecmaVersion:'latest'}),hash=x=>crypto
 const clean=tree=>JSON.parse(JSON.stringify(tree,(k,v)=>['start','end'].includes(k)?undefined:v));
 function body(raw,file){const call=parse(raw).body.find(n=>n.expression?.type==='CallExpression').expression;return ['jh-stock-desk-research.js','jh-chart-stock-desk.js','jh-observation-series.js','jh-observation-cache.js'].includes(file)?call.arguments[1].body.body:call.callee.body.body;}
 function normalize(raw,file){
+ const later=require('./chart-signed-volume-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);
  const record=manifest.entries[file];assert.ok(record,file);const old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
  const a=body(old,file),b=body(raw,file),oldFns=new Map(a.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,n]));
  const newFns=new Map(b.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,n])),edits=[];
@@ -27,6 +28,7 @@ function normalize(raw,file){
  return old;
 }
 function normalizeLegacyTest(raw,file){
+ const later=require('./chart-signed-volume-preservation.cjs');if(later.manifest.test_adaptations[file]&&hash(raw)!==later.manifest.test_adaptations[file].prior.sha256)raw=later.normalizeLegacyTest(raw,file);
  const record=manifest.test_adaptations[file];assert.ok(record,file);const old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
  let expected=old;for(const edit of record.replacements){assert.equal(expected.split(edit.before).length-1,1);expected=expected.replace(edit.before,edit.after);}
  assert.equal(raw,expected);assert.equal(hash(raw),record.sha256);return old;
