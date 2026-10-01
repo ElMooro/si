@@ -1,6 +1,6 @@
 {
   "stage": 527,
-  "status": "tested_source_batch_awaiting_native_release",
+  "status": "exact_native_release_checked",
   "scope": "Bounded decimal round-trip projection; preserve originals and reject silent numeric changes, without granting decision authority.",
   "functions": [
     "justhodl-ai-website-synthesis",
@@ -959,5 +959,1117 @@
     "provider_requests": 0,
     "private_reads": 0,
     "account_reads": 0
+  },
+  "source_commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306",
+  "source_release_deployed": true,
+  "native_acceptance": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-ai-website-synthesis/source/lambda_function.py": "709af8acbf28318d39bd281de2c1b707f24351a4b5bc3fde73ddd0b91d92e832",
+      "aws/lambdas/justhodl-ai-website-synthesis/source/research_status.py": "8fcdf668327dd8c55240701e101cfba316c42ccb8440d060b2a52a16206b0964",
+      "aws/shared/context_evidence_store.py": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+      "aws/shared/gsi_authority.py": "c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef",
+      "aws/shared/signal_board_authority.py": "075524273bc38c2c50363755a1d47c46a5acc54847b3cae41829c111a5c99183",
+      "aws/lambdas/justhodl-apex-fusion/source/apex_evidence.py": "ff9dd7111e716cb4d8d2d761a1b8351e98a2f34bc1a4b8bd827c63b7cc085d7c",
+      "aws/lambdas/justhodl-apex-fusion/source/lambda_function.py": "346ff99d518c171f91fdad7715edc8e33c20dc7fea72992a04018b2ce4e7cbd3",
+      "aws/lambdas/justhodl-microcap-float-squeeze/source/float_observations.py": "7a545897a6f4a1e6a44725b78b4141cd2a1f7671c24af06bd7c7f6e82d049b7e",
+      "aws/lambdas/justhodl-microcap-float-squeeze/source/lambda_function.py": "1bc3e2cd0d16292da967deb44fdd330244106823ed0c053352dad8aa881801a1",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/offexchange_measurements.py": "b1d994f5a84a17df8eca2559f1de29cfe73297636aa086829025eb5232d64e18",
+      "aws/shared/short_interest_measurements.py": "9002bf37bb778b9737543b3641ff2e6a6d2dbe381b3bf0eaaa4700cf8ecacf63",
+      "aws/shared/short_interest_research_model.py": "11716dc109a04b4b7b34b40d5b5602abe26c518e5dd9708649257f091b0ba831",
+      "aws/shared/short_interest_tickers.py": "73e56c656b5eda24b1c53311d4a8cc07a65ae5c13c564826f1ce1a29f0fa35db",
+      "aws/lambdas/justhodl-prepump-summary/source/lambda_function.py": "afeb7e6a0cafd2ea83780185cbf6d67dc831c9ec9bf171df08961ce558adeec7",
+      "aws/lambdas/justhodl-prepump-summary/source/summary_evidence.py": "43a64c413b5dfe5bff35d0563aae86c4580e843d6633cccb1006a859b1e61a6a",
+      "aws/lambdas/justhodl-pump-positioning/source/lambda_function.py": "35424756778d15ff1495eff656f6efb2abbda6a225748a272effeefb7afd93d3",
+      "aws/lambdas/justhodl-pump-positioning/source/positioning_observations.py": "84503dca7074e3f3d5b1231b8c2a06b154d1f79d976f62bff86e93d49ad90e67",
+      "aws/lambdas/justhodl-pump-radar-brief/source/brief_evidence.py": "630c460d143665662fa10d8b31d411de2684b5fa4728b6b3ea40895f0b12d57a",
+      "aws/lambdas/justhodl-pump-radar-brief/source/lambda_function.py": "f2ee4d92651846ce3a70cd40ad576d213fe60a434cf02b6b6178d423a2d65f4a",
+      "aws/lambdas/justhodl-short-interest/source/lambda_function.py": "570f68ab5ad828e20ef4c2ec74552df59add7d2a82cc91ff0d4480a8f7661d68",
+      "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+      "aws/shared/short_interest_producer.py": "73d62965bcef38be200f6c1d39e56a3059ebda5af3f4d0c007a1825ae02cf9b7",
+      "aws/shared/short_interest_research_store.py": "5b84503baf1268a4537f16d55f89be903a7ccf24cc64779205cb58d64f1c5dc2",
+      "aws/lambdas/justhodl-squeeze-pretrigger/source/lambda_function.py": "59f369f151a79fab73301745b5295e699fdf36e4f24400dabe20eb3650b996a5",
+      "aws/lambdas/justhodl-squeeze-pretrigger/source/squeeze_research_model.py": "7c3496251eec9472943cc1bdad81a2538e290e1c5a20ed529a2fba75bc07702b",
+      "aws/shared/short_position_context.py": "4254e629803838e6bc4a3c8ea01b0016451c762df2ffd5f8e10b0e65310b896c",
+      "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+      "aws/lambdas/justhodl-theme-cascade/source/cascade_evidence.py": "122f62684afd892367ff7712f80c26391239de1d50110431baf3e239ffbd75d2",
+      "aws/lambdas/justhodl-theme-cascade/source/lambda_function.py": "6eb2bf63da6629453551e990abe2d5f97f5b99de5daabf126b3db8802e6c7fe5",
+      "aws/shared/provider_flow_catalog.py": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+      "aws/shared/provider_flow_research.py": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a",
+      "aws/lambdas/justhodl-theme-cascade-backtest/source/lambda_function.py": "8a77321ca7bada683b0401a3832088754cb9628cd557bb0f845100d1a6e122ab",
+      "aws/lambdas/justhodl-theme-cascade-backtest/source/snapshot_evidence.py": "9561e4bf2c6d64d221afdc7941ea6389decdacd85aacaa8b77eecd0216eff8b4",
+      "aws/lambdas/justhodl-theme-classifier/source/lambda_function.py": "9175170c08d7615c9bdc844987a281eca9bd712c638161eb005f4388dff4d3eb",
+      "aws/lambdas/justhodl-theme-classifier/source/profile_observations.py": "d72cc609aa5378dcb8b5a45b86e8748915a82996d03f36744cb10b1de3f976db",
+      "aws/lambdas/justhodl-velocity-acceleration/source/lambda_function.py": "a50f52426c512eb3199c81c8735544c5e244b59ecbde0dad1f64cdcd43337340",
+      "aws/lambdas/justhodl-velocity-acceleration/source/velocity_evidence.py": "61cd7f036c2ec592de0b7281192df60e2816f6d8e292b485d695db868b45ed64",
+      "aws/lambdas/justhodl-velocity-acceleration/source/volume_observations.py": "5dbf876286de7af7f1e9f4c2d10eb6953b21aec0e9c21c1edfbcea0b8d44aa5e",
+      "aws/shared/momentum_research_boundary.py": "54eff7690518c228905fb26bd22ca03d446d4d2915e5b8f3166eefcde46a4d92",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+      "aws/ops/staged/ops_6430_context_numeric_controls.py": "d54cf3b6191b7ce46f4520e3499ef820d61bc15045813af81e79809972553355"
+    },
+    "native_before": {
+      "justhodl-ai-website-synthesis": {
+        "code_sha256": "GvrAIOHDYIXXy3GWVdbPP+DohEQyQLDJgeOvAaogqT8=",
+        "source_files_checked": 5,
+        "handler_bytes": 10244,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-website-synthesis-hourly",
+            "state": "ENABLED",
+            "expression": "cron(25 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-ai-website-synthesis",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-apex-fusion": {
+        "code_sha256": "op5JR3UY12R6ECzkg6NMCAER/21iGqNxoAEOC+zqy9c=",
+        "source_files_checked": 3,
+        "handler_bytes": 14930,
+        "timeout": 120,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-apex-fusion-3h",
+            "state": "ENABLED",
+            "expression": "cron(21 12 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-apex-fusion",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-microcap-float-squeeze": {
+        "code_sha256": "sYo3MQGPx1TWjEt5Q6Fjhbj00zBaUtm8oZEZBOp076I=",
+        "source_files_checked": 8,
+        "handler_bytes": 30289,
+        "timeout": 600,
+        "memory_mb": 2048,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-prepump-summary": {
+        "code_sha256": "N5bsN5AmRNxf6JhEPW0wrDW7iZhFumd7SuKoMNKtkIc=",
+        "source_files_checked": 3,
+        "handler_bytes": 15251,
+        "timeout": 60,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-prepump-summary-30min",
+            "state": "ENABLED",
+            "expression": "cron(12,42 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-prepump-summary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-pump-positioning": {
+        "code_sha256": "mTIPBsewHUuH4PeFvYJWJkgFPAYPHZwcmBlOLfNeOkg=",
+        "source_files_checked": 4,
+        "handler_bytes": 51425,
+        "timeout": 300,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-positioning-hourly",
+            "state": "ENABLED",
+            "expression": "cron(10 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-pump-positioning",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-pump-radar-brief": {
+        "code_sha256": "ugtl+GC1iYs6eNVeFXJ8wKC9jB5CM/6KC18J7Cb2g0o=",
+        "source_files_checked": 3,
+        "handler_bytes": 40018,
+        "timeout": 300,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-radar-brief-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 13 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-pump-radar-brief",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-short-interest": {
+        "code_sha256": "3sTncEZsAG2z3wznt1bTPICJupm43nhLFqddSNJObkQ=",
+        "source_files_checked": 9,
+        "handler_bytes": 9396,
+        "timeout": 360,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-squeeze-pretrigger": {
+        "code_sha256": "utJgk8EgpSec+WjYxwMI36hdIgq/Bd3De4fkFQKOEdg=",
+        "source_files_checked": 6,
+        "handler_bytes": 29890,
+        "timeout": 540,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-squeeze-pretrigger-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 23 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-squeeze-pretrigger",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-cascade": {
+        "code_sha256": "S64gVbHWkkKR7ErAw0l+OHwB/bNLNr4Jid9yDOlJW1c=",
+        "source_files_checked": 5,
+        "handler_bytes": 36239,
+        "timeout": 60,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-twice-per-hour",
+            "state": "ENABLED",
+            "expression": "cron(20,50 * * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-cascade",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-cascade-backtest": {
+        "code_sha256": "2YHcLozP6MMSkuxGjL4EYR6C8x14atI+YqgPUnWu6aI=",
+        "source_files_checked": 5,
+        "handler_bytes": 18284,
+        "timeout": 30,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-backtest-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 22 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-cascade-backtest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-classifier": {
+        "code_sha256": "v9D7cHHPVZTnjf+VPe0YE+8MkDeXTLPLc47324kNkzk=",
+        "source_files_checked": 4,
+        "handler_bytes": 24459,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-theme-classifier-6h",
+            "state": "ENABLED",
+            "expression": "cron(0 */6 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-classifier",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-velocity-acceleration": {
+        "code_sha256": "MVjtYbPXgWcfBBCJEpIl9BumgYJgK8l82latnbnsV6M=",
+        "source_files_checked": 6,
+        "handler_bytes": 42658,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-velocity-acceleration-hourly",
+            "state": "ENABLED",
+            "expression": "cron(30 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-velocity-acceleration",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "native_after": {
+      "justhodl-ai-website-synthesis": {
+        "code_sha256": "GvrAIOHDYIXXy3GWVdbPP+DohEQyQLDJgeOvAaogqT8=",
+        "source_files_checked": 5,
+        "handler_bytes": 10244,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-website-synthesis-hourly",
+            "state": "ENABLED",
+            "expression": "cron(25 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-ai-website-synthesis",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-apex-fusion": {
+        "code_sha256": "op5JR3UY12R6ECzkg6NMCAER/21iGqNxoAEOC+zqy9c=",
+        "source_files_checked": 3,
+        "handler_bytes": 14930,
+        "timeout": 120,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-apex-fusion-3h",
+            "state": "ENABLED",
+            "expression": "cron(21 12 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-apex-fusion",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-microcap-float-squeeze": {
+        "code_sha256": "sYo3MQGPx1TWjEt5Q6Fjhbj00zBaUtm8oZEZBOp076I=",
+        "source_files_checked": 8,
+        "handler_bytes": 30289,
+        "timeout": 600,
+        "memory_mb": 2048,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-prepump-summary": {
+        "code_sha256": "N5bsN5AmRNxf6JhEPW0wrDW7iZhFumd7SuKoMNKtkIc=",
+        "source_files_checked": 3,
+        "handler_bytes": 15251,
+        "timeout": 60,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-prepump-summary-30min",
+            "state": "ENABLED",
+            "expression": "cron(12,42 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-prepump-summary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-pump-positioning": {
+        "code_sha256": "mTIPBsewHUuH4PeFvYJWJkgFPAYPHZwcmBlOLfNeOkg=",
+        "source_files_checked": 4,
+        "handler_bytes": 51425,
+        "timeout": 300,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-positioning-hourly",
+            "state": "ENABLED",
+            "expression": "cron(10 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-pump-positioning",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-pump-radar-brief": {
+        "code_sha256": "ugtl+GC1iYs6eNVeFXJ8wKC9jB5CM/6KC18J7Cb2g0o=",
+        "source_files_checked": 3,
+        "handler_bytes": 40018,
+        "timeout": 300,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-radar-brief-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 13 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-pump-radar-brief",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-short-interest": {
+        "code_sha256": "3sTncEZsAG2z3wznt1bTPICJupm43nhLFqddSNJObkQ=",
+        "source_files_checked": 9,
+        "handler_bytes": 9396,
+        "timeout": 360,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-squeeze-pretrigger": {
+        "code_sha256": "utJgk8EgpSec+WjYxwMI36hdIgq/Bd3De4fkFQKOEdg=",
+        "source_files_checked": 6,
+        "handler_bytes": 29890,
+        "timeout": 540,
+        "memory_mb": 768,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-squeeze-pretrigger-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 23 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-squeeze-pretrigger",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-cascade": {
+        "code_sha256": "S64gVbHWkkKR7ErAw0l+OHwB/bNLNr4Jid9yDOlJW1c=",
+        "source_files_checked": 5,
+        "handler_bytes": 36239,
+        "timeout": 60,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-twice-per-hour",
+            "state": "ENABLED",
+            "expression": "cron(20,50 * * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-cascade",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-cascade-backtest": {
+        "code_sha256": "2YHcLozP6MMSkuxGjL4EYR6C8x14atI+YqgPUnWu6aI=",
+        "source_files_checked": 5,
+        "handler_bytes": 18284,
+        "timeout": 30,
+        "memory_mb": 256,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-backtest-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 22 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-cascade-backtest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-theme-classifier": {
+        "code_sha256": "v9D7cHHPVZTnjf+VPe0YE+8MkDeXTLPLc47324kNkzk=",
+        "source_files_checked": 4,
+        "handler_bytes": 24459,
+        "timeout": 180,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-theme-classifier-6h",
+            "state": "ENABLED",
+            "expression": "cron(0 */6 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-theme-classifier",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-velocity-acceleration": {
+        "code_sha256": "MVjtYbPXgWcfBBCJEpIl9BumgYJgK8l82latnbnsV6M=",
+        "source_files_checked": 6,
+        "handler_bytes": 42658,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-velocity-acceleration-hourly",
+            "state": "ENABLED",
+            "expression": "cron(30 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-velocity-acceleration",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "original_controls": {
+      "justhodl-ai-website-synthesis": {
+        "function_name": "justhodl-ai-website-synthesis",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-website-synthesis-hourly",
+            "state": "ENABLED",
+            "expression": "cron(25 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ]
+      },
+      "justhodl-apex-fusion": {
+        "function_name": "justhodl-apex-fusion",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-apex-fusion-3h",
+            "state": "ENABLED",
+            "expression": "cron(21 12 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-microcap-float-squeeze": {
+        "function_name": "justhodl-microcap-float-squeeze",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 600,
+        "memory_mb": 2048,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-microcap-float-squeeze-daily",
+            "state": "ENABLED",
+            "expression": "cron(0 22 ? * MON-FRI *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-prepump-summary": {
+        "function_name": "justhodl-prepump-summary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory_mb": 256,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-prepump-summary-30min",
+            "state": "ENABLED",
+            "expression": "cron(12,42 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-pump-positioning": {
+        "function_name": "justhodl-pump-positioning",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory_mb": 768,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-positioning-hourly",
+            "state": "ENABLED",
+            "expression": "cron(10 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-pump-radar-brief": {
+        "function_name": "justhodl-pump-radar-brief",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory_mb": 768,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-pump-radar-brief-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 13 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-short-interest": {
+        "function_name": "justhodl-short-interest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 360,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-6h",
+            "state": "ENABLED",
+            "expression": "cron(20 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-short-interest-sched",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON,WED *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-squeeze-pretrigger": {
+        "function_name": "justhodl-squeeze-pretrigger",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 540,
+        "memory_mb": 768,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-squeeze-pretrigger-daily",
+            "state": "ENABLED",
+            "expression": "cron(30 23 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-theme-cascade": {
+        "function_name": "justhodl-theme-cascade",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-twice-per-hour",
+            "state": "ENABLED",
+            "expression": "cron(20,50 * * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-theme-cascade-backtest": {
+        "function_name": "justhodl-theme-cascade-backtest",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 30,
+        "memory_mb": 256,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-theme-cascade-backtest-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 22 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-theme-classifier": {
+        "function_name": "justhodl-theme-classifier",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory_mb": 512,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-theme-classifier-6h",
+            "state": "ENABLED",
+            "expression": "cron(0 */6 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-velocity-acceleration": {
+        "function_name": "justhodl-velocity-acceleration",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory_mb": 1024,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-velocity-acceleration-hourly",
+            "state": "ENABLED",
+            "expression": "cron(30 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "other_invocation_routes_verified": false,
+    "run_id": 36928170916,
+    "operation_commit": "ab86a43ece2e345d66600b0ea22becfd71a88c6d",
+    "report_commit": "6fc8ead24d9d7ec0fe1f994a05f3857673933209",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6431_context_numeric_acceptance.md",
+      "bytes": 28932,
+      "sha256": "bf8cfb518482b41773f56eb3ef5822607adb59d378d9634272a3b23b77a6af9e"
+    }
+  },
+  "public_release_receipts": {
+    "commit": "364f361e683e845e4fac62bd8fb7dde1d60f2306",
+    "functions": [
+      {
+        "function": "justhodl-ai-website-synthesis",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-ai-website-synthesis.log"
+      },
+      {
+        "function": "justhodl-apex-fusion",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-apex-fusion.log"
+      },
+      {
+        "function": "justhodl-microcap-float-squeeze",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-microcap-float-squeeze.log"
+      },
+      {
+        "function": "justhodl-prepump-summary",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-prepump-summary.log"
+      },
+      {
+        "function": "justhodl-pump-positioning",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-pump-positioning.log"
+      },
+      {
+        "function": "justhodl-pump-radar-brief",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-pump-radar-brief.log"
+      },
+      {
+        "function": "justhodl-short-interest",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-short-interest.log"
+      },
+      {
+        "function": "justhodl-squeeze-pretrigger",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-squeeze-pretrigger.log"
+      },
+      {
+        "function": "justhodl-theme-cascade",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-theme-cascade.log"
+      },
+      {
+        "function": "justhodl-theme-cascade-backtest",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-theme-cascade-backtest.log"
+      },
+      {
+        "function": "justhodl-theme-classifier",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-theme-classifier.log"
+      },
+      {
+        "function": "justhodl-velocity-acceleration",
+        "receipt_exit": 0,
+        "log": "stage527-receipt-justhodl-velocity-acceleration.log"
+      }
+    ],
+    "normal_publication_verified": false
   }
 }

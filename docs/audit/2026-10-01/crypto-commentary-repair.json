@@ -1,6 +1,6 @@
 {
   "stage": 528,
-  "status": "tested_source_batch_awaiting_static_release",
+  "status": "exact_static_release_checked",
   "scope": "Crypto commentary section: type-safe escaped text, complete original preservation, truthful unavailable/research state and reported clocks. Other sections and source packets are outside this repair.",
   "predecessor_sha256": "6ebe2ca761773be5a29961784636f141933d9e7ca18f3ee483c0e569577acfc0",
   "source_sha256": "00552be437308e376be5229b7717cf39a1ab45205f1340eb1145686d52bed68d",
@@ -126,5 +126,40 @@
     "deployment_cases": 1021,
     "shell_cases": 15,
     "application_packet_reads": 0
+  },
+  "source_commit": "9bb62a17fe2a582c999b22b64e17997a804f36e5",
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-01T21:04:59.027221+00:00",
+    "source_commit": "9bb62a17fe2a582c999b22b64e17997a804f36e5",
+    "served_commit": "9bb62a17fe2a582c999b22b64e17997a804f36e5",
+    "build_manifest_sha256": "48142d882f1309e5970e55b9d3d89fb5723ecb87d0318af9a34ba034ada59320",
+    "page": {
+      "path": "crypto/index.html",
+      "bytes": 109329,
+      "sha256": "11504b2e4b0335cd300faf58bdf81b787f36c2c0bb2d982bdd2da31335ae6d01",
+      "whole_http_body_sha256": "df9ac8326e7632bd84bc1f466464013f46713d0cb393024366156d4d44598c1a",
+      "sole_edge_script_removed": {
+        "bytes": 367,
+        "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+      },
+      "whole_changed_renderer_sha256": "5dbba13d74cff8280f4cfceb6df36efe89c588bba35667eb1ae586db7c8459bc",
+      "renderer_source_bytes_match": true,
+      "existing_script_tags_verified": true
+    },
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served static page matches commit-bound build; entire changed inline renderer equals source. Isolated browser QA is separate; no live application/provider/private packet read."
+  },
+  "frontend_tests": 2689,
+  "focused_tests": 9,
+  "generated_contract_review": {
+    "leaf_changes": 93,
+    "source_line_updates": 57,
+    "source_reachability": "Former Squeeze legacy writer is now marked unproven by static analysis, not claimed as a reachable configured handler. Conditional ContextStore writer resolution remains incomplete.",
+    "asset_hash_updates": 2,
+    "note": "Generated against the current source tree; no runtime/private/application packet was inspected."
   }
 }

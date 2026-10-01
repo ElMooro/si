@@ -1,5 +1,5 @@
 {
-  "status": "tested_awaiting_workflow_acceptance",
+  "status": "hosted_workflow_definitions_accepted",
   "base": "6fc8ead24d9d7ec0fe1f994a05f3857673933209",
   "workflows": {
     ".github/workflows/deploy-lambdas.yml": {
@@ -36,5 +36,21 @@
     "Actual overlapping multi-run queue behavior is not reproduced by static tests"
   ],
   "deployment_tests": 1024,
-  "shell_tests": 15
+  "shell_tests": 15,
+  "source_commit": "4935ffe2058f04b568674782bdd2688a78a7c314",
+  "hosted_acceptance": {
+    "commit": "4935ffe2058f04b568674782bdd2688a78a7c314",
+    "lambda_workflow_run": 36929006902,
+    "direct_workflow_run": 36929025548,
+    "deploy_step": {
+      "name": "Deploy each changed Lambda",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 9,
+      "started_at": "2026-10-01T21:29:47Z",
+      "completed_at": "2026-10-01T21:29:47Z"
+    },
+    "engine_update_performed": false,
+    "overlapping_queue_stress_tested": false
+  }
 }
