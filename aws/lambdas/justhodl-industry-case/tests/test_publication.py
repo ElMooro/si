@@ -135,6 +135,16 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual(out['industries']['Other']['n'],998)
         json.dumps(out,allow_nan=False)
 
+    def test_mixed_integer_float_aggregate_overflow_preserves_other_cohorts(self):
+        data=fixture()
+        for row in data['data/universe.json']['stocks'][:2]:
+            row['market_cap']=10**308
+        data['data/universe.json']['stocks'][2].update(industry='Semis',market_cap=1.0)
+        out,_,_=run(data)
+        self.assertEqual(out['unavailable_industries'],['Semis'])
+        self.assertEqual(out['industries']['Other']['n'],997)
+        json.dumps(out,allow_nan=False)
+
     def test_duplicate_event_is_not_claimed_idempotent_and_cannot_enable_paid_calls(self):
         router=types.SimpleNamespace(complete=lambda *a,**k:(_ for _ in ()).throw(AssertionError('paid call')))
         with patch.dict(sys.modules,{'llm_router':router}):

@@ -200,7 +200,10 @@ def build(event=None, context=None):
     rank_of = {}
     for ind, blk in inds.items():
         mem = sorted(blk["members"], key=lambda x: -x[2])
-        tot = sum(m[2] for m in mem)
+        try:
+            tot = sum(m[2] for m in mem)
+        except OverflowError:
+            tot = None
         if (not number(tot) or tot <= 0
                 or not all(math.isfinite(100.0 * m[2] / tot) for m in mem)):
             doc["status"] = "PARTIAL"
