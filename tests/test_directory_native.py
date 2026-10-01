@@ -12,13 +12,15 @@ FIXTURE=ROOT/'tests/fixtures/symbol-directory'
 sys.path.insert(0,str(SOURCE))
 
 
-def build(document=None,use_default=True,predecessor=False):
+def build(document=None,use_default=True,predecessor=False,write_observer=None):
     evidence=json.loads((FIXTURE/'build-reproduction.json').read_bytes())
     docs=deepcopy(evidence['invented_inputs'])
     if not use_default:docs['data/symbology/master.json']=deepcopy(document)
     before=deepcopy(docs);reads=[];lists=[];requests=[];puts={}
     class Storage:
-        def put_object(self,**kw):puts[kw['Key']]=kw
+        def put_object(self,**kw):
+            if write_observer:write_observer(kw)
+            puts[kw['Key']]=kw
         def list_objects_v2(self,**kw):return {}
     client=Storage();m=ModuleType('whole_directory_test');m.__file__='/invented/symdir/lambda_function.py'
     source=FIXTURE/'pre-integrity-lambda.py.txt' if predecessor else SOURCE/'lambda_function.py'

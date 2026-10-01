@@ -29,12 +29,14 @@ is handled separately while original full traces remain retained.
 
 The engine runner includes the pre-existing fiscal, provider-search and warehouse
 suites plus identifier model and whole native build regressions. Real HTTP is
-blocked in tests. Read-only operations 6403/6404 compare package bytes, receipt,
+blocked in tests. Read-only operations 6403/6405 compare package bytes, receipt,
 resources and all seven original Scheduler bindings without invoking the native
 producer or reading current/private/account/consumer artifacts.
 
-Mixed docs/index generations and forced-refresh cache loss are reproduced and
-remain separate repairs. Build completeness, inherited input-read failure
+Mixed docs/index generations and forced-refresh cache loss are reproduced in
+complete invented fixtures. The generation/cache repair is described in
+[symbol-directory-generations.md](symbol-directory-generations.md); its exact
+native deployment and normal publication need their own acceptance. Build completeness, inherited input-read failure
 conflation, independent real-source replay and normal new-code publication are
 not accepted by this scope. The chart search renderer escapes source names, metadata, identifiers, facets
 and empty-query text. Invalid facet counts stay unknown. Old-query requests and

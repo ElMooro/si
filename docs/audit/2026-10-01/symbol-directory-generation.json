@@ -1,0 +1,72 @@
+{
+  "stage": 494,
+  "status": "tested_pending_exact_native_release",
+  "base": "2665da7c9128918676ecc2827cfb323a0347677d",
+  "source": [
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/lambda_function.py",
+      "sha256": "2f1d96c26d7cb05f626b4a53e85aa042ae1e2dda945d1d01240da80c5f42eccb",
+      "bytes": 172342
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/warehouse_routing.py",
+      "sha256": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1",
+      "bytes": 6122
+    },
+    {
+      "path": "aws/shared/treasury_fiscal_model.py",
+      "sha256": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3",
+      "bytes": 14133
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/directory_identity.py",
+      "sha256": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51",
+      "bytes": 4053
+    },
+    {
+      "path": "aws/lambdas/justhodl-symdir/source/directory_index.py",
+      "sha256": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb",
+      "bytes": 15712
+    }
+  ],
+  "predecessor": {
+    "source_commit": "c814ee9d14ba888d196664c77dcc4e92341ac7ef",
+    "whole_handler_fixture": "tests/fixtures/symbol-directory/pre-generation-lambda.py.txt",
+    "whole_mixed_generation_reproduction": "tests/fixtures/symbol-directory/index-reproductions.json"
+  },
+  "baseline_evidence": "docs/audit/2026-10-01/symbol-directory-integrity.json",
+  "invented_capacity": {
+    "invented": true,
+    "documents": 500000,
+    "tokens": 500143,
+    "postings": 4984542,
+    "index_build_seconds": 9.782,
+    "validation_seconds": 1.293,
+    "process_peak_working_set_bytes": 657240064,
+    "environment": "Windows Python 3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]; synthetic document population, not AWS capacity acceptance",
+    "actual_data_reads": 0,
+    "provider_requests": 0,
+    "environment_label_corrected_from_verified_runtime": true
+  },
+  "normal_publication_verified": false,
+  "production_capacity_verified": false,
+  "real_source_replay_verified": false,
+  "investment_authority": false,
+  "acceptance_operation": 6406,
+  "actual_data_reads": 0,
+  "provider_requests": 0,
+  "native_invocations": 0,
+  "validation": {
+    "native_tests": 54,
+    "operation_tests": 5,
+    "deployment_tests": 1003,
+    "shell_tests": 15,
+    "frontend_tests": 2234,
+    "public_page_graphs": 599,
+    "companion_wires": 143,
+    "frontend_scope": "Passed before final native-only warm/future-clock refinements; frontend sources unchanged. Native, contracts, wiring and deployment checks rerun on final source.",
+    "same_clock_generation_refresh": true,
+    "failed_head_check_surfaced": true,
+    "future_generation_rejected": true
+  }
+}

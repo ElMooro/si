@@ -71,6 +71,8 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 from directory_identity import evidence as identifier_evidence, population as identity_population
+from directory_index import (descriptor as index_descriptor, refresh as refresh_index,
+                             manifest as index_manifest, refresh_needed as index_refresh_needed)
 
 VERSION = "1.10.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -372,6 +374,24 @@ def ofr_series_meta(mn, ts):
 
 
 # ================================================================ BUILD
+
+def index_for_docs(docs):
+    """One token/identity mapping implementation for builds and legacy migration."""
+    post = defaultdict(lambda: array("I"))
+    for i, d in enumerate(docs):
+        ts = doc_tokens(d)
+        ex = d[D_EXTRA] or {}
+        for fld in ("cat", "topics", "ds"):
+            if ex.get(fld):
+                ts.update(tokens(str(ex[fld])))
+        for t in ts:
+            post[t].append(i)
+    index = dict(post)
+    toklist = sorted(index)
+    ids = sorted((d[D_ID].upper(), i) for i, d in enumerate(docs))
+    bare = sorted((d[D_ID].rsplit(":", 1)[-1].upper(), i) for i, d in enumerate(docs) if ":" in d[D_ID])
+    return {"index": index, "toklist": toklist, "ids": ids, "bare": bare}
+
 
 def build(event, context):
     t0 = time.time()
@@ -1055,26 +1075,21 @@ def build(event, context):
     docs = list(by_id.values())
     docs.sort(key=lambda d: (-d[D_POP], d[D_ID]))
 
-    # ---------------- inverted index
-    post = defaultdict(lambda: array("I"))
-    for i, d in enumerate(docs):
-        ts = doc_tokens(d)
-        ex = d[D_EXTRA] or {}
-        for fld in ("cat", "topics", "ds"):
-            if ex.get(fld):
-                ts.update(tokens(str(ex[fld])))
-        for t in ts:
-            post[t].append(i)
-    index = dict(post)
-    toklist = sorted(index)
-    ids = sorted((d[D_ID].upper(), i) for i, d in enumerate(docs))
-    bare = sorted((d[D_ID].rsplit(":", 1)[-1].upper(), i) for i, d in enumerate(docs) if ":" in d[D_ID])
+    derived = index_for_docs(docs)
+    index = derived["index"]
     pop = array("f", (d[D_POP] for d in docs))
     built_at = _iso()          # ONE stamp for pickle + manifest: the warm-ping reload check compares them
     blob = pickle.dumps({"version": VERSION, "built_at": built_at, "docs": docs, "pop": pop}, protocol=5)
-    blob_i = pickle.dumps({"version": VERSION, "index": index, "toklist": toklist, "ids": ids, "bare": bare}, protocol=5)
     gz1 = gzip.compress(blob, 5)
+    blob_i = pickle.dumps({"version": VERSION, "built_at": built_at,
+                           "docs_sha256": hashlib.sha256(gz1).hexdigest(), **derived}, protocol=5)
     gz2 = gzip.compress(blob_i, 5)
+    generation = index_descriptor(gz1, gz2, SD)
+    # Complete immutable bodies land before any mutable alias or manifest.
+    # The content-derived keys are idempotent; a reader pins this exact pair.
+    for name, body in (("docs", gz1), ("index", gz2)):
+        s3.put_object(Bucket=BUCKET, Key=generation["files"][name]["key"], Body=body,
+                      ContentType="application/octet-stream", CacheControl="private, max-age=31536000, immutable")
     s3.put_object(Bucket=BUCKET, Key=SD + "docs.pkl.gz", Body=gz1, ContentType="application/octet-stream", CacheControl="no-cache")
     s3.put_object(Bucket=BUCKET, Key=SD + "index.pkl.gz", Body=gz2, ContentType="application/octet-stream", CacheControl="no-cache")
     instruments.sort(key=lambda r: -r[5])
@@ -1085,7 +1100,7 @@ def build(event, context):
     prov_counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
     for d in docs:
         prov_counts[d[D_PROV]][d[D_KIND]] += 1
-    man = {"version": VERSION, "built_at": built_at, "finished_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "docs": len(docs), "tokens": len(index),
+    man = {"version": VERSION, "built_at": built_at, "index_generation": generation, "finished_at": _iso(), "elapsed_s": round(time.time() - t0, 1), "docs": len(docs), "tokens": len(index),
            "postings": sum(len(v) for v in index.values()), "instruments": len(instruments),
            "bytes": {"docs_pkl_gz": len(gz1), "index_pkl_gz": len(gz2), "instruments_json_gz": len(ib)},
            "providers": {k: dict(v) for k, v in prov_counts.items()}, "sources": log["sources"], "skipped": log["skipped"],
@@ -1431,17 +1446,7 @@ _T0CACHE, _T1CACHE = {}, {}
 def load_index(force=False):
     if _IDX["docs"] is not None and not force:
         return _IDX
-    if force:
-        for k in ("docs", "pop", "index", "toklist", "ids", "bare"):
-            _IDX[k] = None
-        import gc
-        gc.collect()
-    t = time.time()
-    a = pickle.loads(gzip.decompress(_get(SD + "docs.pkl.gz")))
-    b = pickle.loads(gzip.decompress(_get(SD + "index.pkl.gz")))
-    _IDX.update({"docs": a["docs"], "pop": a["pop"], "index": b["index"], "toklist": b["toklist"], "ids": b["ids"], "bare": b["bare"],
-                 "loaded_at": _iso(), "built_at": a.get("built_at"), "load_s": round(time.time() - t, 2)})
-    return _IDX
+    return refresh_index(_IDX, s3, BUCKET, SD, index_for_docs, _iso)
 
 
 def _warehouse_db(force=False):
@@ -3248,11 +3253,12 @@ def lambda_handler(event, context):
         # keep-warm ping (every 5 min): also the moment a warm container notices a newer daily build
         force = qs.get("force") == "1"
         if not force and _IDX["docs"] is not None:
-            man = _get_json(SD + "manifest.json") or {}
-            if (man.get("built_at") or "") > (_IDX.get("built_at") or ""):
-                force = True
+            # Surface failed generation checks; a cached index is not evidence
+            # that the latest manifest was checked successfully.
+            man = index_manifest(s3, BUCKET, SD)
+            force = index_refresh_needed(man, _IDX, SD)
         ix = load_index(force=force)
-        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force}
+        out = {"ok": True, "docs": len(ix["docs"]), "load_s": ix.get("load_s"), "built_at": ix.get("built_at"), "reloaded": force, "index_integrity": ix.get("index_integrity")}
         try:
             warehouse_path = _warehouse_db(force=force)
             out["warehouse_ready"] = bool(warehouse_path)
@@ -3270,6 +3276,7 @@ def lambda_handler(event, context):
             out = search(q, lim, prov=(qs.get("provider") or None), kind=(qs.get("kind") or None))
             out["ms"] = int((time.time() - t) * 1000)
             out["built_at"] = _IDX.get("built_at")
+            out["index_integrity"] = _IDX.get("index_integrity")
             return _resp(out, ttl=120)
         except Exception as e:  # noqa: BLE001
             return _resp({"q": q, "rows": [], "error": str(e)[:200], "trace": traceback.format_exc()[-600:]}, 500, ttl=0)
