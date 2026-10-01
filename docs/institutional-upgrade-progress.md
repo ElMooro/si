@@ -7208,3 +7208,12 @@ Local final deployment checks and exact static release acceptance are pending. A
 - Source `0bdbf6cc44cfd15e5e93f16b89984c089066bc23` matches the exact served Pages build, run 36843486334. All 72 inspected complete static artifacts match one manifest; the complete 898-engine inventory and all 599 page contracts reproduce from source.
 - Combined checks passed 2,454 frontend cases, 1018 deployment and fifteen shell checks, including fourteen new numerical/preservation cases. Three offline real-library desktop/mobile suites retain complete invented frames and tested failure/recovery paths.
 - OBV flat-close arithmetic, broken cumulative-chain handling and stock-desk nonzero-ratio underflow are repaired. No actual application/private/current-consumer data or producer invocation was involved. Original provider defaults/units, calendar completeness, predictive validity and portfolio authority remain unqualified. All ten institutional workstreams remain OPEN.
+
+
+## Stage 505: scalar observations without inferred continuity (candidate)
+
+- Source charts, split panes and the navigator now show retained scalar observations as points. Rejected or unreported periods are no longer crossed by a connecting line or filled area. Every original record, accepted scalar and grouping ordinal is preserved.
+- Single-observation split panes no longer drop a genuine zero; the navigator restores market area styling when switching back to a security. Source/market calculations and authority are unchanged.
+- Nine focused rendering/preservation cases pass; complete original fixtures and browser label expectations remain retained. Full browser/deployment/static acceptance is pending. Visual review confirms the separate existing axis tick-formatting noise and crowded mobile metadata remain open. No actual private/current-consumer/provider data or producer execution. All ten institutional workstreams remain OPEN.
+
+- Stage 505 combined source passed 2,464 frontend cases, 1018 deployment and fifteen shell checks. Ten new rendering/preservation regressions and six offline desktop/mobile suites pass. Exact static release remains pending.

@@ -6,6 +6,6 @@ test('predecessor grouping and category failure remain fully reproducible',()=>{
  assert.equal(new Date(group.result[0].time*1000).toISOString().slice(0,10),'1970-01-01');assert.ok(category.whole_html.includes('[object Object]'));
  for(const file of ['tests/chart-observation-browser-qa.cjs','tests/chart-observation-cache-browser-qa.cjs']){
   const old=fs.readFileSync(path.join(__dirname,'fixtures/observation-diagnostics/pre501',file+'.txt'),'utf8'),current=fs.readFileSync(path.join(R,file),'utf8');
-  assert.equal(current,old.replaceAll("assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()),null);","assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.valid),false);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.observations.reason),'unknown_series_identity');"));
+  assert.equal(current,old.replace("['btn-kind','Source line']","['btn-kind','Source points']").replaceAll("assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()),null);","assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.valid),false);assert.equal(await page.evaluate(()=>JHStockDeskController.getModel()?.observations.reason),'unknown_series_identity');"));
  }
 });
