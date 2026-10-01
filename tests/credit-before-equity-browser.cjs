@@ -28,6 +28,8 @@ packet={...packet,names:[{...row,signal:'CREDIT_LEADS_UP'}]};await page.reload()
 assert.match(await page.locator('#leads').innerText(),/unavailable or incomplete/);assert.match(await page.locator('#tb').innerText(),/CREDIT LEADS UP/);
 packet={...packet,n_leads:1,n_awaiting_history:1,leads:packet.names};await page.reload();await page.waitForFunction(()=>document.querySelector('#evidence').textContent.includes('Lead and awaiting-history counts together exceed'));
 assert.match(await page.locator('#leads').innerText(),/CREDIT LEADS UP/);assert.match(await page.locator('#evidence').innerText(),/Incomplete packet/);
-assert.deepEqual(errors,[]);assert.equal(requests.filter(p=>p==='/data/credit-before-equity.json').length,5);
+packet={...packet,n_awaiting_history:0,names:[{...row,ticker:'GOOGL',signal:'CREDIT_LEADS_UP',d_price_pct:null,synthetic_cds_bp:null,default_prob_5y_pct:null}]};packet.leads=packet.names;await page.reload();await page.waitForFunction(()=>document.querySelector('#tb').textContent.includes('GOOGL'));
+assert.equal(await page.locator('#tb td').nth(6).innerText(),'Unavailable');assert.doesNotMatch(await page.locator('#leads').innerText(),/Unavailable(?:%|bp)/);
+assert.deepEqual(errors,[]);assert.equal(requests.filter(p=>p==='/data/credit-before-equity.json').length,6);
 console.log(JSON.stringify({width,populated:true,degradedEmpty:true,validNoSignal:true,contradictoryCounts:true,zeroThreshold:true,xssBlocked:true,keyboard:true,overflow:false,externalNetwork:false}));await page.close();
 }} finally {await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
