@@ -7622,3 +7622,7 @@ Two research drawers previously called a linear min-max position an ordinal perc
 ## Stage 534: Crypto numeric presentation integrity
 
 The candidate removes fabricated neutral score/oscillator readings and zero prices, preserves genuine zero, distinguishes bounded oscillators from Bollinger position outside its bands, and fixes invalid bar CSS. It escapes the changed risk/sentiment labels and makes the technical table horizontally keyboard-scrollable. Full preceding page/manifest retained, with invented regression inputs only. Integrated/browser/static acceptance pending. Funding, stablecoin/MVRV defaults, other unsafe renderers and all ten institutional workstreams remain open.
+
+## Stage 535: named controls before Crypto semantic repair
+
+Source review found a historical market-cap mean proxy labeled MVRV, despite lacking realized capitalization, plus a funding schema mismatch. The prepared read-only operation 6434 captures the six named producer/consumer Lambda resource and schedule controls twice, without invocations, application/account/private packets, provider requests or environment-value output. Source/consumer repair remains pending this baseline and its own tests. This does not qualify any data or model. All ten institutional workstreams remain open.

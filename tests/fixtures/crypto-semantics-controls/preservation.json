@@ -1,0 +1,42 @@
+{
+  "source_edits": [
+    [
+      "FUNCTIONS=('justhodl-ai-website-synthesis', 'justhodl-apex-fusion', 'justhodl-microcap-float-squeeze', 'justhodl-prepump-summary', 'justhodl-pump-positioning', 'justhodl-pump-radar-brief', 'justhodl-short-interest', 'justhodl-squeeze-pretrigger', 'justhodl-theme-cascade', 'justhodl-theme-cascade-backtest', 'justhodl-theme-classifier', 'justhodl-velocity-acceleration')",
+      "FUNCTIONS=('justhodl-crypto-intel', 'justhodl-crypto-cycle-risk', 'justhodl-financial-secretary', 'justhodl-morning-intelligence', 'justhodl-telegram-bot', 'justhodl-ai-chat')"
+    ],
+    [
+      "ops_6430_context_numeric_controls",
+      "ops_6434_crypto_semantics_controls"
+    ],
+    [
+      "named context-store importer controls before numeric projection repair",
+      "named Crypto proxy consumer controls before semantic repair"
+    ],
+    [
+      "stable_named_context_control_baseline",
+      "stable_named_crypto_semantics_control_baseline"
+    ]
+  ],
+  "test_edits": [
+    [
+      "ops_6430_context_numeric_controls",
+      "ops_6434_crypto_semantics_controls"
+    ],
+    [
+      "len(m['FUNCTIONS']),12",
+      "len(m['FUNCTIONS']),6"
+    ],
+    [
+      "len(set(m['FUNCTIONS'])),12",
+      "len(set(m['FUNCTIONS'])),6"
+    ],
+    [
+      "capture.call_count,24",
+      "capture.call_count,12"
+    ]
+  ],
+  "baseline_predecessor_sha256": "d54cf3b6191b7ce46f4520e3499ef820d61bc15045813af81e79809972553355",
+  "baseline_candidate_sha256": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230",
+  "test_predecessor_sha256": "b233e989206b9c4021903e9d8c73339aea370aed5ad2eac0f0d204f6e5fddac5",
+  "test_candidate_sha256": "1a17c6b1227db7078df4369484abc5ce7cb8b6539270bb41110a74165b50d3ff"
+}

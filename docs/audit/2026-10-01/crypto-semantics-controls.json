@@ -1,0 +1,52 @@
+{
+  "status": "tested_read_only_baseline_awaiting_runner",
+  "targets": [
+    "justhodl-crypto-intel",
+    "justhodl-crypto-cycle-risk",
+    "justhodl-financial-secretary",
+    "justhodl-morning-intelligence",
+    "justhodl-telegram-bot",
+    "justhodl-ai-chat"
+  ],
+  "findings": [
+    {
+      "path": "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py",
+      "function": "fetch_mvrv",
+      "issue": "Divides current market capitalization by the mean of returned market-cap observations. This is not market value / realized capitalization; all valuation signals are unqualified.",
+      "definition_source": "https://docs.glassnode.com/basic-api/endpoints/market"
+    },
+    {
+      "path": "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py",
+      "function": "fetch_funding",
+      "issue": "Publishes avg_rate_pct and rates, while crypto/index.html consumes avg_funding. Funding interval annualization and zero/missing source handling also remain unqualified."
+    }
+  ],
+  "page_consumers": [
+    "crypto/index.html",
+    "desk-v2.html"
+  ],
+  "signal_logger_boundary": "Reads mvrv/MVRV, not mvrv_approx; excluded from this proxy consumer modification unless later source evidence shows a dependency.",
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "application_packet_reads": 0,
+  "source_hashes": {
+    "justhodl-crypto-intel": "d247dfa6a2e3eb264366e825e8acc561c92147bb0fe2a2352190dca7909cf661",
+    "justhodl-crypto-cycle-risk": "32186c88792381ff3542585943fcd753ae62d63264736243d925449cd8020392",
+    "justhodl-financial-secretary": "0c0cd5f1b9000fa8ef6dc9e9370042574a7f74387eba7d9a7c4aba0149ac1fc0",
+    "justhodl-morning-intelligence": "d15f53aa12b637deb79dc41d32844928bfa436e4bd73de8fd427014a5eb68ad6",
+    "justhodl-telegram-bot": "069ff2f3a10cee6a041163e4b7fe281bd3c92d85484826254f3a88dcb983a845",
+    "justhodl-ai-chat": "c58da7cc402adfd0459c2b67997ca5fd55be52123979e8e0e8df5b136a2d234f"
+  },
+  "baseline_predecessor_sha256": "d54cf3b6191b7ce46f4520e3499ef820d61bc15045813af81e79809972553355",
+  "baseline_candidate_sha256": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230",
+  "test_predecessor_sha256": "b233e989206b9c4021903e9d8c73339aea370aed5ad2eac0f0d204f6e5fddac5",
+  "test_candidate_sha256": "1a17c6b1227db7078df4369484abc5ce7cb8b6539270bb41110a74165b50d3ff",
+  "operation": 6434,
+  "stage": 535,
+  "validation": {
+    "invented_control_cases": 15,
+    "deployment_cases": 1027,
+    "shell_cases": 15,
+    "normal_publication_verified": false
+  }
+}
