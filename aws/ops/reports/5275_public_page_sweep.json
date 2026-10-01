@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "99c3b43624c33df6209fd655d7808a42221ad071",
-  "observed_at": "2026-10-01T22:10:48.327798+00:00",
-  "ok": true,
+  "observed_at": "2026-10-01T22:21:28.805129+00:00",
+  "ok": false,
   "routes_checked": 599,
-  "verified_routes": 599,
-  "failed_routes": [],
+  "verified_routes": 598,
+  "failed_routes": [
+    "research-spine.html"
+  ],
   "source_equivalent_builds": {
     "99c3b43624c33df6209fd655d7808a42221ad071": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -4608,13 +4610,12 @@
     },
     {
       "route": "research-spine.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "99c3b43624c33df6209fd655d7808a42221ad071",
-      "inspector_present": true,
-      "bytes_read": 8077,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "research.html",
@@ -6008,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36932852992,
+  "deployment_run_id": 36933951363,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-01T22:10:48.337013+00:00"
+  "check_finished_at": "2026-10-01T22:21:28.813454+00:00"
 }
