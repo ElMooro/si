@@ -30,7 +30,7 @@ def synthetic_canary():
     return rows
 
 
-def compile_with(canary, legacy_stamp=OLD, error=None):
+def compile_with(canary, legacy_stamp=OLD, error=None, canary_lm=STAMP):
     class Clock(datetime):
         @classmethod
         def now(cls, tz=None):
@@ -41,7 +41,7 @@ def compile_with(canary, legacy_stamp=OLD, error=None):
     reads, writes = [], []
     def load(s3, key):
         reads.append(key)
-        return (legacy, legacy_stamp, None) if key == 'data/fed-nowcast-join.json' else (canary, STAMP, error)
+        return (legacy, legacy_stamp, None) if key == 'data/fed-nowcast-join.json' else (canary, canary_lm, error)
     with patch.object(contract, 'datetime', Clock), patch.object(compiler, '_now', lambda: NOW), \
          patch.object(compiler, '_load', load), patch.object(compiler, '_put', lambda s3,k,d: writes.append((k,d))), \
          patch('socket.socket.connect', side_effect=AssertionError('network forbidden')):
@@ -112,6 +112,48 @@ class OfficialStatsEvidenceTests(unittest.TestCase):
             else:
                 self.assertEqual(e['warehouse']['issues'], [])
                 self.assertEqual(e['measurements']['GDPNOW']['issues'], [])
+
+    def test_invalid_optional_clock_normalization_cannot_block_base_publication(self):
+        # Both UTC normalization overflows, malformed text/types and missing clocks.
+        for legacy_stamp, status in [(STAMP, 'LIVE'), (OLD, 'HELD')]:
+            baseline, _, _ = compile_with(synthetic_canary(), legacy_stamp)
+            for field in ['generated_at', 'as_of', 'received_at', 'published_at', 'last_modified']:
+                for value in ['0001-01-01T00:00:00+01:00', '9999-12-31T23:59:59-01:00',
+                              'not-a-date', None, {}, True]:
+                    with self.subTest(status=status, field=field, value=value):
+                        raw = synthetic_canary()
+                        lm = value if field == 'last_modified' else STAMP
+                        if field == 'generated_at': raw[field] = value
+                        elif field != 'last_modified': raw['GDPNOW'][field] = value
+                        result, reads, writes = compile_with(raw, legacy_stamp, canary_lm=lm)
+                        self.assertEqual(result['status'], status)
+                        self.assertEqual(result['fields'], baseline['fields'])
+                        self.assertEqual(result['inputs'], baseline['inputs'])
+                        self.assertEqual(result['why'], baseline['why'])
+                        self.assertEqual(len(reads), 2)
+                        self.assertEqual(writes, [('data/official-stats-brief.json', result)])
+                        if field in ['generated_at', 'last_modified']:
+                            section = result['evidence']['warehouse']
+                            issue = 'publication' if field == 'generated_at' else field
+                            key = field
+                        else:
+                            section = result['evidence']['measurements']['GDPNOW']
+                            key = {'as_of': 'economic_as_of', 'published_at': 'source_published_at'}.get(field, field)
+                            issue = key
+                        self.assertIsNone(section[key])
+                        self.assertIn(issue + ':missing_or_invalid', section['issues'])
+                        if field == 'generated_at':
+                            self.assertIn('publication_expired', section['issues'])
+                        json.dumps(result, allow_nan=False)
+
+    def test_representable_normalization_extremes_remain_observed(self):
+        for value in ['0001-01-01T01:00:00+01:00', '9999-12-31T22:59:59-01:00']:
+            raw = synthetic_canary(); raw['generated_at'] = value
+            result, _, writes = compile_with(raw)
+            self.assertEqual(result['status'], 'HELD')
+            self.assertEqual(len(writes), 1)
+            self.assertEqual(result['evidence']['warehouse']['generated_at'], value)
+            self.assertNotIn('publication:missing_or_invalid', result['evidence']['warehouse']['issues'])
 
     def test_expired_publication_cannot_refresh_observations(self):
         raw = synthetic_canary();raw['generated_at'] = OLD

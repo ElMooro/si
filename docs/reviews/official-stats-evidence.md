@@ -122,3 +122,20 @@ requires a real Cleveland model or explicitly just the Treasury spread. Evidence
 must establish that contract before migrating the required input/decision fields.
 Do not widen the 21-day rule, infer a model from T10Y3M, or enable a signal merely
 because the canary envelope was recently published.
+
+## Independent-review correction: optional timestamp normalization
+
+Review of b373436 found that UTC normalization could overflow for
+`0001-01-01T00:00:00+01:00`, aborting the new optional projection before the
+existing brief PUT. The local evidence clock adapter now catches normalization
+errors and returns null with `missing_or_invalid`; freshness receives that null,
+never the rejected original value. No shared brief contract or required-source
+clock behavior changed.
+
+The regression matrix tests lower/upper UTC overflow, malformed text, missing,
+object and boolean clocks across publication, economic, receipt, source-publication
+and warehouse LastModified, with both LIVE and HELD legacy inputs (60 cases).
+Each requires unchanged base status/fields/inputs/why and exactly one publication.
+Representable lower/upper normalization boundaries are also covered. Before the
+fix: 20 subtest errors and 10 failures; after: all pass. The complete importer
+suite is now 26 passing tests; combined shared/bridge/fusion remains 151 passing.

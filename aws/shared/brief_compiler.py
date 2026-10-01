@@ -149,9 +149,15 @@ def _official_stats_evidence(doc, lm, err, now):
 
     def clock(value, name, issues):
         value = text(value)
-        parsed = parse_ts(value)
+        try:
+            parsed = parse_ts(value)
+        except (OverflowError, ValueError, TypeError):
+            # Optional source clocks may overflow when normalized to UTC.
+            parsed = None
         if parsed is None:
             issues.append(name + ":missing_or_invalid")
+            # Do not let freshness() reparse an unnormalizable publication.
+            return None
         elif parsed > now:
             issues.append(name + ":future")
         return value
