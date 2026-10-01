@@ -7434,3 +7434,10 @@ No producer was invoked or actual application/private/account packet, provider o
 ### Stage 516 Auction Crisis content-version import candidate
 
 The remaining static `/auction-crisis.js?t=...` reference bypassed the actual build stamper. Only that script URL changes to the supported content-version parameter. The complete page predecessor and earlier eight-page preservation manifest/test are retained. The whole-page comparison permits exactly this additional replacement and keeps all previous checks. A real stamper regression reproduces the stale URL and verifies two content revisions plus idempotence. JavaScript calculations and all data URLs are unchanged. Static deployment and live exact-byte verification remain pending; engine observations and all institutional workstreams remain OPEN.
+
+
+### Stage 516 Auction Crisis exact static release accepted
+
+Source `64959c13693fa3a9f096e6ecd1cb174e5c8c4e97` changed only the renderer's static cache parameter to the build-supported content version. The complete live HTML and renderer bytes match the commit-bound build manifest and transformed source; the script tag selects content version `3871dd11`. The sole Cloudflare beacon, if present, is excluded only where removing exactly those bytes reproduces the page's manifest hash. The build manifest was stable across both reads. No live page execution or application packet read was used as a shortcut.
+
+All 2662 frontend tests passed, including the previous FRED renderer tests with only their obsolete URL assertion updated. Deployment passed 1018 plus fifteen shell tests; 599 page script graphs and contracts and all 143 wiring declarations passed. The actual stamper reproduces the predecessor failure and verifies two content changes and idempotence. Whole-page and predecessor-test preservation checks remain in place. These checks establish the static release, not engine observation freshness or investment quality. Stage 520 short-position duplicate-identity repair follows; all ten institutional workstreams remain OPEN.
