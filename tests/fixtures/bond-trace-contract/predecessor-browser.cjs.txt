@@ -1,0 +1,32 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const W=__dirname,R=path.join(W,'si-batch-improvements'),old=process.env.JH_BOND_PREDECESSOR==='1';
+const input=old?path.join(R,'intelligence/index.html'):path.join(W,'stage512-contract-intelligence.html');
+const out=path.join(W,old?'stage512-contract-predecessor-browser':'stage512-contract-page-browser');fs.mkdirSync(out,{recursive:true});
+const packet={regime:'CALM',generated_at:'2026-10-01T21:00:00Z',hyg:{price:100,perf_5d_pct:-1,perf_30d_pct:0,perf_90d_pct:null},lqd:{price:200,perf_5d_pct:1,perf_30d_pct:0,perf_90d_pct:null},hyg_lqd_ratio:{value:.5,change_5d_pct:-2,change_30d_pct:null},trace:{observation_dates:{treasury:'2026-09-29',corporate:'2026-09-30'}}};
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});const cases=[];try{for(const width of [1440,390]){
+ const context=await browser.newContext({viewport:{width,height:1000},serviceWorkers:'block'}),page=await context.newPage(),errors=[],requests=[];page.on('pageerror',error=>errors.push(error.message));
+ await context.route('**/*',async route=>{const url=new URL(route.request().url());requests.push({path:url.pathname,type:route.request().resourceType()});
+  if(url.hostname==='bond-offline.invalid'&&url.pathname==='/intelligence/index.html')return route.fulfill({status:200,contentType:'text/html',body:fs.readFileSync(input)});
+  if(url.pathname==='/jh-volatility-research.js')return route.fulfill({status:200,contentType:'application/javascript',body:fs.readFileSync(path.join(R,'jh-volatility-research.js'))});
+  if(url.pathname.endsWith('/data/bond-trace.json'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(packet)});
+  return route.fulfill({status:200,contentType:'application/json',body:'null'});
+ });
+ await page.addInitScript(()=>{Date.now=()=>Date.parse('2026-10-01T21:05:00Z');});
+ await page.goto('https://bond-offline.invalid/intelligence/index.html',{waitUntil:'networkidle'});
+ await page.locator('[data-pane="bondtrace"]').click();await page.waitForFunction(()=>document.getElementById('bondtrace-kpis').textContent.includes('HYG'));
+ const text=await page.locator('#pane-bondtrace').innerText();
+ if(old){assert.ok(text.includes('[object Object]'));assert.ok(text.includes('risk-off'));}
+ else{assert.ok(text.includes('0.500'));assert.ok(text.includes('-2.00%'));assert.ok(text.includes('2026-09-29'));assert.ok(text.includes('2026-09-30'));assert.ok(text.includes('no sizing authority'));assert.ok(!text.includes('[object Object]'));}
+ await page.evaluate(()=>Promise.all(document.getAnimations().filter(animation=>Number.isFinite(animation.effect.getTiming().iterations)).map(animation=>animation.finished.catch(()=>{}))));
+ if(!old)assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width,'Bond table must not overflow the mobile page');
+ const screenshot=path.join(out,'bond-contract-'+width+'.png');await page.screenshot({path:screenshot,fullPage:true});
+ const record={width,text,errors,requests,screenshot};
+ if(!old){
+  await page.evaluate(()=>renderBondTrace({regime:'<img src=x onerror="document.body.dataset.injected=1">',hyg:{perf_5d_pct:'0'},trace:{observation_dates:{treasury:'2026-09-31'}}}));assert.equal(await page.locator('#pane-bondtrace img').count(),0);assert.equal(await page.getAttribute('body','data-injected'),null);
+  await page.evaluate(()=>renderBondTrace(null));record.empty_text=await page.locator('#pane-bondtrace').innerText();assert.ok(record.empty_text.includes('Unavailable'));assert.ok(!record.empty_text.includes('0.500'));
+  record.empty_screenshot=path.join(out,'bond-unavailable-'+width+'.png');await page.screenshot({path:record.empty_screenshot,fullPage:true});
+ }
+ assert.deepEqual(errors,[]);cases.push(record);await context.close();
+}}finally{await browser.close();}
+fs.writeFileSync(path.join(out,'browser-qa.json'),JSON.stringify({predecessor:old,input,cases,invented_packet:packet,actual_network_requests:0,scope:'Whole Intelligence HTML and inline producer-consumer rendering with actual volatility renderer; every request intercepted with invented bond data or null.'},null,2));console.log(JSON.stringify({predecessor:old,passed:true,widths:[1440,390],actual_network_requests:0}));})().catch(error=>{console.error(error);process.exitCode=1});
