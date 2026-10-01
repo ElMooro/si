@@ -84,7 +84,11 @@ test("engine ships Ichimoku displacement, cloud, RTH session, splits, and yellow
   assert.match(engine, /class=gokey id=btn-go/);
   assert.match(engine, /tryRun\(raw, \{ yellow: true \}/);
   assert.match(engine, /gyKeep/);
-  assert.match(engine, /goSymbol\(v\.toUpperCase\(\), "chart"\)/);
+  // Search Enter must use the same guarded selection as the dialog. Raw
+  // identifier text is no longer an implicit ticker; behavior has its own tests.
+  const topSearch = engine.slice(engine.indexOf('  function bindTopSearch('), engine.indexOf('  function openMenu('));
+  assert.match(topSearch, /submitSsSearch\("chart"\)/);
+  assert.doesNotMatch(topSearch, /goSymbol\(/);
   assert.match(engine, /id:"sess"/);
   assert.match(engine, /id:"split"/);
   assert.match(engine, /jhSetKind/);

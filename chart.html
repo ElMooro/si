@@ -142,18 +142,22 @@ a{color:inherit;text-decoration:none}
 .wops button:hover{background:var(--chip);color:var(--acc)}
 .addsym{margin:8px 10px;padding:8px;border:1px dashed var(--line);border-radius:6px;color:var(--acc);font-size:12px;width:calc(100% - 20px);text-align:center}
 .addsym:hover{background:var(--chip)}
-.ss-hit{display:grid;grid-template-columns:40px minmax(0,1fr) minmax(120px,auto) 32px;gap:10px;width:100%;padding:8px 16px;text-align:left;align-items:center;border-bottom:1px solid var(--chip)}
+.ss-hit{display:grid;grid-template-columns:32px minmax(0,1fr) 28px;gap:4px 10px;width:100%;padding:10px 16px;text-align:left;align-items:center;border-bottom:1px solid var(--chip)}
+.ss-hit>.ss-logo{grid-column:1;grid-row:1 / span 2}
+.ss-hit>span:first-of-type{grid-column:2;grid-row:1;min-width:0}
+.ss-hit .nm,.ss-hit .ds{display:block}
+.ss-hit .ss-more,.ss-hit .ss-check{grid-column:3;grid-row:1 / span 2}
 .ss-hit:hover,.ss-hit.on{background:var(--chip)}
 .ss-hit .ss-logo{width:28px;height:28px;min-width:28px;min-height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex:none;overflow:hidden;line-height:28px}
 .ss-hit .nm{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:14px;font-weight:600;color:#2962ff}
 .ss-hit .ds{font-size:13px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ss-hit .ss-ex{font-size:12px;color:var(--mut);white-space:nowrap}
+.ss-hit .ss-ex{grid-column:2;grid-row:2;font-size:12px;color:var(--mut);white-space:normal;overflow-wrap:anywhere;line-height:1.4;text-align:left}
 .ss-hit .ss-more{width:28px;height:28px;border-radius:4px;color:var(--mut)}
 .sschips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--line)}
 .sschips button{flex:none;padding:6px 12px;border-radius:99px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
 .sschips button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .ssfacets{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-bottom:1px solid var(--line)}
-.ssfacets button{flex:none;padding:4px 10px;border-radius:99px;border:1px solid var(--line);font-size:11px;color:var(--mut)}
+.ssfacets button{flex:none;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left;padding:4px 10px;border-radius:99px;border:1px solid var(--line);font-size:11px;color:var(--mut)}
 .ssfacets button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .ssfacets b{font-weight:600;margin-left:4px}
 #symsearch{display:none;position:fixed;inset:0;z-index:47;background:rgba(19,23,34,.55);align-items:flex-start;justify-content:center;padding-top:8vh}

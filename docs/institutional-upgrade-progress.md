@@ -6951,3 +6951,26 @@ A stalled fetch or body can no longer leave verification pending indefinitely. E
   malformed identifier exceptions and lost hyphenated ticker lookup. No browser
   page, real packet or external endpoint is executed. The separate chart renderer
   also warrants text-escaping review; an exploit is not claimed from source review.
+
+
+### Stage 493: accepted baseline and scoped identifier repair
+
+- Read-only 6403, run 36802956079, confirms the three predecessor source files,
+  CodeSha256 OGeRnl3JRkxTMOZzX7PrLS7/46uZNIM9biuwOEGhJ40= and matched source-
+  equivalent receipt 425b13adf59d130f9fee5922b0f32a9ca407ef75. All seven original
+  Scheduler bindings and 6144 MB / 900 seconds / 2048 MB temporary storage remain
+  unchanged. Report commit 0be70ca09308b931174949bcd0ee5ad5eb226038.
+- The native candidate separates optional issuer/identifier evidence from a
+  primary instrument. The browser catalog stops automatic identifier conversion,
+  preserves punctuated tickers and isolates malformed optional rows. The browser UI also requires
+  explicit choice for identifier candidates and escapes source text. Exact known
+  tickers preserve direct Enter navigation. The runner now includes the
+  existing fiscal, provider-search and warehouse suites. All 36 native, three
+  operation, 996 deployment, fifteen shell and 2,234 frontend cases pass; 599
+  script graphs and 143 companion wires pass. Exact native/static release
+  acceptance is pending.
+- Mixed index generations and forced-refresh cache loss remain separate repairs. No actual current/private/account/consumer
+  data or provider request was used. Normal publication, independent real-source
+  replay and all ten institutional workstreams remain OPEN.
+
+- Before shipping, complete offline browser reproduction confirmed attempted first-candidate routing on identifier Enter and HTML/event execution from an invented source name. The same atomic batch repairs this UI boundary, old-query asynchronous repaint, row identity selection and mobile metadata wrapping. Eleven focused policy/renderer tests and the final full cycle pass. Desktop/mobile search QA passes at 1440/390 pixels with zero page exceptions or actual network requests; screenshots are retained in the audit. Browser tests isolate full chart/catalog modules with full chart HTML/CSS, disable unrelated scripts and replace chart drawing with an inert fixture.

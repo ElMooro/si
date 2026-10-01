@@ -334,18 +334,21 @@
     return out.slice(0, limit);
   }
 
+  function identifierText(value, pattern) {
+    if (typeof value !== "string" || value.length > 128) return "";
+    var normalized = value.trim().toUpperCase();
+    return pattern.test(normalized) ? normalized : "";
+  }
+
   function lookupSym(q) {
     if (!SYM || !q) return "";
-    var n = String(q).trim().toUpperCase().replace(/[\s-]/g, "");
-    var i, r;
-    for (i = 0; i < SYM.length; i++) {
-      r = SYM[i];
-      if (r.s === n) return r.s;
-      if (r.cusip && r.cusip.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
-      if (r.isin && r.isin.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
-      if (r.figi && r.figi.replace(/[\s-]/g, "").toUpperCase() === n) return r.s;
+    var n = String(q).trim().toUpperCase(), matches = [];
+    // The source has no independently qualified security-identifier relationships.
+    // Preserve exact ticker lookup; an identifier candidate is never a shortcut.
+    for (var i = 0; i < SYM.length; i++) {
+      if (SYM[i].s.toUpperCase() === n) matches.push(SYM[i].s);
     }
-    return "";
+    return matches.length === 1 ? matches[0] : "";
   }
 
   function ensureIndex() {
@@ -362,19 +365,22 @@
     }
     IDX_P = Promise.all(jobs).then(function (pack) {
       var master = pack[0], bus = pack[1], catalog = pack[2], instr = pack[3];
-      if (master && master.by_ticker) {
+      if (master && master.by_ticker && typeof master.by_ticker === "object" && !Array.isArray(master.by_ticker)) {
         SYM = [];
         Object.keys(master.by_ticker).forEach(function (t) {
-          var r = master.by_ticker[t] || {};
-          var name = r.name || r.figi_name || t;
-          var figi = r.figi || "";
-          var cusip = r.cusip || "";
-          var isin = r.isin || "";
+          var r = master.by_ticker[t];
+          if (!r || typeof r !== "object" || Array.isArray(r)) r = {};
+          var name = typeof r.name === "string" && r.name ? r.name :
+            typeof r.figi_name === "string" && r.figi_name ? r.figi_name : t;
+          var figi = identifierText(r.figi, /^[B-DF-HJ-NP-TV-Z]{2}G[B-DF-HJ-NP-TV-Z0-9]{8}[0-9]$/);
+          var cusip = identifierText(r.cusip, /^[A-Z0-9*@#]{8}[0-9]$/);
+          var isin = identifierText(r.isin, /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/);
           var ids = [];
           if (figi) ids.push("FIGI " + figi);
           if (cusip) ids.push("CUSIP " + cusip);
           if (isin) ids.push("ISIN " + isin);
-          ids.push("OpenFIGI / SEC spine");
+          if (ids.length) ids.unshift("Unverified identifier candidates");
+          ids.push("SEC ticker source · security relationship unverified");
           SYM.push({
             s: t,
             n: name,

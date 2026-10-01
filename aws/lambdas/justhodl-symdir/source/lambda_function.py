@@ -70,6 +70,7 @@ from datetime import date, datetime, timedelta, timezone
 
 import boto3
 from botocore.config import Config
+from directory_identity import evidence as identifier_evidence, population as identity_population
 
 VERSION = "1.10.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -400,7 +401,9 @@ def build(event, context):
     # ---------------- instruments: Polygon reference + finviz + symbology + TV dictionary
     def st_instruments():
         fin = (_get_json("data/finviz-universe.json") or {}).get("by_ticker") or {}
-        sym = (_get_json("data/symbology/master.json") or {}).get("by_ticker") or {}
+        sym_document = _get_json("data/symbology/master.json")
+        sym_population = identity_population(sym_document)
+        sym = sym_population if sym_population is not None else {}
         mcap = {t: (v.get("market_cap") or 0) for t, v in fin.items()}
         ranks = {t: i for i, (t, _) in enumerate(sorted(mcap.items(), key=lambda kv: -kv[1]))}
         nfin = max(len(ranks), 1)
@@ -445,8 +448,7 @@ def build(event, context):
                         extra["industry"] = f.get("industry")
                     if f.get("market_cap"):
                         extra["mcap_mm"] = f["market_cap"]
-                    if sym.get(tk, {}).get("isin"):
-                        extra["isin"] = sym[tk]["isin"]
+                    extra.update(identifier_evidence(tk, r, sym_document, mkt))
                     docs.append(doc(tk, "instrument", name, "instrument", pop, extra=extra))
                     instruments.append([tk, name[:80], ex, typ, mkt, round(pop, 3)])
                     counts[mkt] = counts.get(mkt, 0) + 1
@@ -490,7 +492,9 @@ def build(event, context):
                             extra={"ex": ex, "type": (v.get("category") or "tv").lower(), "mkt": "tv", "src": src_l, "sid": src_id}))
             instruments.append([full, name[:80], ex, (v.get("category") or "tv").lower(), "tv", tvpop])
             counts["tv-dictionary"] = counts.get("tv-dictionary", 0) + 1
-        return {"counts": counts, "finviz": len(fin), "symbology": len(sym)}
+        return {"counts": counts, "finviz": len(fin), "symbology": len(sym) if sym_population is not None else None,
+                "symbology_status": "received_population" if sym_population is not None else "unavailable_or_invalid",
+                "identifier_relationships_qualified": False}
 
     # ---------------- FRED: full catalog meta + banked map
     def st_fred():
