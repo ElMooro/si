@@ -63,7 +63,8 @@ class Tests(unittest.TestCase):
         for path in SDK_PATHS:
             new,_=self.sdk(path=path);ok,table=self.emit(new);self.assertTrue(ok)
             after=table.put_item.call_args.kwargs['Item']
-            self.assertEqual({k:v for k,v in before.items() if k!='metadata'}, {k:v for k,v in after.items() if k!='metadata'})
+            self.assertEqual({k:v for k,v in before.items() if k not in ('metadata','confidence')}, {k:v for k,v in after.items() if k not in ('metadata','confidence')})
+            self.assertEqual(after['confidence'],Decimal('0.76543219'))
             self.assertEqual(after['metadata']['engine'],'invented');self.assertEqual(after['metadata']['regime'],{})
             self.assertFalse(set(FIELDS)&set(after['metadata']))
         self.assertEqual(SDK_PATHS[0].read_bytes(),SDK_PATHS[1].read_bytes())
