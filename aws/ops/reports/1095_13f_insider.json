@@ -1,0 +1,177 @@
+{
+  "script": "1095_13f_insider",
+  "read_at": "2026-10-02T00:29:03Z",
+  "candidates": {
+    "data/13f-clone-alpha.json": {
+      "exists": true,
+      "modified": "2026-09-28T08:30:45Z",
+      "age_h": 88.0,
+      "size": 26925
+    },
+    "data/13f-positions.json": {
+      "exists": true,
+      "modified": "2026-10-01T22:44:51Z",
+      "age_h": 1.7,
+      "size": 57340
+    },
+    "data/smart-money-13f.json": {
+      "exists": true,
+      "modified": "2026-09-28T11:00:29Z",
+      "age_h": 85.5,
+      "size": 5665
+    },
+    "data/insider-cluster.json": {
+      "exists": false
+    },
+    "data/insider-trades.json": {
+      "exists": true,
+      "modified": "2026-10-02T00:14:26Z",
+      "age_h": 0.2,
+      "size": 1215832
+    },
+    "data/edgar-insiders.json": {
+      "exists": false
+    },
+    "data/insider-aggregate.json": {
+      "exists": true,
+      "modified": "2026-10-01T22:30:53Z",
+      "age_h": 2.0,
+      "size": 81023
+    }
+  },
+  "list_data_13f": [
+    {
+      "key": "data/13f-by-ticker.json",
+      "modified": "2026-10-01T22:44:51Z",
+      "size": 57272
+    },
+    {
+      "key": "data/13f-clone-alpha.json",
+      "modified": "2026-09-28T08:30:45Z",
+      "size": 26925
+    },
+    {
+      "key": "data/13f-cusip-map-v2.json",
+      "modified": "2026-10-02T00:28:23Z",
+      "size": 894107
+    },
+    {
+      "key": "data/13f-cusip-map.json",
+      "modified": "2026-09-19T23:07:38Z",
+      "size": 1667330
+    },
+    {
+      "key": "data/13f-desk.json",
+      "modified": "2026-10-01T22:44:51Z",
+      "size": 57326
+    },
+    {
+      "key": "data/13f-flows-by-ticker.json",
+      "modified": "2026-10-01T22:44:51Z",
+      "size": 57289
+    },
+    {
+      "key": "data/13f-positions.json",
+      "modified": "2026-10-01T22:44:51Z",
+      "size": 57340
+    },
+    {
+      "key": "data/13f-price-anchors.json",
+      "modified": "2026-09-19T23:08:23Z",
+      "size": 663539
+    },
+    {
+      "key": "data/13f-price-divergence.json",
+      "modified": "2026-10-01T21:20:25Z",
+      "size": 1481
+    },
+    {
+      "key": "data/13f-state/cik-overrides.json",
+      "modified": "2026-08-24T13:01:27Z",
+      "size": 350
+    },
+    {
+      "key": "data/13f-state/first-seen.json",
+      "modified": "2026-09-19T23:07:52Z",
+      "size": 432683
+    }
+  ],
+  "list_data_insider": [
+    {
+      "key": "data/insider-aggregate-history.json",
+      "modified": "2026-09-18T22:30:09Z",
+      "size": 28509
+    },
+    {
+      "key": "data/insider-aggregate.json",
+      "modified": "2026-10-01T22:30:53Z",
+      "size": 81023
+    },
+    {
+      "key": "data/insider-buyback-confluence.json",
+      "modified": "2026-10-01T23:00:08Z",
+      "size": 1560
+    },
+    {
+      "key": "data/insider-buys-enriched.json",
+      "modified": "2026-10-01T10:00:46Z",
+      "size": 8614
+    },
+    {
+      "key": "data/insider-clusters-names.json",
+      "modified": "2026-10-01T19:21:00Z",
+      "size": 599
+    },
+    {
+      "key": "data/insider-clusters.json",
+      "modified": "2026-08-04T16:36:38Z",
+      "size": 50284
+    },
+    {
+      "key": "data/insider-industry-cluster-history.json",
+      "modified": "2026-10-01T14:20:49Z",
+      "size": 3214
+    },
+    {
+      "key": "data/insider-industry-cluster.json",
+      "modified": "2026-10-01T14:20:49Z",
+      "size": 2425
+    },
+    {
+      "key": "data/insider-radar.json",
+      "modified": "2026-10-01T14:40:33Z",
+      "size": 26457
+    },
+    {
+      "key": "data/insider-research-verification.json",
+      "modified": "2026-09-20T17:56:24Z",
+      "size": 28386
+    },
+    {
+      "key": "data/insider-research/compilers/19f03c56846ea8808b61faf6f6fe",
+      "modified": "2026-09-20T17:56:09Z",
+      "size": 15011
+    },
+    {
+      "key": "data/insider-research/compilers/280556cb723fc3c1e6e8fc245f5e",
+      "modified": "2026-09-20T17:56:09Z",
+      "size": 13222
+    },
+    {
+      "key": "data/insider-research/inputs/0fe936bf7689ce38414ab4d64b55ffa",
+      "modified": "2026-09-25T22:30:42Z",
+      "size": 19088
+    },
+    {
+      "key": "data/insider-research/inputs/284975d876aca4d63639bd79b99a869",
+      "modified": "2026-09-23T22:30:41Z",
+      "size": 19088
+    },
+    {
+      "key": "data/insider-research/inputs/444888651f3b74a77977752e8d9c1cb",
+      "modified": "2026-09-22T22:30:42Z",
+      "size": 19088
+    }
+  ],
+  "status": "COMPLETE"
+}
