@@ -23,6 +23,7 @@ OUTPUT data/best-setups.json — ranked setups with entry/stop/target + thesis.
 Consumed by chart-pro "⚡ Today's Setups" board + Telegram morning push.
 SCHEDULE: hourly (after trade-tickets + signals refresh).
 """
+from fabric_numeric import consumer_context as fabric_research_context
 from public_brain_projection import sanitize_public
 from consume_brain import load_constitution
 from capital_research_boundary import context as capital_context
@@ -85,7 +86,7 @@ OUTPUT_KEY = "data/best-setups.json"
 s3 = boto3.client("s3", region_name="us-east-1")
 
 
-_FB_STAMP = {}
+_FABRIC_RESEARCH_BOUNDARY = "fabric-descriptive-numeric.v1"
 
 
 def read_json(key, default=None):
@@ -282,8 +283,10 @@ def lambda_handler(event, context):
     insider = read_json("data/insider-clusters.json") or {}
     finra_short = __import__("short_volume_context").decision_view(read_json("data/finra-short.json")) or {}
     # ops 4346: FEATURE BUS — the fleet's per-ticker context vector
-    feature_bus = (read_json("data/feature-bus.json")
-                   or {}).get("tickers") or {}
+    fabric_research = fabric_research_context(read_json("data/feature-bus.json"))
+    _fabric_packet = fabric_research["packet"]
+    feature_bus = _fabric_packet.get("tickers") if isinstance(_fabric_packet, dict) else None
+    feature_bus = feature_bus if isinstance(feature_bus, dict) else {}
     catalysts = read_json("data/catalyst-calendar.json") or {}
     # ops 3145 fusion (additive): earnings dates + squeeze fuel
     _ecal = read_json("data/benzinga-earnings-calendar.json") or {}
@@ -1004,31 +1007,12 @@ def lambda_handler(event, context):
         if _fa_mult != 1.0:
             composite = round(min(100.0, composite * _fa_mult), 1)
 
-        # ── Fleet Fabric gate (ops 4346): cross-engine context ──
-        _fctx = feature_bus.get(tk) or {}
-        if _fctx:
-            _FB_STAMP[tk] = {
-                "fabric_agreement": _fctx.get("agreement_pct"),
-                "fabric_score": _fctx.get("fabric_score"),
-                "fabric_conflict": _fctx.get("conflict")}
+        # Fabric remains inspectable research, never a ranking multiplier or
+        # a training/skill stamp. Claimed eligibility in a packet cannot qualify it.
+        _fctx = feature_bus.get(tk)
+        _fctx = _fctx if isinstance(_fctx, dict) else {}
         _fb_mult = 1.0
-        _fb_tag = None
-        if _fctx:
-            _ag = _fctx.get("agreement_pct") or 0
-            _ne = _fctx.get("n_engines") or 0
-            _nd = _fctx.get("net_direction")
-            # ops 4348: strong alignment outranks a lone
-            # dissenter -- contested only when the room is split.
-            if _ne >= 4 and _ag >= 75:
-                _fb_mult = 1.08 if _nd == "UP" else 0.90
-                _fb_tag = ("FLEET_ALIGNED_UP" if _nd == "UP"
-                           else "FLEET_ALIGNED_DOWN")
-            elif _fctx.get("conflict"):
-                _fb_mult = 0.94
-                _fb_tag = "FLEET_CONTESTED"
-            if _fb_mult != 1.0:
-                composite = round(min(100.0,
-                                      composite * _fb_mult), 1)
+        _fb_tag = "RESEARCH_ONLY" if _fctx else None
 
         # ── CYCLE gate (accumulation-radar): a buy signal on a name distributing at a
         # top is lower quality. Tag the phase; gently haircut only the strongest tell
@@ -1209,6 +1193,8 @@ def lambda_handler(event, context):
             "fabric_n_engines": _fctx.get("n_engines"),
             "fabric_conflict": _fctx.get("conflict"),
             "fabric_mult": _fb_mult,
+            "fabric_ranking_eligible": False,
+            "fabric_learning_weight_eligible": False,
             "fabric_tag": _fb_tag,
             "nowcast_regime_mult": _nc_mult,
             "cycle_phase": (_cyc or {}).get("phase"),
@@ -1586,25 +1572,7 @@ def lambda_handler(event, context):
             from signals_emit import log_signal as _ls_raw, yprice
 
             def log_signal(*a, **k):
-                # ops 4347c: fabric stamp at the emitter call
-                try:
-                    import re as _re2
-                    _sy = str(k.get("symbol")
-                              or k.get("ticker") or "").upper()
-                    if not _sy:
-                        for _cand in a:
-                            _cs = str(_cand).upper()
-                            if _re2.match(
-                                    r"^[A-Z][A-Z0-9.\-]{0,6}$",
-                                    _cs) and _cs in _FB_STAMP:
-                                _sy = _cs
-                                break
-                    _fbx = _FB_STAMP.get(_sy)
-                    if _fbx:
-                        k["metadata"] = {**(k.get("metadata")
-                                            or {}), **_fbx}
-                except Exception:
-                    pass
+                # Do not feed unqualified Fabric agreement back into learning.
                 return _ls_raw(*a, **k)
             _tbl = boto3.resource("dynamodb", "us-east-1").Table("justhodl-signals")
             _logged = 0
@@ -1629,6 +1597,7 @@ def lambda_handler(event, context):
     output = {
         "schema_version": "1.0",
         "engine": "best-setups (unified conviction)",
+        "fabric_research": fabric_research,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s": round(time.time() - t0, 1),
         "weight_source": weight_src,

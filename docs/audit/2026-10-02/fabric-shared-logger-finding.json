@@ -1,0 +1,33 @@
+{
+  "status": "open_reproduced_with_invented_inputs",
+  "source": "aws/shared/signals_emit.py",
+  "source_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+  "case": "shared_logger_readds_fabric_values_despite_false_eligibility",
+  "invented_packet": {
+    "calls_eligible": false,
+    "learning_weight_eligible": false,
+    "tickers": {
+      "QAONLY": {
+        "agreement_pct": 100,
+        "fabric_score": 0.3,
+        "conflict": false,
+        "peer_fabric_score": null,
+        "learning_weight_eligible": false
+      }
+    }
+  },
+  "observed_metadata": {
+    "engine": "best-setups",
+    "regime": {},
+    "fabric_agreement": 100,
+    "fabric_score": "0.3",
+    "fabric_conflict": false,
+    "fabric_peer": null
+  },
+  "invented_storage_reads": [
+    "data/feature-bus.json"
+  ],
+  "actual_native_or_application_reads": 0,
+  "actual_ledger_writes": 0,
+  "scope": "Best Setups local wrapper removal alone does not close the shared SDK metadata path. The real log_signal and _fabric_ctx were executed against invented S3/DynamoDB only."
+}

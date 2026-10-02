@@ -1,0 +1,83 @@
+{
+  "status": "stable_named_fabric_setups_control_baseline",
+  "functions": {
+    "justhodl-best-setups": {
+      "FunctionName": "justhodl-best-setups",
+      "CodeSha256": "nUbZWjtmn0gOYHI7UxZrChBfmTsVgZ7pSPWYs8gLFMQ=",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 120,
+      "MemorySize": 512,
+      "Architectures": [
+        "x86_64"
+      ],
+      "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "EphemeralStorage": {
+        "Size": 512
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-best-setups-hourly",
+          "state": "ENABLED",
+          "expression": "cron(10 * * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "schedule_observation": "bound_schedules_observed",
+      "other_invocation_routes_verified": false
+    },
+    "justhodl-signal-fabric": {
+      "FunctionName": "justhodl-signal-fabric",
+      "CodeSha256": "PLscOeHbKnNGNKSzC2GVHsdh4BS9ylV7wvGb3TVPFHw=",
+      "Runtime": "python3.12",
+      "Handler": "lambda_function.lambda_handler",
+      "Timeout": 300,
+      "MemorySize": 512,
+      "Architectures": [
+        "x86_64"
+      ],
+      "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "EphemeralStorage": {
+        "Size": 512
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-signal-fabric-hourly",
+          "state": "ENABLED",
+          "expression": "cron(5 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-signal-fabric-cadence",
+          "state": "ENABLED",
+          "expression": "cron(10 0 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "schedule_observation": "bound_schedules_observed",
+      "other_invocation_routes_verified": false
+    }
+  },
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "application_packet_reads": 0,
+  "private_reads": 0,
+  "account_reads": 0,
+  "native_writes": 0,
+  "schedule_changes": 0,
+  "source_qualified": false,
+  "normal_publication_verified": false,
+  "investment_authority": false,
+  "run_id": 36999779512,
+  "operation_commit": "3923553a44f495057f097549f8300d02b79ce78e",
+  "report_commit": "6241d549f3b4247301dc879732201ffe3bda0849",
+  "report": {
+    "path": "aws/ops/reports/latest/ops_6459_fabric_setups_controls.md",
+    "bytes": 1872,
+    "sha256": "574241b94d752e435586c57afd7ad881f2168651f6ee2535ba0e8a7ecd22f126"
+  }
+}

@@ -5,6 +5,6 @@ import unittest
 ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/shared/tests')]
 if __name__=='__main__':
-    suite=unittest.TestSuite(unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern=name) for name in ('test_holdings_authority.py','test_compound_fabric_context.py'))
+    suite=unittest.TestSuite(unittest.TestLoader().discover(str(ROOT/'aws/shared/tests'),pattern=name) for name in ('test_holdings_authority.py','test_compound_fabric_context.py','test_fabric_numeric.py'))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)

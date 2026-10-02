@@ -103,8 +103,9 @@ class Tests(unittest.TestCase):
         self.assertFalse(events['prior_calculation_comparable'])
         previous['compound_research_boundary'] = BASIS
         out = self.fabric({}, {'data/feature-bus.json': previous})
-        self.assertEqual(out['data/fabric-events.json']['events'][0]['type'], 'DIRECTION_FLIP')
-        self.assertTrue(out['data/fabric-events.json']['prior_calculation_comparable'])
+        # A matching Compound revision still does not qualify source-vintage comparability.
+        self.assertEqual(out['data/fabric-events.json']['events'], [])
+        self.assertFalse(out['data/fabric-events.json']['prior_calculation_comparable'])
 
     def test_every_published_projection_preserves_boundary_without_granting_forecast_authority(self):
         for key, packet in self.fabric({'compound': []}).items():

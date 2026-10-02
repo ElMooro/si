@@ -7972,3 +7972,29 @@ Next: the remaining Signal Fabric adapters and weighting/comparison paths need o
 The source-backed nine-case fixture in `docs/audit/2026-10-02/fabric-adapter-findings.json` reproduces missing direction becoming UP, equal-weight duplicate rows selecting a direction by arrival order, 0% and 50% empirical win rates producing the same weight, nonfinite lift receiving the maximum weight, tied balance becoming DOWN, rejected ticker identities counted as added sources, ancient timestamps not affecting eligibility, and invalid weight types crashing the handler. Every input is invented; no current application, outcome ledger or scorecard was read.
 
 Source tracing also shows Best Setups ignores Fabric qualification flags and applies +8%, −10% or −6% rank adjustments from unqualified agreement/conflict fields. Its outgoing signal metadata stamps those same fields. The consumer must retain context without promoting it to ranking or learning authority. Operation 6459 captures only the actual Best Setups and Fabric code identities, runtime settings and bound schedules twice before changes; no producer invocation, provider probe, private/account/learning packet read, schedule mutation or paid AI call is authorized or introduced. Source fixes, resource/retention planning, current-calculation provenance, complete population handling, comparison integrity and deployment acceptance remain pending. This scope does not qualify the legacy scorecard producers or the other Best Setups factors.
+
+
+### Stage 565 Fabric arithmetic and Best Setups consumer repair
+
+- Strict finite typed inputs, field presence and exact engine identifiers; zero win rates survive, null/invalid/duplicate learned records cannot become maximum weights or silently fall back
+- Missing reversal or transaction direction abstains; days to cover is not interpreted as a squeeze score; incompatible numeric units and ambiguous symbols stay inspectable without contributing
+- All received declared occurrences retained beyond legacy population caps; duplicate family records withhold the family instead of selecting first/strongest; counts follow included descriptive occurrences
+- Equal opposing contributions have a zero descriptive balance and null direction, with disagreement visible even across two families
+- One read per input; peer means exclude self and reject duplicate peer identities; generated_at is one publication clock, never observation freshness
+- All outputs are strictly encoded and bounded before the first write; complete populations cannot be silently truncated to fit; sequential legacy heads are explicitly not atomic
+- Observation-vintage compatibility is not qualified, so prior packet field absence or calculation changes cannot create current market events
+- Best Setups retains the complete Fabric packet and no longer boosts/cuts rankings or manually stamps Fabric learning metadata; the separate shared SDK still reattaches metadata and remains open
+- Best Setups test runner now actually runs its formerly unreachable retail and sector boundary suites
+
+Operation 6459 captured Fabric and Best Setups native runtimes and all three existing schedule bindings twice. Source edits preserve those controls. Eighteen new invented-input regressions cover actual source reading, both complete handlers, ranking invariance, the real learning-emitter wrapper, hostile flags, prior events, complete 905-name populations, duplicate family/peer identities and pre-write failure boundaries. Full integration and exact release acceptance are pending.
+
+- Source clock SLAs, unit/identity reconciliation and independent root provenance still require source-specific qualification; declared source families are not independent evidence
+- Legacy learned weights and heuristic scores remain descriptive only; no point-in-time warehouse/out-of-sample/cost/portfolio qualification is established
+- Full retained original bytes, immutable manifests and replay across all Fabric inputs remain open; parsed context and hashes do not establish original-source replay
+- Sequential multi-key publication, acquisition deadlines, worst-case resource budgets and scheduled recovery remain unqualified; no normal native producer publication is claimed
+- Other Best Setups score modifiers, learned weights, recommendations and portfolio structures require continued source/consumer audit
+- No current application/private/account/learning packet reads or producer invocations; acceptance is code/receipts/native controls and invented full-path tests
+- All ten institutional workstreams remain OPEN; no platform-wide or bug-free completion claim
+
+
+Stage 565 scope correction before source publication: direct execution of the actual shared `signals_emit.log_signal` and `_fabric_ctx` against invented S3/DynamoDB reproduced automatic reattachment of `fabric_agreement=100` despite false eligibility. Removing Best Setups' local stamp does not close this shared path. Its 17 importer engines need a coordinated SDK repair and native baseline next. The new producer-to-Best-Setups regression proves ranking invariance and the local wrapper only; no complete learning-path repair is claimed. No real application packet or ledger was accessed.

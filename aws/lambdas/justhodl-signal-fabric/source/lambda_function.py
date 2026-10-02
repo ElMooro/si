@@ -5,6 +5,10 @@ Other legacy adapters and weights remain research heuristics; grouping names doe
 not establish source independence, calibrated probabilities or portfolio fit.
 Output: data/signal-fabric.json"""
 import hashlib, json, math, re, time
+from copy import deepcopy
+from decimal import Decimal
+from context_evidence_store import strict, encode, MAX_BYTES, MAX_TOTAL
+from fabric_numeric import CONTRACT, field, symbol, collection, stance, weight, digest, family_projection
 from datetime import datetime, timezone
 
 import boto3
@@ -36,11 +40,7 @@ SOURCE_FAMILY = {
 
 
 def _g(d, *ks):
-    for k in ks:
-        v = d.get(k)
-        if v not in (None, ""):
-            return v
-    return None
+    return field(d, *ks)
 
 
 def _dirn(v):
@@ -59,13 +59,7 @@ def st_best_setups(r0):
 
 
 def st_reversal(r0):
-    sc = _g(r0, "reversal_score") or 0
-    if sc < 15:
-        return None
-    d0 = _g(r0, "direction")
-    return ("reversal", "%s %.0f" % (d0, sc),
-            "DOWN" if d0 == "TOP_FORMING" else "UP",
-            min(1.0, sc / 60.0))
+    return stance('trend-reversal', r0)
 
 
 def st_compound(r0):
@@ -75,53 +69,27 @@ def st_compound(r0):
 
 
 def st_rerating(r0):
-    comp = _g(r0, "composite")
-    if comp is None or float(comp) < 55:
-        return None
-    return ("rerating", "composite %s" % comp, "UP",
-            min(1.0, float(comp) / 100.0))
+    return stance('ai-rerating', r0)
 
 
 def st_magic(r0):
-    rk = _g(r0, "rank", "magic_rank")
-    if rk is None or rk > 30:
-        return None
-    return ("value-rank", "MF #%s" % rk, "UP",
-            max(0.3, 1.0 - rk / 40.0))
+    return stance('magic-formula', r0)
 
 
 def st_opps(r0):
-    sc = _g(r0, "go_score", "score", "composite")
-    if sc is None or sc < 60:
-        return None
-    return ("opportunity", "score %s" % sc, "UP",
-            min(1.0, sc / 100.0))
+    return stance('opportunities', r0)
 
 
 def st_insider(r0):
-    n = _g(r0, "insiders", "n_insiders", "cluster_size") or 0
-    if n < 2:
-        return None
-    return ("insider-cluster", "%s insiders" % n, "UP",
-            min(1.0, n / 5.0))
+    return stance('insider-clusters', r0)
 
 
 def st_congress(r0):
-    t = str(_g(r0, "type", "transaction") or "")
-    d0 = "DOWN" if "sale" in t.lower() else "UP"
-    return ("congress", "%s %s" % (_g(r0, "filer"), t)[:40], d0,
-            0.6)
+    return stance('congress-direct', r0)
 
 
 def st_squeeze(r0):
-    sc = _g(r0, "squeeze_score", "days_to_cover")
-    if sc is None:
-        return None
-    scf = float(sc)
-    if scf < 6:
-        return None
-    return ("squeeze", "sqz %.1f" % scf, "UP",
-            min(1.0, scf / 15.0))
+    return stance('squeeze-fuel', r0)
 
 
 def legacy_st_13f(sym, tf):
@@ -166,15 +134,9 @@ ADAPTERS = [
 
 
 def resolve_rows(d, keys):
-    for k in keys:
-        v = (d or {}).get(k)
-        if isinstance(v, list) and v and isinstance(v[0], dict):
-            return v
-    for k, v in (d or {}).items():
-        if isinstance(v, list) and v and isinstance(v[0], dict) \
-                and any(x in v[0] for x in ("ticker", "symbol")):
-            return v
-    return []
+    return collection(d, keys)[1]
+
+
 PAGE = {"short-interest": "/short-interest.html",
         "best-setups": "/best-setups.html",
         "trend-reversal": "/trend-reversal.html",
@@ -189,353 +151,238 @@ PAGE = {"short-interest": "/short-interest.html",
 
 
 def rd(key):
+    body = None
     try:
-        return __import__("sec_ftd_context").guard(key, json.loads(s3.get_object(Bucket=B, Key=key)
-                          ["Body"].read()))
+        response = s3.get_object(Bucket=B, Key=key)
+        body = response['Body']
+        length = response.get('ContentLength')
+        if type(length) is not int or not 0 <= length <= MAX_BYTES:
+            raise ValueError('Whole bounded Fabric source required')
+        chunks = bytearray()
+        while True:
+            block = body.read(min(65536, MAX_BYTES + 1 - len(chunks)))
+            if not isinstance(block, bytes):
+                raise ValueError('Byte stream required')
+            if not block:
+                break
+            chunks.extend(block)
+            if len(chunks) > MAX_BYTES:
+                raise ValueError('Fabric source exceeds bound')
+        if len(chunks) != length:
+            raise ValueError('Incomplete Fabric source')
+        return __import__('sec_ftd_context').guard(key, strict(bytes(chunks), response.get('ContentEncoding', '')))
     except Exception:
         return None
+    finally:
+        if body is not None:
+            try:
+                body.close()
+            except Exception:
+                pass
 
 
 def lambda_handler(event=None, context=None):
     t0 = time.time()
-    lb = rd("data/engine-leaderboard.json") or {}
-    LW = rd("data/learned-weights.json") or {}
-    LW_E = LW.get("by_engine") or {}
-    LW_ER = LW.get("by_engine_regime") or {}
-    try:
-        _uc = rd("data/us-cycle.json") or {}
-        CUR_REG = str(_uc.get("regime") or _uc.get("phase")
-                      or "UNKNOWN").upper()
-    except Exception:
-        CUR_REG = "UNKNOWN"
-    W = {}
-    for x in lb.get("board") or []:
-        W[str(x["engine"]).lower()] = {
-            "win": x.get("win_pct"), "n": x.get("n")}
+    generated = datetime.now(timezone.utc).isoformat()
+    cache = {}
+    total_bytes = 0
 
-    def wt(engine):
-        # ops 4347: LEARNED weights first (regime-conditional),
-        # then learned overall, then empirical, then neutral.
-        for lk, tab, tag in ((engine + "|" + CUR_REG, LW_ER,
-                              "learned:" + CUR_REG),
-                             (engine, LW_E, "learned")):
-            for k2, v2 in tab.items():
-                if k2.split("|")[0].lower() in engine.lower() \
-                        or engine.lower() in k2.split("|")[0] \
-                        .lower():
-                    if (tag.startswith("learned:")
-                            and not k2.endswith("|" + CUR_REG)):
-                        continue
-                    w0 = max(0.2, min(1.6,
-                                      0.6 + v2["lift"] / 50.0))
-                    return (round(w0, 2),
-                            "%s:%s%%(n=%s)" % (tag, v2["win"],
-                                               v2["n"]))
-        # empirical weight: (win%-50)/50 clipped [0.2, 1.5];
-        # ungraded engines get neutral 0.6 (disclosed)
-        for k, v in W.items():
-            if k in engine.lower() or engine.lower() in k:
-                w0 = ((v["win"] or 50) - 50) / 50.0
-                return (max(0.2, min(1.5, 0.6 + w0)),
-                        "empirical:%s%%(n=%s)" % (v["win"],
-                                                  v["n"]))
-        return (0.6, "neutral (ungraded)")
-    FAB = {}
-    seen_evidence = set()
+    def read_once(key):
+        nonlocal total_bytes
+        if key not in cache:
+            cache[key] = rd(key)
+            # No output is published after an incomplete aggregate read budget.
+            total_bytes += len(encode(cache[key]))
+            if total_bytes > MAX_TOTAL:
+                raise ValueError('Complete Fabric context exceeds aggregate bound')
+        return cache[key]
 
-    def add(sym, engine, kind, value, direction, conf, root_id=None):
-        if not sym or not TICK_RX.match(sym):
-            return
-        try:
-            confidence = float(conf)
-        except (TypeError, ValueError):
-            return
-        if not math.isfinite(confidence) or not 0 <= confidence <= 1:
-            return
-        canonical = root_id or "|".join(
-            (engine, sym, str(kind), str(value), str(direction))
-        )
-        evidence_id = "sf1:" + hashlib.sha256(
-            canonical.encode("utf-8", "replace")
-        ).hexdigest()[:24]
-        if evidence_id in seen_evidence:
-            return
-        seen_evidence.add(evidence_id)
-        w0, basis = wt(engine)
-        FAB.setdefault(sym, []).append({
-            "evidence_id": evidence_id,
-            "engine": engine, "kind": kind,
-            "value": str(value)[:60],
-            "direction": direction, "confidence": round(confidence, 2),
-            "weight": round(w0, 2), "weight_basis": basis,
-            "source_family": SOURCE_FAMILY.get(engine, engine),
-            "evidence_level": "L2",
-            "role": "derived_heuristic",
-            "independence_eligible": False,
-            "ancestry": [], "ancestry_status": "not_traced",
-            "forecast_qualified": False, "sizing_eligible": False,
-            "provenance": {"producer": engine},
-            "link": "https://justhodl.ai"
-                    + PAGE.get(engine, "/engine-leaderboard.html")})
+    lb = read_once('data/engine-leaderboard.json')
+    learned = read_once('data/learned-weights.json')
+    cycle = read_once('data/us-cycle.json')
+    regime = field(cycle, 'regime', 'phase')
+    regime = regime.upper() if isinstance(regime, str) and regime else 'UNKNOWN'
+    weights = {}
+    source_context = {}
+    source_stats = {engine: 0 for _, _, _, engine in ADAPTERS}
+    source_stats.update({'congress-direct': 0, 'short-interest': 0, '13f-flows': 0})
+    fab = {}
+
+    def add_rows(packet, keys, engine, source, prefix=''):
+        key, rows, status = collection(packet, keys)
+        context_key = engine + prefix
+        evidence = {'source': source, 'collection': key, 'status': status,
+                    'packet': deepcopy(packet), 'occurrences': [],
+                    'source_freshness_qualified': False, 'current_vote_eligible': False,
+                    'original_bytes_retained': False,
+                    'observation_note': 'Received publication clocks are context, not observation freshness.'}
+        source_context[context_key] = evidence
+        if engine not in weights:
+            weights[engine] = weight(engine, lb, learned, regime)
+        for i, row in enumerate(rows):
+            pointer = prefix + '/' + key + '/' + str(i)
+            sym = symbol(row)
+            st = stance(engine, row)
+            occ = {'pointer': pointer, 'record': deepcopy(row), 'symbol': sym,
+                   'status': 'withheld_invalid_identity' if sym is None else 'not_selected_or_invalid_adapter',
+                   'current_vote_eligible': False}
+            evidence['occurrences'].append(occ)
+            if sym is None or st is None:
+                continue
+            kind, value, direction, strength = st
+            evidence_id = 'sf2:' + digest([source, pointer, row])[:24]
+            occ.update(status='descriptive_candidate', evidence_id=evidence_id)
+            w = weights[engine]
+            envelope = {
+                'evidence_id': evidence_id, 'engine': engine, 'kind': kind,
+                'value': value, 'direction': direction,
+                'confidence': round(strength, 2), 'heuristic_strength': strength,
+                'confidence_semantics': 'uncalibrated_heuristic_strength_not_probability',
+                'weight': w['value'], 'weight_basis': w['basis'],
+                'weight_context': deepcopy(w),
+                'source_family': SOURCE_FAMILY.get(engine, engine),
+                'evidence_level': 'L2', 'role': 'derived_heuristic',
+                'independence_eligible': False, 'ancestry': [], 'ancestry_status': 'not_traced',
+                'forecast_qualified': False, 'sizing_eligible': False,
+                'calls_eligible': False, 'current_vote_eligible': False,
+                'provenance': {'producer': engine, 'source': source, 'pointer': pointer,
+                               'record': deepcopy(row), 'parsed_record_sha256': digest(row)},
+                'link': 'https://justhodl.ai' + PAGE.get(engine, '/engine-leaderboard.html')}
+            fab.setdefault(sym, []).append(envelope)
+        evidence['selected_count'] = len(rows)
+        evidence['candidate_count'] = sum(r['status'] == 'descriptive_candidate' for r in evidence['occurrences'])
+
     compound_context = read_compound_context(s3, B)
-    src_stats = {}
-    for key, rows_keys, fn, engine in ADAPTERS:
-        if engine == "compound-aggregator":
-            src_stats[engine] = 0
-            continue
-        d = rd(key)
-        rows = resolve_rows(d, rows_keys)
-        n0 = 0
-        for r0 in rows[:600]:
-            if not isinstance(r0, dict):
-                continue
-            sym = str(_g(r0, "ticker", "symbol") or "").upper()
-            try:
-                st = fn(r0)
-            except Exception:
-                st = None
-            if st:
-                add(sym, engine, *st)
-                n0 += 1
-        src_stats[engine] = n0
-    # congress-direct: nested senate/house
-    cg = rd("data/congress-direct.json") or {}
-    ncg = 0
-    congress_seen = set()
-    for chamber in ("senate", "house"):
-        ch = cg.get(chamber) or {}
-        for r0 in resolve_rows(ch, ("rows", "transactions",
-                                    "filings"))[:300]:
-            sym = str(_g(r0, "ticker", "symbol") or "").upper()
-            transaction_id = str(_g(
-                r0, "transaction_id", "filing_id", "id"
-            ) or "").strip()
-            transaction_key = transaction_id or "|".join(str(x or "").strip().upper() for x in (
-                sym,
-                _g(r0, "filer", "name", "representative"),
-                _g(r0, "type", "transaction"),
-                _g(r0, "transaction_date", "date"),
-                _g(r0, "amount", "amount_range"),
-            ))
-            if transaction_key in congress_seen:
-                continue
-            congress_seen.add(transaction_key)
-            st = st_congress(r0)
-            if st:
-                add(sym, "congress-direct", *st,
-                    root_id="congress|" + transaction_key)
-                ncg += 1
-    src_stats["congress-direct"] = ncg
-    # short-interest: by_ticker map beats squeeze-fuel when empty
-    si = (__import__("short_interest_context").decision_view(rd("data/short-interest.json")) or {}).get("by_ticker") \
-        or {}
-    nsi = 0
-    for sym, r0 in list(si.items())[:800]:
-        if not isinstance(r0, dict):
-            continue
-        st = st_squeeze(r0)
-        if st:
-            add(str(sym).upper(), "short-interest", *st)
-            nsi += 1
-    src_stats["short-interest"] = nsi
-    holdings_packet = rd("data/13f-flows-by-ticker.json") or {}
-    holdings_qualification = holdings_context(holdings_packet, "data/13f-flows-by-ticker.json")
-    tf = holdings_packet.get("t") or {}
-    n13 = 0
-    for sym in list(FAB.keys()):
-        st = st_13f(sym, tf)
-        if st:
-            add(sym, "13f-flows", *st)
-            n13 += 1
-    src_stats["13f-flows"] = n13
-    # fuse: fabric_score, agreement, conflicts
+    total_bytes += len(encode(compound_context))
+    if total_bytes > MAX_TOTAL:
+        raise ValueError('Complete Fabric context exceeds aggregate bound')
+    for key, keys, _, engine in ADAPTERS:
+        if engine != 'compound-aggregator':
+            add_rows(read_once(key), keys, engine, key)
+    congress = read_once('data/congress-direct.json')
+    for chamber in ('senate', 'house'):
+        add_rows(congress.get(chamber) if isinstance(congress, dict) else None,
+                 ('rows', 'transactions', 'filings'), 'congress-direct',
+                 'data/congress-direct.json', '/' + chamber)
+
+    # The original short-interest and holdings packets remain context only.
+    # No fallback through squeeze-fuel or a legacy 13F net value can grant a vote.
+    short_interest = read_once('data/short-interest.json')
+    holdings_packet = read_once('data/13f-flows-by-ticker.json')
+    holdings_qualification = holdings_context(holdings_packet, 'data/13f-flows-by-ticker.json')
     tickers = []
     conflicts = []
-    for sym, envs in FAB.items():
-        # One correlated source family gets one vote per ticker. This also
-        # prevents short-interest and squeeze-fuel from manufacturing
-        # consensus from the same underlying positioning family.
-        by_family = {}
-        for envelope in envs:
-            family = envelope["source_family"]
-            incumbent = by_family.get(family)
-            if incumbent is None or (
-                envelope["weight"] * envelope["confidence"]
-                > incumbent["weight"] * incumbent["confidence"]
-            ):
-                by_family[family] = envelope
-        envs = list(by_family.values())
-        ups = [e for e in envs if e["direction"] == "UP"]
-        dns = [e for e in envs if e["direction"] == "DOWN"]
-        score = sum(e["weight"] * e["confidence"] for e in ups) \
-            - sum(e["weight"] * e["confidence"] for e in dns)
-        n_e = len(envs)
-        agree = round(100.0 * max(len(ups), len(dns))
-                      / n_e, 0) if n_e else 0
-        row = {"ticker": sym, "n_engines": n_e,
-               "fabric_score": round(score, 2),
-               "net_direction": ("UP" if score > 0 else "DOWN"),
-               "agreement_pct": agree,
-               "engines": sorted(envs,
-                                 key=lambda e: -(e["weight"]
-                                                 * e["confidence"]
-                                                 ))}
+    for sym, occurrences in sorted(fab.items()):
+        envs, families = family_projection(occurrences)
+        ups = [e for e in envs if e['direction'] == 'UP']
+        downs = [e for e in envs if e['direction'] == 'DOWN']
+        # Decimal accumulation makes an exact equal-weight tie independent of
+        # source order; published precision also controls the displayed direction.
+        score = sum((Decimal(str(e['weight'])) * Decimal(str(e['heuristic_strength']))
+                     * (1 if e['direction'] == 'UP' else -1) for e in envs), Decimal(0))
+        score = round(float(score), 2) if envs else None
+        row = {'ticker': sym, 'n_engines': len(envs), 'fabric_score': score,
+               'net_direction': None if score is None or score == 0 else 'UP' if score > 0 else 'DOWN',
+               'agreement_pct': round(100 * max(len(ups), len(downs)) / len(envs)) if envs else None,
+               'engines': sorted(envs, key=lambda e: e['engine']),
+               'all_occurrences': sorted(occurrences, key=lambda e: e['evidence_id']),
+               'family_projection': families,
+               'calls_eligible': False, 'sizing_eligible': False, 'forecast_qualified': False,
+               'current_vote_eligible': False, 'n_independent_roots': None,
+               'direction_semantics': 'signed_descriptive_balance_not_a_current_trade'}
         tickers.append(row)
-        if ups and dns and n_e >= 3:
-            conflicts.append({
-                "ticker": sym, "n_engines": n_e,
-                "up": [e["engine"] for e in ups],
-                "down": [e["engine"] for e in dns],
-                "note": "Opposing heuristic directions; source independence and forward performance remain unqualified."})
-    # ops 4347: PEER GRAPH propagation (entity-graph v0)
-    _rr2 = rd("data/ai-rerating-radar.json") or {}
-    _pg = {}
-    for r2 in (_rr2.get("all_ranked") or [])[:900]:
-        sy2 = str(r2.get("symbol") or "").upper()
-        gp2 = r2.get("peer_group")
-        if sy2 and gp2:
-            _pg[sy2] = gp2
-    _by_grp = {}
-    for t2 in tickers:
-        g3 = _pg.get(t2["ticker"])
-        if g3:
-            _by_grp.setdefault(g3, []).append(
-                t2["fabric_score"])
-    for t2 in tickers:
-        g3 = _pg.get(t2["ticker"])
-        vals = [v for v in (_by_grp.get(g3) or [])]
-        if g3 and len(vals) >= 3:
-            t2["peer_group"] = g3
-            t2["peer_fabric_score"] = round(
-                (sum(vals) - t2["fabric_score"])
-                / (len(vals) - 1), 2)
-    tickers.sort(key=lambda x: -abs(x["fabric_score"]))
-    conflicts.sort(key=lambda x: -x["n_engines"])
-    out = {"engine": "justhodl-signal-fabric", "version": "2.1",
-           "generated_at": datetime.now(timezone.utc).isoformat(),
-           "elapsed_s": round(time.time() - t0, 1),
-           "architecture": "Descriptive adapter aggregation with legacy heuristic weights; independent evidence, forecast calibration and portfolio use remain unqualified.",
-           "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
-           "compound_context": compound_context,
-           "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
-           "source_stats": src_stats,
-           "holdings_context": holdings_qualification,
-           "n_tickers": len(tickers),
-           "n_conflicts": len(conflicts),
-           "tickers": tickers[:400],
-           "conflicts": conflicts[:60],
-           "by_ticker": {t["ticker"]: t["engines"]
-                         for t in tickers[:400]}}
-    # ── FEATURE BUS: one flat vector per ticker, engine-consumable
+        for e in envs:
+            source_stats[e['engine']] += 1
+        if ups and downs:
+            conflicts.append({'ticker': sym, 'n_engines': len(envs),
+                              'up': [e['engine'] for e in ups], 'down': [e['engine'] for e in downs],
+                              'note': 'Opposing descriptive heuristics; independence and forward edge unqualified.'})
+
+    # Use the same received rerating snapshot; duplicate identities cannot pick
+    # the final peer group merely by arriving last.
+    rerating = read_once('data/ai-rerating-radar.json')
+    _, peer_rows, _ = collection(rerating, ('all_ranked', 'rows'))
+    peer_candidates = {}
+    for row in peer_rows:
+        sym = symbol(row)
+        if sym:
+            peer_candidates.setdefault(sym, []).append(field(row, 'peer_group'))
+    peer_groups = {sym: vals[0] for sym, vals in peer_candidates.items()
+                   if len(vals) == 1 and isinstance(vals[0], str) and vals[0].strip()}
+    for row in tickers:
+        group = peer_groups.get(row['ticker'])
+        peers = [r for r in tickers if group and peer_groups.get(r['ticker']) == group
+                 and r['ticker'] != row['ticker'] and r['fabric_score'] is not None]
+        if len(peers) >= 2 and row['fabric_score'] is not None:
+            row['peer_group'] = group
+            row['peer_fabric_score'] = round(math.fsum(r['fabric_score'] for r in peers) / len(peers), 2)
+            row['peer_calculation'] = {'other_members': [{'ticker': r['ticker'], 'score': r['fabric_score']} for r in peers],
+                                       'formula': 'mean of received other-member descriptive balances',
+                                       'complete_market_peer_universe': False}
+    tickers.sort(key=lambda r: (r['fabric_score'] is None, -abs(r['fabric_score'] or 0), r['ticker']))
+    news_packet = read_once('data/tiingo-news.json')
+    news = news_packet.get('by_ticker') if isinstance(news_packet, dict) else None
+    news = news if isinstance(news, dict) else {}
     bus = {}
-    for t in tickers[:600]:
-        env_by = {}
-        for e in t["engines"]:
-            env_by.setdefault(e["engine"], e)
-        g2 = lambda en, f, d=None: (env_by.get(en) or {}).get(f, d)
-        bus[t["ticker"]] = {
-            "fabric_score": t["fabric_score"],
-            "net_direction": t["net_direction"],
-            "agreement_pct": t["agreement_pct"],
-            "n_engines": t["n_engines"],
-            "conflict": bool([c for c in conflicts
-                              if c["ticker"] == t["ticker"]]),
-            "reversal": g2("trend-reversal", "value"),
-            "congress": g2("congress-direct", "direction"),
-            "flow_13f": g2("13f-flows", "direction"),
-            "squeeze": g2("short-interest", "value")
-            or g2("squeeze-fuel", "value"),
-            "insider": g2("insider-clusters", "value"),
-            "compound": None,
-            "compound_context_pointers": compound_pointers(compound_context, t["ticker"]),
-            "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
-            "setups": g2("best-setups", "value"),
-            "peer_group": t.get("peer_group"),
-            "peer_fabric_score": t.get("peer_fabric_score"),
-        }
-    tnews = (rd("data/tiingo-news.json") or {}
-             ).get("by_ticker") or {}
-    for sym2, v2 in bus.items():
-        nw = tnews.get(sym2)
-        if nw:
-            v2["news_24h"] = nw.get("n_24h")
-            v2["news_7d"] = nw.get("n_7d")
-            v2["news_burst"] = nw.get("burst")
-    prev = rd("data/feature-bus.json") or {}
-    pt = prev.get("tickers") or {}
-    events = []
-    comparable = prev.get("compound_research_boundary") == COMPOUND_CONTEXT_BASIS
-    for sym, f in bus.items():
-        if not comparable:
-            continue  # A calculation revision is not a market direction change.
-        pf = pt.get(sym) or {}
-        if f["conflict"] and not pf.get("conflict"):
-            events.append({"type": "NEW_CONFLICT", "ticker": sym})
-        if pf.get("net_direction") and \
-                pf["net_direction"] != f["net_direction"]:
-            events.append({"type": "DIRECTION_FLIP",
-                           "ticker": sym,
-                           "from": pf["net_direction"],
-                           "to": f["net_direction"]})
-        if (pf.get("agreement_pct") or 0) < 80 <= \
-                f["agreement_pct"] and f["n_engines"] >= 4:
-            events.append({"type": "CONSENSUS_FORMED",
-                           "ticker": sym,
-                           "agreement": f["agreement_pct"]})
-    s3.put_object(Bucket=B, Key="data/feature-bus.json",
-                  Body=json.dumps({
-                      "generated_at": datetime.now(
-                          timezone.utc).isoformat(),
-                      "n_tickers": len(bus),
-                      "holdings_context": holdings_qualification,
-                      "compound_context": compound_context,
-                      "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
-                      "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
-                      "integration": {
-                          "note": "engine-side SDK, six lines:",
-                          "code": ("BUS=json.loads(s3.get_object("
-                                   "Bucket='justhodl-dashboard-"
-                                   "live',Key='data/feature-bus"
-                                   ".json')['Body'].read())"
-                                   "['tickers']; "
-                                   "ctx=BUS.get(sym) or {}")},
-                      "tickers": bus}, default=str).encode(),
-                  ContentType="application/json",
-                  CacheControl="no-cache")
-    s3.put_object(Bucket=B,
-                  Key="data/archive/feature-bus/%s.json"
-                      % datetime.now(timezone.utc
-                                     ).strftime("%Y%m%d"),
-                  Body=json.dumps({"generated_at":
-                                   datetime.now(timezone.utc
-                                                ).isoformat(),
-                                   "compound_context": compound_context,
-                                   "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
-                                   "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
-                                   "tickers": bus},
-                                  default=str).encode(),
-                  ContentType="application/json")
-    s3.put_object(Bucket=B, Key="data/fabric-events.json",
-                  Body=json.dumps({
-                      "generated_at": datetime.now(
-                          timezone.utc).isoformat(),
-                      "n": len(events),
-                      "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
-                      "prior_calculation_comparable": comparable,
-                      "comparison_note": "Compound calculation-boundary match only; other input vintages and forecast quality unverified.",
-                      "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
-                      "events": events[:120]},
-                      default=str).encode(),
-                  ContentType="application/json",
-                  CacheControl="no-cache")
-    out_extra_note = len(events)
-    s3.put_object(Bucket=B, Key=OUT,
-                  Body=json.dumps(out, default=str).encode(),
-                  ContentType="application/json",
-                  CacheControl="no-cache")
-    print(json.dumps({"ok": True, "bus": len(bus),
-                      "events": out_extra_note,
-                      "tickers": len(tickers),
-                      "conflicts": len(conflicts),
-                      "sources": src_stats}))
-    return {"ok": True}
+    for row in tickers:
+        env = {e['engine']: e for e in row['engines']}
+        value = lambda engine, key: env.get(engine, {}).get(key)
+        bus[row['ticker']] = {
+            'fabric_score': row['fabric_score'], 'net_direction': row['net_direction'],
+            'agreement_pct': row['agreement_pct'], 'n_engines': row['n_engines'],
+            'conflict': any(c['ticker'] == row['ticker'] for c in conflicts),
+            'reversal': value('trend-reversal', 'value'), 'congress': value('congress-direct', 'direction'),
+            'flow_13f': None, 'squeeze': value('squeeze-fuel', 'value'), 'insider': value('insider-clusters', 'value'),
+            'compound': None, 'compound_context_pointers': compound_pointers(compound_context, row['ticker']),
+            'setups': None, 'peer_group': row.get('peer_group'), 'peer_fabric_score': row.get('peer_fabric_score'),
+            'calls_eligible': False, 'sizing_eligible': False, 'forecast_qualified': False,
+            'ranking_eligible': False, 'learning_weight_eligible': False, 'current_vote_eligible': False,
+            'research_evidence': row}
+        nw = news.get(row['ticker'])
+        if isinstance(nw, dict):
+            bus[row['ticker']].update(news_24h=nw.get('n_24h'), news_7d=nw.get('n_7d'), news_burst=nw.get('burst'))
+    previous = read_once('data/feature-bus.json')
+    boundary = {'measurement_contract': CONTRACT, 'generated_at': generated,
+                'compound_research_boundary': COMPOUND_CONTEXT_BASIS,
+                'calls_eligible': False, 'sizing_eligible': False, 'forecast_qualified': False,
+                'ranking_eligible': False, 'current_vote_eligible': False,
+                'source_freshness_qualified': False, 'source_replay_performed': False,
+                'publication_atomic': False,
+                'population_note': 'Complete received declared collections within bounds; upstream universe completeness unqualified.'}
+    trace = {'source_context': source_context, 'weight_context': weights,
+             'weight_inputs': {'leaderboard': lb, 'learned': learned, 'cycle': cycle},
+             'short_interest_context': {'packet': short_interest, 'current_vote_eligible': False},
+             'news_context': news_packet, 'congress_context': congress,
+             'holdings_context': holdings_qualification,
+             'compound_context': compound_context}
+    out = {**boundary, **trace, 'engine': 'justhodl-signal-fabric', 'version': '2.2',
+           'elapsed_s': round(time.time() - t0, 1),
+           'architecture': 'Typed descriptive adapter research; no calibrated confidence, independent roots, current votes or portfolio authority.',
+           'source_stats': source_stats, 'source_stats_semantics': 'included descriptive family occurrences after validation',
+           'n_tickers': len(tickers), 'n_conflicts': len(conflicts), 'tickers': tickers,
+           'conflicts': conflicts, 'by_ticker': {r['ticker']: r['engines'] for r in tickers}}
+    bus_packet = {**boundary, **trace, 'n_tickers': len(bus), 'tickers': bus,
+                  'integration': {'note': 'Research context only. Do not use for rank multipliers, learned skill or portfolio sizing.'}}
+    events_packet = {**boundary, 'n': 0, 'events': [], 'prior_calculation_comparable': False,
+                     'prior_contract': field(previous, 'measurement_contract'),
+                     'comparison_note': 'Observation-vintage compatibility is unqualified. Publication changes cannot establish market events.'}
+    # Validate every complete projection before the first write. These legacy
+    # heads are sequential, not an atomic multi-object transaction.
+    planned = [('data/feature-bus.json', bus_packet),
+               ('data/archive/feature-bus/' + generated[:10].replace('-', '') + '.json', bus_packet),
+               ('data/fabric-events.json', events_packet), (OUT, out)]
+    encoded = [(key, encode(value)) for key, value in planned]
+    if any(len(raw) > MAX_BYTES for _, raw in encoded):
+        raise ValueError('Complete Fabric output exceeds bound; no partial population published')
+    prepared = dict(encoded)
+    # Literal public destinations keep the static source-to-page contract visible.
+    s3.put_object(Bucket=B, Key='data/feature-bus.json', Body=prepared['data/feature-bus.json'],
+                  ContentType='application/json', CacheControl='no-cache')
+    s3.put_object(Bucket=B, Key='data/archive/feature-bus/' + generated[:10].replace('-', '') + '.json',
+                  Body=prepared[planned[1][0]], ContentType='application/json', CacheControl='no-cache')
+    s3.put_object(Bucket=B, Key='data/fabric-events.json', Body=prepared['data/fabric-events.json'],
+                  ContentType='application/json', CacheControl='no-cache')
+    s3.put_object(Bucket=B, Key=OUT, Body=prepared[OUT], ContentType='application/json', CacheControl='no-cache')
+    print(json.dumps({'ok': True, 'bus': len(bus), 'events': 0, 'tickers': len(tickers),
+                      'conflicts': len(conflicts), 'sources': source_stats}))
+    return {'ok': True}
