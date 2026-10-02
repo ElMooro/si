@@ -1,5 +1,13 @@
 # PR81 strict postrelease acceptance preparation
 
+## Subsequent native execution
+
+The later reviewed once-only operation completed successfully as run [37068904214](https://github.com/ElMooro/si/actions/runs/37068904214), attempt 1, pinned to actual nonproducer merge `51958261dd82d151e8ffd203f3efd8919945e8cd`. Its strict technical result is independently qualified: installed package/source/receipt, all 336 eligible Python members and every immutable prospective v1 control match. The report-only commit is `c5066bf03fed10ab1a0ea45c91d0dd8331f22844`. Natural, overall release and PR78 permission qualifications remain false in that immutable report. See the [current release and verification record](series-storage-write-failure.md) for the exact release, test evidence and subsequent bounded public observations.
+
+## Retained preparation history
+
+The text below records the state before the later independently approved native attempt; it is preserved as preparation history.
+
 This separately named staged operation verifies PR81. It was initially unbound and refused before constructing SDK clients or reading AWS. The literal intended release is now independently bound to normal merge `a5fa03238844132f2b98e49e528d864e14073828` and successful automatic deployment run `37064120027`, attempt 1, completed 2026-10-02T21:04:23Z. These values come from the actual merge and GitHub event/run evidence, not the live receipt. No native acceptance operation has run. Dispatch remains held pending renewed exact bound-head review and a separately approved fixed-event once-only operation. Original PR75/6470/6471/6472 files, historical failures, the prospective v1 baseline and its acceptance contract remain unchanged. PR78 remains held separately.
 
 The source pins the exact immutable 6472 helper, prospective v1 raw bytes and PR81 handler SHA256 `d50f2c942d72a97af63cb7a581d10c4c8844a3aab7a3d7a64ccd5d319215f034`. Its maximum scope is 17 allowlisted SDK reads and one signed package GET bounded to 64 MiB. It reads only the exact extractor, its release receipt, five existing classic bindings and the existing monitor Scheduler. No IAM, STS, LIST, retained series body, provider, mutation or invocation is admitted. Full Python member inventory and byte comparisons bind the intended Git commit; the ZIP hash binds build metadata, which is not independently reconstructed.
