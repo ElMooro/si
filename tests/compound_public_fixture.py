@@ -21,7 +21,8 @@ class Memory:
         self.writes = {}
 
     def get_object(self, **kwargs):
-        return {'Body': io.BytesIO(json.dumps(self.values.get(kwargs['Key'], {})).encode('utf-8'))}
+        raw = json.dumps(self.values.get(kwargs['Key'], {})).encode('utf-8')
+        return {'Body': io.BytesIO(raw), 'ContentLength': len(raw)}
 
     def put_object(self, **kwargs):
         self.writes[kwargs['Key']] = json.loads(kwargs['Body'])

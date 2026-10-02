@@ -1,0 +1,123 @@
+{
+  "stage": 563,
+  "status": "integration_and_release_pending",
+  "operation": "aws/ops/staged/ops_6456_compound_numeric_acceptance.py",
+  "source_hashes": {
+    "aws/lambdas/justhodl-compound-aggregator/source/lambda_function.py": "e366ab0e66161b18a0b025026d962ed2a1938a568ef5e221bf7b1e3dd6a72a98",
+    "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
+    "aws/shared/compound_numeric.py": "3a91847646679f206a15b6188d2a3364917b7af0c730fa2e7e70ab1acd0e7092",
+    "aws/shared/context_evidence_store.py": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+    "aws/shared/holdings_authority.py": "b9790df87ed542396333cb75cfd4f7e6a185f733568e4886beb7753220d99355",
+    "aws/shared/holdings_derived_boundary.py": "1da007ba20f1ae67ac35729276fa0c43a486b80c0a09eff001ad25c08ac35240",
+    "aws/shared/momentum_research_boundary.py": "54eff7690518c228905fb26bd22ca03d446d4d2915e5b8f3166eefcde46a4d92",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
+  },
+  "source_counts": {
+    "justhodl-compound-aggregator": 7
+  },
+  "original_controls": {
+    "justhodl-compound-aggregator": {
+      "function_name": "justhodl-compound-aggregator",
+      "timeout": 120,
+      "memory_mb": 512,
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "compound-aggregator-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ]
+    }
+  },
+  "baseline": {
+    "status": "stable_named_compound_control_baseline",
+    "functions": {
+      "justhodl-compound-aggregator": {
+        "FunctionName": "justhodl-compound-aggregator",
+        "CodeSha256": "yWAlbk0AHJdW2kJ/3AtvnPEtbx0BrXE8OoUK0DZJZIY=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 120,
+        "MemorySize": 512,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "compound-aggregator-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON-FRI *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "schedule_observation": "bound_schedules_observed",
+        "other_invocation_routes_verified": false
+      }
+    },
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "source_qualified": false,
+    "normal_publication_verified": false,
+    "investment_authority": false,
+    "run_id": 36990840094,
+    "operation_commit": "ca4517b9f9d291188872629aed657bdf00d40e2c",
+    "report_commit": "6fe20c0484d8a2e08359a0df9558838c59420c0e",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6455_compound_controls.md",
+      "bytes": 1137,
+      "sha256": "8266a5c744b3c60871a6038c8565fb27753e6bf5554fa2803efcc1d2ecbac451"
+    }
+  },
+  "repairs": [
+    "Canonical score presence preserves zero and never revives a present invalid field through its alias",
+    "Typed finite arithmetic; numerical strings explicitly converted, booleans/nonfinite/lossy values withheld",
+    "Every selected occurrence retained with a JSON pointer; duplicate symbol/system occurrences withhold that ticker rather than choose a winner",
+    "Failed or invalid whole-source reads distinct from successful empty arrays; duplicate JSON keys/nonfinite/lossy float tokens rejected",
+    "Calculation exposes original selected records, score fields, ordered sum, convergence multiplier and final rounding",
+    "Current numeric contract separates history cohorts; prior stored days are not rewritten",
+    "Every planned document serializes strictly before the first S3 publication write",
+    "Notifications describe heuristic scores without asserting independent agreement or high conviction"
+  ],
+  "qualification": {
+    "source_qualified": false,
+    "independent_evidence_qualified": false,
+    "forecast_qualified": false,
+    "portfolio_qualified": false
+  },
+  "remaining": [
+    "No native producer invocation or normal publication verification",
+    "Complete input bytes are hashed but not durably archived; full point-in-time replay remains unqualified",
+    "Selected top collections do not establish full upstream universe coverage",
+    "First-seen decay is not observation freshness; malformed/future first-seen and other overlay shapes still require repair",
+    "Family priors, convergence multipliers, reversal joins and historical percentiles remain heuristic, not validated forecasts",
+    "Strict serialization prevents serialization-caused partial publication; separate S3 writes still have no multi-object transaction",
+    "Whole-source/read bounds are enforced; aggregate resource budgets and long-running operational recovery still need qualification",
+    "Compound page, companion consumers and existing mobile floating panels need continued audit"
+  ],
+  "verification_scope": "Invented fixtures and exact source/native release evidence only; no current application/provider/private/account or learning-ledger reads; no native invocation or schedule change."
+}

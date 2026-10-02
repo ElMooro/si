@@ -31,7 +31,8 @@ class Storage:
 
     def get_object(self, **kw):
         self.reads.append(kw['Key'])
-        return {'Body': io.BytesIO(json.dumps(self.objects.get(kw['Key'], {})).encode())}
+        raw = json.dumps(self.objects.get(kw['Key'], {})).encode()
+        return {'Body': io.BytesIO(raw), 'ContentLength': len(raw)}
 
     def put_object(self, **kw):
         value = json.loads(kw['Body'])

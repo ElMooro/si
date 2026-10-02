@@ -34,7 +34,6 @@ import urllib.error
 from collections import defaultdict
 import boto3
 from holdings_derived_boundary import BASIS, CLUSTER, exclusions
-from compound_numeric import CONTRACT as NUMERIC_CONTRACT, read_feed, unavailable, calculate
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -91,42 +90,56 @@ def load_packet(key):
 
 
 def load_feed(key, path, sym_field):
-    """Read the complete declared population and retain source occurrences."""
+    """Load a feed and return list of records with normalized keys."""
     if key in (MOMENTUM_SOURCE, "data/activist-filings.json", "data/volatility-squeeze.json"):
-        rows = unavailable(key, path, "existing_research_exclusion")
-        rows.evidence["status"] = "excluded"
-        return rows
-    return read_feed(S3, BUCKET, key, path, sym_field)
+        # Filing-role observations and legacy name tiers have no calibrated
+        # directional meaning. This boundary also rejects forged permissions.
+        return []
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key=key)
+        d = json.loads(obj["Body"].read())
+    except Exception as e:
+        print(f"[compound] WARN — feed {key} failed: {e}")
+        return []
+    cursor = d
+    for p in path.split("."):
+        if not isinstance(cursor, dict):
+            return []
+        cursor = cursor.get(p)
+        if cursor is None:
+            return []
+    if not isinstance(cursor, list):
+        return []
+    out = []
+    for c in cursor:
+        if not isinstance(c, dict):
+            continue
+        sym = (c.get(sym_field) or "").upper().strip()
+        if not sym:
+            continue
+        c["_normalized_symbol"] = sym
+        out.append(c)
+    return out
 
 
 def aggregate():
-    presence = defaultdict(lambda: {"systems": set(), "scores": {}, "details": {}, "inputs": {}})
-    input_evidence = {}
-    blocked = defaultdict(list)
-    pending_outputs = []
+    presence = defaultdict(lambda: {"systems": set(), "scores": {}, "details": {}})
     feed_stats = {}
     holding_inputs = {}
 
     for name, (key, path, sym_field) in FEEDS.items():
         if name == "smart_money":
             holding_inputs[key] = load_packet(key)
-            records = unavailable(key, path, "existing_holdings_exclusion")
-            records.evidence["status"] = "excluded"  # No universe, weight or agreement contribution.
+            records = []  # No universe, weight or agreement contribution.
         else:
             records = load_feed(key, path, sym_field)
-        input_evidence[name] = records.evidence
-        for occurrence in records.evidence["occurrences"]:
-            if occurrence["status"] == "withheld" and occurrence["symbol"] is not None:
-                blocked[occurrence["symbol"]].append({"system": name, "source": key,
-                    "pointer": occurrence["pointer"], "reason": occurrence["reason"]})
         feed_stats[name] = len(records)
         print(f"[compound] {name}: {len(records)} entries")
         for c in records:
             sym = c["_normalized_symbol"]
-            score = c["_compound_score"]
+            score = c.get("score") or c.get("asymmetric_score") or 0
             presence[sym]["systems"].add(name)
             presence[sym]["scores"][name] = score
-            presence[sym]["inputs"][name] = c["_compound_input"]
             d = {}
             if name == "nobrainers":
                 d = {
@@ -142,7 +155,7 @@ def aggregate():
                     "total_value": c.get("total_value"),
                     "ceo": c.get("has_ceo"),
                     "cfo": c.get("has_cfo"),
-                    "rationale": c.get("rationale", "")[:160] if isinstance(c.get("rationale", ""), str) else None,
+                    "rationale": (c.get("rationale", "") or "")[:160],
                     "company": c.get("company", ""),
                 }
             elif name == "smart_money":
@@ -251,18 +264,12 @@ def aggregate():
                 }
             presence[sym]["details"][name] = d
 
-    withheld = [{"symbol": sym, "reason": "invalid_or_ambiguous_source_component", "sources": reasons}
-                for sym, reasons in sorted(blocked.items())]
-    multi = {sym: data for sym, data in presence.items()
-             if len(data["systems"]) >= 2 and sym not in blocked}
+    multi = {sym: data for sym, data in presence.items() if len(data["systems"]) >= 2}
     ranked = []
     for sym, data in multi.items():
         n = len(data["systems"])
-        calculation = calculate(data["scores"], data["inputs"])
-        if calculation["status"] != "usable":
-            withheld.append({"symbol": sym, "reason": calculation["reason"], "score_calculation": calculation})
-            continue
-        compound = calculation["score"]
+        score = sum(data["scores"].values())
+        compound = score * (1 + 0.5 * (n - 1))
         _sys = sorted(list(data["systems"]))
         _triad = {"options flow", "smart-money funds buying",
                   "rev accel"}
@@ -276,10 +283,7 @@ def aggregate():
                                   and _triad.issubset(set(_sys))),
             "scores": data["scores"],
             "details": data["details"],
-            "compound_score": compound,
-            "score_calculation": calculation,
-            "calls_eligible": False, "sizing_eligible": False,
-            "forecast_qualified": False, "independent_evidence_eligible": False,
+            "compound_score": round(compound, 1),
         })
     ranked.sort(key=lambda x: (-x["n_systems"], -x["compound_score"]))
     # ── ops 4334: archetype (reversal join), 90d percentile, prime
@@ -402,10 +406,10 @@ def aggregate():
                               "PULLBACK" if c5 is not None
                               and c5 <= -5 else "FRESH")
     _keep = {k: v for k, v in _fs.items()}
-    pending_outputs.append(dict(Bucket=BUCKET,
+    S3.put_object(Bucket=BUCKET,
                   Key="data/compound-firstseen.json",
-                  Body=json.dumps(_keep, allow_nan=False).encode(),
-                  ContentType="application/json"))
+                  Body=json.dumps(_keep).encode(),
+                  ContentType="application/json")
     ranked.sort(key=lambda x: (-x.get("desk_score", 0),
                                -x["compound_score"]))
     try:
@@ -417,8 +421,7 @@ def aggregate():
     _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS
                        and d.get("activist_boundary") == "ownership-feed-abstention.v1"
                        and d.get("volatility_boundary") == "price-compression-abstention.v1"
-                       and d.get("momentum_boundary") == MOMENTUM_BASIS
-                       and d.get("numeric_contract") == NUMERIC_CONTRACT]
+                       and d.get("momentum_boundary") == MOMENTUM_BASIS]
     _prior_vals = [v for day in _qualified_days
                    for v in (day.get("scores") or {}).values()]
     _prior_by = {}
@@ -444,15 +447,14 @@ def aggregate():
                   "activist_boundary": "ownership-feed-abstention.v1",
                   "volatility_boundary": "price-compression-abstention.v1",
                   "momentum_boundary": MOMENTUM_BASIS,
-                  "numeric_contract": NUMERIC_CONTRACT,
                   "scores": {r["symbol"]: r["compound_score"]
                              for r in ranked[:400]}})
-    pending_outputs.append(dict(Bucket=BUCKET,
+    S3.put_object(Bucket=BUCKET,
                   Key="data/compound-history.json",
-                  Body=json.dumps({"days": _days}, allow_nan=False).encode(),
-                  ContentType="application/json"))
+                  Body=json.dumps({"days": _days}).encode(),
+                  ContentType="application/json")
     _prime = [r for r in ranked if r.get("prime_convergence")]
-    pending_outputs.append(dict(
+    S3.put_object(
         Bucket=BUCKET, Key="data/prime-convergence.json",
         Body=json.dumps({
             "generated_at": _dt.now(_tz.utc).isoformat(),
@@ -466,8 +468,8 @@ def aggregate():
                        "freshness", "regime", "reversal_context",
                        "pctile_90d_all", "pctile_90d_self")
                       if k in r} for r in _prime[:40]],
-        }, allow_nan=False).encode(),
-        ContentType="application/json", CacheControl="no-cache"))
+        }, default=str).encode(),
+        ContentType="application/json", CacheControl="no-cache")
     print("[prime] %d prime-convergence names: %s"
           % (len(_prime), [r["symbol"] for r in _prime[:8]]))
 
@@ -480,10 +482,7 @@ def aggregate():
             "reason": "Feed identities, filer names and form types do not establish activist intent or validated forward returns."},
         "holdings_exclusions": exclusions(holding_inputs),
         "presence": presence,
-        "input_evidence": input_evidence,
-        "withheld": withheld,
-        "pending_outputs": pending_outputs,
-        "multi": {r["symbol"]: multi[r["symbol"]] for r in ranked},
+        "multi": multi,
         "ranked": ranked,
     }
 
@@ -598,12 +597,12 @@ def emit_alerts(new_alerts, agg):
         e = " ".join(emojis.get(s, "•") for s in a.get("systems", []))
         if a["type"] == "TIER_3_EMERGED":
             lines.append(f"🔥 *TIER\\-3 EMERGED: {md_escape(sym)}* {e}")
-            lines.append(f"  {md_escape(str(a['n_systems']))} {md_escape('systems reported signals (independence unverified)')}, compound\\={md_escape(str(int(a['score'])))}")
+            lines.append(f"  {md_escape(str(a['n_systems']))} independent systems agree, compound\\={md_escape(str(int(a['score'])))}")
         elif a["type"] == "COMPOUND_OVER_300":
-            lines.append(f"🚀 *COMPOUND OVER 300: {md_escape(sym)}* {e}")
+            lines.append(f"🚀 *EXCEPTIONAL: {md_escape(sym)}* {e}")
             lines.append(f"  Compound score crossed 300: {md_escape(str(int(a['score'])))}")
         elif a["type"] == "COMPOUND_OVER_200":
-            lines.append(f"⚡ *COMPOUND OVER 200: {md_escape(sym)}* {e}")
+            lines.append(f"⚡ *HIGH CONVICTION: {md_escape(sym)}* {e}")
             lines.append(f"  Compound score crossed 200: {md_escape(str(int(a['score'])))}")
         # context from per-system details
         for r in agg["ranked"]:
@@ -646,18 +645,13 @@ def lambda_handler(event=None, context=None):
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 2),
         "feed_stats": feed_stats,
-        "feed_stats_definition": "Usable non-duplicate scored records in each declared source collection; full selected counts and unavailable sources are in input_evidence.",
-        "numeric_contract": NUMERIC_CONTRACT,
-        "input_evidence": agg["input_evidence"],
-        "withheld": agg["withheld"],
-        "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
         "holdings_exclusions": agg["holdings_exclusions"],
         "activist_research_exclusion": agg["activist_research_exclusion"],
         "volatility_research_exclusion": agg["volatility_research_exclusion"],
         "momentum_research_exclusion": agg["momentum_research_exclusion"],
         "notifications_suppressed": suppress_alerts,
         "score_basis": BASIS,
-        "history_comparability": "Percentiles use snapshots matching score_basis, research exclusions and numeric_contract; older snapshots remain retained but excluded. Scores are heuristic, not a return history.",
+        "history_comparability": "Percentiles use only snapshots with this score_basis; earlier snapshots are retained but excluded.",
         "stats": {
             "n_total_names": len(agg["presence"]),
             "n_multi_signal": len(agg["multi"]),
@@ -668,12 +662,7 @@ def lambda_handler(event=None, context=None):
         "compound": ranked,
         "new_alerts": new_alerts,
     }
-    # Validate every planned document before the first publication write. This
-    # prevents a serialization error from advancing side packets; S3 writes are
-    # still separate operations, not a multi-object transaction.
-    body = json.dumps(out, allow_nan=False).encode()
-    for write in agg["pending_outputs"]:
-        S3.put_object(**write)
+    body = json.dumps(out, default=str).encode()
     S3.put_object(Bucket=BUCKET, Key=S3_KEY, Body=body, ContentType="application/json")
     print(f"[compound] wrote {len(body)}b to {S3_KEY}")
 
