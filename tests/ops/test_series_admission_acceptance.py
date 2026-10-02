@@ -138,7 +138,7 @@ class Fixture:
         return io.BytesIO(self.raw)
 
     def inspect(self):
-        return probe.inspect(*self.clients, probe.Reader(), opener=self.opener)
+        return probe.inspect(*self.clients, probe.Reader(SDKError), opener=self.opener)
 
     def make_receipt(self):
         self.receipt = {'schema': 'release-receipt.v1', 'function': probe.FUNCTION, 'verified': True,
@@ -351,6 +351,31 @@ class ProbeTests(unittest.TestCase):
                 f.errors[method] = SDKError('NoSuchKey')
                 self.stop(f, 'aws_read_failed_details_withheld')
 
+    def test_spoofed_nosuchkey_and_body_failure_cannot_mean_absent_receipt(self):
+        class SpoofedMissing(Exception):
+            response = {'Error': {'Code': 'NoSuchKey'}}
+        with Fixture() as f:
+            f.errors['get_object'] = SpoofedMissing('PRIVATE_ERROR')
+            self.stop(f, 'aws_read_failed_details_withheld')
+        class FailedBody:
+            closed = False
+            def read(self, limit):
+                raise SDKError('NoSuchKey')
+            def close(self):
+                self.closed = True
+        for candidate in (False, True):
+            with self.subTest(candidate=candidate), Fixture() as f:
+                if candidate:
+                    f.candidate()
+                body = FailedBody()
+                def get_object(**kwargs):
+                    f.record('get_object', kwargs)
+                    return {'Body': body}
+                with patch.object(f, 'get_object', get_object):
+                    with self.assertRaises(SDKError):
+                        f.inspect()
+                self.assertTrue(body.closed)
+
     def test_api_byte_bounds_and_scope_allowlist(self):
         reader = probe.Reader()
         reader.calls = probe.MAX_CALLS
@@ -373,7 +398,7 @@ class ProbeTests(unittest.TestCase):
 
     def test_main_withholds_transport_json_and_body_failure_details(self):
         for failure in (TimeoutError('PRIVATE_TIMEOUT'), json.JSONDecodeError('PRIVATE_JSON', 'PRIVATE_DOC', 0),
-                        OSError('PRIVATE_BODY_FAILURE')):
+                        OSError('PRIVATE_BODY_FAILURE'), SDKError('NoSuchKey')):
             with self.subTest(failure=type(failure).__name__):
                 class Report:
                     def __init__(self):
@@ -389,6 +414,7 @@ class ProbeTests(unittest.TestCase):
                     yield report
                 modules = {'boto3': types.SimpleNamespace(client=lambda *args, **kwargs: None),
                            'botocore.config': types.SimpleNamespace(Config=lambda **kwargs: None),
+                           'botocore.exceptions': types.SimpleNamespace(ClientError=SDKError),
                            'ops_report': types.SimpleNamespace(report=report_context)}
                 with patch.dict(probe.os.environ, {'GITHUB_ACTIONS': 'true'}), \
                      patch.dict(probe.sys.modules, modules), \

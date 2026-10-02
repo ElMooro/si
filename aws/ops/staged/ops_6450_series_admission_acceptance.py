@@ -60,8 +60,9 @@ def bounded(stream, limit):
 
 
 class Reader:
-    def __init__(self):
+    def __init__(self, client_error_type=()):
         self.calls = 0
+        self.client_error_type = client_error_type
 
     def read(self, method, **kwargs):
         # An explicit read allowlist prevents accidental scope expansion.
@@ -87,7 +88,8 @@ class Reader:
             response = getattr(exc, 'response', None)
             error = response.get('Error') if isinstance(response, dict) else None
             code = error.get('Code') if isinstance(error, dict) else None
-            if code == 'NoSuchKey' and name == 'get_object':
+            if (isinstance(exc, self.client_error_type)
+                    and code == 'NoSuchKey' and name == 'get_object'):
                 return None
             raise Stop('access_denied_stop' if code in
                        ('AccessDenied', 'AccessDeniedException', 'UnauthorizedOperation', '403')
@@ -257,9 +259,10 @@ def main():
     require(os.environ.get('GITHUB_ACTIONS') == 'true', 'runner_only')
     import boto3
     from botocore.config import Config
+    from botocore.exceptions import ClientError
     sys.path.insert(0, str(ROOT / 'aws/ops'))
     from ops_report import report
-    reader = Reader()
+    reader = Reader(ClientError)
 
     def deadline(*_):
         raise Stop('time_bound_reached')
