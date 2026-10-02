@@ -34,8 +34,13 @@ def normalize(value,function,commit):
     schedules=value.get('schedules')
     if not isinstance(schedules,list) or not all(isinstance(row,dict) for row in schedules):
         raise ValueError('Complete schedule census required, including observed absence')
-    value={**value,'schedules':sorted(schedules,key=lambda row:(row['kind'],row.get('group','default'),row['name']))}
     expected=EXPECTED_CONTROLS[function]
+    key=lambda row:(row['kind'],row.get('group','default'),row['name'])
+    if sorted(schedules,key=key)!=sorted(expected['schedules'],key=key):
+        raise ValueError('Original native schedules changed')
+    # Preserve the baseline presentation order only after comparing every
+    # observed binding. Ordering alone is not a change to native controls.
+    value={**value,'schedules':[dict(row) for row in expected['schedules']]}
     if {k:value.get(k) for k in expected}!=expected:raise ValueError('Original native controls changed')
     return value
 

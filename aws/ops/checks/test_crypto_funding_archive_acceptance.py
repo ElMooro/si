@@ -12,6 +12,15 @@ class Acceptance(unittest.TestCase):
  def value(self):return dict(copy.deepcopy(CONTROL),source_files_checked=3,handler_bytes=123,code_sha256='invented',receipt={'status':'matched','commit':COMMIT})
  def test_exact_controls_and_whole_sources_accepted(self):
   m=self.load();value=self.value();self.assertEqual(m['normalize'](value,FN,COMMIT),value)
+ def test_complete_rule_and_scheduler_controls_compare_independently_of_order(self):
+  m=self.load();value=self.value();scheduler={'kind':'EventBridge Scheduler','name':'invented-sched','state':'ENABLED','expression':'cron(0 21 ? * MON-FRI *)','native_targets':1,'timezone':'UTC','group':'default'}
+  expected=m['normalize'].__globals__['EXPECTED_CONTROLS'][FN]
+  expected['schedules'].append(scheduler);value['schedules'].append(copy.deepcopy(scheduler))
+  for observed in [list(value['schedules']),list(reversed(value['schedules']))]:
+   result=m['normalize']({**value,'schedules':observed},FN,COMMIT)
+   self.assertEqual(result['schedules'],expected['schedules'])
+  for observed in [value['schedules'][:1],value['schedules']*2,[{**scheduler,'state':'DISABLED'},value['schedules'][0]]]:
+   with self.assertRaises(ValueError):m['normalize']({**value,'schedules':observed},FN,COMMIT)
  def test_wrong_function_receipt_or_missing_sources_rejected(self):
   for key,value in [('function_name','other'),('receipt',{'status':'matched','commit':'b'*40}),('source_files_checked',2),('source_files_checked',True)]:
    m=self.load();v=self.value();v[key]=value

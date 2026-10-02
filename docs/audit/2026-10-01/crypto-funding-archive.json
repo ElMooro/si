@@ -178,5 +178,14 @@
     "provider_requests": 0,
     "private_reads": 0,
     "account_reads": 0
+  },
+  "native_acceptance_attempt": {
+    "run_id": 36944796189,
+    "report_commit": "5ba79e543",
+    "status": "verification_failed_schedule_order",
+    "source_commit": "fb02a5a5030099353b27fcc90aa5ac52119284a0",
+    "regression_reproduced": true,
+    "repair": "Compare complete observed and baseline schedule sets canonically, retain the baseline display order only after equality. No runtime, resource or schedule mutation.",
+    "tests": 10
   }
 }
