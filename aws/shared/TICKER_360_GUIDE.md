@@ -10,7 +10,7 @@ with ad-hoc merge logic. No shared per-ticker "full picture."
 ```python
 from ticker_360 import enrich, enrich_many
 
-# Full 360° view of one ticker — 23 domains, fail-soft
+# Full 360° view of one ticker — 24 domains, fail-soft
 view = enrich("AAPL", s3)
 view["domains"]["dark-pool"]["ticker_data"]   # per-ticker slice
 view["domains"]["short-interest"]["as_of"]    # freshness
@@ -69,11 +69,12 @@ for t, v in views.items():
 
 ## Domain registry (`ticker_360.SOURCES`)
 
-23 domains: short-interest, short-interest-tkr, finra-short-volume,
+24 domains: short-interest, short-interest-tkr, finra-short-volume,
 dark-pool, share-flows, squeeze-fuel-ftd, forensic, settlement-fails,
 dollar, futures, fx, gold-rotation, macro-regime, flow-confluence,
 squeeze-pretrigger, cboe-options, xbrl-fundamentals, sec-8k,
-corporate-actions, etf-holdings, 13f-holdings, insider-trading, earnings.
+corporate-actions, etf-holdings, 13f-holdings, insider-trading, earnings,
+news-sentiment.
 
 Evidence-contract contexts are honored: each domain runs through its
 registered `decision_view` before extraction.
