@@ -122,7 +122,7 @@
       }).finally(()=>{pending=null;});return pending;
     }
     function paint(el,receipt,symbol){
-      el.replaceChildren(create('strong','Buyback accounting · '+symbol));
+      el.replaceChildren();el.appendChild(titleBar(symbol));
       receiptDetails(el,receipt,symbol);
       if(receipt.status!=='received'){
         el.appendChild(create('p','Reported buybacks unavailable: '+(receipt.reason||'request failed')+'. No accounting projection is shown.'));
@@ -144,8 +144,22 @@
       el.appendChild(levelStrip(projected.rows));
       el.appendChild(tableFor(projected.rows));
     }
+    function periodLabel(observation){
+      const start=observation.start_date, end=observation.end_date;
+      if(start&&end)return start+' → '+end;
+      if(end){
+        const fiscal=observation.fiscal;
+        return (typeof fiscal==='string'&&/^Q[1-4]$/.test(fiscal)?fiscal+' ending ':'Quarter ending ')+end;
+      }
+      return 'Unavailable';
+    }
+    function grouped(v){
+      if(typeof v!=='number'||!Number.isFinite(v)||!Number.isInteger(v)||Math.abs(v)<1000)return String(v);
+      const sign=v<0?'-':'';
+      return sign+String(Math.abs(v)).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    }
     function ratioText(observation){
-      if(observation.ratio===null)return 'Unavailable';
+      if(observation.ratio===null)return observation.capLabel||'Unavailable';
       const shown=Number.isInteger(observation.ratio)?String(observation.ratio):String(Math.round(observation.ratio*1000)/1000);
       return shown+(observation.ratioNote?('% '+observation.ratioNote):'%');
     }
@@ -153,7 +167,7 @@
       const table=create('table','');table.style.cssText='width:100%;border-collapse:collapse;text-align:left';
       const header=create('tr','');for(const name of ['Reported period','Net repurchases','Gross repurchases','Quarter / matching-date cap'])header.appendChild(create('th',name));const thead=create('thead','');thead.appendChild(header);table.appendChild(thead);const body=create('tbody','');table.appendChild(body);
       for(const observation of rows){
-        const tr=create('tr','');const cell=create('td',(observation.start_date||'Unavailable')+' → '+(observation.end_date||'Unavailable'));
+        const tr=create('tr','');const cell=create('td',periodLabel(observation));
         if(observation.received)cell.appendChild(audit('Observation '+(observation.source_index+1)+' · full received record',observation.received));
         if(observation.issues&&observation.issues.length)cell.appendChild(create('p',observation.issues.join(' ')));tr.appendChild(cell);
         for(const value of [observation.net,observation.gross])tr.appendChild(create('td',value===null?'Unavailable':String(value)+' '+observation.unit));
@@ -180,7 +194,7 @@
         host.appendChild(bar);
       });
       const last=pts[pts.length-1];
-      const lab=create('div',useRatio?String(Math.round(last.v*1000)/1000)+'%':String(last.v));
+      const lab=create('div',useRatio?String(Math.round(last.v*1000)/1000)+'%':grouped(last.v));
       lab.style.cssText='position:absolute;right:4px;top:4px;font:11px IBM Plex Mono,monospace;color:'+(last.v>=0?'#089981':'#f23645');
       host.appendChild(lab);
       host.appendChild(create('div',useRatio?'Buyback level':'Net cash level')).style.cssText='position:absolute;left:6px;top:4px;font-size:10px;color:var(--mut,#787b86)';
@@ -250,10 +264,11 @@
             if(gross===null&&issued===null)return;
             const net=(gross===null?0:gross)-(issued===null?0:issued);
             const unit=rec.identity&&typeof rec.identity.reportedCurrency==='string'?rec.identity.reportedCurrency:'USD';
-            rows.push({source_index:rows.length,start_date:null,end_date:end,unit,net,gross,ratio:null,ratioNote:null,issues:[],received:null});
+            const fiscal=rec.identity&&typeof rec.identity.period==='string'?rec.identity.period:null;
+            rows.push({source_index:rows.length,start_date:null,end_date:end,fiscal,unit,net,gross,ratio:null,ratioNote:null,capLabel:'No quarter cap',issues:[],received:null});
           });
           rows.sort((a,b)=>a.end_date<b.end_date?-1:a.end_date>b.end_date?1:0);
-          const pack={rows};recordCache[symbol]=pack;return pack;
+          const pack={rows,quote:quoteCap(file)};recordCache[symbol]=pack;return pack;
         });
       });
     }
@@ -265,22 +280,54 @@
         if(!pack||!pack.rows.length){el.appendChild(create('p','No received record for the selected ticker.'));return;}
         remember(symbol, pack.rows);
         el.appendChild(create('p','Not in the buyback-engine packet. The level is reported cash: repurchase minus issuance. Positive is a repurchase, negative is issuance.'));
+        el.appendChild(create('p','Quarter start dates are not in this capital-structure record. Each row is the reported statement end.'));
+        if(pack.quote)el.appendChild(create('p','Latest quote cap '+grouped(pack.quote.cap)+' USD. That quote is not dated to these quarters, so it is not used as a matching cap.'));
         el.appendChild(levelStrip(pack.rows));
         el.appendChild(tableFor(pack.rows));
       }).catch(()=>{if(alive===guard&&guard())el.appendChild(create('p','No received record for the selected ticker.'));});
+    }
+    function titleBar(symbol){
+      const bar=create('div','');
+      bar.style.cssText='position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg,#131722);padding:0 0 6px';
+      const title=create('strong','Buyback accounting'+(symbol?' · '+symbol:''));
+      title.style.cssText='min-width:0;overflow-wrap:anywhere';
+      bar.appendChild(title);
+      const btn=create('button','\u00d7 Close');
+      btn.type='button';btn.setAttribute('aria-label','Close');btn.title='Close';
+      btn.style.cssText='height:28px;border:1px solid var(--line,#2a2e39);border-radius:4px;background:#1e222d;color:#d1d4dc;font-size:13px;line-height:26px;cursor:pointer;flex:none;padding:0 8px';
+      btn.addEventListener('click',shut);bar.appendChild(btn);return bar;
+    }
+    function shut(){
+      const row=item();if(row)row.on=0;
+      generation++;
+      viewKey=JSON.stringify([false,eventsOn(),selected(document)]);
+      const el=document.getElementById('jh-buyback-pane');
+      if(el){el.style.display='none';el.replaceChildren();el.setAttribute('aria-busy','false');}
+      document.querySelectorAll('[data-add="buyback"]').forEach(node=>node.classList.remove('on'));
+    }
+    function quoteCap(file){
+      const snaps=Array.isArray(file&&file.snapshots)?file.snapshots:[];
+      for(const sn of snaps){
+        const facts=sn&&sn.reported&&Array.isArray(sn.reported.facts)?sn.reported.facts:[];
+        const cap=facts.find(f=>f&&f.endpoint==='quote'&&f.field==='marketCap'&&f.status==='reported_numeric_value');
+        const value=number(cap&&cap.reported&&cap.reported.value);
+        if(value!==null&&value>0)return {cap:value};
+      }
+      return null;
     }
     function draw(force=false){
       ensure();hookMarks();const on=enabled(),ev=eventsOn(),symbol=selected(document),key=JSON.stringify([on,ev,symbol]);
       if(!force&&key===viewKey)return;viewKey=key;const request=++generation,el=pane();
       el.style.display=on?'block':'none';el.replaceChildren();el.setAttribute('aria-busy','false');
-      if(!symbol){if(on)el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));return;}
+      if(!symbol){if(on){el.appendChild(titleBar(''));el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));}return;}
       if(!on&&!ev)return;
-      if(on){el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');}
+      if(on){el.appendChild(titleBar(symbol));el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');}
       const current=()=>request===generation&&(enabled()||eventsOn())&&selected(document)===symbol;
       guard=current;
       Promise.resolve().then(()=>load(force)).then(receipt=>{if(current())paint(el,receipt,symbol);}).catch(error=>{
         if(!current())return;
-        el.replaceChildren(create('p','Reported buybacks unavailable: '+(typeof error?.message==='string'?error.message:'request failed')));
+        el.replaceChildren();el.appendChild(titleBar(symbol));
+        el.appendChild(create('p','Reported buybacks unavailable: '+(typeof error?.message==='string'?error.message:'request failed')));
         const retry=create('button','Retry reported packet');retry.type='button';retry.addEventListener('click',()=>draw(true));el.appendChild(retry);
       }).finally(()=>{if(current())el.setAttribute('aria-busy','false');});
     }
