@@ -1,6 +1,6 @@
 {
   "stage": 560,
-  "status": "integration_and_release_pending",
+  "status": "exact_release_accepted",
   "operation": "aws/ops/staged/ops_6454_ranker_numeric_acceptance.py",
   "source_hashes": {
     "aws/lambdas/justhodl-master-ranker/source/lambda_function.py": "d165205b1d8e6b71e5b0d2ae69acda2f54dede4828df960d2a719e63b87ce448",
@@ -66,5 +66,7 @@
       "fmp_ratios"
     ],
     "context_only_rows_unranked": true
-  }
+  },
+  "source_commit": "1f15463ad0d60c563de9a09e3e6d01ef7818007d",
+  "acceptance": "docs/audit/2026-10-02/ranker-numeric-acceptance.json"
 }
