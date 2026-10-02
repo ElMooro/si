@@ -489,6 +489,175 @@
     return pack;
   }
 
+  function swingIdx(d, L) {
+    L = L || 4;
+    var hi = [], lo = [], i, j, n = d.length, okh, okl;
+    for (i = L; i < n - L; i++) {
+      okh = true; okl = true;
+      for (j = i - L; j <= i + L; j++) {
+        if (j === i) continue;
+        if (d[j].high >= d[i].high) okh = false;
+        if (d[j].low <= d[i].low) okl = false;
+      }
+      if (okh) hi.push(i);
+      if (okl) lo.push(i);
+    }
+    return { hi: hi, lo: lo };
+  }
+  function lastSwingBefore(arr, i) {
+    var k, best = -1;
+    for (k = arr.length - 1; k >= 0; k--) if (arr[k] < i - 1) { best = arr[k]; break; }
+    return best;
+  }
+  function sweepPack(d) {
+    var pack = empty(!d || d.length < 30 ? "short" : "");
+    if (!d || d.length < 30) return pack;
+    var sw = swingIdx(d, 4), n = d.length, last = d[n - 1];
+    var mk = [], lines = [], used = {}, i, lvl, sh, sl, key;
+    var start = Math.max(12, n - 260);
+    for (i = start; i < n; i++) {
+      var atr = atrAt(d, i, 14);
+      sh = lastSwingBefore(sw.hi, i);
+      if (sh >= 0) {
+        lvl = d[sh].high;
+        if (d[i].high > lvl && d[i].close < lvl && (d[i].high - lvl) >= atr * 0.08 && (d[i].high - d[i].close) >= (d[i].close - d[i].low)) {
+          key = "h" + sh;
+          if (!used[key]) {
+            used[key] = 1;
+            mk.push({ time: d[i].time, position: "aboveBar", color: DN, shape: "arrowDown", text: "SWEEP" });
+            lines.push({ t0: d[sh].time, t1: last.time, px: lvl, color: DN, dash: "4 3", lab: "BSL", kind: "res" });
+          }
+        }
+      }
+      sl = lastSwingBefore(sw.lo, i);
+      if (sl >= 0) {
+        lvl = d[sl].low;
+        if (d[i].low < lvl && d[i].close > lvl && (lvl - d[i].low) >= atr * 0.08 && (d[i].close - d[i].low) >= (d[i].high - d[i].close)) {
+          key = "l" + sl;
+          if (!used[key]) {
+            used[key] = 1;
+            mk.push({ time: d[i].time, position: "belowBar", color: UP, shape: "arrowUp", text: "SWEEP" });
+            lines.push({ t0: d[sl].time, t1: last.time, px: lvl, color: UP, dash: "4 3", lab: "SSL", kind: "sup" });
+          }
+        }
+      }
+    }
+    lines = lines.slice(-6);
+    mk = mk.slice(-8);
+    pack.lines = lines;
+    pack.markers = mk;
+    pack.note = mk.length ? mk.length + " sweeps" : "no liquidity sweep";
+    pack.legend = pack.note;
+    pack.legendPts = lines.length ? [{ time: last.time, value: lines[lines.length - 1].px }] : [];
+    pack.vtimes = mk.map(function (m) { return m.time; });
+    return pack;
+  }
+  function oblockPack(d) {
+    var pack = empty(!d || d.length < 40 ? "short" : "");
+    if (!d || d.length < 40) return pack;
+    var n = d.length, last = d[n - 1], i, zones = [];
+    var start = Math.max(20, n - 200);
+    for (i = start; i < n; i++) {
+      var atr = atrAt(d, i, 14);
+      var body = Math.abs(d[i].close - d[i].open);
+      if (body < atr * 1.35) continue;
+      var bull = d[i].close > d[i].open;
+      var rng = d[i].high - d[i].low || 1e-9;
+      var loc = (d[i].close - d[i].low) / rng;
+      if (bull && loc < 0.62) continue;
+      if (!bull && loc > 0.38) continue;
+      var j = i - 1, guard = 0;
+      while (j >= 0 && guard < 5) {
+        var up = d[j].close >= d[j].open;
+        if (up !== bull) break;
+        j--; guard++;
+      }
+      if (j < 0 || (d[j].close >= d[j].open) === bull) continue;
+      var lo = Math.min(d[j].open, d[j].close);
+      var hi = Math.max(d[j].open, d[j].close);
+      if (hi - lo < atr * 0.15) continue;
+      var mit = null, k, age = n;
+      for (k = i + 1; k < n; k++) {
+        if (bull && d[k].low <= lo) { mit = d[k].time; age = n - 1 - k; break; }
+        if (!bull && d[k].high >= hi) { mit = d[k].time; age = n - 1 - k; break; }
+      }
+      if (mit && age > 12) continue;
+      zones.push({
+        t0: d[j].time, t1: mit || last.time, lo: lo, hi: hi,
+        color: bull ? "rgba(8,153,129,.18)" : "rgba(242,54,69,.16)",
+        kind: bull ? "dem" : "sup",
+        lab: bull ? (mit ? "OB up done" : "OB up") : (mit ? "OB dn done" : "OB dn")
+      });
+    }
+    zones = zones.slice(-5);
+    pack.zones = zones;
+    pack.note = zones.length ? zones.length + " order blocks" : "no displacement block";
+    pack.legend = pack.note;
+    if (zones.length) pack.legendPts = [{ time: last.time, value: (zones[zones.length - 1].hi + zones[zones.length - 1].lo) / 2 }];
+    return pack;
+  }
+  function hvnPack(d) {
+    var pack = empty(!d || d.length < 30 ? "short" : "");
+    if (!d || d.length < 30) return pack;
+    var n = d.length, last = d[n - 1], from = Math.max(0, n - 320), i;
+    var hi = -1e99, lo = 1e99, anyV = false;
+    for (i = from; i < n; i++) {
+      if (d[i].high > hi) hi = d[i].high;
+      if (d[i].low < lo) lo = d[i].low;
+      if (d[i].volume) anyV = true;
+    }
+    if (!(hi > lo)) return pack;
+    var bins = 64, vol = [], tot = 0, pi;
+    for (pi = 0; pi < bins; pi++) vol[pi] = 0;
+    for (i = from; i < n; i++) {
+      var tp = (d[i].high + d[i].low + d[i].close) / 3;
+      var b = Math.floor((tp - lo) / (hi - lo) * (bins - 1));
+      if (b < 0) b = 0; if (b >= bins) b = bins - 1;
+      var v = anyV ? (d[i].volume || 0) : 1;
+      vol[b] += v; tot += v;
+    }
+    if (!tot) return pack;
+    var sorted = vol.slice().sort(function (a, b) { return a - b; });
+    var med = sorted[Math.floor(bins / 2)] || 1;
+    var poc = 0;
+    for (pi = 1; pi < bins; pi++) if (vol[pi] > vol[poc]) poc = pi;
+    function pxOf(b) { return lo + (b + 0.5) / bins * (hi - lo); }
+    var lines = [];
+    lines.push({ t0: d[from].time, t1: last.time, px: pxOf(poc), color: GOLD, dash: "0", lab: anyV ? "POC" : "POC tpo", kind: "sup" });
+    var need = tot * 0.7, acc = vol[poc], loB = poc, hiB = poc;
+    while (acc < need && (loB > 0 || hiB < bins - 1)) {
+      var left = loB > 0 ? vol[loB - 1] : -1;
+      var right = hiB < bins - 1 ? vol[hiB + 1] : -1;
+      if (right >= left) { hiB++; acc += vol[hiB]; }
+      else { loB--; acc += vol[loB]; }
+    }
+    lines.push({ t0: d[from].time, t1: last.time, px: pxOf(hiB), color: MUTE, dash: "3 3", lab: "VAH", kind: "res" });
+    lines.push({ t0: d[from].time, t1: last.time, px: pxOf(loB), color: MUTE, dash: "3 3", lab: "VAL", kind: "sup" });
+    var hv = [];
+    for (pi = 2; pi < bins - 2; pi++) {
+      if (pi !== poc && vol[pi] >= vol[pi - 1] && vol[pi] >= vol[pi + 1] && vol[pi] >= vol[pi - 2] && vol[pi] > med * 1.45) hv.push(pi);
+    }
+    hv.sort(function (a, b) { return vol[b] - vol[a]; });
+    hv.slice(0, 3).forEach(function (b) {
+      var px = pxOf(b);
+      if (Math.abs(px - last.close) / (last.close || 1) > 0.18) return;
+      lines.push({ t0: d[from].time, t1: last.time, px: px, color: CYAN, dash: "0", lab: "HVN", kind: "sup" });
+    });
+    for (pi = 2; pi < bins - 2 && lines.length < 8; pi++) {
+      if (vol[pi] <= vol[pi - 1] && vol[pi] <= vol[pi + 1] && vol[pi] < med * 0.55) {
+        var pxL = pxOf(pi);
+        if (Math.abs(pxL - last.close) / (last.close || 1) > 0.12) continue;
+        lines.push({ t0: d[from].time, t1: last.time, px: pxL, color: ORG, dash: "2 3", lab: "LVN", kind: "tgt" });
+        if (lines.filter(function (z) { return z.lab === "LVN"; }).length >= 2) break;
+      }
+    }
+    pack.lines = lines;
+    pack.note = (anyV ? "POC VAH VAL" : "time profile") + (hv.length ? " HVN" : "");
+    pack.legend = pack.note;
+    pack.legendPts = [{ time: last.time, value: pxOf(poc) }];
+    return pack;
+  }
+
   root.jhInst = {
     fvgGaps: fvgGaps,
     fvgPack: fvgPack,
@@ -511,6 +680,9 @@
     insiderMarks: insiderMarks,
     buybackMarks: buybackMarks,
     orZones: orZones,
+    sweepPack: sweepPack,
+    oblockPack: oblockPack,
+    hvnPack: hvnPack,
     empty: empty
   };
 })(typeof window !== "undefined" ? window : globalThis);

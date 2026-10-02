@@ -1,4 +1,4 @@
-/* JustHodl Chart engine v12.40 — identity, interval, tick, returns, alerts. */
+/* JustHodl Chart engine v12.41 — fullscreen chart, synced verticals, pane S/R. */
 (function () {
   if (window.__jhChartEngineV1239) return;
   window.__jhChartEngineV1239 = true;
@@ -131,6 +131,9 @@
     {id:"pats",n:"Chart Patterns",c:"#26c6da",on:0,k:"pats",cat:"Patterns"},
     {id:"sdmd",n:"Supply & Demand",c:"#089981",on:0,k:"sdmd",cat:"Patterns"},
     {id:"sr",n:"Support & Resistance",c:"#f23645",on:0,k:"sr",cat:"Levels"},
+    {id:"sweep",n:"Liquidity Sweep",c:"#ff6d00",on:0,k:"sweep",cat:"SMC"},
+    {id:"oblock",n:"Order Blocks",c:"#7e57c2",on:0,k:"oblock",cat:"SMC"},
+    {id:"hvn",n:"HVN / LVN",c:"#f0b429",on:0,k:"hvn",cat:"Volume"},
     {id:"fvg",n:"Fair Value Gaps",c:"#26c6da",on:0,k:"fvg",cat:"SMC"},
     {id:"eqh",n:"Equal Highs / Lows",c:"#f0b429",on:0,k:"eqh",cat:"SMC"},
     {id:"or15",n:"Opening Range 15/30",c:"#2962ff",on:0,k:"or",cat:"Session"},
@@ -250,7 +253,7 @@
   }
   var calCache=null, calAt=0;
   var lastVolShow=false, volTapeEvents=[], lastPatPack=null, lastSdPack=null, lastSrPack=null, lastIch=null;
-  var lastFvgPack=null, lastEqhPack=null, lastGSess=null, lastSeps=null, lastOrLv=null, lastOrPack=null, lastAdr=null, lastAtrPts=null, lastHudVwap=null;
+  var lastFvgPack=null, lastEqhPack=null, lastGSess=null, lastSeps=null, lastOrLv=null, lastOrPack=null, lastAdr=null, lastAtrPts=null, lastHudVwap=null, lastSweepPack=null, lastObPack=null, lastHvnPack=null;
   var lastVsSpx=null, lastSpxDaily=null, lastBenchName="SPX";
   var lastGoodTf="1d", loadGen=0;
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
@@ -2444,7 +2447,7 @@
     var wm=document.getElementById("wm"); if(wm) wm.textContent=watermark?active:"";
     overlayMap={};
     lastPatPack=null; lastSdPack=null; lastSrPack=null;
-    lastFvgPack=null; lastEqhPack=null; lastGSess=null; lastSeps=null; lastOrLv=null; lastOrPack=null; lastAdr=null;
+    lastFvgPack=null; lastEqhPack=null; lastGSess=null; lastSeps=null; lastOrLv=null; lastOrPack=null; lastAdr=null; lastSweepPack=null; lastObPack=null; lastHvnPack=null;
     lastVsSpx=null;
     if(evidence && evidence.observations && evidence.symbol===active && evidence.interval===tf){paintObservations(d,saved);return;}
     if(mode==="price"){
@@ -2536,7 +2539,7 @@
             }catch(eN){}
             if(!current())return;
           }
-          lastPatPack=null; lastSdPack=null; lastSrPack=null;
+          lastPatPack=null; lastSdPack=null; lastSrPack=null; lastSweepPack=null; lastObPack=null; lastHvnPack=null;
           if(INDS.some(function(i){ return i.id==="pats"&&i.on&&!i.hide; }) && window.jhChartPatterns){
             try{
               lastPatPack=window.jhChartPatterns(display, {tf:tf});
@@ -2557,6 +2560,27 @@
               if(lastSrPack && lastSrPack.markers && lastSrPack.markers.length) mk=mk.concat(lastSrPack.markers);
               if(lastSrPack && lastSrPack.legendPts) overlayMap.sr=lastSrPack.legendPts;
             }catch(eR){ lastSrPack=null; }
+          }
+          if(window.jhInst){
+            if(INDS.some(function(i){ return i.id==="sweep"&&i.on&&!i.hide; })){
+              try{
+                lastSweepPack=window.jhInst.sweepPack(display);
+                if(lastSweepPack && lastSweepPack.markers && lastSweepPack.markers.length) mk=mk.concat(lastSweepPack.markers);
+                if(lastSweepPack && lastSweepPack.legendPts) overlayMap.sweep=lastSweepPack.legendPts;
+              }catch(eSw){ lastSweepPack=null; }
+            }
+            if(INDS.some(function(i){ return i.id==="oblock"&&i.on&&!i.hide; })){
+              try{
+                lastObPack=window.jhInst.oblockPack(display);
+                if(lastObPack && lastObPack.legendPts) overlayMap.oblock=lastObPack.legendPts;
+              }catch(eOb){ lastObPack=null; }
+            }
+            if(INDS.some(function(i){ return i.id==="hvn"&&i.on&&!i.hide; })){
+              try{
+                lastHvnPack=window.jhInst.hvnPack(display);
+                if(lastHvnPack && lastHvnPack.legendPts) overlayMap.hvn=lastHvnPack.legendPts;
+              }catch(eHn){ lastHvnPack=null; }
+            }
           }
           if(window.jhInst){
             if(INDS.some(function(i){ return i.id==="fvg"&&i.on&&!i.hide; })){
@@ -2722,7 +2746,7 @@
         if(ind.k==="avgdev"){ var adb=avgDev(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=adb.m; if(!ind.hide){ addLine(adb.m, ind.c||"#2962ff", 2, {last:true, title:"Avg"}); addLine(adb.up1, "#26c6da", 1, {title:"+1σ"}); addLine(adb.dn1, "#26c6da", 1, {title:"-1σ"}); addLine(adb.up2, "#787b86", 1, {title:"+2σ"}); addLine(adb.dn2, "#787b86", 1, {title:"-2σ"}); } }
         if(ind.k==="seb"){ var sb=seBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=sb.m; if(!ind.hide){ addLine(sb.m, ind.c||"#5c6bc0", 2, {last:true, title:"LinReg"}); addLine(sb.up, "#26c6da", 1); addLine(sb.dn, "#26c6da", 1); } }
         if(ind.k==="atrb"){ var ab=atrBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=ab.m; if(!ind.hide){ addLine(ab.m, ind.c||"#00897b", 2, {last:true, title:"ATR mid"}); addLine(ab.up, "#26c6da", 1); addLine(ab.dn, "#26c6da", 1); } }
-        if(ind.k==="ribbon"){ var rb=[8,13,21,34,55,100,200,250], rc=[ind.c||"#26c6da","#42a5f5","#5c6bc0","#7e57c2","#ab47bc","#ff6d00","#f23645","#787b86"]; rb.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, rc[ix], (n===8||n>=200)?2:1, {last:n===8||n>=100, title:"EMA "+n}); }); }
+        if(ind.k==="ribbon"){ var rb=[8,13,21,34,55,100,200,250], rc=[ind.c||"#26c6da","#42a5f5","#5c6bc0","#7e57c2","#ab47bc","#ff6d00","#f23645","#787b86"]; rb.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, rc[ix], (n===8||n>=100)?2:1, {last:n===8||n>=100, title:"EMA "+n}); }); }
         if(ind.k==="gmma"){ var gs=[3,5,8,10,12,15], gl=[30,35,40,45,50,60]; gs.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, "#26a69a", 1); }); gl.forEach(function(n){ if(!ind.hide) addLine(ema(d,n), "#ff6d00", 1); }); }
         if(ind.k==="gdx"){ var g50=sma(d,50), g200=sma(d,200); overlayMap[ind.id]=g50; if(!ind.hide){ addLine(g50, "#f0b429", 2, {last:true, title:"SMA 50"}); addLine(g200, "#2962ff", 2, {last:true, title:"SMA 200"}); } }
         if(ind.k==="hilo52" && d.length){ var h52= (function(){ var t52=d[d.length-1].time-365*86400, hi=-1e99, lo=1e99, i; for(i=0;i<d.length;i++){ if(d[i].time<t52) continue; if(d[i].high>hi)hi=d[i].high; if(d[i].low<lo)lo=d[i].low; } return {hi:hi,lo:lo}; })(); if(!ind.hide){ if(isFinite(h52.hi)) addPriceLine(h52.hi, UP, "52w H"); if(isFinite(h52.lo)&&h52.lo<1e90) addPriceLine(h52.lo, DN, "52w L"); } }
@@ -2731,7 +2755,7 @@
         if(ind.k==="demark"){ var dp=demarkPivots(d); if(dp && !ind.hide){ addPriceLine(dp.pp.value,"#546e7a","P"); addPriceLine(dp.r1.value,DN,"R1"); addPriceLine(dp.s1.value,UP,"S1"); } }
         if(ind.k==="fibauto"){ var fa=fibAuto(d, ind.p||252); if(fa && fa.length && !ind.hide){ var fc=["#f23645","#ff6d00","#f0b429","#787b86","#26c6da","#2962ff","#089981"]; fa.forEach(function(lv,ix){ addPriceLine(lv.value, (ix===4&&ind.c)?ind.c:(fc[ix]||"#787b86"), (lv.p*100).toFixed(1)+"%"); }); } }
         if(ind.k==="livermore"||ind.k==="wyckoff"||ind.k==="accum"||ind.k==="distrib"||ind.k==="vsa"||ind.k==="tape"){ /* markers applied on the candle series */ }
-        if(ind.k==="struct"||ind.k==="rsidiv"||ind.k==="earn"||ind.k==="news"||ind.k==="dvd"||ind.k==="split"||ind.k==="sess"||ind.k==="pats"||ind.k==="sdmd"||ind.k==="sr"||ind.k==="fvg"||ind.k==="eqh"||ind.k==="gsess"||ind.k==="sep"||ind.k==="ins"||ind.k==="buyb"){ /* markers / overlay drawn separately */ }
+        if(ind.k==="struct"||ind.k==="rsidiv"||ind.k==="earn"||ind.k==="news"||ind.k==="dvd"||ind.k==="split"||ind.k==="sess"||ind.k==="pats"||ind.k==="sdmd"||ind.k==="sr"||ind.k==="fvg"||ind.k==="eqh"||ind.k==="gsess"||ind.k==="sep"||ind.k==="ins"||ind.k==="buyb"||ind.k==="sweep"||ind.k==="oblock"||ind.k==="hvn"){ /* markers / overlay drawn separately */ }
         if(ind.k==="keylv"){
           var kl=keyLevels(d);
           if(kl && kl.day) overlayMap[ind.id]=[{time:d[d.length-1].time,value:kl.day.c}];
@@ -2876,6 +2900,7 @@
       try{ window.lastVsSpx=lastVsSpx; window.lastBenchName=lastBenchName; }catch(eW){}
     }catch(e){}
     if(!current())return;
+    try{ ensureVolMark(); }catch(eVm){}
     paintOsc(d);
     drawSVG();
     paintPat();
@@ -2896,7 +2921,7 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; window.tf=tf; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.34"; if(st) st.textContent="v12.40 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.41"; if(st) st.textContent="v12.41 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function closeLocationVolume(bar){
     if(!bar||reportedVolume(bar.volume)===null)return null;
@@ -2972,7 +2997,92 @@
     }
     document.getElementById("detail").innerHTML="<div style=font-weight:600>"+escHtml(active)+"</div><div class=px>"+fmt(last.close)+"</div><div class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(last.close-prev.close)+" "+(chg*100).toFixed(2)+"%</div><div class=cell><span>ATR 14</span><span>"+fmt(atrv)+(last.close? " · "+(100*atrv/last.close).toFixed(2)+"%":"")+"</span></div><div class=cell><span>RVOL 20</span><span>"+(rvol!==null?rvol.toFixed(2)+"x "+heat:"Unavailable")+"</span></div><div class=cell><span>"+vwLab+"</span><span>"+(vw?fmt(vw)+" "+stance:"—")+"</span></div><div class=cell><span>VWAP vs TWAP</span><span>"+vwapBias+"</span></div>"+vsCells+"<div class=cell><span>POC</span><span>"+(lastVP.poc!=null?fmt(lastVP.poc):"—")+"</span></div><div class=cell><span>Value</span><span>"+loc+"</span></div><div class=cell><span title='Close-location multiplier times reported bar volume; an OHLC estimate, not measured trade flow.'>CLV × Vol</span><span class="+(deltaEst===null?"":deltaEst>=0?"up":"dn")+">"+fmtSignedVol(deltaEst)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>DAY RANGE</div><div class=rg><i style=width:"+dp+"%></i><b style=left:"+dp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(dayLo)+"</span><span>"+fmt(dayHi)+"</span></div><div style='margin-top:8px;font-size:10px;color:var(--mut)'>52-WEEK RANGE</div><div class=rg><i style=width:"+yp+"%></i><b style=left:"+yp+"%></b></div><div style=display:flex;justify-content:space-between;font-size:10px;font-family:IBM+Plex+Mono,monospace><span>"+fmt(ylo)+"</span><span>"+fmt(yhi)+"</span></div>";
   }
+
+  var studyVLines=[];
+  var OSC_SR_KEY="jh-osc-sr";
+  function oscSrMap(){
+    try{ var m=JSON.parse(localStorage.getItem(OSC_SR_KEY)||"{}"); return m&&typeof m==="object"?m:{}; }catch(e){ return {}; }
+  }
+  function oscSrOn(id){ return !!oscSrMap()[id]; }
+  function oscSrToggle(id){
+    var m=oscSrMap(); m[id]=!m[id];
+    try{ localStorage.setItem(OSC_SR_KEY, JSON.stringify(m)); }catch(e){}
+    return !!m[id];
+  }
+  function pushStudyV(t, color){
+    if(t==null||studyVLines.length>=16) return;
+    var i;
+    for(i=0;i<studyVLines.length;i++) if(studyVLines[i].time===t) return;
+    studyVLines.push({time:t, color:color||"rgba(240,180,41,.85)"});
+  }
+  function collectPackV(pack, color){
+    if(!pack||!pack.vtimes) return;
+    pack.vtimes.forEach(function(t){ pushStudyV(t, color); });
+  }
+  function drawOscRails(c, bars, pts, o){
+    if(!window.jhOscRails||!pts||pts.length<24) return;
+    var i, mn=1e99, mx=-1e99, n=0;
+    for(i=0;i<pts.length;i++){
+      if(pts[i].value==null||!isFinite(pts[i].value)) continue;
+      n++;
+      if(pts[i].value<mn) mn=pts[i].value;
+      if(pts[i].value>mx) mx=pts[i].value;
+    }
+    if(n<24) return;
+    var span=mx-mn;
+    var bounded=o.id==="rsi"||o.id==="mfi"||o.id==="stoch"||o.id==="stochrsi"||o.id==="htrsi"||o.id==="dem";
+    var tol=o.id==="cci"?Math.max(12, span*0.06):(o.id==="willr"?4:(bounded?2.5:Math.max(span*0.045, 1e-6)));
+    var pack=window.jhOscRails(pts, {tol:tol, minN:2});
+    (pack.lines||[]).forEach(function(lv){
+      var col=lv.kind==="sup"?"rgba(8,153,129,.95)":"rgba(242,54,69,.95)";
+      var from=lv.t0||(bars[0]&&bars[0].time);
+      try{
+        var s=c.addLineSeries({color:col,lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:(lv.kind==="sup"?"S x ":"R x ")+lv.n});
+        s.setData((bars||[]).filter(function(b){ return from==null || b.time>=from; }).map(function(b){ return {time:b.time, value:lv.value}; }));
+        oscSeries.push(s);
+      }catch(e){}
+      pushStudyV(lv.time, col);
+    });
+  }
+  function ensureVolMark(){
+    var pane=document.getElementById("chart");
+    if(!pane) return;
+    var box=document.getElementById("vol-tools");
+    if(!box){
+      box=document.createElement("div");
+      box.id="vol-tools";
+      box.style.cssText="position:absolute;left:8px;bottom:28px;z-index:8;display:none;gap:4px;align-items:center";
+      box.innerHTML="<button type=button id=vol-vline title='Vertical line. Click the volume bars. The line is drawn on the price chart and every indicator.'>|</button><button type=button id=vol-sr title='Volume support and resistance. POC, value area, high-volume and low-volume nodes.'>S/R</button>";
+      pane.appendChild(box);
+      document.getElementById("vol-vline").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        tool="vline";
+        try{ renderRail(); }catch(e){}
+        toast("Vertical line — click volume, an indicator, or the price chart");
+        ensureVolMark();
+      };
+      document.getElementById("vol-sr").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        var it=INDS.find(function(i){ return i.id==="hvn"; });
+        if(!it) return;
+        it.on=!it.on; it.hide=false;
+        saveLay();
+        toast(it.on?"Volume S/R on — POC, VAH, VAL, HVN, LVN":"Volume S/R off");
+        if(lastBars.length) paint(lastBars);
+      };
+    }
+    box.style.display=volOn?"flex":"none";
+    var hv=INDS.some(function(i){ return i.id==="hvn"&&i.on&&!i.hide; });
+    var b1=document.getElementById("vol-vline");
+    var b2=document.getElementById("vol-sr");
+    if(b1) b1.style.color=tool==="vline"?"#f0b429":"#d1d4dc";
+    if(b2) b2.style.color=hv?"#f0b429":"#d1d4dc";
+  }
+
   function paintOsc(d){
+    studyVLines=[];
+    collectPackV(lastSrPack, "rgba(240,180,41,.8)");
+    collectPackV(lastSweepPack, "rgba(255,109,0,.8)");
     var wrap=document.getElementById("oscwrap");
     var on=OSC.filter(function(o){ return o.on; }).slice(0,6);
     oscCharts.forEach(function(c){ try{ c.remove(); }catch(e){} });
@@ -2991,7 +3101,9 @@
       var paneH=Math.max(96, Math.min(720, o.h||(o.id==="voldd"?220:118)));
       pane.style.height=paneH+"px";
       var head=document.createElement("div"); head.className="osc-head";
-      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=vline title='Vertical line. Click this pane or the price chart. Shift+click also drops one. The line is on every pane.'>│</button><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
+      var srOn=oscSrOn(o.id);
+      var favOnBtn=window.jhIndFavHas&&window.jhIndFavHas(o.id);
+      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=vline title='Vertical line. Click this pane or the price chart. Shift+click also drops one. The line is on every pane.'>│</button><button type=button data-act=sr class='"+(srOn?"on":"")+"' title='Support and resistance on this pane. The last touch is a vertical line on the price chart.'>S/R</button><button type=button data-act=fav class='"+(favOnBtn?"on":"")+"' title='Favorite this indicator'>★</button><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
         "<button type=button data-act=help title='What is this'>?</button>"+
         "<button type=button data-act=eye title=Visibility>"+(o.hide?"○":"◉")+"</button>"+
         "<button type=button data-act=set title=Settings>⚙</button>"+
@@ -3017,6 +3129,18 @@
         try{ renderRail(); }catch(e){}
         toast("Vertical line — click this pane or the price chart");
       };
+      head.querySelector("[data-act=sr]").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        var onSr=oscSrToggle(o.id);
+        toast(onSr?("S/R on "+o.n):("S/R off "+o.n));
+        if(lastBars.length) paint(lastBars);
+      };
+      head.querySelector("[data-act=fav]").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        if(window.jhIndFavToggle) window.jhIndFavToggle(o.id);
+        toast((window.jhIndFavHas&&window.jhIndFavHas(o.id)?"Favorited ":"Removed ")+o.n);
+        if(lastBars.length) paint(lastBars);
+      };
       head.querySelector("[data-act=help]").onclick=function(){ if(window.jhInduxHelp) window.jhInduxHelp(o.id); };
       head.querySelector("[data-act=eye]").onclick=function(){ o.hide=!o.hide; saveLay(); if(lastBars.length) paint(lastBars); };
       head.querySelector("[data-act=set]").onclick=function(){ if(window.jhInduxSet) window.jhInduxSet(o, true); };
@@ -3039,8 +3163,8 @@
         if(t==null) return;
         placeSyncedVLine(t);
       });
-      var col=o.c||ACC, per=o.p;
-      function addO(fn, color){ var s=c.addLineSeries({color:color||col,lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:o.n,crosshairMarkerVisible:true,crosshairMarkerRadius:3}); s.setData(fn||[]); oscSeries.push(s); if(fn&&fn.length){ var lastv=fn[fn.length-1].value; var ve=head.querySelector(".osc-v"); if(ve&&lastv!=null) ve.textContent=(Math.abs(lastv)>=100?fmt(lastv):lastv.toFixed(2)); } }
+      var col=o.c||ACC, per=o.p, railPts=null;
+      function addO(fn, color){ railPts=fn||railPts; var s=c.addLineSeries({color:color||col,lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:o.n,crosshairMarkerVisible:true,crosshairMarkerRadius:3}); s.setData(fn||[]); oscSeries.push(s); if(fn&&fn.length){ var lastv=fn[fn.length-1].value; var ve=head.querySelector(".osc-v"); if(ve&&lastv!=null) ve.textContent=(Math.abs(lastv)>=100?fmt(lastv):lastv.toFixed(2)); } }
       function bands(lo,hi){ try{ var s=c.addLineSeries({color:"rgba(242,54,69,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OB"}); s.setData((d||[]).map(function(b){return {time:b.time,value:hi};})); var s2=c.addLineSeries({color:"rgba(8,153,129,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OS"}); s2.setData((d||[]).map(function(b){return {time:b.time,value:lo};})); oscSeries.push(s,s2); }catch(e){} }
       if(o.hide){ host.style.opacity="0.12"; }
       if(o.id==="rsi"){
@@ -3069,6 +3193,7 @@
         var l1=c.addLineSeries({color:o.c||ACC,lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:"MACD"}); l1.setData(m.map(function(p){return {time:p.time,value:p.macd};}));
         var l2=c.addLineSeries({color:o.c2||"#ff6d00",lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:"Signal"}); l2.setData(m.map(function(p){return {time:p.time,value:p.signal};}));
         oscSeries.push(h,z0,l1,l2);
+        railPts=m.map(function(p){return {time:p.time,value:p.macd};});
         if(m.length){ var ve=head.querySelector(".osc-v"); var lastm=m[m.length-1]; if(ve) ve.textContent=fmt(lastm.macd)+" / "+fmt(lastm.signal); }
       }
       else if(o.id==="stoch"){
@@ -3406,6 +3531,7 @@ else if(o.id==="rvol"){
           addO(pts, o.c||"#f0b429");
         }
       }
+      if(oscSrOn(o.id) && railPts && railPts.length>24) drawOscRails(c, d, railPts, o);
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
@@ -3780,6 +3906,9 @@ else if(o.id==="rvol"){
     if(INDS.some(function(i){ return i.id==="fvg"&&i.on&&!i.hide; }) && lastFvgPack) packs.push(lastFvgPack);
     if(INDS.some(function(i){ return i.id==="eqh"&&i.on&&!i.hide; }) && lastEqhPack) packs.push(lastEqhPack);
     if(INDS.some(function(i){ return i.id==="or15"&&i.on&&!i.hide; }) && lastOrPack) packs.push(lastOrPack);
+    if(INDS.some(function(i){ return i.id==="sweep"&&i.on&&!i.hide; }) && lastSweepPack) packs.push(lastSweepPack);
+    if(INDS.some(function(i){ return i.id==="oblock"&&i.on&&!i.hide; }) && lastObPack) packs.push(lastObPack);
+    if(INDS.some(function(i){ return i.id==="hvn"&&i.on&&!i.hide; }) && lastHvnPack) packs.push(lastHvnPack);
     var ichOn=INDS.some(function(i){ return i.id==="ich"&&i.on&&!i.hide; });
     var sessOn=INDS.some(function(i){ return i.id==="sess"&&i.on&&!i.hide; });
     var gsessOn=INDS.some(function(i){ return i.id==="gsess"&&i.on&&!i.hide; });
@@ -3891,15 +4020,19 @@ else if(o.id==="rvol"){
     if(document.getElementById("jh-fs-css")) return;
     var st=document.createElement("style");
     st.id="jh-fs-css";
-    st.textContent="html.jh-fs #tabbar,html.jh-fs #watch,html.jh-fs #rail,html.jh-fs #quote,html.jh-fs #favs,html.jh-fs #tape,html.jh-fs #etfhud,html.jh-fs #volhud,html.jh-fs .foot,html.jh-fs #mini{display:none!important}"+
-      "html.jh-fs #app{height:100%;height:100dvh}html.jh-fs .row{flex:1;min-height:0}"+
-      "html.jh-fs #tfbar{height:36px!important;min-height:36px!important}html.jh-fs #tfbar .wsico,html.jh-fs #tfbar .wsdesk{display:none!important}"+
-      "html.jh-fs .main{min-height:0}html.jh-fs #stage{flex:1.65 1 0!important;min-height:0}"+
-      "html.jh-fs #oscwrap.on{flex:1 1 0!important;min-height:160px;max-height:none}"+
-      "html.jh-fs #oscwrap .osc{flex:1 1 0!important;height:auto!important;min-height:120px}"+
+    st.textContent="html.jh-fs #tabbar,html.jh-fs #watch,html.jh-fs #rail,html.jh-fs #rrail,html.jh-fs #quote,html.jh-fs #favs,html.jh-fs #tape,html.jh-fs #etfhud,html.jh-fs #volhud,html.jh-fs .foot,html.jh-fs #mini,html.jh-fs #dock,html.jh-fs #replay,html.jh-fs #tfbar,html.jh-fs #listfab{display:none!important}"+
+      "html.jh-fs,html.jh-fs body{height:100%;overflow:hidden}html.jh-fs #app{height:100%;height:100dvh}html.jh-fs .row{flex:1;min-height:0;height:100%}html.jh-fs .main{min-height:0;height:100%}"+
+      "html.jh-fs #stage{flex:1 1 auto!important;min-height:0}"+
+      "html.jh-fs #oscwrap.on{flex:1 1 auto!important;min-height:0;max-height:46vh}"+
+      "html.jh-fs #oscwrap .osc{flex:1 1 0!important;height:auto!important;min-height:72px}"+
+      "#jh-fs-exit{display:none;position:fixed;top:10px;right:12px;z-index:90;height:28px;padding:0 12px;border-radius:4px;background:#2962ff;color:#fff;font:600 12px IBM Plex Sans,sans-serif}"+
+      "html.jh-fs #jh-fs-exit{display:inline-flex;align-items:center}"+
       "#btn-fs.on{color:#fff;background:#2962ff}"+
+      "#vol-tools button{height:22px;padding:0 7px;border-radius:3px;background:rgba(19,23,34,.72);color:#d1d4dc;border:1px solid #2a2e39;font-size:12px}"+
+      "#vol-tools button:hover{border-color:#2962ff;color:#fff}"+
       ".menu .irow button.fv{width:28px;flex:none;text-align:center;padding:7px 0;color:#787b86}.menu .irow button.fv.on{color:#f0b429}"+
-      "#oscwrap .osc-head [data-act=vline]{color:#787b86;font-size:14px;padding:0 6px;line-height:1}#oscwrap .osc-head [data-act=vline]:hover,#oscwrap .osc-head [data-act=vline].on{color:#f0b429}";
+      "#oscwrap .osc-head [data-act=vline],#oscwrap .osc-head [data-act=sr],#oscwrap .osc-head [data-act=fav]{color:#787b86;font-size:12px;padding:0 6px;line-height:1}"+
+      "#oscwrap .osc-head [data-act=vline]:hover,#oscwrap .osc-head [data-act=sr]:hover,#oscwrap .osc-head [data-act=fav]:hover,#oscwrap .osc-head [data-act=vline].on,#oscwrap .osc-head [data-act=sr].on,#oscwrap .osc-head [data-act=fav].on{color:#f0b429}";
     document.head.appendChild(st);
     document.addEventListener("fullscreenchange", function(){
       if(document.fullscreenElement) return;
@@ -3919,6 +4052,13 @@ else if(o.id==="rvol"){
       if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
     } else {
       root.classList.add("jh-fs");
+      if(app && !document.getElementById("jh-fs-exit")){
+        var xb=document.createElement("button");
+        xb.id="jh-fs-exit"; xb.type="button"; xb.textContent="Exit";
+        xb.title="Leave fullscreen";
+        xb.onclick=function(ev){ ev.preventDefault(); ev.stopPropagation(); toggleChartFs(); };
+        app.appendChild(xb);
+      }
       var req=app&&(app.requestFullscreen||app.webkitRequestFullscreen);
       if(req){ try{ req.call(app); }catch(e){} }
     }
@@ -3956,6 +4096,12 @@ else if(o.id==="rvol"){
         if(x==null) continue;
         parts.push('<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+h+'" stroke="'+(d.color||"#2962ff")+'" stroke-width="'+(selDraw===d.id?2.4:(d.w||1))+'" />');
       }
+      (studyVLines||[]).forEach(function(sv){
+        var xs=null;
+        try{ xs=c.timeScale().timeToCoordinate(sv.time); }catch(eSv){}
+        if(xs==null) return;
+        parts.push('<line x1="'+xs+'" y1="0" x2="'+xs+'" y2="'+h+'" stroke="'+(sv.color||"rgba(240,180,41,.8)")+'" stroke-width="1" stroke-dasharray="2 3" />');
+      });
       svg.innerHTML=parts.join("");
     });
   }
@@ -4101,7 +4247,13 @@ else if(o.id==="rvol"){
         parts.push(ln(q.x,0,q.x,h,"#ab47bc",1,"2 4"));
       });
     }
-    svg.innerHTML=parts.join("");
+    (studyVLines||[]).forEach(function(sv){
+      var xs=null;
+      try{ xs=chart.timeScale().timeToCoordinate(sv.time); }catch(eSv2){}
+      if(xs==null) return;
+      parts.push(ln(xs,0,xs,h, sv.color||"rgba(240,180,41,.85)", 1, "2 3"));
+    });
+        svg.innerHTML=parts.join("");
     try{ drawOscVLines(); }catch(e){}
     renderObj();
   }
@@ -4129,6 +4281,12 @@ else if(o.id==="rvol"){
     if(lockDraw && tool!=="cursor" && tool!=="eraser" && tool!=="zoom") { toast("Drawings locked"); return; }
     var box=document.getElementById("chart").getBoundingClientRect();
     var x=ev.clientX-box.left, y=ev.clientY-box.top;
+    var inVol=!!volOn && y > box.height * 0.74;
+    if(tool==="vline" || (inVol && ev.shiftKey)){
+      var tLine=null;
+      try{ tLine=chart.timeScale().coordinateToTime(x); }catch(eLn){}
+      if(tLine!=null){ placeSyncedVLine(tLine); if(tool==="vline" && !stayTool) finishTool(); try{ ensureVolMark(); }catch(eVm2){} return; }
+    }
     if(tool==="cursor"||tool==="cross"){
       if(ev.shiftKey){
         var t0=chart.timeScale().coordinateToTime(x); var p0=mainSeries && mainSeries.coordinateToPrice(y);
@@ -5591,6 +5749,9 @@ else if(o.id==="rvol"){
       row("kama","Kaufman AMA")+row("htfma","Weekly SMA 10/40")+row("ribbon","EMA Ribbon")+
       "<div class=lab>LEVELS</div>"+
       row("sr","Support & Resistance")+
+      row("sweep","Liquidity Sweep")+
+      row("oblock","Order Blocks")+
+      row("hvn","HVN / LVN")+
       row("piv","Pivots")+
       row("vwap","VWAP")+
       "<div class=lab>TREND</div>"+

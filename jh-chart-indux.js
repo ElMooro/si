@@ -44,6 +44,8 @@
     "#legend .leg-n{font-weight:500}",
     "#legend .leg-v{color:#787b86;font-family:IBM Plex Mono,monospace;font-size:11px}",
     "#legend .leg-ops,#oscwrap .leg-ops{display:inline-flex;gap:2px;margin-left:4px;opacity:0}",
+    "#legend .leg-fav{width:16px;height:16px;padding:0;color:#787b86;opacity:.45;flex:none}",
+    "#legend .leg-fav.on{opacity:1;color:#f0b429}",
     "#legend .leg-row:hover .leg-ops,#oscwrap .osc-head:hover .leg-ops{opacity:1}",
     "#legend .leg-ops button,#oscwrap .leg-ops button{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border-radius:2px;color:#787b86;font-size:12px;line-height:18px}",
     "#legend .leg-ops button:hover,#oscwrap .leg-ops button:hover{background:#2a2e39;color:#d1d4dc}",
@@ -173,6 +175,7 @@
         "<i class=leg-sw style=background:" + (i.c || ctx.ACC) + "></i>" +
         "<span class=leg-n style=color:" + (i.c || ctx.ACC) + ">" + i.n + "</span>" +
         "<span class=leg-v>" + val(i.id) + "</span>" +
+        "<button type=button class='leg-fav" + (isFav(i.id) ? " on" : "") + "' data-act=fav title='Favorite'>" + (isFav(i.id) ? "★" : "☆") + "</button>" +
         "<span class=leg-ops>" +
           "<button type=button data-act=help title='What is this'>?</button>" +
           "<button type=button data-act=eye title=Visibility>" + (i.hide ? "○" : "◉") + "</button>" +
@@ -184,6 +187,7 @@
         "<i class=leg-sw style=background:" + ctx.UP + "></i>" +
         "<span class=leg-n style=color:" + ctx.UP + ">Volume</span>" +
         "<span class=leg-v>" + (last ? ctx.fmtVol(last.volume) : "") + "</span>" +
+        "<button type=button class='leg-fav" + (isFav("vol") ? " on" : "") + "' data-act=fav title='Favorite'>★</button>" +
         "<span class=leg-ops>" +
           "<button type=button data-act=eye title=Visibility>◉</button>" +
           "<button type=button data-act=x title=Remove>×</button></span></div>";
@@ -202,7 +206,8 @@
         var btn = e.target.closest("[data-act]");
         var act = btn ? btn.getAttribute("data-act") : "set";
         if (row.getAttribute("data-kind") === "vol") {
-          if (act === "x" || act === "eye") ctx.setVol(false);
+          if (act === "fav") { if (window.jhIndFavToggle) window.jhIndFavToggle("vol"); paintNow(); }
+          else if (act === "x" || act === "eye") ctx.setVol(false);
           return;
         }
         if (row.getAttribute("data-kind") === "cmp") {
@@ -212,6 +217,7 @@
         var i = INDS.find(function (x) { return x.id === row.getAttribute("data-id"); });
         if (!i) return;
         if (act === "eye") { i.hide = !i.hide; paintNow(); }
+        else if (act === "fav") { if (window.jhIndFavToggle) window.jhIndFavToggle(i.id); paintNow(); }
         else if (act === "help") { if (window.jhInduxHelp) window.jhInduxHelp(i.id, btn); }
         else if (act === "x") { i.on = false; i.hide = false; paintNow(); }
         else window.jhInduxSet(i, false, ctx);
@@ -225,7 +231,7 @@
     d.className = "on";
     d.innerHTML = "<div class=box>" +
       "<div class=nav>" +
-        "<button type=button data-tab=fav>Favorites</button>" +
+        "<button type=button data-tab=fav>Favorites" + (favs.length ? " " + favs.length : "") + "</button>" +
         "<button type=button data-tab=tech>Technicals</button>" +
         "<button type=button data-tab=osc>Oscillators</button>" +
       "</div>" +
@@ -274,7 +280,10 @@
         if (s.id === "htrsi") keys += " weekly rsi higher timeframe htf";
         if (s.id === "pats") keys += " chart patterns double bottom resistance break measured move target wyckoff livermore";
         if (s.id === "sdmd") keys += " supply demand wyckoff volume zone spring test sos creek cause effect accumulation distribution";
-        if (s.id === "sr") keys += " support resistance clustered volume reject bounce break rails s/r";
+        if (s.id === "sr") keys += " support resistance clustered volume reject bounce break rails s/r prior day week poc";
+        if (s.id === "sweep") keys += " liquidity sweep stop run bsl ssl wick";
+        if (s.id === "oblock") keys += " order block displacement mitigation smc";
+        if (s.id === "hvn") keys += " hvn lvn poc value area volume profile node";
         if (s.id === "fvg") keys += " fair value gap fvg imbalance ict smc liquidity void";
         if (s.id === "eqh") keys += " equal highs equal lows eqh eql liquidity pool double top bottom";
         if (s.id === "or15") keys += " opening range or15 or30 orb breakout first 15 30 minutes";
@@ -339,7 +348,10 @@
               s.id === "htrsi" ? "Weekly RSI 14 on daily · " :
               s.id === "pats" ? "DB · R-BRK · 0.5×/1.0× tgt · Livermore/Wyckoff · " :
               s.id === "sdmd" ? "Wyckoff vol · TEST · 1.0× cause/effect · " :
-              s.id === "sr" ? "Clustered rails · vol↓ bounce · vol↑ break · " :
+              s.id === "sr" ? "ATR shelves · PD/PW refs · vol-weighted · " :
+              s.id === "sweep" ? "Stop-run through a swing, close back inside · " :
+              s.id === "oblock" ? "Last opposite candle before displacement · " :
+              s.id === "hvn" ? "POC · VAH · VAL · HVN · LVN · " :
               s.id === "fvg" ? "3-candle imbalance · unfilled · " :
               s.id === "eqh" ? "EQH / EQL liquidity · " :
               s.id === "or15" ? "OR15 + OR30 from 5m · " :
@@ -659,7 +671,10 @@
       htrsi: ["Weekly RSI", "Momentum", "RSI 14 computed on calendar-week bars, then stepped onto this chart. Slow, fund-level momentum.", "Weekly RSI still <50 while daily RSI is 70 is a rally in a downtrend. Weekly RSI reclaiming 50 is often the real turn.", "Higher-timeframe RSI overlay as a pane."],
       pats: ["Chart Patterns", "Patterns", "Institutional map, not wallpaper. S&P cash 1980–now + SPY 1993–now, confirmation-only, next-open 10-session vs drift. Signals: double bottom (GSPC n=99 hit 65.7% mean +0.72% edge +0.30% t=3.1; SPY 64.8% / +0.55%) and 3-touch resistance break (SPY n=39 hit 79.5% +1.07% edge +0.68% t=3.6; GSPC n=75 hit 76.0% / +1.31%). Measured-move rays: DB 0.5× neck-height hits 76%/75% before invalidation (first objective); DB 1.0× textbook 54%/53%; R-BRK 0.38× range SPY 64%; R-BRK 1.0× book 38%/23% — drawn as the textbook copy of the range, not a high-odds hit. Cycle events: Livermore BOTTOM/TOP/REV and Wyckoff SC/SOS/SOW/BC from the gold tape, plus PH/PL danger rays.", "DB = confirmed neckline close, quieter 2nd low. DB? = forming, not a buy. Cyan 0.5× / gold 1.0× are projected from the neck. R-BRK = close through a 3-touch ceiling; 0.38× is the first objective, 1.0× book is the full range copy. HIT = already traded through. PH/PL are Livermore's last pivot high/low. D / W / M only.", "S/R rails and Wyckoff S/D boxes live in their own studies. Dropped on S&P daily: doji, hammer, engulfing, H&S, double-top shorts, flags, triangles, cup-handle, 52-week breakdowns."],
       sdmd: ["Supply & Demand", "Patterns", "Wyckoff volume-confirmed zones. Demand = selling climax / stopping volume (RVOL ≥ 1.55, wide, down) → 3–18 bar base → SOS (close above climax high, RVOL ≥ 1.15, SOS vol ≥ 0.85× climax). First TEST of that zone on lighter volume that holds: SPY n=22 10d hit 72.7% mean +1.01% edge +0.63% t=2.2, hold 92%. Cause-and-effect 1.0× (impulse copied above the creek) hits 68% in ~16 bars. Heavy-volume retest of demand is not a buy (hit 52.9% mean −0.10%). Supply boxes are location — first touch rarely smashes — but 10d shorts from supply lost to S&P drift, so no downside target is drawn. Calibrated on SPY (real ETF volume); cash-index volume is too smooth to fire often.", "Green box = unmitigated demand, red = unmitigated supply. Creek / ice is the top (bottom) of the range. TEST = first light-volume retest that held. SPRING = undercut then close back in on light volume. UT = heavy-volume upthrust/test — do not buy. Gold 1.0× C/E is the textbook Wyckoff cause-and-effect target. A close through the far side of the box mitigates it. D / W / M only.", "Loosened (percentile) volume rules destroyed the edge on SPY. This study keeps the tight RVOL gates. Not Seiden-style impulse boxes — those had 98% first-touch holds and a failed 10d bounce."],
-      sr: ["Support & Resistance", "Levels", "Clustered 3+ swing highs/lows within 0.7%. Next-visit reaction 54–76% vs ~33–55% random (map, not a 10d trade by itself). Volume character on the last visit: vol↓ = light reject/bounce, vol↑ = heavy break. Light-volume bounce at clustered support: GSPC n=12 hit 91.7% mean +3.66% edge +3.24% t=3.5, with a 0.5× range target (1.0× bounce target failed). Resistance BREAK is Chart Patterns' R-BRK (SPY 79.5% / GSPC 76.0%) — this study draws the rail and tags the volume. Resistance-reject-as-short has no S&P 10d edge.", "R×n / S×n = touch count. Solid = still holding, dashed = broken. S-B marker = light-volume bounce. Cyan 0.5× on a bounce is the first objective, not the textbook 1.0× (that missed). Nearest 5 rails each, within ~16–18% of last. D / W / M only.", "A 3-touch cluster is a location. Volume decides whether the next visit is a fade or a break. Do not fade a vol↑ test of resistance."],
+      sr: ["Support & Resistance", "Levels", "Swing shelves in an ATR-scaled band, priced by a volume-weighted average of the touches, not a flat 0.7% box. Prior day, week, and (on daily and higher) month high, low, and close print when they are not already a shelf. The light-volume bounce path is unchanged: S-B marker and a 0.5× range objective. Intraday is on, with a tighter swing and a tighter distance-to-price filter.", "R×n / S×n is the touch count. Solid is still holding. Dashed is broken. Gold dashed PDH / PDL / PWH / PWL are the prior-period references. Press S/R on an indicator pane (RSI, MACD, volume) to cluster that pane. The last touch of each pane rail is a vertical line on the price chart and on the other panes.", "A shelf is a location. Volume on the last visit says whether the next visit is a fade or a break. The S/R button does not invent a trade."],
+      sweep: ["Liquidity Sweep", "SMC", "A bar that trades through the last swing high or low and closes back inside. The wick has to be the larger half of the bar, and the pierce has to be at least a sliver of ATR. The broken swing is left on the chart as BSL or SSL.", "Buy-side liquidity sits above swing highs. Sell-side sits under swing lows. A sweep is the stop run. It is not a reversal until the close is back through the level. The sweep time is also a vertical line on any open indicator pane.", "Pure OHLC. No order-book. Not every wick is a sweep — only a close back inside a prior swing."],
+      oblock: ["Order Blocks", "SMC", "The last opposite candle before a displacement bar. Displacement is a body of at least 1.35× ATR that closes in the outer part of its range. The zone is that candle's body. It stays until price trades through it.", "An untouched block is the level. A block tagged 'done' has been mitigated. Old mitigated blocks are dropped so the chart does not fill with history.", "This is the candle before the impulse, not a footprint order block and not a volume node."],
+      hvn: ["HVN / LVN", "Volume", "A 64-bin profile of the last 320 bars. POC is the heaviest bin. VAH and VAL are the 70% value area. HVN is a local volume peak above 1.45× the median bin, near price. LVN is a thin bin between them. If the series has no volume, the profile is time-at-price and the POC label says so.", "Trade is accepted inside value and rejected at HVN. LVN is where price tends to travel, not where it rests. Turn it on from Indicators, or from the S/R button on the volume pane.", "Not a session market-profile TPO and not a tick footprint. Bins use typical price."],
       fvg: ["Fair Value Gaps", "SMC", "3-candle imbalance: a bullish FVG is candle-3 low above candle-1 high; bearish is the inverse. Only gaps ≥0.12× ATR (or 0.04% of price) are kept. Unfilled gaps stay painted to the last bar; filled ones fade.", "Unfilled FVG is leftover inefficiency, not a pending order. Price often retests the midpoint. This is the loaded timeframe's gap, not a 1-minute ICT copy.", "OHLC of this chart. No tick, no DOM, no order-book imbalance."],
       eqh: ["Equal Highs / Lows", "SMC", "Fractal swing highs/lows that print within 0.18× ATR of each other. EQH = resting sell liquidity above; EQL = resting buy liquidity below.", "A sweep through EQH that closes back inside is a failed break, not a breakout. Needs location (PDH, VWAP) — equal highs in the middle of a range are noise.", "Liquidity map. Not a short/long by itself."],
       or15: ["Opening Range 15/30", "Session", "High/low of the first 15 and 30 minutes of NY RTH (09:30–09:45 and 09:30–10:00 ET). Built from 5-minute warehouse bars — on a daily chart the engine fetches 5m; if none exist, nothing is drawn.", "OR is the opening auction's accepted range. A close through OR15 on RVOL ≥1.6 is a different trade than a wick. Do not invent an OR from daily OHLC.", "Needs 5m bars. Crypto/24h names use NY 09:30, which is a convention, not their 'open'."],

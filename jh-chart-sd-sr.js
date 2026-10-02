@@ -70,24 +70,34 @@
     }
     return { hi: hi, lo: lo };
   }
-  function cluster(pts, tol, minN) {
-    var out = [], used = [], i, j, g, p;
+  function cluster(pts, tol, minN, d, span) {
+    span = span || 220;
+    var out = [], used = [], i, j, g, wsum, pv, w, vol, age, rv, nBars;
+    nBars = d && d.length ? d.length : 1;
     for (i = 0; i < pts.length; i++) used[i] = 0;
     for (i = 0; i < pts.length; i++) {
       if (used[i]) continue;
       g = [pts[i]]; used[i] = 1;
       for (j = i + 1; j < pts.length; j++) {
         if (used[j]) continue;
-        if (Math.abs(pts[j].px - pts[i].px) / pts[i].px <= tol && pts[j].i - pts[i].i <= 200) {
+        if (Math.abs(pts[j].px - pts[i].px) / (pts[i].px || 1) <= tol && pts[j].i - pts[i].i <= span) {
           g.push(pts[j]); used[j] = 1;
         }
       }
       if (g.length >= minN) {
-        p = 0;
-        for (j = 0; j < g.length; j++) p += g[j].px;
+        wsum = 0; pv = 0; rv = 0;
+        for (j = 0; j < g.length; j++) {
+          vol = g[j].vol || 0;
+          w = 1 + (vol > 0 ? Math.min(1.5, Math.log(1 + vol) / 10) : 0);
+          age = (nBars - 1 - g[j].i) / nBars;
+          w *= (1.15 - 0.55 * age);
+          if (d) rv += rvol(d, g[j].i);
+          wsum += w; pv += g[j].px * w;
+        }
         out.push({
-          lvl: p / g.length, n: g.length, first: g[0].i, last: g[g.length - 1].i,
-          t0: g[0].t, t1: g[g.length - 1].t
+          lvl: wsum ? pv / wsum : g[0].px, n: g.length, first: g[0].i, last: g[g.length - 1].i,
+          t0: g[0].t, t1: g[g.length - 1].t,
+          score: g.length * (0.7 + Math.min((rv / g.length) || 1, 2.2) * 0.35)
         });
       }
     }
@@ -292,26 +302,64 @@
     return null;
   }
 
-  function supportResistance(d) {
-    if (!dailyPlus(d) || d.length < 80) {
-      return empty(d && d.length >= 80 ? "Support & Resistance is D / W / M only." : "short");
+  function bucketKey(ts, mode) {
+    var dt = new Date(ts * 1000);
+    if (mode === "week") {
+      var day = dt.getUTCDay();
+      var monday = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()));
+      monday.setUTCDate(monday.getUTCDate() - ((day + 6) % 7));
+      return monday.toISOString().slice(0, 10);
     }
-    var sw = swings(d, 5);
+    if (mode === "month") return dt.getUTCFullYear() + "-" + dt.getUTCMonth();
+    return dt.toISOString().slice(0, 10);
+  }
+  function priorBucket(d, mode) {
+    var map = {}, order = [], i, k, b;
+    for (i = 0; i < d.length; i++) {
+      k = bucketKey(d[i].time, mode);
+      b = map[k];
+      if (!b) { b = { hi: -1e99, lo: 1e99, close: d[i].close, t: d[i].time }; map[k] = b; order.push(k); }
+      if (d[i].high > b.hi) b.hi = d[i].high;
+      if (d[i].low < b.lo) b.lo = d[i].low;
+      b.close = d[i].close;
+      b.t = d[i].time;
+    }
+    if (order.length < 2) return null;
+    return map[order[order.length - 2]];
+  }
+  function supportResistance(d) {
+    if (!d || d.length < 40) return empty("short");
+    var intra = !dailyPlus(d);
+    var L = intra ? 3 : 5;
+    var minN = 3;
+    var sw = swings(d, L);
     var last = d[d.length - 1];
-    var res = cluster(sw.hi, 0.007, 3);
-    var sup = cluster(sw.lo, 0.007, 3);
+    var atr = atrAt(d, d.length - 1, 14);
+    var tol = Math.min(0.012, Math.max(intra ? 0.0026 : 0.0034, (atr / (last.close || 1)) * (intra ? 0.18 : 0.28)));
+    var span = intra ? 140 : 240;
+    var res = cluster(sw.hi, tol, minN, d, span);
+    var sup = cluster(sw.lo, tol, minN, d, span);
+    if (res.length + sup.length < 2 && d.length >= 50) {
+      res = cluster(sw.hi, tol * 1.35, 2, d, span);
+      sup = cluster(sw.lo, tol * 1.35, 2, d, span);
+    }
     var mk = [], lines = [], i, z, v, nr = 0, ns = 0, loRng, hiRng, depth, tgt, hit;
 
-    function nearPx(px, band) { return Math.abs(px - last.close) / last.close <= (band || 0.16); }
-
-    res.sort(function (a, b) { return Math.abs(a.lvl - last.close) - Math.abs(b.lvl - last.close); });
-    sup.sort(function (a, b) { return Math.abs(a.lvl - last.close) - Math.abs(b.lvl - last.close); });
+    var bandR = intra ? 0.07 : 0.16, bandS = intra ? 0.08 : 0.18;
+    function nearPx(px, band) { return Math.abs(px - last.close) / (last.close || 1) <= (band || 0.16); }
+    function byRank(a, b) {
+      var da = Math.abs(a.lvl - last.close) / (last.close || 1);
+      var db = Math.abs(b.lvl - last.close) / (last.close || 1);
+      return (da - (a.score || 0) * 0.008) - (db - (b.score || 0) * 0.008);
+    }
+    res.sort(byRank);
+    sup.sort(byRank);
 
     for (i = 0; i < res.length && nr < 5; i++) {
       z = res[i];
       v = lastVisit(d, z.lvl, z.last, "res");
       if (v && v.thru) z.broke = v.k;
-      if (!nearPx(z.lvl, 0.16) && !(z.broke != null && (d.length - 1 - z.broke) < 30)) continue;
+      if (!nearPx(z.lvl, bandR) && !(z.broke != null && (d.length - 1 - z.broke) < 30)) continue;
       if (z.broke && z.broke < d.length - 80) continue;
       var lab = "R×" + z.n;
       if (v && v.thru && v.heavy) lab += " vol↑";
@@ -326,7 +374,7 @@
 
     for (i = 0; i < sup.length && ns < 5; i++) {
       z = sup[i];
-      if (!nearPx(z.lvl, 0.18)) continue;
+      if (!nearPx(z.lvl, bandS)) continue;
       v = lastVisit(d, z.lvl, z.last, "sup");
       lab = "S×" + z.n;
       if (v && v.thru && v.heavy) lab += " vol↑";
@@ -355,21 +403,106 @@
       ns++;
     }
 
+    function shelfNear(px) {
+      var i, z;
+      for (i = 0; i < lines.length; i++) {
+        z = lines[i];
+        if (Math.abs(z.px - px) / (px || 1) <= tol) return true;
+      }
+      return false;
+    }
+    function addRef(bkt, pre) {
+      if (!bkt) return;
+      var refs = [["H", bkt.hi], ["L", bkt.lo], ["C", bkt.close]];
+      var i, px;
+      for (i = 0; i < refs.length; i++) {
+        px = refs[i][1];
+        if (!isFinite(px) || px <= 0) continue;
+        if (!nearPx(px, intra ? 0.1 : 0.22)) continue;
+        if (Math.abs(px - last.close) < atr * 0.12) continue;
+        if (shelfNear(px)) continue;
+        lines.push({
+          t0: bkt.t, t1: last.time, px: px,
+          color: GOLD, dash: "3 3", lab: pre + refs[i][0], kind: refs[i][0] === "H" ? "res" : "sup"
+        });
+        if (vtimes.length < 10) vtimes.push(bkt.t);
+      }
+    }
+    var vtimes = [];
+    lines.forEach(function (z) { if (z.t1 && vtimes.length < 10 && z.kind !== "tgt") vtimes.push(z.t1); });
+    addRef(priorBucket(d, "day"), intra ? "PD" : "PD");
+    addRef(priorBucket(d, "week"), "PW");
+    if (!intra) addRef(priorBucket(d, "month"), "PM");
     var bits = [];
     if (nr) bits.push(nr + "R");
     if (ns) bits.push(ns + "S");
     if (mk.length) bits.push("S-B");
+    var refsN = lines.filter(function (z) { return /^(PD|PW|PM)/.test(z.lab || ""); }).length;
+    if (refsN) bits.push(refsN + " ref");
     return {
       markers: mk, zones: [], lines: lines, shapes: [],
       note: bits.join(" · ") || "no clustered S/R",
       legend: bits.join(" · "),
-      legendPts: [{ time: last.time, value: res[0] ? res[0].lvl : (sup[0] ? sup[0].lvl : last.close) }]
+      legendPts: [{ time: last.time, value: res[0] ? res[0].lvl : (sup[0] ? sup[0].lvl : last.close) }],
+      vtimes: vtimes
     };
+  }
+  function oscRails(pts, opt) {
+    opt = opt || {};
+    var tol = opt.tol != null ? opt.tol : 2.5;
+    var minN = opt.minN || 2;
+    var lines = [], i, j, k, n = pts ? pts.length : 0;
+    if (n < 24) return { lines: [] };
+    var piv = [];
+    for (i = 3; i < n - 3; i++) {
+      var v = pts[i].value;
+      if (v == null || !isFinite(v)) continue;
+      var hi = true, lo = true;
+      for (j = i - 3; j <= i + 3; j++) {
+        if (j === i || pts[j].value == null) continue;
+        if (pts[j].value > v) hi = false;
+        if (pts[j].value < v) lo = false;
+      }
+      if (hi) piv.push({ i: i, t: pts[i].time, v: v, k: "res" });
+      else if (lo) piv.push({ i: i, t: pts[i].time, v: v, k: "sup" });
+    }
+    var used = [];
+    for (i = 0; i < piv.length; i++) used[i] = 0;
+    var groups = [];
+    for (i = 0; i < piv.length; i++) {
+      if (used[i]) continue;
+      var g = [piv[i]]; used[i] = 1;
+      for (j = i + 1; j < piv.length; j++) {
+        if (used[j]) continue;
+        if (piv[j].k !== piv[i].k) continue;
+        if (Math.abs(piv[j].v - piv[i].v) <= tol && piv[j].i - piv[i].i <= 180) { g.push(piv[j]); used[j] = 1; }
+      }
+      if (g.length >= minN) {
+        var s = 0;
+        for (k = 0; k < g.length; k++) s += g[k].v;
+        groups.push({ value: s / g.length, n: g.length, kind: g[0].k, t0: g[0].t, time: g[g.length - 1].t, score: g.length });
+      }
+    }
+    var lastV = null;
+    for (i = n - 1; i >= 0; i--) if (pts[i].value != null && isFinite(pts[i].value)) { lastV = pts[i].value; break; }
+    groups.sort(function (a, b) { return b.score - a.score; });
+    var ns = 0, nr = 0;
+    for (i = 0; i < groups.length; i++) {
+      var g2 = groups[i];
+      if (lastV != null && g2.kind === "sup" && g2.value > lastV + tol) continue;
+      if (lastV != null && g2.kind === "res" && g2.value < lastV - tol) continue;
+      if (g2.kind === "sup" && ns >= 3) continue;
+      if (g2.kind === "res" && nr >= 3) continue;
+      if (g2.kind === "sup") ns++; else nr++;
+      lines.push(g2);
+    }
+    return { lines: lines };
   }
 
   root.jhSupplyDemand = supplyDemand;
   root.jhSupportResistance = supportResistance;
+  root.jhOscRails = oscRails;
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { supplyDemand: supplyDemand, supportResistance: supportResistance, dailyPlus: dailyPlus };
+    module.exports = { supplyDemand: supplyDemand, supportResistance: supportResistance, oscRails: oscRails, dailyPlus: dailyPlus };
   }
 })(typeof window !== "undefined" ? window : globalThis);
