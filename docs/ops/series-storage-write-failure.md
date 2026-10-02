@@ -1,11 +1,15 @@
 # Series-extractor storage-write failure draft
 
 This is an isolated DRAFT repair of extraction page/checkpoint write-failure
-handling. It is based on main `39f7b521fff3a1a43509de23590d7d8be649e82c`.
-**Publication HOLD:** the required deployment gate fails on an unchanged
-compound-aggregator output assertion, and parent claim coordination is pending.
-No PR or remote branch has been published. The bounded candidate is retained
-locally for independent exact-head review and owner follow-up.
+handling. It was first based on main `39f7b521fff3a1a43509de23590d7d8be649e82c`
+and is now rebased on owner main `86f8aeb755e301b55ea2a253e7237e3fadc8ba75`.
+**Publication HOLD pending final integration review:** the owner correction now
+passes the unchanged compound gate and all required tests. Independent review
+qualifies its three actual candidate mappings; two broader detector limitations
+are retained for active-owner follow-up and do not materially block this isolated
+storage draft. Parent coordination confirms
+PR78 is a completed draft with no live editing turn and authorizes this separate
+storage claim/branch. No PR or remote branch has yet been published.
 
 No merge, deployment, runner dispatch, real AWS/data-provider access, producer
 invocation or retained-data operation is authorized or performed by this task.
@@ -127,7 +131,7 @@ Required checks also include the repository deployment static/shell suites,
 selected source/config validators, engine preflight/compilation, stub guard,
 secrets scan, brain public-boundary suite, wiring and unchanged PR75 acceptance
 probe tests. Local evidence and the final task response record the exact-head
-results and independent publication HOLD.
+results and independent publication disposition.
 All engineering fixture execution is offline. The local test venv installs only
 the existing deployment-test dependencies; it does not change repository or runtime
 settings. An external socket guard is used for required Python suites. No tests
@@ -139,46 +143,92 @@ It challenges each changed exception boundary and the actual-durable-checkpoint
 semantics. Draft publication requires its final exact-head verdict; release stays
 held regardless of a draft-publication approval.
 
-## Required-gate hold
+## Owner gate correction and integration qualification
 
-The ordinary required command `DEPLOY_TARGETS=justhodl-series-extractor python3 tests/deployment/run_tests.py` fails at
-`test_release_verifier.test_explicit_primary_outputs_are_source_bound_and_do_not_select_control_state`:
+The initial ordinary required command
+`DEPLOY_TARGETS=justhodl-series-extractor python3 tests/deployment/run_tests.py`
+failed on main `39f7b521f` at
+`test_release_verifier.test_explicit_primary_outputs_are_source_bound_and_do_not_select_control_state`
+in `tests/deployment/test_release_verifier.py:38`:
 `AssertionError: ('justhodl-compound-aggregator', {'data/prime-convergence.json'})`.
-The same full suite is run on an untouched main worktree. The independent
-reviewer also verifies the complete test, release verifier and generated manifest
-bytes match main, then directly reproduces the same assertion. This is an
-unrelated owner boundary, not an extractor failure. It is not repaired or bypassed
-by this draft. A separate diagnostic runs every test and the shell gates so the
-remaining results can be inspected; it does not convert the failed required gate
-to a pass.
+Both primary and independent reviewer reproduced it on clean main. The complete
+initial diagnostic reported 1,058 of 1,059 static tests passing plus all 15 shell
+gates; that was correctly reported as a failed required suite and publication
+was held. No check was bypassed or edited by this repair.
 
-The complete diagnostic runs **1,059** required static tests: **1,058 pass**,
-one fails at the unchanged compound-output boundary above. All **15** shell gates
-pass. This is a failed deployment suite, not 1,059 passing tests. Both primary and
-independent reviewer reproduce the gate on clean main.
+Active owner `S-codex#symdir1001a` landed correction
+`86f8aeb755e301b55ea2a253e7237e3fadc8ba75`: conservative returned-write-bundle
+candidate tracing restores Compound's three existing literal output candidates.
+The original release test and PRIMARY declarations remain byte-identical. Each
+current restored candidate matches the unchanged actual Compound source, with
+`entrypoint_reachability=unproven` and `runtime_verified=false`. These three
+mappings are independently qualified for this integration; this is not runtime
+ownership or publication certification. The extractor imports none of the owner's
+new helper/logger modules. No owner source, gate, baseline or claim is modified
+by this storage branch.
 
-Selected source/config validation, engine preflight/compilation, stub guard, all
-**15** brain public-boundary tests, wiring (**36 pages / 143 wired**, no missing or
-stale entry), unchanged PR75 acceptance probe (**21 tests**) and the entire engine/
-consumer suite pass. Final staged secrets scan covers **15,860** files with zero
-findings. The exact five-path staged inventory is checked before committing; it
-contains only the handler, its runner, the new fault suite, the byte-pinned
-installed-source fixture and this document.
+After rebase, the ordinary complete required suite passes **1,071** static tests
+and all **15** shell gates. Selected source/config validation, engine preflight/
+compilation, stub guard, all **15** brain public-boundary tests, wiring (**36 pages /
+143 wired**, no missing or stale entry), unchanged PR75 acceptance probe (**21**
+tests) and complete engine/consumer suites pass. Final exact-head secrets and
+staged inventory are rerun after final documentation/claim updates.
+
+Independent review also challenges the new owner detector with two invented
+full-handler cases: a producer's local KEY shadows its module KEY, and a consumer
+changes the loop item's Key before PUT. The general detector currently retains
+an unused original key in those cases. Its broader advertised conservative
+handling is not qualified by this repair; the actual Compound has neither pattern.
+Evidence `/tmp/series-storage-review/owner-correction-review.json` is retained
+for parent handoff to the active owner. This branch does not fix or rebaseline it.
+The independent reviewer explicitly treats these as separate known main risks,
+not storage-draft blockers; only the three actual current mappings are qualified.
+Draft publication awaits final independent exact-head integration review. Broader
+owner workstreams and their separate runtime acceptance remain open.
 
 Supporting local evidence:
 
-- `/tmp/series-deployment-tests.log`: required gate on candidate.
-- `/tmp/series-main-deployment-tests.log`: required gate on untouched main.
-- `/tmp/series-deployment-diagnostic.json` and `.log`: all-test diagnostic.
+- `/tmp/series-deployment-tests.log` and `/tmp/series-main-deployment-tests.log`:
+  original failed gate on candidate and untouched main39f7.
+- `/tmp/series-deployment-diagnostic.json`: complete initial diagnostic, not a
+  replacement for the failed ordinary gate.
+- `/tmp/series-integrated-deployment-tests.log`: complete passing ordinary suite
+  after owner correction and rebase.
 - `/tmp/series-storage-review/independent-baseline.json`,
-  `independent-repair.json` and `independent-exception-paths.json`: independent
-  full-handler cases and actual local worker recovery.
+  `independent-repair.json` and `independent-exception-paths.json`: separately
+  generated full-handler recovery and exception cases.
 
-The gate's owner must resolve and independently review the missing compound-output
-boundary before publication; then rerun the complete unmodified required suite
-on the integrated exact head. Parent-owned outstanding claims must also be
-coordinated. Until those conditions are met, this task holds the candidate locally.
-No failed test is removed, skipped, relaxed or made optional.
+## Local combination with held PR78
+
+PR78 head `de486e8e16b80f3ff2997edf3c4ec0f9d8ff40c6` has handler SHA256
+`3c0aeb7a3ea3454a9296c8d832044376c2283bac0b3885f21773c5ea7dfb2cfb`.
+The independent storage handler remains SHA256
+`d50f2c942d72a97af63cb7a581d10c4c8844a3aab7a3d7a64ccd5d319215f034`.
+A detached local combination has SHA256
+`2e5fd09a4dac47275812b8e8955916af6f913395a8a9918933d1dfe362cccf33`.
+No combined source is published or added to this branch, and neither PR is edited.
+
+The patches share the source file. A mechanical add/add conflict occurs where both
+insert declarations immediately before `lambda_handler`. Local resolution keeps
+PR78's complete namespace helper verbatim followed by the distinct StorageWriteError
+class. PR78's actual admission helper and checkpoint-admission block are unchanged.
+Reversing only the storage AST footprint reconstructs PR78's complete AST; PR78's
+own exact installed-PR75 byte inverse and original predecessor scope proof also pass.
+
+Combined local validation passes **728** full-handler/consumer scenarios and **14**
+offline official SDK listing-contract cases: 48 healthy storage comparisons, 56
+recovery cases, 12 workers, eight parser cases, 12 exception boundaries, 166 PR78
+admission rejection/recovery cases, 414 namespace cases, eight actual consumers
+and four explicit first-bootstrap checkpoint-uncertainty cases.
+
+A first-bootstrap page plus precommit checkpoint failure leaves no checkpoint;
+the next combined invocation retains PR78's deliberate partial-bootstrap refusal.
+An accepted checkpoint with a lost response recovers from actual durable progress.
+That difference remains PR78's pending user decision, not authorization to ship its
+bootstrap policy. The independent storage branch retains installed PR75 bootstrap.
+Executable local evidence and results: `/tmp/series-combined-validation.py` and
+`/tmp/series-combined-validation.json`, with a detached `/tmp/series-pr78-combined`
+worktree. Fixtures use invented objects and blocked networking only.
 
 ## Remaining baseline risks and transaction limits
 
@@ -207,16 +257,20 @@ request shapes remain unchanged; this repair adds no LIST or other recurring cal
 
 No AGENTS.md or `.agents/skills` instruction files were available in the checkout
 or mounted instruction directories. DEPLOY_LANE, current main, original writer,
-actual SymDir/provider-catalog consumers, STATE and accessible GitHub PRs/claim
-references were revalidated. The only accessible open PR overlapping this handler
+actual SymDir/provider-catalog consumers, STATE, `docs/SESSION_CLAIMS.md` and
+accessible GitHub PRs/claim references were revalidated. The only accessible open PR overlapping this handler
 was the held PR78 draft. PR75's recorded admission claim is separate; the earlier
 lookup claim is documented as released. The SDMX order claim targets a different
 producer/acceptance path. This task takes no ops number and edits no other batch.
-The private parent-owned claim ledger is not exposed in this delegated environment;
-parent coordination/overlap confirmation is pending and is not claimed complete.
+The first delegated lookup missed the repository claim ledger; its earlier
+unavailable-ledger statement was incorrect and is superseded here. Parent
+coordination confirms PR78 has no live editing turn and permits this separate
+storage claim `S-codex#sewrite1002k4`. The ledger has no competing storage-write
+claim. Only our new row is added; PR75/PR78 and all owner rows remain unchanged.
 
-Before any draft publication, resolve parent-owned live-batch overlap and obtain
-independent exact-head approval plus all required gates. Before any release,
+Before any draft publication, require final independent exact-head/integration
+approval and all unmodified required gates. Parent live-batch coordination is now
+resolved for this separate draft. Before any release,
 require explicit user approval of this distinct recovery contract, parent claim
 coordination, exact reviewed head and all existing release gates. PR78's bootstrap
 user decision and PR75's strict RuntimeVersionConfig acceptance hold remain
