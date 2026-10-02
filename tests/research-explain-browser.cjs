@@ -12,6 +12,7 @@ const data={
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE_PATH||'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'});const cases=[];
 try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width of [1440,390])for(const scenario of ['normal','unavailable','malformed','canonical-empty']){
  const context=await browser.newContext({viewport:{width,height:1000},serviceWorkers:'block',acceptDownloads:true}),page=await context.newPage(),errors=[],requests=[];
+ await page.addInitScript(()=>sessionStorage.setItem('jh_research_qa_loads',String(Number(sessionStorage.getItem('jh_research_qa_loads')||0)+1)));
  page.on('pageerror',e=>errors.push(e.message));if(context.routeWebSocket)await context.routeWebSocket('**',ws=>ws.close());
  await context.route('**/*',async route=>{const u=new URL(route.request().url());requests.push(u.pathname);
   const local=path.resolve(R,'.'+decodeURIComponent(u.pathname));
@@ -25,7 +26,12 @@ try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width o
   }
   return route.fulfill({status:404,body:'invented unavailable'});
  });
- await page.goto('https://invented.justhodl.test/'+name+'?ticker=QAONLY');await page.waitForFunction(()=>document.documentElement.dataset.researchReady);assert.equal(await page.locator('html').getAttribute('data-research-ready'),'true');
+ await page.goto('https://invented.justhodl.test/'+name+'?ticker=QAONLY');
+ // The real navigation drawer clears obsolete service workers and reloads once.
+ // Exercise that behavior; do not seed its guard or begin interactions on a dying document.
+ await page.waitForFunction(()=>Number(sessionStorage.getItem('jh_research_qa_loads'))>=2 && document.documentElement.dataset.researchReady);
+ assert.equal(await page.locator('html').getAttribute('data-research-ready'),'true');
+ const navigations=await page.evaluate(()=>Number(sessionStorage.getItem('jh_research_qa_loads')));assert.equal(navigations,2);
  const main=page.locator('.research-shell'),text=await main.innerText();assert.deepEqual(errors,[]);
  assert.ok(!requests.includes('/data/momentum-breakout.json'));assert.ok(!requests.includes('/invented-canary'));
  assert.equal(await main.locator('img').count(),0);assert.equal(await page.evaluate(()=>window.__research_injected===true),false);
@@ -53,7 +59,7 @@ try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width o
   await source.locator('summary').filter({hasText:'Complete original JSON text'}).focus();await source.locator('summary').filter({hasText:'Complete original JSON text'}).press('Enter');await source.locator('pre').waitFor();assert.equal(await source.locator('pre').textContent(),JSON.stringify(data['/data/master-ranker.json']));
   const pending=page.waitForEvent('download');await source.getByRole('button',{name:'Download original bytes'}).focus();await source.getByRole('button',{name:'Download original bytes'}).press('Enter');const download=await pending;assert.equal(fs.readFileSync(await download.path(),'utf8'),JSON.stringify(data['/data/master-ranker.json']));
  }
- assert.deepEqual(errors,[]);await page.evaluate(()=>scrollTo(0,0));const screenshot=path.join(D,name+'-'+width+'-'+scenario+'.png');await page.screenshot({path:screenshot});cases.push({page:name,width,scenario,screenshot,requests:[...new Set(requests)],errors,actual_network_requests:0});await context.close();
+ assert.deepEqual(errors,[]);await page.evaluate(()=>scrollTo(0,0));const screenshot=path.join(D,name+'-'+width+'-'+scenario+'.png');await page.screenshot({path:screenshot});cases.push({page:name,width,scenario,screenshot,navigations,requests:[...new Set(requests)],errors,actual_network_requests:0});await context.close();
 }}finally{await browser.close();}
 const sources=Object.fromEntries(['why-now.html','why-cross-signal.html','jh-research-explain.js','jh-research-explain.css','jh-evidence-io.js'].map(name=>[name,crypto.createHash('sha256').update(fs.readFileSync(path.join(R,name))).digest('hex')]));
 fs.writeFileSync(path.join(D,'browser-qa.json'),JSON.stringify({sources,cases,scope:'Whole static pages; all requests intercepted, every application response invented; no live application execution or reads.'},null,2)+'\n');console.log(JSON.stringify({passed:true,cases:cases.length,actual_network_requests:0}));})().catch(e=>{console.error(e);process.exitCode=1;});

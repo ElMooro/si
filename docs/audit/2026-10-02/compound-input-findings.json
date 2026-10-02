@@ -1,0 +1,62 @@
+{
+  "status": "reproduced_not_repaired",
+  "source_sha256": "d38c26e9055b9bf52e7fab92d0597c8cc72c03835d92f4848ab4152976332b40",
+  "scope": "Complete aggregate function extracted from exact source, with invented feeds and in-memory storage only. No native handler, current packets, state/ledger reads, provider access or notifications.",
+  "cases": [
+    {
+      "case": "valid_zero_lost_to_fallback",
+      "stored_component": "100",
+      "compound_score": "165.0",
+      "invalid_nonfinite": false,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    },
+    {
+      "case": "absent_score_becomes_zero",
+      "stored_component": "0",
+      "compound_score": "15.0",
+      "invalid_nonfinite": false,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    },
+    {
+      "case": "boolean_is_score",
+      "stored_component": "True",
+      "compound_score": "16.5",
+      "invalid_nonfinite": false,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    },
+    {
+      "case": "nan_enters_ranked_output",
+      "stored_component": "nan",
+      "compound_score": "nan",
+      "invalid_nonfinite": true,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    },
+    {
+      "case": "infinity_enters_ranked_output",
+      "stored_component": "inf",
+      "compound_score": "inf",
+      "invalid_nonfinite": true,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    },
+    {
+      "case": "numeric_string_crashes_aggregation",
+      "exception": "TypeError: unsupported operand type(s) for +: 'int' and 'str'",
+      "native_operations": 0
+    },
+    {
+      "case": "duplicate_system_rows_last_wins",
+      "stored_component": "30",
+      "compound_score": "60.0",
+      "invalid_nonfinite": false,
+      "native_operations": 0,
+      "invented_storage_writes": 3
+    }
+  ],
+  "priority": "Preserve source occurrences, explicit availability and existing research exclusions before safe finite scoring; source recipe replay not forecast qualification.",
+  "source_commit": "ae36a743916d69d4affc58fc90384c2d4ee16983"
+}

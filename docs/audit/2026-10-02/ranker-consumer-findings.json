@@ -1,5 +1,5 @@
 {
-  "status": "reproduced_next_not_repaired",
+  "status": "repaired_and_exact_static_release_verified",
   "source_commit": "1f15463ad0d60c563de9a09e3e6d01ef7818007d",
   "cases": [
     {
@@ -180,5 +180,8 @@
     "No native producer invocation or current application/provider/private/account/learning data reads",
     "No editing repository during running test suite",
     "All ten workstreams remain open; no new goals or agents"
-  ]
+  ],
+  "repair_source_commit": "ae36a743916d69d4affc58fc90384c2d4ee16983",
+  "acceptance": "docs/audit/2026-10-02/research-explain-acceptance.json",
+  "live_data_incidence_verified": false
 }
