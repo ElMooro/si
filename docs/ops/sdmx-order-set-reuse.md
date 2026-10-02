@@ -136,3 +136,25 @@ state in the pre/post fingerprint and rejects additions/removals/retiming, while
 keeping the five monitoring schedules and declared walker binding mandatory.
 No schedule is created, enabled or retimed to satisfy this check. This technical
 correction also requires independent exact-head review before a new baseline.
+
+
+Corrected probe PRs #70 and #71 passed independent exact-head review, then
+baseline run [36956524665](https://github.com/ElMooro/si/actions/runs/36956524665)
+passed with 19 AWS reads, one signed package download and zero writes/invokes.
+The live handler matches the exact predecessor SHA-256, and its code SHA-256 is
+`nKqoKqhpZRWO8mtoetlS0G9HYBgLw4xwNxb1dhvo2cI=`. The old deployment has no
+release receipt; a verified commit-bound receipt remains mandatory after this
+release. The projected operating fingerprint is
+`dcf6a81a255eeb1b59254390dfaed6d300f168783fc30b25596825c090dfc4e7`.
+Live temporary storage is 2,048 MB, reserved concurrency is unset, and the
+historically conditional Eurostat retry reference is absent. All five intentional
+monitoring schedules are enabled. Existing walker bindings retain their actual
+cadences, including the hourly-named rule running every five minutes and the
+hourly-named OECD retry running every fifteen minutes. None is repaired or retimed.
+The complete sanitized baseline is retained in `sdmx-order-baseline.json`.
+
+Independent source review accepted `8b4c14b484cd1a6cd937c5d77ff133f6d4a4584e`,
+including 2,020 additional helper comparisons, the 8,626 committed comparisons,
+90 complete handler fixtures, consumer suites and all local release gates. Its
+independent interleaved measurement at 8,197 IDs/819 priorities was 80.42 ms to
+3.11 ms (25.85x). Final rebased-head confirmation is still required before merge.

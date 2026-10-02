@@ -809,6 +809,21 @@
     "initial_control_stop_run": 36955311522,
     "ephemeral_diagnostic_run": 36955593528,
     "diagnostic_reason": "Only legacy ephemeral_mb mismatch; deploy lane reads canonical ephemeral_storage and preserves actual live size. Probe corrected to compare actual pre/post size without production changes.",
-    "historical_retry_read_stop_run": 36955949609
+    "historical_retry_read_stop_run": 36955949609,
+    "accepted_predecessor_baseline_run": 36956524665,
+    "corrected_probe_prs": [
+      70,
+      71
+    ]
+  },
+  "independent_review": {
+    "accepted_head": "8b4c14b484cd1a6cd937c5d77ff133f6d4a4584e",
+    "additional_helper_comparisons": 2020,
+    "cycle_features_tests": 18,
+    "symdir_tests": 104,
+    "deployment_static_tests": 1033,
+    "candidate_shell_tests": 15,
+    "source_blockers": 0,
+    "final_head_confirmation_required": true
   }
 }
