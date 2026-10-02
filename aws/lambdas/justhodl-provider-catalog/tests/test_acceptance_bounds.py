@@ -13,7 +13,7 @@ import zipfile
 
 from catalog_fixture import ROOT, STAMP, full_store, run
 
-SPEC = importlib.util.spec_from_file_location('pages_acceptance', ROOT / 'aws/ops/staged/ops_6437_provider_catalog_pages_acceptance.py')
+SPEC = importlib.util.spec_from_file_location('pages_acceptance', ROOT / 'aws/ops/staged/ops_6438_provider_catalog_pages_acceptance.py')
 probe = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(probe)
 sys.path.insert(0, str(ROOT / 'aws/ops/checks'))

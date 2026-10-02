@@ -44,7 +44,7 @@ Short responses may require more requests; pagination remains exhaustive.
 
 ## Native release acceptance and rollback
 
-Ops 6437 is staged for explicit direct Actions dispatch after review/merge.
+Ops 6438 is staged for explicit direct Actions dispatch after review/merge.
 It makes at most nine read-only AWS calls and one signed-package HTTPS GET in
 120 seconds. It reads exactly one function, its named hourly rule (at most 100
 target rows, no pagination), one public release receipt and two public output
