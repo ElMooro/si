@@ -25,7 +25,7 @@ function grab(src, name) {
 }
 
 function loadMath() {
-  const src = ["reportedVolume", "rvolAt", "sma", "rvolSeries", "histVol", "alignSpy", "priceSpread", "volDoD", "relVolRatio"]
+  const src = ["sma", "rvolAt", "priceSpread", "volDoD", "histVol", "alignSpy", "relVolRatio"]
     .map(function (n) { return grab(engine, n); })
     .join("\n");
   const ctx = { window: {}, Math: Math, Date: Date, lastBenchName: "SPX" };
@@ -58,7 +58,7 @@ test("Indicators dropdown is on the chart bar and stamps the engine", () => {
   assert.match(indux, /relvol:/);
   assert.match(indux, /voldd:/);
   assert.match(indux, /id=sc2/);
-  assert.match(indux, /Surge %/);
+  assert.match(indux, /Outlier ×/);
   assert.doesNotMatch(engine, /\[object Object\]/);
   assert.doesNotMatch(html, /undefined%/);
 });
@@ -77,13 +77,26 @@ test("price spread, day-to-day volume, and relative vol match the desk definitio
   assert.ok(last.avg != null && last.avg < 4);
   assert.ok(last.value >= last.avg * 1.5);
 
-  const dod = m.volDoD([
-    { time: 1, close: 1, high: 1, low: 1, volume: 100 },
-    { time: 2, close: 1, high: 1, low: 1, volume: 180 },
-    { time: 3, close: 1, high: 1, low: 1, volume: 90 }
-  ]);
-  assert.ok(Math.abs(dod[0].value - 80) < 1e-9);
-  assert.ok(Math.abs(dod[1].value - (-50)) < 1e-9);
+  const quiet = [];
+  for (let i = 0; i < 51; i++) {
+    quiet.push({ time: 1700000000 + i * 86400, open: 100, high: 101, low: 99, close: 100, volume: 1000000 });
+  }
+  const capit = quiet.slice();
+  capit.push({ time: 1700000000 + 51 * 86400, open: 100, high: 100, low: 90, close: 92, volume: 3000000 });
+  const cap = m.volDoD(capit, 50, 2);
+  const capLast = cap[cap.length - 1];
+  assert.ok(Math.abs(capLast.value - 3) < 1e-9);
+  assert.equal(capLast.tag, "CAPIT");
+  const stop = quiet.slice();
+  stop.push({ time: 1700000000 + 51 * 86400, open: 92, high: 100, low: 90, close: 98, volume: 3000000 });
+  assert.equal(m.volDoD(stop, 50, 2).slice(-1)[0].tag, "STOP");
+  const mid = quiet.slice();
+  mid[mid.length - 1] = { time: mid[mid.length - 1].time, open: 100, high: 101, low: 90, close: 100, volume: 1000000 };
+  mid.push({ time: 1700000000 + 51 * 86400, open: 110, high: 112, low: 108, close: 111, volume: 3000000 });
+  assert.equal(m.volDoD(mid, 50, 2).slice(-1)[0].tag, "OUT");
+  const normal = quiet.slice();
+  normal.push({ time: 1700000000 + 51 * 86400, open: 100, high: 101, low: 99, close: 100, volume: 1100000 });
+  assert.equal(m.volDoD(normal, 50, 2).slice(-1)[0].tag, "");
 
   function wave(amp) {
     const o = [];
