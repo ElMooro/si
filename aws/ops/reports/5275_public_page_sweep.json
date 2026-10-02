@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "ae36a743916d69d4affc58fc90384c2d4ee16983",
-  "observed_at": "2026-10-02T09:19:42.786834+00:00",
-  "ok": false,
+  "observed_at": "2026-10-02T09:24:41.019912+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "news-velocity/index.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "ae36a743916d69d4affc58fc90384c2d4ee16983": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -3910,12 +3908,13 @@
     },
     {
       "route": "news-velocity/index.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "ae36a743916d69d4affc58fc90384c2d4ee16983",
+      "inspector_present": true,
+      "bytes_read": 18253,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "news.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36988473168,
+  "deployment_run_id": 36989058626,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-02T09:19:42.796945+00:00"
+  "check_finished_at": "2026-10-02T09:24:41.025669+00:00"
 }
