@@ -1,6 +1,6 @@
 {
   "stage": 563,
-  "status": "integration_and_release_pending",
+  "status": "exact_native_release_accepted",
   "operation": "aws/ops/staged/ops_6456_compound_numeric_acceptance.py",
   "source_hashes": {
     "aws/lambdas/justhodl-compound-aggregator/source/lambda_function.py": "e366ab0e66161b18a0b025026d962ed2a1938a568ef5e221bf7b1e3dd6a72a98",
@@ -119,5 +119,7 @@
     "Whole-source/read bounds are enforced; aggregate resource budgets and long-running operational recovery still need qualification",
     "Compound page, companion consumers and existing mobile floating panels need continued audit"
   ],
-  "verification_scope": "Invented fixtures and exact source/native release evidence only; no current application/provider/private/account or learning-ledger reads; no native invocation or schedule change."
+  "verification_scope": "Invented fixtures and exact source/native release evidence only; no current application/provider/private/account or learning-ledger reads; no native invocation or schedule change.",
+  "source_commit": "1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52",
+  "acceptance": "docs/audit/2026-10-02/compound-numeric-acceptance.json"
 }

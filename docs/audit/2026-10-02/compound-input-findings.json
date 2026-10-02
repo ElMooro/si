@@ -1,5 +1,5 @@
 {
-  "status": "reproduced_not_repaired",
+  "status": "repaired_and_exact_code_release_verified",
   "source_sha256": "d38c26e9055b9bf52e7fab92d0597c8cc72c03835d92f4848ab4152976332b40",
   "scope": "Complete aggregate function extracted from exact source, with invented feeds and in-memory storage only. No native handler, current packets, state/ledger reads, provider access or notifications.",
   "cases": [
@@ -58,5 +58,8 @@
     }
   ],
   "priority": "Preserve source occurrences, explicit availability and existing research exclusions before safe finite scoring; source recipe replay not forecast qualification.",
-  "source_commit": "ae36a743916d69d4affc58fc90384c2d4ee16983"
+  "source_commit": "ae36a743916d69d4affc58fc90384c2d4ee16983",
+  "repair_source_commit": "1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52",
+  "acceptance": "docs/audit/2026-10-02/compound-numeric-acceptance.json",
+  "normal_publication_verified": false
 }

@@ -1,0 +1,94 @@
+{
+  "status": "reproduced_not_repaired",
+  "producer_sha256": "e366ab0e66161b18a0b025026d962ed2a1938a568ef5e221bf7b1e3dd6a72a98",
+  "helper_sha256": "3a91847646679f206a15b6188d2a3364917b7af0c730fa2e7e70ab1acd0e7092",
+  "cases": [
+    {
+      "case": "missing_context",
+      "freshness": 1.0,
+      "desk_score": 187.5,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "CLEAN_TAPE",
+      "entry_quality": "FRESH",
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "invalid_first_seen",
+      "freshness": 1.0,
+      "desk_score": 187.5,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "CLEAN_TAPE",
+      "entry_quality": "FRESH",
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "future_first_seen",
+      "freshness": 1.086,
+      "desk_score": 203.6,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "CLEAN_TAPE",
+      "entry_quality": "FRESH",
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "noncurrent_90d_history",
+      "freshness": 1.0,
+      "desk_score": 187.5,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "CLEAN_TAPE",
+      "entry_quality": "FRESH",
+      "pctile_90d_all": 100.0,
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "duplicate_reversal_last_wins",
+      "freshness": 1.0,
+      "desk_score": 187.5,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "SQUEEZE_POP",
+      "entry_quality": "FRESH",
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "duplicate_reversal_reversed",
+      "freshness": 1.0,
+      "desk_score": 187.5,
+      "regime": {
+        "posture": null,
+        "turn_net": 0
+      },
+      "archetype": "DIP_CONVERGENCE",
+      "entry_quality": "FRESH",
+      "native_operations": 0,
+      "invented_writes": 4
+    },
+    {
+      "case": "string_reversal_score",
+      "exception": "TypeError",
+      "native_operations": 0,
+      "invented_writes": 0
+    }
+  ],
+  "scope": "Actual candidate handler with invented input/state/history and in-memory storage; no native invocation, actual application/private/account/learning reads or messages.",
+  "source_commit": "1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52"
+}
