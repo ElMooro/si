@@ -340,7 +340,7 @@ REG = {
                   "series_extracted"),
   "_series_from_legacy": ("data/warm/ecb/catalog.json.gz",
                           "dataflows")},
- # ---- ops 1123 (2026-10-02): 11 new free data providers ----
+ # ---- ops 1123 (2026-10-02): 11 new free data providers (deploy retry) ----
  "usaspending": {"name": "USASpending \u2014 federal contracts",
   "api": "api.usaspending.gov/api/v2",
   "engines": ["justhodl-usaspending"],
