@@ -23,7 +23,6 @@ from datetime import datetime, timezone
 
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -470,39 +469,6 @@ def _load_engine_index():
         return {}
 
 
-def _validate_allocation_counters(state):
-    """Admit only usable allocation counters; keep legacy representations.
-
-    Page names use :04d, so n_pages must be an integer. Integral float
-    series/totals and integer-text optional totals already work unchanged.
-    Missing/None/empty optional totals retain the manifest's old defaults.
-    Do not infer relationships from pages: an uncommitted tail can replay.
-    """
-    def whole_number(value):
-        return (type(value) in (int, float) and value >= 0
-                and (type(value) is int or value.is_integer()))
-
-    valid = (isinstance(state, dict)
-             and type(state.get("n_pages")) is int
-             and state["n_pages"] >= 0
-             and whole_number(state.get("series_count")))
-    if not valid:
-        raise RuntimeError("checkpoint allocation counters invalid")
-    for name in ("pages_objects", "pages_bytes"):
-        value = state.get(name)
-        if value is None or value == "":
-            continue
-        if type(value) is str:
-            try:
-                valid = int(value) >= 0
-            except ValueError:
-                valid = False
-        else:
-            valid = whole_number(value)
-        if not valid:
-            raise RuntimeError("checkpoint allocation counters invalid")
-
-
 def lambda_handler(event, context):
     t0 = time.time()
     provider = (event or {}).get("provider", "eurostat")
@@ -522,22 +488,12 @@ def lambda_handler(event, context):
                                              f"{provider} yet"})}
     state_key = f"data/_state/series-extract-{provider}.json"
     try:
-        checkpoint = s3.get_object(Bucket=BUCKET, Key=state_key)
-    except ClientError as exc:
-        if exc.response.get("Error", {}).get("Code") != "NoSuchKey":
-            raise RuntimeError("checkpoint retrieval failed") from None
-        # Preserve genuine missing-key bootstrap for this incremental repair.
-        # A lost checkpoint in a populated namespace is still unresolved.
+        state = json.loads(s3.get_object(Bucket=BUCKET,
+                                         Key=state_key)["Body"]
+                           .read())
+    except Exception:
         state = {"flows_done": [], "series_count": 0, "n_pages": 0,
                  "buffer": []}
-    except Exception:
-        raise RuntimeError("checkpoint retrieval failed") from None
-    else:
-        try:
-            state = json.loads(checkpoint["Body"].read())
-        except Exception:
-            raise RuntimeError("checkpoint body or JSON failed") from None
-    _validate_allocation_counters(state)
     engine_index = _load_engine_index()
     prefix = f"data/warm/{provider}/data/"
     tok = None
