@@ -1,0 +1,63 @@
+{
+  "source_path": "aws/lambdas/justhodl-ai/source/market_read.py",
+  "source_sha256": "d5cc5600fb4e86d7dd0ff3de4440d9034689158bdafb2fe0803abc86e812edf1",
+  "scope": "Actual board compiler and original pure Crisis guard; invented in-memory S3 objects and fixed clock only. No current consumers, source feeds, private records or native producers read.",
+  "actual_network_requests": 0,
+  "findings": [
+    {
+      "case": "boolean_source_values_become_numeric_measurements",
+      "received": {
+        "risk_gate.composite.score": true,
+        "authority.cap_pct": false
+      },
+      "projected": {
+        "risk_gate_composite": 1.0,
+        "authority_cap_pct": 0.0
+      }
+    },
+    {
+      "case": "explicit_zero_score_borrows_alias_99",
+      "received": {
+        "score": 0,
+        "katlin_score": 99
+      },
+      "projected": {
+        "ticker": "QAONLY",
+        "tier": "KATLIN_PRIME",
+        "score": 99.0,
+        "desk": null
+      }
+    },
+    {
+      "case": "tiny_measurement_rounded_to_zero",
+      "received": 1e-07,
+      "projected": 0.0
+    },
+    {
+      "case": "within_five_minute_skew_rejected",
+      "actual_age_hours": -0.06666666666666667,
+      "received_generated_at": "2026-10-02T14:04:00+00:00",
+      "projected": {
+        "key": "data/risk-gate.json",
+        "generated_at": "2026-10-02T14:04:00+00:00",
+        "age_h": -0.1,
+        "sla_h": 36,
+        "status": "FUTURE",
+        "private": false
+      }
+    },
+    {
+      "case": "older_than_36_hour_sla_accepted",
+      "actual_age_hours": 36.04,
+      "received_generated_at": "2026-10-01T01:57:36+00:00",
+      "projected": {
+        "key": "data/risk-gate.json",
+        "generated_at": "2026-10-01T01:57:36+00:00",
+        "age_h": 36.0,
+        "sla_h": 36,
+        "status": "FRESH",
+        "private": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "source": "aws/lambdas/justhodl-ai/source/market_read.py",
+  "before_sha256": "d5cc5600fb4e86d7dd0ff3de4440d9034689158bdafb2fe0803abc86e812edf1",
+  "after_sha256": "ea0d38f88975095091943e358d16ea3ccb635985b18afd75299e17fc49a91a90",
+  "edits": [
+    {
+      "before": "return round((datetime.now(timezone.utc) - dt).total_seconds() / 3600, 1)",
+      "after": "return (datetime.now(timezone.utc) - dt).total_seconds() / 3600",
+      "count": 1
+    },
+    {
+      "before": "if ok and cur not in (None, \"\", [], {}):",
+      "after": "if ok:",
+      "count": 1
+    },
+    {
+      "before": "def _num(v):\n    try:\n        return round(float(v), 4)\n    except Exception:\n        return None\n",
+      "after": "def _num(v):\n    \"\"\"Reported finite JSON number; no coercion, alias substitution or rounding.\"\"\"\n    if type(v) is int:\n        return v\n    if type(v) is float and math.isfinite(v):\n        return v\n    return None\n",
+      "count": 1
+    },
+    {
+      "before": "_num(r.get(\"score\") or r.get(\"katlin_score\"))",
+      "after": "_num(pick(r, \"score\", \"katlin_score\"))",
+      "count": 2
+    },
+    {
+      "before": "_num(r.get(\"score\") or r.get(\"fortress_score\"))",
+      "after": "_num(pick(r, \"score\", \"fortress_score\"))",
+      "count": 1
+    },
+    {
+      "before": "(r[\"confidence\"] or 0.5)",
+      "after": "(r[\"confidence\"] if r[\"confidence\"] is not None else 0.5)",
+      "count": 1
+    }
+  ]
+}

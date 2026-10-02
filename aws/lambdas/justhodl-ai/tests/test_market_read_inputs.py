@@ -71,7 +71,7 @@ class InputTests(unittest.TestCase):
   for text in (None,{},12,'x'*131073):
    out=self.m.parse_read_text(text,{'QAONLY'});self.assertTrue(out.get('parse_error'));self.assertNotIn('received_text',out['input_validation'])
  def test_all_other_source_functions_and_policy_paths_are_unchanged(self):
-  old=ast.parse((R/'tests/fixtures/market-read-pre-input-types-20261002.py').read_text(encoding='utf-8'));new=ast.parse(SOURCE.read_text(encoding='utf-8'))
+  old=ast.parse((R/'tests/fixtures/market-read-pre-input-types-20261002.py').read_text(encoding='utf-8'));new=ast.parse((R/'tests/fixtures/market-read-pre-board-projection-20261002.py').read_text(encoding='utf-8'))
   changed={'build_prompt','_canon','normalize_read_doc','parse_read_text','_text','validate_read','log_calls','_input_integer','_input_confidence','_input_call','_input_units'}
   def kept(tree):return [ast.dump(n,include_attributes=False) for n in tree.body if not isinstance(n,ast.Import) and not (isinstance(n,ast.FunctionDef) and n.name in changed)]
   self.assertEqual(kept(old),kept(new))

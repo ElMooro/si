@@ -97,7 +97,7 @@ def _age_h(iso: Optional[str]) -> Optional[float]:
         dt = datetime.fromisoformat(s[:26] + s[26:] if "T" in s else s + "T00:00:00+00:00")
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return (datetime.now(timezone.utc) - dt).total_seconds() / 3600
+        return round((datetime.now(timezone.utc) - dt).total_seconds() / 3600, 1)
     except Exception:
         return None
 
@@ -115,18 +115,16 @@ def pick(doc, *paths, default=None):
             else:
                 ok = False
                 break
-        if ok:
+        if ok and cur not in (None, "", [], {}):
             return cur
     return default
 
 
 def _num(v):
-    """Reported finite JSON number; no coercion, alias substitution or rounding."""
-    if type(v) is int:
-        return v
-    if type(v) is float and math.isfinite(v):
-        return v
-    return None
+    try:
+        return round(float(v), 4)
+    except Exception:
+        return None
 
 
 def _rows(v, n):
@@ -172,12 +170,12 @@ def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) ->
     }
     breadth = pick(BT, "market.breadth") or {}
     stocks = {
-        "katlin_prime": [{"ticker": _tk(r), "tier": r.get("tier"), "score": _num(pick(r, "score", "katlin_score")), "desk": r.get("desk") or r.get("asset_class")} for r in _rows(KT.get("picks"), 340) if r.get("tier") == "KATLIN_PRIME"][:10],
-        "katlin_ready": [{"ticker": _tk(r), "tier": r.get("tier"), "score": _num(pick(r, "score", "katlin_score")), "desk": r.get("desk") or r.get("asset_class")} for r in _rows(KT.get("picks"), 340) if r.get("tier") == "READY"][:10],
+        "katlin_prime": [{"ticker": _tk(r), "tier": r.get("tier"), "score": _num(r.get("score") or r.get("katlin_score")), "desk": r.get("desk") or r.get("asset_class")} for r in _rows(KT.get("picks"), 340) if r.get("tier") == "KATLIN_PRIME"][:10],
+        "katlin_ready": [{"ticker": _tk(r), "tier": r.get("tier"), "score": _num(r.get("score") or r.get("katlin_score")), "desk": r.get("desk") or r.get("asset_class")} for r in _rows(KT.get("picks"), 340) if r.get("tier") == "READY"][:10],
         "bottom_actionable": [{"ticker": _tk(r), "state": r.get("state"), "score": _num(r.get("score")), "desk": r.get("desk"), "grade": r.get("grade")} for r in _rows(BT.get("top_picks"), 12)],
         "bottom_breadth": {k: _num(v) if isinstance(v, (int, float)) else v for k, v in breadth.items()} if isinstance(breadth, dict) else breadth,
         "bottom_read": pick(BT, "market.read"),
-        "fortress_top": [{"ticker": _tk(r), "score": _num(pick(r, "score", "fortress_score")), "state": r.get("state") or r.get("verdict")} for r in _rows(pick(FT, "top", "board", "top_picks", "rows"), 8)],
+        "fortress_top": [{"ticker": _tk(r), "score": _num(r.get("score") or r.get("fortress_score")), "state": r.get("state") or r.get("verdict")} for r in _rows(pick(FT, "top", "board", "top_picks", "rows"), 8)],
         "fusion_top": [],
         "fusion_bottom": [],
         "market_benchmarks": pick(BT, "market.benchmarks"),
@@ -197,7 +195,7 @@ def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) ->
             continue
         frows.append({"ticker": eid.split(":")[-1].replace("BTCUSD", "BTC-USD").replace("ETHUSD", "ETH-USD"), "fusion_score": fs, "direction": best.get("direction"), "confidence": _num(best.get("confidence")),
                       "contradiction": best.get("contradiction_score"), "horizon": best.get("horizon"), "capital": best.get("capital_decision")})
-    frows.sort(key=lambda r: -(abs(r["fusion_score"]) * (r["confidence"] if r["confidence"] is not None else 0.5)))
+    frows.sort(key=lambda r: -(abs(r["fusion_score"]) * (r["confidence"] or 0.5)))
     stocks["fusion_top"] = [r for r in frows if r["fusion_score"] > 0][:8]
     stocks["fusion_bottom"] = [r for r in frows if r["fusion_score"] < 0][:6]
     bonds = {
