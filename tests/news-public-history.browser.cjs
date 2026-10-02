@@ -44,11 +44,17 @@ const feeds={'insider-trades.json':{recent_buys:[{ticker:'TEST',name:'Synthetic 
   assert.ok((await page.locator('#feed').innerText()).includes('Source data unavailable'));
   assert.equal(await page.locator('#source-status').getAttribute('role'),'status');
   await page.screenshot({path:`/tmp/news-${width}-withheld.png`,fullPage:true});
+  status=200;history={...good,generated_at:'2026-02-30T10:00:00Z',as_of:'2026-02-30T10:00:00Z',alerts:[{...good.alerts[0],sent_at:'2026-02-30T10:00:00Z'}]};
+  await page.evaluate(()=>load());
+  assert.equal(await page.locator('#kpi-alerts').innerText(),'1');
+  assert.ok((await page.locator('#source-status').innerText()).includes('ALERT: Received · Source publication: Unavailable · Source observation: Unavailable'));
+  assert.ok((await page.locator('#feed').innerText()).includes('Sent: time unavailable'));
+  await page.screenshot({path:`/tmp/news-${width}-invalid-clock.png`,fullPage:true});
   status=200;history={...good,alerts:[]};await page.evaluate(()=>load());
   assert.equal(await page.locator('#kpi-alerts').innerText(),'0');
   assert.ok((await page.locator('#feed').innerText()).includes('No events reported'));
-  assert.equal(requests.length,24);assert.deepEqual(errors,[]);
-  evidence.push({width,timezoneId:'America/New_York',retrievalTimezone:'UTC',consumerRequestsPerLoad:8,cycles:3,keyboard:'passed',horizontalOverflow:false,scriptErrors:errors,hostileText:'literal',states:['nonempty','503','empty-recovery']});
+  assert.equal(requests.length,32);assert.deepEqual(errors,[]);
+  evidence.push({width,timezoneId:'America/New_York',retrievalTimezone:'UTC',consumerRequestsPerLoad:8,cycles:4,keyboard:'passed',horizontalOverflow:false,scriptErrors:errors,hostileText:'literal',states:['nonempty','503','invalid-calendar-clock','empty-recovery']});
   await page.close();
  }
  // Execute predecessor with benign synthetic data to compare actual fetch requests, without unsafe content.
