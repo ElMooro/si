@@ -81,6 +81,8 @@ SOURCES = {
                             "context": None, "kind": "packet"},
     "earnings":              {"key": "data/earnings-tracker.json",
                             "context": None, "kind": "packet"},
+    "news-sentiment":        {"key": "data/news-sentiment.json",
+                            "context": None, "kind": "packet"},
 }
 
 # Domains that describe the market as a whole, not individual tickers.
