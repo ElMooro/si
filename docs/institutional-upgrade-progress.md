@@ -7958,3 +7958,10 @@ Whole-handler fixture tests and the actual page consumer exercise zero, negative
 - Normal producer publication is not verified; no native invocation, current consumer packet, provider/account/private or learning-ledger reads in this acceptance
 - Global floating panels and other pages still need mobile-layout review; a local Convergence navigation overlap is corrected
 - All ten institutional workstreams remain open; no full-platform or bug-free acceptance
+
+
+Stage 564 accepted: source `b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd`, deploy run 36997592536, read-only native acceptance 6458/run 36998095564. Both exact source-commit receipts and all 14 deployed source files match. Compound's 120s/512MiB weekday schedule and Fabric's 300s/512MiB hourly plus separate daily schedules remain unchanged. The related 26-file batch shipped atomically through native Git. The generated page registry matches the retained original bytes after the explicit primary-engine declaration was restored.
+
+Checks passed: 1054 deployment, 15 shell, 2968 frontend, 56 Compound engine, 14 Fabric engine, 14 native-acceptance tests, 600 page graphs, 143 wiring references, 28 source browser cases and 12 browser cases against 19 exactly verified served static files. Source metadata now identifies Compound as the primary desk engine while retaining both companion feeds. Missing adjusted scores stay unavailable, and original packets/calculations are downloadable. Normal producer publication remains unverified.
+
+Next: the remaining Signal Fabric adapters and weighting/comparison paths need occurrence, source-identity, missingness and calculation-quality review; their old learned-weight labels and group counts do not establish predictive calibration. Broader source qualification, durable point-in-time replay, source lineage, cost-adjusted out-of-sample evidence, portfolio scenarios and operating acceptance remain open. All ten workstreams remain OPEN.

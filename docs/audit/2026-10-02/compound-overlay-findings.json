@@ -1,5 +1,5 @@
 {
-  "status": "reproduced_not_repaired",
+  "status": "repaired_and_exact_code_static_release_verified",
   "producer_sha256": "e366ab0e66161b18a0b025026d962ed2a1938a568ef5e221bf7b1e3dd6a72a98",
   "helper_sha256": "3a91847646679f206a15b6188d2a3364917b7af0c730fa2e7e70ab1acd0e7092",
   "cases": [
@@ -90,5 +90,8 @@
     }
   ],
   "scope": "Actual candidate handler with invented input/state/history and in-memory storage; no native invocation, actual application/private/account/learning reads or messages.",
-  "source_commit": "1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52"
+  "source_commit": "1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52",
+  "repair_source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+  "acceptance": "docs/audit/2026-10-02/compound-overlays-acceptance.json",
+  "normal_publication_verified": false
 }

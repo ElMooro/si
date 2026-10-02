@@ -1,0 +1,333 @@
+{
+  "status": "open_reproduced_with_invented_inputs",
+  "producer_sha256": "0b15175283d97138986ff14a2bdec8d8dff6a171ddc3be259065e5a730ab5d94",
+  "findings": [
+    {
+      "case": "missing_reversal_direction_becomes_UP",
+      "invented_inputs": {
+        "direction": "absent"
+      },
+      "observed": {
+        "ticker": "QAONLY",
+        "n_engines": 1,
+        "fabric_score": 0.3,
+        "net_direction": "UP",
+        "agreement_pct": 100.0,
+        "engines": [
+          {
+            "evidence_id": "sf1:7e4b52f0f5b5c7fed29cbabf",
+            "engine": "trend-reversal",
+            "kind": "reversal",
+            "value": "None 30",
+            "direction": "UP",
+            "confidence": 0.5,
+            "weight": 0.6,
+            "weight_basis": "neutral (ungraded)",
+            "source_family": "price_reversal",
+            "evidence_level": "L2",
+            "role": "derived_heuristic",
+            "independence_eligible": false,
+            "ancestry": [],
+            "ancestry_status": "not_traced",
+            "forecast_qualified": false,
+            "sizing_eligible": false,
+            "provenance": {
+              "producer": "trend-reversal"
+            },
+            "link": "https://justhodl.ai/trend-reversal.html"
+          }
+        ]
+      }
+    },
+    {
+      "case": "duplicate_rows_choose_first_equal_weight_winner",
+      "invented_inputs": {
+        "orders": "both"
+      },
+      "observed": [
+        {
+          "order": [
+            "TOP_FORMING",
+            "BOTTOM_FORMING"
+          ],
+          "row": {
+            "ticker": "QAONLY",
+            "n_engines": 1,
+            "fabric_score": -0.3,
+            "net_direction": "DOWN",
+            "agreement_pct": 100.0,
+            "engines": [
+              {
+                "evidence_id": "sf1:b3c0d4403efb93e1cae6b45e",
+                "engine": "trend-reversal",
+                "kind": "reversal",
+                "value": "TOP_FORMING 30",
+                "direction": "DOWN",
+                "confidence": 0.5,
+                "weight": 0.6,
+                "weight_basis": "neutral (ungraded)",
+                "source_family": "price_reversal",
+                "evidence_level": "L2",
+                "role": "derived_heuristic",
+                "independence_eligible": false,
+                "ancestry": [],
+                "ancestry_status": "not_traced",
+                "forecast_qualified": false,
+                "sizing_eligible": false,
+                "provenance": {
+                  "producer": "trend-reversal"
+                },
+                "link": "https://justhodl.ai/trend-reversal.html"
+              }
+            ]
+          }
+        },
+        {
+          "order": [
+            "BOTTOM_FORMING",
+            "TOP_FORMING"
+          ],
+          "row": {
+            "ticker": "QAONLY",
+            "n_engines": 1,
+            "fabric_score": 0.3,
+            "net_direction": "UP",
+            "agreement_pct": 100.0,
+            "engines": [
+              {
+                "evidence_id": "sf1:137bf09f17eae13d6b6e0e8c",
+                "engine": "trend-reversal",
+                "kind": "reversal",
+                "value": "BOTTOM_FORMING 30",
+                "direction": "UP",
+                "confidence": 0.5,
+                "weight": 0.6,
+                "weight_basis": "neutral (ungraded)",
+                "source_family": "price_reversal",
+                "evidence_level": "L2",
+                "role": "derived_heuristic",
+                "independence_eligible": false,
+                "ancestry": [],
+                "ancestry_status": "not_traced",
+                "forecast_qualified": false,
+                "sizing_eligible": false,
+                "provenance": {
+                  "producer": "trend-reversal"
+                },
+                "link": "https://justhodl.ai/trend-reversal.html"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case": "empirical_win_0",
+      "invented_inputs": {
+        "win_pct": 0
+      },
+      "observed": {
+        "evidence_id": "sf1:137bf09f17eae13d6b6e0e8c",
+        "engine": "trend-reversal",
+        "kind": "reversal",
+        "value": "BOTTOM_FORMING 30",
+        "direction": "UP",
+        "confidence": 0.5,
+        "weight": 0.6,
+        "weight_basis": "empirical:0%(n=100)",
+        "source_family": "price_reversal",
+        "evidence_level": "L2",
+        "role": "derived_heuristic",
+        "independence_eligible": false,
+        "ancestry": [],
+        "ancestry_status": "not_traced",
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "provenance": {
+          "producer": "trend-reversal"
+        },
+        "link": "https://justhodl.ai/trend-reversal.html"
+      }
+    },
+    {
+      "case": "empirical_win_50",
+      "invented_inputs": {
+        "win_pct": 50
+      },
+      "observed": {
+        "evidence_id": "sf1:137bf09f17eae13d6b6e0e8c",
+        "engine": "trend-reversal",
+        "kind": "reversal",
+        "value": "BOTTOM_FORMING 30",
+        "direction": "UP",
+        "confidence": 0.5,
+        "weight": 0.6,
+        "weight_basis": "empirical:50%(n=100)",
+        "source_family": "price_reversal",
+        "evidence_level": "L2",
+        "role": "derived_heuristic",
+        "independence_eligible": false,
+        "ancestry": [],
+        "ancestry_status": "not_traced",
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "provenance": {
+          "producer": "trend-reversal"
+        },
+        "link": "https://justhodl.ai/trend-reversal.html"
+      }
+    },
+    {
+      "case": "nonfinite_learned_lift_receives_maximum_weight",
+      "invented_inputs": {
+        "lift": "invented NaN"
+      },
+      "observed": {
+        "evidence_id": "sf1:137bf09f17eae13d6b6e0e8c",
+        "engine": "trend-reversal",
+        "kind": "reversal",
+        "value": "BOTTOM_FORMING 30",
+        "direction": "UP",
+        "confidence": 0.5,
+        "weight": 1.6,
+        "weight_basis": "learned:50%(n=10)",
+        "source_family": "price_reversal",
+        "evidence_level": "L2",
+        "role": "derived_heuristic",
+        "independence_eligible": false,
+        "ancestry": [],
+        "ancestry_status": "not_traced",
+        "forecast_qualified": false,
+        "sizing_eligible": false,
+        "provenance": {
+          "producer": "trend-reversal"
+        },
+        "link": "https://justhodl.ai/trend-reversal.html"
+      }
+    },
+    {
+      "case": "zero_directional_balance_becomes_DOWN",
+      "invented_inputs": {
+        "equal_opposite_heuristics": true
+      },
+      "observed": {
+        "ticker": "QAONLY",
+        "n_engines": 2,
+        "fabric_score": 0.0,
+        "net_direction": "DOWN",
+        "agreement_pct": 50.0,
+        "engines": [
+          {
+            "evidence_id": "sf1:b444f0e8a00c4466922efbe8",
+            "engine": "trend-reversal",
+            "kind": "reversal",
+            "value": "TOP_FORMING 36",
+            "direction": "DOWN",
+            "confidence": 0.6,
+            "weight": 0.6,
+            "weight_basis": "neutral (ungraded)",
+            "source_family": "price_reversal",
+            "evidence_level": "L2",
+            "role": "derived_heuristic",
+            "independence_eligible": false,
+            "ancestry": [],
+            "ancestry_status": "not_traced",
+            "forecast_qualified": false,
+            "sizing_eligible": false,
+            "provenance": {
+              "producer": "trend-reversal"
+            },
+            "link": "https://justhodl.ai/trend-reversal.html"
+          },
+          {
+            "evidence_id": "sf1:57927cb4aecaf24f73c29063",
+            "engine": "congress-direct",
+            "kind": "congress",
+            "value": "Invented Purchase",
+            "direction": "UP",
+            "confidence": 0.6,
+            "weight": 0.6,
+            "weight_basis": "neutral (ungraded)",
+            "source_family": "congress_transactions",
+            "evidence_level": "L2",
+            "role": "derived_heuristic",
+            "independence_eligible": false,
+            "ancestry": [],
+            "ancestry_status": "not_traced",
+            "forecast_qualified": false,
+            "sizing_eligible": false,
+            "provenance": {
+              "producer": "congress-direct"
+            },
+            "link": "https://justhodl.ai/political-stocks.html"
+          }
+        ]
+      }
+    },
+    {
+      "case": "source_stats_counts_rejected_identity_as_added",
+      "invented_inputs": {
+        "symbol": "TOOLONGSYMBOL"
+      },
+      "observed": {
+        "count": 1,
+        "n_tickers": 0
+      }
+    },
+    {
+      "case": "ancient_generation_does_not_block_direction",
+      "invented_inputs": {
+        "generated_at": "2001-01-01T00:00:00Z"
+      },
+      "observed": {
+        "ticker": "QAONLY",
+        "n_engines": 1,
+        "fabric_score": 0.3,
+        "net_direction": "UP",
+        "agreement_pct": 100.0,
+        "engines": [
+          {
+            "evidence_id": "sf1:137bf09f17eae13d6b6e0e8c",
+            "engine": "trend-reversal",
+            "kind": "reversal",
+            "value": "BOTTOM_FORMING 30",
+            "direction": "UP",
+            "confidence": 0.5,
+            "weight": 0.6,
+            "weight_basis": "neutral (ungraded)",
+            "source_family": "price_reversal",
+            "evidence_level": "L2",
+            "role": "derived_heuristic",
+            "independence_eligible": false,
+            "ancestry": [],
+            "ancestry_status": "not_traced",
+            "forecast_qualified": false,
+            "sizing_eligible": false,
+            "provenance": {
+              "producer": "trend-reversal"
+            },
+            "link": "https://justhodl.ai/trend-reversal.html"
+          }
+        ]
+      }
+    },
+    {
+      "case": "invalid_weight_crashes_handler",
+      "invented_inputs": {
+        "lift": null
+      },
+      "observed": {
+        "error_type": "TypeError",
+        "writes": []
+      }
+    }
+  ],
+  "application_packet_reads": 0,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "private_reads": 0,
+  "learning_ledger_reads": 0,
+  "investment_authority": false,
+  "scope": "These are remaining Fabric adapter/weight defects outside the repaired nonvoting Compound path. All data shown are invented fixtures.",
+  "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+}

@@ -1,6 +1,6 @@
 {
   "stage": 564,
-  "status": "integration_and_release_pending",
+  "status": "repaired_and_exact_code_static_release_verified",
   "operation": "aws/ops/staged/ops_6458_compound_overlays_acceptance.py",
   "source_hashes": {
     "aws/lambdas/justhodl-compound-aggregator/source/lambda_function.py": "c9200f41cc50b0d77611195b2581325185177c1fcbfd178d18c91f3d51d508b2",
@@ -104,5 +104,8 @@
     "forecast_qualified": false,
     "portfolio_qualified": false
   },
-  "verification_scope": "Invented whole-handler/browser fixtures, exact served static originals and code/receipt/native control evidence only. No producer invocation, provider/private/account/learning packet reads, messages, paid APIs or schedule changes."
+  "verification_scope": "Invented whole-handler/browser fixtures, exact served static originals and code/receipt/native control evidence only. No producer invocation, provider/private/account/learning packet reads, messages, paid APIs or schedule changes.",
+  "repair_source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+  "acceptance": "docs/audit/2026-10-02/compound-overlays-acceptance.json",
+  "normal_publication_verified": false
 }

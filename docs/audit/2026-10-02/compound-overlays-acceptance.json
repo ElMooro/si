@@ -1,0 +1,482 @@
+{
+  "status": "exact_code_static_and_invented_browser_release_checked",
+  "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+  "native": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-compound-aggregator/source/lambda_function.py": "c9200f41cc50b0d77611195b2581325185177c1fcbfd178d18c91f3d51d508b2",
+      "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
+      "aws/shared/compound_numeric.py": "3a91847646679f206a15b6188d2a3364917b7af0c730fa2e7e70ab1acd0e7092",
+      "aws/shared/compound_overlays.py": "d20372e6d183e3509ab235ab424fa2b3da111ba1ed0d68e8bb054892aa25ce41",
+      "aws/shared/context_evidence_store.py": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+      "aws/shared/holdings_authority.py": "b9790df87ed542396333cb75cfd4f7e6a185f733568e4886beb7753220d99355",
+      "aws/shared/holdings_derived_boundary.py": "1da007ba20f1ae67ac35729276fa0c43a486b80c0a09eff001ad25c08ac35240",
+      "aws/shared/momentum_research_boundary.py": "54eff7690518c228905fb26bd22ca03d446d4d2915e5b8f3166eefcde46a4d92",
+      "aws/lambdas/justhodl-signal-fabric/source/lambda_function.py": "0b15175283d97138986ff14a2bdec8d8dff6a171ddc3be259065e5a730ab5d94",
+      "aws/shared/compound_research_context.py": "89da9e7686387747e31295c54c2f6e5cf09dfb46443edd498743468ca610de2e",
+      "aws/shared/sec_ftd_context.py": "79ab547bea3b466cee58e68e61d2e682f5566a49adb2ecacecc07dc9dac2e3e4",
+      "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+      "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
+    },
+    "native_before": {
+      "justhodl-compound-aggregator": {
+        "code_sha256": "ER3fl8E5gUgU9tdzSUPGYORImH8kTK1q/smc8LuC/Ds=",
+        "source_files_checked": 8,
+        "handler_bytes": 26565,
+        "timeout": 120,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "compound-aggregator-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON-FRI *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-compound-aggregator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-signal-fabric": {
+        "code_sha256": "PLscOeHbKnNGNKSzC2GVHsdh4BS9ylV7wvGb3TVPFHw=",
+        "source_files_checked": 6,
+        "handler_bytes": 21988,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-signal-fabric-hourly",
+            "state": "ENABLED",
+            "expression": "cron(5 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-signal-fabric-cadence",
+            "state": "ENABLED",
+            "expression": "cron(10 0 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-signal-fabric",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "native_after": {
+      "justhodl-compound-aggregator": {
+        "code_sha256": "ER3fl8E5gUgU9tdzSUPGYORImH8kTK1q/smc8LuC/Ds=",
+        "source_files_checked": 8,
+        "handler_bytes": 26565,
+        "timeout": 120,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "compound-aggregator-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON-FRI *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-compound-aggregator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-signal-fabric": {
+        "code_sha256": "PLscOeHbKnNGNKSzC2GVHsdh4BS9ylV7wvGb3TVPFHw=",
+        "source_files_checked": 6,
+        "handler_bytes": 21988,
+        "timeout": 300,
+        "memory_mb": 512,
+        "receipt": {
+          "status": "matched",
+          "commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-signal-fabric-hourly",
+            "state": "ENABLED",
+            "expression": "cron(5 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-signal-fabric-cadence",
+            "state": "ENABLED",
+            "expression": "cron(10 0 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-signal-fabric",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "original_controls": {
+      "justhodl-compound-aggregator": {
+        "function_name": "justhodl-compound-aggregator",
+        "timeout": 120,
+        "memory_mb": 512,
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "compound-aggregator-daily",
+            "state": "ENABLED",
+            "expression": "cron(15 21 ? * MON-FRI *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ]
+      },
+      "justhodl-signal-fabric": {
+        "function_name": "justhodl-signal-fabric",
+        "timeout": 300,
+        "memory_mb": 512,
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-signal-fabric-hourly",
+            "state": "ENABLED",
+            "expression": "cron(5 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-signal-fabric-cadence",
+            "state": "ENABLED",
+            "expression": "cron(10 0 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "monitored_target_identities": {
+      "justhodl-compound-aggregator": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-compound-aggregator",
+      "justhodl-signal-fabric": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-signal-fabric"
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "other_invocation_routes_verified": false,
+    "run_id": 36998095564,
+    "operation_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+    "report_commit": "a948eb86662e5ecf6a7b37f7662fd872cd8f59d9",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6458_compound_overlays_acceptance.md",
+      "bytes": 6850,
+      "sha256": "794e98dd7e1adde0360cc93cfd9ef93a837223a753a186d207c99749c2e57117"
+    }
+  },
+  "workflow": {
+    "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+    "deploy_run": 36997592536,
+    "receipts": [
+      {
+        "function": "justhodl-compound-aggregator",
+        "exact_receipt_verified": true
+      },
+      {
+        "function": "justhodl-signal-fabric",
+        "exact_receipt_verified": true
+      }
+    ],
+    "page_publication_separate": true,
+    "runs": [
+      {
+        "id": 36997592536,
+        "path": ".github/workflows/deploy-lambdas.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+      },
+      {
+        "id": 36997592556,
+        "path": ".github/workflows/guard-lambda-stubs.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+      }
+    ]
+  },
+  "static": {
+    "status": "exact_static_release_checked",
+    "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+    "served_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+    "checked_at": "2026-10-02T10:55:00.952796+00:00",
+    "build_manifest_sha256": "73c6154eccb9f6415f6d9e9001daa94fcb58789d251d21e2d081c3af01dae107",
+    "static_files": [
+      {
+        "path": "convergence-desk.html",
+        "bytes": 14625,
+        "sha256": "09b8f137f7a5814a33251f42ced05e2a9e87936f7b4760121b572ad911afb167",
+        "whole_http_body_sha256": "0df22ebf4806eee340f5e80f50a19ae480fb7a51b8840b68837cc957531b14ba",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        }
+      },
+      {
+        "path": "jh-chart-theme.js",
+        "bytes": 5238,
+        "sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "whole_http_body_sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-convergence-desk.css",
+        "bytes": 2293,
+        "sha256": "a015884f7ee0717e6d59ad459c9204bbdc9146bce9cb27bc0a741b0c81ce80db",
+        "whole_http_body_sha256": "a015884f7ee0717e6d59ad459c9204bbdc9146bce9cb27bc0a741b0c81ce80db",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-convergence-desk.js",
+        "bytes": 11016,
+        "sha256": "76eb1386792577ed34650af80378704e110d8ecfb9b5fe811f8837ca83a88ae5",
+        "whole_http_body_sha256": "76eb1386792577ed34650af80378704e110d8ecfb9b5fe811f8837ca83a88ae5",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-data-inspector.js",
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "whole_http_body_sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-evidence-io.js",
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "whole_http_body_sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-footer.js",
+        "bytes": 3650,
+        "sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "whole_http_body_sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-nav-drawer.js",
+        "bytes": 31948,
+        "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "whole_http_body_sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-research-explain.css",
+        "bytes": 2262,
+        "sha256": "1493aaf94e23d1fda6e61ce038cc312ea72473e6c248dc50c72c6f8556623bf4",
+        "whole_http_body_sha256": "1493aaf94e23d1fda6e61ce038cc312ea72473e6c248dc50c72c6f8556623bf4",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-research-explain.js",
+        "bytes": 18451,
+        "sha256": "103cee891ce4fad317690c0054a9cc3ad08da22fbcd9f530ffa423b1f2565df5",
+        "whole_http_body_sha256": "103cee891ce4fad317690c0054a9cc3ad08da22fbcd9f530ffa423b1f2565df5",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-right-rail.js",
+        "bytes": 4776,
+        "sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "whole_http_body_sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-sections.js",
+        "bytes": 21723,
+        "sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "whole_http_body_sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-wire.js",
+        "bytes": 10306,
+        "sha256": "ff1211f2e3ccc68d44833c7a90d48f64225f85aa0ee077d8d51e1278726b7663",
+        "whole_http_body_sha256": "ff1211f2e3ccc68d44833c7a90d48f64225f85aa0ee077d8d51e1278726b7663",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "sidebar.js",
+        "bytes": 12987,
+        "sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "whole_http_body_sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "nav-manifest.json",
+        "bytes": 36409,
+        "sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "whole_http_body_sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "config/page-data-contracts.json",
+        "bytes": 7982123,
+        "sha256": "3a82ad48ad42031ae20ecdd96dd84cbd075313a48cd84b9901967b4f31262ebe",
+        "whole_http_body_sha256": "3a82ad48ad42031ae20ecdd96dd84cbd075313a48cd84b9901967b4f31262ebe",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "auth-config.js",
+        "bytes": 1406,
+        "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "whole_http_body_sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-market-tape.js",
+        "bytes": 4387,
+        "sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "whole_http_body_sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-theme.css",
+        "bytes": 10031,
+        "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "whole_http_body_sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "sole_edge_script_removed": null
+      }
+    ],
+    "whole_page_inline_renderers_match_source_after_existing_theme_transform": true,
+    "whole_explainer_modules_match_source_after_existing_theme_transform": true,
+    "theme_transform_source_sha256": "992450c03bef610a33ae14367060d0bcab1d03500f356cd991a02c9700bb887c",
+    "script_tags": [
+      "/jh-convergence-desk.js?v=2784d319",
+      "/jh-research-explain.js?v=85222cbc",
+      "/jh-evidence-io.js?v=c9fe373a4b12ca8c"
+    ],
+    "evidence_io_stamping": "Existing inspector injection uses exact source SHA-256 prefix16 after normal asset stamping",
+    "inspector_build_source_sha256": "c3de8dca0b1b25cd49a37b3370049b07bc90600e09b029653a52b4c25b88ac5c",
+    "application_packet_reads": 0,
+    "page_execution": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole static pages, direct script/styles and named static inspection contracts only. Every file matches one build; offline browser fixtures are separate."
+  },
+  "checks": {
+    "deployment": 1054,
+    "candidate_shell": 15,
+    "compound_engine": 56,
+    "fabric_engine": 14,
+    "frontend": 2968,
+    "native_acceptance_unit": 14,
+    "source_browser_cases": 28,
+    "served_browser_cases": 12,
+    "page_graphs": 600,
+    "wiring_references": 143
+  },
+  "source_browser_evidence": {
+    "browser": {
+      "source_hashes": {
+        "why-now.html": "36439fca2a284d00b7955489f7fddee57c6bd3872d1b7f8f15b9471c85af9440",
+        "why-cross-signal.html": "7606e09c4b7e0717b9b074f2f3c06d0b2c1105cb805e09b0226ab7068c360bb7",
+        "jh-research-explain.js": "103cee891ce4fad317690c0054a9cc3ad08da22fbcd9f530ffa423b1f2565df5",
+        "jh-research-explain.css": "1036628e98dd579f9ce04f8814c600dc8929ba940e9bd4ef49f441a88bc40a4e",
+        "jh-evidence-io.js": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe"
+      },
+      "case_count": 16,
+      "actual_network_requests": 0
+    },
+    "desk-browser": {
+      "source_hashes": {
+        "convergence-desk.html": "0e0034196bb77f7eb20cc38f94feffd59394ba348b6ca547597ab1e225ccb931",
+        "jh-convergence-desk.js": "c6af93a10053a6aa6ed6185414905411be7dbaef9e42c9472f257e10b9cf8fd6",
+        "jh-convergence-desk.css": "589b9b06030bbe4d512bf38aaf9acaafb0d1524cf0d4f7df7907df2e14a81066",
+        "jh-research-explain.js": "103cee891ce4fad317690c0054a9cc3ad08da22fbcd9f530ffa423b1f2565df5",
+        "jh-evidence-io.js": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe"
+      },
+      "case_count": 12,
+      "actual_network_requests": 0
+    },
+    "served-browser": {
+      "source_hashes": {
+        "convergence-desk.html": "09b8f137f7a5814a33251f42ced05e2a9e87936f7b4760121b572ad911afb167",
+        "jh-convergence-desk.js": "76eb1386792577ed34650af80378704e110d8ecfb9b5fe811f8837ca83a88ae5",
+        "jh-convergence-desk.css": "a015884f7ee0717e6d59ad459c9204bbdc9146bce9cb27bc0a741b0c81ce80db",
+        "jh-research-explain.js": "103cee891ce4fad317690c0054a9cc3ad08da22fbcd9f530ffa423b1f2565df5",
+        "jh-evidence-io.js": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe"
+      },
+      "case_count": 12,
+      "actual_network_requests": 0
+    }
+  },
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "forecast_qualified": false,
+  "portfolio_qualified": false,
+  "scope": "Exact AWS code packages, named source-commit receipts, original native controls and exact served static files. Whole handlers and browsers exercised with invented inputs only; no native producer invocation, current/private/account/learning packet reads, provider requests or notifications. This is not full-platform or bug-free acceptance."
+}
