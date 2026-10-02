@@ -1,0 +1,11 @@
+{
+  "path": "aws/lambdas/justhodl-master-ranker/tests/run_tests.py",
+  "before_sha256": "03772ae3d73cbe888b0456db0b1790765d234dcf709073d5165f74673bdc6ae4",
+  "after_sha256": "fade0a43c302b4cfc110d569f1648d9295003f085caf44819c55814a201d0879",
+  "finding": "Successful first suite exited before existing extremes and sector suites",
+  "replacement": {
+    "before": "    sys.exit(0 if result.wasSuccessful() else 1)",
+    "after": "    if not result.wasSuccessful():raise SystemExit(1)"
+  },
+  "all_existing_assertions_retained": true
+}

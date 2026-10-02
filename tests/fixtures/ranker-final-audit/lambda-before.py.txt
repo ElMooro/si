@@ -1425,6 +1425,41 @@ def lambda_handler(event, context):
     except Exception as _t360_e:
         print(f"[master-ranker] t360 enrichment skipped: {_t360_e}")
 
+    # ── Explainability audit trail (XAI): institutional-grade transparency.
+    #    Each ranked ticker gets a full decision audit: score breakdown,
+    #    multipliers applied, systems voting, t360 coverage, calibration.
+    #    Clicking a score in the UI drills into this trail.
+    for _tt in top_tickers:
+        _audit = {
+            "ticker": _tt.get("ticker"),
+            "final_score": _tt.get("score"),
+            "score_breakdown": {
+                "n_systems": _tt.get("n_systems"),
+                "systems": _tt.get("systems", []),
+                "contributions": _tt.get("contributions", {}),
+            },
+            "multipliers_applied": {
+                k: _tt.get(k) for k in (
+                    "capital_flow_mult", "risk_regime_mult",
+                    "risk_gate_rank_mult", "risk_gate_sizing_mult",
+                    "liquidity_regime_mult", "rotation_mult",
+                    "nowcast_regime_mult")
+                if _tt.get(k) is not None
+            },
+            "t360_coverage": {
+                "coverage_count": _tt.get("t360_coverage"),
+                "domains": _tt.get("t360_domains", []),
+            },
+            "risk_context": {
+                "cycle_phase": _tt.get("cycle_phase"),
+                "cycle_warning": _tt.get("cycle_warning"),
+                "red_flags": _tt.get("red_flags", []),
+                "risk_gate_posture": _tt.get("risk_gate_posture"),
+            },
+            "rationale": _tt.get("rationale"),
+        }
+        _tt["audit_trail"] = _audit
+
     # ── Structural-chokepoint overlay: flag ranked names the chokepoint engine marks as
     #    structurally indispensable (curated / LLM-confirmed / supply-chain hub). Context for
     #    durability, not a score change — a top rank on a chokepoint is a higher-quality rank.
@@ -1546,41 +1581,6 @@ def lambda_handler(event, context):
     n_extreme_macro = sum(1 for m in macro_signals
                            if m.get("type") in ("divergence", "pair")
                            and m.get("abs_z", 0) >= 3)
-
-    # ── Explainability audit trail (XAI): institutional-grade transparency.
-    #    Each ranked ticker gets a full decision audit: score breakdown,
-    #    multipliers applied, systems voting, t360 coverage, calibration.
-    #    Clicking a score in the UI drills into this trail.
-    for _tt in top_tickers:
-        _audit = {
-            "ticker": _tt.get("ticker"),
-            "final_score": _tt.get("score"),
-            "score_breakdown": {
-                "n_systems": _tt.get("n_systems"),
-                "systems": _tt.get("systems", []),
-                "contributions": _tt.get("contributions", {}),
-            },
-            "multipliers_applied": {
-                k: _tt.get(k) for k in (
-                    "capital_flow_mult", "risk_regime_mult",
-                    "risk_gate_rank_mult", "risk_gate_sizing_mult",
-                    "liquidity_regime_mult", "rotation_mult",
-                    "nowcast_regime_mult")
-                if _tt.get(k) is not None
-            },
-            "t360_coverage": {
-                "coverage_count": _tt.get("t360_coverage"),
-                "domains": _tt.get("t360_domains", []),
-            },
-            "risk_context": {
-                "cycle_phase": _tt.get("cycle_phase"),
-                "cycle_warning": _tt.get("cycle_warning"),
-                "red_flags": _tt.get("red_flags", []),
-                "risk_gate_posture": _tt.get("risk_gate_posture"),
-            },
-            "rationale": _tt.get("rationale"),
-        }
-        _tt["audit_trail"] = _audit
 
     payload = {
         "schema_version": "1.2-t360-xai",

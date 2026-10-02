@@ -7874,3 +7874,8 @@ Retained whole source and invented transport reproduce silent duplicate-member o
 ### Stage 557 strict transport native acceptance
 
 Commit `df5ad4aefb4af8bac6a310a373ee63da8b316e38` is verified against its named release receipt and all fourteen transitive native source files. The before/after resource and schedule captures match the retained original controls; both existing enabled bindings remain unchanged. Verification read code, receipts and control metadata only, without native producer invocation or current/private/account data reads. The local integration passed 1,044 deployment tests, fifteen shell checks and 69 engine/consumer tests. Strict transport cannot certify source authenticity, point-in-time availability, original retention or investment authority.
+
+
+### Stage 558 Master Ranker final audit and test-runner repair
+
+Invented rows and exact retained source reproduce an audit rationale captured before later annotations. The same unchanged audit block now runs after those annotations, preserving all other source and score arithmetic. The existing test runner exited after its first successful suite, skipping nine extremes and five sector checks; success now reaches both and failures remain nonzero. Five final-audit and three runner-reachability cases pass in preparation; complete integration and exact native acceptance remain required. The named read-only baseline observes Python 3.12, 900 seconds, 1,536 MB, x86_64 and no bound schedules in a complete census. No producer invocation, current/private/account body read or schedule change occurs; other invocation routes and normal publication remain unverified.

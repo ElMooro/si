@@ -1,0 +1,11 @@
+{
+  "path": "aws/lambdas/justhodl-master-ranker/source/lambda_function.py",
+  "before_sha256": "a5281cc237df0f88d131d5967266d92405d46c1d2a3b66870a1d848990bf1493",
+  "after_sha256": "3f332301e25981a33edde3ecccb5b12395bf1e28c5db2e79cd1ed1c85ba9dd73",
+  "moved_block": "    # \u2500\u2500 Explainability audit trail (XAI): institutional-grade transparency.\n    #    Each ranked ticker gets a full decision audit: score breakdown,\n    #    multipliers applied, systems voting, t360 coverage, calibration.\n    #    Clicking a score in the UI drills into this trail.\n    for _tt in top_tickers:\n        _audit = {\n            \"ticker\": _tt.get(\"ticker\"),\n            \"final_score\": _tt.get(\"score\"),\n            \"score_breakdown\": {\n                \"n_systems\": _tt.get(\"n_systems\"),\n                \"systems\": _tt.get(\"systems\", []),\n                \"contributions\": _tt.get(\"contributions\", {}),\n            },\n            \"multipliers_applied\": {\n                k: _tt.get(k) for k in (\n                    \"capital_flow_mult\", \"risk_regime_mult\",\n                    \"risk_gate_rank_mult\", \"risk_gate_sizing_mult\",\n                    \"liquidity_regime_mult\", \"rotation_mult\",\n                    \"nowcast_regime_mult\")\n                if _tt.get(k) is not None\n            },\n            \"t360_coverage\": {\n                \"coverage_count\": _tt.get(\"t360_coverage\"),\n                \"domains\": _tt.get(\"t360_domains\", []),\n            },\n            \"risk_context\": {\n                \"cycle_phase\": _tt.get(\"cycle_phase\"),\n                \"cycle_warning\": _tt.get(\"cycle_warning\"),\n                \"red_flags\": _tt.get(\"red_flags\", []),\n                \"risk_gate_posture\": _tt.get(\"risk_gate_posture\"),\n            },\n            \"rationale\": _tt.get(\"rationale\"),\n        }\n        _tt[\"audit_trail\"] = _audit\n\n",
+  "destination_needle": "    payload = {\n        \"schema_version\": \"1.2-t360-xai\",",
+  "source_bytes": 85438,
+  "other_handler_ast_identical": true,
+  "production_written": false,
+  "native_controls_not_yet_inspected": true
+}
