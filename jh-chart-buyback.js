@@ -57,7 +57,9 @@
       sign = met.net_common_repurchases && met.net_common_repurchases.sign;
       y = net / cap * 100;
       if (sign === "positive") y = -y;
-      out.push({ date: obs[i].date, y: y });
+      var od = obs[i].date || (obs[i].original && obs[i].original.date) || "";
+      if (!od) continue;
+      out.push({ date: od, y: y });
     }
     out.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
     return out;
@@ -137,10 +139,8 @@
       window.paint = wrapped;
     }
   }
-  var n = 0;
-  var timer = setInterval(function () {
-    hook();
-    if (++n > 40) clearInterval(timer);
-  }, 250);
+  // Engine paint replaces window.paint on later loads. Keep re-wrapping.
+  setInterval(hook, 1000);
+  hook();
   window.jhBuybackDraw = draw;
 })();
