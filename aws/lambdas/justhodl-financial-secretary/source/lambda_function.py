@@ -555,9 +555,10 @@ def fetch_tier2():
             "total_mcap_fmt": gm.get("total_mcap_fmt"),
             "mcap_change_24h": gm.get("mcap_change_24h"),
             "total_volume_fmt": gm.get("total_volume_fmt"),
-            "stablecoin_net_signal": sc.get("net_signal"),
-            "stablecoin_minting": sc.get("minting_count"),
-            "stablecoin_burning": sc.get("burning_count"),
+            "stablecoin_net_signal": None,
+            "stablecoin_minting": None,
+            "stablecoin_burning": None,
+            "stablecoin_research": __import__("crypto_stablecoin_observations").context(sc),
             "fear_greed_value": (fg.get("current") if isinstance(fg, dict) else None),
             "fear_greed_label": (fg.get("label") if isinstance(fg, dict) else None) or (fg.get("classification") if isinstance(fg, dict) else None),
             "funding_summary": __import__("crypto_funding_observations").funding_context(funding),
@@ -1256,8 +1257,18 @@ Reported feed descriptions (not observation timestamps): stocks {_display_text(f
         mcap_chg = crypto_i.get("mcap_change_24h")
         fg_v = _display_score(crypto_i.get("fear_greed_value"))
         fg_l = crypto_i.get("fear_greed_label") or ""
-        sc_sig = crypto_i.get("stablecoin_net_signal") or "—"
-        sc_color = "#44cc44" if "INFLOW" in str(sc_sig).upper() else "#ff8800" if "OUTFLOW" in str(sc_sig).upper() else "#e0e0e0"
+        sc_context = crypto_i.get("stablecoin_research")
+        if not isinstance(sc_context, dict):
+            sc_context = {}
+        sc_count = sc_context.get("reported_rows")
+        sc_checked = (sc_context.get("contract") == "crypto-stablecoin-consumer-context.v1"
+                      and sc_context.get("status") == "descriptive"
+                      and sc_context.get("original_projection_checked") is True
+                      and type(sc_count) is int and sc_count >= 0
+                      and type(sc_context.get("independent_investment_votes")) is int
+                      and sc_context["independent_investment_votes"] == 0
+                      and all(sc_context.get(k) is False for k in ("calls_eligible", "sizing_eligible", "execution_eligible", "forecast_qualified")))
+        sc_label = f"{sc_count} reported rows" if sc_checked else "Unavailable"
         mcap_color = "#44cc44" if (mcap_chg or 0) > 0 else "#ff4444"
         crypto_risk = _crypto_risk_html(crypto_i.get("risk_score"))
         movers = crypto_i.get("top_movers") or []
@@ -1270,7 +1281,7 @@ Reported feed descriptions (not observation timestamps): stocks {_display_text(f
     <td style="padding:6px"><div style="color:#888;font-size:11px">BTC DOMINANCE</div><div style="font-size:22px;font-weight:700">{btc_dom:.1f}%</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">TOTAL MCAP 24h</div><div style="font-size:22px;font-weight:700;color:{mcap_color}">{(mcap_chg or 0):+.2f}%</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">FEAR/GREED</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{_display_text(fg_l)}</div></td>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">STABLECOIN FLOW</div><div style="font-size:18px;font-weight:700;color:{sc_color}">{_display_text(sc_sig)}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">REPORTED STABLECOIN STOCKS</div><div style="font-size:18px;font-weight:700;color:#e0e0e0">{_display_text(sc_label)}</div><div style="font-size:11px;color:#888">Flow and observation dates unavailable; no sizing vote.</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">RISK SCORE</div><div style="font-size:22px;font-weight:700">{crypto_risk}</div></td>
   </tr></table>
   <div style="margin-top:12px;font-size:12px;color:#aaa">Top coins:</div>

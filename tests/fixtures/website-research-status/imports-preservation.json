@@ -27,8 +27,18 @@
       "page": "classic-dashboard.html",
       "predecessor": "tests/fixtures/website-research-status/pre513-imports/classic-dashboard.html.txt",
       "previous_sha256": "d9749bfd4909f014d51f1478da1605bdd8833ace2dc8c00da65c109006fe8f5c",
-      "sha256": "639ef6cde823b235fc775431825322fc35191000829f93a1f8a00116a425d966",
-      "bytes": 163599
+      "sha256": "9fe386744ea92d396ed982e239497e94ed6b49c36931f2ca3b8b036daf69e5c5",
+      "bytes": 164017,
+      "additional_replacements": [
+        [
+          "  document.getElementById('cryptoSub').textContent = `${stables.net_signal || '\u2014'} \u00b7 ${fmtAge(d.generated_at)}`;\n\n  const stableCls = stables.net_signal === 'INFLOW' || stables.net_signal === 'MINTING' ? 'g' :\n                    stables.net_signal === 'OUTFLOW' || stables.net_signal === 'BURNING' ? 'r' : 'a';\n\n",
+          "  const stableRecord = stables.contract === 'crypto-reported-stablecoin-stock.v1' && stables.status === 'descriptive'\n    && Array.isArray(stables.stablecoins) && Number.isSafeInteger(stables.reported_rows) && stables.reported_rows === stables.stablecoins.length\n    && stables.calls_eligible === false && stables.sizing_eligible === false && stables.execution_eligible === false && stables.forecast_qualified === false\n    && stables.independent_investment_votes === 0;\n  const stableLabel = stableRecord ? `${stables.reported_rows} reported stock rows` : 'Reported stocks unavailable';\n  document.getElementById('cryptoSub').textContent = `${stableLabel} \u00b7 ${fmtAge(d.generated_at)}`;\n\n"
+        ],
+        [
+          "      <span class=\"readout-key\">STABLECOINS</span><span class=\"readout-val ${stableCls}\">${stables.total_mcap_fmt || '\u2014'} \u00b7 ${escHtml(stables.net_signal||'\u2014')}</span>",
+          "      <span class=\"readout-key\">STABLECOIN STOCKS</span><span class=\"readout-val\">${escHtml(stableLabel)} \u00b7 flow and observation dates unavailable; no sizing vote. <a href=\"/crypto/\">Inspect reported rows</a></span>"
+        ]
+      ]
     },
     {
       "page": "correlation.html",

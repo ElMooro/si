@@ -2561,10 +2561,12 @@ function renderCrypto(){
   const tvl = d.tvl || {};
   const dex = d.dex || {};
 
-  document.getElementById('cryptoSub').textContent = `${stables.net_signal || '—'} · ${fmtAge(d.generated_at)}`;
-
-  const stableCls = stables.net_signal === 'INFLOW' || stables.net_signal === 'MINTING' ? 'g' :
-                    stables.net_signal === 'OUTFLOW' || stables.net_signal === 'BURNING' ? 'r' : 'a';
+  const stableRecord = stables.contract === 'crypto-reported-stablecoin-stock.v1' && stables.status === 'descriptive'
+    && Array.isArray(stables.stablecoins) && Number.isSafeInteger(stables.reported_rows) && stables.reported_rows === stables.stablecoins.length
+    && stables.calls_eligible === false && stables.sizing_eligible === false && stables.execution_eligible === false && stables.forecast_qualified === false
+    && stables.independent_investment_votes === 0;
+  const stableLabel = stableRecord ? `${stables.reported_rows} reported stock rows` : 'Reported stocks unavailable';
+  document.getElementById('cryptoSub').textContent = `${stableLabel} · ${fmtAge(d.generated_at)}`;
 
   let html = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
@@ -2579,7 +2581,7 @@ function renderCrypto(){
     </div>
     <div class="readout">
       <span class="readout-key">ETH DOMINANCE</span><span class="readout-val">${gm.eth_dominance != null ? gm.eth_dominance.toFixed(1)+'%' : '—'}</span>
-      <span class="readout-key">STABLECOINS</span><span class="readout-val ${stableCls}">${stables.total_mcap_fmt || '—'} · ${escHtml(stables.net_signal||'—')}</span>
+      <span class="readout-key">STABLECOIN STOCKS</span><span class="readout-val">${escHtml(stableLabel)} · flow and observation dates unavailable; no sizing vote. <a href="/crypto/">Inspect reported rows</a></span>
       <span class="readout-key">TVL</span><span class="readout-val">${tvl.formatted || '—'}</span>
       <span class="readout-key">DEX 24H</span><span class="readout-val">${dex.total_24h_fmt || '—'}</span>
       <span class="readout-key">24H CHG</span><span class="readout-val ${gm.mcap_change_24h >= 0 ? 'g' : 'r'}">${gm.mcap_change_24h != null ? fmtPct(gm.mcap_change_24h, 2) : '—'}</span>

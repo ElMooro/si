@@ -1726,103 +1726,10 @@ def fetch_technicals():
 
 
 
-def fetch_stablecoins():
-
-
-
-
-
-    d=http_get("https://stablecoins.llama.fi/stablecoins?includePrices=true")
-
-
-
-
-
-    if not d or 'peggedAssets' not in d: return {'status':'error'}
-
-
-
-
-
-    S=[];tot=0;mc=bc=sc=0
-
-
-
-
-
-    for s in sorted(d['peggedAssets'],key=lambda x:(x.get('circulating',{}).get('peggedUSD',0) or 0),reverse=True)[:25]:
-
-
-
-
-
-        c=s.get('circulating',{}).get('peggedUSD',0) or 0
-
-
-
-
-
-        pd=s.get('circulatingPrevDay',{}).get('peggedUSD',0) or 0
-
-
-
-
-
-        pw=s.get('circulatingPrevWeek',{}).get('peggedUSD',0) or 0
-
-
-
-
-
-        pm=s.get('circulatingPrevMonth',{}).get('peggedUSD',0) or 0
-
-
-
-
-
-        c1=((c-pd)/pd*100) if pd>0 else 0;c7=((c-pw)/pw*100) if pw>0 else 0;c30=((c-pm)/pm*100) if pm>0 else 0
-
-
-
-
-
-        sg='MINTING' if c7>0.5 else 'BURNING' if c7<-0.5 else 'STABLE'
-
-
-
-
-
-        if sg=='MINTING':mc+=1
-
-
-
-
-
-        elif sg=='BURNING':bc+=1
-
-
-
-
-
-        else:sc+=1
-
-
-
-
-
-        tot+=c
-
-
-
-
-
-        if c>50e6: S.append({'name':s.get('name','?'),'symbol':s.get('symbol','?'),'mcap':round(c),'mcap_fmt':fmt(c),'change_1d':sr(c1),'change_7d':sr(c7),'change_30d':sr(c30),'signal':sg,'mechanism':s.get('pegMechanism','?')})
-
-
-
-
-
-    return {'status':'ok','stablecoins':S,'total_mcap':round(tot),'total_mcap_fmt':fmt(tot),'minting_count':mc,'burning_count':bc,'stable_count':sc,'net_signal':'INFLOW' if mc>bc+2 else 'OUTFLOW' if bc>mc+2 else 'NEUTRAL'}
+def fetch_stablecoins(context):
+    from crypto_stablecoin_archive import collect_retained, storage_client
+    return collect_retained(urllib.request.urlopen, storage_client, S3_BUCKET,
+                            context.get_remaining_time_in_millis)
 
 
 
@@ -3382,23 +3289,8 @@ def risk(fg,fn,st,gl,tech):
 
 
 
-    ns=st.get('net_signal','NEUTRAL') if isinstance(st,dict) else 'NEUTRAL'
-
-
-
-
-
-    if ns=='OUTFLOW':s+=8;sg.append('     Stablecoin outflows')
-
-
-
-
-
-    elif ns=='INFLOW':s-=5;sg.append('     Stablecoin inflows')
-
-
-
-
+    # Reported stock snapshots do not establish mint/burn transactions or cash flow.
+    # No stablecoin flow vote is admissible, including legacy packet labels.
 
     mc=gl.get('mcap_change_24h',0) if isinstance(gl,dict) else 0
 
@@ -3797,7 +3689,7 @@ def lambda_handler(event, context):
 
 
 
-        fs={ex.submit(fetch_stablecoins):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding,context):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios',ex.submit(fetch_cryptoquant):'cryptoquant',ex.submit(fetch_fleet):'fleet',ex.submit(fetch_prices_canon):'prices_canonical'}
+        fs={ex.submit(fetch_stablecoins,context):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding,context):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios',ex.submit(fetch_cryptoquant):'cryptoquant',ex.submit(fetch_fleet):'fleet',ex.submit(fetch_prices_canon):'prices_canonical'}
 
 
 

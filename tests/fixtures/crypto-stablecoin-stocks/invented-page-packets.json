@@ -1,0 +1,3405 @@
+{
+  "normal": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "reported_identity",
+        "id": "0",
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/1",
+        "status": "reported_identity",
+        "id": "1",
+        "name": "Invented 1",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/2",
+        "status": "reported_identity",
+        "id": "2",
+        "name": "Invented 2",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/3",
+        "status": "reported_identity",
+        "id": "3",
+        "name": "Invented 3",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/4",
+        "status": "reported_identity",
+        "id": "4",
+        "name": "Invented 4",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/5",
+        "status": "reported_identity",
+        "id": "5",
+        "name": "Invented 5",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/6",
+        "status": "reported_identity",
+        "id": "6",
+        "name": "Invented 6",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/7",
+        "status": "reported_identity",
+        "id": "7",
+        "name": "Invented 7",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/8",
+        "status": "reported_identity",
+        "id": "8",
+        "name": "Invented 8",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/9",
+        "status": "reported_identity",
+        "id": "9",
+        "name": "Invented 9",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/10",
+        "status": "reported_identity",
+        "id": "10",
+        "name": "Invented 10",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/11",
+        "status": "reported_identity",
+        "id": "11",
+        "name": "Invented 11",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/12",
+        "status": "reported_identity",
+        "id": "12",
+        "name": "Invented 12",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/13",
+        "status": "reported_identity",
+        "id": "13",
+        "name": "Invented 13",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/14",
+        "status": "reported_identity",
+        "id": "14",
+        "name": "Invented 14",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/15",
+        "status": "reported_identity",
+        "id": "15",
+        "name": "Invented 15",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/16",
+        "status": "reported_identity",
+        "id": "16",
+        "name": "Invented 16",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/17",
+        "status": "reported_identity",
+        "id": "17",
+        "name": "Invented 17",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/18",
+        "status": "reported_identity",
+        "id": "18",
+        "name": "Invented 18",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/19",
+        "status": "reported_identity",
+        "id": "19",
+        "name": "Invented 19",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/20",
+        "status": "reported_identity",
+        "id": "20",
+        "name": "Invented 20",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/21",
+        "status": "reported_identity",
+        "id": "21",
+        "name": "Invented 21",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/22",
+        "status": "reported_identity",
+        "id": "22",
+        "name": "Invented 22",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/23",
+        "status": "reported_identity",
+        "id": "23",
+        "name": "Invented 23",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/24",
+        "status": "reported_identity",
+        "id": "24",
+        "name": "Invented 24",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/25",
+        "status": "reported_identity",
+        "id": "25",
+        "name": "Invented 25",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/26",
+        "status": "reported_identity",
+        "id": "26",
+        "name": "Invented 26",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/27",
+        "status": "reported_identity",
+        "id": "27",
+        "name": "Invented 27",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/28",
+        "status": "reported_identity",
+        "id": "28",
+        "name": "Invented 28",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      },
+      {
+        "source_row": "/peggedAssets/29",
+        "status": "reported_identity",
+        "id": "29",
+        "name": "Invented 29",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 5.0,
+            "value_decimal": "5",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "5",
+            "percent_decimal": "100",
+            "percent_numerator_usd_decimal": "5",
+            "percent_denominator_usd_decimal": "5",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEiLCAibmFtZSI6ICJJbnZlbnRlZCAxIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMiIsICJuYW1lIjogIkludmVudGVkIDIiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIzIiwgIm5hbWUiOiAiSW52ZW50ZWQgMyIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjQiLCAibmFtZSI6ICJJbnZlbnRlZCA0IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiNSIsICJuYW1lIjogIkludmVudGVkIDUiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICI2IiwgIm5hbWUiOiAiSW52ZW50ZWQgNiIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjciLCAibmFtZSI6ICJJbnZlbnRlZCA3IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiOCIsICJuYW1lIjogIkludmVudGVkIDgiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICI5IiwgIm5hbWUiOiAiSW52ZW50ZWQgOSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMTAiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxMSIsICJuYW1lIjogIkludmVudGVkIDExIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTIiLCAibmFtZSI6ICJJbnZlbnRlZCAxMiIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEzIiwgIm5hbWUiOiAiSW52ZW50ZWQgMTMiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxNCIsICJuYW1lIjogIkludmVudGVkIDE0IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTUiLCAibmFtZSI6ICJJbnZlbnRlZCAxNSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjE2IiwgIm5hbWUiOiAiSW52ZW50ZWQgMTYiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxNyIsICJuYW1lIjogIkludmVudGVkIDE3IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTgiLCAibmFtZSI6ICJJbnZlbnRlZCAxOCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjE5IiwgIm5hbWUiOiAiSW52ZW50ZWQgMTkiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyMCIsICJuYW1lIjogIkludmVudGVkIDIwIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjEiLCAibmFtZSI6ICJJbnZlbnRlZCAyMSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjIyIiwgIm5hbWUiOiAiSW52ZW50ZWQgMjIiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyMyIsICJuYW1lIjogIkludmVudGVkIDIzIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjQiLCAibmFtZSI6ICJJbnZlbnRlZCAyNCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjI1IiwgIm5hbWUiOiAiSW52ZW50ZWQgMjUiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyNiIsICJuYW1lIjogIkludmVudGVkIDI2IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjciLCAibmFtZSI6ICJJbnZlbnRlZCAyNyIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjI4IiwgIm5hbWUiOiAiSW52ZW50ZWQgMjgiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyOSIsICJuYW1lIjogIkludmVudGVkIDI5IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX1dfQ==",
+    "original_response_bytes": 4078,
+    "original_response_sha256": "89de3c3cf47d0dc8f918fe44566827a2daf0d4d11985b87d86f33dce34b0a2da",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 30,
+    "identified_rows": 30,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEiLCAibmFtZSI6ICJJbnZlbnRlZCAxIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMiIsICJuYW1lIjogIkludmVudGVkIDIiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIzIiwgIm5hbWUiOiAiSW52ZW50ZWQgMyIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjQiLCAibmFtZSI6ICJJbnZlbnRlZCA0IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiNSIsICJuYW1lIjogIkludmVudGVkIDUiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICI2IiwgIm5hbWUiOiAiSW52ZW50ZWQgNiIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjciLCAibmFtZSI6ICJJbnZlbnRlZCA3IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiOCIsICJuYW1lIjogIkludmVudGVkIDgiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICI5IiwgIm5hbWUiOiAiSW52ZW50ZWQgOSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMTAiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxMSIsICJuYW1lIjogIkludmVudGVkIDExIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTIiLCAibmFtZSI6ICJJbnZlbnRlZCAxMiIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjEzIiwgIm5hbWUiOiAiSW52ZW50ZWQgMTMiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxNCIsICJuYW1lIjogIkludmVudGVkIDE0IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTUiLCAibmFtZSI6ICJJbnZlbnRlZCAxNSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjE2IiwgIm5hbWUiOiAiSW52ZW50ZWQgMTYiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIxNyIsICJuYW1lIjogIkludmVudGVkIDE3IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMTgiLCAibmFtZSI6ICJJbnZlbnRlZCAxOCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjE5IiwgIm5hbWUiOiAiSW52ZW50ZWQgMTkiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyMCIsICJuYW1lIjogIkludmVudGVkIDIwIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjEiLCAibmFtZSI6ICJJbnZlbnRlZCAyMSIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjIyIiwgIm5hbWUiOiAiSW52ZW50ZWQgMjIiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyMyIsICJuYW1lIjogIkludmVudGVkIDIzIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjQiLCAibmFtZSI6ICJJbnZlbnRlZCAyNCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjI1IiwgIm5hbWUiOiAiSW52ZW50ZWQgMjUiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyNiIsICJuYW1lIjogIkludmVudGVkIDI2IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX0sIHsiaWQiOiAiMjciLCAibmFtZSI6ICJJbnZlbnRlZCAyNyIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMTB9LCAiY2lyY3VsYXRpbmdQcmV2V2VlayI6IHsicGVnZ2VkVVNEIjogNX19LCB7ImlkIjogIjI4IiwgIm5hbWUiOiAiSW52ZW50ZWQgMjgiLCAicGVnVHlwZSI6ICJwZWdnZWRVU0QiLCAiY2lyY3VsYXRpbmciOiB7InBlZ2dlZFVTRCI6IDEwfSwgImNpcmN1bGF0aW5nUHJldldlZWsiOiB7InBlZ2dlZFVTRCI6IDV9fSwgeyJpZCI6ICIyOSIsICJuYW1lIjogIkludmVudGVkIDI5IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAxMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiA1fX1dfQ==",
+      "received_bytes": 4078,
+      "received_sha256": "89de3c3cf47d0dc8f918fe44566827a2daf0d4d11985b87d86f33dce34b0a2da"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "zero": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "reported_identity",
+        "id": "0",
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 0.0,
+            "value_decimal": "0",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 10.0,
+            "value_decimal": "10",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "-10",
+            "percent_decimal": "-100",
+            "percent_numerator_usd_decimal": "-10",
+            "percent_denominator_usd_decimal": "10",
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "reported_snapshot_arithmetic_only"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiAxMH19XX0=",
+    "original_response_bytes": 152,
+    "original_response_sha256": "208cfbd808f5121b72c6f1c0f6e600726cca84c77eae5cd569d1b1029d83a87a",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 1,
+    "identified_rows": 1,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMH0sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiAxMH19XX0=",
+      "received_bytes": 152,
+      "received_sha256": "208cfbd808f5121b72c6f1c0f6e600726cca84c77eae5cd569d1b1029d83a87a"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "missing": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "reported_identity",
+        "id": "0",
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogbnVsbH19XX0=",
+    "original_response_bytes": 113,
+    "original_response_sha256": "b112c6132529f2c0efc442cd0d478058c92164a4447a9c3251a618137dd0f912",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 1,
+    "identified_rows": 1,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogbnVsbH19XX0=",
+      "received_bytes": 113,
+      "received_sha256": "b112c6132529f2c0efc442cd0d478058c92164a4447a9c3251a618137dd0f912"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "zero_prior": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "reported_identity",
+        "id": "0",
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 3.0,
+            "value_decimal": "3",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "reported",
+            "value": 0.0,
+            "value_decimal": "0",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": "3",
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "zero_comparison_denominator"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogM30sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+    "original_response_bytes": 151,
+    "original_response_sha256": "4b83f8c68924a85c4df04d3c0459ed84285b7e64118703d392cfe6c06250312c",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 1,
+    "identified_rows": 1,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogM30sICJjaXJjdWxhdGluZ1ByZXZXZWVrIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+      "received_bytes": 151,
+      "received_sha256": "4b83f8c68924a85c4df04d3c0459ed84285b7e64118703d392cfe6c06250312c"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "injection": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "reported_identity",
+        "id": "1",
+        "name": "<img src=\"https://fixture.invalid/x\" onerror=\"window.injected=true\">",
+        "symbol": null,
+        "peg_type": "peggedUSD",
+        "snapshots": {
+          "current": {
+            "status": "reported",
+            "value": 0.0,
+            "value_decimal": "0",
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulating/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_day": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevDay/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_week": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevWeek/peggedUSD",
+            "observation_at": null
+          },
+          "reported_previous_month": {
+            "status": "unavailable",
+            "value": null,
+            "value_decimal": null,
+            "unit": "provider_current_price_valued_circulating_stock_usd",
+            "source_field": "circulatingPrevMonth/peggedUSD",
+            "observation_at": null
+          }
+        },
+        "comparisons": {
+          "reported_previous_day": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_week": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          },
+          "reported_previous_month": {
+            "difference_usd_decimal": null,
+            "percent_decimal": null,
+            "percent_numerator_usd_decimal": null,
+            "percent_denominator_usd_decimal": null,
+            "percent_scale": 100,
+            "percent_precision_digits": 34,
+            "percent_rounding": "ROUND_HALF_EVEN",
+            "period_dates_verified": false,
+            "cash_flow_verified": false,
+            "reason": "missing_reported_quantity"
+          }
+        },
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0,
+        "provider_flags": {
+          "delisted": null,
+          "deprecated": null,
+          "yieldBearing": null
+        }
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIxIiwgIm5hbWUiOiAiPGltZyBzcmM9XCJodHRwczovL2ZpeHR1cmUuaW52YWxpZC94XCIgb25lcnJvcj1cIndpbmRvdy5pbmplY3RlZD10cnVlXCI+IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+    "original_response_bytes": 172,
+    "original_response_sha256": "e64fa5226998ac725859870f4d33149b160ff7bcccedbc9e4486a308d0cc253a",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 1,
+    "identified_rows": 1,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIxIiwgIm5hbWUiOiAiPGltZyBzcmM9XCJodHRwczovL2ZpeHR1cmUuaW52YWxpZC94XCIgb25lcnJvcj1cIndpbmRvdy5pbmplY3RlZD10cnVlXCI+IiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+      "received_bytes": 172,
+      "received_sha256": "e64fa5226998ac725859870f4d33149b160ff7bcccedbc9e4486a308d0cc253a"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "empty_population": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbXX0=",
+    "original_response_bytes": 20,
+    "original_response_sha256": "fe17820a73b984e824d8c173ed2eaf740ea642455cac4a788c35d55a477fcf5e",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 0,
+    "identified_rows": 0,
+    "unresolved_rows": 0,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbXX0=",
+      "received_bytes": 20,
+      "received_sha256": "fe17820a73b984e824d8c173ed2eaf740ea642455cac4a788c35d55a477fcf5e"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "duplicate": {
+    "contract": "crypto-reported-stablecoin-stock.v1",
+    "status": "descriptive",
+    "stablecoins": [
+      {
+        "source_row": "/peggedAssets/0",
+        "status": "unresolved_identity",
+        "id": null,
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": null,
+        "snapshots": {},
+        "comparisons": {},
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0
+      },
+      {
+        "source_row": "/peggedAssets/1",
+        "status": "unresolved_identity",
+        "id": null,
+        "name": "Invented 0",
+        "symbol": null,
+        "peg_type": null,
+        "snapshots": {},
+        "comparisons": {},
+        "calls_eligible": false,
+        "sizing_eligible": false,
+        "execution_eligible": false,
+        "forecast_qualified": false,
+        "independent_investment_votes": 0
+      }
+    ],
+    "original_response_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMH19LCB7ImlkIjogIjAiLCAibmFtZSI6ICJJbnZlbnRlZCAwIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+    "original_response_bytes": 202,
+    "original_response_sha256": "d2a51937fd385470e53b98e291518f1d7a08dd29ea699443104d1acd6f76b1a2",
+    "total_mcap": null,
+    "total_mcap_fmt": null,
+    "minting_count": null,
+    "burning_count": null,
+    "stable_count": null,
+    "net_signal": "UNAVAILABLE",
+    "reported_rows": 2,
+    "identified_rows": 0,
+    "unresolved_rows": 2,
+    "source_observation_clocks_available": false,
+    "observation_freshness_verified": false,
+    "population_comparability_verified": false,
+    "cash_flow_verified": false,
+    "note": "Reported current-price-valued stocks and comparison snapshots; not mint/burn transactions, cash flows or dated historical market values.",
+    "calls_eligible": false,
+    "sizing_eligible": false,
+    "execution_eligible": false,
+    "forecast_qualified": false,
+    "independent_investment_votes": 0,
+    "reason": "all_returned_rows_retained_without_global_flow_or_mint_burn_inference",
+    "source_attempt": {
+      "request_url": "https://stablecoins.llama.fi/stablecoins?includePrices=true",
+      "acquisition_started_at": "2020-01-01T00:00:00+00:00",
+      "acquisition_completed_at": "2020-01-01T00:00:00+00:00",
+      "http_status": 200,
+      "response_complete": true,
+      "declared_content_length": null,
+      "final_url_matches_request": true,
+      "transport_error": null,
+      "received_base64": "eyJwZWdnZWRBc3NldHMiOiBbeyJpZCI6ICIwIiwgIm5hbWUiOiAiSW52ZW50ZWQgMCIsICJwZWdUeXBlIjogInBlZ2dlZFVTRCIsICJjaXJjdWxhdGluZyI6IHsicGVnZ2VkVVNEIjogMH19LCB7ImlkIjogIjAiLCAibmFtZSI6ICJJbnZlbnRlZCAwIiwgInBlZ1R5cGUiOiAicGVnZ2VkVVNEIiwgImNpcmN1bGF0aW5nIjogeyJwZWdnZWRVU0QiOiAwfX1dfQ==",
+      "received_bytes": 202,
+      "received_sha256": "d2a51937fd385470e53b98e291518f1d7a08dd29ea699443104d1acd6f76b1a2"
+    },
+    "source_authenticity_verified": false,
+    "point_in_time_qualified": false
+  },
+  "unavailable": {},
+  "legacy": {
+    "minting_count": 9,
+    "net_signal": "INFLOW",
+    "total_mcap_fmt": "$99T"
+  }
+}

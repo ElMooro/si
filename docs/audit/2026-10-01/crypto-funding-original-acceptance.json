@@ -1,6 +1,6 @@
 {
   "stage": 539,
-  "status": "candidate_read_only_acceptance_not_dispatched",
+  "status": "complete_stored_original_replayed_and_public_bytes_checked",
   "expected_deploy_commit": "fb02a5a5030099353b27fcc90aa5ac52119284a0",
   "source_hashes": {
     "aws/ops/checks/crypto_funding_archive_acceptance.py": "8d22664cc95aabe37fb1056bc22b3e4137106dcb1194dd56dfdbafed91bb95ac",
@@ -13,5 +13,383 @@
   "source_qualified": false,
   "normal_current_publication_verified": false,
   "investment_authority": false,
-  "scope": "Complete public original-run inventories and source/whole-compiler replay only; no current head, private/account packet, provider request, producer invocation, schedule change or native write."
+  "scope": "Complete public original-run inventories and source/whole-compiler replay only; no current head, private/account packet, provider request, producer invocation, schedule change or native write.",
+  "native_acceptance": {
+    "status": "complete_funding_original_replayed",
+    "expected_commit": "fb02a5a5030099353b27fcc90aa5ac52119284a0",
+    "release_receipt_sha256": "27752eb9f02dbafeb12d73223b11ed765328ffd52df9187557cefb2b31c855ab",
+    "reviewed_source_hashes": {
+      "aws/ops/checks/crypto_funding_archive_acceptance.py": "8d22664cc95aabe37fb1056bc22b3e4137106dcb1194dd56dfdbafed91bb95ac",
+      "aws/ops/checks/term_premium_archive_acceptance.py": "a0acbd2c24034268d4aa838485b030f3b984b3b60facbc49557f3864249d92a0",
+      "aws/shared/crypto_funding_archive.py": "aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53",
+      "aws/shared/crypto_funding_observations.py": "7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc",
+      "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py": "3af28baf464bbcf1a151841caa1b54099a375c87ee817d70dfcbdc7490c1f3d5"
+    },
+    "original_archive": {
+      "status": "complete_funding_original_replayed",
+      "replayed": true,
+      "cutoff": "2026-10-02T00:10:23Z",
+      "checked_at": "2026-10-02T00:38:42.518009+00:00",
+      "manifests": [
+        {
+          "reference": {
+            "key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+            "bytes": 1080,
+            "sha256": "1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141"
+          },
+          "acquisition_started_at": "2026-10-02T00:12:22.106558+00:00",
+          "acquisition_completed_at": "2026-10-02T00:12:24.637817+00:00",
+          "stored_at": "2026-10-02T00:12:25+00:00",
+          "storage_clock_resolution_seconds": 1,
+          "matching_local_compilers": true
+        },
+        {
+          "reference": {
+            "key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+            "bytes": 1080,
+            "sha256": "36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e"
+          },
+          "acquisition_started_at": "2026-10-02T00:15:29.696372+00:00",
+          "acquisition_completed_at": "2026-10-02T00:15:32.206150+00:00",
+          "stored_at": "2026-10-02T00:15:33+00:00",
+          "storage_clock_resolution_seconds": 1,
+          "matching_local_compilers": true
+        },
+        {
+          "reference": {
+            "key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+            "bytes": 1080,
+            "sha256": "513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8"
+          },
+          "acquisition_started_at": "2026-10-02T00:27:22.424620+00:00",
+          "acquisition_completed_at": "2026-10-02T00:27:24.927099+00:00",
+          "stored_at": "2026-10-02T00:27:26+00:00",
+          "storage_clock_resolution_seconds": 1,
+          "matching_local_compilers": true
+        }
+      ],
+      "current_head_read": false,
+      "current_head_publication_verified": false,
+      "source_qualified": false,
+      "point_in_time_qualified": false,
+      "schedule_causation_verified": false,
+      "investment_authority": false,
+      "selected_manifest": {
+        "key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+        "bytes": 1080,
+        "sha256": "513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8"
+      },
+      "acquisition_started_at": "2026-10-02T00:27:22.424620+00:00",
+      "acquisition_completed_at": "2026-10-02T00:27:24.927099+00:00",
+      "retained_attempts": 10,
+      "complete_responses": 10,
+      "observed_instruments": 10,
+      "unavailable_instruments": 0,
+      "selected_provider": "okx",
+      "complete_replayed_packet_sha256": "f39590b301d1b042e3b7e580156c48534c515563d77f6785e39eb3ddcf560675",
+      "recovery_scope": "Retained source computation only; not current publication, authenticity, freshness, schedule causation or investment qualification.",
+      "inventory_before": {
+        "pages": [
+          {
+            "ResponseMetadata": {
+              "RequestId": "6BC2C20D6Y0W2Y4Y",
+              "HostId": "cdwm65P9NYt296ZsozhJ5ng6FygVvtIq5ld7+4OPOpFh8uiSGx+bmfcakt+OtEHpZlruD0YXIY8HHxKW2nKPVrpIPCCq/Tkt",
+              "HTTPStatusCode": 200,
+              "HTTPHeaders": {
+                "x-amz-id-2": "cdwm65P9NYt296ZsozhJ5ng6FygVvtIq5ld7+4OPOpFh8uiSGx+bmfcakt+OtEHpZlruD0YXIY8HHxKW2nKPVrpIPCCq/Tkt",
+                "x-amz-request-id": "6BC2C20D6Y0W2Y4Y",
+                "server": "AmazonS3",
+                "date": "Fri, 02 Oct 2026 00:38:43 GMT",
+                "x-amz-bucket-region": "us-east-1",
+                "content-type": "application/xml",
+                "transfer-encoding": "chunked"
+              },
+              "RetryAttempts": 0
+            },
+            "IsTruncated": false,
+            "Contents": [
+              {
+                "Key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+                "LastModified": "2026-10-02T00:12:25+00:00",
+                "ETag": "\"f819a608a5d6e991b395eda07a77d8a6\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+                "LastModified": "2026-10-02T00:15:33+00:00",
+                "ETag": "\"aa96ce166d26b6ed9df7b5cd09e99213\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+                "LastModified": "2026-10-02T00:27:26+00:00",
+                "ETag": "\"10ba0600a6bc253f9d851adde4c525ae\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              }
+            ],
+            "Name": "justhodl-dashboard-live",
+            "Prefix": "data/crypto-funding-research/runs/",
+            "MaxKeys": 1000,
+            "EncodingType": "url",
+            "KeyCount": 3
+          }
+        ],
+        "entries": [
+          {
+            "Key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+            "LastModified": "2026-10-02T00:12:25+00:00",
+            "ETag": "\"f819a608a5d6e991b395eda07a77d8a6\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          },
+          {
+            "Key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+            "LastModified": "2026-10-02T00:15:33+00:00",
+            "ETag": "\"aa96ce166d26b6ed9df7b5cd09e99213\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          },
+          {
+            "Key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+            "LastModified": "2026-10-02T00:27:26+00:00",
+            "ETag": "\"10ba0600a6bc253f9d851adde4c525ae\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          }
+        ]
+      },
+      "inventory_after": {
+        "pages": [
+          {
+            "ResponseMetadata": {
+              "RequestId": "6BC2JBAWF1SBPVV3",
+              "HostId": "fi9J+RiPEto4KOVxUg+50QumuodDUFy3sF1AXzkZtCLMTXXkP40x61Wz4H2vQ7N76p5MoyiVYySd99fkUGb367hBbbahpYFy",
+              "HTTPStatusCode": 200,
+              "HTTPHeaders": {
+                "x-amz-id-2": "fi9J+RiPEto4KOVxUg+50QumuodDUFy3sF1AXzkZtCLMTXXkP40x61Wz4H2vQ7N76p5MoyiVYySd99fkUGb367hBbbahpYFy",
+                "x-amz-request-id": "6BC2JBAWF1SBPVV3",
+                "server": "AmazonS3",
+                "date": "Fri, 02 Oct 2026 00:38:43 GMT",
+                "x-amz-bucket-region": "us-east-1",
+                "content-type": "application/xml",
+                "transfer-encoding": "chunked"
+              },
+              "RetryAttempts": 0
+            },
+            "IsTruncated": false,
+            "Contents": [
+              {
+                "Key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+                "LastModified": "2026-10-02T00:12:25+00:00",
+                "ETag": "\"f819a608a5d6e991b395eda07a77d8a6\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+                "LastModified": "2026-10-02T00:15:33+00:00",
+                "ETag": "\"aa96ce166d26b6ed9df7b5cd09e99213\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              },
+              {
+                "Key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+                "LastModified": "2026-10-02T00:27:26+00:00",
+                "ETag": "\"10ba0600a6bc253f9d851adde4c525ae\"",
+                "ChecksumAlgorithm": [
+                  "CRC32"
+                ],
+                "ChecksumType": "FULL_OBJECT",
+                "Size": 1080,
+                "StorageClass": "STANDARD"
+              }
+            ],
+            "Name": "justhodl-dashboard-live",
+            "Prefix": "data/crypto-funding-research/runs/",
+            "MaxKeys": 1000,
+            "EncodingType": "url",
+            "KeyCount": 3
+          }
+        ],
+        "entries": [
+          {
+            "Key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+            "LastModified": "2026-10-02T00:12:25+00:00",
+            "ETag": "\"f819a608a5d6e991b395eda07a77d8a6\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          },
+          {
+            "Key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+            "LastModified": "2026-10-02T00:15:33+00:00",
+            "ETag": "\"aa96ce166d26b6ed9df7b5cd09e99213\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          },
+          {
+            "Key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+            "LastModified": "2026-10-02T00:27:26+00:00",
+            "ETag": "\"10ba0600a6bc253f9d851adde4c525ae\"",
+            "ChecksumAlgorithm": [
+              "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1080,
+            "StorageClass": "STANDARD"
+          }
+        ]
+      },
+      "complete_artifacts_read": [
+        {
+          "key": "data/crypto-funding-research/captures/f39590b301d1b042e3b7e580156c48534c515563d77f6785e39eb3ddcf560675.json",
+          "bytes": 33209,
+          "sha256": "f39590b301d1b042e3b7e580156c48534c515563d77f6785e39eb3ddcf560675",
+          "stored_at": "2026-10-02T00:27:26+00:00"
+        },
+        {
+          "key": "data/crypto-funding-research/compilers/7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc.py",
+          "bytes": 15119,
+          "sha256": "7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc",
+          "stored_at": "2026-10-02T00:12:25+00:00"
+        },
+        {
+          "key": "data/crypto-funding-research/compilers/aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53.py",
+          "bytes": 17582,
+          "sha256": "aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53",
+          "stored_at": "2026-10-02T00:12:25+00:00"
+        },
+        {
+          "key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+          "bytes": 1080,
+          "sha256": "1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141",
+          "stored_at": "2026-10-02T00:12:25+00:00"
+        },
+        {
+          "key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+          "bytes": 1080,
+          "sha256": "36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e",
+          "stored_at": "2026-10-02T00:15:33+00:00"
+        },
+        {
+          "key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+          "bytes": 1080,
+          "sha256": "513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8",
+          "stored_at": "2026-10-02T00:27:26+00:00"
+        }
+      ]
+    },
+    "provider_requests": 0,
+    "native_invocations": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "normal_current_publication_verified": false,
+    "investment_authority": false,
+    "run_id": 36946987903,
+    "operation_commit": "223e0548ed2fea77487f16a3d69385cba4514b19",
+    "report_commit": "242e84b1f4da271006ccde925e6bbaca6ac30c41",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6439_crypto_funding_original_replay.md",
+      "bytes": 10586,
+      "sha256": "104f6dc610ca3ffc4473959c71dde0ca1917bb9cb8b51b5cab1cc7bceae97aee"
+    }
+  },
+  "public_original_acceptance": {
+    "source_commit": "fb02a5a5030099353b27fcc90aa5ac52119284a0",
+    "native_run": 36946987903,
+    "public_originals": [
+      {
+        "key": "data/crypto-funding-research/captures/f39590b301d1b042e3b7e580156c48534c515563d77f6785e39eb3ddcf560675.json",
+        "match": true,
+        "http_status": 200,
+        "bytes": 33209,
+        "sha256": "f39590b301d1b042e3b7e580156c48534c515563d77f6785e39eb3ddcf560675"
+      },
+      {
+        "key": "data/crypto-funding-research/compilers/7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc.py",
+        "match": true,
+        "http_status": 200,
+        "bytes": 15119,
+        "sha256": "7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc"
+      },
+      {
+        "key": "data/crypto-funding-research/compilers/aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53.py",
+        "match": true,
+        "http_status": 200,
+        "bytes": 17582,
+        "sha256": "aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53"
+      },
+      {
+        "key": "data/crypto-funding-research/runs/1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141.json",
+        "match": true,
+        "http_status": 200,
+        "bytes": 1080,
+        "sha256": "1a91550bdbd16eda730c04edf72b554480d64842ef5a202044f4944a42a36141"
+      },
+      {
+        "key": "data/crypto-funding-research/runs/36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e.json",
+        "match": true,
+        "http_status": 200,
+        "bytes": 1080,
+        "sha256": "36f6f96cbd0b3002f66f9a50b7caa26b44c3ae50023aa01a2389d579efc8057e"
+      },
+      {
+        "key": "data/crypto-funding-research/runs/513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8.json",
+        "match": true,
+        "http_status": 200,
+        "bytes": 1080,
+        "sha256": "513600e242ebb867677fe5a51b4eafa64303753e6469bab6d6c6c22b2b26a4a8"
+      }
+    ],
+    "all_match": true,
+    "normal_current_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false
+  }
 }
