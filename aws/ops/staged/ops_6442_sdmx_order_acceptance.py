@@ -112,12 +112,16 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
         actual = archive.read('lambda_function.py')
         require(actual in (before, expected), 'live_handler_not_reviewed')
     phase = 'predecessor' if actual == before else 'candidate'
+    ephemeral = live.get('EphemeralStorage', {}).get('Size')
+    require(type(ephemeral) is int and 512 <= ephemeral <= 10240, 'live_ephemeral_invalid')
     controls = {
         'runtime_matches': live.get('Runtime') == cfg['runtime'],
         'handler_matches': live.get('Handler') == cfg['handler'],
         'memory_matches': live.get('MemorySize') == cfg['memory'],
         'timeout_matches': live.get('Timeout') == cfg['timeout'],
-        'ephemeral_matches': live.get('EphemeralStorage', {}).get('Size') == cfg['ephemeral_mb'],
+        # The release lane applies only canonical ephemeral_storage. Legacy
+        # ephemeral_mb metadata must not cause a configuration correction.
+        'ephemeral_matches_managed_configuration': 'ephemeral_storage' not in cfg or ephemeral == cfg['ephemeral_storage'],
         'role_matches': live.get('Role') == cfg['role'],
         'declared_environment_matches': not (live.get('Environment') or {}).get('Error')
             and all((live.get('Environment') or {}).get('Variables', {}).get(k) == v for k, v in cfg['env'].items()),
@@ -128,7 +132,7 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
     require(all(controls.values()), 'release_control_mismatch:' + ','.join(k for k, v in controls.items() if not v))
     concurrency = reader.read(lam.get_function_concurrency, FunctionName=FUNCTION).get('ReservedConcurrentExecutions')
     operating = {'configuration_matches': controls, 'reserved_concurrency': concurrency,
-                 'architectures': live.get('Architectures'), 'bindings': {}}
+                 'architectures': live.get('Architectures'), 'ephemeral_storage_mb': ephemeral, 'bindings': {}}
     for name in CLASSIC:
         rule = reader.read(events.describe_rule, Name=name)
         targets = reader.read(events.list_targets_by_rule, Rule=name, Limit=100)
