@@ -1,0 +1,177 @@
+{
+  "source_base": "0b1c382b537a420289bb4db0ad586d8e8c6f9af8",
+  "functions": {
+    "justhodl-accumulation-radar": {
+      "aws/lambdas/justhodl-accumulation-radar/source/lambda_function.py": "777a11885963514cdad0632a7b5a9e9dbe05d6c98345533acc99d9ecafc8df61",
+      "aws/shared/extremes_research.py": "691cba0c160992d51c30aeaef15640fa78ac499b95171cc8e4de4683993de864",
+      "aws/shared/impact_mapper.py": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/offexchange_context.py": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3",
+      "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-ai": {
+      "aws/lambdas/justhodl-ai/source/brain_dataset.py": "9ddee60278b4ed8f9919f5ab2db76e37fc540efc024d6ffeaf2d05380dc34069",
+      "aws/lambdas/justhodl-ai/source/cost_guard.py": "2a1f7642b51492f5b1522d6d08160500e524bb85ad8636e66fbd6ce67519c77a",
+      "aws/lambdas/justhodl-ai/source/deployment_gates.py": "8889a4ddf624cd8656f0fd7c9cfdb7323df028aa664a41b4e59b14f7672a1f50",
+      "aws/lambdas/justhodl-ai/source/doctrine_families.py": "9f3fc268c3df5d081db8b2662ecb86c643601d6c54584542a00b6c4c9ad44fd7",
+      "aws/lambdas/justhodl-ai/source/factory_gateway.py": "64ab1a2c02f8b550ee65311363ef72b63ebf0da61697e406f7a1c18b5fa08e01",
+      "aws/lambdas/justhodl-ai/source/factory_inference.py": "732d4596d85e8c5081a13ed00b996cc464aa8055966e61bb5d7bec13c00149d6",
+      "aws/lambdas/justhodl-ai/source/factory_status.py": "e9f7b48b2dfdb9d93ec3f3c0ecb25483c870525b58f603b2e62ffcdcbf5ae3e2",
+      "aws/lambdas/justhodl-ai/source/fleet_inputs.py": "c52fd382f21e99ca2f86dd4d064b1a0e6019f13b1028efb8d051b24c613db16a",
+      "aws/lambdas/justhodl-ai/source/gear_b.py": "63a3a472395d466c4248b7958e721beb291f52b20e5a2ac42bbcb2e4a22b4af8",
+      "aws/lambdas/justhodl-ai/source/gear_b_doctrine.py": "6f666ef2f96c38823ee352c5f2daa164aece9529c7b28ea8e81ce19bc2aec86f",
+      "aws/lambdas/justhodl-ai/source/gear_b_own.py": "3e979cc662e051f1ce62a97e61d6405d0f4126cdd7ef2473c2ab3e5757bf2d7b",
+      "aws/lambdas/justhodl-ai/source/governance_control.py": "fcda09977edea2ede24c69815f75c539d7cb6dced1ff5495ff40ec8235abf9e0",
+      "aws/lambdas/justhodl-ai/source/lambda_function.py": "8fdf9312347d67611f7225b6a86608c0549dfbb330164ba6d8c466dea3281956",
+      "aws/lambdas/justhodl-ai/source/market_read.py": "1fdd770b7a0a2d4f13abcc0caa04f5ea479fee1171d5567dc0e6e8421f7c1ca6",
+      "aws/lambdas/justhodl-ai/source/model_governance_consumer.py": "40a4ce082156d6420ae8538ecb0bf7a9e0132bf35b5462145f54a33ebb5a61b9",
+      "aws/lambdas/justhodl-ai/source/model_registry.py": "b9d097ea3a06b526fb329e37fea8a3667ea1b935c86e4fed096873942d6730c2",
+      "aws/lambdas/justhodl-ai/source/outcome_labels.py": "fa20205bc37ccc5e104ed9baeff609179f55bacd28bbca851cbe135c756e11a9",
+      "aws/lambdas/justhodl-ai/source/pipeline.py": "88865acf981af0809599d803ecf74f97d99d852265e5b040d4c219087360c91c",
+      "aws/lambdas/justhodl-ai/source/point_in_time.py": "c23301f8e7d64d8f9113b03deff2e9e6c609d03468c9bf8639fa50c69a71931c",
+      "aws/lambdas/justhodl-ai/source/prediction_ledger.py": "348c5fe8ffc65d61b84e307d8b5745913fa72d757e6ce24651fa93bd742813bf",
+      "aws/lambdas/justhodl-ai/source/prediction_ledger_consumer.py": "d031536979429b0833d658f1894025d5b979fb8f0c22ea0018f5ed98d5711a53",
+      "aws/lambdas/justhodl-ai/source/queue_consumer_runtime.py": "30a79dafdca043a0b152c7665b5af00e9e5c1d5c627234d2e92ee98f41f26194",
+      "aws/lambdas/justhodl-ai/source/s3_event_outbox.py": "5767ab4db779d9778b2323c4e9291b6aaba508029e0ed8884cde76575b0f9e6f",
+      "aws/lambdas/justhodl-ai/source/sagemaker_feature_store.py": "79c70f4b1c2789f31273f1393bf6b76a04384c3d0ba2f84bde99f7ba9b2d09e1",
+      "aws/lambdas/justhodl-ai/source/self_improve.py": "d7e58e5d6708bcfd3f237e60e5ba8a82fd1f6d4b3f87083c9fb5a86a581e6270",
+      "aws/lambdas/justhodl-ai/source/self_improve_ext.py": "301350dae656cfa3eddd5625219038403f131f8147c9db29de416656d172d5a2",
+      "aws/lambdas/justhodl-ai/source/signal_envelope.py": "f5052d75b7714fe6c7e69db2c6509a8077a0d7235bafb1f5ee5ab6bd2aae49d3",
+      "aws/lambdas/justhodl-ai/source/signal_feature_consumer.py": "56f5494013548872f7db328d609d4721c5726a0207790fea937c87055c651919",
+      "aws/lambdas/justhodl-ai/source/sm_hub.py": "415187dfa052fff325e2196d158a055b0d8b774cc329bacf234164b8d72c6620",
+      "aws/lambdas/justhodl-ai/source/training.py": "034f182a7d079ceec4f63190e7c666204e7a8da13289903826e6a7800a2343c6",
+      "aws/lambdas/justhodl-ai/source/training_eligibility.py": "5d5863a3efda87800d43815c69f5280b3821d6cfb3fdc31a2e78c4e277a6b11f",
+      "aws/lambdas/justhodl-ai/source/validation_splits.py": "1ec6e348b99ac552bba133bc90b7559559b381ac52a59a9643fa0c4a9dc88d3d",
+      "aws/lambdas/justhodl-ai/source/wall_post.py": "f2cddd718df3b5a9b122087ed32b6c5cf4341d5e7907c30b1fc2eb64bc696307",
+      "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+      "aws/shared/deterministic_desk.py": "ee386f30b29af630c4bc05d3b3bef9eb6746b88e36ca1a081b76e2fd53097f43",
+      "aws/shared/factory_core.py": "6d05d66b1d5743342e8d69d1a12c3a3423712c2669e10d638e6c4acc36577ed4",
+      "aws/shared/factory_discipline.py": "fcd6fcee4e8f389784050669f444758aaf950dafd6d52b4e94d5122d14f44808",
+      "aws/shared/factory_doctrine.py": "0788a2b80f2b65dd188f00b5748efb2d4622afa59aaaab05a89a88db36b6c485",
+      "aws/shared/factory_evidence.py": "5523d9a62db7feaf5b2b8681095ba85c8fa2871b0bfbdea7126e0d253f500ec7",
+      "aws/shared/factory_forecast.py": "5b7279caef8fad121571d524fb2ec3cb7246e9c3618ecc58bc97b0b073feb2db",
+      "aws/shared/factory_store.py": "c8bcfb23f73b3ca889d8db8ec8d0350cc4607b17a64ee5c402df90462eb5f9cd",
+      "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+      "aws/shared/llm_router.py": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+      "aws/shared/xai_voice.py": "14936b2dc7791c42241ac6adddab1e5d590c5cda202b84ef87e99691dcf9ef1a"
+    },
+    "justhodl-auction-tail": {
+      "aws/lambdas/justhodl-auction-tail/source/lambda_function.py": "71ca62f3f2b6235ac82278e4c70e7e65e099b13edeedfacebdeb01ba31c07901",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-best-setups": {
+      "aws/lambdas/justhodl-best-setups/source/lambda_function.py": "7083181b31fb9a1efe606b67e05982e52b374872ebc6b3bd0886fdf11740131c",
+      "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
+      "aws/shared/consume_brain.py": "5b5ebfe0c4c4a8678893a3755b12a6d508e8cf2bd89c218d6c8fde6d592fe6d3",
+      "aws/shared/fabric_numeric.py": "234cab8d8e6f083673e5f410ffa3691032689edae450f1d1d59f3717e0f2fd7c",
+      "aws/shared/holdings_authority.py": "b9790df87ed542396333cb75cfd4f7e6a185f733568e4886beb7753220d99355",
+      "aws/shared/holdings_derived_boundary.py": "1da007ba20f1ae67ac35729276fa0c43a486b80c0a09eff001ad25c08ac35240",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/massive_research_context.py": "8cfa803e6d6a53437c0e3d6549f2b75ebf7ff2ddafc570a4911082be37abdf8e",
+      "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+      "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+      "aws/shared/public_brain_projection.py": "ffeed8b27f259ac1cdf40bc06f1781dee430fac3d68f46689534fbcb259261b2",
+      "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+      "aws/shared/risk_gate_authority.py": "80c71a611e52480ff4c3e4043a2496b3b7a0e878315692da124dec42f90e2090",
+      "aws/shared/risk_regime_authority.py": "9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642",
+      "aws/shared/sec_ftd_context.py": "79ab547bea3b466cee58e68e61d2e682f5566a49adb2ecacecc07dc9dac2e3e4",
+      "aws/shared/sector_research.py": "b2131c339b2305fa4565467485266dbbf22fd495b7281461e460bf06c8b33123",
+      "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+      "aws/shared/wl_fusion.py": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764"
+    },
+    "justhodl-cannibals": {
+      "aws/lambdas/justhodl-cannibals/source/lambda_function.py": "3cb47d0f4222e787d045ee033356966849d1ab53ca06a049a9d439fd91ee9646",
+      "aws/shared/capital_structure_context.py": "9f50048d3a197d6231e6dda8709d52d588c47ba07c9bdd8ad669bad7d237fcec",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-congress-alpha": {
+      "aws/lambdas/justhodl-congress-alpha/source/lambda_function.py": "8fde02901f554178b318b4a715dd7acc0ec4bd3772ee6d5c857c2bf8f31b55e3",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-credit-composite": {
+      "aws/lambdas/justhodl-credit-composite/source/lambda_function.py": "8b5e8ccb8d8a02810c3c918084c0831d3ccd48cbf1c2fbdf57e1e7f7325f868b",
+      "aws/shared/credit_collection_clock.py": "3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1",
+      "aws/shared/credit_research.py": "aed603d204c8d69acd7cace826670df50f73c76623bdf123c6790982663ed81f",
+      "aws/shared/dealer_research_context.py": "96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-deal-scanner": {
+      "aws/lambdas/justhodl-deal-scanner/source/lambda_function.py": "bd2b6c12aad655423f71d89b291eba370eb5fccd736bd2cbbae1defff8c5d3f8",
+      "aws/shared/capital_structure_context.py": "9f50048d3a197d6231e6dda8709d52d588c47ba07c9bdd8ad669bad7d237fcec",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/sector_research.py": "b2131c339b2305fa4565467485266dbbf22fd495b7281461e460bf06c8b33123",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-distribution-composite": {
+      "aws/lambdas/justhodl-distribution-composite/source/lambda_function.py": "5cabda2ad95a5cde5e51be778ba804d375ffeb180c4238b0790ad41d27d4d807",
+      "aws/shared/evidence_weights.py": "378e35d6b524c25c8f461bc57b63c6898d1cd210c5e38b4f7ce0b80a5422a81b",
+      "aws/shared/impact_mapper.py": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e",
+      "aws/shared/offexchange_context.py": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3",
+      "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-equity-ftd": {
+      "aws/lambdas/justhodl-equity-ftd/source/lambda_function.py": "26e82b710575172e8e5e1a2e47a744b6673fb9f7756ef38272aaeb0aea833ba9",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-inverse-harvester": {
+      "aws/lambdas/justhodl-inverse-harvester/source/lambda_function.py": "a5cd9ca287cb08ff0906f041082db862cd41ba1485ab59725077f9ac5da6d0ec",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-jh-fusion": {
+      "aws/lambdas/justhodl-jh-fusion/source/.official-stats-pin": "f14b4987904bcb5814e4459a057ed4d20f58a633152288a761214dcd28780b56",
+      "aws/lambdas/justhodl-jh-fusion/source/engine-registry.v1.json": "b42d3702358716c2ba32dfe1f4c74614b125f6580415c1affccef953e042fa47",
+      "aws/lambdas/justhodl-jh-fusion/source/jh-fusion-flags.json": "821600e0e3abf3a3e0c23bca6acf7c56ece61ee276df29382332c3d6a9d5b1ca",
+      "aws/lambdas/justhodl-jh-fusion/source/jh-fusion-universe.json": "1bdbe0ceedecc233f0ffe234043965dc694dcfcd12a7e763292d379e4e68f2c5",
+      "aws/lambdas/justhodl-jh-fusion/source/lambda_function.py": "a7ee8512e2acd03310c25507340f62e4821e556bab8f34d92a161db1793c3e71",
+      "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+      "aws/shared/jh_fusion_core.py": "fc534a2558b2394f4f5e5c6407d136c0f5a52707fc1559919dfa9ae00d62c689",
+      "aws/shared/jh_registry.py": "b6cac8562b5a8b8da25dd1dec9571cedf59247bfa62fa023c366326ecaa14275",
+      "aws/shared/jh_state_store.py": "b4c75b654b5068b081b613922968ea47ac5a4d9fe6d560a32a5f0e99840138f0",
+      "aws/shared/jhsignal.py": "e48e797ee5da1e772b2d5ed1118c35779eebc657aa3073828c36ec11c63b6ca3",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+      "aws/shared/system_events.py": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a"
+    },
+    "justhodl-shadow-lab": {
+      "aws/lambdas/justhodl-shadow-lab/source/lambda_function.py": "bb45b96e726984d9c4e246bb2c4a93869d2b67d795cf8ef6e87934bac020d4ae",
+      "aws/lambdas/justhodl-shadow-lab/source/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-short-book": {
+      "aws/lambdas/justhodl-short-book/source/lambda_function.py": "3ef785c82b34af1716a22c1f11c9938034bb622ae09a07cf6374fbf1b3d2d194",
+      "aws/shared/capital_structure_context.py": "9f50048d3a197d6231e6dda8709d52d588c47ba07c9bdd8ad669bad7d237fcec",
+      "aws/shared/offexchange_context.py": "9990224a9e3f22c73820268a19fe17f1c866592fca3c7fb95868683163e434a3",
+      "aws/shared/sec_ftd_context.py": "79ab547bea3b466cee58e68e61d2e682f5566a49adb2ecacecc07dc9dac2e3e4",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+      "aws/shared/statement_context.py": "4e851b0c0a7f11b81c7407ca57fdfbef66ce6226240aad32a367d2f4cfefba22"
+    },
+    "justhodl-stealth-accumulation": {
+      "aws/lambdas/justhodl-stealth-accumulation/source/lambda_function.py": "3fe950d457352d9a2c07cd3d395b9dcb5580fbb29b99d545ca29b645cbde5ee9",
+      "aws/shared/evidence_weights.py": "378e35d6b524c25c8f461bc57b63c6898d1cd210c5e38b4f7ce0b80a5422a81b",
+      "aws/shared/impact_mapper.py": "7af05dbf63e5053b9e5e4e2aba38e6da96b7475b763dfad0d09d597a825aa86e",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-stealth-flow": {
+      "aws/lambdas/justhodl-stealth-flow/source/lambda_function.py": "ab47ff68c51d011c6f7a26867f211534d167dd1a58510c7c70dc31beab7f56fb",
+      "aws/shared/provider_flow_catalog.py": "ea0be7634a8d24c28ffba961ee56a8c32aff28b83b5d9e3076dcc19fd5ed9f5b",
+      "aws/shared/provider_flow_research.py": "534e0208a128de163d378384e7d8ae41dccac46cd93077664a5f274de6598e6a",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199"
+    },
+    "justhodl-stress-index": {
+      "aws/lambdas/justhodl-stress-index/source/lambda_function.py": "bcf0de65ce77b9d26502c2c64ed41a971ac01330024ec12fab6a4d104efa025d",
+      "aws/lambdas/justhodl-stress-index/source/stress_model.py": "5e2151d8480a8d237ee385d6b2abea5a1adac340e6e1b82794367bf44060a328",
+      "aws/lambdas/justhodl-stress-index/source/stress_store.py": "b7a3416dffe26876a216d04313c0e2df3c85e317d727a5c9ebe33e20432393b0",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/risk_regime_authority.py": "9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642",
+      "aws/shared/signals_emit.py": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+      "aws/shared/tail_research.py": "b7fbbe2626931be37e93ff5ee9b3006e362c22cb805e4771315ba2cad4ef239b"
+    }
+  },
+  "purpose": "Before changing the shared SDK, compare every current tracked source member with the actual native package; do not overwrite unrelated code drift."
+}
