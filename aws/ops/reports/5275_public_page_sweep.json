@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "43742145020f15ae52cc89ff20c09f96a69ada19",
-  "observed_at": "2026-10-02T05:20:00.527165+00:00",
-  "ok": true,
+  "observed_at": "2026-10-02T05:26:31.275872+00:00",
+  "ok": false,
   "routes_checked": 599,
-  "verified_routes": 599,
-  "failed_routes": [],
+  "verified_routes": 598,
+  "failed_routes": [
+    "magic-formula.html"
+  ],
   "source_equivalent_builds": {
     "43742145020f15ae52cc89ff20c09f96a69ada19": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -3638,13 +3640,12 @@
     },
     {
       "route": "magic-formula.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "43742145020f15ae52cc89ff20c09f96a69ada19",
-      "inspector_present": true,
-      "bytes_read": 20286,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "market-evidence.html",
@@ -6008,7 +6009,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 36968004912,
+  "deployment_run_id": 36968527163,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-02T05:20:00.536422+00:00"
+  "check_finished_at": "2026-10-02T05:26:31.284820+00:00"
 }
