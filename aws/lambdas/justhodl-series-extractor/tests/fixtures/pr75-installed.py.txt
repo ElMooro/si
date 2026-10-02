@@ -503,63 +503,6 @@ def _validate_allocation_counters(state):
             raise RuntimeError("checkpoint allocation counters invalid")
 
 
-def _require_unpopulated_series_namespace(provider):
-    """Bound missing-checkpoint admission to two current-object observations.
-
-    Groups consume MaxKeys too; empty Contents alone is never evidence.
-    This does not lock external writers or inspect deleted/noncurrent data.
-    """
-    series = f"data/providers/{provider}/series/"
-    manifest = f"data/providers/{provider}/series-manifest.json"
-    try:
-        for prefix in (series, manifest):
-            result = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix,
-                                        Delimiter="/", MaxKeys=1)
-            allowed = {"Name", "Prefix", "Delimiter", "MaxKeys", "KeyCount",
-                       "IsTruncated", "Contents", "CommonPrefixes",
-                       "EncodingType", "RequestCharged", "ResponseMetadata"}
-            if (type(result) is not dict or set(result) - allowed
-                    or result.get("Name") != BUCKET
-                    or result.get("Prefix") != prefix
-                    or result.get("Delimiter") != "/"
-                    or type(result.get("MaxKeys")) is not int
-                    or result["MaxKeys"] != 1
-                    or result.get("IsTruncated") is not False
-                    or type(result.get("KeyCount")) is not int
-                    or not 0 <= result["KeyCount"] <= 1
-                    or ("EncodingType" in result and result["EncodingType"] != "url")
-                    or ("RequestCharged" in result and result["RequestCharged"] != "requester")):
-                raise ValueError
-            metadata = result.get("ResponseMetadata")
-            if (type(metadata) is not dict
-                    or type(metadata.get("HTTPStatusCode")) is not int
-                    or metadata["HTTPStatusCode"] != 200):
-                raise ValueError
-            contents = result.get("Contents", [])
-            groups = result.get("CommonPrefixes", [])
-            # Only after ruling out groups can KeyCount equal Contents length.
-            if (type(contents) is not list or type(groups) is not list or groups
-                    or result["KeyCount"] != len(contents)):
-                raise ValueError
-            for obj in contents:
-                object_fields = {"Key", "Size", "LastModified", "ETag",
-                                 "ChecksumAlgorithm", "ChecksumType", "StorageClass",
-                                 "Owner", "RestoreStatus"}
-                if (type(obj) is not dict or set(obj) - object_fields
-                        or type(obj.get("Key")) is not str
-                        or not obj["Key"].startswith(prefix)
-                        or "/" in obj["Key"][len(prefix):]
-                        or type(obj.get("Size")) is not int or obj["Size"] < 0):
-                    raise ValueError
-                if prefix == series:
-                    if obj["Key"] != series or obj["Size"] != 0:
-                        raise ValueError
-                elif obj["Key"] == manifest:
-                    raise ValueError
-    except Exception:
-        raise RuntimeError("missing checkpoint namespace admission refused") from None
-
-
 def lambda_handler(event, context):
     t0 = time.time()
     provider = (event or {}).get("provider", "eurostat")
@@ -583,7 +526,8 @@ def lambda_handler(event, context):
     except ClientError as exc:
         if exc.response.get("Error", {}).get("Code") != "NoSuchKey":
             raise RuntimeError("checkpoint retrieval failed") from None
-        _require_unpopulated_series_namespace(provider)
+        # Preserve genuine missing-key bootstrap for this incremental repair.
+        # A lost checkpoint in a populated namespace is still unresolved.
         state = {"flows_done": [], "series_count": 0, "n_pages": 0,
                  "buffer": []}
     except Exception:

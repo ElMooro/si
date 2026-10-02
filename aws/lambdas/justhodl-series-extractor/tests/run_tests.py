@@ -23,6 +23,8 @@ ROOT = HERE.parents[3]
 SOURCE = HERE.parent / 'source/lambda_function.py'
 PREDECESSOR = HERE / 'fixtures/predecessor.py.txt'
 PREDECESSOR_SHA = '9c82d0046498e7de75d5f24a8346047e0a59635972d438e65d1613331250a312'
+INSTALLED = HERE / 'fixtures/pr75-installed.py.txt'
+INSTALLED_SHA = 'bcd80ce358aa433d9de33c45b9fb2900987c63046d343462b3c359b7c3724867'
 BUCKET = 'invented-test-bucket'
 STATE = 'data/_state/series-extract-{}.json'
 STAMP = 1790899200
@@ -122,13 +124,33 @@ class Storage:
         return {'Body': Body(self, key, self.objects[key])}
     def list_objects_v2(self, **kwargs):
         self.trace.append(('list', kwargs))
-        keys = sorted(k for k in self.objects if k.startswith(kwargs['Prefix']))
-        # Force pagination without modifying the handler's page-size control.
+        prefix = kwargs['Prefix']
+        keys = sorted(k for k in self.objects if k.startswith(prefix))
+        # Real delimiter grouping: each group consumes one MaxKeys result;
+        # nested keys are absent from Contents, even in a complete response.
+        entries = {}
+        for key in keys:
+            suffix = key[len(prefix):]
+            if kwargs.get('Delimiter') and kwargs['Delimiter'] in suffix:
+                group = prefix + suffix.split(kwargs['Delimiter'], 1)[0] + kwargs['Delimiter']
+                entries[group] = ('group', group)
+            else:
+                entries[key] = ('object', key)
         start = int(kwargs.get('ContinuationToken', 0))
         size = min(kwargs['MaxKeys'], 2)
-        result = {'Contents': [{'Key': k, 'Size': len(self.objects[k])}
-                               for k in keys[start:start + size]],
-                  'IsTruncated': start + size < len(keys)}
+        ordered = [entries[k] for k in sorted(entries)]
+        page = ordered[start:start + size]
+        result = {'Name': BUCKET, 'Prefix': prefix, 'MaxKeys': kwargs['MaxKeys'],
+                  'KeyCount': len(page), 'IsTruncated': start + size < len(ordered),
+                  'ResponseMetadata': {'HTTPStatusCode': 200}}
+        if 'Delimiter' in kwargs:
+            result['Delimiter'] = kwargs['Delimiter']
+        objects = [{'Key': k, 'Size': len(self.objects[k])} for kind, k in page if kind == 'object']
+        groups = [{'Prefix': k} for kind, k in page if kind == 'group']
+        if objects:
+            result['Contents'] = objects
+        if groups:
+            result['CommonPrefixes'] = groups
         if result['IsTruncated']:
             result['NextContinuationToken'] = str(start + size)
         return result
@@ -172,7 +194,8 @@ def objects_with(state, provider='eurostat', rows=1001, flows=1, correction=0):
     objects = warm(provider, rows, flows, correction)
     if state is not None:
         objects[STATE.format(provider)] = json.dumps(state).encode()
-    objects[f'data/providers/{provider}/series/page-0000.json'] = b'{"invented_old_page":true}'
+    if state is not None:
+        objects[f'data/providers/{provider}/series/page-0000.json'] = b'{"invented_old_page":true}'
     return objects
 
 
@@ -201,9 +224,23 @@ def run(path, objects, event=None, failure=None, budget=None, fail_put=None, sto
             'context_calls': len(context_calls), 'traceback': formatted}
 
 
+def admission_calls(provider):
+    return [('list', {'Bucket': BUCKET, 'Prefix': f'data/providers/{provider}/{suffix}',
+                      'Delimiter': '/', 'MaxKeys': 1})
+            for suffix in ('series/', 'series-manifest.json')]
+
+
 def equivalent(objects, **kwargs):
-    old, new = (run(path, objects, **kwargs) for path in (PREDECESSOR, SOURCE))
-    assert {k: v for k, v in new.items() if k != 'traceback'} == {
+    old, new = (run(path, objects, **kwargs) for path in (INSTALLED, SOURCE))
+    comparable = copy.deepcopy(new)
+    provider = (kwargs.get('event') or {}).get('provider', 'eurostat')
+    mode = (kwargs.get('event') or {}).get('mode')
+    if STATE.format(provider) not in objects and provider in ('eurostat', 'ecb') and mode != 't1':
+        assert comparable['trace'][1:3] == admission_calls(provider)
+        del comparable['trace'][1:3]
+    else:
+        assert not any(t[0] == 'list' and t[1].get('MaxKeys') == 1 for t in new['trace'])
+    assert {k: v for k, v in comparable.items() if k != 'traceback'} == {
         k: v for k, v in old.items() if k != 'traceback'}, (kwargs, new['error'], old['error'])
     return new
 
@@ -223,7 +260,16 @@ def rejected(objects, failure=None, provider='eurostat'):
 
 def scope_test():
     assert hashlib.sha256(PREDECESSOR.read_bytes()).hexdigest() == PREDECESSOR_SHA
-    old, new = (ast.parse(p.read_bytes()) for p in (PREDECESSOR, SOURCE))
+    assert hashlib.sha256(INSTALLED.read_bytes()).hexdigest() == INSTALLED_SHA
+    raw = SOURCE.read_text(encoding='utf-8')
+    start = raw.index('def _require_unpopulated_series_namespace(provider):')
+    end = raw.index('def lambda_handler(event, context):', start)
+    restored = (raw[:start] + raw[end:]).replace(
+        '        _require_unpopulated_series_namespace(provider)\n',
+        '        # Preserve genuine missing-key bootstrap for this incremental repair.\n'
+        '        # A lost checkpoint in a populated namespace is still unresolved.\n')
+    assert restored.encode() == INSTALLED.read_bytes()
+    old, new = (ast.parse(p.read_bytes()) for p in (PREDECESSOR, INSTALLED))
     new.body = [n for n in new.body if not (
         isinstance(n, ast.FunctionDef) and n.name == '_validate_allocation_counters'
         or isinstance(n, ast.ImportFrom) and n.module == 'botocore.exceptions')]
@@ -275,6 +321,12 @@ def healthy_tests():
         for budget in (1, 2, 3, 5):
             equivalent(objects_with(checkpoint(), provider, flows=3),
                        event={'provider': provider}, budget=budget)
+            count += 1
+        for extras in ({}, {f'data/providers/{provider}/series/': b''},
+                       {f'data/providers/{provider}/series/nested/page.json': b'old'},
+                       {f'data/providers/{provider}/series-manifest.json': b'old'}):
+            objects = objects_with(checkpoint(pages_seeded=False), provider, rows=500)
+            equivalent(dict(objects, **extras), event={'provider': provider})
             count += 1
         for state in (checkpoint(), None):
             equivalent(objects_with(state, provider), event={'provider': provider}, fail_put='page-')
@@ -330,7 +382,7 @@ def failure_tests():
         assert store.objects == objects
         store.failure = None
         next_run = run(SOURCE, objects, event={'provider': provider}, storage=store)
-        expected = run(PREDECESSOR, objects, event={'provider': provider})
+        expected = run(INSTALLED, objects, event={'provider': provider})
         assert {k: v for k, v in next_run.items() if k != 'traceback'} == {
             k: v for k, v in expected.items() if k != 'traceback'}
         assert json.loads(store.objects[STATE.format(provider)])['n_pages'] == 5
@@ -364,10 +416,12 @@ def replay_and_corruption_tests():
     after_retry = run(PREDECESSOR, original['objects'])
     assert after_retry['objects'][page] != valid[page]
     rejected(valid, ('get', TimeoutError(PRIVATE)))
-    # Exact NoSuchKey remains bootstrap even with existing pages: unresolved risk.
+    # Current installed PR75 corrupts allocation on exact NoSuchKey with pages.
     missing = objects_with(None, rows=500)
-    boot = equivalent(missing)
+    missing[page] = b'{"invented_old_page":true}'
+    boot = run(INSTALLED, missing)
     assert boot['objects'][page] != missing[page]
+    refused_missing(missing)
     lost_write = equivalent(objects, fail_put='lost_checkpoint_response')
     # The server persisted this checkpoint; a retry reads its real progress.
     recovered = equivalent(lost_write['objects'])
@@ -385,23 +439,211 @@ def consumer_tests():
     catalog = ast.parse((ROOT / 'aws/lambdas/justhodl-provider-catalog/source/lambda_function.py').read_bytes())
     counts = 0
     for provider in ('eurostat', 'ecb'):
-        result = equivalent(objects_with(checkpoint(), provider, rows=500), event={'provider': provider})
-        objects = result['objects']
-        namespace = {'json': json, 'PROV_NAME': {provider: 'Test'},
-                     '_get_json': lambda k: json.loads(objects[k])}
-        nodes = [n for n in symdir.body if isinstance(n, ast.FunctionDef)
-                 and n.name in ('_page_rows', '_page_row')]
-        exec(compile(ast.Module(nodes, type_ignores=[]), '<actual-symdir-consumer>', 'exec'), namespace)
-        rows = namespace['_page_rows'](provider, 'FLOW0', 3)
-        projected = [namespace['_page_row'](provider, 'FLOW0', row) for row in rows]
-        assert len(projected) == 500 and projected[0]['chartable'] is True
-        fn = next(n for n in catalog.body if isinstance(n, ast.FunctionDef) and n.name == '_series_list')
-        namespace['_get_doc'] = lambda k: json.loads(objects[k])
-        exec(compile(ast.Module([fn], type_ignores=[]), '<actual-catalog-consumer>', 'exec'), namespace)
-        summary = namespace['_series_list']((f'data/providers/{provider}/series-manifest.json', 'series_extracted'))
-        assert summary == {'count': 2000, 'ids': [], 'counted': True}, summary
-        counts += 2
+        for state, page, total in ((checkpoint(), 3, 2000), (None, 0, 500)):
+            result = equivalent(objects_with(state, provider, rows=500), event={'provider': provider})
+            objects = result['objects']
+            namespace = {'json': json, 'PROV_NAME': {provider: 'Test'},
+                         '_get_json': lambda k: json.loads(objects[k])}
+            nodes = [n for n in symdir.body if isinstance(n, ast.FunctionDef)
+                     and n.name in ('_page_rows', '_page_row')]
+            exec(compile(ast.Module(nodes, type_ignores=[]), '<actual-symdir-consumer>', 'exec'), namespace)
+            rows = namespace['_page_rows'](provider, 'FLOW0', page)
+            projected = [namespace['_page_row'](provider, 'FLOW0', row) for row in rows]
+            assert len(projected) == 500 and projected[0]['chartable'] is True
+            fn = next(n for n in catalog.body if isinstance(n, ast.FunctionDef) and n.name == '_series_list')
+            namespace['_get_doc'] = lambda k: json.loads(objects[k])
+            exec(compile(ast.Module([fn], type_ignores=[]), '<actual-catalog-consumer>', 'exec'), namespace)
+            summary = namespace['_series_list']((f'data/providers/{provider}/series-manifest.json', 'series_extracted'))
+            assert summary == {'count': total, 'ids': [], 'counted': True}, summary
+            counts += 2
     return counts
+
+
+class AdmissionStorage(Storage):
+    """Intercept only new admission LISTs; all later fake AWS is unchanged."""
+    def __init__(self, objects, provider='eurostat', responses=None, **kwargs):
+        super().__init__(objects, provider=provider, **kwargs)
+        self.responses = responses or {}
+    def list_objects_v2(self, **kwargs):
+        result = super().list_objects_v2(**kwargs)
+        if kwargs['MaxKeys'] == 1 and kwargs['Prefix'] in self.responses:
+            replacement = self.responses[kwargs['Prefix']]
+            if isinstance(replacement, Exception):
+                raise replacement
+            return replacement(copy.deepcopy(result)) if callable(replacement) else replacement
+        return result
+
+
+def refused_missing(objects, provider='eurostat', storage=None, failure=None, calls=None):
+    result = run(SOURCE, objects, {'provider': provider}, storage=storage, failure=failure)
+    assert result['error'] == ('RuntimeError', 'missing checkpoint namespace admission refused'), result
+    assert result['return'] is None and result['stdout'] == ''
+    assert result['objects'] == objects and result['context_calls'] == 0
+    assert result['trace'][0] == ('get', {'Bucket': BUCKET, 'Key': STATE.format(provider)})
+    lists = result['trace'][1:]
+    assert len(lists) in (1, 2) and lists == admission_calls(provider)[:len(lists)]
+    if calls is not None:
+        assert len(lists) == calls
+    assert PRIVATE not in result['traceback']
+    return result
+
+
+def missing_namespace_tests():
+    count = 0
+    def changed(**values):
+        return lambda result: dict(result, **values)
+    def without(name):
+        def mutate(result):
+            result.pop(name, None)
+            return result
+        return mutate
+    for provider in ('eurostat', 'ecb'):
+        series = f'data/providers/{provider}/series/'
+        manifest = f'data/providers/{provider}/series-manifest.json'
+        # Complete empty, exact zero-byte root marker and distinct suffix neighbor
+        # preserve ALL post-admission handler outputs, state, writes and provenance.
+        admitted = [{}, {series: b''}, {manifest + '.bak': b'old'},
+                    {manifest + '%2Fchild': b''}, {manifest + '\\child': b''},
+                    {series: b'', manifest + '.bak': b''},
+                    {f'data/providers/other/series/page-0000.json': b'old',
+                     f'data/providers/{provider}/series-backup/page.json': b'old'}]
+        for extras in admitted:
+            for objects in ({}, warm(provider, rows=501)):
+                equivalent(dict(objects, **extras), event={'provider': provider})
+                count += 1
+        # Markers at any depth below root are groups, irrespective of Size.
+        blocked = [(series + 'page-0000.json', b''),
+                   (series + 'page-99999999.json', b'old'),
+                   (series + 'page-0000.json', b'old'),
+                   (series, b'not a zero-byte marker'),
+                   (series + 'nested/', b''), (series + 'nested/page.json', b'old'),
+                   (series + '../page.json', b''), (series + './', b''),
+                   (series + '%2E%2E%2Fpage.json', b''),
+                   (manifest, b''), (manifest, b'old'),
+                   (manifest + '/child', b''), (manifest + '/', b''),
+                   (manifest + '.bak/child', b'old')]
+        for key, body in blocked:
+            objects = dict(warm(provider, rows=500), **{key: body})
+            refused_missing(objects, provider, calls=1 if key.startswith(series) else 2)
+            count += 1
+        # A harmless result at the cap is allowed only if complete; it may hide
+        # pages, groups, the exact manifest, or further suffix neighbors.
+        for extras, calls in (({series: b'', series + 'page-9999.json': b'old'}, 1),
+                              ({series: b'', series + 'nested/': b''}, 1),
+                              ({manifest + '.a': b'', manifest + '.b': b''}, 2),
+                              ({manifest + '.a': b'', manifest + '/child': b''}, 2)):
+            refused_missing(dict(warm(provider), **extras), provider, calls=calls)
+            count += 1
+        fake = Storage({series + 'nested/': b''}, provider=provider)
+        group = fake.list_objects_v2(**admission_calls(provider)[0][1])
+        assert group['KeyCount'] == 1 and 'Contents' not in group
+        assert group['CommonPrefixes'] == [{'Prefix': series + 'nested/'}]
+        assert group['IsTruncated'] is False
+        count += 1
+        # Probe each position: second observation happens only after affirmative
+        # first observation. No Contents-only or truthiness-based empty decisions.
+        bad_responses = [None, [], {}, PRIVATE]
+        for name in ('Name', 'Prefix', 'Delimiter', 'MaxKeys', 'KeyCount',
+                     'IsTruncated', 'ResponseMetadata'):
+            bad_responses.append(without(name))
+        bad_responses += [changed(IsTruncated=v) for v in (True, None, 0, '', 'false')]
+        bad_responses += [changed(KeyCount=v) for v in (True, False, None, -1, 2, 0.0, '0', 1)]
+        bad_responses += [changed(MaxKeys=v) for v in (True, None, 0, 2, 1.0, '1')]
+        bad_responses += [changed(Contents=v) for v in (None, {}, '', [None], [{}])]
+        bad_responses += [changed(CommonPrefixes=v) for v in (None, {}, '', [{}])]
+        bad_responses += [changed(KeyCount=1, CommonPrefixes=[{'Prefix': series + 'nested/'}])]
+        bad_responses += [changed(Name=PRIVATE), changed(Prefix=PRIVATE), changed(Delimiter=''),
+                          changed(UnknownField=PRIVATE), changed(Error={'Code': 'AccessDenied'}),
+                          changed(EncodingType='unknown'), changed(EncodingType=None)]
+        bad_responses += [changed(**{k: v}) for k in ('ContinuationToken', 'NextContinuationToken', 'StartAfter')
+                          for v in ('', None, PRIVATE)]
+        bad_responses += [changed(ResponseMetadata=v) for v in (None, {},
+                          {'HTTPStatusCode': 403}, {'HTTPStatusCode': '200'}, {'HTTPStatusCode': True})]
+        bad_responses += [service_error('AccessDenied', 403), service_error('SlowDown', 503),
+                          service_error('NoSuchKey'), TimeoutError(PRIVATE), ConnectionError(PRIVATE),
+                          RuntimeError(PRIVATE)]
+        for idx, prefix in enumerate((series, manifest)):
+            for response in bad_responses:
+                store = AdmissionStorage(warm(provider), provider, {prefix: response})
+                refused_missing(store.objects, provider, store, calls=idx + 1)
+                count += 1
+            for obj in ({'Key': prefix, 'Size': True}, {'Key': prefix, 'Size': None},
+                        {'Key': prefix, 'Size': -1}, {'Key': prefix, 'Size': '0'},
+                        {'Key': prefix, 'Size': 0.0}, {'Key': prefix}, {'Size': 0},
+                        {'Key': None, 'Size': 0}, {'Key': 5, 'Size': 0},
+                        {'Key': PRIVATE, 'Size': 0}, {'Key': prefix, 'Size': 0, 'UnknownField': PRIVATE},
+                        {'Key': prefix.replace('/', '%2F'), 'Size': 0}):
+                store = AdmissionStorage(warm(provider), provider,
+                    {prefix: changed(KeyCount=1, Contents=[obj])})
+                refused_missing(store.objects, provider, store, calls=idx + 1)
+                count += 1
+            # SDK can report EncodingType=url after its own automatic transport
+            # decode; application code compares returned keys literally once.
+            store = AdmissionStorage(warm(provider, rows=500), provider,
+                                     {prefix: changed(EncodingType='url', Contents=[], CommonPrefixes=[])})
+            result = run(SOURCE, store.objects, {'provider': provider}, storage=store)
+            assert result['error'] is None and result['return']['statusCode'] == 200
+            count += 1
+        # Exact typed NoSuchKey subclass admits only after listings, even when
+        # the mocked server contradicts the checkpoint's presence.
+        class MissingSubclass(ClientError):
+            pass
+        missing = MissingSubclass({'Error': {'Code': 'NoSuchKey'}}, 'GetObject')
+        objects = objects_with(None, provider, rows=500)
+        result = run(SOURCE, objects, {'provider': provider}, failure=('get', missing))
+        assert result['error'] is None and result['trace'][1:3] == admission_calls(provider)
+        count += 1
+        objects = objects_with(checkpoint(), provider)
+        refused_missing(objects, provider, failure=('get', missing), calls=1)
+        count += 1
+        # Transient failure in an empty namespace can clear on an ordinary retry.
+        for prefix in (series, manifest):
+            store = AdmissionStorage(warm(provider, rows=500), provider, {prefix: TimeoutError(PRIVATE)})
+            refused_missing(store.objects, provider, store)
+            refused_missing(store.objects, provider, store)  # repeated blocked calls, unchanged data
+            store.responses.clear()
+            before = copy.deepcopy(store.objects)
+            recovered = run(SOURCE, before, {'provider': provider}, storage=store)
+            expected = equivalent(before, event={'provider': provider})
+            assert recovered == expected
+            count += 3
+        # First page landed, first checkpoint never committed: both partial
+        # bootstrap and lost initialized checkpoint MUST refuse allocation zero.
+        for kind in ('lost_checkpoint_response', STATE.format(provider)):
+            store = Storage(warm(provider, rows=500), provider=provider, fail_put=kind)
+            first = run(SOURCE, store.objects, {'provider': provider}, storage=store)
+            assert first['error'] and store.objects[series + 'page-0000.json']
+            before = copy.deepcopy(store.objects)
+            store.fail_put = None
+            if STATE.format(provider) in store.objects:
+                # Lost response after server commit is recoverable from real state.
+                retry = run(SOURCE, before, {'provider': provider}, storage=store)
+                expected = run(INSTALLED, before, {'provider': provider})
+                assert retry == expected
+            else:
+                refused_missing(before, provider, store, calls=1)
+            count += 2
+        # LIMIT demonstration: external writer after both observations is not
+        # locked by this read check (or by the Lambda's reserved concurrency=1).
+        class ExternalWriter(Storage):
+            def list_objects_v2(self, **kwargs):
+                result = super().list_objects_v2(**kwargs)
+                if kwargs['MaxKeys'] == 1 and kwargs['Prefix'] == manifest:
+                    self.objects[series + 'page-0000.json'] = b'invented-external-writer'
+                return result
+        store = ExternalWriter(warm(provider, rows=500), provider=provider)
+        race = run(SOURCE, store.objects, {'provider': provider}, storage=store)
+        assert race['error'] is None and store.objects[series + 'page-0000.json'] != b'invented-external-writer'
+        count += 1
+        # LIMIT demonstration: current lists omit deleted/noncurrent history.
+        store = Storage(warm(provider, rows=500), provider=provider)
+        store.hidden_versions = {series + 'page-0000.json': [b'invented-noncurrent-version']}
+        hidden = copy.deepcopy(store.hidden_versions)
+        result = run(SOURCE, store.objects, {'provider': provider}, storage=store)
+        assert result['error'] is None and store.hidden_versions == hidden
+        assert all(t[0] in ('get', 'read', 'list', 'head', 'put') for t in result['trace'])
+        count += 1
+    return count
 
 
 if __name__ == '__main__':
@@ -410,6 +652,15 @@ if __name__ == '__main__':
     failures = failure_tests()
     replay = replay_and_corruption_tests()
     consumers = consumer_tests()
+    missing_cases = missing_namespace_tests()
     print(f'Series admission PASS: {healthy} healthy/legacy full-handler differentials; '
           f'{failures} rejected/recovery cases; {replay} replay/corruption cases; '
-          f'{consumers} actual consumer cases; complete source scope identity')
+          f'{consumers} actual consumer cases; {missing_cases} missing-namespace cases; '
+          f'exact PR75 byte inverse and original source scope identity')
+
+    # The deploy workflow installs boto3 before running this dependency-free
+    # handler suite. Exercise its real model/parser with fake HTTP when present.
+    import importlib.util
+    import runpy
+    if importlib.util.find_spec('botocore') is not None:
+        runpy.run_path(str(HERE / 'test_sdk_listing_contract.py'), run_name='__main__')
