@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stages 547–549 Chart static/browser and Stage 550 Worker native source releases are accepted within recorded scopes. Stage 551 quote/detail/hover small-ratio precision is candidate-tested. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stage 550 Worker volume is native accepted and Stage 551 Chart precision is exact static/browser accepted. Stage 552 actual crypto supplementary-source attribution is candidate-tested. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7809,3 +7809,15 @@ Commit `6ea8878e79caf6497396af29a7fa5acbd3acd140`, Worker run `36967232916`: the
 ### Stage 551 ratio-label precision candidate
 
 Screenshots reproduced a tiny positive relative volume displayed as 0.00x in the quote and crosshair while its pane correctly showed <0.01x. Three display substitutions align quote, transient legacy detail and hover labels; all calculation bytes remain unchanged. Ten focused cases and actual-module desktop/mobile browser fixtures pass. Underflow remains unavailable. The browser detail panel is subsequently rendered by renderDetail, so its existing dated-range contract is checked rather than assuming the transient quoteUI detail survives. Existing mobile hover/legend overlap remains separate open work.
+
+
+### Stage 551 exact static and served-module acceptance
+
+Commit `43742145020f15ae52cc89ff20c09f96a69ada19`, Pages run `36968004912`: quote and hover now distinguish tiny positive relative volume from measured zero. Ten static assets and desktop/mobile served-module cases match the intended source. Final 2,900 frontend, 1,039 deployment/fifteen shell and twelve focused checks pass. The prototype was rebuilt over peer Chart changes without reverting them. Calculation bytes remain unchanged; mobile hover overlap and source-unit qualification remain open.
+
+### Stage 552 crypto supplement source candidate
+
+A complete intercepted request reproduced Binance history being labeled warehouse+yahoo with its count in yahoo_n. The candidate changes only extendCryptoDaily attribution and counts, preserves every returned bar and request, distinguishes selected input rows from unique added dates, and preserves warehouse precedence. Six route cases cover Yahoo, empty/error fallback, no supplement, equities and weekly requests. Every complete predecessor Worker source module is retained and hashed. Exact native release evidence remains required.
+
+
+The Stage 552 first ship attempt stopped on concurrent Chart commit `c803069dcde100d5beb4d4fdf023f27390a2b183`. Its five source/preservation paths do not overlap the Worker batch. Dock, shelf and Fibonacci changes are retained, and complete frontend/deployment plus intercepted Chart integration are repeated against that source. Forward-pivot/current-ATR methodology and duplicated minor/major pivot occurrences remain unqualified. No peer operation, provider or application packet is executed/read.

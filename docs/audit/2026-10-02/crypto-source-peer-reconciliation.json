@@ -1,0 +1,35 @@
+{
+  "base": "43742145020f15ae52cc89ff20c09f96a69ada19",
+  "peer_commit": "c803069dcde100d5beb4d4fdf023f27390a2b183",
+  "target_overlap": false,
+  "script_executed": false,
+  "reviewed_paths": [
+    "jh-chart-engine.js",
+    "tests/fixtures/chart-ratio-precision/structure.json",
+    "tests/fixtures/chart-ratio-precision/transition.json",
+    "tests/fixtures/chart-signed-volume/source-delta.json",
+    "tests/helpers/chart-ratio-precision-preservation.cjs"
+  ],
+  "path_oids": {
+    "jh-chart-engine.js": "a4822b405cf51810380f1fa5c72c27b1cb77bea7",
+    "tests/fixtures/chart-ratio-precision/structure.json": "fc7e0ee60489aea7e06fbd75ea814b173be1490d",
+    "tests/fixtures/chart-ratio-precision/transition.json": "d4b0b311123102e489d394e932a35f05fc23abb1",
+    "tests/fixtures/chart-signed-volume/source-delta.json": "57f2731433f8e369662a87450bbbbd4832897cdf",
+    "tests/helpers/chart-ratio-precision-preservation.cjs": "f0e9f74c49bbff82602c9b4a6384acca1864dec5"
+  },
+  "peer_declared_changed_functions": [
+    "quoteUI",
+    "paintOsc",
+    "deskShelves",
+    "ensureChartUi",
+    "drawSVG"
+  ],
+  "source_review": [
+    "Dock controls move right and can return to the lower pane through the whole chip",
+    "Support/resistance combines minor and major windows and still uses forward pivots/current ATR; overlapping pivot occurrences can appear twice",
+    "Fibonacci lines use price-to-coordinate geometry; source review does not qualify historical interpretation or forecast value"
+  ],
+  "preservation": "All peer source preserved. Only the independently reviewed Worker function changes in this batch.",
+  "actual_application_reads": 0,
+  "model_qualification": false
+}

@@ -1,0 +1,109 @@
+{
+  "source_sha256": "7f4ecf64910ca5b63f3e70a2d021bfcb6960a7a95f2d1799060a2fdffbc8bbee",
+  "whole_inputs": {
+    "primary": [
+      [
+        1577836800,
+        100,
+        102,
+        99,
+        101,
+        100
+      ],
+      [
+        1577923200,
+        101,
+        103,
+        100,
+        102,
+        100
+      ]
+    ],
+    "binance_history": [
+      [
+        1577664000000,
+        "90",
+        "92",
+        "89",
+        "91",
+        "50",
+        1577750399999,
+        "500",
+        2,
+        "30",
+        "300",
+        "0"
+      ],
+      [
+        1577750400000,
+        "90",
+        "92",
+        "89",
+        "91",
+        "50",
+        1577836799999,
+        "500",
+        2,
+        "30",
+        "300",
+        "0"
+      ]
+    ],
+    "yahoo": {
+      "chart": {
+        "result": []
+      }
+    }
+  },
+  "whole_output": {
+    "ticker": "BTCUSDT",
+    "bars": [
+      {
+        "time": 1577664000,
+        "open": 90,
+        "high": 92,
+        "low": 89,
+        "close": 91,
+        "value": 50
+      },
+      {
+        "time": 1577750400,
+        "open": 90,
+        "high": 92,
+        "low": 89,
+        "close": 91,
+        "value": 50
+      },
+      {
+        "time": 1577836800,
+        "open": 100,
+        "high": 102,
+        "low": 99,
+        "close": 101,
+        "value": 100
+      },
+      {
+        "time": 1577923200,
+        "open": 101,
+        "high": 103,
+        "low": 100,
+        "close": 102,
+        "value": 100
+      }
+    ],
+    "source": "warehouse+yahoo",
+    "warehouse_key": "invented/crypto-bars/BTC.json",
+    "span": "day",
+    "mult": 1,
+    "yahoo_n": 2,
+    "warehouse_n": 2,
+    "count": 4
+  },
+  "intercepted_requests": [
+    "https://invented.bank.test/warehouse-ohlc?symbol=BTCUSDT&span=day&mult=1",
+    "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=0&period2=1790916552",
+    "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1000&endTime=1790916552076"
+  ],
+  "actual_network_requests": 0,
+  "finding": "An empty Yahoo supplement falls back to Binance, but the complete response names Yahoo and reports Binance input count as yahoo_n."
+}

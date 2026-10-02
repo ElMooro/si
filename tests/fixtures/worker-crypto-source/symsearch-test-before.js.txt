@@ -106,7 +106,7 @@ test('other directory routes retain their previous cache policy and keys',async(
 test('whole worker outside the directory route and helper import remains unchanged',()=>{
  const parserModule={exports:{}};Function('exports','module',process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'])(parserModule.exports,parserModule);
  const normalize=file=>{
-  const tree=parserModule.exports.parse(file===path.join(sourceDir,'index.js')?require('./helpers/worker-crypto-source-preservation.cjs').normalize(fs.readFileSync(file,'utf8')):fs.readFileSync(file,'utf8'),{ecmaVersion:'latest',sourceType:'module'});let replaced=0;
+  const tree=parserModule.exports.parse(fs.readFileSync(file,'utf8'),{ecmaVersion:'latest',sourceType:'module'});let replaced=0;
   tree.body=tree.body.filter(n=>!(n.type==='ImportDeclaration'&&n.source.value==='./symsearch-cache.js'));
   const clean=value=>{
    if(Array.isArray(value))return value.map(clean);

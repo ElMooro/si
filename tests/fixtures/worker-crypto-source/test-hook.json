@@ -1,0 +1,7 @@
+{
+  "path": "tests/worker-symsearch-cache.test.js",
+  "before_sha256": "31ec190939c6d498eb18c19b31164c57ad12214ab6ec1212d81ebffc38b7946a",
+  "after_sha256": "7b58462c89961228a73f5ec14602cfceda9db90a390dcc311bc85754752ee7bf",
+  "before": "parserModule.exports.parse(fs.readFileSync(file,'utf8'),{ecmaVersion:'latest',sourceType:'module'})",
+  "after": "parserModule.exports.parse(file===path.join(sourceDir,'index.js')?require('./helpers/worker-crypto-source-preservation.cjs').normalize(fs.readFileSync(file,'utf8')):fs.readFileSync(file,'utf8'),{ecmaVersion:'latest',sourceType:'module'})"
+}

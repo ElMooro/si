@@ -1,0 +1,7 @@
+{
+  "path": "tests/deployment/test_snapshot_ordered_mirror_contract.py",
+  "before_sha256": "c93e148969e1ed4744e2d566da1d203d00238c37effaa80ef16223f8f03be80a",
+  "after_sha256": "05baf4b504391bdabf93d7e4e9d5feda8fb42f323b14a9d21cf73a002372beae",
+  "before": "    from search_cache_preservation import restore_reviewed_search_cache",
+  "after": "    from crypto_source_preservation import restore_crypto_source\n    current=restore_crypto_source(current)\n    from search_cache_preservation import restore_reviewed_search_cache"
+}

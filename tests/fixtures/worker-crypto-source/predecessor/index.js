@@ -117,10 +117,9 @@ async function fetchBinanceDaily(symbol) {
  * Warehouse wins overlapping days (it is the live bank). Older vendor bars prepend. Equities skip. */
 async function extendCryptoDaily(ticker, warm) {
   if (!warm || !isCryptoWarehouse(warm.warehouse_key) || (warm.span && warm.span !== "day") || (warm.mult && warm.mult !== 1)) return warm;
-  let hist = [], historySource = "yahoo";
+  let hist = [];
   try { hist = await fetchYahooDaily(ticker); } catch (eY) { hist = []; }
   if (hist.length < 2) {
-    historySource = "binance";
     try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }
   }
   if (hist.length < 2) return warm;
@@ -128,13 +127,8 @@ async function extendCryptoDaily(ticker, warm) {
   if (merged.length <= warm.bars.length) return warm;
   return Object.assign({}, warm, {
     bars: merged,
-    source: "warehouse+" + historySource,
-    history_source: historySource,
-    history_n: hist.length,
-    history_added_n: merged.length - warm.bars.length,
-    history_join_policy: "Primary warehouse rows win on overlapping UTC dates; supplementary rows fill absent dates. Units and price adjustments remain unverified.",
-    yahoo_n: historySource === "yahoo" ? hist.length : 0,
-    binance_n: historySource === "binance" ? hist.length : 0,
+    source: "warehouse+yahoo",
+    yahoo_n: hist.length,
     warehouse_n: warm.bars.length
   });
 }
