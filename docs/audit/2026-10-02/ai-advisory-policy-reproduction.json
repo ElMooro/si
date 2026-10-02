@@ -1,0 +1,50 @@
+{
+  "source_path": "aws/lambdas/justhodl-ai/source/lambda_function.py",
+  "source_sha256": "8af8e404afa80cf45f7893fb675d29f567beee3f136ed6cb6dc3702ce2894a50",
+  "function": "def _ledger_while_advisory(policy: dict) -> bool:\n    \"\"\"Review mode grades the AI's calls even when the fleet registry is below the production bar; production keeps the mute\n    unless the policy says otherwise.\"\"\"\n    if \"ledger_calls_when_advisory\" in (policy or {}):\n        return bool(policy[\"ledger_calls_when_advisory\"])\n    return os.environ.get(\"AI_ENVIRONMENT\", \"production\").strip().lower() == \"review\"",
+  "scope": "Exact current function extracted with AST. Invented policy values and isolated environment; no adapters, packets, providers or ledgers accessed.",
+  "cases": [
+    {
+      "input": true,
+      "opens_advisory_ledger": true
+    },
+    {
+      "input": false,
+      "opens_advisory_ledger": false
+    },
+    {
+      "input": "false",
+      "opens_advisory_ledger": true
+    },
+    {
+      "input": "0",
+      "opens_advisory_ledger": true
+    },
+    {
+      "input": 1,
+      "opens_advisory_ledger": true
+    },
+    {
+      "input": 0,
+      "opens_advisory_ledger": false
+    },
+    {
+      "input": null,
+      "opens_advisory_ledger": false
+    },
+    {
+      "input": [],
+      "opens_advisory_ledger": false
+    },
+    {
+      "input": [
+        "false"
+      ],
+      "opens_advisory_ledger": true
+    },
+    {
+      "input": {},
+      "opens_advisory_ledger": false
+    }
+  ]
+}

@@ -28,8 +28,7 @@ def outcome_followup(path,text):
   assert isinstance(added,ast.List) and isinstance(added.elts[0],ast.Name) and added.elts[0].id=='test_reported_outcomes_actual_source'
   added.elts.pop(0)
   assert ast.dump(old,include_attributes=False)==ast.dump(new,include_attributes=False),'Only append the new actual-source regression to the runner'
- from helpers.ai_advisory_policy_preservation import apply
- return apply(path,text)
+ return text
 
 def method(engine,name,extra=None,old=False):
  path=D/(engine+'.before.py.txt') if old else R/'aws/lambdas'/engine/'source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf-8'));node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==name)

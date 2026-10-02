@@ -1066,7 +1066,7 @@ def _ledger_while_advisory(policy: dict) -> bool:
     """Review mode grades the AI's calls even when the fleet registry is below the production bar; production keeps the mute
     unless the policy says otherwise."""
     if "ledger_calls_when_advisory" in (policy or {}):
-        return policy["ledger_calls_when_advisory"] is True
+        return bool(policy["ledger_calls_when_advisory"])
     return os.environ.get("AI_ENVIRONMENT", "production").strip().lower() == "review"
 
 
