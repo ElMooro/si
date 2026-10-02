@@ -1,0 +1,130 @@
+{
+  "status": "open_reproduced_invented_event_contract",
+  "source": "aws/shared/signals_emit.py",
+  "source_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
+  "findings": [
+    {
+      "case": "zero_confidence",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.05",
+        "baseline_price": "100.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "5",
+          "21"
+        ],
+        "horizon_days_primary": 21,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "nan_confidence",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.95",
+        "baseline_price": "100.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "5",
+          "21"
+        ],
+        "horizon_days_primary": 21,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "string_window",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.55",
+        "baseline_price": "100.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "2",
+          "1"
+        ],
+        "horizon_days_primary": 2,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "boolean_price",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.55",
+        "baseline_price": "1.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "5",
+          "21"
+        ],
+        "horizon_days_primary": 21,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "unknown_direction",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.55",
+        "baseline_price": "100.0",
+        "predicted_direction": "UNKNOWN",
+        "check_windows": [
+          "5",
+          "21"
+        ],
+        "horizon_days_primary": 21,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "fractional_window",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.55",
+        "baseline_price": "100.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "5"
+        ],
+        "horizon_days_primary": 5,
+        "metadata": {
+          "regime": {}
+        }
+      }
+    },
+    {
+      "case": "tiny_metadata",
+      "written_to_invented_table": true,
+      "observed": {
+        "confidence": "0.55",
+        "baseline_price": "100.0",
+        "predicted_direction": "UP",
+        "check_windows": [
+          "5",
+          "21"
+        ],
+        "horizon_days_primary": 21,
+        "metadata": {
+          "measured_value": "0.0",
+          "regime": {}
+        }
+      }
+    }
+  ],
+  "actual_ledger_reads": 0,
+  "actual_ledger_writes": 0,
+  "provider_requests": 0,
+  "scope": "These core signal-event semantics are separate from Stage566 Fabric metadata separation. No actual outcome ledger or performance packet was read."
+}

@@ -465,6 +465,12 @@ def build(root=ROOT):
                 symbols=imported_symbols(src,[d/'source',root/'aws/shared'],env,cache=constant_cache)
                 s=scan_code(src.read_text(encoding='utf-8'),env,str(handler).rsplit('.',1)[-1] if rel==entrypoint else None,symbols);keys.update(s.writes);reads.update(s.reads);defaults.update(s.defaults)
                 for key,lines in s.proofs.items():proofs.setdefault(key,[]).extend({'file':rel,'line':line} for line in sorted(lines))
+                # Retain literal staged-write candidates without pretending the
+                # arbitrary returned collection is resolved by the call graph.
+                from source_staged_writes import candidates as staged_candidates
+                for row in staged_candidates(s):
+                    key=row['key'];keys.add(key)
+                    proofs.setdefault(key,[]).append({'file':rel,**{k:v for k,v in row.items() if k!='key'}})
                 for declaration in s.tree.body:
                     if not isinstance(declaration,ast.Assign) or not any(isinstance(t,ast.Name) and t.id=='OUTPUT_OWNERSHIP' for t in declaration.targets) or not isinstance(declaration.value,ast.Dict):continue
                     role={}

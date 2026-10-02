@@ -1,8 +1,10 @@
-"""Shared signal-event writer (legacy schema-v2).
+"""aws/shared/signals_emit.py — the ONE correct way to log a gradeable signal (ops 3379).
 
-Fabric diagnostics are retained separately as unqualified research context.
-An emitted event is not proof of gradeability, source timing or forecast skill.
-Further core event-contract repairs are tracked in the implementation ledger.
+Fleet audit found ~40 direct emitters writing schema-v2 rows the outcome-
+checker cannot score: no check_timestamps (its window loop no-ops) and/or a
+LITERAL string in measure_against ("ticker", "ticker_vs_benchmark",
+"ticker_vs_acwx"…) which the checker then tries to PRICE. The harvester is
+the proven-correct template; this module is that template, shared.
 
 Contract (mirrors justhodl-signal-harvester exactly):
   measure_against = the actual SYMBOL to price
@@ -12,7 +14,6 @@ Contract (mirrors justhodl-signal-harvester exactly):
 """
 
 import json
-from fabric_logging_context import read as read_fabric_research, select as select_fabric_research, separate as separate_fabric_metadata
 import boto3
 import time
 import re
@@ -151,27 +152,31 @@ def _regime_snapshot():
 
 
 
-_FB_CACHE = {"t": None, "d": None}
+_FB_CACHE = {"t": 0, "d": {}}
 
 
 def _fabric_ctx(sym):
-    """Selected diagnostics only; cache age never establishes source freshness."""
-    stamp = time.monotonic()
-    prior = _FB_CACHE.get("t")
-    age = stamp - prior if type(prior) in (int, float) else None
-    if _FB_CACHE.get("d") is None or age is None or age < 0 or age > 900:
-        try:
-            snapshot = read_fabric_research(boto3.client("s3", region_name="us-east-1"),
-                                            "justhodl-dashboard-live")
-        except Exception:
-            snapshot = None
-        # A failed refresh replaces the earlier cached context; no last-good
-        # values can silently masquerade as this read.
-        _FB_CACHE.update(t=time.monotonic(), d=snapshot)
-        age = 0
-    result = select_fabric_research(_FB_CACHE["d"], sym)
-    result["cache_age_s"] = round(age, 3)
-    return result
+    """ops 4350: per-ticker fleet context from the feature bus."""
+    try:
+        import time as _t
+        if _t.time() - _FB_CACHE["t"] > 900:
+            import json as _j
+            import boto3 as _b
+            _FB_CACHE["d"] = _j.loads(_b.client(
+                "s3", region_name="us-east-1").get_object(
+                Bucket="justhodl-dashboard-live",
+                Key="data/feature-bus.json")["Body"].read()
+            ).get("tickers") or {}
+            _FB_CACHE["t"] = _t.time()
+        c = _FB_CACHE["d"].get(str(sym).upper()) or {}
+        if not c:
+            return {}
+        return {"fabric_agreement": c.get("agreement_pct"),
+                "fabric_score": c.get("fabric_score"),
+                "fabric_conflict": c.get("conflict"),
+                "fabric_peer": c.get("peer_fabric_score")}
+    except Exception:
+        return {}
 
 
 def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
@@ -191,12 +196,12 @@ def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
     metadata = md
     now = datetime.now(timezone.utc)
     windows = [int(w) for w in windows]
-    try:
-        # Strip caller and SDK legacy learning keys even when the feed fails.
-        # Their values remain separate inspectable, explicitly unqualified context.
-        metadata = separate_fabric_metadata(metadata, _fabric_ctx(ticker))
+    try:  # ops 4350: every logged signal carries the fleet's mind
+        _fbx = _fabric_ctx(ticker)
+        if _fbx:
+            metadata = {**(metadata or {}), **_fbx}
     except Exception:
-        return False  # Never fall back to metadata that still grants false authority.
+        pass
     item = {
         "signal_id": f"{signal_type}#{ticker}#{now.date().isoformat()}",
         "signal_type": signal_type,
