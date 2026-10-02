@@ -99,7 +99,7 @@ _TICKER_LIST_KEYS = ("by_ticker", "tickers", "stocks", "rows", "items",
                      "top_covering", "top_distribution", "top_crowded",
                      "top_accumulation", "candidates", "setups", "names",
                      "top_picks", "data", "tickers_list",
-                     # ops 1110: producer-specific ticker lists (redeploy trigger)
+                     # ops 1110: producer-specific ticker lists (redeploy)
                      "big_buys", "big_sells", "clusters",
                      "upcoming_14d", "upcoming", "earnings",
                      "positions", "holdings")
