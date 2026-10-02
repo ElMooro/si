@@ -108,7 +108,7 @@ def test_invalid_package_or_changed_control_stops():
             try:
                 probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(b'bad' if bad_package else raw))
             except probe.Stop as error:
-                assert str(error) in ('release_control_mismatch', 'package_hash_mismatch')
+                assert str(error) in ('release_control_mismatch:timeout_matches', 'package_hash_mismatch')
             else:
                 raise AssertionError('bad controls/package accepted')
 
