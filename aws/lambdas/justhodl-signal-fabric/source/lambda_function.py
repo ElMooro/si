@@ -1,16 +1,15 @@
-"""justhodl-signal-fabric v1.0 — the layer where the engines finally
-talk. Google/Microsoft pattern: no point-to-point wiring; every
-stance-bearing artifact is distilled through adapters into ONE
-canonical envelope keyed by ticker, fused with EMPIRICAL weights from
-the engine-leaderboard, with agreement and CONFLICT as first-class
-outputs. One read now answers: what does the whole fleet think about
-X — and where do proven engines disagree?
+"""Descriptive adapter aggregation with explicit research boundaries.
+
+Compound records remain inspectable context and cannot create directional votes.
+Other legacy adapters and weights remain research heuristics; grouping names does
+not establish source independence, calibrated probabilities or portfolio fit.
 Output: data/signal-fabric.json"""
 import hashlib, json, math, re, time
 from datetime import datetime, timezone
 
 import boto3
 from holdings_authority import context as holdings_context
+from compound_research_context import BASIS as COMPOUND_CONTEXT_BASIS, read as read_compound_context, pointers as compound_pointers
 
 s3 = boto3.client("s3", region_name="us-east-1")
 B = "justhodl-dashboard-live"
@@ -70,9 +69,9 @@ def st_reversal(r0):
 
 
 def st_compound(r0):
-    return ("convergence", "n=%s desk=%s"
-            % (_g(r0, "n_systems"), _g(r0, "desk_score")),
-            "UP", min(1.0, (_g(r0, "n_systems") or 2) / 6.0))
+    # Neither row count nor score is a signed independent observation. Retain
+    # the whole packet through compound_context without creating a vote.
+    return None
 
 
 def st_rerating(r0):
@@ -270,15 +269,20 @@ def lambda_handler(event=None, context=None):
             "direction": direction, "confidence": round(confidence, 2),
             "weight": round(w0, 2), "weight_basis": basis,
             "source_family": SOURCE_FAMILY.get(engine, engine),
-            "evidence_level": "L1",
-            "role": "root_evidence",
-            "independence_eligible": True,
-            "ancestry": [],
+            "evidence_level": "L2",
+            "role": "derived_heuristic",
+            "independence_eligible": False,
+            "ancestry": [], "ancestry_status": "not_traced",
+            "forecast_qualified": False, "sizing_eligible": False,
             "provenance": {"producer": engine},
             "link": "https://justhodl.ai"
                     + PAGE.get(engine, "/engine-leaderboard.html")})
+    compound_context = read_compound_context(s3, B)
     src_stats = {}
     for key, rows_keys, fn, engine in ADAPTERS:
+        if engine == "compound-aggregator":
+            src_stats[engine] = 0
+            continue
         d = rd(key)
         rows = resolve_rows(d, rows_keys)
         n0 = 0
@@ -382,8 +386,7 @@ def lambda_handler(event=None, context=None):
                 "ticker": sym, "n_engines": n_e,
                 "up": [e["engine"] for e in ups],
                 "down": [e["engine"] for e in dns],
-                "note": "proven complementarity surface -- "
-                        "the fleet is debating this name"})
+                "note": "Opposing heuristic directions; source independence and forward performance remain unqualified."})
     # ops 4347: PEER GRAPH propagation (entity-graph v0)
     _rr2 = rd("data/ai-rerating-radar.json") or {}
     _pg = {}
@@ -408,13 +411,13 @@ def lambda_handler(event=None, context=None):
                 / (len(vals) - 1), 2)
     tickers.sort(key=lambda x: -abs(x["fabric_score"]))
     conflicts.sort(key=lambda x: -x["n_engines"])
-    out = {"engine": "justhodl-signal-fabric", "version": "2.0",
+    out = {"engine": "justhodl-signal-fabric", "version": "2.1",
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "elapsed_s": round(time.time() - t0, 1),
-           "architecture": ("N-to-1 fabric: adapters distill each "
-                            "artifact into one envelope; empirical "
-                            "leaderboard weights fuse them; "
-                            "conflict is a first-class output"),
+           "architecture": "Descriptive adapter aggregation with legacy heuristic weights; independent evidence, forecast calibration and portfolio use remain unqualified.",
+           "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
+           "compound_context": compound_context,
+           "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
            "source_stats": src_stats,
            "holdings_context": holdings_qualification,
            "n_tickers": len(tickers),
@@ -443,7 +446,9 @@ def lambda_handler(event=None, context=None):
             "squeeze": g2("short-interest", "value")
             or g2("squeeze-fuel", "value"),
             "insider": g2("insider-clusters", "value"),
-            "compound": g2("compound-aggregator", "value"),
+            "compound": None,
+            "compound_context_pointers": compound_pointers(compound_context, t["ticker"]),
+            "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
             "setups": g2("best-setups", "value"),
             "peer_group": t.get("peer_group"),
             "peer_fabric_score": t.get("peer_fabric_score"),
@@ -459,7 +464,10 @@ def lambda_handler(event=None, context=None):
     prev = rd("data/feature-bus.json") or {}
     pt = prev.get("tickers") or {}
     events = []
+    comparable = prev.get("compound_research_boundary") == COMPOUND_CONTEXT_BASIS
     for sym, f in bus.items():
+        if not comparable:
+            continue  # A calculation revision is not a market direction change.
         pf = pt.get(sym) or {}
         if f["conflict"] and not pf.get("conflict"):
             events.append({"type": "NEW_CONFLICT", "ticker": sym})
@@ -480,6 +488,9 @@ def lambda_handler(event=None, context=None):
                           timezone.utc).isoformat(),
                       "n_tickers": len(bus),
                       "holdings_context": holdings_qualification,
+                      "compound_context": compound_context,
+                      "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
+                      "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
                       "integration": {
                           "note": "engine-side SDK, six lines:",
                           "code": ("BUS=json.loads(s3.get_object("
@@ -498,6 +509,9 @@ def lambda_handler(event=None, context=None):
                   Body=json.dumps({"generated_at":
                                    datetime.now(timezone.utc
                                                 ).isoformat(),
+                                   "compound_context": compound_context,
+                                   "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
+                                   "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
                                    "tickers": bus},
                                   default=str).encode(),
                   ContentType="application/json")
@@ -506,6 +520,10 @@ def lambda_handler(event=None, context=None):
                       "generated_at": datetime.now(
                           timezone.utc).isoformat(),
                       "n": len(events),
+                      "compound_research_boundary": COMPOUND_CONTEXT_BASIS,
+                      "prior_calculation_comparable": comparable,
+                      "comparison_note": "Compound calculation-boundary match only; other input vintages and forecast quality unverified.",
+                      "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
                       "events": events[:120]},
                       default=str).encode(),
                   ContentType="application/json",

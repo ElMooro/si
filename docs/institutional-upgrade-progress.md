@@ -7935,3 +7935,26 @@ Next, seven invented full-handler cases reproduce missing context mislabeled CLE
 ### Stage 564 Compound overlays and downstream evidence permissions
 
 Source-only consumer review extends the seven reproduced overlay defects: Convergence Desk labels family groups orthogonal, repeats an unverified event-study claim, substitutes base score for unavailable desk score and names an undated sparkline ratio a five-day change. The actual trend producer emits downsampled values without per-point dates. Signal Fabric's st_compound adapter emits UP and count-derived confidence regardless of Compound's qualification flags; its generic add path then calls it independent root evidence. Neither is investment authority. The related engine/consumer repair will retain source access and explicit context while removing unsupported direction/precision. Read-only operation 6457 captures current Compound and Signal Fabric runtime/schedule controls before source changes; no invocation, actual application/private/account/learning reads, provider requests, messages or native mutations. All ten workstreams remain OPEN.
+
+
+### Stage 564 Compound overlays, downstream context and Convergence Desk
+
+- First-seen lifecycle decay is distinct from observation freshness; invalid/future/underflowing dates withhold the adjusted score
+- Missing reversal/breadth stays unavailable, numeric strings are typed, duplicate reversal symbols all withheld with originals retained
+- Undated sparkline change explicitly spans two positions, never a five-day return or entry-quality label
+- Prior 90-calendar-day historical cohorts exclude current/future dates, duplicates, incompatible calculations and invalid complete populations
+- Incomplete declared collections or withheld scores cannot overwrite the daily comparison cohort
+- Signal Fabric preserves full Compound context and every occurrence without UP votes, confidence, denominator changes or universe seeding
+- Fabric marks derived envelopes as unqualified for independence and suppresses comparison events across the Compound calculation boundary
+- Convergence Desk shows original packets, input populations, complete calculations, missingness, filtered CSV and selected score history without unsupported trading/performance claims
+
+Whole-handler fixture tests and the actual page consumer exercise zero, negative, unavailable, duplicate, invalid/future dates and selected-cohort boundaries. Valid predecessor base and adjusted arithmetic remain comparable. Operation 6457 captured the existing Compound weekday schedule, Fabric hourly schedule and separate daily rule; operation 6458 will compare exact deployed packages, named commit receipts and native controls twice without executing producers. Full integration, exact static/browser acceptance and native release acceptance remain pending.
+
+- Durable original retention and full point-in-time replay are not established for this engine
+- Declared collections and source timestamps do not qualify complete upstream coverage, observation freshness or identity resolution
+- Family priors, base multipliers, reversal descriptions and score percentiles are uncalibrated heuristics; no return or portfolio authority
+- Other Signal Fabric adapters, legacy learned/empirical weights, source deduplication, conflict math, peer propagation and feature consumers require continued review
+- Resource budgets, multi-key S3 publication atomicity, source failures and scheduled end-to-end operational recovery remain unqualified
+- Normal producer publication is not verified; no native invocation, current consumer packet, provider/account/private or learning-ledger reads in this acceptance
+- Global floating panels and other pages still need mobile-layout review; a local Convergence navigation overlap is corrected
+- All ten institutional workstreams remain open; no full-platform or bug-free acceptance

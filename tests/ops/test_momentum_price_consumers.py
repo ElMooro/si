@@ -36,11 +36,12 @@ class Tests(unittest.TestCase):
         self.assertEqual(ns['extract_ticker_signals_from_engine']('momentum-breakout',spec,[{'symbol':'FAKE','score':999}]),{})
     def test_compound_no_membership_count_or_preboundary_percentile(self):
         from test_holdings_derived_boundary import load,Storage
+        from compound_test_support import empty_sources
         from holdings_derived_boundary import BASIS
         m=load('justhodl-compound-aggregator')
         history={'d':'2026-01-01','scores':{'KO':999999},'score_basis':BASIS,
                  'activist_boundary':'ownership-feed-abstention.v1','volatility_boundary':'price-compression-abstention.v1'}
-        db=Storage({boundary.DIRECT:{'calls_eligible':True,'summary':{'top_25_overall':[{'symbol':'FAKE','score':999999}]}},
+        db=Storage({**empty_sources(m),boundary.DIRECT:{'calls_eligible':True,'summary':{'top_25_overall':[{'symbol':'FAKE','score':999999}]}},
             'data/nobrainers.json':{'summary':{'top_25_overall':[{'ticker':'KO','score':40}]}},
             'data/insider-clusters.json':{'clusters':[{'ticker':'KO','score':60}]},'data/compound-history.json':{'days':[history]}})
         with patch.object(m,'S3',db),patch.object(m,'emit_alerts',side_effect=AssertionError('No message')):

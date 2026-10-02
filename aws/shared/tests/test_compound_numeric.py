@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parent)]
 from ciss_vintage_test_support import load
+from compound_test_support import empty_sources
 from compound_numeric import calculate, number, select, InvalidNumber, CONTRACT, read_feed
 
 
@@ -59,8 +60,16 @@ class Whole(unittest.TestCase):
                 with patch.object(module, 'S3', db), patch.object(module, 'emit_alerts', side_effect=AssertionError('No sends')), contextlib.redirect_stdout(io.StringIO()):
                     module.lambda_handler({'suppress_alerts': True})
                 packets.append(db.writes[module.S3_KEY])
-        added = {'score_calculation', 'calls_eligible', 'sizing_eligible', 'forecast_qualified', 'independent_evidence_eligible'}
-        self.assertEqual(packets[0]['compound'], [{k: v for k, v in row.items() if k not in added} for row in packets[1]['compound']])
+        unchanged = ('symbol', 'n_systems', 'systems', 'combo', 'core_triad', 'scores', 'details',
+                     'compound_score', 'families', 'n_families', 'evidence_weight', 'freshness', 'desk_score', 'prime_convergence')
+        self.assertEqual([{k: row[k] for k in unchanged} for row in packets[0]['compound']],
+                         [{k: row[k] for k in unchanged} for row in packets[1]['compound']])
+        for row in packets[1]['compound']:
+            self.assertIsNone(row['archetype']); self.assertIsNone(row['entry_quality'])
+            self.assertIsNone(row['regime']['turn_net']); self.assertIsNone(row['chg5_proxy_pct'])
+            self.assertEqual(row['lifecycle_decay'], row['freshness'])
+            self.assertEqual(row['desk_score_calculation']['score'], row['desk_score'])
+            self.assertFalse(row['desk_score_calculation']['observation_freshness_qualified'])
         self.assertEqual(packets[0]['stats'], packets[1]['stats'])
         self.assertEqual(packets[0]['feed_stats'], packets[1]['feed_stats'])
 
@@ -163,12 +172,28 @@ class Whole(unittest.TestCase):
         self.assertFalse(evidence['original_bytes_retained'])
         self.assertEqual(packet['compound'][0]['score_calculation']['components'][0]['input']['record'], row)
 
+    def test_complete_collections_with_overflow_cannot_replace_history_with_a_partial_score_population(self):
+        m = load('justhodl-compound-aggregator')
+        extras = empty_sources(m)
+        extras.update({'data/nobrainers.json': {'summary': {'top_25_overall': [{'ticker': 'QAONLY', 'score': 1e308}]}},
+                       'data/insider-clusters.json': {'clusters': [{'ticker': 'QAONLY', 'score': 1e308}]},
+                       'data/compound-history.json': {'days': [{'d': '2026-10-02', 'scores': {'KEEP': 100}}]}})
+        packet, db = self.run_engine([], extras)
+        self.assertTrue(all(e['status'] in ('usable', 'empty', 'excluded') for e in packet['input_evidence'].values()))
+        self.assertEqual(packet['withheld'][0]['reason'], 'sum_overflow')
+        self.assertFalse(packet['overlay_evidence']['input_coverage_complete'])
+        self.assertNotIn('data/compound-history.json', db.writes)
+
     def test_numeric_contract_separates_history_cohorts_without_rewriting_old_days(self):
         m = load('justhodl-compound-aggregator')
         old = {'d': '2020-01-01', 'score_basis': m.BASIS, 'activist_boundary': 'ownership-feed-abstention.v1',
                'volatility_boundary': 'price-compression-abstention.v1', 'momentum_boundary': m.MOMENTUM_BASIS,
                'scores': {'QAONLY': 1}}
-        packet, db = self.run_engine([{'ticker': 'QAONLY', 'score': 40}], {'data/compound-history.json': {'days': [old]}})
+        extras = empty_sources(m)
+        extras.update({'data/nobrainers.json': {'summary': {'top_25_overall': [{'ticker': 'QAONLY', 'score': 40}]}},
+                       'data/insider-clusters.json': {'clusters': [{'ticker': 'QAONLY', 'score': 10}]},
+                       'data/compound-history.json': {'days': [old]}})
+        packet, db = self.run_engine([], extras)
         self.assertNotIn('pctile_90d_all', packet['compound'][0])
         self.assertEqual(db.writes['data/compound-history.json']['days'][0], old)
         self.assertEqual(db.writes['data/compound-history.json']['days'][-1]['numeric_contract'], CONTRACT)
@@ -188,10 +213,29 @@ class Whole(unittest.TestCase):
         db = Storage(objects)
         with patch.object(socket.socket, 'connect', side_effect=AssertionError('Offline only')):
             m = load('justhodl-compound-aggregator')
-            with patch.object(m, 'S3', db), patch.object(m, 'emit_alerts', side_effect=AssertionError('No sends')), contextlib.redirect_stdout(io.StringIO()):
+            original = m.aggregate
+            def poisoned_output():
+                out = original()
+                out['ranked'][0]['invalid_after_calculation'] = float('nan')
+                return out
+            with patch.object(m, 'aggregate', side_effect=poisoned_output), patch.object(m, 'S3', db), patch.object(m, 'emit_alerts', side_effect=AssertionError('No sends')), contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaises(ValueError):
                     m.lambda_handler({'suppress_alerts': True})
         self.assertEqual(db.writes, {})
+
+    def test_actual_handler_invalid_overlay_source_cannot_invent_neutral_or_rewrite_history(self):
+        packet, db = self.run_engine([{'ticker': 'QAONLY', 'score': 30}], {
+            'data/risk-gate.json': b'{"posture":NaN}',
+            'data/trend-reversal.json': PermissionError('private service text'),
+            'data/compound-firstseen.json': PermissionError('private service text'),
+            'data/compound-history.json': {'days': [{'d': '2026-10-02', 'scores': {'KEEP': 90}}]}})
+        row = packet['compound'][0]
+        self.assertEqual(row['regime'], {'posture': None, 'turn_net': None})
+        self.assertIsNone(row['desk_score']); self.assertIsNone(row['entry_quality'])
+        self.assertNotIn('data/compound-history.json', db.writes)
+        self.assertNotIn('data/compound-firstseen.json', db.writes)
+        self.assertFalse(packet['overlay_evidence']['input_coverage_complete'])
+        self.assertNotIn('private service text', json.dumps(packet))
 
     def test_notification_text_does_not_claim_independence_and_escapes_markup(self):
         m = load('justhodl-compound-aggregator')

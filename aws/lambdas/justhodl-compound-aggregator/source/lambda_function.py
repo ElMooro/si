@@ -1,5 +1,5 @@
 """
-justhodl-compound-aggregator — fuses signals across 5 hunter systems.
+justhodl-compound-aggregator — descriptive research across declared source collections.
 
 Reads:
   data/nobrainers.json          (theme-supply-tier asymmetric hunter)
@@ -23,7 +23,7 @@ Alerts on:
   - existing entries crossing compound_score = 200
   - new TIER-2 with compound >= 250
 
-Schedule: hourly. State persistence via S3 'data/compound-signals-state.json'
+Existing schedule is managed outside this handler. State persistence via S3 'data/compound-signals-state.json'
 for delta detection between runs.
 """
 import json
@@ -35,6 +35,7 @@ from collections import defaultdict
 import boto3
 from holdings_derived_boundary import BASIS, CLUSTER, exclusions
 from compound_numeric import CONTRACT as NUMERIC_CONTRACT, read_feed, unavailable, calculate
+from compound_overlays import CONTRACT as OVERLAY_CONTRACT, CONTEXT_KEYS, read_context, apply as apply_overlays
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -282,175 +283,25 @@ def aggregate():
             "forecast_qualified": False, "independent_evidence_eligible": False,
         })
     ranked.sort(key=lambda x: (-x["n_systems"], -x["compound_score"]))
-    # ── ops 4334: archetype (reversal join), 90d percentile, prime
-    # artifact — the fingerprint that called AAPL/GOOGL/MSFT, encoded.
-    _rv = {}
-    try:
-        _rv = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="data/trend-reversal.json"
-        )["Body"].read())
-        _rvm = {str(x.get("ticker")).upper():
-                (x.get("direction"), x.get("reversal_score") or 0)
-                for x in _rv.get("rows") or []}
-    except Exception:
-        _rvm = {}
-    for r in ranked:
-        d0, sc0 = _rvm.get(r["symbol"], (None, 0))
-        r["archetype"] = ("SQUEEZE_POP" if d0 == "TOP_FORMING"
-                          and sc0 >= 25 else
-                          "DIP_CONVERGENCE" if d0 ==
-                          "BOTTOM_FORMING" and sc0 >= 25 else
-                          "CLEAN_TAPE")
-        r["reversal_context"] = ({"direction": d0, "score": sc0}
-                                 if d0 else None)
-    # ── ops 4335: the institutional layer ─────────────────────────
-    # (1) orthogonal FAMILY taxonomy (normalized -> label-drift-proof)
-    # (2) evidence weights = declared family priors v1 (backtest join
-    #     staged; basis disclosed on every row)
-    # (3) freshness decay via per-(symbol,system) first_seen state
-    # (4) regime stamp (risk-gate posture + market-turn net)
-    # (5) chase-guard entry_quality from reversal 5d proxy — Khalid's
-    #     own event-study: chasing = 38.7% hit, -148bps.
-    import re as _re
-    from datetime import datetime as _dt2, timezone as _tz2
-
-    def _norm(x):
-        return _re.sub(r"[^a-z0-9]", "", str(x).lower())
-    FAMS = {"flow": ("optionsflow", "smartmoney", "fundsbuying",
-                     "13f", "insider", "congress", "darkpool",
-                     "whale"),
-            "fundamental": ("revaccel", "epsvelocity", "pead",
-                            "nobrainer", "deepvalue",
-                            "magicformula", "earnings", "guidance"),
-            "technical": ("momentum", "volsqueeze", "prepump",
-                          "breakout", "squeeze", "trend", "gap")}
-    PRIORS = {"flow": 1.35, "fundamental": 1.15, "technical": 1.0}
-    HALF_LIFE = {"flow": 5.0, "fundamental": 30.0,
-                 "technical": 4.0}
-    try:
-        _fs = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="data/compound-firstseen.json"
-        )["Body"].read())
-    except Exception:
-        _fs = {}
-    _today2 = _dt2.now(_tz2.utc).strftime("%Y-%m-%d")
-    try:
-        _rg = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="data/risk-gate.json"
-        )["Body"].read())
-        _posture = _rg.get("posture")
-    except Exception:
-        _posture = None
-    _br = (_rv.get("breadth") or {}) if isinstance(_rv, dict)         else {}
-    _turn = None
-    try:
-        _turn = round((_br.get("bottom_pct") or 0)
-                      - (_br.get("top_pct") or 0), 1)
-    except Exception:
-        pass
-    _spk = {}
-    try:
-        for x in _rv.get("rows") or []:
-            sp = x.get("spk") or []
-            if len(sp) >= 4 and sp[-3]:
-                _spk[str(x.get("ticker")).upper()] = round(
-                    100.0 * (sp[-1] / sp[-3] - 1), 1)
-    except Exception:
-        pass
-    for r in ranked:
-        fams = set()
-        ew = 0.0
-        fresh_f = []
-        for sysname in r["systems"]:
-            ns = _norm(sysname)
-            fam = None
-            for f2, keys in FAMS.items():
-                if any(k in ns for k in keys):
-                    fam = f2
-                    break
-            if fam:
-                fams.add(fam)
-            ew += PRIORS.get(fam, 1.0)
-            fk = "%s|%s" % (r["symbol"], ns)
-            if fk not in _fs:
-                _fs[fk] = _today2
-            try:
-                age_d = ( _dt2.strptime(_today2, "%Y-%m-%d")
-                         - _dt2.strptime(_fs[fk], "%Y-%m-%d")
-                         ).days
-            except Exception:
-                age_d = 0
-            hl = HALF_LIFE.get(fam, 10.0)
-            fresh_f.append(0.5 ** (age_d / hl))
-        r["families"] = sorted(fams)
-        r["n_families"] = len(fams)
-        r["prime_convergence"] = (r["n_systems"] >= 4
-                                  and len(fams) == 3)
-        r["evidence_weight"] = round(ew, 2)
-        r["evidence_basis"] = ("family_priors_v1 "
-                               "(backtest join staged)")
-        r["freshness"] = round(sum(fresh_f)
-                               / max(1, len(fresh_f)), 3)
-        r["desk_score"] = round(
-            r["compound_score"] * r["freshness"]
-            * (ew / max(1, r["n_systems"])), 1)
-        r["regime"] = {"posture": _posture, "turn_net": _turn}
-        c5 = _spk.get(r["symbol"])
-        r["chg5_proxy_pct"] = c5
-        r["entry_quality"] = ("EXTENDED" if c5 is not None
-                              and c5 >= 8 else
-                              "PULLBACK" if c5 is not None
-                              and c5 <= -5 else "FRESH")
-    _keep = {k: v for k, v in _fs.items()}
-    pending_outputs.append(dict(Bucket=BUCKET,
-                  Key="data/compound-firstseen.json",
-                  Body=json.dumps(_keep, allow_nan=False).encode(),
-                  ContentType="application/json"))
-    ranked.sort(key=lambda x: (-x.get("desk_score", 0),
-                               -x["compound_score"]))
-    try:
-        _h = json.loads(S3.get_object(
-            Bucket=BUCKET, Key="data/compound-history.json"
-        )["Body"].read())
-    except Exception:
-        _h = {"days": []}
-    _qualified_days = [d for d in (_h.get("days") or []) if d.get("score_basis") == BASIS
-                       and d.get("activist_boundary") == "ownership-feed-abstention.v1"
-                       and d.get("volatility_boundary") == "price-compression-abstention.v1"
-                       and d.get("momentum_boundary") == MOMENTUM_BASIS
-                       and d.get("numeric_contract") == NUMERIC_CONTRACT]
-    _prior_vals = [v for day in _qualified_days
-                   for v in (day.get("scores") or {}).values()]
-    _prior_by = {}
-    for day in _qualified_days:
-        for k2, v in (day.get("scores") or {}).items():
-            _prior_by.setdefault(k2, []).append(v)
-    for r in ranked:
-        cs = r["compound_score"]
-        if _prior_vals:
-            r["pctile_90d_all"] = round(
-                100.0 * sum(1 for v in _prior_vals if v <= cs)
-                / len(_prior_vals), 1)
-        mine = _prior_by.get(r["symbol"]) or []
-        if mine:
-            r["pctile_90d_self"] = round(
-                100.0 * sum(1 for v in mine if v <= cs)
-                / len(mine), 1)
+    # Context stays descriptive. First-seen decay is a lifecycle heuristic,
+    # undated sparkline positions are not a five-day return, and a score
+    # percentile is not forecast accuracy.
     from datetime import datetime as _dt, timezone as _tz
-    _today = _dt.now(_tz.utc).strftime("%Y-%m-%d")
-    _days = [d for d in _h.get("days") or []
-             if d.get("d") != _today][-89:]
-    _days.append({"d": _today, "score_basis": BASIS,
-                  "activist_boundary": "ownership-feed-abstention.v1",
-                  "volatility_boundary": "price-compression-abstention.v1",
-                  "momentum_boundary": MOMENTUM_BASIS,
-                  "numeric_contract": NUMERIC_CONTRACT,
-                  "scores": {r["symbol"]: r["compound_score"]
-                             for r in ranked[:400]}})
-    pending_outputs.append(dict(Bucket=BUCKET,
-                  Key="data/compound-history.json",
-                  Body=json.dumps({"days": _days}, allow_nan=False).encode(),
-                  ContentType="application/json"))
+    contexts = {key: read_context(S3, BUCKET, key) for key in CONTEXT_KEYS}
+    contracts = {"score_basis": BASIS, "numeric_contract": NUMERIC_CONTRACT,
+        "activist_boundary": "ownership-feed-abstention.v1",
+        "volatility_boundary": "price-compression-abstention.v1",
+        "momentum_boundary": MOMENTUM_BASIS}
+    selection_complete = not withheld and all(e["status"] in ("usable", "empty", "excluded")
+                             for e in input_evidence.values())
+    ranked, first_seen, history, overlay_evidence = apply_overlays(
+        ranked, contexts, _dt.now(_tz.utc), contracts, selection_complete)
+    for key, document in (("data/compound-firstseen.json", first_seen),
+                          ("data/compound-history.json", history)):
+        if document is not None:
+            pending_outputs.append(dict(Bucket=BUCKET, Key=key,
+                Body=json.dumps(document, allow_nan=False).encode(),
+                ContentType="application/json"))
     _prime = [r for r in ranked if r.get("prime_convergence")]
     pending_outputs.append(dict(
         Bucket=BUCKET, Key="data/prime-convergence.json",
@@ -458,13 +309,18 @@ def aggregate():
             "generated_at": _dt.now(_tz.utc).isoformat(),
             "note": "Heuristic screen: at least four systems across three declared families. Independence and forward returns are not established; 13F clusters and ownership-feed tiers are excluded.",
             "holdings_exclusions": exclusions(holding_inputs),
+            "overlay_contract": OVERLAY_CONTRACT,
+            "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
+            "source_key": S3_KEY,
             "n": len(_prime),
             "rows": [{k: r[k] for k in
                       ("symbol", "compound_score", "desk_score",
                        "n_systems", "n_families", "families",
                        "combo", "archetype", "entry_quality",
                        "freshness", "regime", "reversal_context",
-                       "pctile_90d_all", "pctile_90d_self")
+                       "pctile_90d_all", "pctile_90d_self", "lifecycle_decay",
+                       "freshness_basis", "desk_score_calculation", "reversal_evidence",
+                       "history_comparison", "calls_eligible", "sizing_eligible", "forecast_qualified")
                       if k in r} for r in _prime[:40]],
         }, allow_nan=False).encode(),
         ContentType="application/json", CacheControl="no-cache"))
@@ -481,6 +337,7 @@ def aggregate():
         "holdings_exclusions": exclusions(holding_inputs),
         "presence": presence,
         "input_evidence": input_evidence,
+        "overlay_evidence": overlay_evidence,
         "withheld": withheld,
         "pending_outputs": pending_outputs,
         "multi": {r["symbol"]: multi[r["symbol"]] for r in ranked},
@@ -649,6 +506,8 @@ def lambda_handler(event=None, context=None):
         "feed_stats_definition": "Usable non-duplicate scored records in each declared source collection; full selected counts and unavailable sources are in input_evidence.",
         "numeric_contract": NUMERIC_CONTRACT,
         "input_evidence": agg["input_evidence"],
+        "overlay_contract": OVERLAY_CONTRACT,
+        "overlay_evidence": agg["overlay_evidence"],
         "withheld": agg["withheld"],
         "calls_eligible": False, "sizing_eligible": False, "forecast_qualified": False,
         "holdings_exclusions": agg["holdings_exclusions"],
@@ -657,7 +516,7 @@ def lambda_handler(event=None, context=None):
         "momentum_research_exclusion": agg["momentum_research_exclusion"],
         "notifications_suppressed": suppress_alerts,
         "score_basis": BASIS,
-        "history_comparability": "Percentiles use snapshots matching score_basis, research exclusions and numeric_contract; older snapshots remain retained but excluded. Scores are heuristic, not a return history.",
+        "history_comparability": "Percentiles describe eligible retained scores from the prior 90 calendar days, excluding current/future days, duplicate dates and incompatible calculations. The retained top-400 population is not the market or a return history.",
         "stats": {
             "n_total_names": len(agg["presence"]),
             "n_multi_signal": len(agg["multi"]),

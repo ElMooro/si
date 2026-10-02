@@ -4,12 +4,16 @@ from unittest.mock import patch
 from io import BytesIO
 import ast,json,sys,unittest
 ROOT=Path(__file__).resolve().parents[2]
+sys.path[:0]=[str(ROOT/'aws/shared'),str(ROOT/'aws/shared/tests')]
+from momentum_research_boundary import DIRECT as MOMENTUM_SOURCE
+from compound_numeric import unavailable
 FUNCTIONS={'compound-aggregator':['load_packet'],'options-confluence':['_read'],'master-ranker':['fetch_json'],
     'katlin':['s3_json','s3_json_quiet'],'ai-infra-stack':['_read'],'theme-second-wave':['_read']}
 KEY='data/volatility-squeeze.json'
 
 
 def extract(name,names,env):
+    env.update(MOMENTUM_SOURCE=MOMENTUM_SOURCE,unavailable=unavailable)
     tree=ast.parse((ROOT/'aws/lambdas'/('justhodl-'+name)/'source/lambda_function.py').read_bytes())
     nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in [*names,'_volatility_research_abstention']]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'<isolated consumer>','exec'),env);return env
@@ -35,11 +39,12 @@ class Tests(unittest.TestCase):
     def test_compound_actual_aggregation_excludes_price_and_previous_comparison(self):
         sys.path[:0]=[str(ROOT/'aws/shared/tests'),str(ROOT/'aws/shared')]
         from test_holdings_derived_boundary import load,Storage
+        from compound_test_support import empty_sources
         from holdings_derived_boundary import BASIS
         m=load('justhodl-compound-aggregator')
         for score in (10**12,-10**12):
             forged={'calls_eligible':True,'forecast_qualified':True,'summary':{'top_25_overall':[{'symbol':'FAKE','score':score,'tier':'TIER_S_EXCEPTIONAL'}]}}
-            db=Storage({KEY:forged,'data/nobrainers.json':{'summary':{'top_25_overall':[{'ticker':'KO','score':40}]}},
+            db=Storage({**empty_sources(m),KEY:forged,'data/nobrainers.json':{'summary':{'top_25_overall':[{'ticker':'KO','score':40}]}},
                 'data/insider-clusters.json':{'clusters':[{'ticker':'KO','score':60}]},
                 'data/compound-history.json':{'days':[{'d':'2026-01-01','scores':{'KO':10**12},'score_basis':BASIS,'activist_boundary':'ownership-feed-abstention.v1'}]}})
             with patch.object(m,'S3',db),patch.object(m,'emit_alerts',side_effect=AssertionError('No notification')):

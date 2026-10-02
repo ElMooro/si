@@ -1,0 +1,108 @@
+{
+  "stage": 564,
+  "status": "integration_and_release_pending",
+  "operation": "aws/ops/staged/ops_6458_compound_overlays_acceptance.py",
+  "source_hashes": {
+    "aws/lambdas/justhodl-compound-aggregator/source/lambda_function.py": "c9200f41cc50b0d77611195b2581325185177c1fcbfd178d18c91f3d51d508b2",
+    "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
+    "aws/shared/compound_numeric.py": "3a91847646679f206a15b6188d2a3364917b7af0c730fa2e7e70ab1acd0e7092",
+    "aws/shared/compound_overlays.py": "d20372e6d183e3509ab235ab424fa2b3da111ba1ed0d68e8bb054892aa25ce41",
+    "aws/shared/context_evidence_store.py": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+    "aws/shared/holdings_authority.py": "b9790df87ed542396333cb75cfd4f7e6a185f733568e4886beb7753220d99355",
+    "aws/shared/holdings_derived_boundary.py": "1da007ba20f1ae67ac35729276fa0c43a486b80c0a09eff001ad25c08ac35240",
+    "aws/shared/momentum_research_boundary.py": "54eff7690518c228905fb26bd22ca03d446d4d2915e5b8f3166eefcde46a4d92",
+    "aws/lambdas/justhodl-signal-fabric/source/lambda_function.py": "0b15175283d97138986ff14a2bdec8d8dff6a171ddc3be259065e5a730ab5d94",
+    "aws/shared/compound_research_context.py": "89da9e7686387747e31295c54c2f6e5cf09dfb46443edd498743468ca610de2e",
+    "aws/shared/sec_ftd_context.py": "79ab547bea3b466cee58e68e61d2e682f5566a49adb2ecacecc07dc9dac2e3e4",
+    "aws/shared/short_interest_context.py": "6944275390de08c425a8d9b1d73d32028a7623369b1c7ba953fbc1995d530a04",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
+  },
+  "source_counts": {
+    "justhodl-compound-aggregator": 8,
+    "justhodl-signal-fabric": 6
+  },
+  "original_controls": {
+    "justhodl-compound-aggregator": {
+      "function_name": "justhodl-compound-aggregator",
+      "timeout": 120,
+      "memory_mb": 512,
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "compound-aggregator-daily",
+          "state": "ENABLED",
+          "expression": "cron(15 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ]
+    },
+    "justhodl-signal-fabric": {
+      "function_name": "justhodl-signal-fabric",
+      "timeout": 300,
+      "memory_mb": 512,
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-signal-fabric-hourly",
+          "state": "ENABLED",
+          "expression": "cron(5 * * * ? *)",
+          "timezone": "UTC",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-signal-fabric-cadence",
+          "state": "ENABLED",
+          "expression": "cron(10 0 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    }
+  },
+  "baseline_reference": "docs/audit/2026-10-02/compound-fabric-baseline.json",
+  "repairs": [
+    "First-seen lifecycle decay is distinct from observation freshness; invalid/future/underflowing dates withhold the adjusted score",
+    "Missing reversal/breadth stays unavailable, numeric strings are typed, duplicate reversal symbols all withheld with originals retained",
+    "Undated sparkline change explicitly spans two positions, never a five-day return or entry-quality label",
+    "Prior 90-calendar-day historical cohorts exclude current/future dates, duplicates, incompatible calculations and invalid complete populations",
+    "Incomplete declared collections or withheld scores cannot overwrite the daily comparison cohort",
+    "Signal Fabric preserves full Compound context and every occurrence without UP votes, confidence, denominator changes or universe seeding",
+    "Fabric marks derived envelopes as unqualified for independence and suppresses comparison events across the Compound calculation boundary",
+    "Convergence Desk shows original packets, input populations, complete calculations, missingness, filtered CSV and selected score history without unsupported trading/performance claims"
+  ],
+  "remaining": [
+    "Durable original retention and full point-in-time replay are not established for this engine",
+    "Declared collections and source timestamps do not qualify complete upstream coverage, observation freshness or identity resolution",
+    "Family priors, base multipliers, reversal descriptions and score percentiles are uncalibrated heuristics; no return or portfolio authority",
+    "Other Signal Fabric adapters, legacy learned/empirical weights, source deduplication, conflict math, peer propagation and feature consumers require continued review",
+    "Resource budgets, multi-key S3 publication atomicity, source failures and scheduled end-to-end operational recovery remain unqualified",
+    "Normal producer publication is not verified; no native invocation, current consumer packet, provider/account/private or learning-ledger reads in this acceptance",
+    "Global floating panels and other pages still need mobile-layout review; a local Convergence navigation overlap is corrected",
+    "All ten institutional workstreams remain open; no full-platform or bug-free acceptance"
+  ],
+  "qualification": {
+    "source_qualified": false,
+    "independent_evidence_qualified": false,
+    "forecast_qualified": false,
+    "portfolio_qualified": false
+  },
+  "verification_scope": "Invented whole-handler/browser fixtures, exact served static originals and code/receipt/native control evidence only. No producer invocation, provider/private/account/learning packet reads, messages, paid APIs or schedule changes."
+}

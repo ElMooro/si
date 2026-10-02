@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 sys.path[:0] = [str(Path(__file__).resolve().parents[1]), str(Path(__file__).resolve().parent)]
 from ciss_vintage_test_support import load
+from compound_test_support import empty_sources
 from holdings_derived_boundary import BASIS, DIRECT, CLUSTER, compound_rows, current_basis, flow_rows
 from capital_research_boundary import context as capital_context
 
@@ -42,7 +43,7 @@ class Storage:
 class Tests(unittest.TestCase):
     def test_activist_legacy_tiers_cannot_vote_or_supply_old_percentiles(self):
         m = load('justhodl-compound-aggregator')
-        db = Storage({'data/activist-filings.json': {'calls_eligible': True,
+        db = Storage({**empty_sources(m), 'data/activist-filings.json': {'calls_eligible': True,
             'summary': {'top_25_overall': [{'subject_ticker':'KO','score':999999}, {'subject_ticker':'FALSE','score':999999}]}},
             'data/nobrainers.json': {'summary': {'top_25_overall': [{'ticker':'KO','score':40}]}},
             'data/insider-clusters.json': {'clusters': [{'ticker':'KO','score':60}]},
@@ -80,7 +81,7 @@ class Tests(unittest.TestCase):
         baseline = None
         for packet in ({}, legacy(10**12), legacy(-10**12)):
             m = load('justhodl-compound-aggregator')
-            db = Storage({CLUSTER: packet,
+            db = Storage({**empty_sources(m), CLUSTER: packet,
                 'data/nobrainers.json': {'summary': {'top_25_overall': [{'ticker': 'KO', 'score': 40}]}},
                 'data/insider-clusters.json': {'clusters': [{'ticker': 'KO', 'score': 60}]},
                 'data/compound-history.json': {'days': [{'d': '2026-01-01', 'scores': {'KO': 10**12}}]},
