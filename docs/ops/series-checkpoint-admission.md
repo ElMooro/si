@@ -174,8 +174,8 @@ pass 25 cases. Owner evidence explicitly leaves the alias delta's native
 delivery unverified; a passing static gate does not qualify that other lane's
 production behavior. Ownership remains with `S-codex#symdir1001a`; this patch
 contains no other-lane repair. Independent review accepted this exact owner correction after rerunning all
-25 focused tests and reconstructing both full source boundaries. The rebased
-admission candidate passes all 1,043 required deployment static tests and 15
+25 focused tests and reconstructing both full source boundaries. The first owner-corrected
+admission candidate passed all 1,043 required deployment static tests and 15
 shell gates, its complete 72/166/10/four differential suite, all 18 probe tests,
 selected source/config validators, source compilation, secrets/stub checks,
 15 public-boundary checks and engine wiring. The source, fixture, runner and
@@ -188,6 +188,22 @@ predecessor package/handler, operating controls and fingerprint all match;
 14 AWS reads, one signed package GET, zero AWS writes/invokes. Report commit
 `599fa623c04b7a2137380ea8155f91f87363ce77` changes only that read-only report;
 no tested code or deployment dependency changed on the final rebase. Refresh
-again if controls or deployment dependencies change before release. Exact-head
-release review, producer deployment and post-release package/receipt/control
-proof remain pending. Natural publication cannot prove the failure path executed.
+again if controls or deployment dependencies change before release. The owner subsequently landed reader commit
+`df5ad4aefb4af8bac6a310a373ee63da8b316e38`. Its independent integration review
+passed 25 guard and 19 reader cases and verified a second exact inverse: current
+reader source to the full retained eight-alias source, then the peer inverse
+and every original guarded-transition assertion. Unexpected source mutations
+still reject. The extractor imports no bundled shared modules and has no dynamic
+import/eval/exec path; the changed Ticker reader is unused by this producer.
+The owner's normal release selected only Ticker360. No production contract from
+that other lane is added by this admission patch.
+
+After rebase onto that reader commit, all **1,044 required deployment static
+tests and 15 shell gates** pass, along with all 72/166/10/four extractor cases,
+18 probe tests, selected source/config validators, secrets/stub, 15 public-boundary
+checks and wiring. Subsequent main commits through
+`62cc80106027d3ef80d524adb9821ef4ba1cf4f9` add owner technical probes, their
+reports and supporting evidence only; selected source/tests/deployment scripts
+and operating controls remain unchanged. Exact-head release review, producer
+deployment and post-release package/receipt/control proof remain pending.
+Natural publication cannot prove the failure path executed.
