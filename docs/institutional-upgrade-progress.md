@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC, through Stage 542: stablecoin stock semantics have exact native deployment, whole retained-original replay and public static/browser acceptance. The missed Sentiment tab category-to-score mapping is now repaired and verified live. Stage 543 is the next Bitcoin sentiment source/calculation/history repair; its isolated prototype has 31 passing cases but is not integrated or deployed. Source authenticity, point-in-time availability, independent evidence, investment efficacy and reconciled portfolio consequences remain separate work. All ten institutional workstreams remain OPEN.
+October 2 UTC, through Stage 542 accepted: stablecoin source/native/static work remains accepted. Stage 543 sentiment source, archive, eight consumer engines and Crypto/Desk presentation are now a complete local candidate; integration/deployment/native/static/original acceptance remains required. Allocator/logger controls were read twice on the runner without invocation or application reads. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7724,3 +7724,14 @@ Source `e77a55f02f3aefd63e32476afaeca8f7b23ada55` is live through Pages run `369
 ### Stage 543 source-review and candidate status
 
 The Bitcoin sentiment source still replaces missing values with 50, accepts a boolean as 1, labels a single observation as a 7D/30D average, mixes a local pre-2018 price formula with provider observations, samples old rows, and exposes that combined series under a 2016–present chart. Whole-source AST reproductions use invented data only. The provider’s public definition and API example were reviewed at https://alternative.me/crypto/fear-and-greed-index/; its publication timing and historical availability remain unverified. The separate candidate preserves every original row, validates the named series, uses explicit UTC observation dates, requires complete daily averaging windows, keeps duplicate/conflicting clocks explicit, and preserves original response attempts. Seventeen observation tests and fourteen capture/reconciliation tests pass outside the production repository. Storage integration, actual producer/consumer migration, native/static deployment and original acceptance remain pending. No candidate engine change has shipped. All ten workstreams remain OPEN.
+
+
+### Stage 543 sentiment candidate
+
+The complete original/consumer/history repair removes missing-as-50, booleans-as-measurements, short samples labeled weekly/monthly, synthetic provider prehistory, missing-zero loss, wrong consumer keys, allocation threshold votes and invented outcome confidence. Native control baseline 6443 is accepted. Candidate browser inspection caught and repaired an extra unavailable label and unreadable mobile source/chart labels. Concurrent heartbeat source contains prefix-census, exception-as-missing and cadence/freshness definition defects; these are recorded separately, not qualified or executed. No provider response, private ledger or account data was fetched during candidate validation.
+
+The integration baseline exposed stale signal-logger architecture metadata: repository x86-64 versus actual ARM64. The candidate aligns the declaration to observed ARM64; it does not migrate resources. Earlier allocator preservation tests now reverse the exact reviewed whole-source sentiment transition before checking unrelated historical functions; no function is exempted. Legacy scalar-only sentiment is withheld, with valid retained zero covered separately.
+
+The same stale x86-64 declaration was present for Financial Secretary and Telegram Bot; both now name the ARM64 architecture already recorded in their accepted native baselines. No architecture transition is intended. Unavailable source populations are labelled unavailable, rather than displaying zero retained rows.
+
+The full deployment gate reproduced an intermittent FI/FX test defect: it rebuilt requested URLs at completion time. The repaired test retains all prior assertions and checks same-second, next-second and UTC-midnight acquisition/completion clocks. Producer source is unchanged. Existing target detection redeploys the test owner, so FI/FX is explicitly added to the exact native acceptance set using its preserved runtime and schedule baseline.

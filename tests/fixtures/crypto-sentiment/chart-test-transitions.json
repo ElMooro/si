@@ -1,0 +1,44 @@
+{
+  "tests/chart-compare.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-compare.test.js.txt",
+    "predecessor_sha256": "759512f1e27d581495b5d8db87cd61fefd1a8d8a331e19405b06326fdb0fa27c",
+    "current_sha256": "86c2d11700370e5dfd134a7c3d9f765d782967149d27e206671305a6f6a5d81c",
+    "before": "/v12\\.34/",
+    "after": "/v12\\.41/"
+  },
+  "tests/chart-cq-fuse.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-cq-fuse.test.js.txt",
+    "predecessor_sha256": "b062cd13fa4d46709886f8f39b909c8a62dfb5c00dc6392c6176f216ec00d0f4",
+    "current_sha256": "219acfd3f83d6130426a14173b3bf7777d9e222cf6568a312d9789a2539bc945",
+    "before": "/v12\\.34/",
+    "after": "/v12\\.41/"
+  },
+  "tests/chart-crypto-history.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-crypto-history.test.js.txt",
+    "predecessor_sha256": "71311fc5fa770989050d0dcaffbf971d96d40a0c190bbe42f51399424f96890b",
+    "current_sha256": "5558ab6ba5e286cd0d95b3c6b49f94d237a7a3a84bca5a61dfcfe31925b8ea28",
+    "before": "/v12\\.34/",
+    "after": "/v12\\.41/"
+  },
+  "tests/chart-ind-menu.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-ind-menu.test.js.txt",
+    "predecessor_sha256": "c3273e94f60d4132b69fdd68b3a9d8ced195eed5da10974c82e2643d8cf05b4d",
+    "current_sha256": "95de8fe3507ca15ab2c94166b61483cae70d98e73c29ea10bb535052c849ed80",
+    "before": "/v12\\.34/",
+    "after": "/v12\\.41/"
+  },
+  "tests/chart-qx.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-qx.test.js.txt",
+    "predecessor_sha256": "6ffae5f887cecd63f81467c01475ccc386fa972946ad29748fb7e092b18162f1",
+    "current_sha256": "fad38c0f9f262406703871467b8388110dfa92177475ff5a3296a08e66168ad4",
+    "before": "/v12\\.34/",
+    "after": "/v12\\.41/"
+  },
+  "tests/chart-help-accessibility.test.js": {
+    "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-help-accessibility.test.js.txt",
+    "predecessor_sha256": "874afcffd11e6b5f8eddc8ca5103747aa0021fdafe92f4502335ca0669731a5a",
+    "current_sha256": "1b774182f2af38e55a54846ca3a3b0fdf48c15b8661113e65b26e96f09fdd01c",
+    "before": "assert.equal(copy(current),copy(old));",
+    "after": "const transition=require('./fixtures/chart-html-labels/source-delta.json').whole['jh-chart-indux.js'].replacements.at(-1);assert.equal(current,transition.after);assert.equal(copy(transition.before),copy(old));"
+  }
+}

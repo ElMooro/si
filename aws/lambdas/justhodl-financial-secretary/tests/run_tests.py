@@ -48,7 +48,7 @@ def scan():
                 data_freshness=dict(stocks="real-time (Polygon)", crypto="real-time (CoinMarketCap)",
                                     fred_latest="2039-12-28"),
                 tier2=dict(crypto=dict(btc_dominance=50, mcap_change_24h=0,
-                    fear_greed_value=0, risk_score=dict(score=0, regime="LOW", action="ACCUMULATE",
+                    fear_greed_value=0, fear_greed_research=dict(contract="crypto-sentiment-consumer-context.v1",status="descriptive",original_projection_checked=True,current=0,label="Invented",source_observation_at="2040-01-02T00:00:00Z",independent_investment_votes=0,calls_eligible=False,sizing_eligible=False,execution_eligible=False,forecast_qualified=False), risk_score=dict(score=0, regime="LOW", action="ACCUMULATE",
                     signals=["Synthetic signal"]), timestamp="2040-01-02T12:00:00Z")))
 
 
@@ -110,7 +110,7 @@ class PresentationTests(unittest.TestCase):
         for label in ("0/100", "Source regime: LOW", "Source action: ACCUMULATE", "Source signals: none"):
             self.assertIn(label, html)
         self.assertNotIn("{'score'", html)
-        self.assertIn("FEAR/GREED</div><div style=\"font-size:22px;font-weight:700\">0/100", SCOPE["build_email_html"](scan()))
+        self.assertIn("BITCOIN SENTIMENT</div><div style=\"font-size:22px;font-weight:700\">0/100", SCOPE["build_email_html"](scan()))
 
     def test_missing_invalid_and_zero_are_distinct(self):
         render = SCOPE["_crypto_risk_html"]
@@ -167,8 +167,8 @@ class PresentationTests(unittest.TestCase):
             finally:
                 del SCOPE["s3"]
 
-        for field in ("scalar", "structured", "fear_greed"):
-            label = "FEAR/GREED" if field == "fear_greed" else "RISK SCORE"
+        for field in ("scalar", "structured"):
+            label = "BITCOIN SENTIMENT" if field == "fear_greed" else "RISK SCORE"
             prefix = f'{label}</div><div style="font-size:22px;font-weight:700">'
             reference = SCOPE["build_email_html"](fetched_scan(field, 0))
             self.assertEqual(reference.count(prefix + "0/100"), 1)
@@ -238,7 +238,7 @@ class PresentationTests(unittest.TestCase):
         finally:
             del SCOPE["s3"]
         self.assertEqual(tier2["crypto"]["risk_score"]["score"], 0)
-        self.assertEqual(tier2["crypto"]["fear_greed_value"], 0)
+        self.assertIsNone(tier2["crypto"]["fear_greed_value"])  # Legacy scalar lacks a replayable original.
         self.assertEqual(tier2["crypto"]["timestamp"], "2040-01-02T12:00:00Z")
         self.assertEqual(tier2["options"]["timestamp"], "2040-01-02T11:00:00Z")
 

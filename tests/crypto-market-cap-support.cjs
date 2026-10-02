@@ -6,7 +6,7 @@ function page(name){
   if(/\bsrc\s*=|type\s*=\s*["']application\//i.test(m[1]))continue;
   const tree=acorn.parse(m[2],{ecmaVersion:'latest'});functions.push(...tree.body.filter(n=>n.type==='FunctionDeclaration').map(n=>({name:n.id.name,code:m[2].slice(n.start,n.end)})));
  }
- const allowed=name==='crypto/index.html'?null:['cryptoMarketCapRatio','cryptoMarketCapText','cryptoRiskText','renderCrypto','fmt','timeAgo','rowsHTML'];
+ const allowed=name==='crypto/index.html'?null:['cryptoMarketCapRatio','cryptoMarketCapText','cryptoRiskText','renderCrypto','fmt','timeAgo','rowsHTML','cryptoScalar','cryptoText','cryptoSentimentPacket','cryptoSentimentRows','cryptoSentimentSeries','cryptoSentimentCurrent','cryptoSentimentAverage','cryptoSentimentAttribution'];
  functions=functions.filter(f=>!allowed||allowed.includes(f.name));return {name,html,styles,functions,code:functions.map(f=>f.code).join('\n')};
 }
 function ratios(value=2){return {mvrv_approx:900,signal:'OVERVALUED',market_cap_extension:{contract:'btc-market-cap-to-returned-mean.v1',status:'descriptive',unit:'ratio',value,calls_eligible:false,sizing_eligible:false,execution_eligible:false,forecast_qualified:false,independent_investment_votes:0,numerator:{value_usd:typeof value==='number'?value*10:null},denominator:{value_usd:10,count:30},observation_window:{first:'2020-01-01T00:00:00+00:00',last:'2020-01-30T00:00:00+00:00'}}};}

@@ -51,7 +51,7 @@ class Consumers(unittest.TestCase):
    def get(**kw):return {'Body':io.BytesIO(json.dumps({'stablecoins':stock,'fear_greed':{'current':0},'generated_at':'2040-01-01T00:00:00Z'} if kw['Key']=='crypto-intel.json' else {}).encode())}
    result=function('justhodl-financial-secretary','fetch_tier2',{'s3':types.SimpleNamespace(get_object=get),'json':json,'BUCKET':'invented'})()['crypto']
    for key in ('stablecoin_net_signal','stablecoin_minting','stablecoin_burning'):self.assertIsNone(result[key])
-   self.assertEqual(result['stablecoin_research']['status'],expected);self.assertEqual(result['fear_greed_value'],0);self.assertEqual(result['timestamp'],'2040-01-01T00:00:00Z')
+   self.assertEqual(result['stablecoin_research']['status'],expected);self.assertIsNone(result['fear_greed_value']);self.assertEqual(result['timestamp'],'2040-01-01T00:00:00Z')
  def test_every_reviewed_edit_preserves_complete_predecessor_bytes(self):
   fixture=R/'tests/fixtures/crypto-stablecoin-stocks';plans=json.loads(gzip.decompress((fixture/'edits.json.gz').read_bytes()))
   for path,plan in plans.items():

@@ -19,7 +19,7 @@ test('removed opener falls back to replacement Timing; late close event cannot h
 test('help copy and classifier sources are not part of the accessibility repair',()=>{
  const old=source('tests/fixtures/chart-help-indux-predecessor.js.txt'),current=source('jh-chart-indux.js');
  const copy=s=>s.slice(s.indexOf('    var TAPE = {'),s.indexOf('    var d = ',s.indexOf('    var TAPE = {')));
- assert.equal(copy(current),copy(old));assert.match(current,/#indhelp\[open\]\{display:flex\}/);assert.doesNotMatch(current,/setAttribute\("aria-modal"/,'fallback must not claim modality');
+ const transition=require('./fixtures/chart-html-labels/source-delta.json').whole['jh-chart-indux.js'].replacements.at(-1);assert.equal(current,transition.after);assert.equal(copy(transition.before),copy(old));assert.match(current,/#indhelp\[open\]\{display:flex\}/);assert.doesNotMatch(current,/setAttribute\("aria-modal"/,'fallback must not claim modality');
 });
 
 test('hidden, collapsed, removed, disabled, inert, display:none and focus-refusing openers try visible fallback',()=>{

@@ -269,7 +269,7 @@ def extract_metrics(data,weights):
     scores=intel.get("scores",{})
     regime_d=intel.get("regime",{})
     stress=repo.get("stress",{})
-    fg=crypto.get("fear_greed",{})
+    fg=__import__("crypto_sentiment_observations").context(crypto.get("fear_greed"))
     rs=crypto.get("risk_score",{})
     from dealer_research_context import project as dealer_context
     _pd_context=dealer_context(data.get("primary_dealers") or {})
@@ -349,6 +349,7 @@ def extract_metrics(data,weights):
         "flags":[str(f)[:50] for f in stress.get("flags",[])[:3]],
         "fg":fg.get("current","N/A"),
         "fg_label":fg.get("label","N/A"),
+        "fg_research":fg,
         "crypto_risk":rs.get("score","N/A"),
         # ─── dealer / funding stack (ops 3308) ───
         "dealer_research_context":_pd_context,
@@ -1236,7 +1237,7 @@ def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
         "FORECAST: "+str(m["forecast"]),
         "MOVES: SPY:"+str(m["spy"])+"% TLT:"+str(m["tlt"])+"% GLD:"+str(m["gld"])+"% QQQ:"+str(m["qqq"])+"% DXY:"+str(m["uup"])+"%",
         "PLUMBING: Stress:"+str(m["stress_score"])+"/100 ("+str(m["stress_status"])+") Phase:"+str(m["stress_phase"])+" RedFlags:"+str(m["red_flags"])+" Flags:"+str(", ".join(m["flags"]) or "none"),
-        "CRYPTO: F&G:"+str(m["fg"])+"/100 ("+str(m["fg_label"])+") CryptoRisk:"+str(m["crypto_risk"])+"/100 ("+str(m["crypto_regime"])+") Action:"+str(m["crypto_action"]),
+        "CRYPTO: Bitcoin sentiment (Alternative.me; descriptive, not a forecast): "+json.dumps(m.get("fg_research",{}),ensure_ascii=True)+" CryptoRisk:"+str(m["crypto_risk"])+"/100 ("+str(m["crypto_regime"])+") Action:"+str(m["crypto_action"]),
         "BTC: $"+str(m["btc_price"])+" 24h:"+str(m["btc_24h"])+"% 7d:"+str(m["btc_7d"])+"% ATH_down:"+str(m["btc_ath_chg"])+"%",
         "BTC_FUNDING: "+str(m["btc_funding_observation"]),
         "ETH: $"+str(m["eth_price"])+" 24h:"+str(m["eth_24h"])+"% Sentiment:"+str(m["eth_sentiment"]),
@@ -1331,7 +1332,7 @@ def _legacy_build_brief(templates,m,perf,err_analysis,weights,accuracy):
                "SPY:"+str(m["spy"])+"% TLT:"+str(m["tlt"])+"% GLD:"+str(m["gld"])+"%\n"
                "BTC $"+str(m["btc_price"])+" ("+str(m["btc_24h"])+"% 24h) Funding:"+str(m["btc_sentiment"])+"\n"
                "BTC market cap / returned mean:"+str(m["market_cap_to_mean_ratio"])+" (descriptive only; MVRV unavailable)\n"
-               "F&G:"+str(m["fg"])+"/100 ("+str(m["fg_label"])+")\n"
+               "Bitcoin sentiment (Alternative.me): "+str(m["fg"])+"/100; provider observation "+str((m.get("fg_research") or {}).get("source_observation_at"))+"; descriptive only, no forecast/sizing vote.\n"
                "Plumbing:"+str(m["stress_score"])+"/100\n"
                "Picks: "+str(", ".join(m["picks"][:3])))
     return brief

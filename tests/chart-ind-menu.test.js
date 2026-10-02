@@ -52,7 +52,7 @@ test("Indicators dropdown is on the chart bar and stamps the engine", () => {
   assert.match(engine, /ind\.c2\|\|"#26c6da"/);
   assert.match(engine, /o\.c2\|\|"#ff6d00"/);
   assert.match(engine, /c2:i\.c2,c3:i\.c3/);
-  assert.match(engine, /v12\.34/);
+  assert.match(engine, /v12\.41/);
   assert.match(engine, /__jhChartEngineV1239/);
   assert.match(indux, /pspread:/);
   assert.match(indux, /relvol:/);

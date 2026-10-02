@@ -1,0 +1,449 @@
+{
+  "stage": 543,
+  "status": "complete_candidate_not_deployed",
+  "base": "f23572511ade3c10e099d300c6759827a86c3ae6",
+  "primary_paths": [
+    "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py",
+    "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py",
+    "aws/lambdas/justhodl-ai-chat/source/lambda_function.py",
+    "aws/lambdas/justhodl-morning-intelligence/source/lambda_function.py",
+    "aws/lambdas/justhodl-telegram-bot/source/lambda_function.py",
+    "aws/lambdas/justhodl-crypto-cycle-risk/source/lambda_function.py",
+    "aws/lambdas/justhodl-allocator/source/lambda_function.py",
+    "aws/lambdas/justhodl-signal-logger/source/lambda_function.py",
+    "crypto/index.html",
+    "desk-v2.html",
+    "tests/crypto-market-cap-support.cjs",
+    "aws/lambdas/justhodl-crypto-intel/tests/run_tests.py",
+    "aws/lambdas/justhodl-financial-secretary/tests/run_tests.py",
+    "tests/test_crypto_stablecoin_consumers.py",
+    "tests/crypto-stablecoin-sentiment.test.js",
+    "tests/crypto-measurements.test.js",
+    "aws/ops/checks/test_crypto_stablecoin_original_operation.py",
+    "aws/lambdas/justhodl-signal-logger/config.json",
+    "tests/crypto_market_cap_preservation.py",
+    "aws/lambdas/justhodl-financial-secretary/config.json",
+    "aws/lambdas/justhodl-telegram-bot/config.json"
+  ],
+  "native_baseline_run": 36956308298,
+  "source_qualified": false,
+  "normal_publication_verified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Integrated meaningful checks",
+    "Exact native releases and preserved controls",
+    "Complete served HTML and isolated browser acceptance",
+    "Normally produced complete retained-original replay",
+    "First publication/source authenticity, prospective predictive evaluation, independent evidence and reconciled portfolio consequences"
+  ],
+  "targets": [
+    "justhodl-crypto-intel",
+    "justhodl-financial-secretary",
+    "justhodl-ai-chat",
+    "justhodl-morning-intelligence",
+    "justhodl-telegram-bot",
+    "justhodl-crypto-cycle-risk",
+    "justhodl-allocator",
+    "justhodl-signal-logger",
+    "justhodl-fifx-vol-migration"
+  ],
+  "source_hashes": {
+    "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py": "ec3467b2237725d32551a2a7a43a3ab82ff6dbc694fac2500920cab8be9f1432",
+    "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+    "aws/shared/crypto_funding_archive.py": "aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53",
+    "aws/shared/crypto_funding_observations.py": "7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc",
+    "aws/shared/crypto_market_cap_extension.py": "091fa4431f966abdb2f1957ca9d2bd9b194e9e4ef343f2f2f7fca96d879f5886",
+    "aws/shared/crypto_sentiment_archive.py": "01eb0dd803ed0cfeb57febfa127930047e73e7be79346c985ddd0d255d804a0b",
+    "aws/shared/crypto_sentiment_observations.py": "a53f747a138a3d85a61092d9aa59064945456d0105c47473a69ff9530a66b43c",
+    "aws/shared/crypto_sentiment_transport.py": "142836cedc3e5fa4d498765f49a59d0e7ac23ed3454241d97588ee5f7409b304",
+    "aws/shared/crypto_stablecoin_archive.py": "0fe0032164161baa532264757a9f5bd55b908b797211fef6d3a2807263cb1835",
+    "aws/shared/crypto_stablecoin_observations.py": "2f35f08de0d2cd276ff6e3f36a0a7c56900eca7ac052a902f784e57e839e6a16",
+    "aws/shared/crypto_stablecoin_transport.py": "33ef41f66adb81afb5b514159c05eb7918987c0e423bfe1791223a7a3cf54395",
+    "aws/shared/ka_aliases.py": "e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e",
+    "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+    "aws/shared/llm_router.py": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+    "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+    "aws/shared/xai_voice.py": "14936b2dc7791c42241ac6adddab1e5d590c5cda202b84ef87e99691dcf9ef1a",
+    "aws/lambdas/justhodl-crypto-intel/config.json": "928229262da4a6ac70c0e468eb708720047c3127f5d5378c044a335380011049",
+    "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py": "1b96191a9e9923990f92681ae4cfedc083442f43fdf2b586dee560af3464f565",
+    "aws/shared/anthropic_shim.py": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+    "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+    "aws/lambdas/justhodl-financial-secretary/config.json": "06c99df0da0c48f7c9b3a3fdcc61e3c1566f6edbacb0fd1b6a3fc03f02123525",
+    "aws/lambdas/justhodl-ai-chat/source/lambda_function.py": "e83a40be334c5440cfdcafb99b411c89c5f616a9411c23ab929f746a112ac7a2",
+    "aws/shared/aaii_research.py": "c9b0321ef57bed19c6f949194df8ceb2e84819eabc910702e114f5a6129c0a88",
+    "aws/shared/ciss_readthrough.py": "996789e5c95e4fc31366e74c7edec051b001c265fdd4a7c12384d000b2af4607",
+    "aws/shared/ciss_source_model.py": "aceaa814189bc72fc914e4cd4ae7a895cb2e4aeb376b0519fb17fdc4de01313c",
+    "aws/shared/claude_compat.py": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+    "aws/shared/credit_collection_clock.py": "3b257ed0c9bd185cf23684684e0fd1fa7f029d543d54d65b0e660da75a8235d1",
+    "aws/shared/credit_research.py": "aed603d204c8d69acd7cace826670df50f73c76623bdf123c6790982663ed81f",
+    "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+    "aws/shared/donor_contract.py": "21d9c8378694a3ac0fb0a16c231817b83b9760c001007b9c48af15b2735c31e8",
+    "aws/shared/extremes_research.py": "691cba0c160992d51c30aeaef15640fa78ac499b95171cc8e4de4683993de864",
+    "aws/shared/fred_vintage_model.py": "18a94566ffc74cda5208dd89a4372dbfa5cee40049e83db8006b8b51ccc5b17b",
+    "aws/shared/lce_research_catalog.py": "94e446b1206391dfceb8dd5e3abbf19e7e80756bf3835720478118dd5a15866e",
+    "aws/shared/lce_research_model.py": "54854fb6962d976c935b0dde3990c00cdae34978d626f1c342e13d396afbc43c",
+    "aws/shared/macro_donor_inputs.py": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+    "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+    "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+    "aws/shared/report_observations.py": "ff49708fae85bd2c9ca7b11336c1f3614f8c50b80717db18d2a220fcbe761979",
+    "aws/shared/research_brief_model.py": "6d6b27a1defe9f20fcd25f995d79bc90633642835d33944fe6f8083b8550003c",
+    "aws/shared/retail_research.py": "c50fe4ef0b268186a5bca428cec0b457e6d47837fd4e7fbe4cb58f902a235dd3",
+    "aws/shared/sector_research.py": "b2131c339b2305fa4565467485266dbbf22fd495b7281461e460bf06c8b33123",
+    "aws/shared/short_volume_context.py": "743e4dc0fa294b3be990993be59b1bb8e67123fcda1d52db32101210a30814ff",
+    "aws/shared/tenor_research_model.py": "13ed058d105909598fc87c84af3d1e04c667323cf092b8cc96ca0981c35c3acf",
+    "aws/shared/treasury_instruments.py": "c256fd14f2f8d5da79ab6b4d10bf2147404c9a6025fe1154767a56295af7d4a6",
+    "aws/lambdas/justhodl-ai-chat/config.json": "e0f6fc7dbc9d8a1249ced16c129555a2abfdfe358e28f1f0ea0e5c7ced8e2615",
+    "aws/lambdas/justhodl-morning-intelligence/source/lambda_function.py": "3b790488537719031ddcb8808a2bbcb3c171d801fce9198ad0d571c81c40fd2b",
+    "aws/shared/_fred_shim.py": "1b089a84855ca5b91abdd0084aad1606fe5ee149e6f187f9e50482464686ed48",
+    "aws/shared/calibration.py": "b9baba11b44a0115f33d8851c09af00442dbe0dd210c5055fa072aeec72b58ff",
+    "aws/shared/cycle_model_context.py": "96e1aa5acc0c101e9faa66d10065cfba54dd84bb62b2c0f8cb959acf57897435",
+    "aws/shared/dealer_research_context.py": "96b80767b9fd0de52be8bd7b60d2352d46745e020c17964c2512d5426f5b933f",
+    "aws/shared/dollar_research_context.py": "490c78d24d1cd03674cf1f0d5aa660f3ca8f04946c0dc3ea8de5f31e6cde01ba",
+    "aws/shared/gold_rotation_context.py": "14ab452e042208b99473ca630fbf5051edf336c409d09538d44caa10df6c2a1c",
+    "aws/shared/gsi_authority.py": "c55d98fd46f0805cde0280ba11b1d73a5787e5e9f228721c569201ef88a01aef",
+    "aws/shared/morning_free_research.py": "1d15159417ca94114f499a371b9582e0a39ecce1c9d9cc71a0da615741fd99b7",
+    "aws/shared/nowcast_research.py": "5580f18d6c0a1be1d137163f8b07b3cce39754e35edf6c6dac5d7ff13269a02d",
+    "aws/shared/plumbing_authority.py": "5d6008e54eb4b9f372edc7ac08b63b8ba283912e51b834ffe9ef50a61c494c9b",
+    "aws/shared/risk_regime_authority.py": "9e9f27c6c62d915fe1d99a6e4fadb40be477662dfc97ce2619718ee3a15fa642",
+    "aws/shared/valuation_research.py": "e7f4353212f25449de877d6395c28daf31714359e1c72815ced251632232d612",
+    "aws/lambdas/justhodl-morning-intelligence/config.json": "668bf16e24da7b90c90d61e47dd42d83fb3b6d57704901eb1abf20e89833d34f",
+    "aws/lambdas/justhodl-telegram-bot/source/lambda_function.py": "3d0f2aaf7482b29c3064918794befa6879e1724db88c7261fea0f11ecff37b17",
+    "aws/lambdas/justhodl-telegram-bot/config.json": "16582f31fffc9ffdc7ad8ef342928de482bddf15a6c27b888be2530312342b78",
+    "aws/lambdas/justhodl-crypto-cycle-risk/source/bond_vol_boundary.py": "f9fbfb3311305d403ab13415094ee6162ef42eb6b84cf96ae969691708cc2c20",
+    "aws/lambdas/justhodl-crypto-cycle-risk/source/lambda_function.py": "a2f64b5d1963f40b209f9ac914c2bf9d3930a07cac18e030f811d09ea8f2dc1f",
+    "aws/lambdas/justhodl-crypto-cycle-risk/config.json": "970c46bb04f17bc260b661694ca12761040e714483b977255d1c905333e98406",
+    "aws/lambdas/justhodl-allocator/source/lambda_function.py": "5900d9b58991b9a4de04b9664dc999be254184e193b2a8d60a3fea2be98bdbd9",
+    "aws/shared/eurodollar_research.py": "14b09a68da4d7c5c383ffefa8ef991103acba8f3c52c88c3a09e199ded1e6247",
+    "aws/lambdas/justhodl-allocator/config.json": "1418da9a9c27a3e38b91c199fdeee2fba7e663cfce942e8f3d2af7f031e541a3",
+    "aws/lambdas/justhodl-signal-logger/source/lambda_function.py": "a775976383c05a4a6b3cacf17e1bf59b88a71c32c6e4d9cd2c88626c4a35008a",
+    "aws/lambdas/justhodl-signal-logger/config.json": "86dd4903f6f786dfe5acc41a7ee4cc6aeeda58fc6831526dd3729ff16634a189",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_acquire.py": "1768ba421fd4a2742d50da841a4db30b23222640fe0ec3e13023fda30fc3d775",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_candidate.py": "6b520e62610539c0092d3b166db295a0ff2ca8c55cf9c747b2eed04c0a25f57d",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_catalog.py": "bb0948b28b9151c20d9067106058aeb5598102fdd7c80f2a7faf57210ea86243",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_fred.py": "318b93508bb973366060eeb98b035b2acded7cf4bd46743b07ce2d7c21f20a42",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_model.py": "06495c99be1984242619817f8dfc46df51a1898ed90de6edcdba97b0e7cb650f",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_originals.py": "d6ff5d668b850fce9ce61a85470ca810c553a8a9817b8c83c9bd2275cda4a446",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_qualification.py": "5f5bcad59aaba0a0d6dee055e25454eb700b9487266e6d474c64d59024041e6a",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_store.py": "6a606122b49ee481812e71630dff2b68315abd65befe7d8436325978a27c01d4",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/fifx_timezones.py": "5683d75454c67f6e4a71e49d6ffc26d04f9ecf6ebdffc95dc98f6d212ea0d67a",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/lambda_function.py": "5247bcdce1011b4cc07adb94ab7cf53bc2ea1b0599fc6923aed4ebb607680359",
+    "aws/lambdas/justhodl-fifx-vol-migration/source/verify_fifx_arithmetic.py": "cfc1b262da01dfdb4c40b04d95d3c65b80503016b3aeaa4c1d2c4d8b62d6549e",
+    "aws/shared/canonical_fred_replay.py": "20be121d7c0c3a7205f1e26c0c593e4cb6b112cf872d991c1ccda6639e0a18aa",
+    "aws/shared/evidence_store.py": "3baf3781f7450aafd6ab5ba96418752ebdeee3f154c62aefa31d72717479c976",
+    "aws/lambdas/justhodl-fifx-vol-migration/config.json": "9745533ddc820220e7213d70c60f47dcd80341b0e004244062eea7d4fd5b05ba"
+  },
+  "source_counts": {
+    "justhodl-crypto-intel": 16,
+    "justhodl-financial-secretary": 12,
+    "justhodl-ai-chat": 31,
+    "justhodl-morning-intelligence": 30,
+    "justhodl-telegram-bot": 10,
+    "justhodl-crypto-cycle-risk": 7,
+    "justhodl-allocator": 6,
+    "justhodl-signal-logger": 6,
+    "justhodl-fifx-vol-migration": 15
+  },
+  "original_controls": {
+    "justhodl-crypto-intel": {
+      "function_name": "justhodl-crypto-intel",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 180,
+      "memory_mb": 1024,
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-crypto-15min",
+          "state": "ENABLED",
+          "expression": "rate(15 minutes)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-crypto-fanin",
+          "state": "ENABLED",
+          "expression": null,
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-financial-secretary": {
+      "function_name": "justhodl-financial-secretary",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 300,
+      "memory_mb": 1024,
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-financial-secretary-daily",
+          "state": "ENABLED",
+          "expression": "cron(45 12 * * ? *)",
+          "native_targets": 1
+        },
+        {
+          "kind": "EventBridge rule",
+          "name": "secretary-4h-scan",
+          "state": "ENABLED",
+          "expression": "rate(4 hours)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-ai-chat": {
+      "function_name": "justhodl-ai-chat",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 60,
+      "memory_mb": 512,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": []
+    },
+    "justhodl-morning-intelligence": {
+      "function_name": "justhodl-morning-intelligence",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 120,
+      "memory_mb": 256,
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-morning-brief-daily",
+          "state": "ENABLED",
+          "expression": "rate(1 day)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-telegram-bot": {
+      "function_name": "justhodl-telegram-bot",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 90,
+      "memory_mb": 256,
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-telegram-alerts",
+          "state": "ENABLED",
+          "expression": "cron(44 11 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-crypto-cycle-risk": {
+      "function_name": "justhodl-crypto-cycle-risk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 60,
+      "memory_mb": 256,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-crypto-cycle-risk-6h",
+          "state": "ENABLED",
+          "expression": "rate(6 hours)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-allocator": {
+      "function_name": "justhodl-allocator",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 60,
+      "memory_mb": 256,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": []
+    },
+    "justhodl-signal-logger": {
+      "function_name": "justhodl-signal-logger",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 120,
+      "memory_mb": 256,
+      "architectures": [
+        "arm64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-signal-logger-6h",
+          "state": "ENABLED",
+          "expression": "cron(0 21 * * ? *)",
+          "native_targets": 1
+        }
+      ]
+    },
+    "justhodl-fifx-vol-migration": {
+      "function_name": "justhodl-fifx-vol-migration",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "timeout": 900,
+      "memory_mb": 2048,
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": [
+        {
+          "kind": "EventBridge Scheduler",
+          "name": "justhodl-fifx-vol-daily",
+          "state": "ENABLED",
+          "expression": "cron(20 21 ? * MON-FRI *)",
+          "timezone": "UTC",
+          "native_targets": 1,
+          "group": "default"
+        }
+      ]
+    }
+  },
+  "control_evidence": {
+    "justhodl-crypto-intel": {
+      "run_id": 36952245507,
+      "operation_commit": "8c67aae6386c8f6fe47ad398174e63d4b3f9ce4d",
+      "report_commit": "6ae0b23dc3d9627a12942161b50e4ae2a4c1b5f2",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6440_crypto_stablecoin_stock_acceptance.md",
+        "bytes": 7087,
+        "sha256": "b7ca43da1bb790e0882f19f9e6e5c78e9ebc2370881e35b6b875d55876755722"
+      }
+    },
+    "justhodl-financial-secretary": {
+      "run_id": 36952245507,
+      "operation_commit": "8c67aae6386c8f6fe47ad398174e63d4b3f9ce4d",
+      "report_commit": "6ae0b23dc3d9627a12942161b50e4ae2a4c1b5f2",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6440_crypto_stablecoin_stock_acceptance.md",
+        "bytes": 7087,
+        "sha256": "b7ca43da1bb790e0882f19f9e6e5c78e9ebc2370881e35b6b875d55876755722"
+      }
+    },
+    "justhodl-ai-chat": {
+      "run_id": 36939011969,
+      "operation_commit": "98d8348b0105190c569608653adcad72766b0bd3",
+      "report_commit": "ba1d4d3efbe72c528682d4ad2a22a58728845db3",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6435_crypto_market_cap_acceptance.md",
+        "bytes": 17368,
+        "sha256": "0855bee0cee2bab3e4baf76503ccf31feaafe7ad3da76c9c16b4a57b9a2f8a8c"
+      }
+    },
+    "justhodl-morning-intelligence": {
+      "run_id": 36941541466,
+      "operation_commit": "6d509522cde3bd6a5932ae8e0506dd09cc1bfc0e",
+      "report_commit": "d5ce4e3dc075b02bc1c4eb6f2d88ddb3cb49b0fd",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6436_crypto_funding_acceptance.md",
+        "bytes": 14910,
+        "sha256": "1fe42669dda97b8492ba06c00a866002676b8715c15f1b10127e207cfdd33c79"
+      }
+    },
+    "justhodl-telegram-bot": {
+      "run_id": 36941541466,
+      "operation_commit": "6d509522cde3bd6a5932ae8e0506dd09cc1bfc0e",
+      "report_commit": "d5ce4e3dc075b02bc1c4eb6f2d88ddb3cb49b0fd",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6436_crypto_funding_acceptance.md",
+        "bytes": 14910,
+        "sha256": "1fe42669dda97b8492ba06c00a866002676b8715c15f1b10127e207cfdd33c79"
+      }
+    },
+    "justhodl-crypto-cycle-risk": {
+      "run_id": 36941541466,
+      "operation_commit": "6d509522cde3bd6a5932ae8e0506dd09cc1bfc0e",
+      "report_commit": "d5ce4e3dc075b02bc1c4eb6f2d88ddb3cb49b0fd",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6436_crypto_funding_acceptance.md",
+        "bytes": 14910,
+        "sha256": "1fe42669dda97b8492ba06c00a866002676b8715c15f1b10127e207cfdd33c79"
+      }
+    },
+    "justhodl-allocator": {
+      "run_id": 36956308298,
+      "operation_commit": "ac4494b90ab3d32ccac83947af3249665b1c25c0",
+      "report_commit": "f23572511ade3c10e099d300c6759827a86c3ae6",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6443_sentiment_consumer_controls.md",
+        "bytes": 1577,
+        "sha256": "e65f689fffaeb46af00af2dd3cbb6f44fcfbb7b6f4bbbaddf2f184baed101da7"
+      }
+    },
+    "justhodl-signal-logger": {
+      "run_id": 36956308298,
+      "operation_commit": "ac4494b90ab3d32ccac83947af3249665b1c25c0",
+      "report_commit": "f23572511ade3c10e099d300c6759827a86c3ae6",
+      "report": {
+        "path": "aws/ops/reports/latest/ops_6443_sentiment_consumer_controls.md",
+        "bytes": 1577,
+        "sha256": "e65f689fffaeb46af00af2dd3cbb6f44fcfbb7b6f4bbbaddf2f184baed101da7"
+      }
+    }
+  },
+  "logger_legacy_config_correction": {
+    "field": "architectures",
+    "old_declared": [
+      "x86_64"
+    ],
+    "observed_and_preserved": [
+      "arm64"
+    ],
+    "baseline_run": 36956308298
+  },
+  "architecture_declarations_aligned_to_native": [
+    "justhodl-signal-logger",
+    "justhodl-financial-secretary",
+    "justhodl-telegram-bot"
+  ],
+  "fifx_test_repair": {
+    "failure": "Test rebuilt requested URLs using completion time rather than actual acquisition time.",
+    "cases": [
+      "same second",
+      "next second",
+      "UTC midnight"
+    ],
+    "producer_source_changed": false,
+    "existing_deploy_detection_redeploys_for_test_changes": true,
+    "original_control_baseline": "docs/audit/2026-09-28/fifx-concurrent-release-acceptance.json",
+    "whole_test_predecessor_sha256": "112f3e60d7acc9e118e92d2d6f22e65a3f242acdc1acf8962aae6f2a45950425"
+  }
+}

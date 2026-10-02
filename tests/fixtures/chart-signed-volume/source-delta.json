@@ -8,24 +8,48 @@
       },
       "changed": [
         {
+          "name": "fibAuto",
+          "sha256": "2f3779f825bae1a359d32540d1529cb29225eb3d64f287d807cc4e79553823f5"
+        },
+        {
+          "name": "toBars",
+          "sha256": "8a73546416e0491041c84f2c33972a91efca5b490fc8e314bc1ef6b6523d9724"
+        },
+        {
+          "name": "klines",
+          "sha256": "1e1ceb6ed4d6cb28cbde265cc9c9318c30601a0bbdcf52e5de9b31ddfb80a016"
+        },
+        {
+          "name": "dedupeTape",
+          "sha256": "95c5e7bf057b599fd7c1e7f2a6fad1972384e928f0611ba636923174ef77bbb3"
+        },
+        {
+          "name": "paint",
+          "sha256": "311d6ff1f933ca92946ec67925ec4ae04acd328a001be075edcc0202f70ba01b"
+        },
+        {
           "name": "quoteUI",
           "sha256": "fa06fc642d79d519434fb34eec8492d69dba2a991461b3d27ca19c875e7e130e"
+        },
+        {
+          "name": "paintOsc",
+          "sha256": "ae5010edf6c3ba0b5e8527a964867dac4dbfaae43879723dfbd0e682097eb4d4"
         },
         {
           "name": "fillTape",
           "sha256": "e643bcbff7eb9af81e9c0924032bc01f2d646534d5270556ec9ed62d10f312db"
         },
         {
-          "name": "fibAuto",
-          "sha256": "2f3779f825bae1a359d32540d1529cb29225eb3d64f287d807cc4e79553823f5"
+          "name": "paintPat",
+          "sha256": "3d0d7c362eb3e658daeed270bb010d508f83e24f8f45f7d7506b918999fa42b9"
         },
         {
-          "name": "paint",
-          "sha256": "b3aee44e251ba070914759617c2ba7bfb607496a7e5fd176f31f6b5898177b5e"
+          "name": "drawSVG",
+          "sha256": "e78520f16427a013191db1181199a3ccb2ec6db8b195b2d563f12ca79b2e0cfa"
         },
         {
-          "name": "paintOsc",
-          "sha256": "6bd3db075510a73dcda27d8e7485ae2b8285232336f6527c49c5844a64fc9aff"
+          "name": "onChartClick",
+          "sha256": "b5cc1b6bae3ce24921277190443157f8126021287516a5fcede4368458f259ed"
         },
         {
           "name": "openMenu",
@@ -40,35 +64,11 @@
           "sha256": "086e71acd786ffa4903373bad4cd5e357b352ed7678b07eabdd1edb87b53dc3e"
         },
         {
-          "name": "toBars",
-          "sha256": "8a73546416e0491041c84f2c33972a91efca5b490fc8e314bc1ef6b6523d9724"
-        },
-        {
-          "name": "dedupeTape",
-          "sha256": "95c5e7bf057b599fd7c1e7f2a6fad1972384e928f0611ba636923174ef77bbb3"
-        },
-        {
-          "name": "klines",
-          "sha256": "1e1ceb6ed4d6cb28cbde265cc9c9318c30601a0bbdcf52e5de9b31ddfb80a016"
-        },
-        {
-          "name": "drawSVG",
-          "sha256": "9dd547b331ef356f92b073e1b221bb9200fcf117898b7bf6185df8629cf35d83"
-        },
-        {
           "name": "cmdItems",
           "sha256": "cdf18ba269e50696f923151eac62c87ad0b2a9b3eee9e2b5afb58ed464be4d0f"
         }
       ],
       "added": [
-        {
-          "name": "closeLocationVolume",
-          "sha256": "6e796ed17ebaac9a7bb1ea32b043baa59693a5d84cd889a8920c999fa0ffbef8"
-        },
-        {
-          "name": "fmtSignedVol",
-          "sha256": "140d88d17dbf1c5406b1575b8afbb1d1f0421da34aad35ed7d69aa4efb20bd0c"
-        },
         {
           "name": "priceSpread",
           "sha256": "1b4b98df017069a7ecf641f147a55c789115263f641fd05e566eb9207c506371"
@@ -82,20 +82,48 @@
           "sha256": "3a09649f6234e86220296b7f008372abfae12486ac16ddacc956a5927bc67420"
         },
         {
-          "name": "findStudy",
-          "sha256": "25dde5b357584ec405abb141c2ab32ccad878cf0a23917d2c3149e36e3bed617"
+          "name": "closeLocationVolume",
+          "sha256": "6e796ed17ebaac9a7bb1ea32b043baa59693a5d84cd889a8920c999fa0ffbef8"
         },
         {
-          "name": "openIndMenu",
-          "sha256": "ab20cac53c7b227c560f76b4f174958e71f4a1850bfc2546ec4dc3f79a76ca5c"
+          "name": "fmtSignedVol",
+          "sha256": "140d88d17dbf1c5406b1575b8afbb1d1f0421da34aad35ed7d69aa4efb20bd0c"
+        },
+        {
+          "name": "oscSrMap",
+          "sha256": "72e66928acfc92eacfe7633395a247c8dda8517e3fad4a30fef2dd3800576bea"
+        },
+        {
+          "name": "oscSrOn",
+          "sha256": "86d0ca4d6bb8974dda8e177c5ed2a7368611535a5cc98e3c3e1e7216ee01b42b"
+        },
+        {
+          "name": "oscSrToggle",
+          "sha256": "69184484f78995c0725b7115c2ab1cb0769963fe065fd9f49fe750c39bece234"
+        },
+        {
+          "name": "pushStudyV",
+          "sha256": "be7db53563e33f669ed98cc22a0f0bd2a3a52c0dea12a16319ee8868505d105d"
+        },
+        {
+          "name": "collectPackV",
+          "sha256": "11fdad79acb1da631d54105ded3a644561b19e6ec6ff9c89aaef47b3223b96c8"
+        },
+        {
+          "name": "drawOscRails",
+          "sha256": "c7f3711474ec75df783806494490661dd2758f20402054f42a493f77ed73889a"
+        },
+        {
+          "name": "ensureVolMark",
+          "sha256": "376c3e8df23db32dcf6b6b4b79e3b5b3e1549d7cf3e8dd557e5f13b9516e2980"
         },
         {
           "name": "ensureChartUi",
-          "sha256": "b252d2ce62e4b3965ec2bd01f997b3ccf3a891712e932be630e4d9fd7d3d460b"
+          "sha256": "c4b7f7d3df5254fa8196fbaaffd93f4f3b07613c54e2bed858729ba92c5d06a2"
         },
         {
           "name": "toggleChartFs",
-          "sha256": "ae49689e00be1443d0a6a17947ee75bafd700fc7b342fb2951f85f82f659eeb2"
+          "sha256": "09f4742a6e0dad9d562e663f5f6befab5d1556cd9b8d43613d7283ef1978d81a"
         },
         {
           "name": "placeSyncedVLine",
@@ -103,7 +131,15 @@
         },
         {
           "name": "drawOscVLines",
-          "sha256": "39a72fe79bc21f4aeeae521a94e70f9e138207a9b671ef23cb68ce6fa9fd5ad0"
+          "sha256": "ac19171430458c26f001f006e0d6c53eea4ea6668a16ee9c0ca6da27e1f85b9b"
+        },
+        {
+          "name": "findStudy",
+          "sha256": "25dde5b357584ec405abb141c2ab32ccad878cf0a23917d2c3149e36e3bed617"
+        },
+        {
+          "name": "openIndMenu",
+          "sha256": "8ad4ebcc9f5037e3dcbc352fa59be3cffd561efc99b88d87908a631383bdf46b"
         }
       ],
       "outer": {
@@ -780,7 +816,7 @@
             "sha256": "0c8453a234eba657dc12bdc73d23895d306cfea391426382eb28d1bfa8636067"
           },
           {
-            "sha256": "c6a6d4b51b574b0cab300bdecc7bbfbac7e896695964bd5f8449f8f88c8fec63"
+            "sha256": "8b8028b312e73f70f84c0f7d07a64f821a0209bef69bb62ee5e077ab6a79a166"
           },
           {
             "sha256": "42ffe6be75d862811e08a92f1c3b0b979c60e6ec9b2967600cb3f21178bfc37f"
@@ -816,7 +852,7 @@
             "sha256": "b2e66cef9057c9cc29b4bf0b92e04ab8d86a6ba65641f39ea9cfef814bdfa7c3"
           },
           {
-            "sha256": "d40037130549a4235265e7b23d4f3fc581aa3836cd62cf3aaa635799daf1463f"
+            "sha256": "d229b2fc1f8db8038ac071a3a430cb962907df780b15f0ac7b1b1e1e93b348de"
           },
           {
             "sha256": "4a74d23dfe84e94b26759be73063ceec64816bec4a71b04cb81c37f878622755"
@@ -919,6 +955,12 @@
           },
           {
             "sha256": "265173e22ee4d1d635ef374f96fb41ef866492c3a83ea2721f813297d821a7ec"
+          },
+          {
+            "sha256": "f05eaa9aedc16f41c275219334f12b1f7a692bb689a21644c6048dc16fe190a5"
+          },
+          {
+            "sha256": "3592af4f62f2d35f8369604db01d11d7318f82dc1f46a3dbeb75c8fc8751522c"
           },
           {
             "sha256": "5b1c371df3d5a421d95e117826a31d865bd1298cc5a0dc3bd81573a75b849ff3"
@@ -1186,7 +1228,7 @@
           }
         ]
       },
-      "unchanged_functions": 378
+      "unchanged_functions": 365
     }
   },
   "test_adaptations": {

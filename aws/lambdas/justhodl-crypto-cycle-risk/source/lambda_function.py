@@ -195,16 +195,10 @@ def lambda_handler(event=None, context=None):
     }
 
     # ── 4. Fear & Greed extreme ──
-    fg = crypto.get("fear_greed")
-    fg_val = fg.get("value") if isinstance(fg, dict) else fg
-    try: fg_val = float(fg_val) if fg_val is not None else None
-    except (ValueError, TypeError): fg_val = None
-    if fg_val is not None:
-        fg_risk = max(0, min(100, (fg_val - 25) / (90 - 25) * 100))
-        fgnote = f"Fear&Greed {int(fg_val)} ({'extreme greed' if fg_val>75 else 'greed' if fg_val>55 else 'neutral' if fg_val>45 else 'fear' if fg_val>25 else 'extreme fear'})"
-    else:
-        fg_risk = 50; fgnote = "F&G unavailable"
-    factors["fear_greed"] = {"weight": 0.08, "risk": round(fg_risk), "value": fg_val, "note": fgnote}
+    sentiment = __import__("crypto_sentiment_observations").context(crypto.get("fear_greed"))
+    factors["fear_greed"] = {"weight": 0.0, "risk": None, "value": sentiment["current"],
+        "reported_observations": sentiment, "calls_eligible": False, "sizing_eligible": False,
+        "note": "Reported Bitcoin sentiment only. Threshold-to-risk mapping and forecast efficacy are unqualified."}
 
     # ── 5. MACRO RISK — yields/inflation/HY-spread/real-yield/dollar ──
     macro_score, macro_sub = macro_risk_factor()

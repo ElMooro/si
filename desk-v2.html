@@ -1178,6 +1178,59 @@ function cryptoRiskText(risk){
   if(!risk||typeof risk!=="object"||risk.calls_eligible===false)return "Unavailable";
   var value=risk.score;return typeof value==="number"&&Number.isFinite(value)&&value>=0&&value<=100?String(value):"Unavailable";
 }
+function cryptoScalar(value,low,high){return typeof value==="number"&&Number.isFinite(value)&&(low==null||value>=low)&&(high==null||value<=high)?value:null;}
+function cryptoText(value,fallback){return typeof value==="string"&&value.trim()&&value.length<=2000?value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"):(fallback||"Unavailable");}
+function cryptoSentimentPacket(packet){
+ if(!packet||Array.isArray(packet)||packet.contract!=="crypto-reported-bitcoin-sentiment.v1")return null;
+ if(["calls_eligible","sizing_eligible","execution_eligible","forecast_qualified","source_authenticity_verified","point_in_time_qualified"].some(function(k){return packet[k]!==false;})||packet.independent_investment_votes!==0)return null;
+ if(!Array.isArray(packet.source_attempts)||packet.source_attempts.length!==3)return null;
+ var urls=["https://api.alternative.me/fng/?limit=31","https://api.alternative.me/fng/?limit=0","https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=max&interval=daily"];
+ if(packet.source_attempts.some(function(a,i){return !a||a.request_url!==urls[i]||typeof a.acquisition_completed_at!=="string"||!Number.isFinite(Date.parse(a.acquisition_completed_at));}))return null;
+ var proof=packet.original_capture;
+ if(!proof||proof.contract!=="crypto-sentiment-original-replay.v1"||proof.complete_capture_replayed!==true||["source_qualified","point_in_time_qualified","investment_authority"].some(function(k){return proof[k]!==false;}))return null;
+ for(var name of ["manifest","capture"]){var ref=proof[name],kind=name==="manifest"?"runs":"captures";if(!ref||typeof ref.sha256!=="string"||!/^[a-f0-9]{64}$/.test(ref.sha256)||!Number.isSafeInteger(ref.bytes)||ref.bytes<=0||ref.bytes>67108864||ref.key!=="data/crypto-sentiment-research/"+kind+"/"+ref.sha256+".json")return null;}
+ return packet;
+}
+function cryptoSentimentRows(packet,kind){
+ var p=cryptoSentimentPacket(packet),scope=kind==="full"?"full_reported_observations":"recent_reported_observations";
+ if(!p)return [];
+ var source=p[scope];if(!source||source.status!=="descriptive"||!Array.isArray(source.history)||source.history.length>50000||source.returned_rows!==source.history.length)return [];
+ var acquired=Date.parse(p.source_attempts[kind==="full"?1:0].acquisition_completed_at);
+ return source.history.map(function(row,i){
+  row=row&&typeof row==="object"&&!Array.isArray(row)?row:{};
+  var time=Number.isSafeInteger(row.timestamp)&&row.timestamp>=0&&row.timestamp<=253402300799?row.timestamp*1000:null;
+  var date=time==null?null:new Date(time).toISOString().slice(0,10),v=cryptoScalar(row.value,0,100);
+  var valid=time!==null&&time<=acquired&&row.date===date&&typeof row.observation_at==="string"&&Date.parse(row.observation_at)===time&&row.source_row==="/data/"+i&&row.status==="reported"&&Number.isInteger(v);
+  return {source_row:"/data/"+i,time:time,date:date,value:valid?v:null,label:typeof row.label==="string"?row.label:null,status:valid?"reported":"unavailable",reason:typeof row.reason==="string"?row.reason:valid?"":"unresolved source row"};
+ });
+}
+function cryptoSentimentSeries(rows){
+ var groups=new Map();rows.forEach(function(row){if(row.time!==null){if(!groups.has(row.time))groups.set(row.time,[]);groups.get(row.time).push(row);}});
+ return Array.from(groups.entries()).sort(function(a,b){return a[0]-b[0];}).map(function(entry){var points=entry[1],first=points[0];return {time:entry[0],date:first.date,value:points.every(function(p){return p.value!==null&&p.value===first.value;})?first.value:null,source_rows:points.map(function(p){return p.source_row;})};});
+}
+function cryptoSentimentCurrent(packet){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows);
+ if(!p||!series.length||rows.some(function(row){return row.time===null;}))return null;
+ var last=series[series.length-1],full=cryptoSentimentSeries(cryptoSentimentRows(p,"full"));
+ if(full.length&&(full[full.length-1].time!==last.time||(full[full.length-1].value!==null&&full[full.length-1].value!==last.value)))return null;
+ return p.current===last.value?last.value:null;
+}
+function cryptoSentimentAverage(packet,days){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows);
+ if(!p||!series.length||rows.some(function(row){return row.time===null;}))return null;
+ var end=Date.parse(series[series.length-1].date+"T00:00:00Z"),byDate=new Map(),full=new Map(cryptoSentimentSeries(cryptoSentimentRows(p,"full")).map(function(row){return [row.time,row];}));
+ series.forEach(function(row){if(!byDate.has(row.date))byDate.set(row.date,[]);byDate.get(row.date).push(row);});
+ var total=0;
+ for(var i=0;i<days;i++){var date=new Date(end-i*86400000).toISOString().slice(0,10),points=byDate.get(date);if(!points||points.length!==1||points[0].value===null)return null;var other=full.get(points[0].time);if(other&&other.value!==null&&other.value!==points[0].value)return null;total+=points[0].value;}
+ // Integer numerator and 7/30 denominators have no half-cent tie; no binary
+ // floating-point midpoint convention can change this two-decimal result.
+ return Math.round(total*100/days)/100;
+}
+function cryptoSentimentAttribution(packet){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows),stamp=series.length?new Date(series[series.length-1].time).toISOString():null;
+ return "<p class='crypto-sentiment-attribution' style='font-size:11px;color:var(--t2);overflow-wrap:anywhere'><a href='https://alternative.me/crypto/fear-and-greed-index/' rel='noopener' style='color:#8ec8ff'>Alternative.me Bitcoin Fear &amp; Greed Index</a> · 0–100 index points.<br>Provider observation: "+cryptoText(stamp||"Unavailable")+".<br>Descriptive only. Publication timing, forecast efficacy and portfolio authority are unverified.</p>";
+}
+
 function renderCrypto(crypto){
   const el = document.getElementById('cardCrypto');
   if (!crypto) { el.innerHTML = '<div class="empty">NO DATA</div>'; return; }
@@ -1185,17 +1238,17 @@ function renderCrypto(crypto){
   const risk = crypto.risk_score || {};
   const oc = crypto.onchain_ratios || {};
 
-  const fgScore = fg.score || fg;
-  const fgLabel = fg.label || (fgScore < 25 ? 'EXTREME FEAR' : fgScore < 45 ? 'FEAR' : fgScore < 55 ? 'NEUTRAL' : fgScore < 75 ? 'GREED' : 'EXTREME GREED');
+  const fgScore = cryptoSentimentCurrent(fg);
+  const fgLabel = fgScore === null ? '' : cryptoText(fg.label);
   const rs = cryptoRiskText(risk);
   const marketCapRatio = cryptoMarketCapText(oc);
 
-  const fgCls = fgScore < 25 ? 'green' : fgScore < 45 ? 'green' : fgScore < 55 ? 'amber' : fgScore < 75 ? 'red' : 'red';
+  const fgCls = 'fg-1'; // A descriptive index does not imply a contrarian trade.
 
   let html = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--size-4)">
     <div>
-      <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:var(--size-1)">FEAR/GREED</div>
-      <div style="font-family:var(--font-mono); font-size:var(--type-2xl); font-weight:500; color:var(--${fgCls})" class="${fgCls}">${fmt(fgScore, 0)}</div>
+      <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:var(--size-1)">BITCOIN SENTIMENT</div>
+      <div style="font-family:var(--font-mono); font-size:var(--type-2xl); font-weight:500; color:var(--${fgCls})" class="${fgCls}">${fgScore === null ? 'Unavailable' : fgScore}</div>
       <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); margin-top:var(--size-1); letter-spacing:0.05em">${fgLabel}</div>
     </div>
     <div>
@@ -1204,15 +1257,15 @@ function renderCrypto(crypto){
       <div style="font-family:var(--font-mono); font-size:var(--type-xxs); color:var(--fg-3); margin-top:var(--size-1); letter-spacing:0.05em">${rs === 'Unavailable' ? 'WAIT — no qualified risk score' : 'Descriptive source score; investment validity unverified'}</div>
     </div>
   </div>
-  <div class="bar-track" style="margin-top:var(--size-4); margin-bottom:var(--size-4)">
-    <div class="bar-fill ${fgCls}" style="width:${fgScore}%"></div>
-  </div>`;
+  `;
+  if (fgScore !== null) html += `<div class="bar-track" style="margin-top:var(--size-4);margin-bottom:var(--size-4)"><div class="bar-fill" style="background:#80bfff;width:${fgScore}%"></div></div>`;
+  html += cryptoSentimentAttribution(fg);
 
   const rows = [
     ['BTC cap / returned mean', marketCapRatio, 'dim'],
     ['MVRV', 'Unavailable: realized capitalization required', 'dim'],
     ['top coins', `${(crypto.top_coins?.coins ? Object.keys(crypto.top_coins.coins).length : 0)} tracked`, 'dim'],
-    ['updated', timeAgo(crypto.timestamp || crypto.as_of), 'dim'],
+    ['packet generated (UTC)', cryptoText(crypto.generated_at), 'dim'],
   ];
   html += rowsHTML(rows);
   html += '<p class="dim" style="font-size:12px;overflow-wrap:anywhere">Market-cap comparison is descriptive only; sampling, source timing and investment validity remain unverified.</p>';

@@ -157,11 +157,11 @@ def parse_report(r):
 
 def enrich_with_crypto_intel(d):
     ci=get_crypto_intel()
-    if not ci: return d
-    fg=ci.get("fear_greed",{})
-    if isinstance(fg,dict) and fg.get("current"):
-        d["fear_greed"]=fg["current"]
-        d["fear_greed_label"]=fg.get("label","")
+    if not isinstance(ci,dict): ci={}
+    fg=__import__("crypto_sentiment_observations").context(ci.get("fear_greed"))
+    d["fear_greed"]=fg["current"]
+    d["fear_greed_label"]=fg["label"]
+    d["fear_greed_research"]=fg
     tvl=ci.get("tvl",{})
     if isinstance(tvl,dict) and tvl.get("total"):
         v=float(tvl["total"])
@@ -762,7 +762,7 @@ def run_proactive_alerts():
         was_x=lf is not None and (int(lf)<20 or int(lf)>80)
         is_x=fi<20 or fi>80
         if is_x and not was_x:
-            alerts.append(f"*EXTREME SENTIMENT*\n\nFear & Greed: *{fi}* - {fear_label(fi)}\n\n_Historically significant signal_")
+            alerts.append(f"*EXTREME SENTIMENT*\n\nFear & Greed: *{fi}* - {fear_label(fi)}\n\n_Alternative.me Bitcoin index; descriptive threshold only. Forecast significance and sizing authority are unverified._")
         state["last_fear"]=fear
     except: pass
     ki=d.get("score")

@@ -18,7 +18,7 @@ assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
   assert.match(html, /jh-chart-tvsearch\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-chart-indux\.js\?v=20261001aa-ind/);
   assert.match(html, /jh-cq-fuse\.js\?v=20260922ab-cqind/);
-  assert.match(engine, /v12\.34/);
+  assert.match(engine, /v12\.41/);
   assert.match(engine, /__jhChartEngineV1239/);
 });
 

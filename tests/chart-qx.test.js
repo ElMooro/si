@@ -32,7 +32,7 @@ assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
 
 test("engine ships Bloomberg-grade candle, scale, and magnet defaults", () => {
   assert.match(engine, /__jhChartEngineV1239/);
-  assert.match(engine, /v12\.34/);
+  assert.match(engine, /v12\.41/);
   assert.match(engine, /crossMode=1/);
   assert.match(engine, /thinBars:true/);
   assert.match(engine, /ticksVisible:true/);

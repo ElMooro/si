@@ -25,7 +25,7 @@ test('compare overlays raw closes on percent scale, never rebases onto price', (
   assert.match(engine, /lastValueVisible:true/);
   assert.match(engine, /ls\.setData\(cb\.map\(function\(b\)\{ return \{time:b\.time, value:b\.close\}; \}\)/);
   assert.doesNotMatch(engine, /\(p\.b\/c0\)\*t0/);
-  assert.match(engine, /v12\.34/);
+  assert.match(engine, /v12\.41/);
   assert.match(engine, /openSymSearch\("", "compare"\)/);
 });
 

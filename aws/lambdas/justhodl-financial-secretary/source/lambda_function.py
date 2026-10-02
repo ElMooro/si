@@ -544,7 +544,7 @@ def fetch_tier2():
         ci = json.loads(obj["Body"].read().decode())
         gm = ci.get("global_market") or {}
         sc = ci.get("stablecoins") or {}
-        fg = ci.get("fear_greed") or {}
+        fg = __import__("crypto_sentiment_observations").context(ci.get("fear_greed"))
         funding = ci.get("funding") or {}
         ratios = ci.get("onchain_ratios") or {}
         whale = ci.get("whale_txs") or {}
@@ -559,8 +559,9 @@ def fetch_tier2():
             "stablecoin_minting": None,
             "stablecoin_burning": None,
             "stablecoin_research": __import__("crypto_stablecoin_observations").context(sc),
-            "fear_greed_value": (fg.get("current") if isinstance(fg, dict) else None),
-            "fear_greed_label": (fg.get("label") if isinstance(fg, dict) else None) or (fg.get("classification") if isinstance(fg, dict) else None),
+            "fear_greed_value": fg["current"],
+            "fear_greed_label": fg["label"],
+            "fear_greed_research": fg,
             "funding_summary": __import__("crypto_funding_observations").funding_context(funding),
             "mvrv_approx": None,
             "mvrv_status": "unavailable_no_qualified_realized_capitalization",
@@ -1255,8 +1256,17 @@ Reported feed descriptions (not observation timestamps): stocks {_display_text(f
     if crypto_i.get("btc_dominance") is not None:
         btc_dom = crypto_i.get("btc_dominance")
         mcap_chg = crypto_i.get("mcap_change_24h")
-        fg_v = _display_score(crypto_i.get("fear_greed_value"))
-        fg_l = crypto_i.get("fear_greed_label") or ""
+        fg_context = crypto_i.get("fear_greed_research") or {}
+        if not isinstance(fg_context, dict): fg_context = {}
+        fg_checked = (fg_context.get("contract") == "crypto-sentiment-consumer-context.v1"
+                      and fg_context.get("original_projection_checked") is True
+                      and fg_context.get("status") == "descriptive"
+                      and type(fg_context.get("current")) is int and 0 <= fg_context["current"] <= 100
+                      and type(fg_context.get("independent_investment_votes")) is int
+                      and fg_context["independent_investment_votes"] == 0
+                      and all(fg_context.get(k) is False for k in ("calls_eligible", "sizing_eligible", "execution_eligible", "forecast_qualified")))
+        fg_v = _display_score(fg_context["current"]) if fg_checked else "Unavailable"
+        fg_l = fg_context.get("label") if fg_checked else ""
         sc_context = crypto_i.get("stablecoin_research")
         if not isinstance(sc_context, dict):
             sc_context = {}
@@ -1280,7 +1290,7 @@ Reported feed descriptions (not observation timestamps): stocks {_display_text(f
   <table style="width:100%;font-size:13px"><tr>
     <td style="padding:6px"><div style="color:#888;font-size:11px">BTC DOMINANCE</div><div style="font-size:22px;font-weight:700">{btc_dom:.1f}%</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">TOTAL MCAP 24h</div><div style="font-size:22px;font-weight:700;color:{mcap_color}">{(mcap_chg or 0):+.2f}%</div></td>
-    <td style="padding:6px"><div style="color:#888;font-size:11px">FEAR/GREED</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{_display_text(fg_l)}</div></td>
+    <td style="padding:6px"><div style="color:#888;font-size:11px">BITCOIN SENTIMENT</div><div style="font-size:22px;font-weight:700">{fg_v}</div><div style="font-size:11px;color:#888">{_display_text(fg_l)} · index points (0–100)<br>Provider observation: {_display_text(fg_context.get("source_observation_at"))}<br><a href="https://alternative.me/crypto/fear-and-greed-index/">Alternative.me</a>; descriptive only, no forecast or sizing vote.</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">REPORTED STABLECOIN STOCKS</div><div style="font-size:18px;font-weight:700;color:#e0e0e0">{_display_text(sc_label)}</div><div style="font-size:11px;color:#888">Flow and observation dates unavailable; no sizing vote.</div></td>
     <td style="padding:6px"><div style="color:#888;font-size:11px">RISK SCORE</div><div style="font-size:22px;font-weight:700">{crypto_risk}</div></td>
   </tr></table>

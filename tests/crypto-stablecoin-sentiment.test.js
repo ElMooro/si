@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=path.join(__dirname,'..'),{page}=require(path.join(R,'tests/crypto-market-cap-support.cjs'));
 function render(stock){
  const nodes={main:{innerHTML:''},ts:{textContent:''}},errors=[];
- const scope={D:{stablecoins:stock,fear_greed:{current:17},global_market:{btc_dominance:61}},window:{},document:{getElementById:id=>nodes[id]},console:{error:e=>errors.push(String(e))}};
+ const scope={D:{stablecoins:stock,fear_greed:require('./crypto-sentiment-support.cjs').fixture(),global_market:{btc_dominance:61}},window:{},document:{getElementById:id=>nodes[id]},console:{error:e=>errors.push(String(e))}};
  vm.createContext(scope);vm.runInContext(page('crypto/index.html').code,scope);scope.render();assert.deepEqual(errors,[]);
  return nodes.main.innerHTML;
 }
@@ -22,9 +22,9 @@ test('legacy net_signal is never accessed, even when its getter throws',()=>{
  assert.match(component(render(stock)),/>Unavailable<\/span>/);
 });
 test('stock uncertainty does not erase unrelated reported sentiment measurements',()=>{
- const html=render({net_signal:'INFLOW'}),start=html.indexOf('Sentiment Components'),end=html.indexOf('Sentiment History',start),section=html.slice(start,end);
+ const html=render({net_signal:'INFLOW'}),start=html.indexOf('Sentiment Components'),end=html.indexOf('Reported Bitcoin sentiment history',start),section=html.slice(start,end);
  assert.equal((section.match(/crypto-sentiment-component/g)||[]).length,5);
- assert.match(section,/>17<\/span>/);assert.match(section,/>61<\/span>/);
+ assert.match(section,/>0<\/span>/);assert.match(section,/>61<\/span>/);
  assert.match(component(html),/>Unavailable<\/span>/);
 });
 

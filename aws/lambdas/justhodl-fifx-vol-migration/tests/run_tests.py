@@ -156,28 +156,40 @@ class Tests(unittest.TestCase):
         self.assertEqual(raw,original);self.assertEqual(rec['http_status'],404);self.assertNotIn('Set-Cookie',rec['headers'])
 
     def test_missing_move_does_not_stop_other_sources_and_attempts_are_durable(self):
-        client=Store();client.objects[store.SOURCE]=b'{}';client.objects[store.BOND]=b'{}'
-        claim=model.PRIVATE+'requests/'+store.sha(b'native:bounded')+'.json'
-        predecessors={'packet':private(),'history':private(b'history')};observed=[]
-        def acquire(url,timeout):
-            journal=json.loads(client.objects[claim])
-            observed.append((journal['provider_requests'],
-                sum(v['status']=='attempt_recorded' for v in journal['sources'].values()),timeout))
-            raise TimeoutError('provider unavailable')
-        with patch.object(store,'previous_state',return_value=(predecessors,model.empty_watermarks())),patch.object(store,'existing_move',side_effect=Missing()),patch.object(acquisition,'acquire',side_effect=acquire),patch.object(store,'retain',return_value={'generated_at':fixture.NOW,'quality':{},'replay':{}}) as retained,patch.object(store,'publish',return_value=True):
-            result=store.run(client,'bucket','bounded')
-        value=retained.call_args.args[2]
-        self.assertEqual(len(observed),17);self.assertEqual(max(r[0] for r in observed),17)
-        self.assertEqual(result['provider_requests'],17)
-        # Assert outside acquire: provider failures are deliberately caught by
-        # the production loop, which would also catch a test AssertionError.
-        self.assertTrue(all(1<=r[1]<=4 and 0<r[2]<=20 for r in observed))
-        self.assertEqual(set(value['sources']),set(store.catalog.SOURCES))
-        self.assertEqual(value['sources']['^MOVE'],{'original':None,'receipt':None})
-        self.assertTrue(all(v=={'original':None,'receipt':None,'requested_url':acquisition.plan(value['generated_at'])[sid]} for sid,v in value['sources'].items() if sid!='^MOVE'))
-        self.assertEqual(value['acquisition']['sources']['^MOVE']['status'],'bound_source_unavailable')
-        self.assertEqual(value['acquisition']['max_concurrent_requests'],4)
-        self.assertEqual(value['acquisition']['budget_scope'],'admission_deadline')
+        for planned_at,completed_at in [
+            ('2020-01-01T23:59:58+00:00','2020-01-01T23:59:58+00:00'),
+            ('2020-01-01T23:59:58+00:00','2020-01-01T23:59:59+00:00'),
+            ('2020-01-01T23:59:59+00:00','2020-01-02T00:00:01+00:00'),
+        ]:
+            with self.subTest(planned_at=planned_at,completed_at=completed_at):
+                client=Store();client.objects[store.SOURCE]=b'{}';client.objects[store.BOND]=b'{}'
+                claim=model.PRIVATE+'requests/'+store.sha(b'native:bounded')+'.json'
+                predecessors={'packet':private(),'history':private(b'history')};observed=[]
+                def acquire(url,timeout):
+                    journal=json.loads(client.objects[claim])
+                    observed.append((journal['provider_requests'],
+                        sum(v['status']=='attempt_recorded' for v in journal['sources'].values()),timeout))
+                    raise TimeoutError('provider unavailable')
+                with patch.object(store,'now',side_effect=[planned_at,planned_at,planned_at,completed_at]),patch.object(store,'previous_state',return_value=(predecessors,model.empty_watermarks())),patch.object(store,'existing_move',side_effect=Missing()),patch.object(acquisition,'acquire',side_effect=acquire),patch.object(store,'retain',return_value={'generated_at':fixture.NOW,'quality':{},'replay':{}}) as retained,patch.object(store,'publish',return_value=True):
+                    result=store.run(client,'bucket','bounded')
+                value=retained.call_args.args[2]
+                self.assertEqual(len(observed),17);self.assertEqual(max(r[0] for r in observed),17)
+                self.assertEqual(result['provider_requests'],17)
+                # Assert outside acquire: provider failures are deliberately caught by
+                # the production loop, which would also catch a test AssertionError.
+                self.assertTrue(all(1<=r[1]<=4 and 0<r[2]<=20 for r in observed))
+                self.assertEqual(set(value['sources']),set(store.catalog.SOURCES))
+                self.assertEqual(value['sources']['^MOVE'],{'original':None,'receipt':None})
+                self.assertTrue(all(v=={'original':None,'receipt':None,'requested_url':acquisition.plan(planned_at)[sid]} for sid,v in value['sources'].items() if sid!='^MOVE'))
+                self.assertEqual(value['acquisition']['sources']['^MOVE']['status'],'bound_source_unavailable')
+                self.assertEqual(value['acquisition']['max_concurrent_requests'],4)
+                self.assertEqual(value['acquisition']['budget_scope'],'admission_deadline')
+
+                self.assertEqual(value['generated_at'],completed_at)
+                if planned_at!=completed_at:
+                    # The source plan was acquired earlier; rebuilding it at completion
+                    # changes Yahoo period2 and, across UTC midnight, the FRED date.
+                    self.assertNotEqual(acquisition.plan(planned_at),acquisition.plan(completed_at))
 
     def test_slow_sources_do_not_starve_the_rest_of_the_population(self):
         plan=acquisition.plan(fixture.NOW);started=[];finished={};active=peak=0

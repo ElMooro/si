@@ -302,21 +302,14 @@ def rule_event_study(scores, evidence):
 
 
 def rule_btc_signals(scores, evidence):
-    """Pull crypto signals from data/report.json or crypto-intel."""
+    """Retain source access without awarding an unregistered sentiment vote."""
     d = fs3("crypto-intel.json") or fs3("data/crypto-intel.json")
     if not d:
         return
-    fg = (d.get("fear_greed") or {}).get("value") if isinstance(d.get("fear_greed"), dict) else d.get("fear_greed")
-    risk = d.get("risk_score") or (d.get("crypto_risk_score") if isinstance(d.get("crypto_risk_score"), (int, float)) else None)
-    try:
-        if fg is not None:
-            fg = float(fg)
-            if fg <= 25:
-                add(scores, evidence, "BTC", STRONG, f"crypto FG={fg} (extreme fear)")
-            elif fg >= 75:
-                add(scores, evidence, "BTC", -MEDIUM, f"crypto FG={fg} (extreme greed)")
-    except Exception:
-        pass
+    # The provider index is an observation, not a registered contrarian forecast.
+    # Preserve incoming scores/evidence; a future eligible model needs its own
+    # prospective registration, independent evaluation and portfolio constraints.
+    return
 
 
 def rule_sector_momentum(scores, evidence):

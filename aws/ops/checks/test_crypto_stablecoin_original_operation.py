@@ -9,7 +9,7 @@ class Receipt(unittest.TestCase):
   m=self.load()
   self.assertEqual(len(m['SOURCE_HASHES']),7)
   for path,digest in m['SOURCE_HASHES'].items():
-   self.assertEqual(hashlib.sha256((R/path).read_bytes()).hexdigest(),digest,path)
+   self.assertEqual(hashlib.sha256((R/'tests/fixtures/crypto-sentiment/native-6441'/(path+'.txt')).read_bytes()).hexdigest(),digest,path)
  def load(self):
   helper=types.ModuleType('crypto_stablecoin_archive_acceptance');helper.inspect=Mock()
   with patch.dict(sys.modules,{'crypto_stablecoin_archive_acceptance':helper}):m=runpy.run_path(str(R/'aws/ops/staged/ops_6441_crypto_stablecoin_original_replay.py'))

@@ -60,7 +60,7 @@ test('dominance rejects invented shares and invalid totals while retaining repor
 });
 test('sentiment transformations name their basis and missing inputs stay unavailable',()=>{
  const html=runtime().render({}),start=html.indexOf('Sentiment Components');
- const block=html.slice(start,html.indexOf('Sentiment History',start));assert.equal((block.match(/crypto-sentiment-component/g)||[]).length,5);assert.equal((block.match(/Unavailable/g)||[]).length,5);assert.match(block,/not validated comparable scores/);
+ const block=html.slice(start,html.indexOf('Reported Bitcoin sentiment history',start));assert.equal((block.match(/crypto-sentiment-component/g)||[]).length,5);assert.equal((block.match(/Unavailable/g)||[]).length,5);assert.match(block,/not validated comparable scores/);
 });
 test('whole prior Crypto page and previous preservation manifest remain exact',()=>{
  const hash=b=>crypto.createHash('sha256').update(b).digest('hex'),plan=JSON.parse(fs.readFileSync(path.join(F,'edits.json'))),old=fs.readFileSync(path.join(F,'predecessor.html.txt'));assert.equal(hash(old),plan.predecessor_sha256);

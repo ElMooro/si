@@ -219,13 +219,9 @@ def lambda_handler(event,context):
     # Keep the existing historical ledger untouched.
     # crypto-intel.json
     c=fs3("crypto-intel.json")
-    fg=c.get("fear_greed",{})
-    fgs=fg.get("current")
-    if fgs is not None:
-        fgs=float(fgs)
-        v,p,cf=("EXTREME_FEAR","UP",0.80) if fgs<=20 else ("FEAR","UP",0.60) if fgs<=35 else ("EXTREME_GREED","DOWN",0.80) if fgs>=80 else ("GREED","DOWN",0.60) if fgs>=65 else ("NEUTRAL","NEUTRAL",0.40)
-        fg_rat=f"Fear & Greed {int(fgs)} ({fg.get('label') or v}) — contrarian {p} signal"
-        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[1,3,7,14],meta={"score":fgs,"label":fg.get("label")},rationale=fg_rat))
+    # Sentiment observations do not authorize contrarian direction or invented
+    # 40/60/80% confidence. No new crypto_fear_greed outcome entry is admitted.
+    # Existing historical ledger entries remain untouched.
     rs=c.get("risk_score",{})
     rv=rs.get("score")
     if rv is not None:

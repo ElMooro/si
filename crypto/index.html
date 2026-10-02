@@ -238,6 +238,70 @@ function renderCryptoStablecoins(value){
  return h+"</details></div>";
 }
 
+function cryptoSentimentPacket(packet){
+ if(!packet||Array.isArray(packet)||packet.contract!=="crypto-reported-bitcoin-sentiment.v1")return null;
+ if(["calls_eligible","sizing_eligible","execution_eligible","forecast_qualified","source_authenticity_verified","point_in_time_qualified"].some(function(k){return packet[k]!==false;})||packet.independent_investment_votes!==0)return null;
+ if(!Array.isArray(packet.source_attempts)||packet.source_attempts.length!==3)return null;
+ var urls=["https://api.alternative.me/fng/?limit=31","https://api.alternative.me/fng/?limit=0","https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=max&interval=daily"];
+ if(packet.source_attempts.some(function(a,i){return !a||a.request_url!==urls[i]||typeof a.acquisition_completed_at!=="string"||!Number.isFinite(Date.parse(a.acquisition_completed_at));}))return null;
+ var proof=packet.original_capture;
+ if(!proof||proof.contract!=="crypto-sentiment-original-replay.v1"||proof.complete_capture_replayed!==true||["source_qualified","point_in_time_qualified","investment_authority"].some(function(k){return proof[k]!==false;}))return null;
+ for(var name of ["manifest","capture"]){var ref=proof[name],kind=name==="manifest"?"runs":"captures";if(!ref||typeof ref.sha256!=="string"||!/^[a-f0-9]{64}$/.test(ref.sha256)||!Number.isSafeInteger(ref.bytes)||ref.bytes<=0||ref.bytes>67108864||ref.key!=="data/crypto-sentiment-research/"+kind+"/"+ref.sha256+".json")return null;}
+ return packet;
+}
+function cryptoSentimentRows(packet,kind){
+ var p=cryptoSentimentPacket(packet),scope=kind==="full"?"full_reported_observations":"recent_reported_observations";
+ if(!p)return [];
+ var source=p[scope];if(!source||source.status!=="descriptive"||!Array.isArray(source.history)||source.history.length>50000||source.returned_rows!==source.history.length)return [];
+ var acquired=Date.parse(p.source_attempts[kind==="full"?1:0].acquisition_completed_at);
+ return source.history.map(function(row,i){
+  row=row&&typeof row==="object"&&!Array.isArray(row)?row:{};
+  var time=Number.isSafeInteger(row.timestamp)&&row.timestamp>=0&&row.timestamp<=253402300799?row.timestamp*1000:null;
+  var date=time==null?null:new Date(time).toISOString().slice(0,10),v=cryptoScalar(row.value,0,100);
+  var valid=time!==null&&time<=acquired&&row.date===date&&typeof row.observation_at==="string"&&Date.parse(row.observation_at)===time&&row.source_row==="/data/"+i&&row.status==="reported"&&Number.isInteger(v);
+  return {source_row:"/data/"+i,time:time,date:date,value:valid?v:null,label:typeof row.label==="string"?row.label:null,status:valid?"reported":"unavailable",reason:typeof row.reason==="string"?row.reason:valid?"":"unresolved source row"};
+ });
+}
+function cryptoSentimentSeries(rows){
+ var groups=new Map();rows.forEach(function(row){if(row.time!==null){if(!groups.has(row.time))groups.set(row.time,[]);groups.get(row.time).push(row);}});
+ return Array.from(groups.entries()).sort(function(a,b){return a[0]-b[0];}).map(function(entry){var points=entry[1],first=points[0];return {time:entry[0],date:first.date,value:points.every(function(p){return p.value!==null&&p.value===first.value;})?first.value:null,source_rows:points.map(function(p){return p.source_row;})};});
+}
+function cryptoSentimentCurrent(packet){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows);
+ if(!p||!series.length||rows.some(function(row){return row.time===null;}))return null;
+ var last=series[series.length-1],full=cryptoSentimentSeries(cryptoSentimentRows(p,"full"));
+ if(full.length&&(full[full.length-1].time!==last.time||(full[full.length-1].value!==null&&full[full.length-1].value!==last.value)))return null;
+ return p.current===last.value?last.value:null;
+}
+function cryptoSentimentAverage(packet,days){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows);
+ if(!p||!series.length||rows.some(function(row){return row.time===null;}))return null;
+ var end=Date.parse(series[series.length-1].date+"T00:00:00Z"),byDate=new Map(),full=new Map(cryptoSentimentSeries(cryptoSentimentRows(p,"full")).map(function(row){return [row.time,row];}));
+ series.forEach(function(row){if(!byDate.has(row.date))byDate.set(row.date,[]);byDate.get(row.date).push(row);});
+ var total=0;
+ for(var i=0;i<days;i++){var date=new Date(end-i*86400000).toISOString().slice(0,10),points=byDate.get(date);if(!points||points.length!==1||points[0].value===null)return null;var other=full.get(points[0].time);if(other&&other.value!==null&&other.value!==points[0].value)return null;total+=points[0].value;}
+ // Integer numerator and 7/30 denominators have no half-cent tie; no binary
+ // floating-point midpoint convention can change this two-decimal result.
+ return Math.round(total*100/days)/100;
+}
+function cryptoSentimentAttribution(packet){
+ var p=cryptoSentimentPacket(packet),rows=cryptoSentimentRows(p,"recent"),series=cryptoSentimentSeries(rows),stamp=series.length?new Date(series[series.length-1].time).toISOString():null;
+ return "<p class='crypto-sentiment-attribution' style='font-size:11px;color:var(--t2);overflow-wrap:anywhere'><a href='https://alternative.me/crypto/fear-and-greed-index/' rel='noopener' style='color:#8ec8ff'>Alternative.me Bitcoin Fear &amp; Greed Index</a> · 0–100 index points.<br>Provider observation: "+cryptoText(stamp||"Unavailable")+".<br>Descriptive only. Publication timing, forecast efficacy and portfolio authority are unverified.</p>";
+}
+function renderCryptoSentimentHistory(packet){
+ var p=cryptoSentimentPacket(packet),recent=cryptoSentimentRows(p,"recent"),full=cryptoSentimentRows(p,"full");
+ var h="<div class='card crypto-sentiment-history' style='overflow-wrap:anywhere'><div class='card-title'>Reported Bitcoin sentiment history</div>"+cryptoSentimentAttribution(p);
+ if(!p)return h+"<p>Qualified original projection unavailable. Legacy or synthetic history is not displayed.</p></div>";
+ h+="<p style='font-size:12px;color:var(--t2)'>Both returned provider populations are retained separately. They are two requests to the same source, not independent evidence. No price-derived prehistory, row sampling or gap filling.</p><div id='fg-full-chart' style='width:100%;min-height:100px'></div>";
+ [["Recent endpoint",recent],["Full-history endpoint",full]].forEach(function(item){
+  var population=p[item[0]==="Recent endpoint"?"recent_reported_observations":"full_reported_observations"],count=population&&population.status==="descriptive"&&Array.isArray(population.history)&&population.returned_rows===population.history.length&&population.returned_rows===item[1].length?item[1].length:null;
+  h+="<details style='margin-top:12px'><summary>"+item[0]+": "+(count===null?"Unavailable":count)+" retained source rows</summary><div style='overflow:auto;max-height:420px'><table style='width:100%;font-size:12px'><thead><tr><th scope='col'>Source row</th><th scope='col'>Provider UTC date</th><th scope='col'>Index points</th><th scope='col'>Reported label / status</th></tr></thead><tbody>";
+  item[1].forEach(function(row){h+="<tr><td>"+cryptoText(row.source_row)+"</td><td>"+cryptoText(row.date||"Unavailable")+"</td><td>"+(row.value===null?"Unavailable":row.value)+"</td><td>"+cryptoText(row.label||"")+" · "+cryptoText(row.status)+(row.reason?" · "+cryptoText(row.reason):"")+"</td></tr>";});
+  h+="</tbody></table></div></details>";
+ });
+ return h+"<p style='font-size:11px;color:var(--t2)'>Producer-reported original manifest: <code>"+cryptoText(p.original_capture.manifest.key)+"</code>. This page checks presentation consistency; it does not independently replay the stored archive or verify source authenticity.</p></div>";
+}
+
 function render(){
 try{
 if(!D)return;
@@ -248,7 +312,7 @@ var st=D.stablecoins||{};var tvl=D.tvl||{};var onr=D.onchain_ratios||{};
 var wh=D.whale_txs||{};var eg=D.eth_gas||{};var oi=D.open_interest||{};
 var tc=D.top_coins||{};var cmc=D.cmc_movers||{};var dx=D.dex||{};var yd=D.yields||{};
 var btc=D.btc_onchain||{};var ai=D.ai_intelligence||{};
-var fgv=cryptoScalar(fg.current,0,100),riskScore=cryptoScalar(R.score,0,100),dominance=cryptoScalar(gl.btc_dominance,0,100);
+var fgv=cryptoSentimentCurrent(fg),riskScore=cryptoScalar(R.score,0,100),dominance=cryptoScalar(gl.btc_dominance,0,100);
 var rClr=riskScore==null?"var(--t2)":riskScore>=75?"var(--red)":riskScore>=60?"var(--orange)":riskScore>=40?"var(--yellow)":"var(--green)";
 var fgClr=fgv==null?"var(--t2)":fgv<25?"var(--red)":fgv<45?"var(--orange)":fgv<55?"var(--yellow)":"var(--green)";
 var stablecoinRecord=cryptoStablecoinPacket(st);var fundingRows=cryptoFundingRows(fn);
@@ -264,7 +328,7 @@ h+="<div class='stat-xl' style='color:"+rClr+";margin-top:-8px'>"+(riskScore==nu
 h+="<div style='font-size:13px;font-weight:600;color:"+rClr+"'>"+(riskScore==null?"":cryptoText(R.regime))+"</div>";
 h+="<div style='font-size:10px;color:var(--t2);margin-top:4px'>"+(riskScore==null?"":cryptoText(R.action))+"</div></div>";
 // F&G
-h+="<div class='card' style='text-align:center'><div class='card-title'>Fear & Greed</div>"+cryptoFearGauge(fgv,fg.label,fgClr)+"</div>";
+h+="<div class='card' style='text-align:center'><div class='card-title'>Bitcoin sentiment</div>"+cryptoFearGauge(fgv,fg.label,fgClr)+cryptoSentimentAttribution(fg)+"</div>";
 // MCap
 h+="<div class='card' style='text-align:center'><div class='card-title'>Crypto MCap</div>";
 h+="<div class='stat-big'>"+(gl.total_mcap_fmt||"-")+"</div>";
@@ -554,10 +618,12 @@ h+="</div></div>";
 h+="<div style='font-size:10.5px;color:var(--t3);margin-top:4px'>Free-data engines: <b>crypto-exchange-flows</b> (coins on/off exchanges = distribution/accumulation), <b>crypto-cot</b> (CME asset-manager vs hedge-fund positioning), <b>coinbase-premium</b> (US spot demand), <b>crypto-stablecoin-peg</b> (depeg tail-risk), realized price from <b>onchain-ratios</b>. Honest note: the exchange-flow &quot;outflow = bullish&quot; heuristic measures as INVERTED over the last ~3.5y (ETF-era regime change) — graded live in the FDR ledger, not assumed.</div>";
 h+="</div>";
 
-// ========== SENTIMENT (Full History since 2016) ==========
+// ========== SENTIMENT (Reported source observations only) ==========
 h+="<div class='pane' id='pane-sentiment'>";
 h+="<div class='grid g2' style='margin-bottom:12px'>";
-h+="<div class='card' style='text-align:center'><div class='card-title'>Fear & Greed Index</div><div style='margin:12px 0'>"+cryptoFearGauge(fgv,fg.label,fgClr)+"</div><div class='grid g2' style='margin-top:12px'><div class='metric'><span class='metric-name'>7D Avg</span><span class='metric-val mono'>"+(cryptoScalar(fg.avg_7d,0,100)==null?"Unavailable":fg.avg_7d)+"</span></div><div class='metric'><span class='metric-name'>30D Avg</span><span class='metric-val mono'>"+(cryptoScalar(fg.avg_30d,0,100)==null?"Unavailable":fg.avg_30d)+"</span></div></div></div>";
+h+="<div class='card' style='text-align:center'><div class='card-title'>Bitcoin sentiment index</div><div style='margin:12px 0'>"+cryptoFearGauge(fgv,fg.label,fgClr)+"</div>"+cryptoSentimentAttribution(fg)+"<div class='grid g2' style='margin-top:12px'>";
+[7,30].forEach(function(days){var value=cryptoSentimentAverage(fg,days);h+="<div class='metric'><span class='metric-name'>"+days+" UTC-day average</span><span class='metric-val mono'>"+(value===null?"Unavailable":value)+"</span></div>";});
+h+="</div><p style='font-size:11px;color:var(--t2)'>Each mean requires one resolved observation on every calendar date. Source publication timing remains unverified.</p></div>";
 // Sentiment components
 h+="<div class='card'><div class='card-title'>Sentiment Components</div>";
 var fundingRaw=null; // Settlement comparability and investment calibration are unqualified.
@@ -566,18 +632,7 @@ h+="<p style='font-size:11px;color:var(--t2);margin-bottom:8px'>Display transfor
 sentItems.forEach(function(s){var value=cryptoScalar(s.v,0,100);h+="<div class='crypto-sentiment-component' style='margin-bottom:8px;overflow-wrap:anywhere'><div style='display:flex;gap:10px;justify-content:space-between;font-size:11px;margin-bottom:3px'><span>"+s.n+"</span><span class='mono' style='color:var(--t2);white-space:nowrap;flex-shrink:0'>"+(value==null?"Unavailable":value)+"</span></div>";if(value!=null)h+="<div style='height:8px;background:var(--bg4);border-radius:4px'><div style='height:100%;width:"+value+"%;background:"+s.c+";border-radius:4px'></div></div>";h+="</div>";});
 h+="</div></div>";
 
-// 30-day bars
-var hist30=fg.history||[];
-if(hist30.length>0){
-h+="<div class='card' style='margin-bottom:12px'><div class='card-title'>30-Day Fear & Greed</div><div style='display:flex;align-items:flex-end;gap:3px;height:120px;padding:8px 0'>";
-hist30.slice().reverse().forEach(function(e){var c=e.value<25?"var(--red)":e.value<45?"var(--orange)":e.value<55?"var(--yellow)":"var(--green)";h+="<div style='flex:1;height:"+e.value+"%;background:"+c+";border-radius:2px 2px 0 0;min-width:6px' title='"+e.date+": "+e.value+"'></div>"});
-h+="</div><div style='display:flex;justify-content:space-between;font-size:9px;color:var(--t3)'><span>"+hist30[hist30.length-1].date+"</span><span>"+hist30[0].date+"</span></div></div>";}
-
-// FULL HISTORY CHART (2016-present)
-h+="<div class='card'><div class='card-title'>Sentiment History (2016 - Present)</div>";
-h+="<div id='fg-full-chart' style='width:100%;height:250px;position:relative'></div>";
-h+="<div style='display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:4px'><span>2016</span><span>2017</span><span>2018</span><span>2019</span><span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span></div>";
-h+="<div style='display:flex;gap:12px;margin-top:8px;font-size:9px'><span style='color:var(--red)'>&#9632; Extreme Fear (0-25)</span><span style='color:var(--orange)'>&#9632; Fear (25-45)</span><span style='color:var(--yellow)'>&#9632; Neutral (45-55)</span><span style='color:var(--green)'>&#9632; Greed (55-75)</span><span style='color:var(--green2)'>&#9632; Extreme Greed (75+)</span></div></div>";
+h+=renderCryptoSentimentHistory(fg);
 h+="</div>";
 
 // ========== GLOBAL ==========
@@ -772,35 +827,15 @@ function paneHealth(){
  return h+"</div>";}
 
 function renderFullHistoryChart(){
-var el=document.getElementById("fg-full-chart");if(!el)return;
-var fh=(D.fear_greed||{}).full_history||[];
-if(fh.length<2){el.innerHTML="<div style='color:var(--t3);text-align:center;padding:40px'>Historical data loading... Available after next Lambda run.</div>";return;}
-// Canvas chart
-var c=document.createElement("canvas");c.width=el.clientWidth||800;c.height=250;el.appendChild(c);
-var ctx=c.getContext("2d");var w=c.width;var h=c.height;var pad=30;var pw=w-pad*2;var ph=h-pad*2;
-// Background
-ctx.fillStyle="#0a0f1a";ctx.fillRect(0,0,w,h);
-// Grid
-ctx.strokeStyle="rgba(255,255,255,0.05)";ctx.lineWidth=1;
-for(var i=0;i<=4;i++){var y=pad+ph*i/4;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();ctx.fillStyle="#5a6580";ctx.font="9px IBM Plex Mono";ctx.textAlign="right";ctx.fillText((100-i*25).toString(),pad-4,y+3);}
-// Zone fills
-var zones=[[0,25,"rgba(255,23,68,0.08)"],[25,45,"rgba(255,109,0,0.05)"],[45,55,"rgba(255,196,0,0.05)"],[55,75,"rgba(0,230,118,0.05)"],[75,100,"rgba(0,200,83,0.08)"]];
-zones.forEach(function(z){ctx.fillStyle=z[2];var y1=pad+ph*(100-z[1])/100;var y2=pad+ph*(100-z[0])/100;ctx.fillRect(pad,y1,pw,y2-y1);});
-// Plot
-var len=fh.length;
-ctx.beginPath();ctx.lineWidth=1.5;
-for(var i=0;i<len;i++){
-var x=pad+i/(len-1)*pw;var y=pad+ph*(100-fh[i].value)/100;
-var v=fh[i].value;ctx.strokeStyle=v<25?"#ff1744":v<45?"#ff6d00":v<55?"#ffc400":v<75?"#00e676":"#00c853";
-if(i===0)ctx.moveTo(x,y);else{ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.strokeStyle=v<25?"#ff1744":v<45?"#ff6d00":v<55?"#ffc400":v<75?"#00e676":"#00c853";ctx.moveTo(x,y);}}
-ctx.stroke();
-// Year labels
-var years={};fh.forEach(function(e,i){var yr=e.date.substring(0,4);if(!years[yr])years[yr]=i});
-ctx.fillStyle="#5a6580";ctx.font="9px IBM Plex Mono";ctx.textAlign="center";
-Object.keys(years).forEach(function(yr){var x=pad+years[yr]/(len-1)*pw;ctx.fillText(yr,x,h-5);ctx.strokeStyle="rgba(255,255,255,0.08)";ctx.beginPath();ctx.moveTo(x,pad);ctx.lineTo(x,pad+ph);ctx.stroke();});
-// Info
-ctx.fillStyle="#8b95ad";ctx.font="10px IBM Plex Sans";ctx.textAlign="left";
-ctx.fillText(fh.length+" data points | "+fh[0].date+" to "+fh[fh.length-1].date+(fh.some(function(e){return e.synthetic})?" | Pre-2018: synthetic from BTC momentum":""),pad,15);
+ var el=document.getElementById("fg-full-chart");if(!el)return;
+ var rows=cryptoSentimentSeries(cryptoSentimentRows(D&&D.fear_greed,"full"));
+ if(!rows.length){el.innerHTML="<p>Reported historical observations unavailable. No next-run recovery is promised.</p>";return;}
+ var first=rows[0].time,last=rows[rows.length-1].time,span=last-first||86400000,path="",previous=null,circles="",width=Math.max(320,Math.min(800,(window.innerWidth||832)-32));
+ rows.forEach(function(row){if(row.value===null){previous=null;return;}var x=45+(row.time-first)/span*(width-90),y=220-row.value*1.9;
+  path+=(previous&&row.time-previous.time<=86400000?"L":"M")+x.toFixed(3)+","+y.toFixed(3)+" ";
+  circles+="<circle cx='"+x.toFixed(3)+"' cy='"+y.toFixed(3)+"' r='2' fill='#80bfff'><title>"+cryptoText(row.date)+": "+row.value+" index points</title></circle>";previous=row;
+ });
+ el.innerHTML="<svg role='img' aria-label='Reported Bitcoin sentiment by actual UTC time; gaps are not interpolated' viewBox='0 0 "+width+" 265' style='width:100%;height:auto;min-height:180px'><text x='8' y='34' fill='#a8b3c7' font-size='13'>100</text><text x='22' y='225' fill='#a8b3c7' font-size='13'>0</text><path d='"+path+"' fill='none' stroke='#80bfff' stroke-width='1.5'/>"+circles+"<text x='45' y='254' fill='#a8b3c7' font-size='12'>"+cryptoText(rows[0].date)+"</text><text x='"+(width-45)+"' y='254' text-anchor='end' fill='#a8b3c7' font-size='12'>"+cryptoText(rows[rows.length-1].date)+"</text></svg>";
 }
 
 function cqActivate(){

@@ -815,9 +815,8 @@ def build_context(message):
     if cryptos or any(w in msg_up for w in ['CRYPTO','BITCOIN','BTC','ETH','DEFI','ETHEREUM','ALTCOIN','ON-CHAIN','EXCHANGE']):
         cd = get_s3('crypto-intel.json')
         if cd:
-            fg = cd.get('fear_greed', {})
-            if isinstance(fg, dict):
-                lines.append(f"[FEAR&GREED] {fg.get('value','N/A')}  {fg.get('value_classification','')}")
+            fg = __import__('crypto_sentiment_observations').context(cd.get('fear_greed'))
+            lines.append('[BITCOIN SENTIMENT — Alternative.me; descriptive, no forecast/sizing vote] ' + json.dumps(fg, ensure_ascii=True))
             dom = cd.get('dominance', {})
             if isinstance(dom, dict):
                 lines.append(f"[BTC DOMINANCE] {dom.get('btc', dom.get('BTC','N/A'))}%")

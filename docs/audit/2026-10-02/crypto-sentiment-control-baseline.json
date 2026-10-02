@@ -1,11 +1,109 @@
 {
   "stage": 543,
-  "status": "read_only_baseline_candidate_not_run",
-  "functions": [
-    "justhodl-allocator",
-    "justhodl-signal-logger"
-  ],
-  "scope": "Runtime and complete bound-schedule metadata only, captured twice. No producer, provider, account, application packet, outcome ledger or logs. Existing six other sentiment consumers already have retained native baselines.",
-  "investment_authority": false,
-  "source_qualified": false
+  "status": "stable_native_control_baseline_accepted",
+  "evidence": {
+    "status": "stable_named_sentiment_consumer_control_baseline",
+    "functions": {
+      "justhodl-allocator": {
+        "FunctionName": "justhodl-allocator",
+        "CodeSha256": "N9VGmX2r3fXqyBwhAuK/yWoodOusg38cL9DMXFTWiak=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 60,
+        "MemorySize": 256,
+        "Architectures": [
+          "x86_64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "schedules": [],
+        "schedule_observation": "no_binding_observed_in_complete_schedule_inventory",
+        "other_invocation_routes_verified": false
+      },
+      "justhodl-signal-logger": {
+        "FunctionName": "justhodl-signal-logger",
+        "CodeSha256": "2tyJ5Ejbgt0iP00+o7UFRja5rjIbaBHWccoKTKZhXX0=",
+        "Runtime": "python3.12",
+        "Handler": "lambda_function.lambda_handler",
+        "Timeout": 120,
+        "MemorySize": 256,
+        "Architectures": [
+          "arm64"
+        ],
+        "Role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "EphemeralStorage": {
+          "Size": 512
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-signal-logger-6h",
+            "state": "ENABLED",
+            "expression": "cron(0 21 * * ? *)",
+            "native_targets": 1
+          }
+        ],
+        "schedule_observation": "bound_schedules_observed",
+        "other_invocation_routes_verified": false
+      }
+    },
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "source_qualified": false,
+    "normal_publication_verified": false,
+    "investment_authority": false,
+    "run_id": 36956308298,
+    "operation_commit": "ac4494b90ab3d32ccac83947af3249665b1c25c0",
+    "report_commit": "f23572511ade3c10e099d300c6759827a86c3ae6",
+    "original_controls": {
+      "justhodl-allocator": {
+        "function_name": "justhodl-allocator",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 60,
+        "memory_mb": 256,
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": []
+      },
+      "justhodl-signal-logger": {
+        "function_name": "justhodl-signal-logger",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 120,
+        "memory_mb": 256,
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-signal-logger-6h",
+            "state": "ENABLED",
+            "expression": "cron(0 21 * * ? *)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6443_sentiment_consumer_controls.md",
+      "bytes": 1577,
+      "sha256": "e65f689fffaeb46af00af2dd3cbb6f44fcfbb7b6f4bbbaddf2f184baed101da7"
+    }
+  },
+  "source_qualified": false,
+  "investment_authority": false
 }

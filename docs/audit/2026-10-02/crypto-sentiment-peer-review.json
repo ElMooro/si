@@ -1,0 +1,86 @@
+{
+  "base": "146abc84d2529e2664133795855e68c3dd4c73bb",
+  "head": "c7d4539299f3683c00407fc2fa0f47e6742214e8",
+  "target_overlap": false,
+  "script_executed": false,
+  "foreign_reports_read": false,
+  "path_oids": {
+    "STATE.md": "b16bd48b7accef547168961bf6d8bccc7a3aff1a",
+    "aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py": "edba023f8222e9c3419f7083415d9f9a5c83f62b",
+    "aws/ops/ran/1102_news.py": "d23701f806b6d954e9917806372d9219677e7589",
+    "aws/ops/reports/1102_news.json": "ae5946bb69000d4f451d0438c1c4c3fea097b1dd",
+    "aws/ops/reports/_lastrun.log": "f493200a27b4eeafa39d14547dcc7f763a0d7a38",
+    "aws/ops/reports/_ops_ledger.json": "663f9f69340d3d45f1184570d665820d3ec014ef",
+    "aws/ops/reports/latest/ops_6442_sdmx_order_acceptance.md": "db248f34fb3f94193909868e404aa30eb7e3fcf1",
+    "aws/ops/staged/ops_6442_sdmx_order_acceptance.py": "2babd5de01254896a075a47ccc5785d5abb96b97",
+    "aws/shared/TICKER_360_GUIDE.md": "b32b6b2224c516e00054ff618378cd95ba2d3974",
+    "engine-manifest.json": "a92fea780cad323b9bd0b4f992f23cb41ea4aa50",
+    "jh-chart-engine.js": "f348ccf7573630c51ba6ebbc3918a19b2aa0445b",
+    "jh-chart-indux.js": "bbcb47e59839d8baeecc67d5d6a38275d459ce0b",
+    "tests/chart-ind-menu.test.js": "cf528ea57a7429c6a9c419ba213640ed31f8078b",
+    "tests/fixtures/chart-help-indux-predecessor.js.txt": "252ef7c77412c0c3fefc64b60b22a7eeec539bc2",
+    "tests/fixtures/chart-html-labels/source-delta.json": "aa66e80ce8bd853663dafd1bc55d9fb6baab12e1",
+    "tests/fixtures/chart-signed-volume/source-delta.json": "60c902eee088c7c5bce7cda7cf0e9747d0228726",
+    "tests/ops/test_sdmx_order_acceptance.py": "788dab8ccdb8e912fc26233bf097fe9b80717174",
+    "aws/lambdas/justhodl-feed-heartbeat/config.json": "315bd332a6951a466d6ecc6220ec89a630896bee"
+  },
+  "engine_manifest_changed_paths": [
+    "/engines/231/unresolved_writes/0/line",
+    "/engines/231/unresolved_writes/1/line",
+    "/engines/231/write_evidence/crypto-intel.json/0/line",
+    "/engines/231/write_evidence/data/crypto-intel-history.json/0/line",
+    "/engines/360/write_evidence/data/fred-cache-secretary.json/0/via/0/line",
+    "/engines/360/write_evidence/data/fred-cache-secretary.json/0/via/1/line",
+    "/engines/360/write_evidence/data/fred-cache-secretary.json/0/via/2/line",
+    "/engines/360/write_evidence/data/secretary-history/*.json/0/line",
+    "/engines/360/write_evidence/data/secretary-history/*.json/0/via/0/line",
+    "/engines/360/write_evidence/data/secretary-history/*.json/0/via/1/line",
+    "/engines/360/write_evidence/data/secretary-latest.json/0/line",
+    "/engines/360/write_evidence/data/secretary-latest.json/0/via/0/line",
+    "/engines/360/write_evidence/data/secretary-latest.json/0/via/1/line",
+    "/generated_at"
+  ],
+  "review": [
+    "Peer chart UI adds fullscreen, synchronized vertical-line controls, favorites and EMA ribbon periods/labels; integration only, no volume/source/forecast qualification.",
+    "Feed heartbeat is new peer code. Prefix freshness reads only the first lexicographic object; all exceptions become missing; LastModified is treated as observation freshness; a 48-hour ceiling overrides weekly/quarterly cadences. These are unresolved source-reviewed defects, no invocation or report read.",
+    "Peer ops 1102 source inspects news-object metadata; not executed, report not read.",
+    "SDMX operation source performs its own package/control/summary check; not executed and foreign results not consumed.",
+    "Later heartbeat config adds Python 3.12, 256MB, 120s, 15-minute schedule for that peer function only; no target/control/shared-module overlap. Its monitoring semantics remain unqualified."
+  ],
+  "integration_checks_passed": true,
+  "additional_integration_review": {
+    "base": "f23572511ade3c10e099d300c6759827a86c3ae6",
+    "head": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+    "target_overlap": false,
+    "script_executed": false,
+    "foreign_reports_read": false,
+    "scope": "Source-only merge integration; no new chart signal, provider or peer result qualification",
+    "path_oids": {
+      "aws/lambdas/justhodl-sdmx-walker/source/lambda_function.py": "ef2e8c42029c8d1e96a3e950ad7fc3c3b5c6dd27",
+      "aws/lambdas/justhodl-sdmx-walker/tests/fixtures/predecessor.py.txt": "f0edd36d137c9281a3e0c237f1afbcef74987e88",
+      "aws/lambdas/justhodl-sdmx-walker/tests/run_tests.py": "3583a42af9d335052c3a8d790b9d9b73a91493c1",
+      "aws/ops/staged/ops_6442_sdmx_order_acceptance.py": "c892db83a2096f2ece332169fd9403c7f4ae78d3",
+      "jh-chart-engine.js": "68e5c8de7720d5444389eadbd18561accbc2e706",
+      "jh-chart-indux.js": "68701c2fda5f5e0893063fa8c0529613f31e59c0",
+      "jh-chart-inst.js": "983495bce205a57617896c99c5b89d0f07dffd51",
+      "jh-chart-sd-sr.js": "8d96c2e553e17326fc5061c5a5f37ea7e2c45290",
+      "tests/ops/test_sdmx_order_acceptance.py": "ad206b7df5e5feb0e068103db8f34b028a966241"
+    },
+    "observed_issues": [
+      "HVN fallback changes absent volume into unit bar-count weights; a time-at-price label does not establish actual elapsed time or traded volume.",
+      "ATR/clustering/SMC level calculations remain heuristic, not prospective validated predictors."
+    ]
+  },
+  "integration_test_repairs": {
+    "peer_commit": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+    "source_changes_by_this_batch": 0,
+    "failure_count": 21,
+    "causes": [
+      "Five obsolete hard-coded engine version assertions",
+      "Historical whole-source manifests had not recorded peer-added Chart functions, outer statements and help copy"
+    ],
+    "prior_fixture_hashes_preserved": true,
+    "all_prior_test_assertions_retained": true,
+    "new_feature_investment_qualification": false
+  }
+}

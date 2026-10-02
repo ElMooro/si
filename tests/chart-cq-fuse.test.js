@@ -155,7 +155,7 @@ assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
   assert.match(cryptoIdx, /data-arm/);
   assert.match(cryptoHtml, /location\.replace\("\/crypto\/"\)/);
   assert.match(onchain, /chart\.html\?s=CQ:\$\{k\}/);
-  assert.match(engine, /v12\.34/);
+  assert.match(engine, /v12\.41/);
   assert.match(engine, /__jhChartEngineV1239/);
   assert.match(engine, /CQSNAP/);
   assert.match(engine, /CQARM/);

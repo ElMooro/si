@@ -7,3 +7,6 @@ subprocess.run([sys.executable,str(R/'tests/test_crypto_funding_observations.py'
 subprocess.run([sys.executable,str(R/'tests/test_crypto_funding_archive.py')],cwd=R,check=True)
 for name in ('model','transport','archive','consumers','predecessor'):
  subprocess.run([sys.executable,str(R/('tests/test_crypto_stablecoin_'+name+'.py'))],cwd=R,check=True)
+
+for name in ('model','transport','archive','consumers'):
+ subprocess.run([sys.executable,str(R/('tests/test_crypto_sentiment_'+name+'.py'))],cwd=R,check=True)

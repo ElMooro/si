@@ -1,0 +1,982 @@
+
+import json,boto3,uuid,time,urllib.request,urllib.error
+from datetime import datetime,timezone,timedelta
+from decimal import Decimal
+from _sentry_lite import track_errors
+from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+
+
+# Phase 2 KA rebrand — recursive khalid_* → ka_* alias helper.
+try:
+    from ka_aliases import add_ka_aliases
+except Exception as _e:
+    print(f"WARN: ka_aliases unavailable: {_e}")
+    def add_ka_aliases(obj, **_kwargs):
+        return obj
+
+dynamodb=boto3.resource("dynamodb",region_name="us-east-1")
+s3=boto3.client("s3",region_name="us-east-1")
+SIGNALS_TABLE="justhodl-signals"
+S3_BUCKET="justhodl-dashboard-live"
+CFTC_URL="https://35t3serkv4gn2hk7utwvp7t2sa0flbum.lambda-url.us-east-1.on.aws/"
+
+# Same keys outcome-checker uses
+POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
+FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
+
+# Cache prices within a single Lambda invocation (one fetch per ticker)
+_PRICE_CACHE={}
+
+def _polygon_prev(ticker):
+    """Free-tier-friendly previous close."""
+    url=f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev?adjusted=true&apiKey={POLYGON_KEY}"
+    try:
+        with urllib.request.urlopen(url,timeout=8) as r:
+            d=json.loads(r.read().decode())
+            res=d.get("results") or []
+            if res: return float(res[0].get("c") or 0)
+    except Exception as e: print(f"[PRICE] Polygon {ticker}: {e}")
+    return None
+
+def _fmp_stable(ticker):
+    """Modern FMP /stable/quote endpoint."""
+    url=f"https://financialmodelingprep.com/stable/quote?symbol={ticker}&apikey={FMP_KEY}"
+    try:
+        with urllib.request.urlopen(url,timeout=8) as r:
+            d=json.loads(r.read().decode())
+            if d and isinstance(d,list) and len(d)>0:
+                p=d[0].get("price")
+                if p is not None: return float(p)
+    except Exception as e: print(f"[PRICE] FMP {ticker}: {e}")
+    return None
+
+def _coingecko(ticker):
+    """Free crypto fallback."""
+    cmap={"BTC-USD":"bitcoin","BTC":"bitcoin","ETH-USD":"ethereum","ETH":"ethereum",
+          "SOL-USD":"solana","SOL":"solana"}
+    cg=cmap.get(ticker.upper())
+    if not cg: return None
+    url=f"https://api.coingecko.com/api/v3/simple/price?ids={cg}&vs_currencies=usd"
+    try:
+        with urllib.request.urlopen(url,timeout=8) as r:
+            d=json.loads(r.read().decode())
+            return float(d.get(cg,{}).get("usd") or 0)
+    except Exception as e: print(f"[PRICE] CoinGecko {ticker}: {e}")
+    return None
+
+def get_baseline_price(ticker):
+    """Get current price for a ticker — same fallback chain as outcome-checker.
+    Cached within Lambda invocation to avoid duplicate fetches."""
+    if not ticker: return None
+    if ticker in _PRICE_CACHE: return _PRICE_CACHE[ticker]
+    p=None
+    if ticker.upper() in ("BTC-USD","ETH-USD","SOL-USD","BTC","ETH","SOL"):
+        p=_coingecko(ticker)
+    if not p: p=_fmp_stable(ticker)
+    if not p: p=_polygon_prev(ticker)
+    _PRICE_CACHE[ticker]=p
+    return p
+
+def f2d(obj):
+    if isinstance(obj,float): return Decimal(str(round(obj,6)))
+    if isinstance(obj,dict): return {k:f2d(v) for k,v in obj.items()}
+    if isinstance(obj,list): return [f2d(v) for v in obj]
+    return obj
+
+def fs3(key):
+    try:
+        obj=s3.get_object(Bucket=S3_BUCKET,Key=key)
+        return json.loads(obj["Body"].read().decode("utf-8"))
+    except Exception as e:
+        print(f"[S3] {key}: {e}"); return {}
+
+def lget(url,path=""):
+    try:
+        full=url.rstrip("/")+("/"+path.lstrip("/") if path else "")
+        req=urllib.request.Request(full,headers={"Content-Type":"application/json"})
+        with urllib.request.urlopen(req,timeout=15) as r:
+            return json.loads(r.read().decode())
+    except Exception as e:
+        print(f"[LAMBDA] {e}"); return {}
+
+# Captures Khalid regime once per Lambda invocation; populated by lambda_handler
+_REGIME_SNAPSHOT={"regime":None,"khalid_score":None}
+
+def _capture_regime_snapshot():
+    """Read data/report.json once, capture regime + khalid_score for this run.
+    Called from lambda_handler at start of invocation."""
+    _REGIME_SNAPSHOT.update(regime=None, khalid_score=None)
+    try:
+        d=fs3("data/report.json")
+        if d.get('calls_eligible') is not True:
+            return
+        ki=d.get("khalid_index")
+        if isinstance(ki,dict):
+            _REGIME_SNAPSHOT["khalid_score"]=int(float(ki.get("score",0))) if ki.get("score") is not None else None
+            _REGIME_SNAPSHOT["regime"]=ki.get("regime") or d.get("regime")
+        elif ki is not None:
+            _REGIME_SNAPSHOT["khalid_score"]=int(float(ki))
+            _REGIME_SNAPSHOT["regime"]=d.get("regime")
+        else:
+            _REGIME_SNAPSHOT["regime"]=d.get("regime")
+        print(f"[REGIME] snapshot: regime={_REGIME_SNAPSHOT['regime']}, score={_REGIME_SNAPSHOT['khalid_score']}")
+    except Exception as e:
+        print(f"[REGIME] snapshot failed (non-fatal): {e}")
+
+def log_sig(stype,val,pred,conf,against,windows,price=None,meta=None,bench=None,
+            magnitude=None,target_price=None,rationale=None,supporting=None):
+    table=dynamodb.Table(SIGNALS_TABLE)
+    now=datetime.now(timezone.utc)
+    sid=str(uuid.uuid4())
+    ts={f"day_{d}":(now+timedelta(days=d)).isoformat() for d in windows}
+
+    # Auto-fetch baseline_price if not explicitly passed.
+    # If the price fetch fails (returns None after the 3-fallback chain), retry
+    # once after a short pause. If still None, SKIP the signal entirely — persisting
+    # baseline_price=None poisons score_directional and leaves the outcome
+    # unscoreable forever (root cause of the directional-signal calibration gap
+    # discovered 2026-05-04: edge_regime/carry_risk/market_phase/khalid_index/
+    # ml_risk/plumbing_stress all had ~30-55 unscored outcomes from a single
+    # batch where get_baseline_price("SPY") failed transiently).
+    if price is None and against:
+        price=get_baseline_price(against)
+        if price is None:
+            import time as _t; _t.sleep(0.5)
+            price=get_baseline_price(against)
+        if price is None:
+            print(f"[skip-directional-signal] {stype} against={against} pred={pred} — baseline_price unavailable, skipping to avoid calibration poisoning")
+            return None
+    # Auto-fetch benchmark price for relative-comparison signals (OUTPERFORM/UNDERPERFORM).
+    # If the fetch fails (returns None after the 3-fallback chain), SKIP the signal entirely
+    # rather than persisting None — that poisons the calibrator (outcome-checker can't score
+    # without baseline_benchmark_price). Signal-logger reruns every 6h so a skipped signal
+    # will be retried promptly. Backfill ops/2026-05-04 already fixed historical None values.
+    bench_price=None
+    if bench and pred in ("OUTPERFORM","UNDERPERFORM"):
+        bench_price=get_baseline_price(bench)
+        if bench_price is None:
+            # Retry once after short pause (transient API glitch is the typical cause)
+            import time as _t; _t.sleep(0.5)
+            bench_price=get_baseline_price(bench)
+        if bench_price is None:
+            print(f"[skip-relative-signal] {stype} against={against} bench={bench} — bench_price unavailable, skipping to avoid calibration poisoning")
+            return None
+
+    # Compute predicted_target_price from magnitude × baseline (Q1.2 — both)
+    computed_target=None
+    if target_price is not None:
+        computed_target=float(target_price)
+    elif magnitude is not None and price:
+        # +X% magnitude → target_price = baseline × (1 + X/100)
+        # NEUTRAL/0 magnitude leaves target = baseline
+        computed_target=float(price)*(1.0+float(magnitude)/100.0)
+
+    horizon_primary=max(windows) if windows else None
+
+    item={"signal_id":sid,"signal_type":stype,"signal_value":str(val),
+          "predicted_direction":pred,"confidence":f2d(float(conf)),
+          "measure_against":against,"baseline_price":f2d(float(price)) if price else None,
+          "baseline_benchmark_price":f2d(float(bench_price)) if bench_price else None,
+          "benchmark":bench,"check_windows":[str(d) for d in windows],
+          "check_timestamps":ts,"outcomes":{},"accuracy_scores":{},
+          "logged_at":now.isoformat(),"logged_epoch":int(now.timestamp()),
+          "status":"pending","metadata":f2d(meta or {}),
+          "ttl":int((now+timedelta(days=365)).timestamp()),
+          # ─── Schema v2 fields (Week 2A) ────────────────────
+          "schema_version":"2",
+          "predicted_magnitude_pct":f2d(float(magnitude)) if magnitude is not None else None,
+          "predicted_target_price":f2d(float(computed_target)) if computed_target is not None else None,
+          "horizon_days_primary":int(horizon_primary) if horizon_primary else None,
+          "regime_at_log":_REGIME_SNAPSHOT.get("regime"),
+          "khalid_score_at_log":_REGIME_SNAPSHOT.get("khalid_score"),
+          "rationale":str(rationale) if rationale else None,
+          "supporting_signals":list(supporting) if supporting else None,
+          }
+    # Phase 2 dual-write — add ka_score_at_log alongside khalid_score_at_log
+    item = add_ka_aliases(item)
+    table.put_item(Item=item)
+    bp_str=f" baseline=${price:.2f}" if price else " baseline=None"
+    print(f"[LOG] {stype}={val} {pred} conf={conf:.2f}{bp_str}")
+    return sid
+
+def dir_score(s,lo=40,hi=60):
+    return "DOWN" if s>=hi else "UP" if s<=lo else "NEUTRAL"
+
+def conf_ext(s,c=50,r=50):
+    return min(1.0,abs(s-c)/r)
+
+@track_errors
+def lambda_handler(event,context):
+    # Capture Khalid regime once for this invocation; every log_sig() call
+    # reads from _REGIME_SNAPSHOT to populate regime_at_log + khalid_score_at_log
+    _capture_regime_snapshot()
+    logged=[]
+    # data.json
+    d=fs3("data/report.json")
+    # The report contains dated observations, not a registered forecast. Legacy
+    # KI thresholds, UNKNOWN->NEUTRAL and invented 70/72% confidence may not
+    # enter the outcome ledger. Prospective registration owns any future calls.
+    # Keep the existing historical ledger untouched.
+    # crypto-intel.json
+    c=fs3("crypto-intel.json")
+    fg=c.get("fear_greed",{})
+    fgs=fg.get("current")
+    if fgs is not None:
+        fgs=float(fgs)
+        v,p,cf=("EXTREME_FEAR","UP",0.80) if fgs<=20 else ("FEAR","UP",0.60) if fgs<=35 else ("EXTREME_GREED","DOWN",0.80) if fgs>=80 else ("GREED","DOWN",0.60) if fgs>=65 else ("NEUTRAL","NEUTRAL",0.40)
+        fg_rat=f"Fear & Greed {int(fgs)} ({fg.get('label') or v}) — contrarian {p} signal"
+        logged.append(log_sig("crypto_fear_greed",v,p,cf,"BTC-USD",[1,3,7,14],meta={"score":fgs,"label":fg.get("label")},rationale=fg_rat))
+    rs=c.get("risk_score",{})
+    rv=rs.get("score")
+    if rv is not None:
+        rv=float(rv)
+        logged.append(log_sig("crypto_risk_score",rs.get("regime","?"),dir_score(rv,35,65),conf_ext(rv),"BTC-USD",[1,3,7,14],meta={"score":rv,"action":rs.get("action")}))
+    # onchain_composite_risk (ops 2742) - CryptoQuant entity-labeled composite (CANDIDATE).
+    # Hypothesis: z >= +0.75 (inflow/whale/valuation stretch) = BTC DOWN; z <= -0.75 (squeeze) = UP.
+    oc=fs3("data/cryptoquant-onchain.json")
+    ocz=oc.get("composite_onchain_risk_z")
+    if oc.get("status")=="LIVE" and ocz is not None:
+        opred=("DOWN" if ocz>=0.75 else ("UP" if ocz<=-0.75 else "NEUTRAL"))
+        oconf=min(0.9, 0.35+abs(ocz)*0.22)
+        logged.append(log_sig("onchain_composite_risk","ONCHAIN",opred,oconf,"BTC-USD",[1,3,7,14,21],
+                              meta={"z":ocz,"mvrv":((oc.get("metrics") or {}).get("btc_mvrv") or {}).get("value"),"grading":"PROVISIONAL"}))
+
+    # onchain_btc_forecast (ops 2748) - base-rate ensemble forecast, magnitude-graded.
+    fx=(oc.get("forecasts") or {}).get("btc") or {}
+    f90=(fx.get("h90") or {}).get("exp_pct")
+    if oc.get("status")=="LIVE" and f90 is not None:
+        fpred=("UP" if f90>2 else ("DOWN" if f90<-2 else "NEUTRAL"))
+        fconf=min(0.85, 0.3+abs(f90)/30.0)
+        logged.append(log_sig("onchain_btc_forecast","BASE_RATE",fpred,fconf,"BTC-USD",[30,90,180],
+                              magnitude=f90,meta={"h":{k:(v.get("exp_pct") if isinstance(v,dict) else None) for k,v in fx.items() if k.startswith("h")},"grading":"PROVISIONAL"}))
+
+    # crypto_dvol — implied-vol risk signal (CANDIDATE, to be graded by the scorecard).
+    # Hypothesis (consistent with cycle-clock synthesis): elevated/rising BTC DVOL = risk-off
+    # = BTC DOWN; low/falling = risk-on = UP. The scorecard decides if it has real edge.
+    cd=fs3("data/crypto-dvol.json")
+    cbtc=(cd.get("btc") or {})
+    dv=cbtc.get("dvol"); dreg=cbtc.get("regime"); dtr=cbtc.get("trend"); dpct=cbtc.get("pctile_1y")
+    if dv is not None:
+        dpred=("DOWN" if (dreg in ("ELEVATED","HIGH") or dtr=="RISING")
+               else "UP" if (dreg=="LOW" or dtr=="FALLING") else "NEUTRAL")
+        dconf=round(min(0.8,0.5+abs((float(dpct) if dpct is not None else 50)-50)/100),3)
+        logged.append(log_sig("crypto_dvol",f"{dv} {dreg}",dpred,dconf,"BTC-USD",[1,3,7,14],
+                              meta={"dvol":dv,"regime":dreg,"trend":dtr,"pctile_1y":dpct},
+                              rationale=f"BTC DVOL {dv} ({dpct}th pctile, {dtr}) — crypto implied-vol risk signal"))
+    tech=c.get("technicals",{})
+    btc=tech.get("BTC",tech.get("bitcoin",{}))
+    if isinstance(btc,dict):
+        bs=btc.get("signal") or btc.get("trend")
+        bp=btc.get("price"); br=btc.get("rsi")
+        if bs:
+            p2="UP" if any(x in str(bs).upper() for x in ["BUY","BULL","UP"]) else "DOWN" if any(x in str(bs).upper() for x in ["SELL","BEAR","DOWN"]) else "NEUTRAL"
+            cf2=0.85 if br and (float(br)<=30 or float(br)>=70) else 0.72
+            logged.append(log_sig("crypto_btc_signal",bs,p2,cf2,"BTC-USD",[1,3,7,14],price=bp,meta={"rsi":br,"price":bp}))
+    oc=c.get("onchain_ratios",{})
+    mvrv=oc.get("mvrv") or oc.get("MVRV")
+    if mvrv is not None:
+        mvrv=float(mvrv)
+        v2,p2,cf2=("UNDERVALUED","UP",0.80) if mvrv<1.0 else ("OVERVALUED","DOWN",0.80) if mvrv>3.5 else ("ELEVATED","DOWN",0.65) if mvrv>2.5 else ("FAIR","NEUTRAL",0.40)
+        mvrv_mag=10.0 if mvrv<0.8 else (-15.0 if mvrv>3.5 else (-8.0 if mvrv>2.5 else 0))
+        mvrv_rat=f"MVRV {mvrv:.2f} = {v2} (historic UP at <1, DOWN at >3)"
+        logged.append(log_sig("btc_mvrv",v2,p2,cf2,"BTC-USD",[14,30,60],meta={"mvrv":mvrv},magnitude=mvrv_mag,rationale=mvrv_rat))
+    # crypto-dvol.json — DVOL buy-fear thesis, graded live by the FDR scorecard
+    cd=fs3("data/crypto-dvol.json")
+    cdb=cd.get("btc") or {}
+    pctile=cdb.get("pctile_1y"); dv=cdb.get("dvol")
+    if pctile is not None:
+        pred="UP" if pctile>=60 else "DOWN" if pctile<=40 else "NEUTRAL"
+        if pred!="NEUTRAL":
+            cf=round(0.5+min(0.4,abs(float(pctile)-50)/100.0),2)
+            logged.append(log_sig("crypto_dvol_buyfear",f"DVOL {dv} ({pctile}th)",pred,cf,"BTC-USD",[7,14,30],
+                meta={"dvol":dv,"pctile_1y":pctile,"regime":cdb.get("regime")},
+                rationale="buy-fear: high DVOL pctile=fear -> bullish fwd BTC, low=complacency -> weak (CONFIRMED_STRONG in-sample, DIAGNOSTIC live)"))
+    # crypto-options-surface.json — 25d risk reversal as a contrarian skew/fear gauge, graded live
+    co=fs3("data/crypto-options-surface.json")
+    rr=((co.get("btc") or {}).get("headline_30d") or {}).get("rr_25d")
+    if rr is not None:
+        rr=float(rr)
+        opred="UP" if rr<=-5 else "DOWN" if rr>=3 else "NEUTRAL"  # extreme put skew = fear -> contrarian UP
+        if opred!="NEUTRAL":
+            ocf=round(0.5+min(0.35,abs(rr)/40.0),2)
+            logged.append(log_sig("crypto_options_rr","RR25 %.1f"%rr,opred,ocf,"BTC-USD",[7,14,30],
+                meta={"rr_25d":rr,"skew":(co.get("btc") or {}).get("interpretation"),
+                      "term":((co.get("btc") or {}).get("term_structure") or {}).get("regime")},
+                rationale="25d risk reversal as contrarian skew gauge: extreme put skew (RR<<0)=hedging/fear->contrarian UP; extreme call skew=greed->DOWN (hypothesis, graded live)"))
+    # crypto-miners.json — Puell multiple + hash ribbon, graded live
+    cm=fs3("data/crypto-miners.json")
+    pu=(cm.get("puell") or {}).get("value")
+    if pu is not None:
+        pu=float(pu)
+        ppred="UP" if pu<1.0 else "DOWN" if pu>=2.2 else "NEUTRAL"
+        if ppred!="NEUTRAL":
+            pcf=0.7 if (pu<0.5 or pu>=4) else 0.58
+            logged.append(log_sig("puell_multiple","Puell %.2f"%pu,ppred,pcf,"BTC-USD",[30,60,90],
+                meta={"puell":pu,"zone":(cm.get("puell") or {}).get("zone")},
+                rationale="Puell multiple: <1 = miner revenue below 365d trend = undervalued -> UP; >2.2 elevated -> DOWN (graded live)"))
+    hrb=cm.get("hash_ribbons") or {}
+    if hrb.get("state")=="RECOVERY/BUY" and not hrb.get("in_capitulation"):
+        logged.append(log_sig("hash_ribbon_buy","RECOVERY","UP",0.55,"BTC-USD",[30,90,180],
+            meta={"hash_rate_eh":hrb.get("hash_rate_eh"),"days_since_buy":(hrb.get("last_true_buy") or {}).get("days_since")},
+            rationale="hash ribbon recovery (30dMA back above 60dMA after capitulation), historically a buy; in-sample DIAGNOSTIC/INVERTED -> graded live"))
+    # crypto-basis.json — carry / leverage extreme as a contrarian gauge, graded live
+    cb2=fs3("data/crypto-basis.json")
+    cc=(cb2.get("btc") or {}).get("cash_and_carry_yield_3m_pct")
+    if cc is not None:
+        cc=float(cc)
+        bpred="DOWN" if cc>=15 else "UP" if cc<=-2 else "NEUTRAL"  # hot carry=crowded leverage->DOWN; backwardation->UP
+        if bpred!="NEUTRAL":
+            bcf=round(0.5+min(0.3,abs(cc)/60.0),2)
+            logged.append(log_sig("cc_basis_extreme","3m carry %.1f%%"%cc,bpred,bcf,"BTC-USD",[14,30,60],
+                meta={"cc_yield_3m":cc,"regime":(cb2.get("btc") or {}).get("regime")},
+                rationale="3m cash-and-carry extreme: hot contango (>=15%)=crowded leverage-long->contrarian DOWN; backwardation(<=-2%)=deleveraging capitulation->UP (graded live)"))
+    # crypto-exchange-flows.json — exchange netflows (accumulation/distribution), graded live
+    xf=fs3("data/crypto-exchange-flows.json")
+    xfb=xf.get("btc") or {}
+    xfp=xfb.get("cum_30d_pctile")
+    if xfp is not None:
+        xfp=float(xfp)
+        xpred="UP" if xfp<=25 else "DOWN" if xfp>=75 else "NEUTRAL"  # heavy outflow=accumulation->UP; heavy inflow=distribution->DOWN
+        if xpred!="NEUTRAL":
+            xcf=round(0.5+min(0.25,abs(xfp-50)/100.0),2)
+            logged.append(log_sig("crypto_exchange_flow","netflow %dth"%int(xfp),xpred,xcf,"BTC-USD",[30,60,90],
+                meta={"cum_30d_pctile":xfp,"regime":xfb.get("regime"),"event_study":(xfb.get("event_study") or {}).get("verdict")},
+                rationale="exchange netflow: heavy outflow (coins to cold storage)=accumulation->UP; heavy inflow=distribution->DOWN. Classic heuristic; measured INVERTED in-sample (ETF era) -> graded live to confirm."))
+    # crypto-cot.json — CME asset-manager positioning extreme (contrarian), graded live
+    ct=fs3("data/crypto-cot.json")
+    cta=(ct.get("btc") or {}).get("asset_mgr") or {}
+    ctp=cta.get("net_pctile_3y")
+    if ctp is not None:
+        ctp=float(ctp)
+        ctpred="UP" if ctp<=15 else "DOWN" if ctp>=85 else "NEUTRAL"  # 3Y-low positioning=washed out->UP; 3Y-high=crowded->DOWN
+        if ctpred!="NEUTRAL":
+            ctcf=round(0.5+min(0.25,abs(ctp-50)/100.0),2)
+            logged.append(log_sig("crypto_cot_assetmgr","AM net %dth"%int(ctp),ctpred,ctcf,"BTC-USD",[30,60,90],
+                meta={"net":cta.get("net"),"net_pctile_3y":ctp,"read":cta.get("read"),"divergence":(ct.get("btc") or {}).get("divergence")},
+                rationale="CME asset-manager positioning extreme as contrarian gauge: institutions at 3Y-low net positioning=washed out->UP; 3Y-high=crowded long->DOWN (graded live)."))
+    # coinbase-premium.json — US institutional spot demand, graded live
+    cpj=fs3("data/coinbase-premium.json")
+    cpp=(cpj.get("btc") or {}).get("premium_pct")
+    if cpp is not None:
+        cpp=float(cpp)
+        cppred="UP" if cpp>=0.1 else "DOWN" if cpp<=-0.1 else "NEUTRAL"  # +premium=US bid->UP; -premium=US distribution->DOWN
+        if cppred!="NEUTRAL":
+            cpcf=round(0.5+min(0.3,abs(cpp)/2.0),2)
+            logged.append(log_sig("coinbase_premium","prem %.2f%%"%cpp,cppred,cpcf,"BTC-USD",[3,7,14],
+                meta={"premium_pct":cpp,"read":(cpj.get("btc") or {}).get("read")},
+                rationale="Coinbase premium (vs Kraken) as US-institutional spot demand: positive=US/institutional bid->UP; negative=US distribution->DOWN (graded live)."))
+    # crypto-etf-flows.json — spot ETF net flows (marginal buyer; event-study CONFIRMED predictive)
+    ef=fs3("data/crypto-etf-flows.json")
+    efb=ef.get("btc_etf") or {}
+    efp=efb.get("cum_30d_pctile")
+    if efp is not None:
+        efp=float(efp)
+        efpred="UP" if efp>=70 else "DOWN" if efp<=30 else "NEUTRAL"  # heavy inflow->UP; heavy outflow->DOWN
+        if efpred!="NEUTRAL":
+            efcf=round(0.55+min(0.25,abs(efp-50)/100.0),2)
+            logged.append(log_sig("crypto_etf_flow","30d %sth"%int(efp),efpred,efcf,"BTC-USD",[10,20,30],
+                meta={"cum_30d_usd":efb.get("cum_30d_usd"),"regime":efb.get("regime"),"event_study":(efb.get("event_study") or {}).get("verdict")},
+                rationale="Spot BTC ETF net flow (marginal buyer): heavy inflow->UP, heavy outflow->DOWN. Event study CONFIRMED flows lead price (graded live)."))
+    # edge-data.json
+    e=fs3("edge-data.json")
+    es=e.get("composite_score")
+    if es is not None:
+        es=float(es)
+        logged.append(log_sig("edge_composite",str(es),dir_score(es,35,65),conf_ext(es),"SPY",[1,7,14],meta={"score":es,"regime":e.get("regime")}))
+    for tk,chg in (e.get("correlation",{}).get("changes",{}) or {}).items():
+        if chg is None: continue
+        chg=float(chg); p3="UP" if chg>0.5 else "DOWN" if chg<-0.5 else "NEUTRAL"; cf3=min(0.80,abs(chg)/3.0)
+        if cf3>=0.3:
+            mom_mag=chg if abs(chg)<10 else (10 if chg>0 else -10)  # cap at ±10% to filter outliers
+            mom_rat=f"{tk} momentum: {chg:+.2f}% recent change → {p3} {abs(chg):.1f}% over 1-7d"
+            logged.append(log_sig(f"momentum_{tk.lower()}",f"{chg:+.2f}%",p3,cf3,tk,[1,3,7],meta={"change":chg},magnitude=mom_mag,rationale=mom_rat))
+    # repo-data.json
+    r=fs3("repo-data.json")
+    st=r.get("stress",{})
+    sc=st.get("score")
+    if sc is not None:
+        sc=float(sc)
+        v3,p3,cf3=("HIGH_STRESS","DOWN",0.80) if sc>=60 else ("ELEVATED","DOWN",0.65) if sc>=40 else ("MODERATE","NEUTRAL",0.50) if sc>=20 else ("NORMAL","UP",0.55)
+        plumb_rat=f"Plumbing stress {sc:.0f} = {v3} ({st.get('status') or '?'}); red_flags={st.get('red_flags') or 0}"
+        logged.append(log_sig("plumbing_stress",v3,p3,cf3,"SPY",[1,7,14,30],meta={"score":sc,"status":st.get("status"),"red_flags":st.get("red_flags")},rationale=plumb_rat))
+    # intelligence-report.json
+    ir=fs3("intelligence-report.json")
+    sc2=ir.get("scores",{})
+    for k2,against2,wins in [("ml_risk_score","SPY",[7,14,30]),("carry_risk_score","SPY",[14,30])]:
+        v4=sc2.get(k2)
+        if v4 is not None:
+            v4=float(v4)
+            logged.append(log_sig(k2.replace("_score",""),str(v4),dir_score(v4,35,65),conf_ext(v4),against2,wins,meta={"score":v4}))
+    ph=ir.get("phase","")
+    pm={"CRISIS":("DOWN",0.90),"PRE-CRISIS":("DOWN",0.75),"RECOVERY":("UP",0.70),"EXPANSION":("UP",0.65),"STABLE":("NEUTRAL",0.50)}
+    if ph.upper() in pm:
+        p4,cf4=pm[ph.upper()]
+        logged.append(log_sig("market_phase",ph,p4,cf4,"SPY",[14,30,60],meta={"phase":ph}))
+    # valuations-data.json
+    vd=__import__("valuation_research").decision_view(fs3("valuations-data.json"))
+    cape=vd.get("cape") or vd.get("CAPE")
+    if cape is not None:
+        cape=float(cape)
+        v5,p5,cf5=("EXTREMELY_EXPENSIVE","DOWN",0.80) if cape>35 else ("EXPENSIVE","DOWN",0.65) if cape>28 else ("CHEAP","UP",0.65) if cape<15 else ("FAIR","NEUTRAL",0.45)
+        cape_mag=-8.0 if cape>35 else (-4.0 if cape>28 else (5.0 if cape<15 else 0))
+        cape_rat=f"Shiller CAPE {cape:.1f} = {v5} (historical avg ~17, frothy >28)"
+        logged.append(log_sig("cape_ratio",v5,p5,cf5,"SPY",[30,60,90],meta={"cape":cape},magnitude=cape_mag,rationale=cape_rat))
+    buffett=vd.get("buffett_indicator") or vd.get("market_cap_gdp")
+    if buffett is not None:
+        buffett=float(buffett)
+        v6,p6,cf6=("EXTREMELY_OVERVALUED","DOWN",0.80) if buffett>200 else ("OVERVALUED","DOWN",0.65) if buffett>150 else ("UNDERVALUED","UP",0.65) if buffett<100 else ("FAIR","NEUTRAL",0.45)
+        buff_mag=-10.0 if buffett>200 else (-5.0 if buffett>150 else (5.0 if buffett<100 else 0))
+        buff_rat=f"Buffett Indicator (Mkt Cap/GDP) {buffett:.0f}% = {v6} — historic balance at ~100%"
+        logged.append(log_sig("buffett_indicator",v6,p6,cf6,"SPY",[30,60,90],meta={"buffett":buffett},magnitude=buff_mag,rationale=buff_rat))
+    # screener
+    sc3=fs3("screener/data.json")
+    for i,st2 in enumerate(sc3.get("stocks",[])[:15]):
+        tk2=st2.get("symbol") or st2.get("ticker")
+        pr2=st2.get("price") or st2.get("currentPrice")
+        pi=st2.get("piotroskiScore") or st2.get("piotroski",5)
+        if tk2: logged.append(log_sig("screener_top_pick","TOP_10" if i<10 else "TOP_25","OUTPERFORM",min(0.92,float(pi)/9.0) if pi else 0.60,tk2,[30,60,90],price=float(pr2) if pr2 else None,bench="SPY",meta={"rank":i+1,"piotroski":pi}))
+    # CFTC
+    try:
+        sigs=lget(CFTC_URL,"signals")
+        items=sigs if isinstance(sigs,list) else sigs.get("signals",[])
+        tmap={"GOLD":("GLD",[14,30,60]),"S&P 500":("SPY",[7,14,30]),"NASDAQ":("QQQ",[7,14,30]),"BITCOIN":("BTC-USD",[7,14,30]),"CRUDE OIL":("USO",[14,30,60]),"NATURAL GAS":("UNG",[14,30]),"EUR/USD":("FXE",[7,14,30]),"TREASURY":("TLT",[14,30,60]),"COPPER":("CPER",[14,30]),"SILVER":("SLV",[14,30,60])}
+        for item in items:
+            contract=str(item.get("contract") or item.get("name") or "").upper()
+            sig5=str(item.get("signal") or item.get("direction") or "NEUTRAL").upper()
+            cf5=float(item.get("confidence") or item.get("strength") or 0.65)
+            tk3,wins3="SPY",[14,30,60]
+            for key,(t3,w3) in tmap.items():
+                if key in contract: tk3,wins3=t3,w3; break
+            p5="UP" if any(x in sig5 for x in ["BUY","BULL","LONG"]) else "DOWN" if any(x in sig5 for x in ["SELL","BEAR","SHORT"]) else "NEUTRAL"
+            stype2=f"cftc_{contract.lower().replace(' ','_').replace('/','_')[:25]}"
+            logged.append(log_sig(stype2,sig5,p5,cf5,tk3,wins3,meta={"contract":contract,"net_pos":item.get("netPosition")}))
+    except Exception as ex: print(f"[CFTC] {ex}")
+
+    # ─── Phase 9.6 — Crisis & Plumbing signals (Loop 1 calibrator integration) ───
+    # Pulls data/crisis-plumbing.json (Phase 9.3) and data/correlation-breaks.json
+    # (Phase 9.5) and emits signals into the calibrator. Each non-NORMAL signal
+    # bucket maps to a directional prediction on a relevant outcome ticker.
+    # When the calibrator runs Sundays it will weight these by realized accuracy.
+    try:
+        cp=fs3("data/crisis-plumbing.json")
+        if cp and __import__("plumbing_authority").qualified_for_signals(cp):
+            # Retained legacy implementation; no registered policy may enter.
+            # Confidence ladder: CRISIS=0.85, ELEVATED=0.75, WATCH=0.65, NORMAL=0.45
+            CONF={"CRISIS":0.85,"ELEVATED":0.75,"WATCH":0.65,"NORMAL":0.45}
+            # Direction: most stress signals predict equities DOWN
+            def stress_sig(name,sig,bucket_val,against,wins,meta=None,rat=None):
+                """Helper for stress-direction signals (DOWN on stress, NEUTRAL on normal)."""
+                pred="DOWN" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+                cf=CONF.get(sig,0.45)
+                logged.append(log_sig(name,bucket_val,pred,cf,against,wins,meta=meta,rationale=rat))
+
+            # Funding & Credit Signals (6)
+            fcs=cp.get("funding_credit_signals",{}) or {}
+            sofr=fcs.get("SOFR_IORB_SPREAD",{})
+            if sofr.get("available"):
+                sig=sofr.get("signal","NORMAL")
+                rat=f"SOFR-IORB spread {sofr.get('spread_bps')}bps z_1y={sofr.get('z_score_1y')} → {sig} repo stress"
+                stress_sig("crisis_sofr_iorb",sig,f"{sofr.get('spread_bps')}bps","SPY",[3,7,14],
+                           meta={"spread_bps":sofr.get("spread_bps"),"z_1y":sofr.get("z_score_1y"),"signal":sig},rat=rat)
+            hy=fcs.get("HY_OAS",{})
+            if hy.get("available"):
+                sig=hy.get("signal","NORMAL")
+                rat=f"HY OAS {hy.get('latest_value'):.0f}bps z_1y={hy.get('z_score_1y')} → {sig} credit fear"
+                # Two simultaneous predictions: HYG itself + broader SPY
+                stress_sig("crisis_hy_oas_vs_hyg",sig,f"{hy.get('latest_value'):.0f}bps","HYG",[3,7,14],
+                           meta={"oas_bps":hy.get("latest_value"),"z_1y":hy.get("z_score_1y"),"signal":sig},rat=rat)
+                stress_sig("crisis_hy_oas_vs_spy",sig,f"{hy.get('latest_value'):.0f}bps","SPY",[7,14,30],
+                           meta={"oas_bps":hy.get("latest_value"),"signal":sig},rat=rat)
+            ig=fcs.get("IG_BBB_OAS",{})
+            if ig.get("available"):
+                sig=ig.get("signal","NORMAL")
+                rat=f"IG BBB OAS {ig.get('latest_value'):.0f}bps → {sig}"
+                stress_sig("crisis_ig_bbb_oas",sig,f"{ig.get('latest_value'):.0f}bps","SPY",[14,30],
+                           meta={"oas_bps":ig.get("latest_value"),"signal":sig},rat=rat)
+            t10yie=fcs.get("T10YIE",{})
+            if t10yie.get("available"):
+                lv=float(t10yie.get("latest_value") or 0)
+                # T10YIE has 'extremes' direction — both very low (deflation) and very high (unanchored) are stress
+                if lv<1.5 or lv>3.0:
+                    pred="DOWN"; cf=0.65; sig="ELEVATED"
+                else:
+                    pred="NEUTRAL"; cf=0.45; sig="NORMAL"
+                rat=f"10Y breakeven inflation {lv:.2f}% → {sig} (extremes flagged: <1.5% deflation / >3% unanchored)"
+                logged.append(log_sig("crisis_t10yie_extreme",f"{lv:.2f}%",pred,cf,"SPY",[30,60],
+                                      meta={"breakeven_pct":lv,"signal":sig},rationale=rat))
+            dfii=fcs.get("DFII10",{})
+            if dfii.get("available"):
+                sig=dfii.get("signal","NORMAL")
+                rat=f"10Y real rate {dfii.get('latest_value'):.2f}% → {sig} (high real rates pressure equities + gold)"
+                stress_sig("crisis_dfii10_vs_spy",sig,f"{dfii.get('latest_value'):.2f}%","SPY",[14,30,60],
+                           meta={"real_rate_pct":dfii.get("latest_value"),"signal":sig},rat=rat)
+                # high real rates also pressure gold
+                stress_sig("crisis_dfii10_vs_gld",sig,f"{dfii.get('latest_value'):.2f}%","GLD",[14,30,60],
+                           meta={"real_rate_pct":dfii.get("latest_value"),"signal":sig},rat=rat)
+            sloos=fcs.get("SLOOS_TIGHTEN",{})
+            if sloos.get("available"):
+                sig=sloos.get("signal","NORMAL")
+                rat=f"SLOOS C&I tightening {sloos.get('latest_value'):.1f}% → {sig} (banks pulling credit, slow signal)"
+                stress_sig("crisis_sloos_tighten",sig,f"{sloos.get('latest_value'):.1f}%","SPY",[60,90],
+                           meta={"net_pct_tightening":sloos.get("latest_value"),"signal":sig},rat=rat)
+
+            # Cross-currency / offshore dollar funding (4)
+            xcc=cp.get("xcc_basis_proxy",{}) or {}
+            for k,against,wins in (("rate_diff_jpy_3m","SPY",[7,14]),
+                                    ("rate_diff_eur_3m","SPY",[7,14])):
+                rd=xcc.get(k,{})
+                if rd.get("available"):
+                    sig=rd.get("signal","NORMAL")
+                    rat=f"{k} {rd.get('current_pct'):.2f}% z_1y={rd.get('z_score_1y')} → {sig} USD funding stress proxy"
+                    stress_sig(f"crisis_{k}",sig,f"{rd.get('current_pct'):.2f}%",against,wins,
+                               meta={"diff_pct":rd.get("current_pct"),"z_1y":rd.get("z_score_1y"),"signal":sig},rat=rat)
+            bd=xcc.get("broad_dollar_index",{})
+            if bd.get("available"):
+                sig=bd.get("signal","NORMAL")
+                # High dollar = global stress = SPY/EEM down
+                rat=f"Broad USD index {bd.get('level')} z_1y={bd.get('z_score_1y')} → {sig}"
+                stress_sig("crisis_broad_dollar_vs_spy",sig,f"{bd.get('level')}","SPY",[7,14],
+                           meta={"level":bd.get("level"),"z_1y":bd.get("z_score_1y"),"signal":sig},rat=rat)
+                stress_sig("crisis_broad_dollar_vs_eem",sig,f"{bd.get('level')}","EEM",[7,14,30],
+                           meta={"level":bd.get("level"),"signal":sig},rat=rat)
+            ob=xcc.get("obfr_iorb_spread",{})
+            if ob.get("available"):
+                sig=ob.get("signal","NORMAL")
+                rat=f"OBFR-IORB spread {ob.get('spread_bps')}bps → {sig} unsecured cash hoarding"
+                stress_sig("crisis_obfr_iorb",sig,f"{ob.get('spread_bps')}bps","SPY",[3,7],
+                           meta={"spread_bps":ob.get("spread_bps"),"signal":sig},rat=rat)
+
+            # MMF flight-to-quality
+            mmf=cp.get("mmf_composition") or {}
+            if mmf and mmf.get("flight_to_quality") is not None:
+                ftq=bool(mmf.get("flight_to_quality"))
+                pred="DOWN" if ftq else "NEUTRAL"
+                cf=0.75 if ftq else 0.45
+                rat=f"MMF flight to quality: prime share Δ30d={mmf.get('prime_share_change_30d_pp')}pp → "+("FLIGHT" if ftq else "stable")
+                # Regional banks (KRE) are most affected by deposit flight
+                logged.append(log_sig("crisis_mmf_flight_to_quality",
+                                      "FLIGHT" if ftq else "STABLE",pred,cf,"KRE",[14,30],
+                                      meta={"prime_share_change_pp":mmf.get("prime_share_change_30d_pp"),
+                                            "flight":ftq},rationale=rat))
+
+            # Official Crisis Indices (NFCI / STLFSI4 / ANFCI / KCFSI)
+            ci=cp.get("crisis_indices",{}) or {}
+            for sid,data in ci.items():
+                if not data.get("available"): continue
+                stressed=bool(data.get("is_stressed"))
+                pct=data.get("pct_rank")
+                pred="DOWN" if stressed else "NEUTRAL"
+                if pct is not None and pct>=90: cf=0.80
+                elif stressed: cf=0.70
+                else: cf=0.45
+                rat=f"{sid} latest={data.get('latest_value')} pct_rank={pct} → "+("STRESSED" if stressed else "NORMAL")
+                logged.append(log_sig(f"crisis_index_{sid.lower()}",
+                                      "STRESSED" if stressed else "NORMAL",pred,cf,"SPY",[14,30],
+                                      meta={"latest":data.get("latest_value"),"pct_rank":pct,
+                                            "is_stressed":stressed},rationale=rat))
+    except Exception as ex: print(f"[CRISIS-PLUMBING signals] {ex}")
+
+    # Phase 9.5 — correlation break detector
+    try:
+        cb=fs3("data/correlation-breaks.json")
+        if cb and cb.get("status")!="warming_up":
+            sig=cb.get("signal","NORMAL")
+            fz=cb.get("frobenius_z_score_1y")
+            n2=cb.get("n_pairs_above_2sigma",0)
+            # Composite correlation break → VIX UP + SPY DOWN
+            CONF={"CRISIS":0.85,"ELEVATED":0.75,"WATCH":0.65,"NORMAL":0.45}
+            cf=CONF.get(sig,0.45)
+            pred_spy="DOWN" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+            pred_vix="UP" if sig in ("CRISIS","ELEVATED","WATCH") else "NEUTRAL"
+            rat=f"Correlation break composite z={fz}, {n2} pairs >2σ → {sig} regime change signal"
+            logged.append(log_sig("corr_break_composite_vs_spy",sig,pred_spy,cf,"SPY",[3,5,14],
+                                  meta={"fro_z":fz,"n_pairs_2sigma":n2,"signal":sig},rationale=rat))
+            logged.append(log_sig("corr_break_composite_vs_vxx",sig,pred_vix,cf,"VXX",[3,5,14],
+                                  meta={"fro_z":fz,"n_pairs_2sigma":n2,"signal":sig},rationale=rat))
+
+            # Top breaking pair — if |z|>=2 it's worth tracking individually
+            tops=cb.get("top_breaking_pairs") or []
+            if tops:
+                top=tops[0]
+                z1=top.get("z_score") or 0
+                if abs(z1)>=2:
+                    pname=f"{top['pair'][0]}_{top['pair'][1]}".lower()[:30]
+                    pred="DOWN" if abs(z1)>=2 else "NEUTRAL"
+                    cf2=min(0.85,0.5+abs(z1)*0.1)
+                    rat=f"Top breaking pair {top['pair'][0]}↔{top['pair'][1]}: z={z1}, current={top.get('current_corr')}, baseline={top.get('baseline_corr')}"
+                    logged.append(log_sig(f"corr_break_top_pair",pname,pred,cf2,"SPY",[5,14],
+                                          meta={"pair":top['pair'],"z":z1,
+                                                "current_corr":top.get('current_corr'),
+                                                "baseline_corr":top.get('baseline_corr'),
+                                                "context":top.get('context')},rationale=rat))
+    except Exception as ex: print(f"[CORRELATION-BREAK signals] {ex}")
+    # ─── End Phase 9.6 additions ───
+
+    # ─── Phase 11: Front-Run System predictions (added 2026-05-31) ───
+    # Wires the new front-run sniffers + convergence fingerprints + sustained
+    # targets into the existing outcome-checker → calibrator learning loop.
+    # Each prediction gets a horizon and a target ticker so outcome-checker
+    # grades it automatically. Skill aggregator reads from the same outcomes
+    # table to produce /skill.html accuracy boards.
+    #
+    # Phase 12 (2026-05-31): the self-improvement calibrator writes
+    # data/_skill/calibration-config.json with per-engine confidence_scale
+    # overrides. We READ it here and apply scaling to each engine's raw
+    # confidence claim. This is the closing of the learning loop — the
+    # system applies what it has learned about its own track record.
+    try:
+        # Read calibration config (applied by self-improvement-calibrator)
+        _cal_cfg = fs3("data/_skill/calibration-config.json") or {}
+        _engine_overrides = _cal_cfg.get("engine_overrides") or {}
+        _cal_version = _cal_cfg.get("version") or "1.0"
+
+        def _apply_calibration(engine, raw_conf):
+            """Apply per-engine confidence scaling based on track record.
+            Returns (calibrated_conf, scale_applied)."""
+            ovr = _engine_overrides.get(engine) or {}
+            scale = float(ovr.get("confidence_scale", 1.0))
+            calibrated = raw_conf * scale
+            # Always bound to valid range
+            calibrated = max(0.30, min(0.95, calibrated))
+            return calibrated, scale
+
+        def _parse_horizon_days(s, default=7):
+            """Convert horizon strings like '1-3 days', '1-2 weeks', '3-7d' to
+            an integer day count (use the upper bound). Falls back to default."""
+            if not s: return default
+            s = str(s).lower().strip()
+            import re
+            m = re.findall(r"(\d+)\s*-?\s*(\d+)?\s*(day|week|month|d|w|m)", s)
+            if not m:
+                m2 = re.findall(r"(\d+)", s)
+                if m2:
+                    try: return min(60, int(m2[-1]))
+                    except: pass
+                return default
+            lo, hi, unit = m[0]
+            try: n = int(hi) if hi else int(lo)
+            except: return default
+            if unit.startswith("w"): n *= 7
+            elif unit.startswith("m"): n *= 30
+            return min(60, max(1, n))
+
+        def _dir_from_label(direction_label):
+            """Map directional labels to UP/DOWN/NEUTRAL."""
+            if not direction_label: return "NEUTRAL"
+            d = str(direction_label).upper()
+            if any(x in d for x in ("DOWN", "SHORT", "BEAR", "FLAT")): return "DOWN"
+            if any(x in d for x in ("UP", "LONG", "BULL", "STEEP")):   return "UP"
+            return "NEUTRAL"
+
+        # ─── 1. Equity front-run sniffer setups ───
+        fr = fs3("data/frontrun-sniffer.json")
+        if isinstance(fr, dict):
+            setups = fr.get("suspected_setups") or []
+            for i, sx in enumerate(setups[:3]):  # Top 3 per cycle
+              try:
+                target = sx.get("target_asset") or sx.get("primary_asset")
+                if not target: continue
+                # Pull ticker out of free-form text (e.g. "SPY / Broad Equity Market" → "SPY")
+                import re
+                tk_match = re.match(r"^([A-Z]{1,5})", str(target).strip())
+                if not tk_match: continue
+                ticker = tk_match.group(1)
+                direction = sx.get("target_direction") or sx.get("direction")
+                pred = _dir_from_label(direction)
+                if pred == "NEUTRAL": continue  # skip non-directional
+                # Probability → confidence
+                prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                try: conf = float(prob) / 100.0
+                except: conf = 0.60
+                conf = max(0.30, min(0.95, conf))
+                _raw_conf = conf
+                conf, _scale = _apply_calibration("equity_frontrun_sniffer", conf)
+                horizon_text = sx.get("horizon") or sx.get("horizon_days") or "7d"
+                horizon_days = _parse_horizon_days(horizon_text, default=7)
+                cats = [g.get("category") for g in (sx.get("smoking_gun_signals") or []) if g.get("category")]
+                logged.append(log_sig(
+                    "frontrun_sniffer_setup",
+                    f"{ticker}_{pred}",
+                    pred,
+                    conf,
+                    ticker,
+                    sorted(set([3, 7, horizon_days])),
+                    meta={
+                        "engine": "equity_frontrun_sniffer",
+                        "setup_rank": i + 1,
+                        "setup_type": sx.get("setup_type"),
+                        "confidence_label": sx.get("confidence"),
+                        "n_smoking_guns": len(sx.get("smoking_gun_signals") or []),
+                        "n_categories":   len(set(cats)),
+                        "categories":     cats[:6],
+                        "regime":         fr.get("anomaly_regime"),
+                        "anomaly_score":  fr.get("overall_anomaly_score"),
+                        "raw_confidence": round(_raw_conf, 4),
+                        "calibration_scale_applied": round(_scale, 4),
+                        "calibration_version": _cal_version,
+                    },
+                    rationale=str(sx.get("thesis_summary") or sx.get("invalidation") or "")[:300]
+                ))
+              except Exception as _se: print(f"[equity_setup #{i}] {_se}")
+
+        # ─── 2. Macro front-run sniffer setups ───
+        mfr = fs3("data/macro-frontrun-sniffer.json")
+        if isinstance(mfr, dict):
+            setups_m = mfr.get("macro_setups") or []
+            for i, sx in enumerate(setups_m[:3]):
+              try:
+                ts = sx.get("trade_specifics") or {}
+                instr = ts.get("primary_instrument")
+                if not instr: continue
+                import re
+                tk_match = re.match(r"^([A-Z]{1,6})", str(instr).strip())
+                if not tk_match: continue
+                ticker = tk_match.group(1)
+                direction = ts.get("direction") or sx.get("direction")
+                pred = _dir_from_label(direction)
+                if pred == "NEUTRAL": continue
+                prob = sx.get("probability_pct") or sx.get("conviction_pct") or 60
+                try: conf = float(prob) / 100.0
+                except: conf = 0.60
+                conf = max(0.30, min(0.95, conf))
+                _raw_conf_m = conf
+                conf, _scale_m = _apply_calibration("macro_frontrun_sniffer", conf)
+                horizon_text = ts.get("horizon") or sx.get("horizon") or "14d"
+                horizon_days = _parse_horizon_days(horizon_text, default=14)
+                target_price = ts.get("target_level") or ts.get("target_price")
+                try: tp = float(str(target_price).replace("$","").replace(",","")) if target_price else None
+                except: tp = None
+                logged.append(log_sig(
+                    "macro_frontrun_sniffer_setup",
+                    f"{ticker}_{pred}",
+                    pred,
+                    conf,
+                    ticker,
+                    sorted(set([7, 14, horizon_days])),
+                    target_price=tp,
+                    meta={
+                        "engine":         "macro_frontrun_sniffer",
+                        "setup_rank":     i + 1,
+                        "setup_type":     sx.get("setup_type"),
+                        "historical":     sx.get("historical_analog"),
+                        "regime":         mfr.get("macro_regime"),
+                        "macro_score":    mfr.get("overall_macro_score"),
+                        "entry_level":    ts.get("entry_level"),
+                        "stop_level":     ts.get("stop_level"),
+                        "size_pct":       ts.get("size_pct_of_portfolio"),
+                        "raw_confidence": round(_raw_conf_m, 4),
+                        "calibration_scale_applied": round(_scale_m, 4),
+                        "calibration_version": _cal_version,
+                    },
+                    rationale=str(sx.get("thesis_summary") or sx.get("front_running_catalyst") or "")[:300]
+                ))
+              except Exception as _se: print(f"[macro_setup #{i}] {_se}")
+
+        # ─── 3. Convergence fingerprint fires (special signals — implied risk-off) ───
+        # When either fingerprint fires (3/3 macro or 3-4/4 equity), that's
+        # historically a leading indicator of risk-off. Log as a SPY-DOWN
+        # prediction with the historical-analog 14d horizon for scoring.
+        ms = fs3("data/_alerts/macro-frontrun-sniffer-alert-state.json") or {}
+        if ms.get("last_alert_kind") == "CONVERGENCE" and ms.get("last_convergence_fingerprint_at"):
+            try:
+                from datetime import datetime as _dt
+                conv_at = _dt.fromisoformat(ms["last_convergence_fingerprint_at"].replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - conv_at).total_seconds() / 3600
+                if hrs_since < 6:  # Only log if convergence fired in this cycle (avoid dupes)
+                    _raw_conf_mc = 0.75
+                    _cal_conf_mc, _scale_mc = _apply_calibration("macro_convergence_fingerprint", _raw_conf_mc)
+                    logged.append(log_sig(
+                        "macro_convergence_fingerprint",
+                        "FIRED_3_OF_3",
+                        "DOWN",        # convergence → expect risk-off → SPY down
+                        _cal_conf_mc,
+                        "SPY",
+                        [7, 14, 30],
+                        meta={
+                            "engine":            "macro_convergence_fingerprint",
+                            "pillars_state":     ms.get("last_convergence_detail"),
+                            "historical_analogs": ["Aug 2007", "Sep 2019", "Mar 2020", "Mar 2023"],
+                            "raw_confidence":    round(_raw_conf_mc, 4),
+                            "calibration_scale_applied": round(_scale_mc, 4),
+                            "calibration_version": _cal_version,
+                        },
+                        rationale="3/3 macro pillars stressed simultaneously — historical risk-off signature"
+                    ))
+            except Exception as _e: print(f"[macro_conv_log] {_e}")
+
+        es = fs3("data/_alerts/frontrun-sniffer-alert-state.json") or {}
+        if es.get("last_alert_kind") == "CONVERGENCE" and es.get("last_convergence_fingerprint_at"):
+            try:
+                from datetime import datetime as _dt
+                conv_at = _dt.fromisoformat(es["last_convergence_fingerprint_at"].replace("Z","+00:00"))
+                hrs_since = (datetime.now(timezone.utc) - conv_at).total_seconds() / 3600
+                if hrs_since < 6:
+                    conv_det = es.get("last_convergence_detail") or {}
+                    target = conv_det.get("top_setup_target") or "SPY"
+                    direction = conv_det.get("top_setup_direction") or "DOWNSIDE"
+                    pred = _dir_from_label(direction)
+                    import re
+                    tk_match = re.match(r"^([A-Z]{1,5})", str(target).strip())
+                    ticker = tk_match.group(1) if tk_match else "SPY"
+                    _raw_conf_ec = 0.70
+                    _cal_conf_ec, _scale_ec = _apply_calibration("equity_convergence_fingerprint", _raw_conf_ec)
+                    logged.append(log_sig(
+                        "equity_convergence_fingerprint",
+                        f"FIRED_{conv_det.get('n_cardinal_present', 3)}_OF_4",
+                        pred,
+                        _cal_conf_ec,
+                        ticker,
+                        [3, 7, 14],
+                        meta={
+                            "engine":              "equity_convergence_fingerprint",
+                            "cardinals_fired":     conv_det.get("cardinals_fired"),
+                            "n_cardinal_present":  conv_det.get("n_cardinal_present"),
+                            "historical_analogs":  ["Jan 2021 GME", "Feb 2018 vol unwind", "Dec 2018 dealer cascade"],
+                            "top_setup_target":    target,
+                            "raw_confidence":      round(_raw_conf_ec, 4),
+                            "calibration_scale_applied": round(_scale_ec, 4),
+                            "calibration_version": _cal_version,
+                        },
+                        rationale=f"{conv_det.get('n_cardinal_present',3)}/4 equity cardinals firing — gamma squeeze / vol-cascade signature"
+                    ))
+            except Exception as _e: print(f"[equity_conv_log] {_e}")
+
+        # ─── 4. Sustained-target alerts (when a name crosses 4+ appearances) ───
+        # Each top-of-leaderboard name is implicitly a "smart-money flagged this
+        # name" prediction. Log the top 2 sustained names as predictions tied to
+        # the direction of their most recent setup mention.
+        tx = fs3("data/_alerts/targets-index.json")
+        if isinstance(tx, dict):
+            for entry in (tx.get("equity_targets") or [])[:2]:
+                try:
+                    if not entry.get("is_recent"): continue
+                    if (entry.get("n_digest_appearances") or 0) < 4: continue  # threshold
+                    asset = entry.get("asset")
+                    if not asset: continue
+                    import re
+                    tk_match = re.match(r"^([A-Z]{1,5})", str(asset).strip())
+                    if not tk_match: continue
+                    ticker = tk_match.group(1)
+                    # Pull direction from the live frontrun brief if it mentions this name
+                    pred = "UP"  # default — leaderboard implies bullish positioning typically
+                    if isinstance(fr, dict):
+                        for sx in (fr.get("suspected_setups") or []):
+                            if str(sx.get("target_asset") or "").upper().startswith(ticker):
+                                pred = _dir_from_label(sx.get("target_direction"))
+                                if pred == "NEUTRAL": pred = "UP"
+                                break
+                    _raw_conf_st = 0.65
+                    _cal_conf_st, _scale_st = _apply_calibration("sustained_target_equity", _raw_conf_st)
+                    logged.append(log_sig(
+                        "sustained_target_equity",
+                        f"{ticker}_{pred}",
+                        pred,
+                        _cal_conf_st,
+                        ticker,
+                        [7, 14],
+                        meta={
+                            "engine":              "sustained_target_equity",
+                            "n_digest_appearances": entry.get("n_digest_appearances"),
+                            "max_n_times_in_window": entry.get("max_n_times_in_window"),
+                            "first_seen":          entry.get("first_seen"),
+                            "last_seen":           entry.get("last_seen"),
+                            "raw_confidence":      round(_raw_conf_st, 4),
+                            "calibration_scale_applied": round(_scale_st, 4),
+                            "calibration_version": _cal_version,
+                        },
+                        rationale=f"Appeared in {entry.get('n_digest_appearances')} digests — sustained smart-money flag"
+                    ))
+                except Exception as _se: print(f"[sustained_target] {_se}")
+
+    except Exception as ex:
+        print(f"[FRONTRUN-PREDICTIONS] {ex}")
+    # ─── End Phase 11 front-run learning loop additions ───
+
+    # ─── attention-confluence: smart-vs-crowd staged signals ───────────────────
+    # Stealth/Igniting = informed accumulation → OUTPERFORM; Crowded/Distribution =
+    # loud attention without smart confirm / selling into hype → UNDERPERFORM.
+    # Horizons [10,20,30]d match the attention lead window (Da/Engelberg/Gao: search
+    # attention leads ~2 weeks then mean-reverts). Graded vs SPY by outcome-checker.
+    try:
+        ac = fs3("data/attention-confluence.json")
+        st = (ac.get("stages") or {})
+
+        def _acconf(r, base):
+            return max(0.50, min(0.90, base + abs(float(r.get("divergence") or 0)) / 220.0
+                                  + float(r.get("confluence_smart") or 0) * 0.03))
+
+        def _t(r):
+            return str(r.get("symbol") or "").upper()
+
+        for r in (st.get("stealth") or [])[:12]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_stealth", _t(r), "OUTPERFORM", _acconf(r, 0.60), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"smart": r.get("smart_score"), "crowd": r.get("crowd_score"),
+                      "divergence": r.get("divergence"), "confluence": r.get("confluence_smart"),
+                      "families": r.get("families_firing")},
+                rationale=("STEALTH: " + (r.get("why") or ""))[:300]))
+        for r in (st.get("igniting") or [])[:12]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_igniting", _t(r), "OUTPERFORM", _acconf(r, 0.55), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"smart": r.get("smart_score"), "crowd": r.get("crowd_score"),
+                      "confluence": r.get("confluence_smart")},
+                rationale=("IGNITING: " + (r.get("why") or ""))[:300]))
+        for r in (st.get("crowded") or [])[:10]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_crowded", _t(r), "UNDERPERFORM",
+                max(0.50, min(0.85, 0.52 + float(r.get("crowd_score") or 0) / 300.0)), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"crowd": r.get("crowd_score"), "smart": r.get("smart_score")},
+                rationale=("CROWDED (chase/reversal risk): " + (r.get("why") or ""))[:300]))
+        for r in (st.get("distribution") or [])[:10]:
+            if not _t(r):
+                continue
+            logged.append(log_sig("attention_distribution", _t(r), "UNDERPERFORM",
+                max(0.50, min(0.85, 0.55 + float(r.get("crowd_score") or 0) / 300.0)), _t(r),
+                [10, 20, 30], bench="SPY",
+                meta={"crowd": r.get("crowd_score"), "distributing": r.get("distributing")},
+                rationale=("DISTRIBUTION: " + (r.get("why") or ""))[:300]))
+        print("[attention-confluence] staged signals logged")
+    except Exception as ex:
+        print(f"[ATTENTION-CONFLUENCE] {ex}")
+
+    # ─── buyback-engine: corporate-accumulation signals (Ikenberry drift, months) ──
+    # Large authorizations + net share-count reduction drift positive over months
+    # (Ikenberry-Lakonishok-Vermaelen / Peyer-Vermaelen). Horizons [30,60,90]d.
+    try:
+        bbe = fs3("data/buyback-engine.json")
+        for r in (bbe.get("high_conviction_pumps") or [])[:12]:
+            t = str(r.get("symbol") or "").upper()
+            if not t:
+                continue
+            ap = float(r.get("auth_pct_mcap") or 0)
+            sc = float(r.get("buyback_score") or 0)
+            conf = max(0.55, min(0.90, 0.58 + ap / 120.0 + sc / 400.0))
+            logged.append(log_sig("buyback_pump", t, "OUTPERFORM", conf, t, [30, 60, 90], bench="SPY",
+                meta={"auth_pct_mcap": ap, "net_buyback_yield": r.get("net_buyback_yield"),
+                      "class": r.get("class")},
+                rationale=("BUYBACK PUMP: " + (r.get("why") or ""))[:300]))
+        for r in (bbe.get("net_shrinkers") or [])[:12]:
+            t = str(r.get("symbol") or "").upper()
+            if not t:
+                continue
+            sr = float(r.get("share_count_reduction_yoy") or 0)
+            ny = float(r.get("net_buyback_yield") or 0)
+            conf = max(0.52, min(0.85, 0.52 + sr / 30.0 + ny / 40.0))
+            logged.append(log_sig("buyback_net_shrinker", t, "OUTPERFORM", conf, t, [30, 60, 90], bench="SPY",
+                meta={"share_reduction_yoy": sr, "net_buyback_yield": ny, "class": r.get("class")},
+                rationale=("NET SHRINKER: " + (r.get("why") or ""))[:300]))
+        print("[buyback-engine] signals logged")
+    except Exception as ex:
+        print(f"[BUYBACK-ENGINE] {ex}")
+
+    # save summary
+    s3.put_object(Bucket=S3_BUCKET,Key="learning/last_log_run.json",Body=json.dumps({"logged_at":datetime.now(timezone.utc).isoformat(),"count":len([l for l in logged if l]),"action":event.get("action","auto")}),ContentType="application/json")
+    total=len([l for l in logged if l])
+    print(f"[DONE] Logged {total} signals")
+    return {"statusCode":200,"body":json.dumps({"logged":total})}
