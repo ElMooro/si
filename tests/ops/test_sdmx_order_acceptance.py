@@ -17,7 +17,7 @@ probe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
 
 
-def fixture(candidate=True, alter=None, alter_receipt=None):
+def fixture(candidate=True, alter=None, alter_receipt=None, initial_ephemeral=None):
     expected = b'candidate fixture: intentionally distinct bytes\n'
     predecessor = b'predecessor fixture\n'
     temporary = tempfile.TemporaryDirectory(prefix='sdmx-probe-')
@@ -36,7 +36,7 @@ def fixture(candidate=True, alter=None, alter_receipt=None):
     live = {'FunctionName': probe.FUNCTION, 'State': 'Active', 'LastUpdateStatus': 'Successful',
             'CodeSha256': code_sha, 'FunctionArn': arn, 'Runtime': config['runtime'],
             'Handler': config['handler'], 'MemorySize': config['memory'], 'Timeout': config['timeout'],
-            'EphemeralStorage': {'Size': config['ephemeral_mb']}, 'Role': config['role'],
+            'EphemeralStorage': {'Size': config['ephemeral_mb'] if initial_ephemeral is None else initial_ephemeral}, 'Role': config['role'],
             'Environment': {'Variables': {**config['env'], 'PRIVATE_CANARY': 'DO_NOT_PUBLISH'}},
             'TracingConfig': {'Mode': 'Active'}, 'DeadLetterConfig': {
                 'TargetArn': 'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default'}, 'Architectures': ['x86_64']}
@@ -172,3 +172,20 @@ def test_read_bound_and_access_denied_withhold_details():
         assert str(error) == 'access_denied_stop'
     else:
         raise AssertionError('denial ignored')
+
+
+def test_legacy_ephemeral_metadata_does_not_override_live_setting():
+    clients, raw, git_show, temporary = fixture(initial_ephemeral=512)
+    with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+         patch.object(probe, 'ROOT', Path(temporary.name)), \
+         patch.object(probe, 'BASELINE', Path(temporary.name) / 'baseline.json'):
+        result = probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+        assert result['operating_controls']['ephemeral_storage_mb'] == 512
+        assert result['baseline_compared'] is True
+        clients[0].get_function()['Configuration']['EphemeralStorage']['Size'] = 10240
+        try:
+            probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+        except probe.Stop as error:
+            assert str(error) == 'operating_controls_changed'
+        else:
+            raise AssertionError('live ephemeral change was accepted')
