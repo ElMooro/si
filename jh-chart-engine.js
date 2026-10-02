@@ -3051,7 +3051,7 @@
     if(!box){
       box=document.createElement("div");
       box.id="vol-tools";
-      box.style.cssText="position:absolute;left:8px;bottom:28px;z-index:8;display:none;gap:4px;align-items:center";
+      box.style.cssText="position:absolute;right:72px;bottom:30px;z-index:8;display:none;gap:4px;align-items:center";
       box.innerHTML="<button type=button id=vol-vline title='Vertical line. Click the volume bars. The line is drawn on the price chart and every indicator.'>|</button><button type=button id=vol-sr title='Volume support and resistance. POC, value area, high-volume and low-volume nodes.'>S/R</button>";
       pane.appendChild(box);
       document.getElementById("vol-vline").onclick=function(ev){
