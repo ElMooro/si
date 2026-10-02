@@ -29,9 +29,10 @@
       const end=day(observation.date),start=day(observation.start_date),unit=observation.reported_currency;
       const comparable=row?.measurement_contract===CONTRACT&&observation.eligible===true&&observation.reported_calendar_duration_aligned===true&&start!==null&&end!==null&&start<=end&&typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
       if(!comparable)issues.push('Quarter identity, duration or currency is unqualified.');
+      const metricOk=typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
       const read=(key,field,sign)=>{
         const metric=observation.metrics?.[key];
-        if(!comparable||!object(metric)||metric.status!=='reported_value'||metric.source_field!==field||metric.sign!==sign||metric.unit!==unit)return null;
+        if(!metricOk||!object(metric)||metric.status!=='reported_value'||metric.source_field!==field||metric.sign!==sign||metric.unit!==unit)return null;
         return number(metric.value);
       };
       // The producer already converted net issuance to signed net repurchases.
@@ -41,16 +42,23 @@
       if(net===null)issues.push('Reported net repurchases unavailable; gross is separate.');
       const cap=number(row?.market_cap);
       const aligned=cap!==null&&cap>0&&day(row?.market_cap_asof)===end&&row?.market_cap_unit===unit;
-      let ratio=null;
-      if(net!==null&&aligned){ratio=number(net/cap*100);if(net!==0&&ratio===0)ratio=null;}
+      let ratio=null,ratioNote=null;
+      const scale=base=>{const q=number(net/base*100);if(q===null||(net!==0&&q===0))return null;return q;};
+      if(net!==null&&aligned){ratio=scale(cap);}
+      else if(net!==null&&typeof unit==='string'){
+        const books=row?.provider_responses?.enterprise_values;
+        const book=Array.isArray(books)?books.find(item=>object(item)&&day(item.date)===end&&number(item.marketCapitalization)>0):null;
+        if(book){ratio=scale(number(book.marketCapitalization));if(ratio!==null)ratioNote='quarter cap';}
+        else if(cap!==null&&cap>0&&row?.market_cap_unit===unit){ratio=scale(cap);if(ratio!==null)ratioNote='latest cap';}
+      }
       if(!aligned)issues.push('Market cap date and currency do not match this quarter.');
       if(net!==null&&aligned&&ratio===null)issues.push('Ratio exceeds supported numeric precision.');
-      return {source_index:index,start_date:start,end_date:end,unit:typeof unit==='string'?unit:null,net,gross,ratio,issues,received};
+      return {source_index:index,start_date:start,end_date:end,unit:typeof unit==='string'?unit:null,net,gross,ratio,ratioNote,issues,received};
     })};
   }
   function mount(root){
     const document=root.document;if(!document)return;
-    let cached=null,loadedAt=0,pending=null,generation=0,viewKey=null;
+    let cached=null,loadedAt=0,pending=null,generation=0,viewKey=null,guard=()=>false;
     const create=(tag,text,className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
     function audit(label,value,original=false){
       const details=create('details','','audit');details.appendChild(create('summary',label));
@@ -99,30 +107,150 @@
       const refresh=create('button','Refresh reported packet');refresh.type='button';refresh.addEventListener('click',()=>draw(true));el.appendChild(refresh);
       el.appendChild(audit('Complete received packet (parsed JSON)',packet));
       if(!object(packet)||!object(packet.tickers)){el.appendChild(create('p','Unavailable: missing or invalid ticker inventory.'));return;}
-      if(!own(packet.tickers,symbol)){el.appendChild(create('p','No received record for the selected ticker.'));return;}
+      if(!own(packet.tickers,symbol)){paintMissing(el,symbol);return;}
       const row=packet.tickers[symbol];el.appendChild(audit('Complete selected ticker record',row));
       if(!object(row)||row.symbol!==symbol){el.appendChild(create('p','Unavailable: missing or mismatched issuer identity.'));return;}
       const projected=observations(row);
       if(projected.status!=='reported_observations'){el.appendChild(create('p','Unavailable: missing or invalid reported quarter collection.'));return;}
       el.appendChild(create('p',projected.rows.length+' received accounting observations. Gross and net repurchases stay separate.'));
+      remember(symbol, projected.rows);
+      el.appendChild(levelStrip(projected.rows));
+      el.appendChild(tableFor(projected.rows));
+    }
+    function ratioText(observation){
+      if(observation.ratio===null)return 'Unavailable';
+      const shown=Number.isInteger(observation.ratio)?String(observation.ratio):String(Math.round(observation.ratio*1000)/1000);
+      return shown+(observation.ratioNote?('% '+observation.ratioNote):'%');
+    }
+    function tableFor(rows){
       const table=create('table','');table.style.cssText='width:100%;border-collapse:collapse;text-align:left';
       const header=create('tr','');for(const name of ['Reported period','Net repurchases','Gross repurchases','Quarter / matching-date cap'])header.appendChild(create('th',name));const thead=create('thead','');thead.appendChild(header);table.appendChild(thead);const body=create('tbody','');table.appendChild(body);
-      for(const observation of projected.rows){
+      for(const observation of rows){
         const tr=create('tr','');const cell=create('td',(observation.start_date||'Unavailable')+' → '+(observation.end_date||'Unavailable'));
-        cell.appendChild(audit('Observation '+(observation.source_index+1)+' · full received record',observation.received));
-        if(observation.issues.length)cell.appendChild(create('p',observation.issues.join(' ')));tr.appendChild(cell);
+        if(observation.received)cell.appendChild(audit('Observation '+(observation.source_index+1)+' · full received record',observation.received));
+        if(observation.issues&&observation.issues.length)cell.appendChild(create('p',observation.issues.join(' ')));tr.appendChild(cell);
         for(const value of [observation.net,observation.gross])tr.appendChild(create('td',value===null?'Unavailable':String(value)+' '+observation.unit));
-        tr.appendChild(create('td',observation.ratio===null?'Unavailable':String(observation.ratio)+'%'));for(const td of tr.children)td.style.cssText='vertical-align:top;padding:6px;overflow-wrap:anywhere;border-bottom:1px solid var(--line)';body.appendChild(tr);
+        tr.appendChild(create('td',ratioText(observation)));for(const td of tr.children)td.style.cssText='vertical-align:top;padding:6px;overflow-wrap:anywhere;border-bottom:1px solid var(--line)';body.appendChild(tr);
       }
-      el.appendChild(table);
+      return table;
+    }
+    function levelStrip(rows){
+      const host=create('div','');host.className='jh-bb-level';
+      host.style.cssText='position:relative;height:88px;margin:8px 0 10px;border:1px solid var(--line);overflow:hidden';
+      const useRatio=rows.some(row=>typeof row.ratio==='number');
+      const pts=[];
+      rows.forEach(row=>{const v=useRatio?row.ratio:row.net;if(typeof v==='number')pts.push({v:v});});
+      if(!pts.length){host.appendChild(create('div','No level yet'));return host;}
+      let lo=0,hi=0;
+      pts.forEach(p=>{if(p.v<lo)lo=p.v;if(p.v>hi)hi=p.v;});
+      if(lo===hi){lo-=1;hi+=1;}
+      const span=hi-lo, zero=(hi/span)*100, n=pts.length;
+      const z=create('div','');z.style.cssText='position:absolute;left:0;right:52px;height:1px;background:var(--line);top:'+zero+'%';host.appendChild(z);
+      pts.forEach((p,i)=>{
+        const y=(hi-p.v)/span*100, up=p.v>=0, top=up?y:zero, h=Math.max(1,Math.abs(y-zero));
+        const bar=create('div','');
+        bar.style.cssText='position:absolute;width:7px;background:'+(up?'#089981':'#f23645')+';left:'+(n===1?8:(i/(n-1))*76)+'%;top:'+top+'%;height:'+h+'%';
+        host.appendChild(bar);
+      });
+      const last=pts[pts.length-1];
+      const lab=create('div',useRatio?String(Math.round(last.v*1000)/1000)+'%':String(last.v));
+      lab.style.cssText='position:absolute;right:4px;top:4px;font:11px IBM Plex Mono,monospace;color:'+(last.v>=0?'#089981':'#f23645');
+      host.appendChild(lab);
+      host.appendChild(create('div',useRatio?'Buyback level':'Net cash level')).style.cssText='position:absolute;left:6px;top:4px;font-size:10px;color:var(--mut,#787b86)';
+      return host;
+    }
+    function eventsOn(){return Array.isArray(root.INDS)&&root.INDS.some(i=>i&&i.id==='buyb'&&!i.hide&&(i.on===1||i.on===true));}
+    function remember(symbol, rows){
+      root.__jhBuybackSeries={symbol, rows:(rows||[]).filter(row=>row&&row.end_date&&typeof row.net==='number'&&row.net!==0).map(row=>({date:row.end_date,net:row.net}))};
+      if(eventsOn()&&typeof root.paint==='function'&&Array.isArray(root.lastBars)){try{root.paint(root.lastBars);}catch(e){}}
+    }
+    function hookMarks(){
+      const inst=root.jhInst;if(!inst||typeof inst.buybackMarks!=='function'||inst.buybackMarks.__jhBuy)return;
+      const orig=inst.buybackMarks;
+      function wrapped(d, pack, tkr){
+        const mk=orig.apply(this, arguments), base=Array.isArray(mk)?mk.slice():[];
+        const want=String(tkr||'').toUpperCase().split(':').pop();
+        const series=root.__jhBuybackSeries;
+        if(!series||series.symbol!==want||!Array.isArray(d))return base;
+        const extra=[];
+        series.rows.forEach(row=>{
+          const target=Date.parse(row.date+'T00:00:00Z')/1000;
+          if(!Number.isFinite(target))return;
+          let best=null, bd=1e15;
+          d.forEach(bar=>{
+            let bt=null;
+            if(bar&&typeof bar.time==='number')bt=bar.time;
+            else if(bar&&typeof bar.time==='string')bt=Date.parse(bar.time.slice(0,10)+'T00:00:00Z')/1000;
+            if(bt==null||!Number.isFinite(bt))return;
+            const diff=Math.abs(bt-target);if(diff<bd){bd=diff;best=bar;}
+          });
+          if(!best||bd>10*86400)return;
+          extra.push({time:best.time, position:row.net>0?'belowBar':'aboveBar', color:row.net>0?'#089981':'#f23645', shape:'square', text:row.net>0?'BB':'ISS'});
+        });
+        return base.concat(extra).slice(-16);
+      }
+      wrapped.__jhBuy=true;inst.buybackMarks=wrapped;
+    }
+    let flows=null, flowsAt=0, flowPending=null, recordCache={};
+    function cashExact(metric){
+      const exact=metric&&metric.exact;
+      if(!exact||typeof exact.numerator!=='string'||typeof exact.denominator!=='string')return null;
+      if(!/^-?\d+$/.test(exact.numerator)||!/^[1-9]\d*$/.test(exact.denominator))return null;
+      const n=Number(exact.numerator), d=Number(exact.denominator);
+      if(!Number.isSafeInteger(n)||!Number.isSafeInteger(d))return null;
+      return n/d;
+    }
+    function loadFlows(){
+      if(flows&&Date.now()-flowsAt<300000)return Promise.resolve(flows);
+      if(flowPending)return flowPending;
+      flowPending=root.fetch('/data/share-flows.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(doc=>{flows=doc;flowsAt=Date.now();return doc;}).finally(()=>{flowPending=null;});
+      return flowPending;
+    }
+    function loadCapital(symbol){
+      if(recordCache[symbol])return Promise.resolve(recordCache[symbol]);
+      return loadFlows().then(doc=>{
+        const issuers=Array.isArray(doc&&doc.issuers)?doc.issuers:[];
+        const hit=issuers.find(row=>row&&row.symbol===symbol);
+        const key=hit&&hit.record&&hit.record.key;
+        if(typeof key!=='string'||!/^data\/capital-structure-research\/records\/[a-f0-9]{64}\.json$/.test(key))return {rows:[]};
+        return root.fetch('/'+key,{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(file=>{
+          const records=Array.isArray(file&&file.records)?file.records:[], rows=[];
+          records.forEach(rec=>{
+            if(!rec||rec.request_period!=='quarter')return;
+            const end=day(rec.identity&&rec.identity.date);if(!end)return;
+            const metrics=rec.measurements&&rec.measurements.metrics||{};
+            const gross=cashExact(metrics.cash_repurchase_outflow), issued=cashExact(metrics.cash_common_stock_issuance);
+            if(gross===null&&issued===null)return;
+            const net=(gross===null?0:gross)-(issued===null?0:issued);
+            const unit=rec.identity&&typeof rec.identity.reportedCurrency==='string'?rec.identity.reportedCurrency:'USD';
+            rows.push({source_index:rows.length,start_date:null,end_date:end,unit,net,gross,ratio:null,ratioNote:null,issues:[],received:null});
+          });
+          rows.sort((a,b)=>a.end_date<b.end_date?-1:a.end_date>b.end_date?1:0);
+          const pack={rows};recordCache[symbol]=pack;return pack;
+        });
+      });
+    }
+    function paintMissing(el,symbol){
+      el.appendChild(create('p','No buyback-engine row for '+symbol+'. Loading the capital-structure record.'));
+      const alive=guard;
+      loadCapital(symbol).then(pack=>{
+        if(alive!==guard||!guard())return;
+        if(!pack||!pack.rows.length){el.appendChild(create('p','No received record for the selected ticker.'));return;}
+        remember(symbol, pack.rows);
+        el.appendChild(create('p','Not in the buyback-engine packet. The level is reported cash: repurchase minus issuance. Positive is a repurchase, negative is issuance.'));
+        el.appendChild(levelStrip(pack.rows));
+        el.appendChild(tableFor(pack.rows));
+      }).catch(()=>{if(alive===guard&&guard())el.appendChild(create('p','No received record for the selected ticker.'));});
     }
     function draw(force=false){
-      ensure();const on=enabled(),symbol=selected(document),key=JSON.stringify([on,symbol]);
+      ensure();hookMarks();const on=enabled(),ev=eventsOn(),symbol=selected(document),key=JSON.stringify([on,ev,symbol]);
       if(!force&&key===viewKey)return;viewKey=key;const request=++generation,el=pane();
       el.style.display=on?'block':'none';el.replaceChildren();el.setAttribute('aria-busy','false');
-      if(!on)return;if(!symbol){el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));return;}
-      el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');
-      const current=()=>request===generation&&enabled()&&selected(document)===symbol;
+      if(!symbol){if(on)el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));return;}
+      if(!on&&!ev)return;
+      if(on){el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');}
+      const current=()=>request===generation&&(enabled()||eventsOn())&&selected(document)===symbol;
+      guard=current;
       Promise.resolve().then(()=>load(force)).then(receipt=>{if(current())paint(el,receipt,symbol);}).catch(error=>{
         if(!current())return;
         el.replaceChildren(create('p','Reported buybacks unavailable: '+(typeof error?.message==='string'?error.message:'request failed')));
