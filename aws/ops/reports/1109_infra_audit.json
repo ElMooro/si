@@ -1,0 +1,59 @@
+{
+  "read_at": "2026-10-02T06:39:33Z",
+  "lambdas": {
+    "justhodl-ticker-360": {
+      "memory": 1024,
+      "timeout": 600,
+      "runtime": "python3.12",
+      "provisioned_concurrency": 0,
+      "xray_tracing": "Active",
+      "reserved_concurrency": null,
+      "ephemeral_storage": 512
+    },
+    "justhodl-master-ranker": {
+      "memory": 1536,
+      "timeout": 900,
+      "runtime": "python3.12",
+      "provisioned_concurrency": 0,
+      "xray_tracing": "Active",
+      "reserved_concurrency": 1,
+      "ephemeral_storage": 512
+    },
+    "justhodl-feed-heartbeat": {
+      "memory": 256,
+      "timeout": 120,
+      "runtime": "python3.12",
+      "provisioned_concurrency": 0,
+      "xray_tracing": "Active",
+      "reserved_concurrency": null,
+      "ephemeral_storage": 512
+    },
+    "justhodl-flow-confluence": {
+      "memory": 512,
+      "timeout": 120,
+      "runtime": "python3.12",
+      "provisioned_concurrency": 0,
+      "xray_tracing": "Active",
+      "reserved_concurrency": null,
+      "ephemeral_storage": 512
+    }
+  },
+  "s3": {
+    "versioning": "Enabled",
+    "transfer_acceleration": null,
+    "lifecycle_rules": 9,
+    "default_encryption": true
+  },
+  "cloudwatch": {
+    "total_alarms": 41,
+    "lambda_alarms": 25
+  },
+  "recommendations": [
+    "justhodl-ticker-360: no provisioned concurrency (cold starts on every invocation)",
+    "justhodl-master-ranker: no provisioned concurrency (cold starts on every invocation)",
+    "justhodl-feed-heartbeat: no provisioned concurrency (cold starts on every invocation)",
+    "justhodl-flow-confluence: no provisioned concurrency (cold starts on every invocation)",
+    "S3: transfer acceleration disabled"
+  ],
+  "status": "COMPLETE"
+}

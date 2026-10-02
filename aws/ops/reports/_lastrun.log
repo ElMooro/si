@@ -1,11 +1,9 @@
-executing-against: aa65312fbc80f32b12835f5b24fc4d7aeef26ba2
+executing-against: 83205ad6bef0a7c2a6424d5cfef5709de7e4d348
 {
-  "read_at": "2026-10-02T06:16:05Z",
-  "actions": [
-    {
-      "schedule": "justhodl-ticker-360-schedule",
-      "status": "recreated"
-    }
-  ],
-  "sec8k_triggered": true
+  "recommendations": 5
 }
+ - justhodl-ticker-360: no provisioned concurrency (cold starts on every invocation)
+ - justhodl-master-ranker: no provisioned concurrency (cold starts on every invocation)
+ - justhodl-feed-heartbeat: no provisioned concurrency (cold starts on every invocation)
+ - justhodl-flow-confluence: no provisioned concurrency (cold starts on every invocation)
+ - S3: transfer acceleration disabled
