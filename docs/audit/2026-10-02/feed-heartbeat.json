@@ -1,6 +1,6 @@
 {
   "stage": 546,
-  "status": "complete_source_candidate_not_deployed",
+  "status": "exact_native_release_accepted",
   "source_hashes": {
     "aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py": "d006d930e98a50450273b14c6bb911aaf207d390506fc070d2e6515df4b41267",
     "aws/lambdas/justhodl-feed-heartbeat/config.json": "4e8d1a1e88087a61e8e875bd6ecd53a7e5584051ae2c7d79cbad7497e4599caa",
@@ -220,5 +220,6 @@
     "expected": 2,
     "invented_bindings": 2,
     "deployed_before_repair": false
-  }
+  },
+  "native_acceptance": "docs/audit/2026-10-02/feed-heartbeat-native-acceptance.json"
 }

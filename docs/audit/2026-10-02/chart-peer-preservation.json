@@ -1,0 +1,44 @@
+{
+  "base": "e2401bd95a230314df184cbbcf684115bd763e70",
+  "head": "2416c22936af05f97a1baf9c0069de39d0e97196",
+  "paths": [
+    "chart.html",
+    "jh-chart-engine.js",
+    "tests/chart-audit-fix.test.js",
+    "tests/chart-campaign-marks.test.js",
+    "tests/chart-cq-fuse.test.js",
+    "tests/chart-crypto-history.test.js",
+    "tests/chart-distribution.test.js",
+    "tests/chart-ind-menu.test.js",
+    "tests/chart-inst.test.js",
+    "tests/chart-qx.test.js",
+    "tests/fixtures/chart-refresh-status/source-delta.json",
+    "tests/fixtures/chart-signed-volume/source-delta.json",
+    "tests/fixtures/crypto-sentiment/chart-test-transitions.json",
+    "tests/khalid-sniper.test.js"
+  ],
+  "source_only_review": true,
+  "peer_scripts_executed": false,
+  "reapplied_to_new_source": true,
+  "scope": "Preserve new shelf/fullscreen UI and raw HTML cache tags. Rebuild complete candidate from new source; modify only paint volume rendering/footer and quoteUI. All 398 other functions and outer statements remain identical. Full integration tests still required.",
+  "remaining": [
+    "deskShelves uses latest ATR thresholds for retrospective swings and missing volume as zero; source/PIT and predictive significance remain unqualified",
+    "Volume-outlier oscillator still infers unit breaks and clips ratios; not certified by this main-histogram repair"
+  ],
+  "path_oids": {
+    "chart.html": "5d3d4026b3edda57ff2797de6dc7de5338fd93ef",
+    "jh-chart-engine.js": "782e0f5714c103a6c2c7aa5fe9f4429232ec0671",
+    "tests/chart-audit-fix.test.js": "5d0719ec4fbc1b44eac69227179ba46f2046893e",
+    "tests/chart-campaign-marks.test.js": "09aff063fcf81c68d248f23d405fda2e839ffb2f",
+    "tests/chart-cq-fuse.test.js": "46eebfd2a650bf2aa21a535c3e6be15d0d03b626",
+    "tests/chart-crypto-history.test.js": "ca18941dd03b6ccc763c84c8d42e01c54cc91d47",
+    "tests/chart-distribution.test.js": "e2733b58b93344e478e655a253b2f742c5e65f4c",
+    "tests/chart-ind-menu.test.js": "d971a678cf8e55c8bc96a12dd9a87707d8bab3ab",
+    "tests/chart-inst.test.js": "e61c791a20458f980013d7ef684c886e4b1926c5",
+    "tests/chart-qx.test.js": "884fcd754dc4bc8961ae27cbe965e3d844eb8b19",
+    "tests/fixtures/chart-refresh-status/source-delta.json": "8c53a1344ecfef02312219bdb292996f13caa623",
+    "tests/fixtures/chart-signed-volume/source-delta.json": "fb51c191340ace2fd52302d4663fa4a2d5205494",
+    "tests/fixtures/crypto-sentiment/chart-test-transitions.json": "931944aa45f781e9051b455ef42d95250072f512",
+    "tests/khalid-sniper.test.js": "e98380a823b7014ac71641561da6f2f5a382f35e"
+  }
+}

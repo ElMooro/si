@@ -1,0 +1,22 @@
+{
+  "stage": 547,
+  "status": "candidate_offline_verified_static_release_pending",
+  "source": "jh-chart-engine.js",
+  "source_sha256": "e55cb35002cd25ffa2665e84a72065ba5c404c560c81dd8e639f74f6a94b9494",
+  "changed_functions": [
+    "paint",
+    "quoteUI"
+  ],
+  "unchanged_functions": 398,
+  "contract": "latest reported chart volume with visible UTC bar observation time; every typed main histogram observation retained without inferred unit seams or clipping; missing is unavailable and zero is zero",
+  "fixture": "tests/fixtures/chart-latest-volume",
+  "browser": "tests/chart-latest-volume-browser.cjs",
+  "source_units_verified": false,
+  "whole_plot_qualified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Exact whole served JS and commit-bound Chart HTML acceptance",
+    "Existing volume-outlier oscillator inference and clipping remain unqualified",
+    "Actual source observation delivery, independent ancestry and investment efficacy"
+  ]
+}

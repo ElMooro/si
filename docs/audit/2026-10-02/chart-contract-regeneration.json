@@ -1,0 +1,186 @@
+{
+  "reason": "Generated engine manifest on main added the storage heartbeat and refreshed static source evidence. Rebuild current source-bound page access declarations; this does not certify delivery.",
+  "coverage_before": {
+    "public_routes": 599,
+    "engines": 899,
+    "routes_with_source_bound_outputs": 585,
+    "primary_valid_contract": 263,
+    "primary_partial": 277,
+    "support_only": 14,
+    "no_association": 3,
+    "not_applicable": 42,
+    "routes_with_api_response_contract": 23,
+    "routes_without_source_bound_outputs": 14,
+    "routes_with_primary_output_access": 538,
+    "routes_with_partial_primary_output_access": 275,
+    "all_routes_receive_inspector": false,
+    "embedded_inspection_routes": 598,
+    "standalone_inspection_routes": 1,
+    "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
+  },
+  "coverage_after": {
+    "public_routes": 599,
+    "engines": 900,
+    "routes_with_source_bound_outputs": 585,
+    "primary_valid_contract": 263,
+    "primary_partial": 277,
+    "support_only": 14,
+    "no_association": 3,
+    "not_applicable": 42,
+    "routes_with_api_response_contract": 23,
+    "routes_without_source_bound_outputs": 14,
+    "routes_with_primary_output_access": 538,
+    "routes_with_partial_primary_output_access": 275,
+    "all_routes_receive_inspector": false,
+    "embedded_inspection_routes": 598,
+    "standalone_inspection_routes": 1,
+    "claim": "Every field and row in an opened artifact or observed contracted API response is inspectable. Valid/partial counts are static access contracts, not runtime completeness certification; unindexed families, private paths, unknown writers and availability remain explicit."
+  },
+  "entity_changes": [
+    {
+      "family": "engines",
+      "key": "justhodl-allocator",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "engines",
+      "key": "justhodl-crypto-cycle-risk",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "engines",
+      "key": "justhodl-crypto-intel",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "engines",
+      "key": "justhodl-feed-heartbeat",
+      "status": "added",
+      "fields": [
+        "unresolved_count",
+        "ownership_basis",
+        "runtime_coverage",
+        "owner_authenticated_count",
+        "restricted_count",
+        "historical_or_dynamic_family_count",
+        "outputs",
+        "excluded_internal_outputs",
+        "dependency_groups"
+      ]
+    },
+    {
+      "family": "engines",
+      "key": "justhodl-financial-secretary",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "engines",
+      "key": "justhodl-sdmx-walker",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "agent/index.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "allocator.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "classic-dashboard.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "cockpit.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "crypto-risk.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "crypto/index.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "desk-v2.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "index.html",
+      "status": "changed",
+      "fields": [
+        "repository_assets"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "master-board.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "why-now.html",
+      "status": "changed",
+      "fields": [
+        "outputs"
+      ]
+    },
+    {
+      "family": "pages",
+      "key": "workspace.html",
+      "status": "changed",
+      "fields": [
+        "repository_assets"
+      ]
+    }
+  ],
+  "application_packet_reads": 0
+}

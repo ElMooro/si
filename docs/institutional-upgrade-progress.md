@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC, Stage 543 exact nine-engine and served Crypto/Desk release accepted. Stage 544 retained-original replay and public artifact bytes are accepted against the exact committed compiler and native package. Stage 545 heartbeat correctness is next: five predecessor defects reproduced with invented metadata; native controls and real schedule bindings are requested before repair. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stage 546 heartbeat exact native release accepted; no heartbeat schedule binding observed, so recurring publication remains unverified. Stage 547 repairs latest-bar volume substitution in Chart; candidate tests and invented full-module browser checks pass. Static release acceptance is next. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7761,3 +7761,12 @@ Read-only run `36960070478`, report commit `cc294b376`, inspected the complete t
 ### Stage 546 storage heartbeat candidate
 
 Native baseline run `36960669741`, report `e38c95c8a`, captured all seven named functions twice unchanged. The monitor has no observed schedule binding; its obsolete cadence declaration is retained without provisioning a trigger. The six monitored producers have twelve actual classic/Scheduler bindings; their resources and schedules are untouched. The repair keeps seventeen legacy artifacts, adds canonical FINRA/8-K/XBRL-index checks, distinguishes storage activity from unverified source freshness, and returns explicit unknown for incomplete/denied metadata. Deployment and native acceptance remain pending. Concurrent frontend integration passed all 2758 tests at `cc294b376`; independent quote-function fixtures still reproduce undated prior-volume substitution for missing latest volume and a legitimate 80x spike. All ten workstreams remain OPEN.
+
+
+### Stage 546 native acceptance
+
+Heartbeat source `e2401bd95a230314df184cbbcf684115bd763e70` matches the release receipt and native packaged handler in two unchanged snapshots. Run `36962442136` confirms original runtime controls and empty schedule bindings; all six monitored target identities match their twelve retained bindings. No producer invocation, source-body read or schedule change occurred. Source/storage freshness remain distinct and natural recurring publication is not established.
+
+### Stage 547 latest Chart volume repair
+
+Whole predecessor fixtures reproduce an 80x spike and missing latest volume being silently replaced by an undated earlier bar. The repair retains the latest typed volume, displays its UTC bar clock, preserves measured zero, and withholds ratios with incomplete denominators. The main histogram retains every supplied typed volume without automatic 80x seam inference, conversion to ratios or clipping. Full-module reproduction found that the old path removed all 41 measured points from an invented spike frame. Only paint and quoteUI change; all 398 other functions and every outer statement remain identical. Separate volume-outlier oscillator heuristics and source-unit comparability remain unqualified. Full served-page acceptance is still required.
