@@ -111,7 +111,7 @@ guards, missing-page repairs, ECB slicing, Tier1 indexing, lookup optimization
 and other known defects remain separate. This repair neither establishes
 historical integrity nor restores already overwritten progress/data.
 
-## Reviewed draft and release hold
+## Reviewed draft and release qualification
 
 [Producer draft PR #75](https://github.com/ElMooro/si/pull/75) changes only
 checkpoint admission, its byte-pinned predecessor/test runner and supporting
@@ -144,26 +144,39 @@ are compared as digests; arbitrary additional bindings and runtime failure paths
 are outside this probe's qualification.
 
 **No producer merge or deployment has occurred.** The required deployment suite
-passes 1,041 static tests plus 15 shell gates on the original candidate base, but
-fails after rebase onto newer main. The unrelated preservation test at
-`tests/test_ticker_context_guard.py:88` expects `aws/shared/ticker_360.py` SHA-256
-`815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387`; clean main
-`bcfc83de1` initially had
-`a3da99fd2430875bae620090e3a2b88ce71fa4b3e7f7480d31ba73191a251aac`.
-Owner source restorations `4765db130` and `cfbc9967c` then changed the actual hash
-to `34cd1f717e0bf5e7aa2e58598ce735d7ff1d256280175b1901d62c5f7448b39c`.
-Clean current main `a69a5d523` reproduces the same one-of-23 failure; the fixture
-pin is unchanged. The exact unrelated paths are `aws/shared/ticker_360.py`,
-`tests/test_ticker_context_guard.py:88` and
-`tests/fixtures/ticker-context-guard/transition.json`. The last transition
-fixture update on main is `bfd28d614` at 06:45:49 UTC. Ownership remains active
-with `S-codex#symdir1001a` (Ticker/Chart/Worker), including ops 6449 native
-acceptance. The latest owner [deploy run 36977445049](https://github.com/ElMooro/si/actions/runs/36977445049)
-failed preflight at this same test; GitHub lists no queued/in-progress run at
-this check. No matching fixture update has reached main.
-No unrelated source/pin/gate changes or bypass are included. The repair remains
-held in reviewed draft until its owner resolves that failure and the complete
-required suite passes against the final head. Refresh/revalidate the baseline
-if controls or deployment dependencies change before release; the baseline is
-not an authorization to disregard a red gate. Natural candidate publication,
-post-release package/receipt/control proof and deployment are all pending.
+passed 1,041 static tests plus 15 shell gates on the original candidate base,
+then correctly held the draft when newer main failed the unrelated Ticker360
+preservation boundary. The original transition at `bfd28d614` pinned shared
+source `815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387`
+and reverses eleven exact guarded-row/source-clock changes to the prior full
+source bytes. This is a deliberate review boundary, not an ordinary snapshot.
+
+Owner ops commit `c4f56e8cb` added eight producer-list aliases (`big_buys`,
+`big_sells`, `clusters`, `upcoming_14d`, `upcoming`, `earnings`, `positions`,
+`holdings`) after that boundary. They extend matching-row lookup and universe
+enumeration while retaining old key precedence; guarded-row/fallback and clock
+logic remained byte-identical. Commits `cc5129fda`, `4765db130` and `cfbc9967c`
+subsequently changed only the addition's comment. The final shared source has
+SHA-256 `34cd1f717e0bf5e7aa2e58598ce735d7ff1d256280175b1901d62c5f7448b39c`.
+The ticker producer's separate pinned source still matched throughout. Clean
+main `a69a5d523` reproduced one failure out of 23 focused cases, and owner
+[run 36977445049](https://github.com/ElMooro/si/actions/runs/36977445049)
+failed preflight at that exact check. This admission repair changed none of
+those source, test or fixture paths and bypassed no gate.
+
+Owner correction `13e5e1e9813b5d34d7fec319275474d33e7e28aa` now adds a separate
+`peer-list-keys.json` exact inverse comparison: verify current full source hash,
+reverse only the eight-alias delta once, verify the reconstructed original
+transition hash, then apply every original guarded-transition assertion.
+Two new cases exercise all eight aliases and prove context-withheld rows stay
+withheld. The original boundary remains enforced. Focused clean-main checks
+pass 25 cases. Owner evidence explicitly leaves the alias delta's native
+delivery unverified; a passing static gate does not qualify that other lane's
+production behavior. Ownership remains with `S-codex#symdir1001a`; this patch
+contains no other-lane repair. Independent review and the complete required
+suite are being refreshed on the rebased admission head before release.
+
+Refresh/revalidate the baseline if controls or deployment dependencies change
+before release; it is not authorization to disregard a red gate. Natural
+candidate publication, post-release package/receipt/control proof and producer
+deployment remain pending.
