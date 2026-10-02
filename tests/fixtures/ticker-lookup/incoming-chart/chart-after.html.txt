@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-jh-sections="off" data-theme="dark">
 <head>
+<meta charset="utf-8">
 <script src="/jh-capital-structure-context.js?v=capital-structure-v1"></script><style id=jh-studio-css>
 :root{--watch-w:320px;--list-h:240px}
 #watch{width:var(--watch-w,320px);min-width:180px;max-width:none;overflow:hidden;display:flex;flex-direction:column;border-left:1px solid var(--bd,#2a2e39)}
@@ -11,7 +12,6 @@
 #tape{display:none!important}
 #listfab{display:none!important}
 </style>
-<meta charset="utf-8">
 <script>
 (function(){
   var G="jh-tvux-36";
@@ -40,6 +40,38 @@
     if(jobs.length) Promise.all(jobs).then(done,done);
     else try{ localStorage.setItem("jh_chart_ux",G); }catch(e){}
   }catch(e){}
+})();
+</script>
+<script>
+/* Missing symbols were retried on every watchlist paint. Hold one GET per URL, and remember a 404/403 for 45s. */
+(function(){
+  if(window.__jhFetchGuard||!window.fetch) return;
+  window.__jhFetchGuard=1;
+  var orig=window.fetch, inflight=Object.create(null), failed=Object.create(null);
+  window.fetch=function(input, init){
+    var url="", method="GET";
+    try{
+      url=typeof input==="string"?input:(input&&input.url)||"";
+      method=String((init&&init.method)||(input&&input.method)||"GET").toUpperCase();
+    }catch(e){ return orig.apply(this, arguments); }
+    if(method!=="GET"||!url||url.indexOf("blob:")===0) return orig.apply(this, arguments);
+    var now=Date.now(), hit=failed[url];
+    if(hit&&hit.until>now) return Promise.resolve(hit.res.clone());
+    if(inflight[url]) return inflight[url].then(function(r){ return r.clone(); });
+    var p=Promise.resolve(orig.call(this, input, init)).then(function(r){
+      delete inflight[url];
+      if(r&&(r.status===404||r.status===403)){
+        try{ failed[url]={until:Date.now()+45000, res:r.clone()}; }catch(e){}
+      }
+      return r;
+    }, function(err){ delete inflight[url]; throw err; });
+    inflight[url]=p;
+    return p.then(function(r){ return r.clone(); });
+  };
+  document.addEventListener("pointerdown", function(e){
+    var n=e.target&&e.target.closest?e.target.closest("button"):null;
+    if(n&&!n.getAttribute("type")) n.setAttribute("type","button");
+  }, true);
 })();
 </script>
 <!-- jh-reskin-skip: tradingview supercharts dark terminal; Chart Pro is the safety net -->
@@ -104,7 +136,7 @@ a{color:inherit;text-decoration:none}
 .bar input[type=date],.bar input[type=text],.bar input[type=number]{border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:11px;min-width:90px}
 .row{display:flex;flex:1;min-height:0}
 .rail{width:44px;border-right:1px solid var(--line);background:var(--raised);display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:1px;overflow-y:auto;position:relative;z-index:7;flex:none}
-.rail .gbtn{width:34px;height:28px;border-radius:4px;color:var(--mut);font-size:11px;position:relative}
+.rail .gbtn{width:40px;height:28px;border-radius:4px;color:var(--mut);font-size:11px;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:26px;flex:none;padding:0 2px}
 .rail .sep{height:1px;background:var(--line);width:24px;margin:4px 0}
 .main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
 #stage{flex:1;display:grid;grid-template-columns:1fr;grid-template-rows:1fr;min-height:0;position:relative;background:var(--bg)}
@@ -137,7 +169,7 @@ a{color:inherit;text-decoration:none}
 #draw{position:absolute;inset:0;z-index:3;pointer-events:none}
 #draw line,#patov line{vector-effect:non-scaling-stroke;stroke-linecap:butt;stroke-linejoin:miter}
 #patov{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
-#patov text{font:10px/1 IBM Plex Mono,ui-monospace,monospace;paint-order:stroke;stroke:rgba(19,23,34,.85);stroke-width:3px;stroke-linejoin:round}
+#patov text{font:10px/1 IBM Plex Mono,ui-monospace,monospace;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
 #vp{position:absolute;left:0;top:0;bottom:26px;width:96px;z-index:2;pointer-events:none}
 #wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:600;color:var(--wm);pointer-events:none;z-index:1;font-family:"IBM Plex Sans",sans-serif}
 #mini{height:0;border-top:0;background:var(--bg);flex:none;overflow:hidden}
@@ -247,6 +279,7 @@ a{color:inherit;text-decoration:none}
 .gauge .bar{flex:1;height:6px;background:linear-gradient(90deg,var(--dn),#ffb74d,var(--up));border-radius:99px;position:relative;padding:0}
 .gauge .bar i{position:absolute;top:-3px;width:4px;height:12px;background:var(--fg);border-radius:2px}
 .buy{background:#e6f6f2;color:var(--up);padding:2px 8px;border-radius:4px}.sell{background:#fde8ea;color:var(--dn);padding:2px 8px;border-radius:4px}
+#qr .qrrow.buy,#qr .qrrow.sell,#tape .qrrow.buy,#tape .qrrow.sell{background:transparent;border-radius:0;padding:2px 8px}
 html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{background:#3a1518}
 .neut{background:var(--chip);color:var(--mut);padding:2px 8px;border-radius:4px}
 .foot{height:26px;border-top:1px solid var(--line);display:flex;align-items:center;padding:0 10px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mut);background:var(--raised);gap:12px;flex:none}
@@ -331,7 +364,6 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
   #tfbar .wsico{display:none}
   #symin,#tab-search{display:flex!important;min-width:72px}
   #dwin,#dwin.on{display:none!important}
-  #listfab{display:block}
   #legend{max-width:70%}
   #wm{font-size:36px}
 }
@@ -344,7 +376,7 @@ html[data-theme=dark] .buy{background:#0e2e28}html[data-theme=dark] .sell{backgr
 .tab-search input{flex:1;min-width:0;font-size:14px;background:transparent;color:#d1d4dc;outline:none}
 .tab-search input::placeholder{color:#787b86}
 .tab-strip{flex:1;min-width:0;display:flex;overflow-x:auto;align-items:stretch}
-#tfbar{height:52px;min-height:52px;padding:0 10px;gap:2px;background:#131722}
+#tfbar{height:auto;min-height:52px;max-height:120px;padding:4px 10px;gap:2px;background:#131722;flex-wrap:wrap;align-content:flex-start;overflow-x:hidden;overflow-y:auto}
 #tfbar button{height:34px;padding:0 10px;font-size:14px;border-radius:4px}
 #tfbar .wsico,#tfbar .wsdesk{height:44px;padding:2px 8px}
 .rail{width:52px;background:#1e222d}
@@ -428,7 +460,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 #dtype .dthd .nm{font-size:16px;font-weight:600}
 #dtype .dthd .px{font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600;margin-left:4px}
 #dtype .dthd .chg{font-family:"IBM Plex Mono",monospace;font-size:13px}
-#dtype .dthd .x,#dtype .dthd .back{width:32px;height:32px;border-radius:4px;color:#787b86;margin-left:auto}
+#dtype .dthd .x,#dtype .dthd .back{width:32px;height:32px;border-radius:4px;color:#787b86}
 #dtype .dthd .back{margin-left:auto;margin-right:4px;width:auto;padding:0 10px;font-size:12px;font-weight:600;color:#d1d4dc;border:1px solid #2a2e39}
 #dtype .dthd .x:hover,#dtype .dthd .back:hover{background:#2a2e39;color:#fff}
 #dtype .dttabs{display:flex;gap:0;padding:0 8px;border-bottom:1px solid #2a2e39;background:#1e222d;flex:none;overflow-x:auto}
@@ -488,7 +520,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="app" data-engine="justhodl-chart" data-output="data/jh-internals.json" data-jh-sections="off">
   <div class="tabs" id="tabbar">
     <div class="tv-symwrap" id="tv-symwrap">
-      <button type="button" class="tv-symchip" id="symchip" title="Symbol search">
+      <button type="button" class="tv-symchip" id="symchip" title="Symbol search" aria-label="Symbol search">
         <i class="tv-symlogo" id="symlogo">S</i>
         <span class="tv-symid" id="symchip-id">SPY</span>
         <span class="tv-caret">▾</span>
@@ -497,8 +529,8 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
         <span class="ts-ico">⌕</span>
         <input id="symin" placeholder="Symbol, ISIN, or CUSIP" autocomplete="off" spellcheck="false" title="Ticker, ISIN, CUSIP. Or AAPL DES <GO>">
       </label>
-      <button type="button" class="tv-iconbtn" id="btn-addcmp" title="Compare symbols">+</button>
-      <button type="button" class="tv-iconbtn" id="btn-dtype" title="Financials, ratios & statistics">
+      <button type="button" class="tv-iconbtn" id="btn-addcmp" title="Compare symbols" aria-label="Compare symbols">+</button>
+      <button type="button" class="tv-iconbtn" id="btn-dtype" title="Financials, ratios & statistics" aria-label="Financials, ratios &amp; statistics">
         <svg viewBox="0 0 18 18" width="15" height="15" aria-hidden="true"><rect x="2.2" y="3.2" width="13.6" height="11.6" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.2 7.2h13.6M7.4 3.2v11.6" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
       </button>
       <a class="tv-iconbtn" id="chart-data-sources" href="/engine-data.html?page=chart.html" data-jh-inspection-route="chart.html" target="_blank" rel="noopener" title="Inspect chart source outputs in a separate view" aria-label="Inspect chart data sources (opens a new tab)" style="width:auto;padding:0 8px;text-decoration:none">Data</a>
@@ -531,7 +563,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
           <div id="ohlc"></div>
           <div id="obj"></div>
           <div id="props"></div>
-          <div id="tv-zoom"><button type="button" id="z-minus" title="Zoom out">−</button><button type="button" id="z-plus" title="Zoom in">+</button></div>
+          <div id="tv-zoom"><button type="button" id="z-minus" title="Zoom out" aria-label="Zoom out">−</button><button type="button" id="z-plus" title="Zoom in" aria-label="Zoom in">+</button></div>
         </div>
         <div class="pane" id="chart2" style="display:none"><div class="host" id="host2"></div></div>
         <div class="pane" id="chart3" style="display:none"><div class="host" id="host3"></div></div>
@@ -540,33 +572,33 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
       <div id="oscwrap"></div>
       <div id="mini"></div>
       <div id="replay">
-        <button id="rp-play">Play</button>
-        <button id="rp-step">Step</button>
-        <button id="rp-back">−1</button>
+        <button type="button" id="rp-play">Play</button>
+        <button type="button" id="rp-step">Step</button>
+        <button type="button" id="rp-back">−1</button>
         <select id="rp-speed"><option value="1">1x</option><option value="2">2x</option><option value="5">5x</option><option value="10">10x</option><option value="20">20x</option></select>
         <input id="rp-scrub" type="range" min="10" max="100" value="80">
         <input id="rp-date" type="date">
         <span id="rp-label"></span>
-        <button id="rp-exit">Exit replay</button>
+        <button type="button" id="rp-exit">Exit replay</button>
       </div>
     </div>
     <aside class="watch is-collapsed" id="watch">
       <div class="w-split" id="w-split" title="Drag to resize watchlist"></div>
       <div class="wtitle"><b>Watchlist</b>
         <div class="wops">
-          <button type="button" id="w-searchbtn" title="Search symbol">⌕</button>
-          <button type="button" id="w-chartm" title="Chart / company info">◆</button>
-          <button type="button" id="w-pin" title="Pin watchlist">📌</button>
-          <button type="button" id="w-close" title="Close">×</button>
+          <button type="button" id="w-searchbtn" title="Search symbol" aria-label="Search symbol">⌕</button>
+          <button type="button" id="w-chartm" title="Chart / company info" aria-label="Chart / company info">◆</button>
+          <button type="button" id="w-pin" title="Pin watchlist" aria-label="Pin watchlist">📌</button>
+          <button type="button" id="w-close" title="Close" aria-label="Close">×</button>
         </div>
       </div>
       <div class="whead">
-        <button type="button" class="listbtn" id="listbtn" title="Switch watchlist">Select list ▾</button>
+        <button type="button" class="listbtn" id="listbtn" title="Switch watchlist" aria-label="Switch watchlist">Select list ▾</button>
         <select id="list" hidden></select>
         <span id="nlists" style="font-size:10px;color:var(--mut)"></span>
         <div class="wops">
-          <button type="button" id="w-new" title="New list">+</button>
-          <button type="button" id="w-menu" title="List menu">⋮</button>
+          <button type="button" id="w-new" title="New list" aria-label="New list">+</button>
+          <button type="button" id="w-menu" title="List menu" aria-label="List menu">⋮</button>
         </div>
       </div>
       <div class="wsub" id="wsub"></div>
@@ -602,19 +634,19 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
       <div id="desk-intel" style="display:none"></div>
     </aside>
     <aside id="rrail" aria-label="Panels">
-      <button type="button" data-rail="watch" title="Watchlist">☰</button>
-      <button type="button" data-rail="details" title="Symbol details">◆</button>
-      <button type="button" data-rail="news" title="News">N</button>
-      <button type="button" data-rail="alerts" title="Alerts">🔔</button>
+      <button type="button" data-rail="watch" title="Watchlist" aria-label="Watchlist">☰</button>
+      <button type="button" data-rail="details" title="Symbol details" aria-label="Symbol details">◆</button>
+      <button type="button" data-rail="news" title="News" aria-label="News">N</button>
+      <button type="button" data-rail="alerts" title="Alerts" aria-label="Alerts">🔔</button>
     </aside>
   </div>
   <div id="dock">
     <div class="dtabs" id="dtabs"></div>
     <div id="dockbody"></div>
   </div>
-  <div class="foot"><span id="clock"></span><span id="tzlab">UTC</span><span id="cd">v12 QR</span><span id="livepill" tabindex="0" aria-label="Refresh status unavailable until chart initialization"><i></i> REFRESH —</span><span id="stat"></span><span style="margin-left:auto"><button id="btn-keys">Hotkeys</button> · <a href="/chart-pro.html">Chart Pro</a> · / search · click ticker · Ctrl+K</span></div>
+  <div class="foot"><span id="clock"></span><span id="tzlab">UTC</span><span id="cd">—</span><span id="livepill" tabindex="0" aria-label="Refresh status unavailable until chart initialization"><i></i> REFRESH —</span><span id="stat"></span><span style="margin-left:auto"><button type="button" id="btn-keys">Hotkeys</button> · <a href="/chart-pro.html">Chart Pro</a> · / search · click ticker · Ctrl+K</span></div>
 </div>
-<button id="listfab">List</button>
+<button type="button" id="listfab">List</button>
 <div id="listdrop"><input id="listq" placeholder="Search lists" autocomplete="off"><div id="listres"></div></div>
 <div id="fly"></div>
 <div id="menu" class="menu"></div>
@@ -622,7 +654,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <div id="cmdk"><div class="box"><input id="cmdin" placeholder="AAPL DES <GO>  ·  functions, symbols, studies"><div class="res" id="cmdres"></div></div></div>
 <div id="typeq"></div>
 <div id="symsearch"><div class="sbox">
-  <div class="shd"><b id="sshd">Symbol search</b><button type="button" id="ssx" title="Close">×</button></div>
+  <div class="shd"><b id="sshd">Symbol search</b><button type="button" id="ssx" title="Close" aria-label="Close">×</button></div>
   <div class="ssearch"><span>⌕</span><input id="ssin" placeholder="Any ticker, CUSIP, FIGI, FRED, Eurostat, BoJ, NY Fed…" autocomplete="off"></div>
   <div class="sschips" id="sschips"></div>
   <div id="ssres"></div>
@@ -633,7 +665,7 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
     <span class="px" id="dt-px">—</span>
     <span class="chg" id="dt-chg"></span>
     <button type="button" class="back" id="dt-chart">Chart</button>
-    <button type="button" class="x" id="dtx" title="Close">×</button>
+    <button type="button" class="x" id="dtx" title="Close" aria-label="Close">×</button>
   </div>
   <div class="dttabs" id="dttabs"></div>
   <div class="dtbody" id="dtbody"></div>
@@ -677,5 +709,43 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-chart-quality.js?v=20260915ae-qx"></script>
 <script src="/jh-chart-risk-v3.js?v=capital-structure-v1"></script>
 <script src="/jh-chart-bbgo.js?v=20260915af-spx"></script>
+<script>
+/* Engine writes the bar clock once, so it freezes. Tick it, and say closed instead of 0:00:00. */
+(function(){
+  function secOf(tf){
+    var id=String(tf||"1d");
+    if(id==="1m") return 60;
+    if(id==="3m") return 180;
+    if(id==="5m") return 300;
+    if(id==="15m") return 900;
+    if(id==="30m") return 1800;
+    if(id==="45m") return 2700;
+    if(id==="1h") return 3600;
+    if(id==="2h") return 7200;
+    if(id==="4h") return 14400;
+    if(id==="12h") return 43200;
+    if(id==="1w"||id==="W") return 604800;
+    if(id==="2w") return 1209600;
+    if(id==="1M"||id==="M") return 2592000;
+    if(id==="3M") return 7776000;
+    return 86400;
+  }
+  function pad(n){ return (n<10?"0":"")+n; }
+  function tick(){
+    var el=document.getElementById("cd");
+    if(!el) return;
+    var cur=el.textContent||"";
+    if(cur && cur.indexOf("bar ")!==0 && cur!=="—" && cur!=="v12 QR") return;
+    var bars=window.lastBars, tf=window.tf||"1d";
+    if(!bars||!bars.length||!bars[bars.length-1]||typeof bars[bars.length-1].time!=="number") return;
+    var left=bars[bars.length-1].time+secOf(tf)-Math.floor(Date.now()/1000);
+    if(left<=0){ el.textContent="bar closed"; return; }
+    var h=Math.floor(left/3600), m=Math.floor((left%3600)/60), s=left%60;
+    el.textContent="bar "+h+":"+pad(m)+":"+pad(s);
+  }
+  setInterval(tick, 1000);
+  tick();
+})();
+</script>
 </body>
 </html>
