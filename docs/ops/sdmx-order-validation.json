@@ -788,7 +788,7 @@
     ]
   },
   "gates": {
-    "deployment_static_tests": 1033,
+    "deployment_static_tests": 1034,
     "validated_candidate_shell_tests": 15,
     "brain_public_boundary_tests": 15,
     "secret_findings": 0,
@@ -814,16 +814,23 @@
     "corrected_probe_prs": [
       70,
       71
-    ]
+    ],
+    "production_pr": 72,
+    "production_merge": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+    "deployment_run": 36957398475,
+    "accepted_candidate_probe_run": 36957806995
   },
   "independent_review": {
     "accepted_head": "8b4c14b484cd1a6cd937c5d77ff133f6d4a4584e",
     "additional_helper_comparisons": 2020,
     "cycle_features_tests": 18,
     "symdir_tests": 104,
-    "deployment_static_tests": 1033,
+    "deployment_static_tests": 1034,
     "candidate_shell_tests": 15,
     "source_blockers": 0,
-    "final_head_confirmation_required": true
+    "final_accepted_head": "3553eb2dd8f43ef678d6e5db825ccec94fc5a9bf",
+    "final_review_base": "91fdea3b1760eb9dbb6cf65ed67baf4e0e7200c7",
+    "secret_files_scanned": 15457,
+    "final_head_acceptance": "passed"
   }
 }

@@ -1,0 +1,481 @@
+{
+  "baseline_fingerprint": "dcf6a81a255eeb1b59254390dfaed6d300f168783fc30b25596825c090dfc4e7",
+  "baseline_run": 36956524665,
+  "deployment": {
+    "jobs": [
+      {
+        "completed_at": "2026-10-02T02:53:15Z",
+        "conclusion": "success",
+        "id": 110683328512,
+        "name": "Deploy changed Lambdas",
+        "started_at": "2026-10-02T02:49:33Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completed_at": "2026-10-02T02:49:35Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "started_at": "2026-10-02T02:49:34Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:49:47Z",
+            "conclusion": "success",
+            "name": "Checkout",
+            "number": 2,
+            "started_at": "2026-10-02T02:49:35Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:49:47Z",
+            "conclusion": "success",
+            "name": "Pin exact recovery checkout",
+            "number": 3,
+            "started_at": "2026-10-02T02:49:47Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:49:47Z",
+            "conclusion": "success",
+            "name": "Configure AWS credentials",
+            "number": 4,
+            "started_at": "2026-10-02T02:49:47Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:49:49Z",
+            "conclusion": "success",
+            "name": "Detect changed Lambdas",
+            "number": 5,
+            "started_at": "2026-10-02T02:49:47Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:52:34Z",
+            "conclusion": "success",
+            "name": "Run deployment preflight tests",
+            "number": 6,
+            "started_at": "2026-10-02T02:49:49Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:52:35Z",
+            "conclusion": "success",
+            "name": "Prime selected governed aliases before any code staging",
+            "number": 7,
+            "started_at": "2026-10-02T02:52:34Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:52:41Z",
+            "conclusion": "success",
+            "name": "Preserve long validation connections on the ephemeral runner",
+            "number": 8,
+            "started_at": "2026-10-02T02:52:35Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:10Z",
+            "conclusion": "success",
+            "name": "Deploy each changed Lambda",
+            "number": 9,
+            "started_at": "2026-10-02T02:52:41Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:10Z",
+            "conclusion": "skipped",
+            "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+            "number": 10,
+            "started_at": "2026-10-02T02:53:10Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:11Z",
+            "conclusion": "success",
+            "name": "Preserve numbered candidate release evidence",
+            "number": 11,
+            "started_at": "2026-10-02T02:53:10Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:11Z",
+            "conclusion": "success",
+            "name": "Commit Function URL patches back",
+            "number": 12,
+            "started_at": "2026-10-02T02:53:11Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:11Z",
+            "conclusion": "success",
+            "name": "Summary",
+            "number": 13,
+            "started_at": "2026-10-02T02:53:11Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:11Z",
+            "conclusion": "success",
+            "name": "Post Configure AWS credentials",
+            "number": 25,
+            "started_at": "2026-10-02T02:53:11Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:12Z",
+            "conclusion": "success",
+            "name": "Post Checkout",
+            "number": 26,
+            "started_at": "2026-10-02T02:53:11Z",
+            "status": "completed"
+          },
+          {
+            "completed_at": "2026-10-02T02:53:12Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 27,
+            "started_at": "2026-10-02T02:53:12Z",
+            "status": "completed"
+          }
+        ]
+      }
+    ],
+    "run": {
+      "conclusion": "success",
+      "created_at": "2026-10-02T02:49:29Z",
+      "event": "push",
+      "head_sha": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+      "html_url": "https://github.com/ElMooro/si/actions/runs/36957398475",
+      "id": 36957398475,
+      "status": "completed",
+      "updated_at": "2026-10-02T02:53:15Z"
+    }
+  },
+  "deployment_run": 36957398475,
+  "gates": {
+    "deployment_static_tests": 1034,
+    "focused_probe_tests": 6,
+    "handler_fixtures": 90,
+    "helper_comparisons": 8626,
+    "independent_additional_helper_comparisons": 2020,
+    "secret_findings": 0,
+    "shell_checks": 15
+  },
+  "guard_run": 36957398524,
+  "independent_postrelease_verification": {
+    "acceptance_report_commit": "5c21a4a889feaf62b490fed3c8c0569e9311021b",
+    "baseline_fingerprint_recomputed": true,
+    "exact_receipt_and_package": "passed",
+    "release_blockers": 0,
+    "reviewer_aws_calls": 0,
+    "reviewer_edits_dispatches_invokes": 0,
+    "source_merge": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+    "status": "passed"
+  },
+  "limits": [
+    "Local helper CPU/allocation only; AWS duration and financial savings unmeasured.",
+    "Natural summary publication/unchanged contents do not prove _order executed or live handler equivalence.",
+    "Technical projection excludes other package members, undeclared environment values, payload contents, actual role values, arbitrary bindings and AWS billing.",
+    "Actions log download returned HTTP403; successful run/job metadata, exact public receipt and independently reviewed live probe provide release evidence.",
+    "Alternate public proxy hostname returned a network tunnel HTTP403; public site remained reachable."
+  ],
+  "merge_commit": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+  "natural_later_public_observation": {
+    "cache_age_seconds": null,
+    "cf_cache_status": null,
+    "last_modified": "Fri, 02 Oct 2026 02:59:43 GMT",
+    "observed_date": "Fri, 02 Oct 2026 02:59:43 GMT",
+    "requested_path": "data/warm/sdmx-walker-summary.json",
+    "summary": {
+      "agency_mode": "ecb",
+      "as_of": "2026-10-02T02:59:41+00:00",
+      "ecb": {
+        "n_failures": 7,
+        "n_total": 214,
+        "of_run": 0,
+        "progress_pct": 100.0,
+        "pulled": 0,
+        "status": "COMPLETE"
+      }
+    }
+  },
+  "natural_public_observation": {
+    "headers": {
+      "accept-ranges": "bytes",
+      "access-control-allow-headers": "Authorization, Content-Type, If-None-Match, If-Modified-Since, X-Brain-Pin, X-Requested-With, X-JH-Service-Token",
+      "access-control-allow-methods": "GET, HEAD, PUT, POST, OPTIONS",
+      "access-control-allow-origin": "*",
+      "access-control-expose-headers": "X-JH-Artifact-Key, Last-Modified, ETag",
+      "access-control-max-age": "86400",
+      "age": "177",
+      "alt-svc": "h3=\":443\"; ma=86400",
+      "cache-control": "public, max-age=14400, s-maxage=300",
+      "cf-cache-status": "HIT",
+      "cf-ray": "a440705ecd600011-ORD",
+      "connection": "close",
+      "content-length": "182",
+      "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.plot.ly https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://justhodl-data-proxy.raafouis.workers.dev https://s3.tradingview.com https://static.cloudflareinsights.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://unpkg.com; font-src 'self' data: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self' data: https:; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://*.lambda-url.us-east-1.on.aws https://*.raafouis.workers.dev https://*.supabase.co https://api.dexscreener.com https://api.justhodl.ai https://api.stlouisfed.org https://api.telegram.org https://cdn.jsdelivr.net https://cdn.plot.ly https://cdnjs.cloudflare.com https://financialmodelingprep.com https://justhodl-dashboard-live.s3.amazonaws.com https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com https://macro-data-lake.s3.amazonaws.com https://patentsview.org https://s3.amazonaws.com https://s3.us-east-1.amazonaws.com https://static.cloudflareinsights.com https://unpkg.com https://web.archive.org wss://*.execute-api.us-east-1.amazonaws.com wss://*.raafouis.workers.dev wss://*.supabase.co; frame-src 'self' https://*.tradingview-widget.com https://*.tradingview.com https://challenges.cloudflare.com https://justhodl.ai; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; upgrade-insecure-requests",
+      "content-type": "application/json",
+      "date": "Fri, 02 Oct 2026 02:57:19 GMT",
+      "etag": "\"168cd919093fbd099a7488ca3624b01c\"",
+      "last-modified": "Fri, 02 Oct 2026 02:49:43 GMT",
+      "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+      "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=yZsPOk8tI%2BU0XfdWOvVMHYB2a2VpYt7f3uP2YrfHm02W9Ii6xZTOlNq7%2BXsYM%2F2Chz%2BUnVkM8%2FabzdF%2FxDIjry9K0xXTiFfd4aVg2z4lbXI9tNfmJSTeqd%2BzOPf4Pg%3D%3D\"}]}",
+      "server": "envoy",
+      "server-timing": "cfCacheStatus;desc=\"HIT\"",
+      "vary": "Accept-Encoding",
+      "x-edge-cache": "HIT",
+      "x-edge-ttl": "300",
+      "x-envoy-upstream-service-time": "134",
+      "x-upstream": "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/warm/sdmx-walker-summary.json"
+    },
+    "last_modified": "Fri, 02 Oct 2026 02:49:43 GMT",
+    "requested_path": "data/warm/sdmx-walker-summary.json?sdmx_order_acceptance=20261002T0256",
+    "summary": {
+      "agency_mode": "statcan",
+      "as_of": "2026-10-02T02:49:41+00:00",
+      "statcan": {
+        "n_failures": 5,
+        "n_total": 8271,
+        "of_run": 0,
+        "progress_pct": 100.0,
+        "pulled": 0,
+        "status": "COMPLETE"
+      }
+    }
+  },
+  "pr": 72,
+  "receipt": {
+    "actor": "ElMooro",
+    "code_sha256": "qh4jtwQ0wtThYXmk1RHDd40/WcwXsJLU1pxPWMLi9Rc=",
+    "commit": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+    "deployed_at": "2026-10-02T02:52:53Z",
+    "function": "justhodl-sdmx-walker",
+    "run_id": "36957398475",
+    "run_url": "https://github.com/ElMooro/si/actions/runs/36957398475",
+    "schema": "release-receipt.v1",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 18232,
+        "sha256": "736138a65f926206688f94fdf08b9a17f5594193234327d16be6f985cd5c4214"
+      }
+    },
+    "verified": true,
+    "workflow": "deploy-lambdas.yml",
+    "zip_bytes": 1049870,
+    "zip_sha256_hex": "aa1e23b70434c2d4e16179a4d511c3778d3f59cc17b092d4d69c4f58c2e2f517"
+  },
+  "reviewed_head": "3553eb2dd8f43ef678d6e5db825ccec94fc5a9bf",
+  "source_sha256": "736138a65f926206688f94fdf08b9a17f5594193234327d16be6f985cd5c4214",
+  "technical_acceptance": {
+    "result": {
+      "aws_read_calls": 19,
+      "aws_writes": 0,
+      "baseline_compared": true,
+      "code_sha256": "qh4jtwQ0wtThYXmk1RHDd40/WcwXsJLU1pxPWMLi9Rc=",
+      "deployed_at": "2026-10-02T02:52:53+00:00",
+      "handler_sha256": "736138a65f926206688f94fdf08b9a17f5594193234327d16be6f985cd5c4214",
+      "named_bindings_checked": 10,
+      "operating_controls": {
+        "architectures": [
+          "x86_64"
+        ],
+        "bindings": {
+          "cost-anomaly-daily": {
+            "EventBusName": "default",
+            "ScheduleExpression": "cron(0 9 * * ? *)",
+            "State": "ENABLED",
+            "targets": [
+              {
+                "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cost-anomaly",
+                "DeadLetterConfig": null,
+                "Id": "target1",
+                "RetryPolicy": null,
+                "payload_fields_present": [],
+                "role_present": false
+              }
+            ]
+          },
+          "fleet-error-monitor-5min": {
+            "EventBusName": "default",
+            "ScheduleExpression": "rate(5 minutes)",
+            "State": "ENABLED",
+            "targets": [
+              {
+                "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor",
+                "DeadLetterConfig": null,
+                "Id": "target1",
+                "RetryPolicy": null,
+                "payload_fields_present": [],
+                "role_present": false
+              }
+            ]
+          },
+          "fleet-error-monitor-sched": {
+            "ActionAfterCompletion": "NONE",
+            "EndDate": null,
+            "FlexibleTimeWindow": {
+              "Mode": "OFF"
+            },
+            "ScheduleExpression": "rate(24 hours)",
+            "ScheduleExpressionTimezone": "UTC",
+            "StartDate": null,
+            "State": "ENABLED",
+            "target": {
+              "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor",
+              "DeadLetterConfig": null,
+              "Id": null,
+              "RetryPolicy": {
+                "MaximumEventAgeInSeconds": 86400,
+                "MaximumRetryAttempts": 185
+              },
+              "input_present": false,
+              "role_present": true
+            }
+          },
+          "justhodl-d1-scan-daily": {
+            "EventBusName": "default",
+            "ScheduleExpression": "cron(0 5 * * ? *)",
+            "State": "ENABLED",
+            "targets": [
+              {
+                "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-integrity",
+                "DeadLetterConfig": null,
+                "Id": "1",
+                "RetryPolicy": null,
+                "payload_fields_present": [],
+                "role_present": false
+              }
+            ]
+          },
+          "justhodl-ecb-rewalk-weekly": {
+            "ActionAfterCompletion": "NONE",
+            "EndDate": null,
+            "FlexibleTimeWindow": {
+              "Mode": "OFF"
+            },
+            "ScheduleExpression": "cron(15 3 ? * SUN *)",
+            "ScheduleExpressionTimezone": "UTC",
+            "StartDate": null,
+            "State": "ENABLED",
+            "target": {
+              "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+              "DeadLetterConfig": null,
+              "Id": null,
+              "RetryPolicy": {
+                "MaximumEventAgeInSeconds": 86400,
+                "MaximumRetryAttempts": 185
+              },
+              "input_present": true,
+              "role_present": true
+            }
+          },
+          "justhodl-eurostat-retry-30min": {
+            "exists": false
+          },
+          "justhodl-fleet-integrity-weekly": {
+            "EventBusName": "default",
+            "ScheduleExpression": "cron(0 8 ? * MON *)",
+            "State": "ENABLED",
+            "targets": [
+              {
+                "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-integrity",
+                "DeadLetterConfig": null,
+                "Id": "1",
+                "RetryPolicy": null,
+                "payload_fields_present": [],
+                "role_present": false
+              }
+            ]
+          },
+          "justhodl-oecd-retry-hourly": {
+            "ActionAfterCompletion": "NONE",
+            "EndDate": null,
+            "FlexibleTimeWindow": {
+              "Mode": "OFF"
+            },
+            "ScheduleExpression": "rate(15 minutes)",
+            "ScheduleExpressionTimezone": "UTC",
+            "StartDate": null,
+            "State": "ENABLED",
+            "target": {
+              "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+              "DeadLetterConfig": null,
+              "Id": null,
+              "RetryPolicy": {
+                "MaximumEventAgeInSeconds": 86400,
+                "MaximumRetryAttempts": 185
+              },
+              "input_present": true,
+              "role_present": true
+            }
+          },
+          "justhodl-sdmx-walker-hourly": {
+            "EventBusName": "default",
+            "ScheduleExpression": "rate(5 minutes)",
+            "State": "ENABLED",
+            "targets": [
+              {
+                "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+                "DeadLetterConfig": null,
+                "Id": "justhodl-sdmx-walker",
+                "RetryPolicy": null,
+                "payload_fields_present": [],
+                "role_present": false
+              }
+            ]
+          },
+          "justhodl-statcan-retry-hourly": {
+            "ActionAfterCompletion": "NONE",
+            "EndDate": null,
+            "FlexibleTimeWindow": {
+              "Mode": "OFF"
+            },
+            "ScheduleExpression": "rate(24 hours)",
+            "ScheduleExpressionTimezone": "UTC",
+            "StartDate": null,
+            "State": "ENABLED",
+            "target": {
+              "Arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sdmx-walker",
+              "DeadLetterConfig": null,
+              "Id": null,
+              "RetryPolicy": {
+                "MaximumEventAgeInSeconds": 86400,
+                "MaximumRetryAttempts": 185
+              },
+              "input_present": true,
+              "role_present": true
+            }
+          }
+        },
+        "configuration_matches": {
+          "declared_environment_matches": true,
+          "dlq_already_standard": true,
+          "ephemeral_matches_managed_configuration": true,
+          "handler_matches": true,
+          "memory_matches": true,
+          "role_matches": true,
+          "runtime_matches": true,
+          "timeout_matches": true,
+          "tracing_already_active": true
+        },
+        "ephemeral_storage_mb": 2048,
+        "reserved_concurrency": null
+      },
+      "operating_fingerprint": "dcf6a81a255eeb1b59254390dfaed6d300f168783fc30b25596825c090dfc4e7",
+      "optional_missing_bindings": [
+        "justhodl-eurostat-retry-30min"
+      ],
+      "producer_invokes": 0,
+      "receipt_commit": "c6d34a1706ad71d7853da439fc92160e29961fc8",
+      "scope": "Exact handler/package/receipt, technical controls and ten named schedule references with optional retry absence retained. Other package members, undeclared environment values, payload contents, arbitrary bindings and AWS billing are not measured.",
+      "signed_package_gets": 1,
+      "source_phase": "candidate",
+      "summary_bytes": 178,
+      "summary_last_modified": "2026-10-02 02:54:44+00:00"
+    },
+    "run_id": 36957806995
+  }
+}
