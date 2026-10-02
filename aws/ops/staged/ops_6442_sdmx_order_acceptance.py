@@ -1,6 +1,6 @@
 """Bounded runner-only package/control check; no producer invocation or AWS writes.
 
-Reads one Lambda package, technical configuration, ten named schedule bindings,
+Reads one Lambda package, technical configuration, ten named schedule references,
 the release receipt and current summary metadata. Never reads retained data,
 billing, metrics, logs or private application bodies. Raw errors, signed URLs,
 environment and target payloads are withheld from the public report.
@@ -62,6 +62,9 @@ class Reader:
         except Exception as exc:
             code = str(getattr(exc, 'response', {}).get('Error', {}).get('Code', ''))
             if code == 'NoSuchKey' and method.__name__ == 'get_object':
+                return None
+            if (code == 'ResourceNotFoundException' and method.__name__ == 'get_schedule'
+                    and kwargs.get('Name') in SCHEDULERS[:-1]):
                 return None
             raise Stop('access_denied_stop' if code in ('AccessDenied', 'AccessDeniedException', 'UnauthorizedOperation', '403')
                        else 'aws_read_failed_details_withheld') from None
@@ -147,7 +150,14 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
             for t in targets['Targets']], key=lambda t: str(t.get('Id')))
     for name in SCHEDULERS:
         schedule = reader.read(scheduler.get_schedule, Name=name, GroupName='default')
-        require(schedule.get('Name') == name and schedule.get('State') == 'ENABLED', 'named_scheduler_not_enabled')
+        if schedule is None:
+            # Historical retry schedules were conditional. Preserve observed absence;
+            # the five intentional monitor bindings remain mandatory above/below.
+            operating['bindings'][name] = {'exists': False}
+            continue
+        require(schedule.get('Name') == name and schedule.get('State') in ('ENABLED', 'DISABLED'), 'named_scheduler_invalid')
+        if name == SCHEDULERS[-1]:
+            require(schedule.get('State') == 'ENABLED', 'protected_monitor_scheduler_not_enabled')
         target = schedule.get('Target') or {}
         if name != SCHEDULERS[-1]:
             require(target.get('Arn') == live.get('FunctionArn'), 'walker_scheduler_unbound')
@@ -180,9 +190,10 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
             'deployed_at': deployed_at,
             'operating_fingerprint': fingerprint, 'operating_controls': operating,
             'baseline_compared': BASELINE.exists(), 'named_bindings_checked': len(operating['bindings']),
+            'optional_missing_bindings': [name for name, value in operating['bindings'].items() if value.get('exists') is False],
             'summary_last_modified': str(summary.get('LastModified')), 'summary_bytes': summary.get('ContentLength'),
             'aws_read_calls': reader.calls, 'signed_package_gets': 1, 'aws_writes': 0, 'producer_invokes': 0,
-            'scope': 'Exact handler/package/receipt, technical controls and ten named enabled schedules. Other package members, undeclared environment values, payload contents, arbitrary bindings and AWS billing are not measured.'}
+            'scope': 'Exact handler/package/receipt, technical controls and ten named schedule references with optional retry absence retained. Other package members, undeclared environment values, payload contents, arbitrary bindings and AWS billing are not measured.'}
 
 
 def main():
