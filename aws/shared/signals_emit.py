@@ -4,14 +4,15 @@ Fabric diagnostics are retained separately as unqualified research context.
 An emitted event is not proof of gradeability, source timing or forecast skill.
 Further core event-contract repairs are tracked in the implementation ledger.
 
-Contract (mirrors justhodl-signal-harvester exactly):
+Legacy storage fields retained for compatibility:
   measure_against = the actual SYMBOL to price
   check_windows   = ["5","21",…]  AND  check_timestamps = {"day_5": iso,…}
-  baseline_price REQUIRED (unscoreable otherwise) — yprice() included
+  baseline_price positive and typed; yprice() is a legacy quote helper, not entry-mark evidence
   dedupe via ConditionExpression on signal_id = f"{type}#{TICKER}#{date}"
 """
 
 import json
+from signal_event_inputs import prepare as prepare_event_inputs, exact as exact_event_values
 from fabric_logging_context import read as read_fabric_research, select as select_fabric_research, separate as separate_fabric_metadata
 import boto3
 import time
@@ -42,13 +43,7 @@ def yprice(sym):
 
 
 def _f2d(x):
-    if isinstance(x, float):
-        return Decimal(str(round(x, 6)))
-    if isinstance(x, dict):
-        return {k: _f2d(v) for k, v in x.items()}
-    if isinstance(x, list):
-        return [_f2d(v) for v in x]
-    return x
+    return exact_event_values(x)
 
 
 _REGIME = {"t": 0.0, "v": None}
@@ -177,12 +172,18 @@ def _fabric_ctx(sym):
 def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
                confidence=0.55, rationale="", metadata=None, benchmark=None,
                signal_value=""):
-    """Write one harvester-contract row. Returns True if written, False on
-    dedupe or bad inputs. `table` = boto3 dynamodb Table resource."""
-    if not (ticker and re.fullmatch(r"[A-Z0-9.\-\^=]{1,10}", ticker)):
+    """Write a validated research event in legacy schema-v2.
+    Returns False on invalid inputs, dedupe or storage failure. Validation does
+    not qualify entry marks or forward performance. `table` is a DynamoDB Table.
+    """
+    try:
+        prepared = prepare_event_inputs(signal_type, ticker, direction, windows,
+                                        baseline_price, confidence, metadata, benchmark)
+    except Exception:
         return False
-    if not baseline_price or baseline_price <= 0:
-        return False
+    direction = prepared['direction']; windows = prepared['windows']
+    baseline_price = prepared['baseline_price']; confidence = prepared['confidence']
+    metadata = prepared['metadata']
     if signal_type in _suppress_set():
         print(f"[signals] SUPPRESSED family {signal_type} (alpha-triage RETIRE)")
         return False
@@ -190,34 +191,36 @@ def log_signal(table, signal_type, ticker, direction, windows, baseline_price,
     md.setdefault("regime", _regime_snapshot())
     metadata = md
     now = datetime.now(timezone.utc)
-    windows = [int(w) for w in windows]
     try:
         # Strip caller and SDK legacy learning keys even when the feed fails.
         # Their values remain separate inspectable, explicitly unqualified context.
         metadata = separate_fabric_metadata(metadata, _fabric_ctx(ticker))
     except Exception:
         return False  # Never fall back to metadata that still grants false authority.
-    item = {
-        "signal_id": f"{signal_type}#{ticker}#{now.date().isoformat()}",
-        "signal_type": signal_type,
-        "signal_value": str(signal_value)[:40],
-        "predicted_direction": direction,
-        "confidence": _f2d(max(0.05, min(0.95, float(confidence)))),
-        "measure_against": ticker,
-        "baseline_price": _f2d(float(baseline_price)),
-        "baseline_benchmark_price": None,
-        "benchmark": benchmark,
-        "check_windows": [str(d) for d in windows],
-        "check_timestamps": {f"day_{d}": (now + timedelta(days=d)).isoformat()
-                             for d in windows},
-        "outcomes": {}, "accuracy_scores": {},
-        "logged_at": now.isoformat(), "logged_epoch": int(now.timestamp()),
-        "status": "pending", "schema_version": "2",
-        "horizon_days_primary": max(windows),
-        "ttl": int((now + timedelta(days=365)).timestamp()),
-        "rationale": str(rationale)[:300],
-        "metadata": _f2d(metadata or {}),
-    }
+    try:
+        item = {
+            "signal_id": f"{signal_type}#{ticker}#{now.date().isoformat()}",
+            "signal_type": signal_type,
+            "signal_value": str(signal_value)[:40],
+            "predicted_direction": direction,
+            "confidence": confidence,
+            "measure_against": ticker,
+            "baseline_price": baseline_price,
+            "baseline_benchmark_price": None,
+            "benchmark": benchmark,
+            "check_windows": [str(d) for d in windows],
+            "check_timestamps": {f"day_{d}": (now + timedelta(days=d)).isoformat()
+                                 for d in windows},
+            "outcomes": {}, "accuracy_scores": {},
+            "logged_at": now.isoformat(), "logged_epoch": int(now.timestamp()),
+            "status": "pending", "schema_version": "2",
+            "horizon_days_primary": max(windows),
+            "ttl": int((now + timedelta(days=365)).timestamp()),
+            "rationale": str(rationale)[:300],
+            "metadata": _f2d(metadata or {}),
+        }
+    except Exception:
+        return False
     try:
         table.put_item(Item=item,
                        ConditionExpression="attribute_not_exists(signal_id)")

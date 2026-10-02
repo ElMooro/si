@@ -1,0 +1,327 @@
+{
+  "source_path": "aws/shared/deterministic_desk.py",
+  "source_sha256": "ee386f30b29af630c4bc05d3b3bef9eb6746b88e36ca1a081b76e2fd53097f43",
+  "scope": "Direct actual shared-helper behavior with invented fixtures only. No claim that every caller bypasses its own additional policies. Native runtime and current consumer packets not read.",
+  "actual_network_requests": 0,
+  "findings": [
+    {
+      "case": "negated_gate_text_matches_risk_on",
+      "received": {
+        "regime": {
+          "risk_gate_posture": "Do not use RISK_ON"
+        }
+      },
+      "result": {
+        "ok": true,
+        "task": "veto-check",
+        "allowed": true,
+        "stance": "SELECTIVE",
+        "vetoes": [],
+        "reasoning": [
+          {
+            "step": "gate",
+            "ok": true,
+            "why": "RISK_ON"
+          },
+          {
+            "step": "authority",
+            "ok": true,
+            "why": "not blocking"
+          },
+          {
+            "step": "sizing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "table",
+            "ok": true,
+            "why": "RISK_ON x none -> SELECTIVE"
+          },
+          {
+            "step": "plumbing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "credit",
+            "ok": true,
+            "why": "score=None ccc21=None"
+          },
+          {
+            "step": "dollar",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "vol",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "constitution",
+            "ok": true,
+            "why": "absent (not assumed balanced)"
+          }
+        ]
+      }
+    },
+    {
+      "case": "explicit_zero_sizing_overridden_by_secondary_value",
+      "received": {
+        "regime": {
+          "risk_gate_posture": "RISK_ON",
+          "risk_gate_sizing": 0
+        },
+        "sizing_multiplier": 1
+      },
+      "result": {
+        "ok": true,
+        "task": "veto-check",
+        "allowed": true,
+        "stance": "SELECTIVE",
+        "vetoes": [],
+        "reasoning": [
+          {
+            "step": "gate",
+            "ok": true,
+            "why": "RISK_ON"
+          },
+          {
+            "step": "authority",
+            "ok": true,
+            "why": "not blocking"
+          },
+          {
+            "step": "sizing",
+            "ok": true,
+            "why": 1.0
+          },
+          {
+            "step": "table",
+            "ok": true,
+            "why": "RISK_ON x none -> SELECTIVE"
+          },
+          {
+            "step": "plumbing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "credit",
+            "ok": true,
+            "why": "score=None ccc21=None"
+          },
+          {
+            "step": "dollar",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "vol",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "constitution",
+            "ok": true,
+            "why": "absent (not assumed balanced)"
+          }
+        ]
+      }
+    },
+    {
+      "case": "explicit_zero_authority_cap_overridden_by_secondary_value",
+      "received": {
+        "regime": {
+          "risk_gate_posture": "RISK_ON"
+        },
+        "authority": {
+          "cap": 0,
+          "sizing_multiplier": 1
+        }
+      },
+      "result": {
+        "ok": true,
+        "task": "veto-check",
+        "allowed": true,
+        "stance": "SELECTIVE",
+        "vetoes": [],
+        "reasoning": [
+          {
+            "step": "gate",
+            "ok": true,
+            "why": "RISK_ON"
+          },
+          {
+            "step": "authority",
+            "ok": true,
+            "why": "not blocking"
+          },
+          {
+            "step": "sizing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "table",
+            "ok": true,
+            "why": "RISK_ON x none -> SELECTIVE"
+          },
+          {
+            "step": "plumbing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "credit",
+            "ok": true,
+            "why": "score=None ccc21=None"
+          },
+          {
+            "step": "dollar",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "vol",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "constitution",
+            "ok": true,
+            "why": "absent (not assumed balanced)"
+          }
+        ]
+      }
+    },
+    {
+      "case": "unknown_authority_and_missing_risk_legs_allow_direct_veto_check",
+      "received": {
+        "regime": {
+          "risk_gate_posture": "RISK_ON"
+        }
+      },
+      "result": {
+        "ok": true,
+        "task": "veto-check",
+        "allowed": true,
+        "stance": "SELECTIVE",
+        "vetoes": [],
+        "reasoning": [
+          {
+            "step": "gate",
+            "ok": true,
+            "why": "RISK_ON"
+          },
+          {
+            "step": "authority",
+            "ok": true,
+            "why": "not blocking"
+          },
+          {
+            "step": "sizing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "table",
+            "ok": true,
+            "why": "RISK_ON x none -> SELECTIVE"
+          },
+          {
+            "step": "plumbing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "credit",
+            "ok": true,
+            "why": "score=None ccc21=None"
+          },
+          {
+            "step": "dollar",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "vol",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "constitution",
+            "ok": true,
+            "why": "absent (not assumed balanced)"
+          }
+        ]
+      }
+    },
+    {
+      "case": "string_false_authority_does_not_block_direct_check",
+      "received": {
+        "regime": {
+          "risk_gate_posture": "RISK_ON"
+        },
+        "authority": {
+          "allows_new_entries": "false"
+        }
+      },
+      "result": {
+        "ok": true,
+        "task": "veto-check",
+        "allowed": true,
+        "stance": "SELECTIVE",
+        "vetoes": [],
+        "reasoning": [
+          {
+            "step": "gate",
+            "ok": true,
+            "why": "RISK_ON"
+          },
+          {
+            "step": "authority",
+            "ok": true,
+            "why": "not blocking"
+          },
+          {
+            "step": "sizing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "table",
+            "ok": true,
+            "why": "RISK_ON x none -> SELECTIVE"
+          },
+          {
+            "step": "plumbing",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "credit",
+            "ok": true,
+            "why": "score=None ccc21=None"
+          },
+          {
+            "step": "dollar",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "vol",
+            "ok": true,
+            "why": null
+          },
+          {
+            "step": "constitution",
+            "ok": true,
+            "why": "absent (not assumed balanced)"
+          }
+        ]
+      }
+    }
+  ]
+}

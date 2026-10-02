@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 566 shared Fabric logger context is exact-code/native/static accepted across 17 importers, 171 packaged sources and 22 unchanged bindings. The seven reproduced event-input defects are next. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 570 deterministic fallback constraint repair is exact-native accepted after Stage569 strict AI decision-input acceptance. Zero/no-entry constraints now withhold every directional arm; absent metrics stay unknown, and the unqualified rule table cannot grant investment permission. Peer ticker lookup safety and completeness are next, followed by AI board numeric and publication-clock projections. Source validity, full point-in-time replay, cohorts, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8034,3 +8034,134 @@ Source-only scope clarification: the optimizer checks presence of `metadata.fabr
 Commit `86f8aeb755e301b55ea2a253e7237e3fadc8ba75` landed the complete 18-file native Git batch, including `config/page-data-contracts.json` (7996692 bytes). All 17 exact receipts, 171 deployed source members and original runtime resources/22 bindings match, captured twice by operation 6463. The whole public inventory and static inspection assets match a coherent served build; returned bundle candidates remain explicitly unproven. Validation includes 1071 deployment checks, 15 shell checks, 2974 frontend tests, 12 affected engine suites, 32 Fabric cases, 11 actual logger-chain cases, 14 native acceptance unit cases, ten inventory regressions and 16 intercepted browser cases.
 
 The shared SDK and bundled copy no longer reattach flat unqualified Fabric learning fields. The optimizer stamped-coverage counter is no longer fed by those new flat fields; no learned-weight formula repair or historical ledger rewrite is claimed. Selected diagnostics remain inspectable research. Normal application publication, source/point-in-time qualification, performance validity and portfolio consequences remain OPEN; the seven separately reproduced event-input bugs are the next repair. No actual outcome ledger, scorecard, private/account or current application packet was inspected.
+
+
+## Stage 567: typed signal-event inputs (candidate)
+
+The retained real SDK reproduces eight failures using invented storage: zero and NaN confidence become 0.05 and 0.95, a string horizon splits into individual digits, boolean prices become one, unknown directions pass through, fractional days truncate, and tiny metadata or a positive tiny baseline becomes zero. No actual event ledger or scorecard was inspected.
+
+The shared writer and shadow-lab bundled copy now share a pure typed-input contract. Finite prices/confidence retain their precision, confidence endpoints zero/one remain unchanged, and invalid values fail before context reads or writes. Windows must be an explicit distinct collection of positive whole calendar days before the existing one-year row expiry. The two existing bullish/bearish caller aliases map explicitly to UP/DOWN, with the original spelling retained; unknown directions cannot become predictions. Caller metadata is copied with finite JSON-shaped values and a separate received-input record. Qualification flags remain false, even if a caller supplies a forged prior contract.
+
+Thirteen focused cases reproduce the predecessor and check the actual writer, plus the actual AI logging adapter against invented quote/table callbacks. Eleven Fabric → Best Setups → SDK context cases remain passing in the draft. Daily dedupe, the existing schema fields, source inputs and native resources/schedules remain intact. This does not qualify quote timing, instrument identity, corporate actions, confidence calibration, original replay or forward performance; those and all ten workstreams remain OPEN. Complete deployment and native/static acceptance are pending.
+
+
+### Stage 567 exact event-input release acceptance
+
+Commit `7ab550f69d0653d1ad2a63cb65407aa7c0ae663c` landed the complete 13-file native Git batch, including `config/page-data-contracts.json` (7996692 bytes). All 17 exact receipts, 188 deployed source members and original resources/22 bindings match in two captures by operation 6464. Whole static inspection assets and the 900-engine inventory match one served build. Checks: 1073 deployment, 15 shell, 2974 frontend, 12 affected engine suites, 32 Fabric, 11 actual logger-chain, 13 event-input, 14 native acceptance unit and 16 intercepted browser cases; 600 page graphs and 143 wiring declarations pass.
+
+The shared SDK and bundled copy preserve confidence endpoints, Decimal precision and tiny positive prices. Invalid numeric types, directions, identity fields, nonfinite metadata and malformed/fractional/duplicate/expired horizons cannot become stored events. The retained original SDK reproduces all eight repaired cases; the actual AI callback uses invented quote/storage adapters only. Validity does not grant source-time, instrument, corporate-action, calibration or sizing authority. Legacy daily dedupe, quote retrieval, caller transformations and outcome methodology require continued review. No actual outcome ledger, scorecard, private/account or current application packet was inspected, and normal producer publication remains unverified. All ten institutional workstreams remain OPEN.
+
+The source commit also received a separate direct-ops dispatch, run 37012884621, whose own report commit updated only the 6450 report path and failed. Its report body was not read and it was not rerun. Generic verify_push therefore returned 1; the four release-bound runs (Lambda, Pages, guard, recorded 6464 audit) succeeded. The acceptance retains this distinction and does not claim all workflows or the platform are green.
+
+
+### Stage 568 AI reported-outcome projection (candidate)
+
+The actual AI market-read grader counts text `false` as a win, reconstructs a missing grade from return sign, accepts a boolean as a return, and includes an explicitly UNSCOREABLE outcome in the win rate. All four are reproduced from retained source using invented table records. A separate fractional-horizon/confidence-rounding reproduction remains open. No actual ledger or private packet was inspected.
+
+The candidate requires finite typed reported returns and an explicit boolean grade. Failed/pending/unknown statuses and missing grades remain withheld; no price or sign fallback creates a grade. Explicit misses, zero returns and Decimal inputs remain descriptive reports. Withheld windows stay outside both the normal and doctrine-wrapped lesson paths. The existing latest-80 scope and daily identity remain unchanged and labelled. Public summaries retain qualification metadata without exposing private rows; the page withholds legacy unvalidated counts, corrects calendar-day labels and stops treating a nonempty call list as out-of-sample evidence. Eleven source tests, eight actual-renderer tests and six entirely intercepted desktop/mobile draft cases are prepared; full integration and exact release acceptance remain pending. Source, point-in-time, performance, learning and portfolio authority remain unqualified; all ten workstreams remain OPEN.
+
+The complete original AI handler is also retained. Its actual student_desk function promotes 20 or more reported windows plus a better exam score into a market-skill claim. Five invented count boundaries reproduce this before the repair and show the repaired consumer retains window counts without forecasting or promotion authority. The public and owner UI tests retain zero/misses and refuse malformed counters and cells.
+
+The owner outcome table also stops rounding a small positive baseline to a displayed zero, and rejects booleans/text/nonfinite baseline values. This is a display/type repair, not entry-mark qualification.
+
+The first full gate correctly rejected changes outside the historical no-paid caller snapshots. Explicit anchored follow-up deltas now preserve both original whole-file proofs, with the no-paid helper and all existing assertions unchanged. The command overlay was found to bypass the new narrative boundary, advertise promotion on a reported exam comparison and insert feed text as HTML. Its actual predecessor is retained; the repaired overlay escapes all text, separates windows from calls, preserves zero/missingness and withholds legacy promotion narratives. Full checks must be rerun before shipping.
+
+
+### Stage 568 exact AI outcome release acceptance
+
+Commit `0bff58f369cd9bf5b82d4f236388c8952e0875b4` shipped 23 related files atomically, including the complete AI sources, page, command script, historical originals and both inspection inventories. The named AI receipt and all 50 native source members match; original runtime settings and 5 schedule bindings are unchanged across two native captures. Operation 6465/run 37016311006 supplies the own read-only report. The whole served AI static page, command script, source-observed static dependencies and fonts match the commit-bound build. Six further fully intercepted browser cases use those served assets; no actual application packet or private/learning ledger is read.
+
+Checks: 1075 deployment, 15 shell, 2989 frontend, 25 complete AI suite cases, 11 reported-outcome source cases, 15 actual-renderer cases, 14 native acceptance unit cases, 600 page graphs, 143 wiring declarations, 22 source browser and six served browser cases. The no-paid full-file predecessor proofs remain intact through explicit anchored follow-up records and AST checks; no provider, schedule or policy was enabled.
+
+Missing/invalid/failed outcomes remain outside hit counts and both lesson adapters. Valid reported misses and zero returns stay visible. Neither the student desk nor command overlay opens a promotion path from reported windows or an exam comparison. All received overlay text is escaped; typed counts and small positive baseline display are preserved. These remain descriptive legacy reports, with latest-80 scope explicit. Fractional-horizon/confidence normalization, daily identities and cohort completeness, original source marks, costs, lessons and predictive validity require further work. Normal publication remains unverified; all ten workstreams remain OPEN.
+
+
+### Stage 569 AI decision-input repair (candidate)
+
+Actual source reproductions show negated BUY prose becomes ACCUMULATE, fractional horizons truncate, confidence precision rounds, undeclared percent text becomes a fraction, duplicate JSON keys silently choose the last value, and the direct logging adapter changes zero to 0.6. The last reproduction is an adapter test only; normal validation never admitted zero. Whole predecessor source and existing owned-read tests are retained. No actual model, consumer packet or outcome ledger is inspected.
+
+The candidate accepts only explicit complete enum tokens and documented aliases, rejects duplicate/conflicting inputs, requires typed horizons and confidence units, and preserves accepted precision. Rejected and excess rows retain positions/reasons, and private read results retain the bounded answer/hash and full input. The logger validates before quote callbacks and preserves tiny positive numeric baselines. Empty calls are valid abstention. These checks qualify input syntax/types only; source evidence, original timing, complete cohorts, learned skill, portfolio authority and all ten workstreams remain OPEN. Full integration and exact native release acceptance are pending.
+
+
+### Stage 569 exact AI decision-input release acceptance
+
+Commit `c0f3c4016c935b3fcfacc21b0dae823fb046082e` shipped 13 related files atomically through native Git. The AI receipt and all 50 native packaged sources match; runtime settings and the original schedule census are unchanged across two captures in operation 6466/run 37020219215. All push-triggered checks and the named acceptance operation succeeded. The complete served AI static graph remains byte-identical to its prior accepted source; 27 static files are rechecked against one build manifest. No application data packet, actual ledger, model/provider or native producer was read or invoked.
+
+Final checks: 1076 deployment, 15 shell, 25 complete AI suite cases, 36 actual-source outcome/input cases (25 input cases), 17 owned-settlement cases, 14 native acceptance cases and all 600 page contracts. Initial owned-settlement failures identified old prose-wrapper/error-message expectations; whole original tests remain retained, and all policy/settlement assertions pass with explicit JSON fixtures.
+
+Negated prose cannot become ACCUMULATE. Fractional/string/boolean horizons, guessed percent confidence, duplicate keys, conflicting aliases/units and malformed rows are rejected with source positions/reasons. Accepted confidence receives no extra decimal rounding; bounded raw answer bytes/hash remain available in parser output. The logging adapter cannot turn zero into 0.6 or pass malformed prices to its callback. Public projection regression confirms private answer text stays private. These are syntax/type/evidence-retention checks; downstream fallback retention, source validity, original timing, complete cohorts and predictive/portfolio authority remain unqualified. All ten workstreams remain OPEN.
+
+
+### Stage 570 deterministic fallback constraint repair (candidate)
+
+Five actual-source invented cases show negated posture text, ignored zero sizing/caps, missing constraints and text false can all return allowed=true through the direct shared veto-check helper. This does not prove every caller bypasses its separate policies. Whole original source and all reproductions are retained.
+
+The candidate preserves explicit zero/null/invalid canonical inputs, checks each cap independently, refuses action inference from substrings, and keeps missing risk legs unknown. Explicit entry blocks/zero limits yield NO_READ for every asset instead of LONG_DURATION for bonds. The historical rule table/ranks/thresholds stay intact as conditional research output; the helper does not grant investment permission. The actual AI fallback binding is tested. Normal publication, source definitions/units/clocks, downstream eligibility and all ten workstreams remain OPEN.
+
+
+### Stage 570 exact deterministic fallback release acceptance
+
+Commit `36aaf0ceae308a96aee86a130fa32412917d4093` shipped 11 related files atomically. The shared-module closure targets justhodl-ai; the exact receipt, all 50 packaged sources and the original runtime/schedule controls match across two captures in operation 6467/run 37023379358. All push-triggered checks and that named acceptance succeeded. 27 served static files remain byte-matched to one coherent build; no frontend source changed.
+
+Checks: 1077 deployment, 15 shell, 25 complete AI suite cases, 49 combined actual-source cases including 13 deterministic-desk cases, 17 owned-settlement cases, 14 native acceptance cases and all 600 page contracts. Every original case remains reproducible from the retained source, and the original table/ranks and stressed boundary behavior remain unchanged for compatible typed nonblocked inputs. The actual AI fallback binding is included.
+
+Explicit zero/no-entry constraints no longer borrow another value or recommend LONG_DURATION during a global entry block. Missing legs appear as unknown and data gaps. Enum substrings, boolean/text/nonfinite numbers and Decimal underflow cannot fabricate measurements. Reported conditional rules remain research-only; no forecasting, sizing or execution permission is granted. No current consumer/private/learning packet or native producer/provider was read or invoked. Normal publication, source definitions/clocks and downstream eligibility remain unverified. All ten workstreams remain OPEN.
+
+
+### Stage 571 ticker lookup repair candidate
+
+The peer ticker lookup introduced unescaped HTML, lost falsy payloads, clipped records and unbound asynchronous responses. The repair retains the lookup and all six prior feed renderers, uses text-only nodes, retains complete parsed packet/ticker/domain values for on-demand inspection, and binds both success and errors to the current selection. Coverage disagreement and malformed records are explicit; keyboard, live status and mobile layout are covered by intercepted browser cases. Both complete predecessors and exact reversible edits remain in tests. This page repair does not qualify source observations, original lexical JSON, independence, forecast skill or investment authority. Source and release acceptance remain separate; all ten workstreams stay OPEN.
+
+
+### Stage 571 ticker lookup release acceptance
+
+Commit `f2bf8d9214fd196076abb2c0e0817d38d19dce91` shipped 20 files atomically, including the large page-contract registry. All 3008 frontend cases, 600 syntax/contracts and 143 wiring entries passed on the final reviewed source base. The 1077 deployment and 15 shell checks passed before the peer-only frontend/metadata updates; affected frontend checks were rerun, not claimed unchanged. The lookup and prior feed browser cases passed with invented intercepted inputs.
+
+The published whole HTML, inline renderer and static dependencies match one coherent commit-bound build manifest. Fourteen additional served-page cases verify keyboard submit, complete record inspection, text-only markup, typed counts, mobile layout, selection invalidation and late success/error behavior. No live application packets or private/learning records were fetched or executed. Parsed JSON is not lexical original-source preservation or arbitrary-precision qualification. The peer buyback script is preserved and its historical HTML insertion is proven; its financial/runtime concerns remain open. AI board numeric/clock projections are next. All ten workstreams remain OPEN.
+
+
+### Stage 572 AI board projection repair candidate
+
+Actual source reproductions show booleans becoming numbers, tiny values becoming zero, zero scores borrowing legacy aliases, and rounded ages crossing the existing freshness/future boundaries. The candidate preserves finite JSON numbers and canonical present values and applies unchanged thresholds to unrounded age. The complete prior source, exact reversible edits, actual board compiler and existing rule paths are tested with invented inputs. This does not establish source observation/publication clocks, unit definitions, source eligibility, independent evidence, full replay or portfolio authority. The historical default for missing fusion confidence remains unchanged and unqualified. All ten workstreams remain OPEN.
+
+
+### Stage 572 exact code verification; numerical follow-up required
+
+Commit `3217b1310a9f2784ca35406dd368030d65f640d6` matches the justhodl-ai release receipt, all 50 packaged sources and preserved runtime/schedule controls in operation 6468/run 37029671049. The named deployment, guard and acceptance runs succeeded. Checks passed: 1078 deployment, 15 shell, 25 complete AI suite, 63 combined source cases, 14 board projection cases, 13 deterministic desk, 17 owned settlement, 14 native acceptance and 600 page contracts. Twenty-eight static files were rechecked as unchanged code relative to one coherent served build; this is not new natural producer publication.
+
+Final adversarial review found a regression outside the prior cases: a 401-digit integer now survives the typed parser and overflows during confidence multiplication; the preceding parser withheld it. This is retained as an open repair, so the board work is not declared complete or bug-free. Fix and verify this first; then resume the buyback pane. Peer heartbeat paths, chart Find feature and ops arriving after the source release are retained but not given runtime acceptance by this proof. No private/learning/current consumer packet or producer/model call was accessed. All ten workstreams remain OPEN.
+
+
+### Stage 573 AI board arithmetic repair candidate
+
+Final review of stage 572 reproduced an oversized-integer crash and silently tied rankings from floating-point overflow, underflow and integer rounding. This change rejects unrepresentable integers without converting valid integers, and compares exact rational working products without modifying reported fields or the existing missing-confidence policy. The entire deployed predecessor is retained, its original six-edit proof remains intact, and a new whole-source transition plus actual board cases covers the follow-up. Source qualification, normal publication, confidence policy, historical validity and portfolio authority remain open.
+
+
+### Stage 574 buyback pane repair candidate
+
+The peer renderer coerced booleans/blanks into zero, labelled gross-only repurchases as net, divided mismatched currencies/dates, drew quarter-end values on price bars without publication availability, and selected the input box ahead of the active ticker tab. The replacement retains complete parsed source inspection and uses an accounting table with explicit qualifications. It checks typed reported values and matching period/currency before ratios, keeps gross/net separate, binds to the current tab, and handles late/failed/hung requests and history return. The whole predecessor and its five actual-source reproductions remain testable. No provider/producer/private request or financial-authority claim is made.
+
+
+### Stage 573 exact code acceptance
+
+Commit `27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c` is verified against the public AI release receipt, all 50 deployed packaged sources and the original native controls in operation 6469/run 37033496687. The 1,079 deployment checks, 15 shell checks, 25 AI engine tests, 73 combined source cases, 3,008 frontend tests, 600 page graphs/contracts and 143 wiring entries passed. Twenty-seven AI static assets match one served commit-bound build. This resolves the stage 572 integer regression and silent extreme-value ranking ties, without claiming normal producer publication or investment qualification. A separate invented-input reproduction shows that stale records can still enter the legacy candidate list; source eligibility is the next AI repair after the buyback pane. All ten workstreams remain OPEN.
+
+
+### Stage 574 served code verified; chart integration follow-up required
+
+Commit `01b77ae420e1da45a7349d8199df680220720f36` matches the live Chart build, 41 whole static files and all ten selected chart modules after the existing build transforms. Pages run 37034339254 succeeded. Checks passed: 1,079 deployment, 15 shell, 3,023 frontend, 600 page graphs/contracts, 143 wiring entries and 28 source plus 28 fully intercepted served-browser cases. Visual review of the downloaded production build then exposed an empty legacy buyback oscillator after ticker repaint. Fix its routing before considering the pane finished. Parsed-JSON inspection also does not yet retain lexical original bytes or reject lossy numeric tokens; that acquisition work remains open. No normal application packet, private record or provider request was read. All ten workstreams remain OPEN.
+
+
+### Stage 575 chart accounting layout verified
+
+Commit `a265ffcee65ad0f55e1d8ad4228b029f3c0100cc` keeps external accounting out of native oscillator slots. Fifteen related files, including the 442 KB chart engine, landed as one native Git batch. The served HTML, direct static references, eleven selected whole modules and inline scripts match the commit-bound build. Source and intercepted served-browser suites each passed 34 scenarios, including native RSI coexistence and desktop/mobile repaint. Frontend 3,027; page graphs/contracts 600; wiring 143. Deployment 1,079 plus 15 shell checks passed before a reviewed peer-only chart toolbar update; affected frontend/browser/static suites reran afterward. The layout finding from Stage 574 is resolved; its historical evidence is retained. Original JSON parsing still loses some numeric tokens and duplicate identities; three cases are reproduced for the next repair. No normal application packets, private records or provider calls were read. All ten workstreams remain OPEN.
+
+
+### Stage 576 original accounting evidence verified
+
+Commit `75d6af7f11b86212a809958d762850801d45ad2e` replaces lossy buyback JSON acquisition with a complete bounded original-byte reader and decimal projection checks. Three actual predecessor failures (tiny nonzero amount becoming zero, a duplicate amount winning, and a precise decimal rounding into a safe integer) are retained and reproduced; current code withholds their accounting projections and exposes the exact originals. Receipts show source URL, byte hash, capture clock and page build without claiming observation freshness. Fifty source and fifty intercepted served-browser cases include byte-identical downloads, malformed inputs, retries, timeout, current-ticker binding and desktop/mobile layout. All 3,045 frontend tests and 600 page graphs/contracts passed; 1,079 deployment plus 15 shell checks passed before the final UI-only grouping of receipt details. Whole served code matches the intended release after existing build transforms. No normal application packets, private records or provider calls were read. AI policy string-boolean coercion is independently reproduced for the next engine repair. All ten workstreams remain OPEN.
+
+
+### Stage 577 AI advisory policy candidate
+
+The actual policy gate treats the string `false`, a numeric one and a nonempty container as permission to ledger advisory research calls. A one-line change requires the actual boolean true when an override is present. Environment defaults and all other source bytes are preserved against a complete retained predecessor. No actual policy/ledger data was read. Native acceptance remains pending; review experiments do not acquire investment authority.

@@ -1,0 +1,1684 @@
+{
+  "stage": 576,
+  "status": "exact_static_code_verified",
+  "source_commit": "75d6af7f11b86212a809958d762850801d45ad2e",
+  "tree": "06784a62c039eab2b8b3f26c866eb64f090e776e",
+  "atomic_git_batch": {
+    "paths": [
+      "chart.html",
+      "docs/audit/2026-10-02/buyback-original-evidence.json",
+      "jh-chart-buyback.js",
+      "jh-numeric-evidence.js",
+      "tests/buyback-evidence-acquisition.test.js",
+      "tests/buyback-evidence-preservation.test.js",
+      "tests/buyback-pane-browser.cjs",
+      "tests/fixtures/buyback-evidence/browser-before.cjs.txt",
+      "tests/fixtures/buyback-evidence/chart.html.txt",
+      "tests/fixtures/buyback-evidence/jh-chart-buyback.js.txt",
+      "tests/fixtures/buyback-evidence/reproduction.json",
+      "tests/fixtures/buyback-evidence/tests__helpers__chart-external-pane-preservation.cjs.txt",
+      "tests/fixtures/buyback-evidence/tests__helpers__chart-readout-layout-preservation.cjs.txt",
+      "tests/fixtures/buyback-evidence/tests__helpers__incoming-buyback-tag-preservation.cjs.txt",
+      "tests/fixtures/buyback-evidence/tests__incoming-buyback-tag.test.js.txt",
+      "tests/fixtures/buyback-evidence/transition.json",
+      "tests/helpers/buyback-evidence-preservation.cjs",
+      "tests/helpers/chart-external-pane-preservation.cjs",
+      "tests/helpers/chart-readout-layout-preservation.cjs",
+      "tests/helpers/incoming-buyback-tag-preservation.cjs",
+      "tests/incoming-buyback-tag.test.js",
+      "tests/numeric-evidence.test.js"
+    ],
+    "count": 22,
+    "sha256": {
+      "chart.html": "5a6823c963d5843eba4f32b53271b9009873e085f244a39388339ff3e141d3bc",
+      "docs/audit/2026-10-02/buyback-original-evidence.json": "12e70b527c8d6dcd83560722df90a6358f4cf212d8e852e6dc48bf78c39eccab",
+      "jh-chart-buyback.js": "caa364495781197d92dbe2054cf01b35ed502d0602609cdfa1c6f6e193db81c5",
+      "jh-numeric-evidence.js": "e2d118ab62d2f49f67fb90ad5d0f0da94dfdafbb3e0b732518976b2c90179f86",
+      "tests/buyback-evidence-acquisition.test.js": "fb29e28cb695ea347fca59e9c5b77308af92ebd83252b9c59f392f701f309964",
+      "tests/buyback-evidence-preservation.test.js": "f1e134814988d6263cdcd84280eec73889dadefd8230599c9261397c16fbf90a",
+      "tests/buyback-pane-browser.cjs": "81f9d786b4a3ff0e5f3eae9e7200650828bb03e6021e37d1215ab04987b7a8c0",
+      "tests/fixtures/buyback-evidence/browser-before.cjs.txt": "3a5bfb260e0f052fac661bbed544c9ea0425b414563c3e196228c15c4f742383",
+      "tests/fixtures/buyback-evidence/chart.html.txt": "02e7179a0a03bc8ec53156bfd6ea3478a5e636d7804a5d390a9151873a36db40",
+      "tests/fixtures/buyback-evidence/jh-chart-buyback.js.txt": "8d3557f6943fcc3527ee94d568beaff6d3fb770d7bb201eda65087cb78322bbf",
+      "tests/fixtures/buyback-evidence/reproduction.json": "5b3f296b8d372448ea2cd251f9d7e2ba4dab9c6d473afb889c1ed7e2fe984267",
+      "tests/fixtures/buyback-evidence/tests__helpers__chart-external-pane-preservation.cjs.txt": "2d044b990405aafb583e29cdb082b32a9fa92fa8bbadd98e548cb8de384fe8b4",
+      "tests/fixtures/buyback-evidence/tests__helpers__chart-readout-layout-preservation.cjs.txt": "2174465e20da927b37959cee2b20e96dcbb2cca69242cdd5b677e4b0f51c54b0",
+      "tests/fixtures/buyback-evidence/tests__helpers__incoming-buyback-tag-preservation.cjs.txt": "24ddebcfafc0ab02e02a83d7000698060f919b75af7485d88afa97de7aa7f569",
+      "tests/fixtures/buyback-evidence/tests__incoming-buyback-tag.test.js.txt": "d258a89fbabea90682d73600a55083d092e8b871b87468d63706322f751696f5",
+      "tests/fixtures/buyback-evidence/transition.json": "f314c5dfffebc4e9eefff1aaf97e9063091cff73a91114e4946737482a853427",
+      "tests/helpers/buyback-evidence-preservation.cjs": "8181c8d171a0d48d3ee6385a9fe93cff006a1aeca8eaace205d2804b13fb5515",
+      "tests/helpers/chart-external-pane-preservation.cjs": "4723f4464dd648b85c5a74e5e4ad628ad33d2a7a32ba6a065abeca8265d1cb8c",
+      "tests/helpers/chart-readout-layout-preservation.cjs": "2429c379bb7776b2bd82320edbacbf3b7247f032383536e0045b51120e40a235",
+      "tests/helpers/incoming-buyback-tag-preservation.cjs": "0abe0d24c1456a572b4e374d3ecd258ce07a685062c1cf8506af1d8d6a16259d",
+      "tests/incoming-buyback-tag.test.js": "0d27b1c68579115f635761ef40b4be0adf0d7118e857dc51ea02710bac5ee61b",
+      "tests/numeric-evidence.test.js": "74c14d48d399b20adf3d4a2c586e3ac0a503ee3a9e5a4bb5b5de2bf30d8523dc"
+    }
+  },
+  "tests": {
+    "deployment": 1079,
+    "shell": 15,
+    "deployment_base": "3377ae9b1c4eea5ff0c92d1e2a5f955e5b59a831",
+    "subsequent_ui_only_paths": [
+      "jh-chart-buyback.js",
+      "tests/buyback-pane-browser.cjs",
+      "tests/fixtures/buyback-evidence/transition.json"
+    ],
+    "frontend": 3045,
+    "source_browser": 50,
+    "served_browser": 50,
+    "page_syntax_graphs": 600,
+    "page_contracts": 600,
+    "wiring": 143,
+    "final_test_base": "3377ae9b1c4eea5ff0c92d1e2a5f955e5b59a831"
+  },
+  "static": {
+    "status": "exact_static_release_checked",
+    "source_commit": "75d6af7f11b86212a809958d762850801d45ad2e",
+    "served_commit": "75d6af7f11b86212a809958d762850801d45ad2e",
+    "checked_at": "2026-10-02T17:28:50.038071+00:00",
+    "static_files": [
+      {
+        "path": "chart.html",
+        "bytes": 57583,
+        "sha256": "ad1ec72391e95bcabf032c8f651db2ae3a58e0840950556ec682897712fdd47a",
+        "whole_http_body_sha256": "0e232334f6cbf55f1815d4726b7d09fff18645d52f13dbe2a2f008a8dc06e733",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        }
+      },
+      {
+        "path": "jh-capital-structure-context.js",
+        "bytes": 2147,
+        "sha256": "676bb1161cbc013eb14d98cbd577a9d907fad7f662aa100d936ecb6abebe5017",
+        "whole_http_body_sha256": "676bb1161cbc013eb14d98cbd577a9d907fad7f662aa100d936ecb6abebe5017",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-ai-desk.js",
+        "bytes": 3084,
+        "sha256": "3f93400c4a40c87e713fdee631b4f048e9a72b1f1a0af9bbdbcf4dec771ebd1e",
+        "whole_http_body_sha256": "3f93400c4a40c87e713fdee631b4f048e9a72b1f1a0af9bbdbcf4dec771ebd1e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-bbgo.js",
+        "bytes": 19327,
+        "sha256": "9afabb5ecf28fae2eea69e3d0e1b16781268712510b17e1259af1012214dcb70",
+        "whole_http_body_sha256": "9afabb5ecf28fae2eea69e3d0e1b16781268712510b17e1259af1012214dcb70",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-buyback.js",
+        "bytes": 12808,
+        "sha256": "020ece6b859e5449af2376560a5aaec5d626252383254426255a7d32b3360690",
+        "whole_http_body_sha256": "020ece6b859e5449af2376560a5aaec5d626252383254426255a7d32b3360690",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-campaign-marks.js",
+        "bytes": 8077,
+        "sha256": "2d097841b5b9b5fa6ec1790c6d0b4ac08b1420fceb1add015c48527eff4b3dbb",
+        "whole_http_body_sha256": "2d097841b5b9b5fa6ec1790c6d0b4ac08b1420fceb1add015c48527eff4b3dbb",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-catalog.js",
+        "bytes": 41059,
+        "sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+        "whole_http_body_sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-distribution.js",
+        "bytes": 6497,
+        "sha256": "04b2d32fd8dc14c1118447a8f868b32a83a70ebc1a7cad8103ea933f9a6e5708",
+        "whole_http_body_sha256": "04b2d32fd8dc14c1118447a8f868b32a83a70ebc1a7cad8103ea933f9a6e5708",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-dock.js",
+        "bytes": 690,
+        "sha256": "85561facb369b52559ed9c358f5008664f4a3fb492976196235bd017acbbda8c",
+        "whole_http_body_sha256": "85561facb369b52559ed9c358f5008664f4a3fb492976196235bd017acbbda8c",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-engine.js",
+        "bytes": 442520,
+        "sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
+        "whole_http_body_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-etf-desk.js",
+        "bytes": 3726,
+        "sha256": "fc30303a2e5b004d4563cc2964021c19011a7da34ad822e765a2570af9ce92ad",
+        "whole_http_body_sha256": "fc30303a2e5b004d4563cc2964021c19011a7da34ad822e765a2570af9ce92ad",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-find.js",
+        "bytes": 18762,
+        "sha256": "649e6da828e3e9c6e150b185142076c16ba429e7e61a27d26574163e1b4ead95",
+        "whole_http_body_sha256": "649e6da828e3e9c6e150b185142076c16ba429e7e61a27d26574163e1b4ead95",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-indux.js",
+        "bytes": 80072,
+        "sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+        "whole_http_body_sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-inst.js",
+        "bytes": 27698,
+        "sha256": "5a92940b7c894c8a21f6fb9c312b7622bd595554352eae2304621a452203fcaa",
+        "whole_http_body_sha256": "5a92940b7c894c8a21f6fb9c312b7622bd595554352eae2304621a452203fcaa",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-instvol.js",
+        "bytes": 21005,
+        "sha256": "27a7037bb690ae935c73ba1de91cd415ad81b3c8f87111b08f5ff1454f3ace33",
+        "whole_http_body_sha256": "27a7037bb690ae935c73ba1de91cd415ad81b3c8f87111b08f5ff1454f3ace33",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-macro-intel.js",
+        "bytes": 4996,
+        "sha256": "e3c43236606ec632117843db12fbaa45a31c12a0a687e62cef2eef65dba93170",
+        "whole_http_body_sha256": "e3c43236606ec632117843db12fbaa45a31c12a0a687e62cef2eef65dba93170",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-patterns.js",
+        "bytes": 10708,
+        "sha256": "dc4e320126224d5793143c7e06c8024d4012acbcc8a592dd805864cb280e8cb7",
+        "whole_http_body_sha256": "dc4e320126224d5793143c7e06c8024d4012acbcc8a592dd805864cb280e8cb7",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-quality.js",
+        "bytes": 2202,
+        "sha256": "31159d61df6d09810b932c456e5a6390a7b65d8836ad15e938551f7dd7a7dbfd",
+        "whole_http_body_sha256": "31159d61df6d09810b932c456e5a6390a7b65d8836ad15e938551f7dd7a7dbfd",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-rail.js",
+        "bytes": 3527,
+        "sha256": "09b309c1b87b210835be8f191d6d3d357bbe7793eb0ecb9688013eac2b20119f",
+        "whole_http_body_sha256": "09b309c1b87b210835be8f191d6d3d357bbe7793eb0ecb9688013eac2b20119f",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-risk-v3.js",
+        "bytes": 3496,
+        "sha256": "b332d90097f46ac8935105e839db09a9d35cbfb30ace87b2b5747f78966e4eed",
+        "whole_http_body_sha256": "b332d90097f46ac8935105e839db09a9d35cbfb30ace87b2b5747f78966e4eed",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-rs.js",
+        "bytes": 3908,
+        "sha256": "0af847eb99708cd0c13f084db98ad4c3dd0372af970204e613bb12ed5059a213",
+        "whole_http_body_sha256": "0af847eb99708cd0c13f084db98ad4c3dd0372af970204e613bb12ed5059a213",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-sd-sr.js",
+        "bytes": 20432,
+        "sha256": "a9393dc5281834910e5a5b13add0c3699d19891fe21affa537637949d09a7f3c",
+        "whole_http_body_sha256": "a9393dc5281834910e5a5b13add0c3699d19891fe21affa537637949d09a7f3c",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-stock-desk.js",
+        "bytes": 15423,
+        "sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+        "whole_http_body_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-studio.js",
+        "bytes": 5738,
+        "sha256": "fa75ccfe4b0f5b9a4b84ccc78de5f5a3662bd888defa2592a9ad77acef2e8b31",
+        "whole_http_body_sha256": "fa75ccfe4b0f5b9a4b84ccc78de5f5a3662bd888defa2592a9ad77acef2e8b31",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-tape.js",
+        "bytes": 8336,
+        "sha256": "162a181fc62caa478a2c5c31cc74790f5ec3a158dab3944328f48f08ff530642",
+        "whole_http_body_sha256": "162a181fc62caa478a2c5c31cc74790f5ec3a158dab3944328f48f08ff530642",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-tvrail.js",
+        "bytes": 29127,
+        "sha256": "f84889ea079118c0db966c8d616135fc53e255b1e84dd4d00fa71a59b8170c5a",
+        "whole_http_body_sha256": "f84889ea079118c0db966c8d616135fc53e255b1e84dd4d00fa71a59b8170c5a",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-tvsearch.js",
+        "bytes": 97715,
+        "sha256": "c22ae9ca0ecf944eaf37922bf47454d2111746396ad6cda4f9d5df67970914b9",
+        "whole_http_body_sha256": "c22ae9ca0ecf944eaf37922bf47454d2111746396ad6cda4f9d5df67970914b9",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-tvux.js",
+        "bytes": 4322,
+        "sha256": "0183737ee08f40a420d54a607e00c4e6b7221b9700df461be03766edafce8fac",
+        "whole_http_body_sha256": "0183737ee08f40a420d54a607e00c4e6b7221b9700df461be03766edafce8fac",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-vol-events.js",
+        "bytes": 18272,
+        "sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+        "whole_http_body_sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-volstack.js",
+        "bytes": 3864,
+        "sha256": "f26beecb1577cbeb5745c189f1e8820e4b70b98574219e56c1c2183debb4650a",
+        "whole_http_body_sha256": "f26beecb1577cbeb5745c189f1e8820e4b70b98574219e56c1c2183debb4650a",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-vwap.js",
+        "bytes": 1265,
+        "sha256": "8ef36167d5ee6422d7fe67dfaf97d074e87d42cd12b056dd48ba5e122eeff92b",
+        "whole_http_body_sha256": "8ef36167d5ee6422d7fe67dfaf97d074e87d42cd12b056dd48ba5e122eeff92b",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-cq-fuse.js",
+        "bytes": 30205,
+        "sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+        "whole_http_body_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-etf-derived.js",
+        "bytes": 23092,
+        "sha256": "f8b39320268162f0efe4635ae43869d66246a697310043e8a3ba72f732082b03",
+        "whole_http_body_sha256": "f8b39320268162f0efe4635ae43869d66246a697310043e8a3ba72f732082b03",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-etf-desk-research.js",
+        "bytes": 15591,
+        "sha256": "e8d3bcc7d710244e3540d2f96d22532e0565d0ea01ab7c38f2a3f26b25f97ef3",
+        "whole_http_body_sha256": "e8d3bcc7d710244e3540d2f96d22532e0565d0ea01ab7c38f2a3f26b25f97ef3",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-etf-fuse.js",
+        "bytes": 7568,
+        "sha256": "5ed86dd69d2688e43d5f83b95a4d60c477584c4de1b8bdd804776f2dc0e0fcde",
+        "whole_http_body_sha256": "5ed86dd69d2688e43d5f83b95a4d60c477584c4de1b8bdd804776f2dc0e0fcde",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-evidence-io.js",
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "whole_http_body_sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-khalid-sniper.js",
+        "bytes": 52471,
+        "sha256": "fd463a2792303c6096dc69c9d725a7022373dee42508e6f1ac95da9d5653e98e",
+        "whole_http_body_sha256": "fd463a2792303c6096dc69c9d725a7022373dee42508e6f1ac95da9d5653e98e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-numeric-evidence.js",
+        "bytes": 2965,
+        "sha256": "e2d118ab62d2f49f67fb90ad5d0f0da94dfdafbb3e0b732518976b2c90179f86",
+        "whole_http_body_sha256": "e2d118ab62d2f49f67fb90ad5d0f0da94dfdafbb3e0b732518976b2c90179f86",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-observation-cache.js",
+        "bytes": 8235,
+        "sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+        "whole_http_body_sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-observation-series.js",
+        "bytes": 9981,
+        "sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+        "whole_http_body_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-short-interest-research.js",
+        "bytes": 7584,
+        "sha256": "b701fe1da62f7be5c57c2d365307fd365a8dcb2f95ce489906ae5b87f6e39141",
+        "whole_http_body_sha256": "b701fe1da62f7be5c57c2d365307fd365a8dcb2f95ce489906ae5b87f6e39141",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-short-volume-research.js",
+        "bytes": 7478,
+        "sha256": "f8b4d6ab2256cdf76352a593e92192415313fbc081c70ec3675b51330025af4a",
+        "whole_http_body_sha256": "f8b4d6ab2256cdf76352a593e92192415313fbc081c70ec3675b51330025af4a",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-stock-desk-research.js",
+        "bytes": 7111,
+        "sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+        "whole_http_body_sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+        "sole_edge_script_removed": null
+      }
+    ],
+    "build_manifest_sha256": "3a2f3e0b903a489088f3805adeccfa49c80083647242525b51381cffb30f1f32",
+    "whole_modules_matching_source_after_existing_build_transforms": [
+      "jh-evidence-io.js",
+      "jh-numeric-evidence.js",
+      "jh-chart-tvux.js",
+      "jh-observation-series.js",
+      "jh-observation-cache.js",
+      "jh-cq-fuse.js",
+      "jh-chart-catalog.js",
+      "jh-chart-engine.js",
+      "jh-chart-indux.js",
+      "jh-stock-desk-research.js",
+      "jh-chart-stock-desk.js",
+      "jh-chart-vol-events.js",
+      "jh-chart-buyback.js"
+    ],
+    "whole_inline_scripts_checked": 3,
+    "script_tag": "/jh-chart-buyback.js?v=a14519ed",
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served chart HTML and direct local static references match one manifest; thirteen selected whole chart modules and original inline scripts also match intended source with only existing theme/content stamping. Fully intercepted served browser acceptance is separate."
+  },
+  "served_browser": {
+    "source_sha256": "020ece6b859e5449af2376560a5aaec5d626252383254426255a7d32b3360690",
+    "scope": "Selected complete real chart modules and pinned real chart library, invented market/accounting inputs (SPY/QQQ are fixture identities only), every request intercepted.",
+    "cases": [
+      {
+        "scenario": "active-tab-and-matched-quarter",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:52.498Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "capture-metadata-binds-source-and-original",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:52.498Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only){\n  \"request_url\": \"https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1\",\n  \"received_at\": \"2026-10-02T17:28:52.498Z\",\n  \"http_status\": 200,\n  \"sha256\": \"aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527\",\n  \"byte_count\": 1401,\n  \"byte_limit\": 67108864,\n  \"capture_page_commit\": \"75d6af7f11b86212a809958d762850801d45ad2e\",\n  \"observation_freshness_verified\": false,\n  \"investment_authority\": false\n}Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "zero-preserved",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:52.887Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11399 complete received bytes \u00b7 SHA-256: aa6e075af731b5e0e177963ec60ec374ff8697e2aeda19023379826a40fed308Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record0 USD120 USD0%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "0 USD",
+            "120 USD",
+            "0%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "gross-not-net",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:52.970Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11265 complete received bytes \u00b7 SHA-256: dd2ce2c54571eafb6c46f2fcee24dddd6fb040c46548da49a2462e0d4bebebc4Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordReported net repurchases unavailable; gross is separate.Unavailable120 USDUnavailable",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordReported net repurchases unavailable; gross is separate.",
+            "Unavailable",
+            "120 USD",
+            "Unavailable"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "currency-mismatch",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.053Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: 2e3b58d24d4ab922d9da052cde3baf2a7c58c8d01c631ed6ac1249369bf1f6aaComplete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordMarket cap date and currency do not match this quarter.100 USD120 USDUnavailable",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordMarket cap date and currency do not match this quarter.",
+            "100 USD",
+            "120 USD",
+            "Unavailable"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "complete-packet-and-safe-markup",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.120Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=116570 complete received bytes \u00b7 SHA-256: fea55fb1b0fb0f3636f082fdc4997ece64fbb5658c8eaf0ff45226266aafe13cComplete original JSON text{\"generated_at\":\"<img src=\\\"/buyback-canary\\\" onerror=\\\"window.__qa_injected=true\\\">\",\"tickers\":{\"SPY\":{\"symbol\":\"SPY\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}},\"original\":{\"long\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxCOMPLETE_RECORD_TAIL\",\"markup\":\"<img src=\\\"/buyback-canary\\\" onerror=\\\"window.__qa_injected=true\\\">\"}}]}},\"QQQ\":{\"symbol\":\"QQQ\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}}}}Download original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: <img src=\"/buyback-canary\" onerror=\"window.__qa_injected=true\">. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "failure-has-retry",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 503 \u00b7 Received at: Unavailable. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1Reported buybacks unavailable: HTTP 503. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "retry-recovers",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.387Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "underflow-withholds-accounting",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.454Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11406 complete received bytes \u00b7 SHA-256: ee148bdd0c17207d98889ea28f261326e23d443b7a9db0ff6882eca0a184185dComplete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "invalid-original-download-is-byte-identical",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.454Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11406 complete received bytes \u00b7 SHA-256: ee148bdd0c17207d98889ea28f261326e23d443b7a9db0ff6882eca0a184185dComplete original JSON text {\"generated_at\":\"2026-10-02T00:00:00Z\",\"tickers\":{\"SPY\":{\"symbol\":\"SPY\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":1e-999,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}},\"QQQ\":{\"symbol\":\"QQQ\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}}}}\nDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "underflow-retry-recovers",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.870Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "duplicate-amount-withholds-accounting",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:53.939Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11413 complete received bytes \u00b7 SHA-256: 9928d641d9a4d393877a90f1856581e38bad53ac1bfa40cf6333b51827b7f640Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Duplicate JSON key. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "duplicate-amount-retry-recovers",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.136Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "fraction-rounded-to-integer-withholds-accounting",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.219Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11418 complete received bytes \u00b7 SHA-256: e0684ddd9a4a7aaa7e62a16807eb25f567720542b15101c3d3111e2f43fbf838Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "fraction-rounded-to-integer-retry-recovers",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.402Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "keyboard-tab-rebinds",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.402Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "history-return-rebinds",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.402Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "pending-response-bound-to-current-tab",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.571Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-failure-cannot-reopen-disabled-pane",
+        "width": 1440,
+        "state": {
+          "text": "",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "enable-recovers-after-late-failure",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:28:54.689Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "hung-request-times-out-with-retry",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP Unavailable \u00b7 Received at: Unavailable. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1Reported buybacks unavailable: JSON read timed out. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "timeout-retry-recovers",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.101Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "accounting-pane-has-no-empty-oscillator-after-repaint",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.101Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "native-oscillator-still-renders-next-to-accounting",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.101Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "native-oscillator-toggle-clears-only-native-pane",
+        "width": 1440,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.101Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0,
+        "requests": [
+          "/chart.html",
+          "/fixture-library.js",
+          "/jh-evidence-io.js",
+          "/jh-numeric-evidence.js",
+          "/jh-chart-tvux.js",
+          "/jh-observation-series.js",
+          "/jh-observation-cache.js",
+          "/jh-cq-fuse.js",
+          "/jh-chart-catalog.js",
+          "/jh-chart-engine.js",
+          "/jh-chart-indux.js",
+          "/jh-stock-desk-research.js",
+          "/jh-chart-stock-desk.js",
+          "/jh-chart-vol-events.js",
+          "/jh-chart-buyback.js",
+          "/chart.html",
+          "/fixture-library.js",
+          "/jh-evidence-io.js",
+          "/jh-numeric-evidence.js",
+          "/jh-chart-tvux.js",
+          "/jh-observation-series.js",
+          "/jh-observation-cache.js",
+          "/jh-cq-fuse.js",
+          "/jh-chart-catalog.js",
+          "/jh-chart-engine.js",
+          "/jh-chart-indux.js",
+          "/jh-stock-desk-research.js",
+          "/jh-chart-stock-desk.js",
+          "/jh-chart-vol-events.js",
+          "/jh-chart-buyback.js",
+          "/api/warehouse",
+          "/api/warehouse",
+          "/api/warehouse",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/data/tv-watchlists.json",
+          "/data/jh-internals.json",
+          "/data/finviz-news.json",
+          "/api/yahoo-fund",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/yf-ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/api/trades",
+          "/aggTrades",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/api/yahoo-fund",
+          "/api/trades",
+          "/aggTrades",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/ohlc",
+          "/data/buyback-engine.json"
+        ]
+      },
+      {
+        "scenario": "active-tab-and-matched-quarter",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.959Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "capture-metadata-binds-source-and-original",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:15.959Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only){\n  \"request_url\": \"https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1\",\n  \"received_at\": \"2026-10-02T17:29:15.959Z\",\n  \"http_status\": 200,\n  \"sha256\": \"aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527\",\n  \"byte_count\": 1401,\n  \"byte_limit\": 67108864,\n  \"capture_page_commit\": \"75d6af7f11b86212a809958d762850801d45ad2e\",\n  \"observation_freshness_verified\": false,\n  \"investment_authority\": false\n}Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "zero-preserved",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.282Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11399 complete received bytes \u00b7 SHA-256: aa6e075af731b5e0e177963ec60ec374ff8697e2aeda19023379826a40fed308Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record0 USD120 USD0%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "0 USD",
+            "120 USD",
+            "0%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "gross-not-net",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.349Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11265 complete received bytes \u00b7 SHA-256: dd2ce2c54571eafb6c46f2fcee24dddd6fb040c46548da49a2462e0d4bebebc4Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordReported net repurchases unavailable; gross is separate.Unavailable120 USDUnavailable",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordReported net repurchases unavailable; gross is separate.",
+            "Unavailable",
+            "120 USD",
+            "Unavailable"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "currency-mismatch",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.415Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: 2e3b58d24d4ab922d9da052cde3baf2a7c58c8d01c631ed6ac1249369bf1f6aaComplete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordMarket cap date and currency do not match this quarter.100 USD120 USDUnavailable",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received recordMarket cap date and currency do not match this quarter.",
+            "100 USD",
+            "120 USD",
+            "Unavailable"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "complete-packet-and-safe-markup",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.482Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=116570 complete received bytes \u00b7 SHA-256: fea55fb1b0fb0f3636f082fdc4997ece64fbb5658c8eaf0ff45226266aafe13cComplete original JSON text{\"generated_at\":\"<img src=\\\"/buyback-canary\\\" onerror=\\\"window.__qa_injected=true\\\">\",\"tickers\":{\"SPY\":{\"symbol\":\"SPY\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}},\"original\":{\"long\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxCOMPLETE_RECORD_TAIL\",\"markup\":\"<img src=\\\"/buyback-canary\\\" onerror=\\\"window.__qa_injected=true\\\">\"}}]}},\"QQQ\":{\"symbol\":\"QQQ\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}}}}Download original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: <img src=\"/buyback-canary\" onerror=\"window.__qa_injected=true\">. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "failure-has-retry",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 503 \u00b7 Received at: Unavailable. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1Reported buybacks unavailable: HTTP 503. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "retry-recovers",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.731Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "underflow-withholds-accounting",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.798Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11406 complete received bytes \u00b7 SHA-256: ee148bdd0c17207d98889ea28f261326e23d443b7a9db0ff6882eca0a184185dComplete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "invalid-original-download-is-byte-identical",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:16.798Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11406 complete received bytes \u00b7 SHA-256: ee148bdd0c17207d98889ea28f261326e23d443b7a9db0ff6882eca0a184185dComplete original JSON text {\"generated_at\":\"2026-10-02T00:00:00Z\",\"tickers\":{\"SPY\":{\"symbol\":\"SPY\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":1e-999,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}},\"QQQ\":{\"symbol\":\"QQQ\",\"measurement_contract\":\"buyback-accounting-measurements.v1\",\"market_cap\":10000,\"market_cap_asof\":\"2026-06-30\",\"market_cap_unit\":\"USD\",\"quality\":{\"point_in_time_availability_verified\":false},\"measurements\":{\"cashflow_observations\":[{\"date\":\"2026-06-30\",\"start_date\":\"2026-04-01\",\"reported_currency\":\"USD\",\"eligible\":true,\"reported_calendar_duration_aligned\":true,\"metrics\":{\"net_common_repurchases\":{\"value\":100,\"status\":\"reported_value\",\"source_field\":\"netCommonStockIssuance\",\"sign\":\"negative\",\"unit\":\"USD\"},\"gross_common_repurchases\":{\"value\":120,\"status\":\"reported_value\",\"source_field\":\"commonStockRepurchased\",\"sign\":\"magnitude\",\"unit\":\"USD\"}}}]}}}}\nDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "underflow-retry-recovers",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.098Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "duplicate-amount-withholds-accounting",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.181Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11413 complete received bytes \u00b7 SHA-256: 9928d641d9a4d393877a90f1856581e38bad53ac1bfa40cf6333b51827b7f640Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Duplicate JSON key. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "duplicate-amount-retry-recovers",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.364Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "fraction-rounded-to-integer-withholds-accounting",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.430Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11418 complete received bytes \u00b7 SHA-256: e0684ddd9a4a7aaa7e62a16807eb25f567720542b15101c3d3111e2f43fbf838Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported buybacks unavailable: Numeric token loses precision; original retained. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "fraction-rounded-to-integer-retry-recovers",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.614Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "keyboard-tab-rebinds",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.614Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "history-return-rebinds",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 SPYSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.614Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "pending-response-bound-to-current-tab",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.766Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-failure-cannot-reopen-disabled-pane",
+        "width": 390,
+        "state": {
+          "text": "",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "enable-recovers-after-late-failure",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:17.883Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "hung-request-times-out-with-retry",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP Unavailable \u00b7 Received at: Unavailable. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=1Reported buybacks unavailable: JSON read timed out. No accounting projection is shown.Retry reported packet",
+          "cells": [],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "timeout-retry-recovers",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:38.246Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "accounting-pane-has-no-empty-oscillator-after-repaint",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:38.246Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "native-oscillator-still-renders-next-to-accounting",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:38.246Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "native-oscillator-toggle-clears-only-native-pane",
+        "width": 390,
+        "state": {
+          "text": "Buyback accounting \u00b7 QQQSource receipt and original bytesHTTP 200 \u00b7 Received at: 2026-10-02T17:29:38.246Z. Receipt time is not observation freshness.Source: https://invented.justhodl.test/data/buyback-engine.json?exact=1&nogen=11401 complete received bytes \u00b7 SHA-256: aa387a3997bd8569899c16b40973ae1f86a4070c7d7a1f0268cd87cf61b95527Complete original JSON textDownload original bytesReceipt metadata (capture only)Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.Packet timestamp: 2026-10-02T00:00:00Z. Amounts are reported context, not investment recommendations.Refresh reported packetComplete received packet (parsed JSON)Complete selected ticker record1 received accounting observations. Gross and net repurchases stay separate.Reported periodNet repurchasesGross repurchasesQuarter / matching-date cap2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record100 USD120 USD1%",
+          "cells": [
+            "2026-04-01 \u2192 2026-06-30Observation 1 \u00b7 full received record",
+            "100 USD",
+            "120 USD",
+            "1%"
+          ],
+          "images": 0,
+          "svg": 0,
+          "injected": false,
+          "paint_unchanged": true,
+          "busy": "false",
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0,
+        "requests": [
+          "/chart.html",
+          "/fixture-library.js",
+          "/jh-evidence-io.js",
+          "/jh-numeric-evidence.js",
+          "/jh-chart-tvux.js",
+          "/jh-observation-series.js",
+          "/jh-observation-cache.js",
+          "/jh-cq-fuse.js",
+          "/jh-chart-catalog.js",
+          "/jh-chart-engine.js",
+          "/jh-chart-indux.js",
+          "/jh-stock-desk-research.js",
+          "/jh-chart-stock-desk.js",
+          "/jh-chart-vol-events.js",
+          "/jh-chart-buyback.js",
+          "/chart.html",
+          "/fixture-library.js",
+          "/jh-evidence-io.js",
+          "/jh-numeric-evidence.js",
+          "/jh-chart-tvux.js",
+          "/jh-observation-series.js",
+          "/jh-observation-cache.js",
+          "/jh-cq-fuse.js",
+          "/jh-chart-catalog.js",
+          "/jh-chart-engine.js",
+          "/jh-chart-indux.js",
+          "/jh-stock-desk-research.js",
+          "/jh-chart-stock-desk.js",
+          "/jh-chart-vol-events.js",
+          "/jh-chart-buyback.js",
+          "/api/warehouse",
+          "/api/warehouse",
+          "/api/warehouse",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/data/tv-watchlists.json",
+          "/data/jh-internals.json",
+          "/data/finviz-news.json",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/api/yahoo-fund",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/yf-ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/ohlc",
+          "/api/trades",
+          "/aggTrades",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/api/yahoo-fund",
+          "/api/trades",
+          "/aggTrades",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/data/buyback-engine.json",
+          "/ohlc",
+          "/data/buyback-engine.json"
+        ]
+      }
+    ]
+  },
+  "visual_review": {
+    "screenshots_sha256": {
+      "final-390.png": "91a721ef0d77850049a2b5e46cbefeb9cee824f3be9836fe9c77a1cb8799db73",
+      "final-1440.png": "d003d7b2bec3c7f5df6d34d79306085d66fff5c3a0e220ac3c2f760bf63a136d",
+      "aligned-390.png": "5afb84ed92c2de31d334345f0c5a13e669314e2580c4fa562cee9ce8828bd8dd"
+    },
+    "result": "Source receipt and original bytes are grouped in an expandable evidence control; accounting remains the main display. Desktop/mobile containment and native RSI coexistence remain intact."
+  },
+  "pages_run": {
+    "id": 37040247000,
+    "path": ".github/workflows/pages.yml",
+    "event": "push",
+    "head_sha": "75d6af7f11b86212a809958d762850801d45ad2e",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "repairs": [
+    "Complete received response bytes remain inspectable and downloadable without reserialization, including rejected JSON",
+    "Duplicate identities, overflow, underflow, unsafe integers and decimal tokens altered by JavaScript projection cannot feed accounting values",
+    "Capture receipt binds request URL, receipt time, HTTP status, byte count, SHA-256 and reported page-build commit; receipt freshness is not observation freshness",
+    "No changes to producer accounting scope, zero semantics, gross/net separation, market-cap matching or historical-availability qualification"
+  ],
+  "limits": {
+    "complete_body_bytes": 67108864,
+    "deadline_ms": 20000,
+    "json_depth": 128,
+    "normal_application_packet_reads": 0
+  },
+  "limitations": [
+    "Selected complete chart modules tested with invented inputs and every request intercepted",
+    "Capture verifies bytes received by this client; it does not authenticate original financial reports or prove observation freshness, historical availability or source independence",
+    "Other consumers still need original-byte and eligibility review"
+  ],
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "all_ten_workstreams": "OPEN"
+}

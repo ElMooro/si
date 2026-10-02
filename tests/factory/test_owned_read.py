@@ -59,7 +59,7 @@ class OwnedReadPromptTests(unittest.TestCase):
         self.assertFalse(got.get("parse_error")); self.assertEqual(got["stocks"]["stance"], "RISK_ON")
         empty = mr.compose_read(BOARD, PLAY, lambda prompt, **kw: "")
         self.assertTrue(empty.get("fallback") and empty.get("empty"))
-        fenced = mr.parse_read_text("Sure! ```json\n" + json.dumps({**ANSWER, "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 21, "confidence": 0.5, "thesis": "not a candidate"}]}) + "\n```", {"AAPL"})
+        fenced = mr.parse_read_text("```json\n" + json.dumps({**ANSWER, "calls": [{"ticker": "NVDA", "direction": "UP", "horizon_days": 21, "confidence": 0.5, "thesis": "not a candidate"}]}) + "\n```", {"AAPL"})
         self.assertFalse(fenced.get("parse_error")); self.assertEqual(fenced["calls"], [])       # a call outside the candidates is dropped, not trusted
         bad = mr.parse_read_text(json.dumps({**ANSWER, "stocks": {"stance": "MOON", "read": "x"}}), {"AAPL"})
         self.assertTrue(bad.get("parse_error") and "stance is invalid" in json.dumps(bad))
@@ -116,7 +116,7 @@ class OwnedReadSettleTests(unittest.TestCase):
         self.assertEqual(lf.settle_owned_read()['state'], 'queued')
         self.assertTrue(json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']['fallback'])
         # 3) the endpoint answers (the object at OutputLocation): the owned read becomes THE read, calls ledgered
-        self.cloud.rows[('private', 'factory/inference/out/x.json')] = json.dumps({'generated_text': 'Here you go:\n' + json.dumps(ANSWER), 'details': {'finish_reason': 'eos_token'}}).encode()
+        self.cloud.rows[('private', 'factory/inference/out/x.json')] = json.dumps({'generated_text': json.dumps(ANSWER), 'details': {'finish_reason': 'eos_token'}}).encode()
         res = lf.settle_owned_read()
         self.assertEqual(res['state'], 'done'); self.assertEqual(res['stances']['stocks'], 'RISK_ON'); self.assertEqual(res['calls_logged'], 1)
         final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
@@ -150,12 +150,12 @@ class OwnedReadSettleTests(unittest.TestCase):
         res = lf.settle_owned_read()
         self.assertEqual(res['state'], 'repairing')                                   # prose -> one repair round first
         mid = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
-        self.assertTrue(mid['fallback']); self.assertIn('no JSON', mid['owned_voice']['repair']['first_error'])
+        self.assertTrue(mid['fallback']); self.assertIn('validation:', mid['owned_voice']['repair']['first_error'])
         self.cloud.rows[('private', 'factory/inference/out/y.json')] = json.dumps({'generated_text': 'still prose, sorry'}).encode()
         res = lf.settle_owned_read()
         self.assertEqual(res['state'], 'malformed')                                   # the repair also failed: terminal, deterministic stands
         final = json.loads(self.cloud.rows[('private', lf.READ_KEY)])['read']
-        self.assertTrue(final['fallback']); self.assertEqual(final['owned_voice']['state'], 'malformed'); self.assertIn('no JSON', final['owned_voice']['error'])
+        self.assertTrue(final['fallback']); self.assertEqual(final['owned_voice']['state'], 'malformed'); self.assertIn('validation:', final['owned_voice']['error'])
 
 
 
@@ -167,11 +167,11 @@ class OwnedReadContractTests(unittest.TestCase):
                 "macro": "Growth slowing, inflation sticky.",
                 "stocks": {"stance": "risk-off", "reading": "Breadth weak and the gate is defensive."},
                 "bonds": {"posture": "long", "read": "Curve bull-steepening favours duration."},
-                "metals": "Hold gold; no new buys until the dollar turns.",
+                "metals": {"stance": "HOLD", "read": "Hold gold; no new buys until the dollar turns."},
                 "crypto": {"stance": "neutral", "commentary": "BTC range-bound."},
                 "best_opportunities": [{"ticker": "AAPL", "direction": "buy", "reason": "relative strength", "horizon": 21}],
                 "what_would_change_my_mind": ["gate flips"], "data_gaps": [],
-                "calls": [{"ticker": "TLT", "side": "long", "horizon": 63, "confidence": 65, "why": "duration bid"}]}
+                "calls": [{"ticker": "TLT", "side": "long", "horizon": 63, "confidence": 0.65, "why": "duration bid"}]}
         got = mr.parse_read_text("```json\n" + json.dumps(near) + "\n```", {"AAPL", "TLT"})
         self.assertFalse(got.get("parse_error"), got)
         self.assertEqual(got["stocks"]["stance"], "DEFENSIVE"); self.assertEqual(got["bonds"]["stance"], "LONG_DURATION")
@@ -189,7 +189,7 @@ class OwnedReadContractTests(unittest.TestCase):
     def test_owned_prompt_carries_the_skeleton_and_repair_prompt_carries_the_error(self):
         p = mr.build_prompt(BOARD, PLAY, None, True, mr.OWNED_BUDGET, schema_hint=True)
         self.assertIn('"stocks": {"stance": "RISK_ON|SELECTIVE|DEFENSIVE|AVOID"', p); self.assertIn("Copy exactly this shape", p)
-        self.assertIn("at least 2 dated calls", p)                     # 2026-09-19: a read with 0 calls (like that morning's) is never graded
+        self.assertIn("empty calls array is valid abstention", p); self.assertNotIn("at least 2 dated calls", p)
         self.assertNotIn("Copy exactly this shape", mr.build_prompt(BOARD, PLAY, None, True))
         rp = mr.repair_prompt('{"stocks": {"stance": "DEFENSIVE"}}', "validation: stocks.read must be a non-empty string")
         self.assertIn("stocks.read must be a non-empty string", rp); self.assertIn(mr.SCHEMA_SKELETON, rp); self.assertIn('"stance": "DEFENSIVE"', rp)
@@ -278,11 +278,11 @@ class StudentDeskTests(unittest.TestCase):
                "gear_b": {"champion": {"generation": 0, "note": "base model; no weights promoted"}}, "pipeline": {"status": "idle"}, "student_wall": None}
         d = lf.student_desk(pub)
         self.assertFalse(d["market_exam_holdout"]["beats_prior"]); self.assertEqual(d["calls"]["graded"], 0)
-        self.assertTrue(any("Beat the naive prior" in c for c in d["cannot_do_yet"])); self.assertTrue(any("0 of 11 calls graded" in c for c in d["cannot_do_yet"]))
-        self.assertIn("never will without a human apply-lane", " ".join(d["cannot_do_yet"])); self.assertIn("first 5-day grades", d["next_lesson"])
+        self.assertTrue(any("Beat the naive prior" in c for c in d["cannot_do_yet"])); self.assertTrue(any("0 reported windows" in c for c in d["cannot_do_yet"]))
+        self.assertIn("never will without a human apply-lane", " ".join(d["cannot_do_yet"])); self.assertIn("Qualify entry/exit marks", d["next_lesson"])
         pub["market_exam"]["holdout"]["model_scores"]["score"] = 0.60; pub["scoreboard"]["calls_graded"] = 25
         d2 = lf.student_desk(pub)
-        self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertIn("first non-advisory step", d2["next_lesson"])
+        self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertNotIn("first non-advisory step", d2["next_lesson"]); self.assertIn("do not grant promotion", d2["next_lesson"]); self.assertEqual(d2["calls"]["graded_unit"], "reported_window"); self.assertFalse(d2["calls"]["qualification"]["forecast_qualified"])
 
 class DoctrineWrapperTests(unittest.TestCase):
     def test_preview_launch_disabled_is_not_a_refusal(self):

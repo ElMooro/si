@@ -4,6 +4,33 @@ from datetime import datetime,timezone
 import ast,contextlib,hashlib,io,json,sys,types,unittest,urllib.request
 R=Path(__file__).resolve().parents[1];D=R/'tests/fixtures/no-paid-adapters'
 
+def outcome_followup(path,text):
+ """Replay later reviewed changes without replacing the no-paid predecessor."""
+ followups=json.loads((D/'ai-outcome-followups.json').read_bytes())
+ allowed={'aws/lambdas/justhodl-ai/source/lambda_function.py':{'learning_scoreboard','student_desk','public_market_read'},
+          'aws/lambdas/justhodl-ai/tests/run_tests.py':{'main','test_reported_outcomes_actual_source'}}
+ assert set(followups)==set(allowed)
+ if path not in followups:return text
+ record=followups[path];assert hashlib.sha256(text.encode()).hexdigest()==record['predecessor_sha256']
+ before=ast.parse(text)
+ for old,new in record['edits']:
+  assert old and text.count(old)==1
+  text=text.replace(old,new)
+ assert hashlib.sha256(text.encode()).hexdigest()==record['candidate_sha256']
+ after=ast.parse(text)
+ def preserved(tree):
+  return [ast.dump(n,include_attributes=False) for n in tree.body if not (isinstance(n,ast.FunctionDef) and n.name in allowed[path])]
+ assert preserved(before)==preserved(after),'No-paid policy, other helpers and original assertions must remain intact'
+ if path.endswith('tests/run_tests.py'):
+  old=next(n for n in before.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+  new=next(n for n in after.body if isinstance(n,ast.FunctionDef) and n.name=='main')
+  added=next(n.value for n in new.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='tests' for t in n.targets))
+  assert isinstance(added,ast.List) and isinstance(added.elts[0],ast.Name) and added.elts[0].id=='test_reported_outcomes_actual_source'
+  added.elts.pop(0)
+  assert ast.dump(old,include_attributes=False)==ast.dump(new,include_attributes=False),'Only append the new actual-source regression to the runner'
+ from helpers.ai_advisory_policy_preservation import apply
+ return apply(path,text)
+
 def method(engine,name,extra=None,old=False):
  path=D/(engine+'.before.py.txt') if old else R/'aws/lambdas'/engine/'source/lambda_function.py';tree=ast.parse(path.read_text(encoding='utf-8'));node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==name)
  env={'__file__':str(path),'datetime':datetime,'timezone':timezone,'json':json,'urllib':types.SimpleNamespace(request=types.SimpleNamespace(Request=urllib.request.Request,urlopen=Mock(side_effect=AssertionError('Unexpected transport')))),**(extra or {})}
@@ -64,11 +91,11 @@ class CallerBoundaries(unittest.TestCase):
   for name,archive in [('test-fixture-edit.json','offexchange-consumer-tests.before.txt'),('ai-runner-edit.json','ai-runner.before.txt')]:
    edit=json.loads((D/name).read_bytes());raw=(D/archive).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),edit['predecessor_sha256']);text=raw.decode()
    for a,b in edit['edits']:self.assertEqual(text.count(a),1);text=text.replace(a,b)
-   self.assertEqual(text,(R/edit['target']).read_text(encoding='utf-8'))
+   self.assertEqual(outcome_followup(edit['target'],text),(R/edit['target']).read_text(encoding='utf-8'))
  def test_full_source_predecessors_and_exact_helper_deltas_are_preserved(self):
   for path,p in json.loads((D/'caller-edits.json').read_bytes()).items():
    raw=(D/(p['function']+'.before.py.txt')).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),p['predecessor_sha256']);text=raw.decode('utf-8')
    for a,b in p['edits']:self.assertEqual(text.count(a),1);text=text.replace(a,b)
-   self.assertEqual(text,(R/path).read_text(encoding='utf-8'));self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),p['candidate_sha256'])
+   self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),p['candidate_sha256']);self.assertEqual(outcome_followup(path,text),(R/path).read_text(encoding='utf-8'))
 
 if __name__=='__main__':unittest.main(verbosity=2)

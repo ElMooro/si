@@ -1,0 +1,16 @@
+{
+  "target": "tests/factory/test_owned_read.py",
+  "predecessor": "tests/fixtures/owned-read-pre-input-types-20261002.py",
+  "predecessor_sha256": "9e24bd504aee70429eae87517d328ae71bb9a6eb28924823f94174cd5757f094",
+  "candidate_sha256": "d026677ad72de6125b3eec855ad136c9e1e92673cd46b19e4c34b0e54e87b51e",
+  "changes": [
+    "JSON fence now contains the whole answer",
+    "Explicit metals stance and explanation replace inferred sentence stance",
+    "Confidence is an explicit fraction rather than inferred percent",
+    "Prompt regression requires abstention rather than forced two-call output",
+    "Settlement success fixture is a whole JSON answer; prose wrapping belongs to rejection tests",
+    "Malformed-answer error asserts the validation failure rather than obsolete no-JSON wording"
+  ],
+  "original_regressions_retained": true,
+  "first_gate_failure": "17 owned-read cases exposed two legacy expectations: prose wrapping previously accepted and malformed JSON previously returned no validation_error. Source and original tests retained; policy and settlement assertions preserved."
+}

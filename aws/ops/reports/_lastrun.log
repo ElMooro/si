@@ -1,2 +1,30 @@
-executing-against: 3e1d84e803a42c2192f3a4444a3227e6f99a2e51
-{"status_code": 202, "triggered": true}
+executing-against: c970097349aa3355dbc97861a7189929bdacc4a4
+{
+  "justhodl-sec-8k-enrich": {
+    "triggered": true,
+    "code": 202
+  },
+  "justhodl-master-ranker": {
+    "triggered": true,
+    "code": 202
+  },
+  "justhodl-conviction-engine": {
+    "triggered": true,
+    "code": 202
+  }
+}
+{
+  "justhodl-sec-8k-enrich-schedule": {
+    "exists": true,
+    "state": "ENABLED"
+  },
+  "justhodl-master-ranker-schedule": {
+    "exists": false
+  },
+  "justhodl-conviction-engine-schedule": {
+    "exists": false
+  },
+  "justhodl-sec-8k-schedule": {
+    "exists": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "stage": 574,
+  "status": "exact_static_code_verified_followup_required",
+  "base_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+  "predecessor": {
+    "path": "tests/fixtures/buyback-pane/predecessor.js.txt",
+    "sha256": "0cc4643e2028e70f79132354593347168380e6e0a59856e66ea1ef20ad604691"
+  },
+  "source": {
+    "path": "jh-chart-buyback.js",
+    "sha256": "656d0bed4a4ab53021c37a9b6a7a14c8e0047576275fe4dc11a12936ce67d4ab"
+  },
+  "html_unchanged": true,
+  "asset_versioning": "Existing content-addressed Pages stamping changes the delivered asset URL",
+  "repairs": [
+    "Gross and net repurchases stay separate",
+    "Typed numbers, aligned dates/currencies and explicit reported quarter eligibility",
+    "No accounting period projected onto historical price bars without publication availability",
+    "Current selected tab, complete parsed packet/issuer/observation inspection",
+    "Explicit failure, timeout, retry and generation-bound selection/visibility lifecycle"
+  ],
+  "qualification": {
+    "provider_originals_verified": false,
+    "point_in_time_availability_verified": false,
+    "forecast_qualified": false,
+    "investment_authority": false
+  },
+  "browser_scope": "Selected complete real chart modules and pinned chart library; invented packets/bars and fully intercepted requests. Keyboard tab selection exercised; mobile pointer reachability of the existing tab strip remains outside this pane change.",
+  "source_commit": "01b77ae420e1da45a7349d8199df680220720f36",
+  "acceptance": "docs/audit/2026-10-02/buyback-pane-acceptance.json",
+  "known_followup": "After a ticker repaint the legacy oscillator renderer creates an empty data-oid=buyback pane above the accounting section. This consumes chart height; explicit external-pane routing and a browser regression are required."
+}

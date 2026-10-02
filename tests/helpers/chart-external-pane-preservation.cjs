@@ -1,0 +1,5 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const R=path.join(__dirname,'../..'),D=path.join(R,'tests/fixtures/chart-external-pane'),t=require(path.join(D,'transition.json')),hash=x=>crypto.createHash('sha256').update(x).digest('hex');
+function normalizeSource(raw,file='jh-chart-engine.js'){if(file==='jh-chart-buyback.js')raw=require('./buyback-evidence-preservation.cjs').normalize(raw,file);const e=t.edits[file];assert.ok(e,file);assert.equal(hash(raw),e.after_sha256);assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,e.before);assert.equal(hash(raw),e.before_sha256);assert.equal(raw,fs.readFileSync(path.join(R,e.before_path),'utf8'));return raw;}
+function normalizeSigned(doc){const before=JSON.parse(fs.readFileSync(path.join(D,'signed-before.json'),'utf8')),expected=structuredClone(before);expected.entries['jh-chart-engine.js'].changed.find(x=>x.name==='paintOsc').sha256=t.paintOsc_after_sha256;assert.deepEqual(doc,expected);return before;}
+module.exports={normalizeSource,normalizeSigned};

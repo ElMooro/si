@@ -1066,7 +1066,7 @@ def _ledger_while_advisory(policy: dict) -> bool:
     """Review mode grades the AI's calls even when the fleet registry is below the production bar; production keeps the mute
     unless the policy says otherwise."""
     if "ledger_calls_when_advisory" in (policy or {}):
-        return bool(policy["ledger_calls_when_advisory"])
+        return policy["ledger_calls_when_advisory"] is True
     return os.environ.get("AI_ENVIRONMENT", "production").strip().lower() == "review"
 
 
@@ -1309,7 +1309,7 @@ def learning_scoreboard() -> Dict[str, Any]:
     return {"notes_studied": ds.get("n_rows"), "categories_learned": labels, "categories_excluded": ds.get("excluded_labels"),
             "understanding_score": round(understanding, 3) if understanding is not None else None, "latest_validation_loss": losses[-1] if losses else None,
             "coin_flip_loss": round(math.log(k), 3) if k > 1 else None, "retrains": len(runs), "trend": trend, "loss_history": losses[-8:],
-            "calls_made": len(calls), "calls_graded": graded_n, "hit_rate_by_window": perf, "lessons_carried": len(lessons.get("lessons") or []),
+            "calls_made": len(calls), "calls_graded": graded_n, "hit_rate_by_window": perf, "reported_outcome_qualification": mr.performance_qualification(), "lessons_carried": len(lessons.get("lessons") or []),
             "lessons_updated_at": lessons.get("updated_at"), "last_read_at": rd.get("generated_at"), "voice": voice,
             "read_path": "owned" if rr.get("voice") == "owned" else ("deterministic" if deterministic else ("fallback" if rr.get("voice") == "fallback" else ("llm" if rr else None))),
             "owned_voice": {k: ov.get(k) for k in ("state", "origin", "submitted_at", "settled_at", "latency_s", "error") if k in ov} or None,
@@ -1380,6 +1380,7 @@ def student_desk(pub: dict) -> dict:
     """The 4 KB public desk ai.html's command card reads (data/ai-student-desk.json). First written by Grok's one-shot
     ops 5822 (2026-09-21) from a snapshot; the engine owns it from here so it never goes stale: every line is computed
     from the live public model, never asserted. can / cannot / next are facts, not slogans."""
+    from market_read import performance_qualification
     sb, mr, ce = pub.get("scoreboard") or {}, pub.get("market_read") or {}, pub.get("coding_exam") or {}
     me = (pub.get("market_exam") or {}).get("holdout") or {}
     ms, prior = me.get("model_scores") or {}, ((me.get("baselines") or {}).get("prior") or {})
@@ -1398,23 +1399,17 @@ def student_desk(pub: dict) -> dict:
     cannot = []
     if beats_prior is not True:
         cannot.append("Beat the naive prior on the frozen market holdout (%.2f vs %.2f)" % (ms.get("score") or 0, prior.get("score") or 0) if ms.get("score") is not None else "Beat the naive prior on the frozen market holdout")
-    if graded < 20:
-        cannot.append("Show a graded hit rate: %d of %d calls graded (the 5/21/63-day windows mature on their own)" % (graded, int(sb.get("calls_made") or 0)))
+    cannot.append("Establish qualified forward performance: %d reported windows are not independent calls or a cost-adjusted out-of-sample study" % graded)
     if not champion_gen:
         cannot.append("Promote a champion above the base weights (%s)" % (ce.get("verdict") or "no candidate beats the base"))
     cannot.append("Size risk or write code to main -- it never will without a human apply-lane; ADVISORY_ONLY is the design, not a bug")
-    if beats_prior is True and graded >= 20:
-        nxt = "Market skill exists on the frozen exam and graded calls exist: review the release blockers for a first non-advisory step"
-    elif graded < 20:
-        nxt = "Let the ledger mature: first 5-day grades arrive automatically; until 20 graded calls exist nothing is promoted"
-    else:
-        nxt = "Train on settled misses (new supply is flowing); promote only when the holdout beats the prior and the coding exam does not drop"
+    nxt = "Qualify entry/exit marks, point-in-time decisions, outcome cohorts and costs before claiming forecasting skill; exam scores and reported window counts do not grant promotion."
     return {"engine": "justhodl-ai", "schema_version": "ai-student-desk.v2", "generated_at": now_iso(), "source": "computed from the live public model on every inventory tick",
             "voice": sb.get("voice"), "decision_status": mr.get("decision_status") or "ADVISORY_ONLY", "blockers": mr.get("n_blockers"), "understanding_score": sb.get("understanding_score"),
             "coding_exam": {"score": ce.get("base_score"), "passed": ce.get("base_passed"), "learning_pts": ce.get("learning_pts"), "verdict": ce.get("verdict")},
             "market_exam_holdout": {"score": ms.get("score"), "direction_acc": ms.get("direction_acc"), "regime_acc": ms.get("regime_acc"), "crisis_acc": ms.get("crisis_acc"),
                                     "prior_score": prior.get("score"), "beats_prior": beats_prior, "n_drills": me.get("n_drills"), "at": me.get("at")},
-            "reasoning_exam": rx or None, "calls": {"made": sb.get("calls_made"), "graded": graded, "hit_rate_by_window": sb.get("hit_rate_by_window")},
+            "reasoning_exam": rx or None, "calls": {"made": sb.get("calls_made"), "graded": graded, "graded_unit": "reported_window", "hit_rate_by_window": sb.get("hit_rate_by_window"), "qualification": performance_qualification()},
             "stances": mr.get("stances"), "champion": champion or {"generation": 0, "note": "base model; no weights promoted"},
             "student_wall": {"week": wall.get("week"), "entries": len(wall.get("entries") or []), "rehearsal": wall.get("rehearsal")} if wall.get("week") else None,
             "pipeline": (pub.get("pipeline") or {}).get("status"), "can_do": can, "cannot_do_yet": cannot, "next_lesson": nxt}
@@ -1450,7 +1445,7 @@ def public_market_read() -> Optional[dict]:
     perf = None
     try:
         g = mr.grade_calls(_signals_table(), calls)
-        perf = {"n_calls": g.get("n_calls"), "by_window": g.get("by_window")}
+        perf = {"n_calls": g.get("n_calls"), "by_window": g.get("by_window"), "qualification": g.get("qualification")}
     except Exception as e:
         perf = {"error": str(e)[:100], "n_calls": len(calls)}
     return {"read_id": doc.get("read_id"), "generated_at": doc.get("generated_at"), "settled_at": doc.get("settled_at"), "voice": rd.get("voice"),

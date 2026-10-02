@@ -123,7 +123,13 @@ class PreservedScope(unittest.TestCase):
      if isinstance(n.op,ast.Mult) and isinstance(n.left,ast.Constant) and isinstance(n.right,ast.Constant) and type(n.left.value) is int and type(n.right.value) is int:return ast.Constant(n.left.value*n.right.value)
      return n
    tree=Products().visit(ast.parse(path.read_bytes()));return next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id==name for t in n.targets))
-  source=R/'aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py';prior=values(R/'tests/fixtures/feed-heartbeat/predecessor.py.txt','FEEDS');current=values(source,'FEEDS');self.assertEqual(current[:len(prior)],prior);self.assertEqual(len(current),21);self.assertEqual(len({r[0] for r in current}),21)
+  source=R/'aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py';prior=values(R/'tests/fixtures/feed-heartbeat/predecessor.py.txt','FEEDS');current=values(source,'FEEDS');
+  # Retain the original population/interval/prefix proof, with only the two
+  # peer-reviewed path corrections explicitly enumerated.
+  corrected={'cboe-options':('data/cboe-options.json','data/cboe-options-chain.json'),'macro-regime':('data/macro-regime.json','data/cross-asset-regime.json')}
+  for name,(old,new) in corrected.items():self.assertEqual(next(r[1] for r in prior if r[0]==name),old);self.assertEqual(next(r[1] for r in current if r[0]==name),new)
+  expected_prior=[(name,corrected[name][1] if name in corrected else key,interval,prefix) for name,key,interval,prefix in prior]
+  self.assertEqual(current[:len(prior)],expected_prior);self.assertEqual(len(current),21);self.assertEqual(len({r[0] for r in current}),21)
   expected={'finra-research':'data/short-interest.json','8k-enriched':'data/8k-filings-enriched.json','xbrl-index':'data/xbrl-fundamentals-index.json'};self.assertEqual({r[0]:r[1] for r in current[len(prior):]},expected)
   declarations=values(source,'FEED_SOURCE_BINDINGS');self.assertEqual(declarations['short-interest']['function'],'justhodl-short-book');self.assertEqual(declarations['sec-8k']['function'],'justhodl-sec-filings-intel')
  def test_clients_have_one_attempt_and_bounded_transport(self):

@@ -1,0 +1,27 @@
+{
+  "source_sha256": "8d3557f6943fcc3527ee94d568beaff6d3fb770d7bb201eda65087cb78322bbf",
+  "scope": "Complete actual module; sole test export exposes unchanged load function; invented raw HTTP bodies; no network.",
+  "results": [
+    {
+      "scenario": "underflow",
+      "token": "1e-999",
+      "net": 0,
+      "ratio": 0,
+      "actual_network_requests": 0
+    },
+    {
+      "scenario": "duplicate-amount",
+      "token": "100,\"value\":0",
+      "net": 0,
+      "ratio": 0,
+      "actual_network_requests": 0
+    },
+    {
+      "scenario": "unsafe-fraction-rounds-to-safe",
+      "token": "9007199254740991.1",
+      "net": 9007199254740991,
+      "ratio": 90071992547409.9,
+      "actual_network_requests": 0
+    }
+  ]
+}

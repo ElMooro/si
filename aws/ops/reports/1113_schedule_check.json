@@ -1,0 +1,23 @@
+{
+  "schedules": {
+    "justhodl-feed-heartbeat-schedule": {
+      "exists": false,
+      "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule opera"
+    },
+    "justhodl-ticker-360-schedule": {
+      "exists": true,
+      "state": "ENABLED",
+      "expression": "cron(20 6,18 * * ? *)"
+    }
+  },
+  "eventbridge_rules": {
+    "justhodl-feed-heartbeat": [],
+    "justhodl-ticker-360": [
+      {
+        "name": "justhodl-ticker-360-schedule",
+        "state": "ENABLED",
+        "expr": "cron(20 6,18 * * ? *)"
+      }
+    ]
+  }
+}

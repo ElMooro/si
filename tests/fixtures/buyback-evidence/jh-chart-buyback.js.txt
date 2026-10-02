@@ -1,0 +1,119 @@
+/* Reported buyback accounting. Period ends are not publication timestamps. */
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else {root.JHBuybackPane=api;api.mount(root);}
+})(typeof window==='object'?window:globalThis,function(){
+  'use strict';
+  const CONTRACT='buyback-accounting-measurements.v1';
+  const own=(value,key)=>value!==null&&typeof value==='object'&&Object.hasOwn(value,key);
+  const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+  const number=value=>typeof value==='number'&&Number.isFinite(value)&&(!Number.isInteger(value)||Number.isSafeInteger(value))?value:null;
+  function day(value){
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||value.startsWith('0000-'))return null;
+    const stamp=Date.parse(value+'T00:00:00Z');
+    return Number.isFinite(stamp)&&new Date(stamp).toISOString().slice(0,10)===value?value:null;
+  }
+  function selected(document){
+    const tab=document.querySelector('#tabs .tab.on[data-id]');
+    const value=tab?.getAttribute('data-id');
+    if(typeof value!=='string')return '';
+    const symbol=value.trim().toUpperCase().split(':').at(-1);
+    return /^[A-Z0-9.\-]{1,20}$/.test(symbol)?symbol:'';
+  }
+  function observations(row){
+    const source=row?.measurements?.cashflow_observations;
+    if(!Array.isArray(source))return {status:'missing_or_invalid_observations',rows:[]};
+    return {status:'reported_observations',rows:source.map((received,index)=>{
+      const issues=[];const observation=object(received)?received:{};
+      const end=day(observation.date),start=day(observation.start_date),unit=observation.reported_currency;
+      const comparable=row?.measurement_contract===CONTRACT&&observation.eligible===true&&observation.reported_calendar_duration_aligned===true&&start!==null&&end!==null&&start<=end&&typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
+      if(!comparable)issues.push('Quarter identity, duration or currency is unqualified.');
+      const read=(key,field,sign)=>{
+        const metric=observation.metrics?.[key];
+        if(!comparable||!object(metric)||metric.status!=='reported_value'||metric.source_field!==field||metric.sign!==sign||metric.unit!==unit)return null;
+        return number(metric.value);
+      };
+      // The producer already converted net issuance to signed net repurchases.
+      const net=read('net_common_repurchases','netCommonStockIssuance','negative');
+      const grossValue=read('gross_common_repurchases','commonStockRepurchased','magnitude');
+      const gross=grossValue!==null&&grossValue>=0?grossValue:null;
+      if(net===null)issues.push('Reported net repurchases unavailable; gross is separate.');
+      const cap=number(row?.market_cap);
+      const aligned=cap!==null&&cap>0&&day(row?.market_cap_asof)===end&&row?.market_cap_unit===unit;
+      let ratio=null;
+      if(net!==null&&aligned){ratio=number(net/cap*100);if(net!==0&&ratio===0)ratio=null;}
+      if(!aligned)issues.push('Market cap date and currency do not match this quarter.');
+      if(net!==null&&aligned&&ratio===null)issues.push('Ratio exceeds supported numeric precision.');
+      return {source_index:index,start_date:start,end_date:end,unit:typeof unit==='string'?unit:null,net,gross,ratio,issues,received};
+    })};
+  }
+  function mount(root){
+    const document=root.document;if(!document)return;
+    let cached=null,loadedAt=0,pending=null,generation=0,viewKey=null;
+    const create=(tag,text,className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
+    function audit(label,value){
+      const details=create('details','','audit');details.appendChild(create('summary',label));
+      details.addEventListener('toggle',()=>{if(!details.open||details.dataset.loaded)return;const pre=create('pre',JSON.stringify(value,null,2));pre.tabIndex=0;pre.setAttribute('aria-label',label);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto';details.appendChild(pre);details.dataset.loaded='true';});return details;
+    }
+    function item(){return Array.isArray(root.OSC)?root.OSC.find(row=>row?.id==='buyback'):null;}
+    function ensure(){if(!Array.isArray(root.OSC))return;const existing=item();if(existing){existing.externalPane=true;return;}root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4',externalPane:true});}
+    function enabled(){const value=item()?.on;return value===1||value===true;}
+    function pane(){
+      let el=document.getElementById('jh-buyback-pane');if(el)return el;
+      el=create('section','');el.id='jh-buyback-pane';el.tabIndex=0;el.setAttribute('aria-label','Reported buyback accounting');
+      el.style.cssText='display:none;max-height:380px;overflow:auto;min-width:0;padding:10px;border-top:1px solid var(--line);background:var(--bg);color:var(--ink,var(--fg));flex:none;font-size:12px;line-height:1.5';
+      const host=document.getElementById('oscwrap');if(host?.parentNode)host.parentNode.insertBefore(el,host.nextSibling);else (document.getElementById('stage')||document.body).appendChild(el);return el;
+    }
+    function load(force){
+      if(pending)return pending;
+      if(!force&&cached!==null&&Date.now()-loadedAt<300000)return Promise.resolve(cached);
+      const controller=new root.AbortController(),deadline=root.setTimeout(()=>controller.abort(),20000);
+      pending=root.fetch('/data/buyback-engine.json?nogen=1',{cache:'no-cache',signal:controller.signal}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(value=>{cached=value;loadedAt=Date.now();return value;}).catch(error=>{cached=null;loadedAt=0;throw error;}).finally(()=>{root.clearTimeout(deadline);pending=null;});return pending;
+    }
+    function paint(el,packet,symbol){
+      el.replaceChildren(create('strong','Buyback accounting · '+symbol));
+      el.appendChild(create('p','Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.'));
+      el.appendChild(create('p','Packet timestamp: '+(typeof packet?.generated_at==='string'?packet.generated_at:'Unavailable')+'. Amounts are reported context, not investment recommendations.'));
+      const refresh=create('button','Refresh reported packet');refresh.type='button';refresh.addEventListener('click',()=>draw(true));el.appendChild(refresh);
+      el.appendChild(audit('Complete received packet (parsed JSON)',packet));
+      if(!object(packet)||!object(packet.tickers)){el.appendChild(create('p','Unavailable: missing or invalid ticker inventory.'));return;}
+      if(!own(packet.tickers,symbol)){el.appendChild(create('p','No received record for the selected ticker.'));return;}
+      const row=packet.tickers[symbol];el.appendChild(audit('Complete selected ticker record',row));
+      if(!object(row)||row.symbol!==symbol){el.appendChild(create('p','Unavailable: missing or mismatched issuer identity.'));return;}
+      const projected=observations(row);
+      if(projected.status!=='reported_observations'){el.appendChild(create('p','Unavailable: missing or invalid reported quarter collection.'));return;}
+      el.appendChild(create('p',projected.rows.length+' received accounting observations. Gross and net repurchases stay separate.'));
+      const table=create('table','');table.style.cssText='width:100%;border-collapse:collapse;text-align:left';
+      const header=create('tr','');for(const name of ['Reported period','Net repurchases','Gross repurchases','Quarter / matching-date cap'])header.appendChild(create('th',name));const thead=create('thead','');thead.appendChild(header);table.appendChild(thead);const body=create('tbody','');table.appendChild(body);
+      for(const observation of projected.rows){
+        const tr=create('tr','');const cell=create('td',(observation.start_date||'Unavailable')+' → '+(observation.end_date||'Unavailable'));
+        cell.appendChild(audit('Observation '+(observation.source_index+1)+' · full received record',observation.received));
+        if(observation.issues.length)cell.appendChild(create('p',observation.issues.join(' ')));tr.appendChild(cell);
+        for(const value of [observation.net,observation.gross])tr.appendChild(create('td',value===null?'Unavailable':String(value)+' '+observation.unit));
+        tr.appendChild(create('td',observation.ratio===null?'Unavailable':String(observation.ratio)+'%'));for(const td of tr.children)td.style.cssText='vertical-align:top;padding:6px;overflow-wrap:anywhere;border-bottom:1px solid var(--line)';body.appendChild(tr);
+      }
+      el.appendChild(table);
+    }
+    function draw(force=false){
+      ensure();const on=enabled(),symbol=selected(document),key=JSON.stringify([on,symbol]);
+      if(!force&&key===viewKey)return;viewKey=key;const request=++generation,el=pane();
+      el.style.display=on?'block':'none';el.replaceChildren();el.setAttribute('aria-busy','false');
+      if(!on)return;if(!symbol){el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));return;}
+      el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');
+      const current=()=>request===generation&&enabled()&&selected(document)===symbol;
+      load(force).then(packet=>{if(current())paint(el,packet,symbol);}).catch(error=>{
+        if(!current())return;
+        el.replaceChildren(create('p','Reported buybacks unavailable: '+(typeof error?.message==='string'?error.message:'request failed')));
+        const retry=create('button','Retry reported packet');retry.type='button';retry.addEventListener('click',()=>draw(true));el.appendChild(retry);
+      }).finally(()=>{if(current())el.setAttribute('aria-busy','false');});
+    }
+    // The pane has no price-bar projection, so it does not intercept chart paint.
+    root.jhBuybackDraw=()=>draw(true);let timer=root.setInterval(()=>draw(),1000);draw();
+    const tabs=document.getElementById('tabs');let observer=null;
+    if(tabs&&root.MutationObserver){observer=new root.MutationObserver(()=>draw());observer.observe(tabs,{attributes:true,childList:true,subtree:true,attributeFilter:['class','data-id']});}
+    root.addEventListener?.('pagehide',()=>{generation++;root.clearInterval(timer);timer=null;observer?.disconnect();});
+    root.addEventListener?.('pageshow',()=>{if(timer!==null)return;timer=root.setInterval(()=>draw(),1000);if(tabs&&observer)observer.observe(tabs,{attributes:true,childList:true,subtree:true,attributeFilter:['class','data-id']});viewKey=null;draw();});
+  }
+  return {CONTRACT,number,day,selected,observations,mount};
+});

@@ -32,7 +32,14 @@ tr:last-child td{border-bottom:none}
 .err{color:var(--bad);font-size:.8rem}
 .audit{font-size:.72rem;color:var(--mut);margin-top:4px}
 .audit summary{cursor:pointer;color:var(--acc)}
-.audit pre{white-space:pre-wrap;font-size:.68rem;background:#0A0908;padding:8px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto}
+.audit pre{overflow-wrap:anywhere;white-space:pre-wrap;font-size:.68rem;background:#0A0908;padding:8px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto}
+.lookup-form{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+.lookup-form input{flex:1 1 180px;min-width:0;padding:10px;background:#0A0908;border:1px solid var(--line);border-radius:6px;color:var(--fg);font-size:1rem;text-transform:uppercase}
+.lookup-form button{padding:10px 20px;background:var(--acc);color:#0C0B09;border:none;border-radius:6px;font-weight:700;cursor:pointer}
+#ticker-result,#ticker-status{overflow-wrap:anywhere}
+#ticker-status{margin-bottom:8px;font-size:.85rem}
+.lookup-symbol{font-size:1.2rem;margin-bottom:8px}
+.lookup-form :focus-visible,.audit :focus-visible{outline:2px solid var(--acc);outline-offset:3px}
 </style>
 <script src="/jh-ranker-numeric.js?v=1"></script>
 </head>
@@ -41,6 +48,17 @@ tr:last-child td{border-bottom:none}
 <p class="sub">Six named engine feeds. Values are reported research context; source freshness, independence and investment validity are unverified.</p>
 
 <div id="heartbeat"><span class="dot y" id="hb-dot"></span><span id="hb-text" class="loading">Checking feed health…</span></div>
+
+<div class="panel" style="margin-bottom:20px">
+  <h2>Ticker 360° Lookup</h2>
+  <label for="ticker-input">Ticker symbol</label>
+  <form id="ticker-form" class="lookup-form">
+    <input type="text" id="ticker-input" placeholder="e.g. AAPL" autocomplete="off" spellcheck="false" aria-describedby="ticker-status">
+    <button type="submit">Lookup</button>
+  </form>
+  <p id="ticker-status" role="status" aria-live="polite">Enter a ticker to inspect its reported context.</p>
+  <div id="ticker-result" aria-busy="false"></div>
+</div>
 
 <div class="grid">
   <div class="panel" tabindex="0">
@@ -157,6 +175,104 @@ get('data/options-confluence.json').then(d=>{
     <td><span class="ticker">${esc(display(t.ticker))}</span></td><td>${esc(display(t.posture))}</td><td>${esc(countText(t.n_engines))}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
 }).catch(e=>{ document.getElementById('oc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Ticker lookup: received JSON remains reported research, never investment authority.
+let tickerLookupGeneration = 0;
+const tickerSelection = () => document.getElementById('ticker-input').value.trim().toUpperCase();
+function tickerText(tag, text, className='') {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  node.className = className;
+  return node;
+}
+function tickerAudit(label, value) {
+  const details = document.createElement('details');
+  details.className = 'audit';
+  details.appendChild(tickerText('summary', label));
+  // Serialize on expansion; the complete received value stays in this closure.
+  // Large packets do not create a hidden, duplicated DOM on every lookup.
+  details.addEventListener('toggle', () => {
+    if (!details.open || details.dataset.loaded) return;
+    const pre = tickerText('pre', JSON.stringify(value, null, 2));
+    pre.tabIndex = 0;
+    pre.setAttribute('aria-label', label);
+    details.appendChild(pre);
+    details.dataset.loaded = 'true';
+  });
+  return details;
+}
+function tickerResult(packet, symbol) {
+  const result = document.createDocumentFragment();
+  result.appendChild(tickerText('p', symbol, 'ticker lookup-symbol'));
+  // This is the parsed received JSON, not a hash-qualified source original.
+  result.appendChild(tickerAudit('Complete received packet (parsed JSON)', packet));
+  let inventory;
+  try { inventory = objectMap(objectMap(packet).tickers); }
+  catch (_) {
+    result.appendChild(tickerText('p', 'Unavailable: missing or invalid ticker inventory.', 'err'));
+    return result;
+  }
+  result.appendChild(tickerText('p', 'Packet timestamp '+ago(packet.generated_at)+'. Observation freshness and investment validity are unverified.', 'meta'));
+  if (!Object.hasOwn(inventory, symbol)) {
+    result.appendChild(tickerText('p', 'No record for '+symbol+' in the received inventory ('+Object.keys(inventory).length+' ticker keys).', 'err'));
+    return result;
+  }
+  const record = inventory[symbol];
+  result.appendChild(tickerAudit('Complete received ticker record', record));
+  let domains;
+  try { domains = objectMap(objectMap(record).domains); }
+  catch (_) {
+    result.appendChild(tickerText('p', 'Unavailable: missing or invalid ticker record or domain map.', 'err'));
+    return result;
+  }
+  const names = Object.keys(domains), reported = countText(record.coverage_count);
+  result.appendChild(tickerText('p', reported+' reported domains; '+names.length+' received domain entries. These are not independent votes.', 'meta'));
+  if (reported === 'Unavailable' || record.coverage_count !== names.length) {
+    result.appendChild(tickerText('p', 'Coverage count is missing, invalid or inconsistent with the received domain map.', 'err'));
+  }
+  for (const name of names) {
+    const domain = domains[name];
+    const valid = domain !== null && typeof domain === 'object' && !Array.isArray(domain);
+    const label = name+' — '+(valid ? 'reported as of '+ago(domain.as_of) : 'invalid domain record; original value retained');
+    result.appendChild(tickerAudit(label, domain));
+  }
+  if (!names.length) result.appendChild(tickerText('p', 'No domain entries received.', 'meta'));
+  return result;
+}
+function tickerStatus(message, className='') {
+  document.getElementById('ticker-status').textContent = message;
+  document.getElementById('ticker-status').className = className;
+}
+function invalidateTickerLookup() {
+  tickerLookupGeneration++;
+  document.getElementById('ticker-result').replaceChildren();
+  document.getElementById('ticker-result').setAttribute('aria-busy', 'false');
+  tickerStatus('Selection changed. Submit a lookup to inspect its received record.');
+}
+async function lookupTicker() {
+  const symbol = tickerSelection(), generation = ++tickerLookupGeneration;
+  const result = document.getElementById('ticker-result');
+  const current = () => generation === tickerLookupGeneration && symbol === tickerSelection();
+  result.replaceChildren();
+  result.setAttribute('aria-busy', 'false');
+  if (!symbol) { tickerStatus('Enter a ticker to look up.'); return; }
+  result.setAttribute('aria-busy', 'true');
+  tickerStatus('Loading '+symbol+'…', 'loading');
+  try {
+    const packet = await get('data/ticker-360.json');
+    if (!current()) return;
+    result.replaceChildren(tickerResult(packet, symbol));
+    tickerStatus('Lookup completed for '+symbol+'.');
+  } catch (error) {
+    if (!current()) return;
+    tickerStatus('Lookup unavailable: '+(typeof error?.message === 'string' ? error.message : 'request failed'), 'err');
+  } finally {
+    if (current()) result.setAttribute('aria-busy', 'false');
+  }
+}
+document.getElementById('ticker-form').addEventListener('submit', event => { event.preventDefault(); lookupTicker(); });
+document.getElementById('ticker-input').addEventListener('input', invalidateTickerLookup);
+
 
 // Ticker 360 summary
 get('data/ticker-360.json').then(d=>{

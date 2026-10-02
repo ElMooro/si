@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engine Data · JustHodl.AI</title>
+<style>
+:root{--bg:#0C0B09;--fg:#E8E4D8;--mut:#8A8371;--acc:#6FCE8A;--warn:#E8B44A;--bad:#E86A6A;--card:#161411;--line:#2A2620}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;padding:20px;max-width:1400px;margin:0 auto}
+h1{font-size:1.6rem;margin-bottom:4px}
+.sub{color:var(--mut);font-size:.85rem;margin-bottom:20px}
+#heartbeat{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:20px}
+#heartbeat .dot{width:12px;height:12px;border-radius:50%}
+.dot.g{background:var(--acc)}.dot.y{background:var(--warn)}.dot.r{background:var(--bad)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.panel{min-width:0;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.panel h2{font-size:1rem;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.panel .meta{color:var(--mut);font-size:.75rem;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{text-align:left;color:var(--mut);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line);font-size:.72rem;text-transform:uppercase}
+td{padding:7px 8px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+.ticker{font-weight:700;font-family:ui-monospace,monospace}
+.score{font-family:ui-monospace,monospace;text-align:right}
+.pos{color:var(--acc)}.neg{color:var(--bad)}
+.badge{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:10px;background:#2A2620;color:var(--mut);margin-left:8px}
+.badge.t360{background:#1A2E1A;color:var(--acc)}
+.t360bar{display:flex;gap:2px;margin-top:4px;flex-wrap:wrap}
+.t360bar span{font-size:.62rem;background:#1A2E1A;color:var(--acc);padding:1px 5px;border-radius:3px}
+.loading{color:var(--mut);font-style:italic}
+.err{color:var(--bad);font-size:.8rem}
+.audit{font-size:.72rem;color:var(--mut);margin-top:4px}
+.audit summary{cursor:pointer;color:var(--acc)}
+.audit pre{white-space:pre-wrap;font-size:.68rem;background:#0A0908;padding:8px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto}
+</style>
+<script src="/jh-ranker-numeric.js?v=1"></script>
+</head>
+<body>
+<h1>Engine Data <span class="badge t360">360° ENRICHED</span></h1>
+<p class="sub">Six named engine feeds. Values are reported research context; source freshness, independence and investment validity are unverified.</p>
+
+<div id="heartbeat"><span class="dot y" id="hb-dot"></span><span id="hb-text" class="loading">Checking feed health…</span></div>
+
+<div class="panel" style="margin-bottom:20px">
+  <h2>Ticker 360° Lookup</h2>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input type="text" id="ticker-input" placeholder="Enter ticker (e.g. AAPL)" style="flex:1;padding:10px;background:#0A0908;border:1px solid var(--line);border-radius:6px;color:var(--fg);font-size:1rem;text-transform:uppercase">
+    <button onclick="lookupTicker()" style="padding:10px 20px;background:var(--acc);color:#0C0B09;border:none;border-radius:6px;font-weight:700;cursor:pointer">Lookup</button>
+  </div>
+  <div id="ticker-result"></div>
+</div>
+
+<div class="grid">
+  <div class="panel" tabindex="0">
+    <h2>Master Ranker <span class="badge t360" id="mr-ver"></span></h2>
+    <div class="meta" id="mr-meta">loading…</div>
+    <div id="mr-numeric">Calculation details unavailable.</div>
+    <table><thead><tr><th>Ticker</th><th>Score</th><th>Systems</th><th style="text-align:right">360°</th></tr></thead>
+    <tbody id="mr-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel" tabindex="0">
+    <h2>Best Ideas <span class="badge t360" id="bi-ver"></span></h2>
+    <div class="meta" id="bi-meta">loading…</div>
+    <table><thead><tr><th>Symbol</th><th>Conviction</th><th style="text-align:right">360°</th></tr></thead>
+    <tbody id="bi-body"><tr><td colspan="3" class="loading">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel" tabindex="0">
+    <h2>Flow Confluence <span class="badge t360" id="fc-ver"></span></h2>
+    <div class="meta" id="fc-meta">loading…</div>
+    <table><thead><tr><th>Ticker</th><th>Posture</th><th>Score</th><th style="text-align:right">360°</th></tr></thead>
+    <tbody id="fc-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel" tabindex="0">
+    <h2>Conviction Engine <span class="badge t360" id="ce-ver"></span></h2>
+    <div class="meta" id="ce-meta">loading…</div>
+    <table><thead><tr><th>Subject</th><th>Direction</th><th>Conviction</th><th style="text-align:right">360°</th></tr></thead>
+    <tbody id="ce-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel" tabindex="0">
+    <h2>Options Confluence <span class="badge t360" id="oc-ver"></span></h2>
+    <div class="meta" id="oc-meta">loading…</div>
+    <table><thead><tr><th>Ticker</th><th>Posture</th><th>Engines</th><th style="text-align:right">360°</th></tr></thead>
+    <tbody id="oc-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
+  </div>
+
+  <div class="panel" tabindex="0">
+    <h2>Ticker 360° <span class="badge" id="t360-ver"></span></h2>
+    <div class="meta" id="t360-meta">loading…</div>
+    <div id="t360-body" class="loading">loading…</div>
+  </div>
+</div>
+
+<script>
+const BUCKET = 'https://justhodl.ai';
+const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const display = value => typeof value==='number' ? (Number.isFinite(value)?String(value):'Unavailable') : typeof value==='string' && value.trim() ? value : 'Unavailable';
+const countText = value => Number.isSafeInteger(value) && value>=0 ? String(value) : 'Unavailable';
+const numberText = value => typeof value==='number' && Number.isFinite(value) ? String(value) : 'Unavailable';
+const rows = value => { if(!Array.isArray(value)) throw new Error('Missing or invalid row collection'); return value; };
+const objectMap = value => { if(!value || typeof value!=='object' || Array.isArray(value)) throw new Error('Missing or invalid inventory'); return value; };
+const ago = iso => { if(typeof iso!=='string' || !iso.trim()) return 'Unavailable'; const time=Date.parse(iso); if(!Number.isFinite(time)) return 'Invalid reported timestamp'; const delta=Date.now()-time; if(delta<0) return iso+' (future; unverified)'; const m=Math.round(delta/60000); return iso+' ('+(m<60?m+'m':Math.round(m/60)+'h')+' ago)'; };
+const t360cell = t => { const c=t.t360_coverage,d=Array.isArray(t.t360_domains)?t.t360_domains:[]; if(!Number.isSafeInteger(c)||c<0) return '<span style="color:var(--mut)">Unavailable</span>'; return `<span title="${esc(d.map(display).join(', '))}">${c} reported domains</span><div class="t360bar">${d.map(x=>`<span>${esc(display(x))}</span>`).join('')}</div>`; };
+async function get(key){ const r = await fetch(`${BUCKET}/${key}?nogen=1`); if(!r.ok) throw new Error(r.status); return r.json(); }
+
+// Heartbeat
+get('data/feed-heartbeat.json').then(h=>{
+  const dot = document.getElementById('hb-dot'), txt = document.getElementById('hb-text');
+  const s = ['HEALTHY','DEGRADED','FAILED'].includes(h.storage_monitor_status)?h.storage_monitor_status:'UNKNOWN';
+  dot.className = 'dot ' + (s==='HEALTHY'?'g':s==='FAILED'?'r':'y');
+  txt.textContent = `Storage monitor: ${s} · ${countText(h.n_feeds)} feeds · ${countText(Array.isArray(h.alerts)?h.alerts.length:null)} alerts. Observation freshness is unverified.`;
+  txt.className = '';
+}).catch(()=>{ document.getElementById('hb-text').textContent = 'Heartbeat unavailable'; });
+
+// Master Ranker
+get('data/master-ranker.json').then(d=>{
+  window.JHRankerNumeric?.render(d, "mr-numeric");
+  document.getElementById('mr-ver').textContent = d.schema_version||'';
+  document.getElementById('mr-meta').textContent = `Packet timestamp ${ago(d.generated_at||d.as_of)} · duration ${numberText(d.duration_s)}${Number.isFinite(d.duration_s)?'s':''}`;
+  document.getElementById('mr-body').innerHTML = rows(d.top_tickers).slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${esc(display(t.ticker))}</span>${t.audit_trail?`<details class="audit"><summary>audit</summary><pre tabindex="0" aria-label="Complete reported audit">${esc(JSON.stringify(t.audit_trail,null,1))}</pre></details>`:''}</td>
+    <td class="score ${Number.isFinite(t.score)?(t.score>=0?'pos':'neg'):''}">${esc(numberText(t.score))}</td><td>${esc(countText(t.n_systems))}</td>
+    <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
+}).catch(e=>{ document.getElementById('mr-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Best Ideas
+get('data/best-ideas.json').then(d=>{
+  document.getElementById('bi-ver').textContent = d.schema_version||'';
+  document.getElementById('bi-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${countText(d.n_total ?? d.counts?.names)} ideas`;
+  const ideas = rows(d.stack ?? d.titans);
+  document.getElementById('bi-body').innerHTML = ideas.slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${esc(display(t.symbol ?? t.ticker))}</span></td><td>${esc(display(t.conviction_tier ?? t.conviction))}</td>
+    <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
+}).catch(e=>{ document.getElementById('bi-body').innerHTML = `<tr><td colspan="3" class="err">${esc(e.message)}</td></tr>`; });
+
+// Flow Confluence
+get('data/flow-confluence.json').then(d=>{
+  document.getElementById('fc-ver').textContent = 'v'+(d.version||'');
+  const tm = objectMap(d.ticker_map);
+  const keys = Object.keys(tm);
+  document.getElementById('fc-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${keys.length} names · validation: ${display(d.cross_validation_status)} (reported; unverified)`;
+  document.getElementById('fc-body').innerHTML = keys.slice(0,12).map(k=>{ const t={ticker:k,...tm[k]}; return `<tr>
+    <td><span class="ticker">${esc(k)}</span></td><td>${esc(display(tm[k].posture))}</td>
+    <td class="score">${esc(numberText(tm[k].score))}</td><td style="text-align:right">${t360cell(t)}</td></tr>`; }).join('');
+}).catch(e=>{ document.getElementById('fc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Conviction
+get('data/conviction.json').then(d=>{
+  document.getElementById('ce-ver').textContent = d.schema_version||'';
+  document.getElementById('ce-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${d.book_posture||''} · ${countText(d.n_actionable)} actionable`;
+  document.getElementById('ce-body').innerHTML = rows(d.setups).slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${esc(display(t.subject))}</span></td><td>${esc(display(t.direction))}</td><td>${esc(display(t.conviction))}</td>
+    <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
+}).catch(e=>{ document.getElementById('ce-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Options Confluence
+get('data/options-confluence.json').then(d=>{
+  document.getElementById('oc-ver').textContent = 'v'+(d.version||'');
+  const book = rows(d.multi_engine_confluence);
+  document.getElementById('oc-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${countText(d.counts?.names)} reported names · ${book.length} received confluence rows`;
+  document.getElementById('oc-body').innerHTML = book.slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${esc(display(t.ticker))}</span></td><td>${esc(display(t.posture))}</td><td>${esc(countText(t.n_engines))}</td>
+    <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
+}).catch(e=>{ document.getElementById('oc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Ticker lookup
+async function lookupTicker(){
+  const t = document.getElementById('ticker-input').value.trim().toUpperCase();
+  if(!t) return;
+  const res = document.getElementById('ticker-result');
+  res.innerHTML = '<span class="loading">Loading '+t+'…</span>';
+  try{
+    const d = await get('data/ticker-360.json');
+    const tk = d.tickers||{};
+    const data = tk[t];
+    if(!data){
+      res.innerHTML = '<span class="err">Ticker '+t+' not in 360° universe ('+Object.keys(tk).length+' tickers indexed)</span>';
+      return;
+    }
+    const doms = data.domains||{};
+    const dnames = Object.keys(doms);
+    res.innerHTML = '<p style="margin-bottom:8px"><span class="ticker" style="font-size:1.2rem">'+t+'</span> <span class="badge t360">'+data.coverage_count+' domains</span></p>' +
+      '<div class="t360bar" style="margin-bottom:12px">'+dnames.map(n=>'<span>'+n+'</span>').join('')+'</div>' +
+      dnames.map(n=>{
+        const dd = doms[n];
+        const td = dd.data||{};
+        return '<details class="audit" style="margin-bottom:6px"><summary>'+n+' <span style="color:var(--mut)">as of '+ago(dd.as_of)+'</span></summary><pre>'+JSON.stringify(td,null,1).slice(0,1000)+'</pre></details>';
+      }).join('');
+  }catch(e){
+    res.innerHTML = '<span class="err">'+e.message+'</span>';
+  }
+}
+document.getElementById('ticker-input')?.addEventListener('keypress', e=>{ if(e.key==='Enter') lookupTicker(); });
+
+// Ticker 360 summary
+get('data/ticker-360.json').then(d=>{
+  const tk = objectMap(d.tickers);
+  const names = Object.keys(tk);
+  let totalCov = 0, coverageOk = names.length>0;
+  names.forEach(k=>{ const row=tk[k],n=row?.coverage_count,domains=row?.domains; if(!Number.isSafeInteger(n)||n<0||!domains||typeof domains!=='object'||Array.isArray(domains)||Object.keys(domains).length!==n||!Number.isSafeInteger(totalCov+n)){coverageOk=false;return;} totalCov+=n; });
+  const average=coverageOk?totalCov/names.length:null;
+  const averageLabel=average===null?'Unavailable':average>0&&average<.1?'<0.1':average.toFixed(1);
+  document.getElementById('t360-ver').textContent = 'v'+(d.version||d.artifact_version||'');
+  document.getElementById('t360-meta').textContent = `Packet timestamp ${ago(d.generated_at)}`;
+  document.getElementById('t360-body').innerHTML =
+    `<p style="font-size:2rem;font-weight:700">${names.length}</p><p class="meta">tickers indexed</p>
+     <p style="font-size:1.2rem;margin-top:8px">${esc(averageLabel)}</p><p class="meta">mean reported domains per ticker; not independent votes</p>`;
+  document.getElementById('t360-body').className = '';
+}).catch(e=>{ document.getElementById('t360-body').innerHTML = `<span class="err">${esc(e.message)}</span>`; });
+</script>
+</body>
+</html>

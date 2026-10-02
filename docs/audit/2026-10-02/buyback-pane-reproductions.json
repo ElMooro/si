@@ -1,0 +1,113 @@
+{
+  "source": "jh-chart-buyback.js",
+  "source_sha256": "0cc4643e2028e70f79132354593347168380e6e0a59856e66ea1ef20ad604691",
+  "scope": "Whole source with only a test export inserted. Invented packet and browser doubles; no application packet or real network read.",
+  "actual_network_requests": 0,
+  "findings": [
+    {
+      "case": "booleans_and_blank_strings_become_measured_zero",
+      "result": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "case": "gross_only_becomes_net_label_candidate",
+      "received": {
+        "market_cap": 10000,
+        "market_cap_asof": "2026-09-30",
+        "market_cap_unit": "USD",
+        "quality": {
+          "point_in_time_availability_verified": false
+        },
+        "measurements": {
+          "cashflow_observations": [
+            {
+              "date": "2025-03-31",
+              "reported_currency": "EUR",
+              "eligible": false,
+              "issues": [
+                "reported_quarter_duration_unverified"
+              ],
+              "metrics": {
+                "gross_common_repurchases": {
+                  "value": 100,
+                  "status": "reported_value",
+                  "unit": "EUR",
+                  "sign": "magnitude"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "result": [
+        {
+          "date": "2025-03-31",
+          "y": 1
+        }
+      ]
+    },
+    {
+      "case": "currency_date_and_eligibility_ignored",
+      "received": {
+        "market_cap": 10000,
+        "market_cap_asof": "2026-09-30",
+        "market_cap_unit": "USD",
+        "quality": {
+          "point_in_time_availability_verified": false
+        },
+        "measurements": {
+          "cashflow_observations": [
+            {
+              "date": "2025-03-31",
+              "reported_currency": "EUR",
+              "eligible": false,
+              "issues": [
+                "reported_quarter_duration_unverified"
+              ],
+              "metrics": {
+                "net_common_repurchases": {
+                  "value": 100,
+                  "status": "reported_value",
+                  "unit": "EUR",
+                  "sign": "negative"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "result": [
+        {
+          "date": "2025-03-31",
+          "y": 1
+        }
+      ]
+    },
+    {
+      "case": "period_end_drawn_before_publication_availability_is_known",
+      "received_bar_time": 1743379200,
+      "point_in_time_availability_verified": false,
+      "result": [
+        {
+          "x": 0,
+          "y": 1,
+          "t": 1743379200
+        },
+        {
+          "x": 1,
+          "y": 1,
+          "t": 1743465600
+        }
+      ]
+    },
+    {
+      "case": "input_box_wins_over_current_tab",
+      "input_box": "OLDINPUT",
+      "selected_tab": "CURRENT",
+      "result": "OLDINPUT"
+    }
+  ]
+}

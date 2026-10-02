@@ -10,11 +10,11 @@
   css.textContent = [
     "html[data-theme=dark],html[data-theme=dark] body,html[data-theme=dark] #app{background:#131722;color:#d1d4dc}",
     "html[data-theme=light],html[data-theme=light] body,html[data-theme=light] #app{background:#ffffff;color:#131722}",
-    "#tabbar,.tabs,#tabs{height:48px!important;min-height:48px!important;flex:none}",
+    "#tabbar,.tabs,#tabs{height:48px!important;min-height:48px!important;flex:none;position:relative;z-index:28}",
     "html[data-theme=dark] #tabbar,html[data-theme=dark] .tabs{background:#1e222d}",
     "html[data-theme=light] #tabbar,html[data-theme=light] .tabs{background:#f8f9fd}",
     ".tab{height:48px;font-size:13px;padding:0 14px}",
-    "#tfbar,.bar#tfbar{height:52px!important;min-height:52px!important;gap:2px;padding:0 10px;flex:none}",
+    "#tfbar,.bar#tfbar{height:auto!important;min-height:52px!important;max-height:none!important;overflow:visible!important;gap:2px;padding:4px 10px;flex:0 0 auto;flex-wrap:wrap!important;align-content:flex-start;position:relative;z-index:27}",
     "html[data-theme=dark] #tfbar{background:#131722}",
     "html[data-theme=light] #tfbar{background:#ffffff}",
     "#tfbar button{height:34px;padding:0 10px;border-radius:4px;font-size:14px}",
@@ -43,4 +43,23 @@
     "#cmpchips .chip{background:rgba(19,23,34,.92)}"
   ].join("");
   (document.head || document.documentElement).appendChild(css);
+
+  /* Engine clamps an elapsed bar to 0:00:00 every second. Say closed instead, and keep saying it. */
+  function watchClock() {
+    var el = document.getElementById("cd");
+    if (!el || el.dataset.jhClock) return;
+    el.dataset.jhClock = "1";
+    var lock = false;
+    function fix() {
+      if (lock) return;
+      if ((el.textContent || "") !== "bar 0:00:00") return;
+      lock = true;
+      el.textContent = "bar closed";
+      lock = false;
+    }
+    fix();
+    new MutationObserver(fix).observe(el, { childList: true, characterData: true, subtree: true });
+  }
+  watchClock();
+  document.addEventListener("DOMContentLoaded", watchClock);
 })();
