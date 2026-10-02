@@ -1,0 +1,28 @@
+{
+  "path": "jh-chart-engine.js",
+  "source_sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
+  "candidate_sha256": "a79d0492c5c6219b54e4401a26343c0f93982cc7a56d054dc1032282cec28c2a",
+  "replacements": [
+    {
+      "before": "          if(!raw.warehouse_key && !isSeries && scored<d.length*0.2 && i<urls.length-1) continue;",
+      "after": "          // Missing or measured-zero volume does not invalidate a price frame.\n          // Keep its reported source and let volume-dependent studies withhold themselves."
+    },
+    {
+      "before": "var volShow=(volOn||tapeVol) && volScore(d)>Math.max(8, d.length*0.05);",
+      "after": "var volShow=(volOn||tapeVol) && d.some(function(bar){return reportedVolume(bar.volume)!==null;});"
+    },
+    {
+      "before": "  function drawVP(d){\n    lastVP={poc:null,vah:null,val:null};",
+      "after": "  function drawVP(d){\n    lastVP={poc:null,vah:null,val:null};\n    addPriceLine(null,null,null,\"POC\"); addPriceLine(null,null,null,\"VAH\"); addPriceLine(null,null,null,\"VAL\");"
+    },
+    {
+      "before": "    var poc=0; for(i=1;i<bins;i++) if(vol[i]>vol[poc]) poc=i;",
+      "after": "    // No profile exists without a finite positive total in this window.\n    if(!Number.isFinite(tot)||tot<=0||!Number.isFinite(hi)||!Number.isFinite(lo)||hi<lo||\n        vol.some(function(value){return !Number.isFinite(value)||value<0;}))return;\n    var poc=0; for(i=1;i<bins;i++) if(vol[i]>vol[poc]) poc=i;"
+    },
+    {
+      "before": "    if(vpOn && lastVolShow) drawVP(vd);\n    else {\n      var cv=document.getElementById(\"vp\");",
+      "after": "    if(vpOn && lastVolShow) drawVP(vd);\n    else {\n      lastVP={poc:null,vah:null,val:null};\n      var cv=document.getElementById(\"vp\");"
+    }
+  ],
+  "scope": "Price-frame selection, reported volume visibility and unavailable volume-profile lifecycle. Finite positive profiles retain original arithmetic. Trade-window alignment and source-unit comparability remain unqualified; candidate not deployed."
+}

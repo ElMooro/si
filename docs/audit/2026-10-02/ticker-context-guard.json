@@ -1,6 +1,6 @@
 {
   "stage": 556,
-  "status": "candidate_integration_pending",
+  "status": "exact_native_source_and_controls_accepted",
   "source_hashes": {
     "aws/shared/ticker_360.py": "815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387",
     "aws/lambdas/justhodl-ticker-360/source/lambda_function.py": "9761e70c520414631a4c0a1fa46644ef7dfd5082728b6439c9a56d9b3f1839bc",
@@ -74,11 +74,32 @@
     "Peer source paths/fallbacks retained; concrete-source caches prevent missed fallback and preserve actual origin"
   ],
   "remaining": [
-    "Complete deployment and engine tests",
-    "Exact native code, original controls and release receipt",
     "Natural publication and source-original replay are unverified",
     "Legacy raw transport, arbitrary duplicate-row selection and lossy compaction remain separate open issues",
     "Two enabled native scheduling bindings share the same twice-daily cadence; duplicate invocation risk is unresolved and schedules are preserved.",
     "New peer source keys are preserved but native content and semantic scope are unverified."
-  ]
+  ],
+  "acceptance": "docs/audit/2026-10-02/ticker-context-guard-acceptance.json",
+  "subsequent_peer_source_change": {
+    "path": "aws/shared/ticker_360.py",
+    "before_sha256": "815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387",
+    "after_sha256": "34cd1f717e0bf5e7aa2e58598ce735d7ff1d256280175b1901d62c5f7448b39c",
+    "before": null,
+    "after": null,
+    "peer_commit": "cc5129fda9aa7da8e319ae20ab3c25cbbd85cba7",
+    "added_aliases": [
+      "big_buys",
+      "big_sells",
+      "clusters",
+      "upcoming_14d",
+      "upcoming",
+      "earnings",
+      "positions",
+      "holdings"
+    ],
+    "all_other_source_identical": true,
+    "native_delivery_verified": false,
+    "comment_cleanup_commit": "a69a5d5235807808e2cd60e17ac56238ebb5e7df"
+  },
+  "current_native_release_verified": false
 }

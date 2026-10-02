@@ -13,8 +13,8 @@ h1{font-size:1.6rem;margin-bottom:4px}
 #heartbeat{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:20px}
 #heartbeat .dot{width:12px;height:12px;border-radius:50%}
 .dot.g{background:var(--acc)}.dot.y{background:var(--warn)}.dot.r{background:var(--bad)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
-.panel{min-width:0;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
 .panel h2{font-size:1rem;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
 .panel .meta{color:var(--mut);font-size:.75rem;margin-bottom:12px}
 table{width:100%;border-collapse:collapse;font-size:.8rem}
@@ -37,47 +37,47 @@ tr:last-child td{border-bottom:none}
 </head>
 <body>
 <h1>Engine Data <span class="badge t360">360° ENRICHED</span></h1>
-<p class="sub">Six named engine feeds. Values are reported research context; source freshness, independence and investment validity are unverified.</p>
+<p class="sub">Every backend engine, surfaced. Data refreshes from S3 live.</p>
 
 <div id="heartbeat"><span class="dot y" id="hb-dot"></span><span id="hb-text" class="loading">Checking feed health…</span></div>
 
 <div class="grid">
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Master Ranker <span class="badge t360" id="mr-ver"></span></h2>
     <div class="meta" id="mr-meta">loading…</div>
     <table><thead><tr><th>Ticker</th><th>Score</th><th>Systems</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="mr-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
   </div>
 
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Best Ideas <span class="badge t360" id="bi-ver"></span></h2>
     <div class="meta" id="bi-meta">loading…</div>
     <table><thead><tr><th>Symbol</th><th>Conviction</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="bi-body"><tr><td colspan="3" class="loading">loading…</td></tr></tbody></table>
   </div>
 
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Flow Confluence <span class="badge t360" id="fc-ver"></span></h2>
     <div class="meta" id="fc-meta">loading…</div>
     <table><thead><tr><th>Ticker</th><th>Posture</th><th>Score</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="fc-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
   </div>
 
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Conviction Engine <span class="badge t360" id="ce-ver"></span></h2>
     <div class="meta" id="ce-meta">loading…</div>
     <table><thead><tr><th>Subject</th><th>Direction</th><th>Conviction</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="ce-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
   </div>
 
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Options Confluence <span class="badge t360" id="oc-ver"></span></h2>
     <div class="meta" id="oc-meta">loading…</div>
     <table><thead><tr><th>Ticker</th><th>Posture</th><th>Engines</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="oc-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
   </div>
 
-  <div class="panel" tabindex="0">
+  <div class="panel">
     <h2>Ticker 360° <span class="badge" id="t360-ver"></span></h2>
     <div class="meta" id="t360-meta">loading…</div>
     <div id="t360-body" class="loading">loading…</div>
@@ -86,90 +86,82 @@ tr:last-child td{border-bottom:none}
 
 <script>
 const BUCKET = 'https://justhodl.ai';
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const display = value => typeof value==='number' ? (Number.isFinite(value)?String(value):'Unavailable') : typeof value==='string' && value.trim() ? value : 'Unavailable';
-const countText = value => Number.isSafeInteger(value) && value>=0 ? String(value) : 'Unavailable';
-const numberText = value => typeof value==='number' && Number.isFinite(value) ? String(value) : 'Unavailable';
-const rows = value => { if(!Array.isArray(value)) throw new Error('Missing or invalid row collection'); return value; };
-const objectMap = value => { if(!value || typeof value!=='object' || Array.isArray(value)) throw new Error('Missing or invalid inventory'); return value; };
-const ago = iso => { if(typeof iso!=='string' || !iso.trim()) return 'Unavailable'; const time=Date.parse(iso); if(!Number.isFinite(time)) return 'Invalid reported timestamp'; const delta=Date.now()-time; if(delta<0) return iso+' (future; unverified)'; const m=Math.round(delta/60000); return iso+' ('+(m<60?m+'m':Math.round(m/60)+'h')+' ago)'; };
-const t360cell = t => { const c=t.t360_coverage,d=Array.isArray(t.t360_domains)?t.t360_domains:[]; if(!Number.isSafeInteger(c)||c<0) return '<span style="color:var(--mut)">Unavailable</span>'; return `<span title="${esc(d.map(display).join(', '))}">${c} reported domains</span><div class="t360bar">${d.map(x=>`<span>${esc(display(x))}</span>`).join('')}</div>`; };
-async function get(key){ const r = await fetch(`${BUCKET}/${key}?nogen=1`); if(!r.ok) throw new Error(r.status); return r.json(); }
+const ago = iso => { if(!iso) return '—'; const m = Math.round((Date.now() - new Date(iso).getTime())/60000); return m < 60 ? m+'m ago' : Math.round(m/60)+'h ago'; };
+const t360cell = t => { const c = t.t360_coverage, d = t.t360_domains||[]; if(c==null) return '<span style="color:var(--mut)">—</span>'; return `<span title="${d.join(', ')}">${c} domains</span><div class="t360bar">${d.slice(0,6).map(x=>`<span>${x}</span>`).join('')}</div>`; };
+async function get(key){ const r = await fetch(`${BUCKET}/${key}?t=${Date.now()}`); if(!r.ok) throw new Error(r.status); return r.json(); }
 
 // Heartbeat
 get('data/feed-heartbeat.json').then(h=>{
   const dot = document.getElementById('hb-dot'), txt = document.getElementById('hb-text');
-  const s = ['HEALTHY','DEGRADED','FAILED'].includes(h.storage_monitor_status)?h.storage_monitor_status:'UNKNOWN';
-  dot.className = 'dot ' + (s==='HEALTHY'?'g':s==='FAILED'?'r':'y');
-  txt.textContent = `Storage monitor: ${s} · ${countText(h.n_feeds)} feeds · ${countText(Array.isArray(h.alerts)?h.alerts.length:null)} alerts. Observation freshness is unverified.`;
+  const s = h.system_status;
+  dot.className = 'dot ' + (s==='HEALTHY'?'g':s==='DEGRADED'?'y':'r');
+  txt.textContent = `${s} · ${h.n_fresh}/${h.n_feeds} fresh` + (h.alerts.length ? ` · ${h.alerts.length} alerts` : '');
   txt.className = '';
 }).catch(()=>{ document.getElementById('hb-text').textContent = 'Heartbeat unavailable'; });
 
 // Master Ranker
 get('data/master-ranker.json').then(d=>{
   document.getElementById('mr-ver').textContent = d.schema_version||'';
-  document.getElementById('mr-meta').textContent = `Packet timestamp ${ago(d.generated_at||d.as_of)} · duration ${numberText(d.duration_s)}${Number.isFinite(d.duration_s)?'s':''}`;
-  document.getElementById('mr-body').innerHTML = rows(d.top_tickers).slice(0,12).map(t=>`<tr>
-    <td><span class="ticker">${esc(display(t.ticker))}</span>${t.audit_trail?`<details class="audit"><summary>audit</summary><pre tabindex="0" aria-label="Complete reported audit">${esc(JSON.stringify(t.audit_trail,null,1))}</pre></details>`:''}</td>
-    <td class="score ${Number.isFinite(t.score)?(t.score>=0?'pos':'neg'):''}">${esc(numberText(t.score))}</td><td>${esc(countText(t.n_systems))}</td>
+  document.getElementById('mr-meta').textContent = `as of ${ago(d.generated_at||d.as_of)} · ${d.duration_s||''}s`;
+  document.getElementById('mr-body').innerHTML = (d.top_tickers||[]).slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${t.ticker}</span>${t.audit_trail?`<details class="audit"><summary>audit</summary><pre>${JSON.stringify(t.audit_trail,null,1).slice(0,800)}</pre></details>`:''}</td>
+    <td class="score ${t.score>=0?'pos':'neg'}">${t.score}</td><td>${t.n_systems||''}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
-}).catch(e=>{ document.getElementById('mr-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+}).catch(e=>{ document.getElementById('mr-body').innerHTML = `<tr><td colspan="4" class="err">${e.message}</td></tr>`; });
 
 // Best Ideas
 get('data/best-ideas.json').then(d=>{
   document.getElementById('bi-ver').textContent = d.schema_version||'';
-  document.getElementById('bi-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${countText(d.n_total ?? d.counts?.names)} ideas`;
-  const ideas = rows(d.stack ?? d.titans);
+  document.getElementById('bi-meta').textContent = `as of ${ago(d.generated_at)} · ${d.n_total||''} ideas`;
+  const ideas = d.stack||d.titans||[];
   document.getElementById('bi-body').innerHTML = ideas.slice(0,12).map(t=>`<tr>
-    <td><span class="ticker">${esc(display(t.symbol ?? t.ticker))}</span></td><td>${esc(display(t.conviction_tier ?? t.conviction))}</td>
+    <td><span class="ticker">${t.symbol||t.ticker}</span></td><td>${t.conviction_tier||t.conviction||''}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
-}).catch(e=>{ document.getElementById('bi-body').innerHTML = `<tr><td colspan="3" class="err">${esc(e.message)}</td></tr>`; });
+}).catch(e=>{ document.getElementById('bi-body').innerHTML = `<tr><td colspan="3" class="err">${e.message}</td></tr>`; });
 
 // Flow Confluence
 get('data/flow-confluence.json').then(d=>{
   document.getElementById('fc-ver').textContent = 'v'+(d.version||'');
-  const tm = objectMap(d.ticker_map);
+  const tm = d.ticker_map||{};
   const keys = Object.keys(tm);
-  document.getElementById('fc-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${keys.length} names · validation: ${display(d.cross_validation_status)} (reported; unverified)`;
+  document.getElementById('fc-meta').textContent = `as of ${ago(d.generated_at)} · ${keys.length} names · ${d.cross_validated_tickers?.length||0} cross-validated`;
   document.getElementById('fc-body').innerHTML = keys.slice(0,12).map(k=>{ const t={ticker:k,...tm[k]}; return `<tr>
-    <td><span class="ticker">${esc(k)}</span></td><td>${esc(display(tm[k].posture))}</td>
-    <td class="score">${esc(numberText(tm[k].score))}</td><td style="text-align:right">${t360cell(t)}</td></tr>`; }).join('');
-}).catch(e=>{ document.getElementById('fc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+    <td><span class="ticker">${k}</span></td><td>${tm[k].posture||''}</td>
+    <td class="score">${tm[k].score??''}</td><td style="text-align:right">${t360cell(t)}</td></tr>`; }).join('');
+}).catch(e=>{ document.getElementById('fc-body').innerHTML = `<tr><td colspan="4" class="err">${e.message}</td></tr>`; });
 
 // Conviction
 get('data/conviction.json').then(d=>{
   document.getElementById('ce-ver').textContent = d.schema_version||'';
-  document.getElementById('ce-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${d.book_posture||''} · ${countText(d.n_actionable)} actionable`;
-  document.getElementById('ce-body').innerHTML = rows(d.setups).slice(0,12).map(t=>`<tr>
-    <td><span class="ticker">${esc(display(t.subject))}</span></td><td>${esc(display(t.direction))}</td><td>${esc(display(t.conviction))}</td>
+  document.getElementById('ce-meta').textContent = `as of ${ago(d.generated_at)} · ${d.book_posture||''} · ${d.n_actionable||0} actionable`;
+  document.getElementById('ce-body').innerHTML = (d.setups||[]).slice(0,12).map(t=>`<tr>
+    <td><span class="ticker">${t.subject}</span></td><td>${t.direction||''}</td><td>${t.conviction||''}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
-}).catch(e=>{ document.getElementById('ce-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+}).catch(e=>{ document.getElementById('ce-body').innerHTML = `<tr><td colspan="4" class="err">${e.message}</td></tr>`; });
 
 // Options Confluence
 get('data/options-confluence.json').then(d=>{
   document.getElementById('oc-ver').textContent = 'v'+(d.version||'');
-  const book = rows(d.multi_engine_confluence);
-  document.getElementById('oc-meta').textContent = `Packet timestamp ${ago(d.generated_at)} · ${countText(d.counts?.names)} reported names · ${book.length} received confluence rows`;
+  const book = d.multi_engine_confluence||[];
+  document.getElementById('oc-meta').textContent = `as of ${ago(d.generated_at)} · ${d.counts?.names||book.length} names`;
   document.getElementById('oc-body').innerHTML = book.slice(0,12).map(t=>`<tr>
-    <td><span class="ticker">${esc(display(t.ticker))}</span></td><td>${esc(display(t.posture))}</td><td>${esc(countText(t.n_engines))}</td>
+    <td><span class="ticker">${t.ticker}</span></td><td>${t.posture||''}</td><td>${t.n_engines||''}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
-}).catch(e=>{ document.getElementById('oc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+}).catch(e=>{ document.getElementById('oc-body').innerHTML = `<tr><td colspan="4" class="err">${e.message}</td></tr>`; });
 
 // Ticker 360 summary
 get('data/ticker-360.json').then(d=>{
-  const tk = objectMap(d.tickers);
+  const tk = d.tickers||{};
   const names = Object.keys(tk);
-  let totalCov = 0, coverageOk = names.length>0;
-  names.forEach(k=>{ const row=tk[k],n=row?.coverage_count,domains=row?.domains; if(!Number.isSafeInteger(n)||n<0||!domains||typeof domains!=='object'||Array.isArray(domains)||Object.keys(domains).length!==n||!Number.isSafeInteger(totalCov+n)){coverageOk=false;return;} totalCov+=n; });
-  const average=coverageOk?totalCov/names.length:null;
-  const averageLabel=average===null?'Unavailable':average>0&&average<.1?'<0.1':average.toFixed(1);
+  let totalCov = 0;
+  names.forEach(k=>{ totalCov += tk[k].coverage_count||0; });
   document.getElementById('t360-ver').textContent = 'v'+(d.version||d.artifact_version||'');
-  document.getElementById('t360-meta').textContent = `Packet timestamp ${ago(d.generated_at)}`;
+  document.getElementById('t360-meta').textContent = `as of ${ago(d.generated_at)}`;
   document.getElementById('t360-body').innerHTML =
     `<p style="font-size:2rem;font-weight:700">${names.length}</p><p class="meta">tickers indexed</p>
-     <p style="font-size:1.2rem;margin-top:8px">${esc(averageLabel)}</p><p class="meta">mean reported domains per ticker; not independent votes</p>`;
+     <p style="font-size:1.2rem;margin-top:8px">${(totalCov/Math.max(1,names.length)).toFixed(1)}</p><p class="meta">avg domains per ticker</p>`;
   document.getElementById('t360-body').className = '';
-}).catch(e=>{ document.getElementById('t360-body').innerHTML = `<span class="err">${esc(e.message)}</span>`; });
+}).catch(e=>{ document.getElementById('t360-body').innerHTML = `<span class="err">${e.message}</span>`; });
 </script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+{
+  "base": "ed03d9e3e03041393d06f3e50d917704aa4371f1",
+  "head": "912cdcf97eb0cc33703aff3ded79ec69ee87ccc7",
+  "source_scope": "Only eight ticker-list aliases and their comment changed in the previously accepted hub. All guards, source selection and clocks remain byte-identical.",
+  "delta": {
+    "path": "aws/shared/ticker_360.py",
+    "before_sha256": "815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387",
+    "after_sha256": "a3da99fd2430875bae620090e3a2b88ce71fa4b3e7f7480d31ba73191a251aac",
+    "before": "_TICKER_LIST_KEYS = (\"by_ticker\", \"tickers\", \"stocks\", \"rows\", \"items\",\n                     \"board\", \"squeeze_candidates\", \"top_squeeze\",\n                     \"top_covering\", \"top_distribution\", \"top_crowded\",\n                     \"top_accumulation\", \"candidates\", \"setups\", \"names\",\n                     \"top_picks\", \"data\", \"tickers_list\")",
+    "after": "_TICKER_LIST_KEYS = (\"by_ticker\", \"tickers\", \"stocks\", \"rows\", \"items\",\n                     \"board\", \"squeeze_candidates\", \"top_squeeze\",\n                     \"top_covering\", \"top_distribution\", \"top_crowded\",\n                     \"top_accumulation\", \"candidates\", \"setups\", \"names\",\n                     \"top_picks\", \"data\", \"tickers_list\",\n                     # ops 1110: producer-specific ticker lists (redeploy trigger)\n                     \"big_buys\", \"big_sells\", \"clusters\",\n                     \"upcoming_14d\", \"upcoming\", \"earnings\",\n                     \"positions\", \"holdings\")",
+    "peer_commit": "cc5129fda9aa7da8e319ae20ab3c25cbbd85cba7",
+    "added_aliases": [
+      "big_buys",
+      "big_sells",
+      "clusters",
+      "upcoming_14d",
+      "upcoming",
+      "earnings",
+      "positions",
+      "holdings"
+    ],
+    "all_other_source_identical": true,
+    "native_delivery_verified": false
+  },
+  "peer_scripts_executed": false,
+  "peer_report_reads": 0,
+  "page_production_source_unchanged": true,
+  "full_integration_repeated": true,
+  "unrelated_acceptance_number_now_taken": 6450,
+  "final_comment_only_sync": {
+    "base": "912cdcf97eb0cc33703aff3ded79ec69ee87ccc7",
+    "head": "a69a5d5235807808e2cd60e17ac56238ebb5e7df",
+    "whole_hub_ast_unchanged": true,
+    "frontend_and_guard_rechecked": true,
+    "deployment_full_result_retained_from_identical_hub_ast": true
+  },
+  "navigation_registry_refresh_preserved": {
+    "page_keys": 542,
+    "section_count": 6922,
+    "panel_count": 2504,
+    "claim": "Peer source registry only; no application feed or external report read."
+  }
+}

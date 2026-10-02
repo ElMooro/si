@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 554 docked volume has exact static/browser acceptance. Stage 556 Ticker 360 context boundaries and clock separation are in integration. Stage 555 zero-volume frame recovery remains unshipped pending related volume-profile correction. All ten workstreams remain OPEN.
+October 2 UTC: Stage 556 Ticker 360 guard and clock separation has exact native source/control acceptance. Stage 555 chart zero/missing-volume and profile-state repair is in integration. The two observed Ticker 360 schedule bindings are preserved; duplicate invocation risk remains unresolved. All ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7854,3 +7854,13 @@ Commit `e76c38e109fcc2c4361a29e8829e25e52fe4de69`, Pages run `36973097601`: comp
 ### Stage 556 Ticker 360 context guard candidate
 
 Whole retained predecessors and invented fixtures reproduce raw rows restored after intentional abstention and failed context imports. Three registered modules expose project/context rather than decision_view; explicit adapters now call their actual interfaces. Literal lazy imports expose all eleven context dependencies to deployment and native package verification. Reported generation/as-of clocks are separate, while source freshness and investment authority remain unqualified. Engine, consumer and exact native acceptance are required before release acceptance. No provider/current/private packets or producer invocation is used.
+
+
+### Stage 555 zero/missing-volume and profile-state candidate
+
+The complete predecessor reproduces valid price frames rejected for low positive-volume coverage, a price-of-control manufactured from an all-zero profile, old profile lines surviving missing-volume windows, and stale profile narrative after disabling. Five replacements in four functions preserve all other source and valid finite-positive profile arithmetic. Invented full-module browser cases exercise source selection and valid-to-unavailable viewport transitions at 390/1440px. Current provider data, source-unit meaning, trade-window alignment and investment edge are not validated by these checks.
+
+
+### Stage 559 Engine Data page repair bundled with Stage 555
+
+The newly added page executes invented markup from a reported domain name, drops real zero fields, truncates audit text, overflows mobile and labels storage monitoring as observation freshness. Complete-source browser reproduction is retained. The candidate escapes dynamic HTML, keeps zero and unavailable distinct, preserves full audit text, labels the six-feed scope and descriptive coverage, and keeps panels within the viewport. All actual requests are intercepted in QA; no application/private/provider data is read. Table pagination, strict source parsing and complete source-response retention remain open.

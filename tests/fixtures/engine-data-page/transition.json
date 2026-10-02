@@ -1,0 +1,177 @@
+{
+  "path": "engines-data.html",
+  "before_sha256": "6f760ffeb97871db5c88a6951fabdc8da9ff4ee7ed3a025c29d9ab651609f49d",
+  "after_sha256": "838466a7d98c13c05e16ba882592c5de2c516d90de79fd6ddb4622fec833a4dc",
+  "replacements": [
+    {
+      "before": "minmax(420px,1fr)",
+      "after": "minmax(min(100%,420px),1fr)"
+    },
+    {
+      "before": ".panel{background:",
+      "after": ".panel{min-width:0;overflow-x:auto;background:"
+    },
+    {
+      "before": "<div class=\"panel\">",
+      "after": "<div class=\"panel\" tabindex=\"0\">"
+    },
+    {
+      "before": "Every backend engine, surfaced. Data refreshes from S3 live.",
+      "after": "Six named engine feeds. Values are reported research context; source freshness, independence and investment validity are unverified."
+    },
+    {
+      "before": "const ago = iso => { if(!iso) return '\u2014'; const m = Math.round((Date.now() - new Date(iso).getTime())/60000); return m < 60 ? m+'m ago' : Math.round(m/60)+'h ago'; };",
+      "after": "const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[ch]));\nconst display = value => typeof value==='number' ? (Number.isFinite(value)?String(value):'Unavailable') : typeof value==='string' && value.trim() ? value : 'Unavailable';\nconst countText = value => Number.isSafeInteger(value) && value>=0 ? String(value) : 'Unavailable';\nconst numberText = value => typeof value==='number' && Number.isFinite(value) ? String(value) : 'Unavailable';\nconst rows = value => { if(!Array.isArray(value)) throw new Error('Missing or invalid row collection'); return value; };\nconst objectMap = value => { if(!value || typeof value!=='object' || Array.isArray(value)) throw new Error('Missing or invalid inventory'); return value; };\nconst ago = iso => { if(typeof iso!=='string' || !iso.trim()) return 'Unavailable'; const time=Date.parse(iso); if(!Number.isFinite(time)) return 'Invalid reported timestamp'; const delta=Date.now()-time; if(delta<0) return iso+' (future; unverified)'; const m=Math.round(delta/60000); return iso+' ('+(m<60?m+'m':Math.round(m/60)+'h')+' ago)'; };"
+    },
+    {
+      "before": "const t360cell = t => { const c = t.t360_coverage, d = t.t360_domains||[]; if(c==null) return '<span style=\"color:var(--mut)\">\u2014</span>'; return `<span title=\"${d.join(', ')}\">${c} domains</span><div class=\"t360bar\">${d.slice(0,6).map(x=>`<span>${x}</span>`).join('')}</div>`; };",
+      "after": "const t360cell = t => { const c=t.t360_coverage,d=Array.isArray(t.t360_domains)?t.t360_domains:[]; if(!Number.isSafeInteger(c)||c<0) return '<span style=\"color:var(--mut)\">Unavailable</span>'; return `<span title=\"${esc(d.map(display).join(', '))}\">${c} reported domains</span><div class=\"t360bar\">${d.map(x=>`<span>${esc(display(x))}</span>`).join('')}</div>`; };"
+    },
+    {
+      "before": "  const s = h.system_status;\n  dot.className = 'dot ' + (s==='HEALTHY'?'g':s==='DEGRADED'?'y':'r');\n  txt.textContent = `${s} \u00b7 ${h.n_fresh}/${h.n_feeds} fresh` + (h.alerts.length ? ` \u00b7 ${h.alerts.length} alerts` : '');",
+      "after": "  const s = ['HEALTHY','DEGRADED','FAILED'].includes(h.storage_monitor_status)?h.storage_monitor_status:'UNKNOWN';\n  dot.className = 'dot ' + (s==='HEALTHY'?'g':s==='FAILED'?'r':'y');\n  txt.textContent = `Storage monitor: ${s} \u00b7 ${countText(h.n_feeds)} feeds \u00b7 ${countText(Array.isArray(h.alerts)?h.alerts.length:null)} alerts. Observation freshness is unverified.`;"
+    },
+    {
+      "before": "as of ${ago(",
+      "after": "Packet timestamp ${ago("
+    },
+    {
+      "before": "d.duration_s||''",
+      "after": "numberText(d.duration_s)"
+    },
+    {
+      "before": "${numberText(d.duration_s)}s",
+      "after": "duration ${numberText(d.duration_s)}${Number.isFinite(d.duration_s)?'s':''}"
+    },
+    {
+      "before": "(d.top_tickers||[])",
+      "after": "rows(d.top_tickers)"
+    },
+    {
+      "before": "${t.ticker}",
+      "after": "${esc(display(t.ticker))}"
+    },
+    {
+      "before": "${JSON.stringify(t.audit_trail,null,1).slice(0,800)}",
+      "after": "${esc(JSON.stringify(t.audit_trail,null,1))}"
+    },
+    {
+      "before": "<pre>${esc(JSON.stringify(t.audit_trail,null,1))}</pre>",
+      "after": "<pre tabindex=\"0\" aria-label=\"Complete reported audit\">${esc(JSON.stringify(t.audit_trail,null,1))}</pre>"
+    },
+    {
+      "before": "${t.score>=0?'pos':'neg'}",
+      "after": "${Number.isFinite(t.score)?(t.score>=0?'pos':'neg'):''}"
+    },
+    {
+      "before": "${t.score}",
+      "after": "${esc(numberText(t.score))}"
+    },
+    {
+      "before": "${t.n_systems||''}",
+      "after": "${esc(countText(t.n_systems))}"
+    },
+    {
+      "before": "${e.message}",
+      "after": "${esc(e.message)}"
+    },
+    {
+      "before": "${d.n_total||''}",
+      "after": "${countText(d.n_total ?? d.counts?.names)}"
+    },
+    {
+      "before": "const ideas = d.stack||d.titans||[];",
+      "after": "const ideas = rows(d.stack ?? d.titans);"
+    },
+    {
+      "before": "${t.symbol||t.ticker}",
+      "after": "${esc(display(t.symbol ?? t.ticker))}"
+    },
+    {
+      "before": "${t.conviction_tier||t.conviction||''}",
+      "after": "${esc(display(t.conviction_tier ?? t.conviction))}"
+    },
+    {
+      "before": "const tm = d.ticker_map||{};",
+      "after": "const tm = objectMap(d.ticker_map);"
+    },
+    {
+      "before": "${d.cross_validated_tickers?.length||0} cross-validated",
+      "after": "validation: ${display(d.cross_validation_status)} (reported; unverified)"
+    },
+    {
+      "before": "${k}</span>",
+      "after": "${esc(k)}</span>"
+    },
+    {
+      "before": "${tm[k].posture||''}",
+      "after": "${esc(display(tm[k].posture))}"
+    },
+    {
+      "before": "${tm[k].score??''}",
+      "after": "${esc(numberText(tm[k].score))}"
+    },
+    {
+      "before": "${d.n_actionable||0}",
+      "after": "${countText(d.n_actionable)}"
+    },
+    {
+      "before": "(d.setups||[])",
+      "after": "rows(d.setups)"
+    },
+    {
+      "before": "${t.subject}",
+      "after": "${esc(display(t.subject))}"
+    },
+    {
+      "before": "${t.direction||''}",
+      "after": "${esc(display(t.direction))}"
+    },
+    {
+      "before": "${t.conviction||''}",
+      "after": "${esc(display(t.conviction))}"
+    },
+    {
+      "before": "const book = d.multi_engine_confluence||[];",
+      "after": "const book = rows(d.multi_engine_confluence);"
+    },
+    {
+      "before": "${d.counts?.names||book.length} names",
+      "after": "${countText(d.counts?.names)} reported names \u00b7 ${book.length} received confluence rows"
+    },
+    {
+      "before": "${t.posture||''}",
+      "after": "${esc(display(t.posture))}"
+    },
+    {
+      "before": "${t.n_engines||''}",
+      "after": "${esc(countText(t.n_engines))}"
+    },
+    {
+      "before": "const tk = d.tickers||{};",
+      "after": "const tk = objectMap(d.tickers);"
+    },
+    {
+      "before": "  let totalCov = 0;\n  names.forEach(k=>{ totalCov += tk[k].coverage_count||0; });",
+      "after": "  let totalCov = 0, coverageOk = names.length>0;\n  names.forEach(k=>{ const row=tk[k],n=row?.coverage_count,domains=row?.domains; if(!Number.isSafeInteger(n)||n<0||!domains||typeof domains!=='object'||Array.isArray(domains)||Object.keys(domains).length!==n||!Number.isSafeInteger(totalCov+n)){coverageOk=false;return;} totalCov+=n; });\n  const average=coverageOk?totalCov/names.length:null;\n  const averageLabel=average===null?'Unavailable':average>0&&average<.1?'<0.1':average.toFixed(1);"
+    },
+    {
+      "before": "${(totalCov/Math.max(1,names.length)).toFixed(1)}",
+      "after": "${esc(averageLabel)}"
+    },
+    {
+      "before": "avg domains per ticker",
+      "after": "mean reported domains per ticker; not independent votes"
+    },
+    {
+      "before": "`${BUCKET}/${key}?t=${Date.now()}`",
+      "after": "`${BUCKET}/${key}?nogen=1`"
+    }
+  ],
+  "remaining": [
+    "Table previews still show first twelve rows; pagination and complete source-response retention remain open",
+    "Numeric JSON parsing is not an immutable or strict original-source contract",
+    "Native/public packet delivery not inspected"
+  ],
+  "production_written": false
+}

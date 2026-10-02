@@ -1,0 +1,27 @@
+{
+  "stage": 555,
+  "status": "candidate_integration_pending",
+  "source_sha256": "a79d0492c5c6219b54e4401a26343c0f93982cc7a56d054dc1032282cec28c2a",
+  "changed_functions": [
+    "klines",
+    "refreshHiLoVP",
+    "paint",
+    "drawVP"
+  ],
+  "unchanged_functions": 396,
+  "repairs": [
+    "Valid price frames survive missing, zero and sparse reported volume",
+    "Measured zero remains a histogram observation; missing remains unavailable",
+    "Invalid or zero-total visible profiles cannot manufacture POC/VAH/VAL",
+    "Unavailable and disabled profiles clear old lines and narrative state"
+  ],
+  "remaining": [
+    "Complete frontend, deployment, static graph and browser checks",
+    "Exact served static and browser acceptance",
+    "Trade-print window alignment and source-unit comparability remain unqualified",
+    "Duplicate volume-MA labels and precision in separate RVOL panes remain open"
+  ],
+  "source_qualified": false,
+  "investment_authority": false,
+  "application_packet_reads": 0
+}

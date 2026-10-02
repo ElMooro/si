@@ -85,7 +85,10 @@ class Preservation(unittest.TestCase):
   import hashlib
   doc=json.loads((D/'transition.json').read_bytes())
   for kind,oldname in [('shared','shared-before.py.txt'),('producer','lambda-before.py.txt')]:
-   t=doc[kind];raw=(R/t['path']).read_text(encoding='utf-8');self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),t['after_sha256'])
+   t=doc[kind];raw=(R/t['path']).read_text(encoding='utf-8')
+   if kind=='shared':
+    peer=json.loads((D/'peer-list-keys.json').read_bytes());self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),peer['after_sha256']);self.assertEqual(raw.count(peer['after']),1);raw=raw.replace(peer['after'],peer['before']);self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),peer['before_sha256'])
+   self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),t['after_sha256'])
    for change in reversed(t['replacements']):
     self.assertEqual(raw.count(change['after']),1);raw=raw.replace(change['after'],change['before'])
    self.assertEqual(raw,(D/oldname).read_text(encoding='utf-8'));self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),t['before_sha256'])
@@ -127,5 +130,17 @@ class FallbackIdentity(unittest.TestCase):
   self.assertEqual(view['source_key'],'fallback.json');self.assertEqual(view['configured_source_key'],'primary.json');self.assertTrue(view['fallback_source_used']);self.assertIsNone(view['ticker_data']);self.assertFalse(view['raw_fallback_used']);self.assertEqual(len(s.reads),2)
  def test_self_fallback_is_bounded_and_remains_unavailable(self):
   s=Storage({'missing.json':OSError('invented')});self.assertIsNone(hub._read_packet(s,'missing.json',{},'missing.json'));self.assertEqual(len(s.reads),1)
+
+
+class PeerAliases(unittest.TestCase):
+ def test_all_new_aliases_retain_rows_in_universe_and_extraction(self):
+  peer=json.loads((D/'peer-list-keys.json').read_bytes())
+  for key in peer['added_aliases']:
+   row={'ticker':'QAONLY','value':0};obj={key:[row]};s=Storage({'invented.json':obj});self.assertEqual(hub._extract_ticker(obj,'QAONLY'),row)
+   with patch.object(hub,'SOURCES',{'fixture':{'key':'invented.json','context':None,'kind':'packet'}}):self.assertEqual(hub.universe(s),['QAONLY'])
+ def test_new_aliases_cannot_restore_rows_withheld_by_a_context(self):
+  peer=json.loads((D/'peer-list-keys.json').read_bytes())
+  for key in peer['added_aliases']:
+   out=domain('short_interest_context',obj={key:[{'ticker':'QAONLY','score':99}]});self.assertIsNone(out['ticker_data']);self.assertFalse(out['calls_eligible']);self.assertFalse(out['raw_fallback_used'])
 
 if __name__=='__main__':unittest.main(verbosity=2)

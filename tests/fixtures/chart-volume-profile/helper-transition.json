@@ -1,0 +1,15 @@
+{
+  "path": "tests/helpers/chart-docked-volume-preservation.cjs",
+  "before_sha256": "1a686d061a6328aeb3c2ee5ae639ccf82fcc9e1c6eaf75572a2990f5102ebfd5",
+  "after_sha256": "c192c7ee7d40c771bef7a0050bef66b5db7755c9f34dcae3105e4c7cae223a81",
+  "replacements": [
+    {
+      "before": "function normalizeSource(raw){",
+      "after": "function normalizeSource(raw){raw=require(\"./chart-volume-profile-preservation.cjs\").normalizeSource(raw);"
+    },
+    {
+      "before": "function normalizeSigned(doc){",
+      "after": "function normalizeSigned(doc){doc=require(\"./chart-volume-profile-preservation.cjs\").normalizeSigned(doc);"
+    }
+  ]
+}
