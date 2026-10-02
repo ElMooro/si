@@ -19,11 +19,11 @@ def test_historical_options_gate_and_current_complete_consumer_closures():
         historical=json.loads((ROOT/'tests/fixtures/ticker-coverage/historical-options-source-closure.json').read_bytes())['packages'][fn]
         assert historical['commit']==sha
         prior_members=set(historical['members'])
-        additions={'ticker_coverage_context.py'} if fn in ('justhodl-best-ideas','justhodl-flow-confluence','justhodl-options-confluence') else set()
+        additions={'ticker_coverage_context.py'} if fn in ('justhodl-best-ideas','justhodl-flow-confluence') else set()
         assert closure==prior_members|additions,(fn,closure,prior_members)
         assert module.COUNTS[fn]==len(prior_members),(fn,module.COUNTS[fn],prior_members)
         if additions:
-            current_path=ROOT/('aws/ops/staged/ops_6437_crypto_funding_archive_acceptance.py' if fn=='justhodl-options-confluence' else 'aws/ops/staged/ops_6420_ticker_coverage_acceptance.py')
+            current_path=ROOT/'aws/ops/staged/ops_6420_ticker_coverage_acceptance.py'
             current_spec=importlib.util.spec_from_file_location('current_coverage_closure',current_path)
             current=importlib.util.module_from_spec(current_spec);current_spec.loader.exec_module(current)
             assert current.EXPECTED_SOURCE_COUNTS[fn]==len(closure)

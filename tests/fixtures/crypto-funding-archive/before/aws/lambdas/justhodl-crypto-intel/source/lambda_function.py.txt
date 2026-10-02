@@ -1990,10 +1990,9 @@ def fetch_yields():
 
 
 
-def fetch_funding(context):
-    from crypto_funding_archive import collect_retained, storage_client
-    return collect_retained(urllib.request.urlopen, storage_client, S3_BUCKET,
-                            context.get_remaining_time_in_millis)
+def fetch_funding():
+    from crypto_funding_observations import collect_funding
+    return collect_funding(urllib.request.urlopen)
 
 def fetch_oi():
     # v5.1: OKX public OI (Bybit 403s from AWS us-east-1 — probe-verified)
@@ -3797,7 +3796,7 @@ def lambda_handler(event, context):
 
 
 
-        fs={ex.submit(fetch_stablecoins):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding,context):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios',ex.submit(fetch_cryptoquant):'cryptoquant',ex.submit(fetch_fleet):'fleet',ex.submit(fetch_prices_canon):'prices_canonical'}
+        fs={ex.submit(fetch_stablecoins):'stablecoins',ex.submit(fetch_tvl):'tvl',ex.submit(fetch_dex):'dex',ex.submit(fetch_yields):'yields',ex.submit(fetch_funding):'funding',ex.submit(fetch_oi):'open_interest',ex.submit(fetch_global):'global_market',ex.submit(fetch_top_coins):'top_coins',ex.submit(fetch_onchain):'btc_onchain',ex.submit(fetch_fg):'fear_greed',ex.submit(fetch_cmc):'cmc_movers',ex.submit(fetch_gas):'eth_gas',ex.submit(fetch_whales):'whale_txs',ex.submit(fetch_mvrv):'onchain_ratios',ex.submit(fetch_cryptoquant):'cryptoquant',ex.submit(fetch_fleet):'fleet',ex.submit(fetch_prices_canon):'prices_canonical'}
 
 
 

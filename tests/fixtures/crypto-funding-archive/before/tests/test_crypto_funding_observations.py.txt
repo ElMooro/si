@@ -123,15 +123,9 @@ def actual_function(function,name,scope):
 
 class Consumers(unittest.TestCase):
  def test_actual_collector_uses_only_existing_endpoints_and_no_extra_requests(self):
-  import io,types
-  from unittest.mock import Mock,patch
-  saved={};client=Mock()
-  client.put_object.side_effect=lambda **kw:saved.update({kw['Key']:kw['Body']})
-  client.get_object.side_effect=lambda **kw:{'Body':io.BytesIO(saved[kw['Key']]),'ContentLength':len(saved[kw['Key']])}
-  opener=transport_factory('0');fn=actual_function('justhodl-crypto-intel','fetch_funding',{'urllib':types.SimpleNamespace(request=types.SimpleNamespace(urlopen=opener)),'S3_BUCKET':'invented'})
-  with patch('crypto_funding_archive.storage_client',return_value=client):out=fn(types.SimpleNamespace(get_remaining_time_in_millis=lambda:180000))
-  self.assertEqual(opener.call_count,10);self.assertEqual(out['rates'][0]['funding_rate'],0)
-  self.assertTrue(out['original_capture']['complete_capture_replayed']);self.assertEqual(len(saved),4);client.close.assert_called_once()
+  import types
+  opener=transport_factory('0');fn=actual_function('justhodl-crypto-intel','fetch_funding',{'urllib':types.SimpleNamespace(request=types.SimpleNamespace(urlopen=opener))})
+  out=fn();self.assertEqual(opener.call_count,10);self.assertEqual(out['rates'][0]['funding_rate'],0)
   self.assertTrue(all(call.kwargs['timeout']==8 for call in opener.call_args_list))
  def test_actual_risk_cannot_impute_missing_funding_as_zero_or_trade(self):
   fn=actual_function('justhodl-crypto-intel','risk',{})

@@ -264,8 +264,6 @@ def lambda_handler(event, context):
     # ── Ticker-360 cross-engine enrichment: attach 360° coverage context
     #    per name. Diagnostic inventory only — never another independent
     #    vote in the confluence score. Fail-soft.
-    from ticker_coverage_context import blank as _t360_blank
-    _t360_ctx = _t360_blank()
     try:
         from ticker_coverage_context import load as _t360_load
         _t360_ctx = _t360_load(s3, BUCKET)
@@ -297,7 +295,6 @@ def lambda_handler(event, context):
            "overlays": {"regime_haircut": hair, "regime_state": state or None,
                         "forensic_flagged": len(bad)},
            "note": "New synthesizer — consumable by best-setups/master-ranker so options confluence finally counts as one coherent factor."}
-    out["ticker_360_context"] = _t360_ctx
     out["options_scanner_exclusion"] = scanner_exclusion
     out["volatility_research_exclusion"] = _volatility_research_abstention()
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
