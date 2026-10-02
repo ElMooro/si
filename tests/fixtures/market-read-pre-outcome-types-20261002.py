@@ -592,49 +592,6 @@ def validate_read(doc: Any, candidates: set) -> Dict[str, Any]:
     return out
 
 
-def _reported_number(value):
-    # DynamoDB decimals are numeric; text and booleans are not measurements.
-    from decimal import Decimal
-    if type(value) not in (int, float, Decimal):
-        return None
-    try:
-        result = float(value)
-        return result if math.isfinite(result) else None
-    except (ValueError, OverflowError):
-        return None
-
-
-def reported_window(outcome):
-    """Project explicit legacy reported values, never manufacture a grade.
-
-    This checks types, not the price source, entry/exit timing, corporate actions,
-    costs, statistical independence or out-of-sample methodology.
-    """
-    if not isinstance(outcome, dict):
-        return None
-    ret = _reported_number(outcome.get("return_pct"))
-    reasons = []
-    if ret is None:
-        reasons.append("finite numeric reported return unavailable")
-    correct = outcome.get("correct")
-    if type(correct) is not bool:
-        reasons.append("explicit boolean reported grade unavailable")
-    if outcome.get("status") not in (None, "GRADED", "SCORED", "COMPLETED"):
-        reasons.append("outcome status is not a completed report")
-    valid = not reasons
-    return {"return_pct": ret, "correct": correct if valid else None,
-            "excess_return": _reported_number(outcome.get("excess_return")),
-            "reported_grade_valid": valid, "withheld_reasons": reasons,
-            "forecast_qualified": False, "sizing_eligible": False}
-
-
-def performance_qualification():
-    return {"contract": "market-read-reported-outcomes.v1", "window_unit": "calendar_day",
-            "status": "legacy_reported_diagnostics", "forecast_qualified": False,
-            "out_of_sample_verified": False, "cost_adjusted": False, "sizing_eligible": False,
-            "reason": "Typed reported outcomes are descriptive. Source marks, point-in-time decisions, costs and out-of-sample performance remain unqualified."}
-
-
 # ──────────────────────────────────────────────────────────────── ledger
 def log_calls(table, read_id: str, calls: List[dict], log_signal, yprice) -> List[dict]:
     rows = []
@@ -679,20 +636,20 @@ def grade_calls(table, calls: List[dict]) -> Dict[str, Any]:
         row = {k: c.get(k) for k in ("ticker", "direction", "horizon_days", "confidence", "logged_at", "read_id", "baseline_price", "thesis")}
         row["status"] = (item or {}).get("status") or ("not in ledger" if c.get("logged") is False else "pending")
         row["windows"] = {}
-        row["withheld_windows"] = {}
         for w in WINDOWS:
             o = oc.get("day_%d" % w) if isinstance(oc, dict) else None
-            projected = reported_window(o)
-            if projected is not None:
-                if projected["reported_grade_valid"]:
-                    row["windows"][str(w)] = projected
-                    hits[str(w)][0] += int(projected["correct"])
+            if isinstance(o, dict) and (o.get("return_pct") is not None or o.get("price") is not None):
+                ret = _num(o.get("return_pct"))
+                if ret is None and o.get("price") and c.get("baseline_price"):
+                    ret = round((float(o["price"]) / float(c["baseline_price"]) - 1) * 100, 3)
+                correct = o.get("correct")
+                if correct is None and ret is not None:
+                    correct = (ret > 0) if c["direction"] == "UP" else (ret < 0)
+                row["windows"][str(w)] = {"return_pct": ret, "correct": bool(correct) if correct is not None else None, "excess_return": _num(o.get("excess_return"))}
+                if correct is not None:
+                    hits[str(w)][0] += int(bool(correct))
                     hits[str(w)][1] += 1
-                else:
-                    # Downstream lesson adapters consume windows. Invalid reports
-                    # remain inspectable separately and cannot become lessons.
-                    row["withheld_windows"][str(w)] = projected
         graded.append(row)
         n += 1
     summary = {str(w): {"hits": hits[str(w)][0], "n": hits[str(w)][1], "hit_rate": round(hits[str(w)][0] / hits[str(w)][1], 3) if hits[str(w)][1] else None} for w in WINDOWS}
-    return {"n_calls": n, "by_window": summary, "rows": graded, "qualification": performance_qualification()}
+    return {"n_calls": n, "by_window": summary, "rows": graded}

@@ -278,11 +278,11 @@ class StudentDeskTests(unittest.TestCase):
                "gear_b": {"champion": {"generation": 0, "note": "base model; no weights promoted"}}, "pipeline": {"status": "idle"}, "student_wall": None}
         d = lf.student_desk(pub)
         self.assertFalse(d["market_exam_holdout"]["beats_prior"]); self.assertEqual(d["calls"]["graded"], 0)
-        self.assertTrue(any("Beat the naive prior" in c for c in d["cannot_do_yet"])); self.assertTrue(any("0 of 11 calls graded" in c for c in d["cannot_do_yet"]))
-        self.assertIn("never will without a human apply-lane", " ".join(d["cannot_do_yet"])); self.assertIn("first 5-day grades", d["next_lesson"])
+        self.assertTrue(any("Beat the naive prior" in c for c in d["cannot_do_yet"])); self.assertTrue(any("0 reported windows" in c for c in d["cannot_do_yet"]))
+        self.assertIn("never will without a human apply-lane", " ".join(d["cannot_do_yet"])); self.assertIn("Qualify entry/exit marks", d["next_lesson"])
         pub["market_exam"]["holdout"]["model_scores"]["score"] = 0.60; pub["scoreboard"]["calls_graded"] = 25
         d2 = lf.student_desk(pub)
-        self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertIn("first non-advisory step", d2["next_lesson"])
+        self.assertTrue(d2["market_exam_holdout"]["beats_prior"]); self.assertFalse(any("Beat the naive prior" in c for c in d2["cannot_do_yet"])); self.assertNotIn("first non-advisory step", d2["next_lesson"]); self.assertIn("do not grant promotion", d2["next_lesson"]); self.assertEqual(d2["calls"]["graded_unit"], "reported_window"); self.assertFalse(d2["calls"]["qualification"]["forecast_qualified"])
 
 class DoctrineWrapperTests(unittest.TestCase):
     def test_preview_launch_disabled_is_not_a_refusal(self):

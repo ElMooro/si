@@ -1447,8 +1447,14 @@ def test_gear_b_owned_model_source_suite():
     return "gear_b + gear_b_own suites green"
 
 
+def test_reported_outcomes_actual_source():
+    import subprocess
+    subprocess.run([sys.executable, str(Path(__file__).with_name('test_market_read_outcomes.py'))], check=True)
+    return 'typed reported outcomes and actual lesson adapters'
+
+
 def main():
-    tests = [test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
+    tests = [test_reported_outcomes_actual_source, test_hub_discovery_prefers_article_cards, test_describe_model_parses_document, test_deploy_script_mode_repacks_and_creates_serverless_endpoint,
              test_artifact_resolution_prefers_prepacked_then_prefix_and_names_probes,
              test_embed_texts_falls_back_to_x_text_and_flattens, test_brain_dataset_build_and_split, test_embedding_pass_assembles_csv_and_index_then_retrieves,
              test_cost_guard_rules, test_training_requests_shape, test_handler_auth_and_routing, test_learning_curve_nested_fractions_and_read_model,
