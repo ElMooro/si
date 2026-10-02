@@ -561,7 +561,7 @@ h+="<div class='card' style='text-align:center'><div class='card-title'>Fear & G
 // Sentiment components
 h+="<div class='card'><div class='card-title'>Sentiment Components</div>";
 var fundingRaw=null; // Settlement comparability and investment calibration are unqualified.
-var sentItems=[{n:"Fear & Greed",v:fgv,c:fgClr},{n:"Funding (comparable periods required)",v:null,c:"var(--blue)"},{n:"BTC Dominance (%)",v:dominance,c:"var(--orange)"},{n:"Stablecoin category (inflow 75, outflow 25, neutral 50)",v:st.net_signal==="INFLOW"?75:st.net_signal==="OUTFLOW"?25:st.net_signal==="NEUTRAL"?50:null,c:"var(--blue)"},{n:"MVRV (realized capitalization required)",v:null,c:"var(--blue)"}];
+var sentItems=[{n:"Fear & Greed",v:fgv,c:fgClr},{n:"Funding (comparable periods required)",v:null,c:"var(--blue)"},{n:"BTC Dominance (%)",v:dominance,c:"var(--orange)"},{n:"Stablecoin flow (transaction evidence unavailable)",v:null,c:"var(--blue)"},{n:"MVRV (realized capitalization required)",v:null,c:"var(--blue)"}];
 h+="<p style='font-size:11px;color:var(--t2);margin-bottom:8px'>Display transformations; not validated comparable scores.</p>";
 sentItems.forEach(function(s){var value=cryptoScalar(s.v,0,100);h+="<div class='crypto-sentiment-component' style='margin-bottom:8px;overflow-wrap:anywhere'><div style='display:flex;gap:10px;justify-content:space-between;font-size:11px;margin-bottom:3px'><span>"+s.n+"</span><span class='mono' style='color:var(--t2);white-space:nowrap;flex-shrink:0'>"+(value==null?"Unavailable":value)+"</span></div>";if(value!=null)h+="<div style='height:8px;background:var(--bg4);border-radius:4px'><div style='height:100%;width:"+value+"%;background:"+s.c+";border-radius:4px'></div></div>";h+="</div>";});
 h+="</div></div>";

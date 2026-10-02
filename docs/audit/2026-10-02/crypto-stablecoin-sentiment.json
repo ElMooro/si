@@ -1,0 +1,28 @@
+{
+  "stage": 542,
+  "status": "candidate_not_deployed",
+  "scope": "Remove residual legacy category-to-score mapping from actual Sentiment pane",
+  "predecessor_reproduction": {
+    "scope": "Invented complete render; no network or application packets",
+    "page_sha256": "4f9f2335518d34e666530a3ca482715fa36ae4869c180f44cc7fa4a55b6c19c3",
+    "cases": [
+      {
+        "invented_legacy_label": "INFLOW",
+        "rendered_value": "75",
+        "misleading_category_present": true
+      },
+      {
+        "invented_legacy_label": "OUTFLOW",
+        "rendered_value": "25",
+        "misleading_category_present": true
+      },
+      {
+        "invented_legacy_label": "NEUTRAL",
+        "rendered_value": "50",
+        "misleading_category_present": true
+      }
+    ]
+  },
+  "source_qualified": false,
+  "investment_authority": false
+}

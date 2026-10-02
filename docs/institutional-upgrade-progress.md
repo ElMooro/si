@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 1 UTC, through Stage 538: reported funding semantics and original-retention code have exact native acceptance; Crypto/Desk static acceptance is retained from Stage 537. Concurrent Options Confluence current-package closure is repaired and verified separately from its historical baseline. All ten institutional workstreams remain OPEN. Next: verify an actual retained public funding original without reading mutable/private/account packets, then repair stablecoin stock/flow semantics. Five stablecoin defects are reproduced offline; no stablecoin production change has shipped. Source qualification, independent evidence, out-of-sample skill and reconciled portfolio consequences remain separate work.
+October 2 UTC, through Stage 541: Crypto and Financial Secretary stablecoin stock semantics have exact native deployment acceptance; Crypto and Classic have exact static and isolated browser acceptance. The complete retained public stock original now replays with current reviewed compilers; whole public archive bytes match their content addresses. This does not verify current-head publication, source authenticity, observation times, point-in-time availability or investment efficacy. Stage 542 repairs a missed legacy category-to-score mapping in the Crypto Sentiment tab, reproduced with invented complete-renderer cases. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7701,8 +7701,17 @@ This proves exact code/static deployment. Normal current publication, source obs
 
 ### Stage 541 stablecoin original acceptance
 
-The read-only candidate verifies complete public content-addressed originals against the exact Crypto release, replays all reported rows with current reviewed compilers, and requires an unchanged complete namespace census. Sixteen invented archive cases and five receipt/report cases cover whole reads, malformed/altered objects, unknown compilers, future or duplicate clocks, truncated or changed census and permission denial. Actual retained-source replay remains pending the named runner check. All ten institutional workstreams remain OPEN.
+The read-only candidate verifies complete public content-addressed originals against the exact Crypto release, replays all reported rows with current reviewed compilers, and requires an unchanged complete namespace census. Sixteen invented archive cases and six receipt/report/source-binding cases cover whole reads, malformed/altered objects, unknown compilers, future or duplicate clocks, truncated or changed census and permission denial. Actual retained-source replay remains pending the named runner check. All ten institutional workstreams remain OPEN.
 
-### Current work — Stage 541
+### Retained Stage 541 pre-acceptance checkpoint
 
 Stage 540 code/static acceptance is complete; stablecoin retained-original acceptance is next. All ten platform workstreams remain OPEN. No current-head publication or investment authority is inferred from these acceptance steps.
+
+
+### Stage 541 original acceptance
+
+Read-only runner operation 6441 replayed the complete retained stock original with current reviewed local compilers. The before/after complete run census was unchanged; all referenced whole public archive objects matched their expected SHA-256. Exact counts, clocks and receipt/report hashes are retained in `docs/audit/2026-10-02/crypto-stablecoin-original-acceptance.json`. No provider or producer request occurred, and no mutable current, private or account packet was read. The first local adoption check caught prototype CRLF versus committed LF hashes; the pin was corrected and an exact complete-source-byte test added before shipping.
+
+### Stage 542 residual Sentiment display repair
+
+Full-page tests found that the Sentiment tab still converted legacy stablecoin INFLOW/OUTFLOW/NEUTRAL strings to 75/25/50 despite the repaired stock panel. The candidate withholds that unsupported component independently of stored legacy labels and preserves the other four components. The test exercises the actual complete renderer, including a throwing legacy getter, malformed labels and unrelated valid observations. All prior complete predecessor assertions remain intact. Exact static and browser acceptance are still required. Separate sentiment-source audit reproductions found missing-as-50, boolean-as-one and one-row-as-seven/thirty-day-average defects; these remain open for the next engine repair.

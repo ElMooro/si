@@ -1,0 +1,11 @@
+{
+  "source_commit": "ab0a502c047c1399815c9c081fe633d9dba3d608",
+  "predecessor_sha256": "4f9f2335518d34e666530a3ca482715fa36ae4869c180f44cc7fa4a55b6c19c3",
+  "candidate_sha256": "340a20a831564558e253d3ac2054392080ae1b3771a0a1636d73bfd1bc3a548e",
+  "edits": [
+    [
+      "{n:\"Stablecoin category (inflow 75, outflow 25, neutral 50)\",v:st.net_signal===\"INFLOW\"?75:st.net_signal===\"OUTFLOW\"?25:st.net_signal===\"NEUTRAL\"?50:null,c:\"var(--blue)\"}",
+      "{n:\"Stablecoin flow (transaction evidence unavailable)\",v:null,c:\"var(--blue)\"}"
+    ]
+  ]
+}
