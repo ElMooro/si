@@ -28,8 +28,6 @@ serves it. The public read model carries stances, counts and the graded hit rate
 from __future__ import annotations
 
 import json
-import copy
-import hashlib
 import math
 import re
 import time
@@ -371,7 +369,7 @@ def build_prompt(board: Dict[str, Any], play: Dict[str, Any], lessons: Optional[
     if schema_hint:
         text = text[:-len("Produce the JSON.")] if text.endswith("Produce the JSON.") else text + "\n"
         text += ("Produce the JSON. Copy exactly this shape (same keys, stances only from the lists, ticker only from CANDIDATES, no other keys, no prose before or after). "
-                 "calls: an empty calls array is valid abstention. Candidate availability never requires a prediction. Use only typed numeric confidence fractions 0.5-0.85 and integer calendar-day horizons 21 or 63:\n") + SCHEMA_SKELETON
+                 "calls: when CANDIDATES is non-empty make at least 2 dated calls (your best two, each with the confidence you actually hold) -- an empty calls array is the one answer that can never be graded:\n") + SCHEMA_SKELETON
     return text
 
 
@@ -423,90 +421,109 @@ _STANCE_SYNONYMS = {
 
 
 def _canon(value) -> str:
-    # Complete enum tokens only: punctuation/digits/negated prose cannot become an action.
-    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z]+(?:[ _-][A-Za-z]+)*", value.strip()):
-        return ""
-    return value.strip().upper().replace("-", "_").replace(" ", "_")
+    return re.sub(r"[^A-Z_]", "", str(value or "").strip().upper().replace("-", "_").replace(" ", "_"))
 
 
 def normalize_read_doc(doc: Any) -> Tuple[Any, List[str]]:
-    """Accept explicit aliases only, retaining every row; conflicting aliases reject the answer."""
-    if not isinstance(doc, dict): return doc, []
-    out = copy.deepcopy(doc)
+    """Coerce a voice's near-miss JSON toward the contract without inventing content. Returns (doc, coercions)."""
+    if not isinstance(doc, dict):
+        return doc, []
+    out = dict(doc)
     fixes: List[str] = []
-    def alias(row, name, alts, label, transform=None):
-        present = [(k, row[k]) for k in (name, *alts) if k in row]
-        if not present: return
-        values = [(k, transform(v) if transform else v) for k, v in present]
-        if any(value != values[0][1] for _, value in values[1:]):
-            raise ValueError(label + " has conflicting aliases")
-        key, value = values[0]
-        if key != name: fixes.append(label + " <- " + key)
-        if value != present[0][1]: fixes.append(label + " canonicalised")
-        row[name] = value
-    alias(out, "overall", ("summary", "situation", "overview"), "overall")
-    alias(out, "macro", ("macro_view", "macro_read", "economy"), "macro")
-    for asset in STANCE_ENUMS:
+    for key, alts in (("overall", ("summary", "situation", "overview")), ("macro", ("macro_view", "macro_read", "economy"))):
+        if not isinstance(out.get(key), str) or not out.get(key, "").strip():
+            for alt in alts:
+                if isinstance(out.get(alt), str) and out[alt].strip():
+                    out[key] = out[alt]; fixes.append("%s <- %s" % (key, alt)); break
+    for asset, allowed in STANCE_ENUMS.items():
         row = out.get(asset)
-        if not isinstance(row, dict): continue
-        alias(row, "read", _READ_ALIASES[1:], asset + ".read")
-        synonyms = _STANCE_SYNONYMS[asset]
-        alias(row, "stance", _STANCE_ALIASES[1:], asset + ".stance", lambda v: synonyms.get(_canon(v), _canon(v)))
-    for key, name, alt, mapping in (
-        ("best_opportunities", "side", "direction", {"BUY": "LONG", "UP": "LONG", "SELL": "SHORT", "DOWN": "SHORT"}),
-        ("calls", "direction", "side", {"LONG": "UP", "BUY": "UP", "BULLISH": "UP", "SHORT": "DOWN", "SELL": "DOWN", "BEARISH": "DOWN"}),
-    ):
-        rows = out.get(key)
-        if not isinstance(rows, list): continue
-        for index, row in enumerate(rows):
-            if not isinstance(row, dict): continue
-            label = key + "[" + str(index) + "]"
-            alias(row, name, (alt,), label + "." + name, lambda v: mapping.get(_canon(v), _canon(v)))
-            alias(row, "horizon_days", ("horizon",), label + ".horizon_days")
-            if key == "calls": alias(row, "thesis", ("why",), label + ".thesis")
-            else: alias(row, "why", ("reason",), label + ".why")
+        if isinstance(row, str):
+            row = {"stance": row, "read": row}
+            fixes.append("%s: string -> object" % asset)
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        if not (isinstance(row.get("read"), str) and row["read"].strip()):
+            for alt in _READ_ALIASES[1:]:
+                if isinstance(row.get(alt), str) and row[alt].strip():
+                    row["read"] = row[alt]; fixes.append("%s.read <- %s" % (asset, alt)); break
+        stance = row.get("stance")
+        if stance is None:
+            for alt in _STANCE_ALIASES[1:]:
+                if row.get(alt) is not None:
+                    stance = row[alt]; fixes.append("%s.stance <- %s" % (asset, alt)); break
+        c = _canon(stance)
+        if c not in allowed and c in _STANCE_SYNONYMS.get(asset, {}):
+            fixes.append("%s.stance %s -> %s" % (asset, c, _STANCE_SYNONYMS[asset][c])); c = _STANCE_SYNONYMS[asset][c]
+        if c not in allowed and isinstance(stance, str) and len(stance) > 12:
+            # a sentence where an enum belongs ("Hold gold until the dollar turns"): take the first word that IS a stance or synonym
+            for word in re.findall(r"[A-Za-z_\-]+", stance):
+                w = _canon(word); w = _STANCE_SYNONYMS.get(asset, {}).get(w, w)
+                if w in allowed:
+                    fixes.append("%s.stance taken from text: %s" % (asset, w)); c = w; break
+        if c in allowed:
+            if stance != c:
+                fixes.append("%s.stance canonicalised" % asset) if "%s.stance" % asset not in " ".join(fixes) else None
+            row["stance"] = c
+        out[asset] = row
+    opps = []
+    for row in (out.get("best_opportunities") or []) if isinstance(out.get("best_opportunities"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        side = _canon(row.get("side") or row.get("direction"))
+        side = {"BUY": "LONG", "UP": "LONG", "SELL": "SHORT", "DOWN": "SHORT"}.get(side, side)
+        if side != row.get("side"):
+            fixes.append("opportunity.side -> %s" % side)
+        row["side"] = side
+        if row.get("horizon_days") is None and row.get("horizon") is not None:
+            row["horizon_days"] = row["horizon"]; fixes.append("opportunity.horizon_days <- horizon")
+        if not row.get("why") and isinstance(row.get("reason"), str):
+            row["why"] = row["reason"]; fixes.append("opportunity.why <- reason")
+        opps.append(row)
+    if opps:
+        out["best_opportunities"] = opps
+    calls = []
+    for row in (out.get("calls") or []) if isinstance(out.get("calls"), list) else []:
+        if not isinstance(row, dict):
+            continue
+        row = dict(row)
+        d = _canon(row.get("direction") or row.get("side"))
+        d = {"LONG": "UP", "BUY": "UP", "BULLISH": "UP", "SHORT": "DOWN", "SELL": "DOWN", "BEARISH": "DOWN"}.get(d, d)
+        if d != row.get("direction"):
+            fixes.append("call.direction -> %s" % d)
+        row["direction"] = d
+        if row.get("horizon_days") is None and row.get("horizon") is not None:
+            row["horizon_days"] = row["horizon"]; fixes.append("call.horizon_days <- horizon")
+        try:
+            conf = float(row.get("confidence"))
+            if 1.0 < conf <= 100.0:
+                row["confidence"] = conf / 100.0; fixes.append("call.confidence percent -> fraction")
+        except Exception:
+            pass
+        if not row.get("thesis") and isinstance(row.get("why"), str):
+            row["thesis"] = row["why"]; fixes.append("call.thesis <- why")
+        calls.append(row)
+    if calls:
+        out["calls"] = calls
     return out, fixes
 
 
 def parse_read_text(txt: str, candidates: set) -> Dict[str, Any]:
-    """Parse one bounded JSON object. Retain source text privately, never infer an action."""
-    contract = {"contract": "market-read-inputs.v1", "confidence_unit": "fraction",
-                "window_unit": "calendar_day", "source_qualified": False,
-                "forecast_qualified": False, "sizing_eligible": False}
-    if not isinstance(txt, str):
-        return {"parse_error": True, "validation_error": "answer must be text", "input_validation": contract}
-    raw = txt.encode("utf-8", errors="surrogatepass")
-    contract.update(raw_sha256=hashlib.sha256(raw).hexdigest(), raw_bytes=len(raw))
-    if len(raw) > 131072:
-        return {"parse_error": True, "validation_error": "answer exceeds 128 KiB", "input_validation": contract}
-    contract["received_text"] = txt
-    def unique(pairs):
-        out = {}
-        for key, value in pairs:
-            if key in out:
-                raise ValueError("duplicate JSON object key")
-            out[key] = value
-        return out
-    def finite(value):
-        raise ValueError("non-finite JSON number")
-    body = txt.strip()
-    fence = re.fullmatch(r"```(?:json)?\s*([\s\S]*?)\s*```", body)
-    if fence:
-        body = fence.group(1)
-        contract["wrapper"] = "whole_json_fence"
+    """A voice's raw answer -> validated read, or a parse_error record (never raises)."""
+    txt = str(txt or "").strip()
+    m = re.search(r"\{.*\}", txt, re.S)
     try:
-        received = json.loads(body, object_pairs_hook=unique, parse_constant=finite)
-        # Exponent overflow is not passed to parse_constant by the JSON decoder.
-        json.dumps(received, allow_nan=False)
-        normalized, fixes = normalize_read_doc(received)
-        out = validate_read(normalized, set(candidates or []))
-    except (ValueError, TypeError, OverflowError, RecursionError) as exc:
-        return {"parse_error": True, "validation_error": str(exc)[:300], "raw": txt[:2000], "input_validation": contract}
-    contract["status"] = "typed_input_only"
-    out["input_validation"] = contract
-    out["received_input"] = received
+        j = json.loads(m.group(0) if m else txt)
+    except Exception:
+        return {"parse_error": True, "raw": txt[:2000]}
+    j, fixes = normalize_read_doc(j)
+    try:
+        out = validate_read(j, set(candidates or []))
+    except ValueError as exc:
+        return {"parse_error": True, "validation_error": str(exc), "raw": txt[:2000], "coercions": fixes}
     if fixes:
-        out["coercions"] = fixes
+        out["coercions"] = fixes[:20]
     return out
 
 
@@ -525,93 +542,53 @@ def compose_read(board: Dict[str, Any], play: Dict[str, Any], complete_fn, lesso
 
 
 def _text(value: Any, name: str, minimum: int = 1, maximum: int = 4000) -> str:
-    if not isinstance(value, str) or not minimum <= len(value.strip()) <= maximum:
-        raise ValueError("%s must be a bounded non-empty string" % name)
-    return value.strip()
-
-
-def _input_integer(value, name, allowed=None, maximum=365):
-    if type(value) is not int or value < 1 or value > maximum or allowed is not None and value not in allowed:
-        raise ValueError(name + " must be an explicit allowed integer calendar-day horizon")
-    return value
-
-
-def _input_confidence(value):
-    if type(value) not in (int, float) or not 0.5 <= value <= 0.85 or not math.isfinite(value):
-        raise ValueError("confidence must be a finite numeric fraction in [0.5, 0.85]")
-    return value
-
-
-def _input_units(row):
-    for key, expected in (("confidence_unit", "fraction"), ("horizon_unit", "calendar_day"), ("window_unit", "calendar_day")):
-        if key in row and row[key] != expected:
-            raise ValueError(key + " conflicts with the declared input contract")
-
-
-def _input_call(row, candidates=None):
-    if not isinstance(row, dict):
-        raise ValueError("call must be an object")
-    _input_units(row)
-    ticker = row.get("ticker")
-    if not isinstance(ticker, str) or not re.fullmatch(r"[A-Z0-9.\-]{1,10}", ticker) or candidates is not None and ticker not in candidates:
-        raise ValueError("ticker is not an allowed candidate")
-    if row.get("direction") not in ("UP", "DOWN"):
-        raise ValueError("direction must be UP or DOWN")
-    return {"ticker": ticker, "direction": row["direction"],
-            "horizon_days": _input_integer(row.get("horizon_days"), "call.horizon_days", (21, 63)),
-            "confidence": _input_confidence(row.get("confidence")),
-            "thesis": _text(row.get("thesis"), "call.thesis", 4, 800)}
+    if not isinstance(value, str) or len(value.strip()) < minimum:
+        raise ValueError("%s must be a non-empty string" % name)
+    return value.strip()[:maximum]
 
 
 def validate_read(doc: Any, candidates: set) -> Dict[str, Any]:
     if not isinstance(doc, dict):
         raise ValueError("LLM output must be an object")
-    out = {"overall": _text(doc.get("overall"), "overall", 20, 4000),
-           "macro": _text(doc.get("macro"), "macro", 10, 3000), "withheld_inputs": []}
+    out = {
+        "overall": _text(doc.get("overall"), "overall", 20, 4000),
+        "macro": _text(doc.get("macro"), "macro", 10, 3000),
+    }
     for asset, allowed in STANCE_ENUMS.items():
         row = doc.get(asset)
-        if not isinstance(row, dict) or not isinstance(row.get("stance"), str) or row["stance"] not in allowed:
+        if not isinstance(row, dict) or row.get("stance") not in allowed:
             raise ValueError("%s.stance is invalid" % asset)
         out[asset] = {"stance": row["stance"], "read": _text(row.get("read"), "%s.read" % asset, 5, 2400)}
-    def collection(key):
-        value = doc.get(key, [])
-        if not isinstance(value, list):
-            raise ValueError(key + " must be an array")
-        return value
-    def withheld(key, index, row, reason):
-        out["withheld_inputs"].append({"collection": key, "source_index": index,
-                                       "received": copy.deepcopy(row), "reason": reason})
-    for key, limit in (("what_would_change_my_mind", 12), ("data_gaps", 20)):
-        out[key] = []
-        for index, row in enumerate(collection(key)):
-            try:
-                value = _text(row, key, 2, 400)
-                if len(out[key]) >= limit: raise ValueError("collection capacity exceeded")
-                out[key].append(value)
-            except ValueError as exc: withheld(key, index, row, str(exc))
-    out["best_opportunities"] = []
-    for index, row in enumerate(collection("best_opportunities")):
+    out["what_would_change_my_mind"] = [_text(v, "change trigger", 2, 400) for v in (doc.get("what_would_change_my_mind") or []) if isinstance(v, str)][:12]
+    out["data_gaps"] = [_text(v, "data gap", 2, 400) for v in (doc.get("data_gaps") or []) if isinstance(v, str)][:20]
+    opportunities = []
+    for row in doc.get("best_opportunities") or []:
+        if not isinstance(row, dict) or row.get("ticker") not in candidates or row.get("side") not in ("LONG", "SHORT"):
+            continue
         try:
-            if not isinstance(row, dict) or not isinstance(row.get("ticker"), str) or row["ticker"] not in candidates or row.get("side") not in ("LONG", "SHORT"):
-                raise ValueError("opportunity requires an allowed ticker and explicit side")
-            _input_units(row)
-            horizon = _input_integer(row.get("horizon_days"), "opportunity.horizon_days")
-            engines = row.get("from_engines", [])
-            if not isinstance(engines, list) or len(engines) > 12 or not all(isinstance(v, str) and v.strip() and len(v) <= 80 for v in engines):
-                raise ValueError("from_engines must be a bounded array of engine identifiers")
-            value = {"ticker": row["ticker"], "side": row["side"], "why": _text(row.get("why"), "opportunity.why", 4, 800),
-                     "horizon_days": horizon, "from_engines": list(engines), "source_index": index}
-            if len(out["best_opportunities"]) >= 8: raise ValueError("collection capacity exceeded")
-            out["best_opportunities"].append(value)
-        except ValueError as exc: withheld("best_opportunities", index, row, str(exc))
-    out["calls"] = []
-    for index, row in enumerate(collection("calls")):
+            horizon = int(row.get("horizon_days"))
+        except Exception:
+            continue
+        if horizon < 1 or horizon > 365:
+            continue
+        engines = [str(v)[:80] for v in (row.get("from_engines") or []) if isinstance(v, str)][:12]
+        opportunities.append({"ticker": row["ticker"], "side": row["side"], "why": _text(row.get("why"), "opportunity.why", 4, 800),
+                              "horizon_days": horizon, "from_engines": engines})
+    out["best_opportunities"] = opportunities[:8]
+    calls = []
+    for row in doc.get("calls") or []:
+        if not isinstance(row, dict) or row.get("ticker") not in candidates or row.get("direction") not in ("UP", "DOWN"):
+            continue
         try:
-            value = _input_call(row, candidates)
-            if len(out["calls"]) >= MAX_CALLS: raise ValueError("collection capacity exceeded")
-            value["source_index"] = index
-            out["calls"].append(value)
-        except ValueError as exc: withheld("calls", index, row, str(exc))
+            horizon = int(row.get("horizon_days"))
+            confidence = float(row.get("confidence"))
+        except Exception:
+            continue
+        if horizon not in (21, 63) or not math.isfinite(confidence) or confidence < 0.5 or confidence > 0.85:
+            continue
+        calls.append({"ticker": row["ticker"], "direction": row["direction"], "horizon_days": horizon,
+                      "confidence": round(confidence, 4), "thesis": _text(row.get("thesis"), "call.thesis", 4, 800)})
+    out["calls"] = calls[:MAX_CALLS]
     return out
 
 
@@ -662,30 +639,22 @@ def performance_qualification():
 def log_calls(table, read_id: str, calls: List[dict], log_signal, yprice) -> List[dict]:
     rows = []
     for c in calls:
+        t = c["ticker"]
+        px = None
         try:
-            value = _input_call(c)
-        except ValueError as exc:
-            rows.append({"received_input": copy.deepcopy(c), "read_id": read_id,
-                         "logged": False, "why": str(exc), "input_contract": "market-read-inputs.v1"})
-            continue
-        t = value["ticker"]
-        try:
-            px = _reported_number(yprice(t))
-            if px is not None and px <= 0: px = None
+            px = yprice(t)
         except Exception:
             px = None
-        row = {**value, "read_id": read_id, "logged_at": now_iso(), "baseline_price": px,
-               "input_contract": "market-read-inputs.v1", "received_input": copy.deepcopy(c),
-               "source_index": c.get("source_index"),
+        row = {"ticker": t, "direction": c["direction"], "horizon_days": int(c.get("horizon_days") or 21), "confidence": float(c.get("confidence") or 0.6),
+               "thesis": str(c.get("thesis") or "")[:240], "read_id": read_id, "logged_at": now_iso(), "baseline_price": px,
                "signal_id": "%s#%s#%s" % (SIGNAL_TYPE, t, datetime.now(timezone.utc).date().isoformat())}
         if px is None:
             row["logged"] = False
-            row["why"] = "no finite positive numeric price"
+            row["why"] = "no price"
         else:
             try:
-                row["logged"] = bool(log_signal(table, SIGNAL_TYPE, t, value["direction"], WINDOWS, px, confidence=value["confidence"], rationale=value["thesis"],
-                                                metadata={"read_id": read_id, "horizon_days": value["horizon_days"], "engine": "justhodl-ai",
-                                                          "input_contract": "market-read-inputs.v1", "source_index": c.get("source_index")}))
+                row["logged"] = bool(log_signal(table, SIGNAL_TYPE, t, c["direction"], WINDOWS, px, confidence=row["confidence"], rationale=row["thesis"],
+                                                metadata={"read_id": read_id, "horizon_days": row["horizon_days"], "engine": "justhodl-ai"}))
             except Exception as e:
                 row["logged"] = False
                 row["why"] = str(e)[:120]

@@ -59,4 +59,8 @@ class Tests(unittest.TestCase):
    pub={'scoreboard':{'calls_made':11,'calls_graded':count,'reported_outcome_qualification':{'forecast_qualified':True}},'market_exam':{'holdout':{'model_scores':{'score':.99},'baselines':{'prior':{'score':.5}}}}}
    if count>=20:self.assertIn('Market skill exists',before(pub)['next_lesson'])
    out=after(pub);self.assertEqual(out['calls']['graded'],count);self.assertEqual(out['calls']['graded_unit'],'reported_window');self.assertIs(out['calls']['qualification']['forecast_qualified'],False);self.assertNotIn('Market skill exists',out['next_lesson']);self.assertIn('do not grant promotion',out['next_lesson'])
+def load_tests(loader, tests, pattern):
+ import test_market_read_inputs
+ tests.addTests(loader.loadTestsFromModule(test_market_read_inputs))
+ return tests
 if __name__=='__main__':unittest.main(verbosity=2)
