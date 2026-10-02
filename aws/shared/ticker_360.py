@@ -98,7 +98,11 @@ _TICKER_LIST_KEYS = ("by_ticker", "tickers", "stocks", "rows", "items",
                      "board", "squeeze_candidates", "top_squeeze",
                      "top_covering", "top_distribution", "top_crowded",
                      "top_accumulation", "candidates", "setups", "names",
-                     "top_picks", "data", "tickers_list")
+                     "top_picks", "data", "tickers_list",
+                     # ops 1110: producer-specific ticker lists
+                     "big_buys", "big_sells", "clusters",
+                     "upcoming_14d", "upcoming", "earnings",
+                     "positions", "holdings")
 
 
 def _tk(x):
