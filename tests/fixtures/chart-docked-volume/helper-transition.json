@@ -1,0 +1,15 @@
+{
+  "path": "tests/helpers/chart-ratio-precision-preservation.cjs",
+  "before_sha256": "1673d444fae7824c1d7cf06e08d62bd1b7b4c55a007beae9631a16cfd21b20c5",
+  "after_sha256": "333759a302dcf05053356c4c81d64e8c1946dbf3da9fa4cdb79d8c884892c466",
+  "replacements": [
+    {
+      "before": "function normalizeSource(raw){",
+      "after": "function normalizeSource(raw){raw=require('./chart-docked-volume-preservation.cjs').normalizeSource(raw);"
+    },
+    {
+      "before": "function normalizeSigned(doc){",
+      "after": "function normalizeSigned(doc){doc=require('./chart-docked-volume-preservation.cjs').normalizeSigned(doc);"
+    }
+  ]
+}

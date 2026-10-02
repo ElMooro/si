@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 552 crypto source attribution is exact native-source accepted. Stage 553 chart legend/hover layout is candidate-tested at four widths with keyboard scroll. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stage 553 readout layout is exact static/browser accepted. Stage 554 docked relative-volume gaps and last-value labels are candidate-tested. All ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7833,3 +7833,15 @@ A whole-module browser test reproduced overlapping legend and selected-bar text.
 
 
 Stage 553 pre-push reconciliation retains the peer Ticker 360 news domain and both heartbeat probe sources without executing them or reading their reports. All engine manifest records remain identical; only generated_at changed, requiring two repository-asset hashes in the page registry. Complete frontend and static contract/graph/wiring checks are repeated. The prior passed deployment and four-width browser gates are retained against identical production HTML/JS. Ticker 360 qualification remains separate open work.
+
+
+### Stage 553 readout layout acceptance
+
+Commit `b98901d5e1e2edb8f5149a0df594306641a297ea`, Pages run `36971308604`: ten exact static assets and served-module cases at 320/390/768/1440 pixels pass, including keyboard scroll of a long legend. Final 2,912 frontend and 1,041 deployment/fifteen shell checks pass. No engine arithmetic changed.
+
+### Stage 554 docked relative-volume candidate
+
+The complete-module predecessor drops missing points and leaves an older last-value label when latest volume is unavailable. The candidate preserves the complete input frame and every valid ratio, splits independent runs at gaps, withholds that label, and retains the peer controls within the legend. paintOsc and ensureChartUi change; 398 other functions and all outer statements are unchanged. Fourteen invented browser cases compare every input bar, timestamp and ratio, including zero, tiny, large, missing, interior gaps, short windows and zero denominators. Clicking Down returns the same complete valid runs to the separate pane. The last uses an explicitly invented warehouse receipt because a separate source-selection gate rejects non-warehouse mostly-zero volumes; that independent defect remains open.
+
+
+Stage 554 reconciliation: peer `c3ce0a20b` moved dock controls into the legend, changed search display and added volume codecs. All peer source bytes remain except the reviewed RVOL continuity/label fixes and persistent UI-install guard. Repeated ensureChartUi calls otherwise re-wrap callbacks because its nested function marker is recreated each call. Browser regression verifies stable callback identities, one legend row, exact selected-bar unavailable/tiny values, layout, and Down-button transitions. Source-label inference and cross-provider units remain unqualified. Full frontend/deployment/browser integration repeats on this combined source.

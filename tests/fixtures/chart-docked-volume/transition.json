@@ -1,0 +1,31 @@
+{
+  "path": "jh-chart-engine.js",
+  "source_sha256": "0604af72bdd255fd45de7d6b8395a5ddb4551bac4c2a28cc15ce1f422f721d54",
+  "candidate_sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
+  "replacements": [
+    {
+      "before": "else if(o.id===\"rvol\") addD((rvolSeries(bars, o.p||20)||[]).filter(function(pt){return pt.value!=null;}), o.c||\"#2962ff\", \"RVOL\");",
+      "after": "else if(o.id===\"rvol\"){\n            var dockPoints=rvolSeries(bars,o.p||20)||[], dockRun=[];\n            function flushDockRV(){if(dockRun.length)addD(dockRun,o.c||\"#2962ff\",\"RVOL\");dockRun=[];}\n            dockPoints.forEach(function(point){if(typeof point.value===\"number\"&&Number.isFinite(point.value))dockRun.push(point);else flushDockRV();});\n            flushDockRV();\n          }"
+    },
+    {
+      "before": "lastValueVisible:true, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false",
+      "after": "lastValueVisible:o.id!==\"rvol\"||pts[pts.length-1].time===bars[bars.length-1].time, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false"
+    },
+    {
+      "before": "      if(installChartPatches.done) return;\n      installChartPatches.done=1;",
+      "after": "      if(ensureChartUi.patchesInstalled) return;\n      ensureChartUi.patchesInstalled=true;"
+    },
+    {
+      "before": "          var n=valAt(dockPts(o), t);",
+      "after": "          var points=dockPts(o), n=valAt(points,t);\n          if(o.id===\"rvol\"){\n            var exact=points.find(function(point){return point.time===t;});\n            n=exact&&typeof exact.value===\"number\"&&Number.isFinite(exact.value)?exact.value:null;\n          }"
+    },
+    {
+      "before": "          row.setAttribute(\"data-id\", o.id);\n          row.innerHTML=",
+      "after": "          row.setAttribute(\"data-id\", o.id);\n          if(o.id===\"rvol\"){\n            var clock=new Date(t*1000), label=Number.isFinite(clock.getTime())?clock.toISOString().replace(\".000Z\",\"Z\"):\"time unavailable\";\n            row.title=\"Selected bar \"+label+\"; reported volume / prior \"+(o.p||20)+\"-bar mean\";\n          }\n          row.innerHTML="
+    },
+    {
+      "before": "            \"<span class=leg-v>\"+(n==null||n===\"\"?\"\":escHtml(fmt(n)))+\"</span>\"+",
+      "after": "            \"<span class=leg-v>\"+(o.id===\"rvol\"?(n==null?\"Unavailable\":escHtml((n>0&&n<0.01?\"<0.01\":n.toFixed(2))+\"\u00d7\")):(n==null||n===\"\"?\"\":escHtml(fmt(n))))+\"</span>\"+"
+    }
+  ]
+}

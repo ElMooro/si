@@ -1,0 +1,25 @@
+{
+  "stage": 554,
+  "status": "candidate_integration_pending",
+  "source_sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
+  "unchanged_functions": 398,
+  "repairs": [
+    "Missing RVOL observations split line runs; every valid observation and date is retained",
+    "Latest-unavailable RVOL cannot retain an older numeric axis label",
+    "Peer legend controls retained; exact selected-bar ratio, unavailable and tiny-positive labels",
+    "Repeated UI setup does not repeatedly wrap render/search callbacks"
+  ],
+  "invented_browser_cases": 14,
+  "actual_network_requests": 0,
+  "remaining": [
+    "Complete integration and exact static/browser acceptance",
+    "Non-warehouse zero-volume source selection; separate reproduction retained",
+    "Provider comparability and original source qualification"
+  ],
+  "investment_authority": false,
+  "zero_denominator_browser_scope": "Invented warehouse-key receipt exercises rendering independently of the separately reproduced non-warehouse positive-volume gate.",
+  "changed_functions": [
+    "paintOsc",
+    "ensureChartUi"
+  ]
+}

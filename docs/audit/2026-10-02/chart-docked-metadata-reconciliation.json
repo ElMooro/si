@@ -1,0 +1,25 @@
+{
+  "base": "c3ce0a20bf03c8dfcc2e29520321a334b2744703",
+  "reviewed_head": "edd063ed2edcd2d4d4c45009efc27b52973ea7e5",
+  "target_overlap": false,
+  "script_executed": false,
+  "peer_report_reads": 0,
+  "path_oids": {
+    "aws/ops/ran/1108_fix_schedules.py": "6e56e85b937ed016ae77268b3ebbdf2ac4c192de",
+    "STATE.md": "6b98925586f3e4442fde5c39263dcb7b227b3495",
+    "engine-manifest.json": "614567f2e1f8da6f9c858cc73c2eba75ddbf5165"
+  },
+  "scope": "Source-only review of peer 1108: attempts to create/enable a Scheduler for Ticker 360 and invoke another producer. Neither action repeated here; no report read. Earlier own baseline already had a classic Ticker 360 rule, so engine acceptance requires a new native census. Chart code is identical to passed tests. All manifest engine records are unchanged; only generated_at differs.",
+  "registry_changes": [
+    {
+      "path": "/pages/index.html/repository_assets/2/sha256",
+      "before": "a428b638423aa953e1d42bb28b9d97fe9ea66482858764618eda36bb00b5e7a8",
+      "after": "63e9e1d0e4fd4d1b93119d5eed591f88a68c36f6496c21e848cad96b401280f3"
+    },
+    {
+      "path": "/pages/workspace.html/repository_assets/0/sha256",
+      "before": "a428b638423aa953e1d42bb28b9d97fe9ea66482858764618eda36bb00b5e7a8",
+      "after": "63e9e1d0e4fd4d1b93119d5eed591f88a68c36f6496c21e848cad96b401280f3"
+    }
+  ]
+}

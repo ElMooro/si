@@ -3145,7 +3145,7 @@
           try{
             var s=hist
               ? chart.addHistogramSeries({priceScaleId:scaleId, lastValueVisible:false, priceLineVisible:false, title:title||o.n})
-              : chart.addLineSeries({color:color||o.c||"#2962ff", lineWidth:o.w||1.5, priceScaleId:scaleId, lastValueVisible:o.id!=="rvol"||pts[pts.length-1].time===bars[bars.length-1].time, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false});
+              : chart.addLineSeries({color:color||o.c||"#2962ff", lineWidth:o.w||1.5, priceScaleId:scaleId, lastValueVisible:true, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false});
             s.setData(pts); series.push(s);
           }catch(e){}
         }
@@ -3174,12 +3174,7 @@
           else if(o.id==="cmf") addD(cmf(bars,20), "#43a047", "CMF");
           else if(o.id==="uo") addD(uo(bars), "#2962ff", "UO");
           else if(o.id==="cmo") addD(cmo(bars,14), "#ef6c00", "CMO");
-          else if(o.id==="rvol"){
-            var dockPoints=rvolSeries(bars,o.p||20)||[], dockRun=[];
-            function flushDockRV(){if(dockRun.length)addD(dockRun,o.c||"#2962ff","RVOL");dockRun=[];}
-            dockPoints.forEach(function(point){if(typeof point.value==="number"&&Number.isFinite(point.value))dockRun.push(point);else flushDockRV();});
-            flushDockRV();
-          }
+          else if(o.id==="rvol") addD((rvolSeries(bars, o.p||20)||[]).filter(function(pt){return pt.value!=null;}), o.c||"#2962ff", "RVOL");
         }catch(eD){}
       });
     }
@@ -4344,8 +4339,8 @@ else if(o.id==="rvol"){
       return [];
     }
     function installChartPatches(){
-      if(ensureChartUi.patchesInstalled) return;
-      ensureChartUi.patchesInstalled=true;
+      if(installChartPatches.done) return;
+      installChartPatches.done=1;
       var origLeg=renderLegend;
       renderLegend=function(atTime){
         origLeg(atTime);
@@ -4359,22 +4354,14 @@ else if(o.id==="rvol"){
         if(t==null && last) t=last.time;
         OSC.forEach(function(o){
           if(!o||!o.on||place[o.id]!=="chart") return;
-          var points=dockPts(o), n=valAt(points,t);
-          if(o.id==="rvol"){
-            var exact=points.find(function(point){return point.time===t;});
-            n=exact&&typeof exact.value==="number"&&Number.isFinite(exact.value)?exact.value:null;
-          }
+          var n=valAt(dockPts(o), t);
           var row=document.createElement("div");
           row.className="leg-row"+(o.hide?" dim":"");
           row.setAttribute("data-kind","dock");
           row.setAttribute("data-id", o.id);
-          if(o.id==="rvol"){
-            var clock=new Date(t*1000), label=Number.isFinite(clock.getTime())?clock.toISOString().replace(".000Z","Z"):"time unavailable";
-            row.title="Selected bar "+label+"; reported volume / prior "+(o.p||20)+"-bar mean";
-          }
           row.innerHTML="<i class=leg-sw style=background:"+(o.c||"#2962ff")+"></i>"+
             "<span class=leg-n style=color:"+(o.c||"#2962ff")+">"+escHtml(o.n)+"</span>"+
-            "<span class=leg-v>"+(o.id==="rvol"?(n==null?"Unavailable":escHtml((n>0&&n<0.01?"<0.01":n.toFixed(2))+"×")):(n==null||n===""?"":escHtml(fmt(n))))+"</span>"+
+            "<span class=leg-v>"+(n==null||n===""?"":escHtml(fmt(n)))+"</span>"+
             "<button type=button class=leg-dock data-act=dn title='Move this indicator to the window below'>↓</button>"+
             "<button type=button class=leg-dock data-act=x title='Remove this indicator'>×</button>";
           host.appendChild(row);
