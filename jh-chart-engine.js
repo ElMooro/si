@@ -2091,6 +2091,19 @@
                   while(tapeStart<d.length && !(reportedVolume(d[tapeStart].volume)>0)) tapeStart++;
                   var tape=d.slice(tapeStart);
                   d=mergeByDay(ydC, tape);
+                  var tail=d.length-1, guard=0, tw, tvals, tmed, tv;
+                  while(tail>20 && guard<4){
+                    tv=d[tail]&&d[tail].volume;
+                    if(!(tv>0)){ tail--; continue; }
+                    tvals=[];
+                    for(tw=tail-20;tw<tail;tw++) if(d[tw]&&d[tw].volume>0) tvals.push(d[tw].volume);
+                    if(tvals.length<10) break;
+                    tvals.sort(function(a,b){return a-b;});
+                    tmed=tvals[tvals.length>>1];
+                    if(!(tmed>0) || tv/tmed<80) break;
+                    d[tail].volume=null;
+                    tail--; guard++;
+                  }
                   if(d.length>n0 || (d.length && d[0].time<t0)) src=(src||"warehouse")+"+yahoo";
                 }
               }catch(eC){}

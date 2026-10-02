@@ -32,6 +32,7 @@ test("engine merges Yahoo onto katlin crypto-bars only", () => {
   assert.match(klines, /isCryptoTape/);
   assert.match(klines, /polygon\+yahoo/);
   assert.match(klines, /tapeStart/);
+  assert.match(klines, /tv\/tmed<80/);
   assert.doesNotMatch(klines, /ydC\[yi\]\.volume=null/);
 });
 
