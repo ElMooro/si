@@ -2,7 +2,8 @@
 
 This is an isolated DRAFT repair of extraction page/checkpoint write-failure
 handling. It was first based on main `39f7b521fff3a1a43509de23590d7d8be649e82c`
-and is now rebased on owner main `86f8aeb755e301b55ea2a253e7237e3fadc8ba75`.
+and is now rebased on main `87850babb74632f40650e16ead81fde1a9bc96a6`,
+including reviewed owner correction `86f8aeb755e301b55ea2a253e7237e3fadc8ba75`.
 **Release HOLD.** The owner correction passes the unchanged compound gate and
 all required tests. Independent review qualifies its three actual candidate
 mappings; two broader detector limitations are retained for active-owner follow-up
