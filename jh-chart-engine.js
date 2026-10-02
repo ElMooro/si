@@ -1869,10 +1869,21 @@
     return out;
   }
   function toBars(j){
+    try{ ensureChartUi(); }catch(eUi){}
     if(!j) return [];
     var rows=j.bars||j.ohlc||j.results||j.obs||j.points||j.data||(Array.isArray(j)?j:[]);
     var out=[],i;
-    var warehouseVol=!!(j && (j.warehouse_key || j.source==="warehouse"));
+    function volumeCodec(doc){
+      if(!doc || typeof doc!=="object") return false;
+      if(doc.warehouse_key) return true;
+      var s=String(doc.source||"");
+      if(!s) return false;
+      if(s==="warehouse" || s.indexOf("warehouse")===0) return true;
+      if(s==="yahoo" || s.indexOf("yahoo")===0) return true;
+      if(s.indexOf("polygon")===0 || s.indexOf("forming-session")===0) return true;
+      return false;
+    }
+    var warehouseVol=volumeCodec(j);
     for(i=0;i<rows.length;i++){
       var b=rows[i];
       if(Array.isArray(b)){
@@ -3123,12 +3134,7 @@
     function mountDockedOsc(bars, list){
       var box=document.getElementById("jh-dock-inds");
       if(box&&box.parentNode) box.parentNode.removeChild(box);
-      var pane=document.getElementById("chart");
-      if(!pane||!chart||!list||!list.length) return;
-      box=document.createElement("div");
-      box.id="jh-dock-inds";
-      box.style.cssText="position:absolute;right:72px;top:8px;z-index:40;display:flex;flex-direction:column;gap:4px;pointer-events:none";
-      pane.appendChild(box);
+      if(!chart||!list||!list.length) return;
       var volBand=lastVolShow?0.16:0.02;
       list.slice(0,2).forEach(function(o, slot){
         if(!oscDockable(o.id)) return;
@@ -3139,7 +3145,7 @@
           try{
             var s=hist
               ? chart.addHistogramSeries({priceScaleId:scaleId, lastValueVisible:false, priceLineVisible:false, title:title||o.n})
-              : chart.addLineSeries({color:color||o.c||"#2962ff", lineWidth:o.w||1.5, priceScaleId:scaleId, lastValueVisible:slot===0, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false});
+              : chart.addLineSeries({color:color||o.c||"#2962ff", lineWidth:o.w||1.5, priceScaleId:scaleId, lastValueVisible:true, priceLineVisible:false, title:title||o.n, crosshairMarkerVisible:false});
             s.setData(pts); series.push(s);
           }catch(e){}
         }
@@ -3170,18 +3176,6 @@
           else if(o.id==="cmo") addD(cmo(bars,14), "#ef6c00", "CMO");
           else if(o.id==="rvol") addD((rvolSeries(bars, o.p||20)||[]).filter(function(pt){return pt.value!=null;}), o.c||"#2962ff", "RVOL");
         }catch(eD){}
-        var chip=document.createElement("div");
-        chip.className="jh-dock-ind";
-        chip.style.cssText="pointer-events:auto;display:flex;gap:8px;align-items:center;height:26px;padding:0 8px;background:rgba(19,23,34,.94);border:1px solid #434651;border-radius:3px;color:#d1d4dc;font:600 12px IBM Plex Sans,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer";
-        chip.innerHTML="<span>"+escHtml(o.n)+"</span><button type=button title='Move this indicator back to the window below' style='color:#f0b429;font:700 13px IBM Plex Sans,sans-serif;padding:0 6px'>↓ Down</button>";
-        box.appendChild(chip);
-        chip.onmousedown=function(ev){ ev.preventDefault(); ev.stopPropagation(); };
-        chip.onclick=function(ev){
-          ev.preventDefault(); ev.stopPropagation();
-          oscPlaceSet(o.id, "below");
-          toast(o.n+" in the window below");
-          if(lastBars.length) paint(lastBars);
-        };
       });
     }
     var below=[], docked=[];
@@ -4302,7 +4296,120 @@ else if(o.id==="rvol"){
   }
 
   function ensureChartUi(){
+    try{ installChartPatches(); }catch(ePatch){}
+    if(typeof document==="undefined"||!document.getElementById||!document.head) return;
     if(document.getElementById("jh-fs-css")) return;
+    function chartFeedSource(sym){
+      sym=String(sym||"");
+      if(/^FRED:/i.test(sym)) return "FRED · warehouse /series";
+      if(/^NYFED:/i.test(sym)) return "NY Fed · warehouse /series";
+      if(/^CQSNAP:/i.test(sym)) return "CryptoQuant snapshot · no history bars";
+      if(/^CQARM:/i.test(sym)) return "CryptoQuant · accepted history unavailable";
+      if(/^CQDOC:/i.test(sym)) return "CryptoQuant catalog · not harvested";
+      if(/^CQ:/i.test(sym)) return "CryptoQuant harvest file";
+      if(/^CISS:/i.test(sym)) return "ECB CISS · warehouse";
+      if(/^DESK:/i.test(sym)) return "JustHodl desk file";
+      if(/^DATA:|^provider:/i.test(sym)) return "Provider catalog · not a price tape";
+      if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(sym)) return sym.split(":")[0]+" · warehouse /series";
+      var cls=classifySym(sym);
+      if(cls==="crypto") return "Yahoo "+yahooSym(bare(sym))+" · USD volume · warehouse if banked";
+      if(cls==="fx") return "Yahoo FX · warehouse if banked";
+      if(cls==="macro"||cls==="economy") return "Warehouse /series";
+      if(/^\^/.test(sym)||sym==="DX-Y.NYB") return "Yahoo index";
+      return "Warehouse OHLC · Yahoo if the bank is empty";
+    }
+    function dockPts(o){
+      var bars=lastBars||[];
+      if(!o||!bars.length) return [];
+      if(o.id==="rsi") return rsi(bars, o.p||14);
+      if(o.id==="macd") return macd(bars, o.p||12, o.p2||26, o.p3||9).map(function(p){ return {time:p.time,value:p.macd}; });
+      if(o.id==="stoch") return (stochFull(bars, o.p||14, 3, 3).k)||[];
+      if(o.id==="atr") return atr(bars,14);
+      if(o.id==="cci") return cci(bars,20);
+      if(o.id==="willr") return willr(bars,14);
+      if(o.id==="mfi") return mfi(bars,14);
+      if(o.id==="obv") return obv(bars);
+      if(o.id==="mom") return mom(bars,10);
+      if(o.id==="roc") return roc(bars,12);
+      if(o.id==="adx") return adx(bars, o.p||14);
+      if(o.id==="cmf") return cmf(bars,20);
+      if(o.id==="uo") return uo(bars);
+      if(o.id==="cmo") return cmo(bars,14);
+      if(o.id==="rvol") return rvolSeries(bars, o.p||20)||[];
+      return [];
+    }
+    function installChartPatches(){
+      if(installChartPatches.done) return;
+      installChartPatches.done=1;
+      var origLeg=renderLegend;
+      renderLegend=function(atTime){
+        origLeg(atTime);
+        var host=document.getElementById("legend");
+        if(!host) return;
+        var stale=host.querySelectorAll("[data-kind=dock]"), si;
+        for(si=0;si<stale.length;si++) if(stale[si].parentNode) stale[si].parentNode.removeChild(stale[si]);
+        var place={};
+        try{ place=JSON.parse(localStorage.getItem("jh-osc-place")||"{}")||{}; }catch(eP){ place={}; }
+        var t=atTime, last=lastBars&&lastBars.length?lastBars[lastBars.length-1]:null;
+        if(t==null && last) t=last.time;
+        OSC.forEach(function(o){
+          if(!o||!o.on||place[o.id]!=="chart") return;
+          var n=valAt(dockPts(o), t);
+          var row=document.createElement("div");
+          row.className="leg-row"+(o.hide?" dim":"");
+          row.setAttribute("data-kind","dock");
+          row.setAttribute("data-id", o.id);
+          row.innerHTML="<i class=leg-sw style=background:"+(o.c||"#2962ff")+"></i>"+
+            "<span class=leg-n style=color:"+(o.c||"#2962ff")+">"+escHtml(o.n)+"</span>"+
+            "<span class=leg-v>"+(n==null||n===""?"":escHtml(fmt(n)))+"</span>"+
+            "<button type=button class=leg-dock data-act=dn title='Move this indicator to the window below'>↓</button>"+
+            "<button type=button class=leg-dock data-act=x title='Remove this indicator'>×</button>";
+          host.appendChild(row);
+          row.onclick=function(ev){
+            ev.preventDefault(); ev.stopPropagation();
+            var btn=ev.target&&ev.target.closest?ev.target.closest("[data-act]"):null;
+            var act=btn?btn.getAttribute("data-act"):"";
+            if(act!=="dn"&&act!=="x") return;
+            try{
+              var m=JSON.parse(localStorage.getItem("jh-osc-place")||"{}")||{};
+              delete m[o.id];
+              localStorage.setItem("jh-osc-place", JSON.stringify(m));
+            }catch(eS){}
+            if(act==="x"){ o.on=false; o.hide=false; try{ saveLay(); }catch(eL){} }
+            else toast(o.n+" in the window below");
+            if(lastBars.length) paint(lastBars);
+          };
+        });
+      };
+      var origRow=ssRowHtml;
+      ssRowHtml=function(r,i){
+        var html=origRow(r,i);
+        var src=chartFeedSource(r&&r.s);
+        var token="class=ss-ex>";
+        var at=html.indexOf(token);
+        if(at<0||!src) return html;
+        var gt=at+token.length-1;
+        var end=html.indexOf("</span>", gt);
+        if(end<0) return html;
+        return html.slice(0, gt+1)+escHtml(src)+html.slice(end);
+      };
+      var origOpen=openSymSearch;
+      openSymSearch=function(pre, dest){
+        var top=document.getElementById("symin");
+        var box=document.getElementById("symsearch");
+        var typing=!!(top && document.activeElement===top);
+        var already=!!(box && /\bon\b/.test(box.className||"") && (box.dataset.dest||"chart")===(dest||"chart"));
+        if(typing && already){
+          var inp=document.getElementById("ssin");
+          var q=pre!=null?pre:(top.value||"");
+          if(inp) inp.value=q;
+          ssSel=-1; ssChoice="";
+          renderSymSearch(q);
+          return;
+        }
+        origOpen(pre, dest);
+      };
+    }
     var st=document.createElement("style");
     st.id="jh-fs-css";
     st.textContent="html.jh-fs #watch,html.jh-fs #rail,html.jh-fs #rrail,html.jh-fs #quote,html.jh-fs #tape,html.jh-fs #etfhud,html.jh-fs #volhud,html.jh-fs .foot,html.jh-fs #mini,html.jh-fs #dock,html.jh-fs #replay,html.jh-fs #listfab{display:none!important}"+
@@ -4328,7 +4435,16 @@ else if(o.id==="rvol"){
       "#oscwrap .osc-head [data-act=up]:hover,#oscwrap .osc-head [data-act=dn]:hover,#oscwrap .osc-head [data-act=shorter]:hover{color:#f0b429}"+
       "#jh-dock-inds{position:absolute;right:72px;top:8px;left:auto;z-index:40;display:flex;flex-direction:column;gap:4px;pointer-events:none}"+
       "#jh-dock-inds .jh-dock-ind{pointer-events:auto;display:flex;gap:8px;align-items:center;height:26px;padding:0 8px;background:rgba(19,23,34,.94);border:1px solid #434651;border-radius:3px;color:#d1d4dc;font:600 12px IBM Plex Sans,sans-serif;cursor:pointer}"+
-      "#jh-dock-inds button{color:#f0b429;font-size:13px;font-weight:700;padding:0 6px}";
+      "#jh-dock-inds button{color:#f0b429;font-size:13px;font-weight:700;padding:0 6px}"+
+      "#legend .leg-row[data-kind=dock]{pointer-events:auto}"+
+      "#legend .leg-dock{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;margin-left:2px;color:#f0b429;font:700 13px/18px IBM Plex Sans,sans-serif;pointer-events:auto}"+
+      "#legend .leg-dock[data-act=x]{color:#787b86}"+
+      "#legend .leg-dock:hover{color:#fff;background:#2a2e39}"+
+      "#symsearch .ss-hit{grid-template-columns:36px minmax(110px,1fr) minmax(110px,1fr) 28px!important;align-items:center}"+
+      "#symsearch .ss-hit>.ss-logo{grid-column:1!important;grid-row:1!important}"+
+      "#symsearch .ss-hit>span:first-of-type{grid-column:2!important;grid-row:1!important;min-width:0}"+
+      "#symsearch .ss-hit .ss-ex{grid-column:3!important;grid-row:1!important;display:block;width:100%;min-width:110px;text-align:right;white-space:normal;overflow-wrap:anywhere}"+
+      "#symsearch .ss-hit .ss-more,#symsearch .ss-hit .ss-check{grid-column:4!important;grid-row:1!important}";
     document.head.appendChild(st);
     function onFsEnd(){
       if(document.fullscreenElement||document.webkitFullscreenElement) return;
