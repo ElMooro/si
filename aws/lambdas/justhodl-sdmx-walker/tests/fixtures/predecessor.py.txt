@@ -87,14 +87,7 @@ def _save(k, st, total):
 def _order(ids, pri_prefixes):
     pri = [i for i in ids if str(i).upper().startswith(
         tuple(p.upper() for p in pri_prefixes))]
-    pri_set = None
-    rest = []
-    for i in ids:
-        # Build on the second pass: a one-shot iterator may already be empty.
-        if pri_set is None:
-            pri_set = set(pri)
-        if i not in pri_set:
-            rest.append(i)
+    rest = [i for i in ids if i not in set(pri)]
     return pri + rest
 
 
