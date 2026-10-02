@@ -241,6 +241,12 @@ def scope_test():
 def healthy_tests():
     count = 0
     for provider in ('eurostat', 'ecb'):
+        empty = equivalent({}, event={'provider': provider})
+        assert json.loads(empty['return']['body'])['n_pages'] == 0
+        assert json.loads(empty['return']['body'])['series_extracted'] == 0
+        first_page = equivalent(warm(provider, rows=500), event={'provider': provider})
+        assert json.loads(first_page['return']['body'])['n_pages'] == 1
+        count += 2
         for rows in (0, 1, 499, 500, 501, 1001):
             for state in (checkpoint(), checkpoint(flows_done=['FLOW0']), None):
                 result = equivalent(objects_with(state, provider, rows), event={'provider': provider})
@@ -250,6 +256,7 @@ def healthy_tests():
                         {'flow_progress': {'FLOW0': {'rows_done': 500, 'attempts': 1}}},
                         {'flow_progress': {'FLOW0': {'slice_idx': 1, 'attempts': 1}}},
                         {'series_count': 1500.0, 'pages_objects': ' +003 ', 'pages_bytes': '017000'},
+                        {'series_count': -0.0, 'pages_objects': '1_000', 'pages_bytes': '+0'},
                         {'series_count': 1500.0, 'pages_objects': 3.0, 'pages_bytes': 17000.0}):
             equivalent(objects_with(checkpoint(**changes), provider, flows=3),
                        event={'provider': provider})

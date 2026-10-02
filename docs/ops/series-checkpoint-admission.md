@@ -49,7 +49,7 @@ handler returns, all object bytes, complete ordered read/LIST/PUT traces and
 options, clock-budget checks, stdout and error type/message against the full
 predecessor. Real asynchronous completion races are not simulated.
 
-The suite includes 66 healthy/legacy/bootstrap handler differentials, 166
+The suite includes 72 healthy/legacy/bootstrap handler differentials, 166
 rejected/recovery cases, 10 replay/corruption scenarios and four actual
 provider-catalog/SymDir consumer cases. Eurostat and grouped ECB are covered,
 with list pagination, empty/partial/exact-page/multi-page input, legacy missing
