@@ -1,5 +1,13 @@
 # Series-extractor checkpoint admission
 
+The reviewed code repair is installed from release commit
+`e5a4c11cd44fc103ae64a0ca43a7161c31ec7808`. **Full acceptance remains held:**
+`RuntimeVersionConfig` differs from the retained predecessor fingerprint. The
+exact live package/receipt and every other projected control are verified;
+the old runtime field's shape and runtime-management mode are unavailable.
+No baseline replacement, acceptance waiver, runtime/control change or rollback
+has been performed. See the final acceptance evidence below.
+
 This incremental repair admits extraction only after a checkpoint GET, body
 read and JSON decode succeed, or the GET raises a typed botocore `ClientError`
 with exact S3 error code `NoSuchKey`. AccessDenied, timeout, InternalError,
@@ -111,14 +119,17 @@ guards, missing-page repairs, ECB slicing, Tier1 indexing, lookup optimization
 and other known defects remain separate. This repair neither establishes
 historical integrity nor restores already overwritten progress/data.
 
-## Reviewed draft and release qualification
+## Review and release gate history
 
 [Producer draft PR #75](https://github.com/ElMooro/si/pull/75) changes only
 checkpoint admission, its byte-pinned predecessor/test runner and supporting
 evidence. Independent review accepted source head
 `5aef1abf8acda0993602afebdc225288eefae310`, handler SHA-256
 `bcd80ce358aa433d9de33c45b9fb2900987c63046d343462b3c359b7c3724867`.
-The final draft head and its review are recorded in the PR. The reviewer reran
+Final exact-head release review approved
+`f830089e0f8648f770efe80009e5ef3f3604af03`, tree
+`1dcd872dec7d6be7e9a4a1ddaeb16b84dc0337a5`, with no findings. Each of the five
+merged PR blobs is byte-identical to that approved head. The reviewer reran
 72 healthy/legacy comparisons, 166 rejection/recovery cases, 10 replay/corruption
 scenarios and four actual consumer cases, and independently challenged SDK
 exception subclasses, legacy representations and same-store recovery.
@@ -143,7 +154,7 @@ The five intentional monitor bindings are enabled. Payload/environment/settings
 are compared as digests; arbitrary additional bindings and runtime failure paths
 are outside this probe's qualification.
 
-**No producer merge or deployment has occurred.** The required deployment suite
+**Before release, the draft was held by the required deployment suite.** That suite
 passed 1,041 static tests plus 15 shell gates on the original candidate base,
 then correctly held the draft when newer main failed the unrelated Ticker360
 preservation boundary. The original transition at `bfd28d614` pinned shared
@@ -213,6 +224,81 @@ and no extractor findings. The final secrets scan covers 15,761 files with no
 findings. No other-owner production contract is qualified by this repair.
 Main `a5aa60de960c6931f5845dca3cac9f5ff8221555` adds only that owner's read-only
 acceptance report, leaving every tested input and deployment dependency unchanged.
-Exact-head release review, producer deployment and post-release package/receipt/
-control proof remain pending. Natural publication cannot prove the failure path
-executed.
+All source gates and final exact-head review passed before the authorized code
+release. Natural publication cannot prove the rejected failure path executed.
+
+
+## Installed code and acceptance hold
+
+[PR #75](https://github.com/ElMooro/si/pull/75) merged as
+`e5a4c11cd44fc103ae64a0ca43a7161c31ec7808`.
+[Normal release run 36982007891](https://github.com/ElMooro/si/actions/runs/36982007891)
+succeeded at that exact commit, including all required preflight tests and
+configuration reconciliation. The
+[public release receipt](https://justhodl.ai/data/ops/releases/justhodl-series-extractor.json)
+is verified=true, commit-bound to that release, run-bound to 36982007891 and dated
+`2026-10-02T08:07:57Z`. The actual signed Lambda ZIP agrees with the receipt:
+
+- ZIP bytes: **1,077,860**.
+- CodeSha256: `w1YX8/Ni49DJkBRIUpoksNzABPkd/rF+d86eX0LtXtY=`.
+- ZIP SHA-256: `c35617f3f362e3d0c9901448529a24b0dcc004f91dfeb17e77ce9e5f42ed5ed6`.
+- Handler bytes: **38,171**, SHA-256
+  `bcd80ce358aa433d9de33c45b9fb2900987c63046d343462b3c359b7c3724867`.
+- Exact reviewed handler/source phase: candidate; function Active and last
+  update Successful.
+
+[Initial candidate run 36982457598](https://github.com/ElMooro/si/actions/runs/36982457598)
+rejected `operating_controls_changed` after 13 AWS reads. Acceptance did not
+proceed to the receipt GET. The baseline and rejection were retained. Necessary
+failure-only diagnostic [PR #77](https://github.com/ElMooro/si/pull/77) received
+independent exact-head review at `a7270367350585c1df9b11682f45db7aa0575748`
+(tree `f00459752e8ee0337b7ec8ac35157cdd42e609b0`); all 21 dependency-free tests,
+preflight and secrets checks pass. Merge `a36d9f3c77c1018025fdba6f63ba8f7a14627ed5`
+contains identical reviewed probe/test blobs and changes no producer source,
+workflow, baseline, criterion or read budget.
+
+[Diagnostic run 36984085575](https://github.com/ElMooro/si/actions/runs/36984085575)
+at that exact merge still fails the original criterion after 13 reads and one
+signed package GET, with zero AWS writes/invokes. Its immutable
+[report at 6b97a1b8f](https://github.com/ElMooro/si/blob/6b97a1b8ff9ba74244b8232a0444e9d935faa3d1/aws/ops/reports/latest/ops_6450_series_admission_acceptance.md)
+contains the actual package/readiness verification and safe control differences.
+Independent review recomputed the baseline and difference digests, verified
+complete projection field/inventory coverage, and bound the actual ZIP/handler
+hashes to the public receipt and exact committed source.
+
+The **only observed differing projected field** is
+`private_configuration.RuntimeVersionConfig`. The baseline operating fingerprint
+remains `ae119eb01335b5d1dcec8897bce47ad66e79c3f8579301bf9ef8c80a9c47b199`;
+the observed fingerprint is
+`1968f603f14ee3c678b528fa66cba542a343df63ade634de68fbb802491cbe97`.
+The current field is an object containing a syntactically valid runtime ARN,
+without Error or unknown fields. The old whole-field digest cannot reconstruct
+its ARN, shape or Error presence. Runtime-management update mode was not part
+of either baseline observation and is not claimed unchanged.
+
+Every **other** projected field matches: concurrency=1, Python3.12/x86_64,
+memory=10240, timeout=900, temporary storage=512MB, complete environment/role/
+description/settings digests, Active tracing/defaultDLQ, and the six enabled
+bindings with full target/payload digests. This includes the unchanged hourly
+extractor rule/four targets and all five intentional monitoring bindings.
+Arbitrary additional bindings remain outside the bounded qualification.
+
+[AWS documents](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-update.html)
+that managed runtime patches can change on a code/configuration update under
+Auto or FunctionUpdate modes. This is consistent with the observed difference,
+not proof of its cause or of an ARN-only change. Managed patch identity can
+matter to compatibility. The deploy scripts contain no runtime-management mode
+mutation; that does not reconstruct the predecessor mode or prove exact runtime
+behavior unchanged.
+
+**Installed code is verified; full release acceptance remains HOLD.** Resolving
+it requires sufficient evidence or explicit approval of a changed preservation
+contract. Dropping the whole runtime field would also discard its Error state;
+no such change is implemented. Pinning/changing runtime policy is a broader
+control change outside this repair. A source rollback would restore the old
+admission vulnerability and would not by itself restore the prior managed runtime.
+No rollback, source re-release, control change, baseline replacement, checkpoint/
+archive read, producer invocation, stored-data correction or deletion has been
+performed. No candidate natural-publication observation or live execution of
+the rejected failure path is claimed. Missing checkpoint in a populated namespace
+and the other separate risks above remain unresolved.
