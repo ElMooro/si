@@ -1,0 +1,203 @@
+{
+  "source_sha256": "243141f4e955f544a15947b47282eef704ffb8225b8231ecfa762bbf22ebc02e",
+  "results": [
+    {
+      "name": "absent_aliases",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 12345
+        }
+      ],
+      "named_volume_result": null
+    },
+    {
+      "name": "conflicting_aliases",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345,
+            "volume": 100,
+            "v": 200
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 12345
+        }
+      ],
+      "named_volume_result": null
+    },
+    {
+      "name": "invalid_boolean",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345,
+            "volume": false
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 12345
+        }
+      ],
+      "named_volume_result": null
+    },
+    {
+      "name": "invalid_text",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345,
+            "volume": "100"
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 12345
+        }
+      ],
+      "named_volume_result": null
+    },
+    {
+      "name": "measured_zero",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345,
+            "volume": 0
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 0
+        }
+      ],
+      "named_volume_result": 0
+    },
+    {
+      "name": "named_volume",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 12345,
+            "volume": 100
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": 100
+        }
+      ],
+      "named_volume_result": 100
+    },
+    {
+      "name": "equal_scalar",
+      "whole_input": {
+        "source": "warehouse",
+        "bars": [
+          {
+            "time": 1700000000,
+            "open": 100,
+            "high": 101,
+            "low": 99,
+            "close": 100,
+            "value": 100
+          }
+        ]
+      },
+      "whole_output": [
+        {
+          "time": 1700000000,
+          "open": 100,
+          "high": 101,
+          "low": 99,
+          "close": 100,
+          "volume": null
+        }
+      ],
+      "named_volume_result": null
+    }
+  ],
+  "scope": "Complete actual conversion functions, invented packets only. Definitive conflict/invalid-alias bypass; scalar-field meaning still needs source-codec review before repair.",
+  "actual_network_requests": 0,
+  "repository_edits": 0
+}

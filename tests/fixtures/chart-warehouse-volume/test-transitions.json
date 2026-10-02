@@ -1,0 +1,32 @@
+{
+  "tests/chart-crypto-history.test.js": {
+    "before_path": "tests/fixtures/chart-warehouse-volume/tests__chart-crypto-history.test.js.txt",
+    "before_sha256": "5c5a96cee33351b26049f4f0a1fb82ba90fe47cfbe3a639d0eaf4045c614d399",
+    "after_sha256": "70695abe5f72417079c027d494f7410c61ba43291815178b68c9f3d4788d5705",
+    "replacements": [
+      {
+        "before": "  assert.match(klines, /tapeStart/);\n  assert.match(klines, /tv\\/tmed<80/);",
+        "after": "  assert.match(klines, /var tape=d;/);\n  assert.doesNotMatch(klines, /d\\[tail\\]\\.volume=null/);"
+      }
+    ]
+  },
+  "tests/helpers/chart-volume-outlier-preservation.cjs": {
+    "before_path": "tests/fixtures/chart-warehouse-volume/tests__helpers__chart-volume-outlier-preservation.cjs.txt",
+    "before_sha256": "22f16243ef89fc560ffe0d814ccaf516e7b886703b07d85c2e511d9ab7c9032f",
+    "after_sha256": "c07a4048d0bb1068fba09186b08066527a704a7001987ab824f91c4c75f794da",
+    "replacements": [
+      {
+        "before": "function normalizeSource(raw){",
+        "after": "function normalizeSource(raw){raw=require('./chart-warehouse-volume-preservation.cjs').normalizeSource(raw);"
+      },
+      {
+        "before": "function normalizeSigned(doc){",
+        "after": "function normalizeSigned(doc){doc=require('./chart-warehouse-volume-preservation.cjs').normalizeSigned(doc);"
+      },
+      {
+        "before": "function normalizeTest(raw,file){",
+        "after": "function normalizeTest(raw,file){raw=require('./chart-warehouse-volume-preservation.cjs').normalizeTest(raw,file);"
+      }
+    ]
+  }
+}

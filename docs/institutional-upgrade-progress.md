@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 546 heartbeat exact native release accepted; recurring publication is unverified. Stage 547 latest-volume/main-histogram repair is exact static and served-module-browser accepted. Stage 548 volume-outlier calculation, rendering and help are candidate-tested; full integration and deployment are next. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stages 546 native heartbeat, 547 chart latest volume and 548 outlier pane are exact-release accepted within their recorded scopes. Stage 549 warehouse volume parsing and crypto primary-bar preservation are candidate-tested. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7779,3 +7779,12 @@ Commit `ceac9fcd7db0321850cb8b754e6a32574a08c6c1`, Pages run `36963399812`, matc
 ### Stage 548 volume-outlier candidate
 
 Twenty-seven whole-frame cases reproduce suppressed measured zero, valid 80x increases/decreases and prior-zero windows, then verify the repaired arithmetic and unchanged ordinary legacy tag cases. The main ratio pane retains exact values without clipping, does not borrow an older ratio, displays its UTC observation clock, and uses a wrapping header after a mobile screenshot exposed overlap. A positive ratio below 0.01 stays visibly distinct from measured zero. Desktop/mobile full-module fixtures pass with all requests intercepted. Legacy CAPIT/STOP/OUT tags, source-unit comparability and predictive significance remain unqualified.
+
+
+### Stage 548 exact static and served-module acceptance
+
+Commit `594c2143faa9759bff0260923bf60cedddfddadc`, Pages run `36964861120`: all ten static files match the coherent commit-bound build, including the complete engine and help module. Served-module browser cases at 390/1440px pass for 80x, missing, zero and tiny positive ratios with zero real requests; screenshots were inspected. Final 2,788 frontend, 1,039 deployment and fifteen shell checks pass. The initial help-fixture shape failure was repaired while retaining the complete prior manifest and all accessibility assertions.
+
+### Stage 549 warehouse volume candidate
+
+Forty-five actual-function tests reproduce named-alias validation bypass, volume-equals-price rejection, leading primary crypto bars overwritten on missing/zero volume and 80x tail-volume erasure. The candidate fixes only toBars and klines; 398 other functions and outer bytes remain identical. Complete invented primary/supplementary frames verify cache, failed supplement and weekly missingness. Full-module browser checks at 390/1440px cover conflicts, missingness, zero, equal volume/price and crypto tails without real requests. Worker coercion, cross-provider units/lineage, price sanitization and tiny quote rounding remain separate open defects.
