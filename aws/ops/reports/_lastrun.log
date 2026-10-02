@@ -1,2 +1,30 @@
-executing-against: eedaff796ee58b3da9f818a2085eb25fc455dc19
-Fixed heartbeat feed paths
+executing-against: c970097349aa3355dbc97861a7189929bdacc4a4
+{
+  "justhodl-sec-8k-enrich": {
+    "triggered": true,
+    "code": 202
+  },
+  "justhodl-master-ranker": {
+    "triggered": true,
+    "code": 202
+  },
+  "justhodl-conviction-engine": {
+    "triggered": true,
+    "code": 202
+  }
+}
+{
+  "justhodl-sec-8k-enrich-schedule": {
+    "exists": true,
+    "state": "ENABLED"
+  },
+  "justhodl-master-ranker-schedule": {
+    "exists": false
+  },
+  "justhodl-conviction-engine-schedule": {
+    "exists": false
+  },
+  "justhodl-sec-8k-schedule": {
+    "exists": false
+  }
+}
