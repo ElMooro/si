@@ -8090,3 +8090,10 @@ Commit `c0f3c4016c935b3fcfacc21b0dae823fb046082e` shipped 13 related files atomi
 Final checks: 1076 deployment, 15 shell, 25 complete AI suite cases, 36 actual-source outcome/input cases (25 input cases), 17 owned-settlement cases, 14 native acceptance cases and all 600 page contracts. Initial owned-settlement failures identified old prose-wrapper/error-message expectations; whole original tests remain retained, and all policy/settlement assertions pass with explicit JSON fixtures.
 
 Negated prose cannot become ACCUMULATE. Fractional/string/boolean horizons, guessed percent confidence, duplicate keys, conflicting aliases/units and malformed rows are rejected with source positions/reasons. Accepted confidence receives no extra decimal rounding; bounded raw answer bytes/hash remain available in parser output. The logging adapter cannot turn zero into 0.6 or pass malformed prices to its callback. Public projection regression confirms private answer text stays private. These are syntax/type/evidence-retention checks; downstream fallback retention, source validity, original timing, complete cohorts and predictive/portfolio authority remain unqualified. All ten workstreams remain OPEN.
+
+
+### Stage 570 deterministic fallback constraint repair (candidate)
+
+Five actual-source invented cases show negated posture text, ignored zero sizing/caps, missing constraints and text false can all return allowed=true through the direct shared veto-check helper. This does not prove every caller bypasses its separate policies. Whole original source and all reproductions are retained.
+
+The candidate preserves explicit zero/null/invalid canonical inputs, checks each cap independently, refuses action inference from substrings, and keeps missing risk legs unknown. Explicit entry blocks/zero limits yield NO_READ for every asset instead of LONG_DURATION for bonds. The historical rule table/ranks/thresholds stay intact as conditional research output; the helper does not grant investment permission. The actual AI fallback binding is tested. Normal publication, source definitions/units/clocks, downstream eligibility and all ten workstreams remain OPEN.
