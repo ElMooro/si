@@ -2722,7 +2722,7 @@
         if(ind.k==="avgdev"){ var adb=avgDev(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=adb.m; if(!ind.hide){ addLine(adb.m, ind.c||"#2962ff", 2, {last:true, title:"Avg"}); addLine(adb.up1, "#26c6da", 1, {title:"+1σ"}); addLine(adb.dn1, "#26c6da", 1, {title:"-1σ"}); addLine(adb.up2, "#787b86", 1, {title:"+2σ"}); addLine(adb.dn2, "#787b86", 1, {title:"-2σ"}); } }
         if(ind.k==="seb"){ var sb=seBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=sb.m; if(!ind.hide){ addLine(sb.m, ind.c||"#5c6bc0", 2, {last:true, title:"LinReg"}); addLine(sb.up, "#26c6da", 1); addLine(sb.dn, "#26c6da", 1); } }
         if(ind.k==="atrb"){ var ab=atrBands(d, ind.p||20, ind.mult||2); overlayMap[ind.id]=ab.m; if(!ind.hide){ addLine(ab.m, ind.c||"#00897b", 2, {last:true, title:"ATR mid"}); addLine(ab.up, "#26c6da", 1); addLine(ab.dn, "#26c6da", 1); } }
-        if(ind.k==="ribbon"){ var rb=[8,13,21,34,55], rc=[ind.c||"#26c6da","#42a5f5","#5c6bc0","#7e57c2","#ab47bc"]; rb.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, rc[ix], ix?1:1.5, {last:!ix, title:"EMA "+n}); }); }
+        if(ind.k==="ribbon"){ var rb=[8,13,21,34,55,100,200,250], rc=[ind.c||"#26c6da","#42a5f5","#5c6bc0","#7e57c2","#ab47bc","#ff6d00","#f23645","#787b86"]; rb.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, rc[ix], (n===8||n>=200)?2:1, {last:n===8||n===200, title:"EMA "+n}); }); }
         if(ind.k==="gmma"){ var gs=[3,5,8,10,12,15], gl=[30,35,40,45,50,60]; gs.forEach(function(n,ix){ var ln=ema(d,n); if(!ix) overlayMap[ind.id]=ln; if(!ind.hide) addLine(ln, "#26a69a", 1); }); gl.forEach(function(n){ if(!ind.hide) addLine(ema(d,n), "#ff6d00", 1); }); }
         if(ind.k==="gdx"){ var g50=sma(d,50), g200=sma(d,200); overlayMap[ind.id]=g50; if(!ind.hide){ addLine(g50, "#f0b429", 2, {last:true, title:"SMA 50"}); addLine(g200, "#2962ff", 2, {last:true, title:"SMA 200"}); } }
         if(ind.k==="hilo52" && d.length){ var h52= (function(){ var t52=d[d.length-1].time-365*86400, hi=-1e99, lo=1e99, i; for(i=0;i<d.length;i++){ if(d[i].time<t52) continue; if(d[i].high>hi)hi=d[i].high; if(d[i].low<lo)lo=d[i].low; } return {hi:hi,lo:lo}; })(); if(!ind.hide){ if(isFinite(h52.hi)) addPriceLine(h52.hi, UP, "52w H"); if(isFinite(h52.lo)&&h52.lo<1e90) addPriceLine(h52.lo, DN, "52w L"); } }
@@ -2991,7 +2991,7 @@
       var paneH=Math.max(96, Math.min(720, o.h||(o.id==="voldd"?220:118)));
       pane.style.height=paneH+"px";
       var head=document.createElement("div"); head.className="osc-head";
-      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
+      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=vline title='Vertical line. Click this pane or the price chart. Shift+click also drops one. The line is on every pane.'>│</button><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
         "<button type=button data-act=help title='What is this'>?</button>"+
         "<button type=button data-act=eye title=Visibility>"+(o.hide?"○":"◉")+"</button>"+
         "<button type=button data-act=set title=Settings>⚙</button>"+
@@ -3011,12 +3011,34 @@
         o.h=next;
         saveLay();
       };
+      head.querySelector("[data-act=vline]").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        tool="vline";
+        try{ renderRail(); }catch(e){}
+        toast("Vertical line — click this pane or the price chart");
+      };
       head.querySelector("[data-act=help]").onclick=function(){ if(window.jhInduxHelp) window.jhInduxHelp(o.id); };
       head.querySelector("[data-act=eye]").onclick=function(){ o.hide=!o.hide; saveLay(); if(lastBars.length) paint(lastBars); };
       head.querySelector("[data-act=set]").onclick=function(){ if(window.jhInduxSet) window.jhInduxSet(o, true); };
       head.querySelector("[data-act=x]").onclick=function(){ o.on=false; saveLay(); if(lastBars.length) paint(lastBars); };
       var c=LW.createChart(host,{ autoSize:true, layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontFamily:MONO,fontSize:10}, grid:{vertLines:{color:p.grid},horzLines:{color:p.gridH||p.grid}}, timeScale:{ visible:idx===on.length-1, borderColor:p.border, ticksVisible:true }, rightPriceScale:{ borderColor:p.border, ticksVisible:true, entireTextOnly:true, minimumWidth:52 }, crosshair:xhairOpts(), handleScroll:false, handleScale:false });
       bindSync(c); oscCharts.push(c);
+      host.__jhChart=c;
+      var vlSvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+      vlSvg.setAttribute("class","osc-vlines");
+      vlSvg.style.cssText="position:absolute;left:0;top:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible";
+      host.appendChild(vlSvg);
+      pane.addEventListener("click", function(ev){
+        if(ev.target.closest && ev.target.closest("button")) return;
+        if(tool!=="vline" && !ev.shiftKey) return;
+        if(!host.contains(ev.target)) return;
+        ev.preventDefault(); ev.stopPropagation();
+        var rect=host.getBoundingClientRect();
+        var t=null;
+        try{ t=c.timeScale().coordinateToTime(ev.clientX-rect.left); }catch(e){}
+        if(t==null) return;
+        placeSyncedVLine(t);
+      });
       var col=o.c||ACC, per=o.p;
       function addO(fn, color){ var s=c.addLineSeries({color:color||col,lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:o.n,crosshairMarkerVisible:true,crosshairMarkerRadius:3}); s.setData(fn||[]); oscSeries.push(s); if(fn&&fn.length){ var lastv=fn[fn.length-1].value; var ve=head.querySelector(".osc-v"); if(ve&&lastv!=null) ve.textContent=(Math.abs(lastv)>=100?fmt(lastv):lastv.toFixed(2)); } }
       function bands(lo,hi){ try{ var s=c.addLineSeries({color:"rgba(242,54,69,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OB"}); s.setData((d||[]).map(function(b){return {time:b.time,value:hi};})); var s2=c.addLineSeries({color:"rgba(8,153,129,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OS"}); s2.setData((d||[]).map(function(b){return {time:b.time,value:lo};})); oscSeries.push(s,s2); }catch(e){} }
@@ -3865,12 +3887,84 @@ else if(o.id==="rvol"){
       });
     }
   }
+  function ensureChartUi(){
+    if(document.getElementById("jh-fs-css")) return;
+    var st=document.createElement("style");
+    st.id="jh-fs-css";
+    st.textContent="html.jh-fs #tabbar,html.jh-fs #watch,html.jh-fs #rail,html.jh-fs #quote,html.jh-fs #favs,html.jh-fs #tape,html.jh-fs #etfhud,html.jh-fs #volhud,html.jh-fs .foot,html.jh-fs #mini{display:none!important}"+
+      "html.jh-fs #app{height:100%;height:100dvh}html.jh-fs .row{flex:1;min-height:0}"+
+      "html.jh-fs #tfbar{height:36px!important;min-height:36px!important}html.jh-fs #tfbar .wsico,html.jh-fs #tfbar .wsdesk{display:none!important}"+
+      "html.jh-fs .main{min-height:0}html.jh-fs #stage{flex:1.65 1 0!important;min-height:0}"+
+      "html.jh-fs #oscwrap.on{flex:1 1 0!important;min-height:160px;max-height:none}"+
+      "html.jh-fs #oscwrap .osc{flex:1 1 0!important;height:auto!important;min-height:120px}"+
+      "#btn-fs.on{color:#fff;background:#2962ff}"+
+      ".menu .irow button.fv{width:28px;flex:none;text-align:center;padding:7px 0;color:#787b86}.menu .irow button.fv.on{color:#f0b429}"+
+      "#oscwrap .osc-head [data-act=vline]{color:#787b86;font-size:14px;padding:0 6px;line-height:1}#oscwrap .osc-head [data-act=vline]:hover,#oscwrap .osc-head [data-act=vline].on{color:#f0b429}";
+    document.head.appendChild(st);
+    document.addEventListener("fullscreenchange", function(){
+      if(document.fullscreenElement) return;
+      document.documentElement.classList.remove("jh-fs");
+      var b=document.getElementById("btn-fs");
+      if(b){ b.classList.remove("on"); b.textContent="Full"; }
+      setTimeout(function(){ try{ window.dispatchEvent(new Event("resize")); drawSVG(); }catch(e){} }, 40);
+    });
+  }
+  function toggleChartFs(){
+    ensureChartUi();
+    var root=document.documentElement;
+    var on=root.classList.contains("jh-fs");
+    var app=document.getElementById("app");
+    if(on){
+      root.classList.remove("jh-fs");
+      if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
+    } else {
+      root.classList.add("jh-fs");
+      var req=app&&(app.requestFullscreen||app.webkitRequestFullscreen);
+      if(req){ try{ req.call(app); }catch(e){} }
+    }
+    var b=document.getElementById("btn-fs");
+    if(b){ b.classList.toggle("on", !on); b.textContent=on?"Full":"Exit"; b.title=on?"Chart and indicators fill the screen":"Exit fullscreen"; }
+    setTimeout(function(){ try{ window.dispatchEvent(new Event("resize")); drawSVG(); }catch(e){} }, 60);
+    setTimeout(function(){ try{ window.dispatchEvent(new Event("resize")); drawSVG(); }catch(e){} }, 280);
+  }
+  function placeSyncedVLine(t){
+    if(lockDraw){ toast("Drawings locked"); return; }
+    if(t==null||!lastBars.length) return;
+    var pt=snapPt(Number(t), lastBars[lastBars.length-1].close);
+    var id=uid(), d={id:id,kind:"vline",points:[pt],color:drawColor,w:drawW||1};
+    drawings.push(d); undo.push({op:"add",id:id,item:d}); redo=[];
+    saveDraw(); drawSVG();
+    toast("Vertical line · price and every pane");
+  }
+  function drawOscVLines(){
+    var hosts=document.querySelectorAll("#oscwrap .osc-host");
+    var lines=(!hideDraw&&drawings)||[];
+    hosts.forEach(function(host){
+      var svg=host.querySelector("svg.osc-vlines");
+      var c=host.__jhChart;
+      if(!svg) return;
+      var w=host.clientWidth||0, h=host.clientHeight||0;
+      if(!w||!h){ var box=host.getBoundingClientRect(); w=box.width; h=box.height; }
+      svg.setAttribute("viewBox","0 0 "+w+" "+h);
+      svg.setAttribute("width",w); svg.setAttribute("height",h);
+      if(!c||hideDraw||!w){ svg.innerHTML=""; return; }
+      var parts=[], i, d, x;
+      for(i=0;i<lines.length;i++){
+        d=lines[i];
+        if(!d||d.hide||d.kind!=="vline"||!d.points||!d.points[0]) continue;
+        try{ x=c.timeScale().timeToCoordinate(d.points[0].time); }catch(e){ x=null; }
+        if(x==null) continue;
+        parts.push('<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+h+'" stroke="'+(d.color||"#2962ff")+'" stroke-width="'+(selDraw===d.id?2.4:(d.w||1))+'" />');
+      }
+      svg.innerHTML=parts.join("");
+    });
+  }
   function drawSVG(){
     var svg=document.getElementById("draw"), box=document.getElementById("chart");
     if(!svg||!box) return;
     var w=box.clientWidth, h=box.clientHeight; svg.setAttribute("viewBox","0 0 "+w+" "+h); svg.setAttribute("width",w); svg.setAttribute("height",h);
     var parts=[], i, d;
-    if(hideDraw){ svg.innerHTML=""; renderObj(); return; }
+    if(hideDraw){ svg.innerHTML=""; try{ drawOscVLines(); }catch(e){} renderObj(); return; }
     for(i=0;i<drawings.length;i++){
       d=drawings[i]; if(d.hide) continue;
       var pts=(d.points||[]).map(function(p){ return xy(p.time,p.price); }).filter(Boolean);
@@ -4008,6 +4102,7 @@ else if(o.id==="rvol"){
       });
     }
     svg.innerHTML=parts.join("");
+    try{ drawOscVLines(); }catch(e){}
     renderObj();
   }
 
@@ -4192,6 +4287,7 @@ else if(o.id==="rvol"){
       return "<button class='chg "+(t[0]===mode?"on":"")+"' data-chg='"+t[0]+"' title='"+t[1]+"'>"+t[1]+"</button>";
     }).join("");
     var gyKeep=(document.getElementById("goyell")||{}).value||"";
+    var fsOn=document.documentElement.classList.contains("jh-fs");
     document.getElementById("tfbar").innerHTML=
       "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
       "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
@@ -4229,7 +4325,7 @@ else if(o.id==="rvol"){
       "<span class=sep></span>"+
       "<button id=btn-shot title='Snapshot Ctrl+S'>Snapshot</button>"+
       "<button id=btn-zm title=Zoom style=display:none>−</button><button id=btn-zp style=display:none>+</button>"+
-      "<button id=btn-fs title=Fullscreen>⛶</button>"+
+      "<button id=btn-fs class='"+(fsOn?"on":"")+"' title='Chart and indicators fill the screen'>"+(fsOn?"Exit":"Full")+"</button>"+
       "<button id=btn-lay1 class='"+(layout===1?"on":"")+"' style=display:none>1</button>"+
       "<button id=btn-lay2 class='"+(layout===2?"on":"")+"' style=display:none>2</button>"+
       "<button id=btn-lay4 class='"+(layout===4?"on":"")+"' style=display:none>4</button>"+
@@ -4327,7 +4423,7 @@ else if(o.id==="rvol"){
     document.getElementById("btn-shot").onclick=shot;
     document.getElementById("btn-zm").onclick=function(){ zoomChart(-1); };
     document.getElementById("btn-zp").onclick=function(){ zoomChart(1); };
-    document.getElementById("btn-fs").onclick=function(){ var el=document.getElementById("app"); if(!document.fullscreenElement) el.requestFullscreen(); else document.exitFullscreen(); };
+    document.getElementById("btn-fs").onclick=function(){ toggleChartFs(); };
     document.getElementById("btn-lay1").onclick=function(){ setLayout(1); renderTf(); };
     document.getElementById("btn-lay2").onclick=function(){ setLayout(2); renderTf(); };
     document.getElementById("btn-lay4").onclick=function(){ setLayout(4); renderTf(); };
@@ -5456,12 +5552,31 @@ else if(o.id==="rvol"){
     return INDS.find(function(i){ return i.id===id; }) || OSC.find(function(o){ return o.id===id; });
   }
   function openIndMenu(btn){
+    ensureChartUi();
+    function favIds(){
+      if(window.jhIndFavList) return window.jhIndFavList();
+      try{ var x=JSON.parse(localStorage.getItem("jh-chart-ind-favs")||"null"); if(Array.isArray(x)) return x; }catch(e){}
+      return [];
+    }
+    function favOn(id){
+      if(window.jhIndFavHas) return !!window.jhIndFavHas(id);
+      return favIds().indexOf(id)>=0;
+    }
     function row(id, label){
       var it=findStudy(id);
       var on=!!(it&&it.on);
-      return "<div class='irow"+(on?" on":"")+"'><button type=button class=nm data-tog='"+id+"'>"+(on?"✓  ":"")+(label||(it&&it.n)||id)+"</button><button type=button class=gr data-gear='"+id+"' title='Inputs and colors'>⚙</button></div>";
+      var star=favOn(id);
+      return "<div class='irow"+(on?" on":"")+"'><button type=button class=nm data-tog='"+id+"'>"+(on?"✓  ":"")+(label||(it&&it.n)||id)+"</button><button type=button class='fv"+(star?" on":"")+"' data-fav='"+id+"' title='Favorite'>★</button><button type=button class=gr data-gear='"+id+"' title='Inputs and colors'>⚙</button></div>";
     }
-    var html="<div class=lab>INDICATORS</div>"+
+    var favHtml="", seen={}, favsNow=favIds().slice(-6), fi, fid;
+    for(fi=0;fi<favsNow.length;fi++){
+      fid=favsNow[fi];
+      if(seen[fid]||!findStudy(fid)) continue;
+      seen[fid]=1;
+      favHtml+=row(fid);
+    }
+    var html=(favHtml?"<div class=lab>FAVORITES</div>"+favHtml:"")+
+      "<div class=lab>INDICATORS</div>"+
       row("bb","Bollinger Bands")+
       row("pspread","Price Spread")+
       row("relvol","Relative Volatility")+
@@ -5474,6 +5589,15 @@ else if(o.id==="rvol"){
       row("wma20","WMA 20")+row("hull20","Hull MA")+row("vwma20","VWMA 20")+
       row("dema20","DEMA 20")+row("tema20","TEMA 20")+row("wilder","Wilder MA")+
       row("kama","Kaufman AMA")+row("htfma","Weekly SMA 10/40")+row("ribbon","EMA Ribbon")+
+      "<div class=lab>LEVELS</div>"+
+      row("sr","Support & Resistance")+
+      row("piv","Pivots")+
+      row("vwap","VWAP")+
+      "<div class=lab>TREND</div>"+
+      row("ich","Ichimoku")+
+      row("st","Supertrend")+
+      row("adx","ADX")+
+      row("atr","ATR")+
       "<div class=lab>VOLUME</div>"+
       row("voldd","Relative Volume")+
       row("rvol","RVOL")+
@@ -5481,7 +5605,7 @@ else if(o.id==="rvol"){
       "<button type=button data-all>All indicators…</button>";
     openMenu(btn, html);
     var m=document.getElementById("menu");
-    if(m){ m.style.minWidth="248px"; m.style.maxWidth="320px"; }
+    if(m){ m.style.minWidth="280px"; m.style.maxWidth="340px"; }
     document.querySelectorAll("#menu [data-tog]").forEach(function(b){
       b.onclick=function(e){
         e.preventDefault(); e.stopPropagation();
@@ -5496,6 +5620,17 @@ else if(o.id==="rvol"){
         if(lastBars.length) paint(lastBars);
         var again=document.getElementById("btn-ind");
         if(again) openIndMenu(again);
+      };
+    });
+    document.querySelectorAll("#menu [data-fav]").forEach(function(b){
+      b.onclick=function(e){
+        e.preventDefault(); e.stopPropagation();
+        var id=b.getAttribute("data-fav");
+        if(window.jhIndFavToggle) window.jhIndFavToggle(id);
+        var again=document.getElementById("btn-ind");
+        if(again) openIndMenu(again);
+        var it=findStudy(id);
+        toast((window.jhIndFavHas&&window.jhIndFavHas(id)?"Favorited ":"Removed ")+(it?it.n:id));
       };
     });
     document.querySelectorAll("#menu [data-gear]").forEach(function(b){
@@ -5622,7 +5757,7 @@ else if(o.id==="rvol"){
     }
     allTools().forEach(function(t){ push("draw", t[2], function(){ tool=t[0]; renderRail(); }, "drawing"); });
     Object.keys(notes).forEach(function(s){ var t=noteObj(s).text; if(t) push("note", s+" · "+t.slice(0,40), function(){ goSymbol(s,"notes"); }, "note"); });
-    [["Financials",function(){ goSymbol(active,"fin"); }],["Notes",function(){ goSymbol(active,"notes"); }],["Symbol search",function(){ openSymSearch(""); }],["Indicators",openInd],["Compare",openCmp],["Replay",startReplay],["Snapshot",shot],["Settings",openSet],["CSV",exportCSV],["Fullscreen",function(){ document.getElementById("app").requestFullscreen(); }],["Layout 1",function(){ setLayout(1); renderTf(); }],["Layout 2",function(){ setLayout(2); renderTf(); }],["Layout 4",function(){ setLayout(4); renderTf(); }],["Screener",function(){ wtab="screen"; renderWtabs(); renderScreen(); }],["Paper trade",function(){ wtab="trade"; renderWtabs(); renderTrade(); }],["Strategy",function(){ wtab="test"; renderWtabs(); renderTest(); }],["Overview",function(){ wtab="over"; renderWtabs(); if(lastBars.length) renderOver(lastBars); }],["Hotkeys",openKeys],["Theme",function(){ dark=!dark; applyTheme(true); renderTf(); }]].forEach(function(x){ push("cmd", x[0], x[1], "command"); });
+    [["Financials",function(){ goSymbol(active,"fin"); }],["Notes",function(){ goSymbol(active,"notes"); }],["Symbol search",function(){ openSymSearch(""); }],["Indicators",openInd],["Compare",openCmp],["Replay",startReplay],["Snapshot",shot],["Settings",openSet],["CSV",exportCSV],["Fullscreen",function(){ toggleChartFs(); }],["Layout 1",function(){ setLayout(1); renderTf(); }],["Layout 2",function(){ setLayout(2); renderTf(); }],["Layout 4",function(){ setLayout(4); renderTf(); }],["Screener",function(){ wtab="screen"; renderWtabs(); renderScreen(); }],["Paper trade",function(){ wtab="trade"; renderWtabs(); renderTrade(); }],["Strategy",function(){ wtab="test"; renderWtabs(); renderTest(); }],["Overview",function(){ wtab="over"; renderWtabs(); if(lastBars.length) renderOver(lastBars); }],["Hotkeys",openKeys],["Theme",function(){ dark=!dark; applyTheme(true); renderTf(); }]].forEach(function(x){ push("cmd", x[0], x[1], "command"); });
     KINDS.forEach(function(k){ push("kind", k[1]+" chart", function(){ kind=k[0]; renderTf(); if(lastBars.length) paint(lastBars); }, "type"); });
     if(q && /^[A-Z0-9:.\-]{1,16}$/i.test(q) && out.length<90){ var s=q.toUpperCase(); push("sym", s, function(){ if(TABS.indexOf(s)<0) TABS.push(s); active=s; loadDraw(); renderTabs(); load(); }, "type to open"); }
     return out.slice(0,80);

@@ -1257,7 +1257,7 @@
         "path": "tests/fixtures/chart-html-labels/pre511/jh-chart-indux.js.txt",
         "sha256": "5807837bf22bed5826e13bc8a8040cd91ccfa77e1a4dcbb6606cc8deb8ee8daa"
       },
-      "sha256": "5b566cb2cd60f08a458ebf17152315bd1a2e167403ef9ce043133100fe740532",
+      "sha256": "f8851e834e031d716911240dd02fb2ac8823e45f9275365aa0770c9c32de0928",
       "replacements": [
         {
           "before": "  function el(id, html) {",
@@ -1302,6 +1302,14 @@
         {
           "before": "      voldd: [\"Relative Volume\", \"Volume\", \"This bar's volume divided by this name's own average volume over the prior N bars (default 50). The current bar is not inside its own average. 1.00× is a regular bar. A bar at or above the outlier multiple (default 2×) is an outlier. CAPIT: outlier volume, a new N-bar low, a down close, and the close in the bottom 35% of the bar. STOP: outlier volume at that same low, but the close is in the top 45% of the bar.\", \"CAPIT is a selling-climax candidate, not a confirmed bottom and not the custom Wyckoff capitulation score. STOP is absorption at the low, still a candidate. An outlier that is not at the low is participation, not a bottom. Orange on the volume pane is CAPIT. Cyan is STOP.\", \"Own volume only. Not day-to-day percent. Not versus the market or SPY. Missing volume stays a gap.\"],",
           "after": "      voldd: [\"Relative Volume\", \"Volume\", \"This bar's volume divided by this name's own average volume over the prior N bars (default 50). The current bar is not inside its own average. 1.00× is a regular bar. The scale tops out near 6× so a spike is a tall bar, not a sliver. A bar at or above the outlier multiple (default 2×) is an outlier. CAPIT: outlier volume, a new N-bar low, a down close, and the close in the bottom 35% of the bar. STOP: outlier volume at that same low, but the close is in the top 45% of the bar.\", \"CAPIT is a selling-climax candidate, not a confirmed bottom and not the custom Wyckoff capitulation score. STOP is absorption at the low, still a candidate. An outlier that is not at the low is participation, not a bottom. Orange is CAPIT. Cyan is STOP. Blue is any other outlier. Drag the handle above the pane, or press +, to make any indicator window taller.\", \"Own volume only. Not day-to-day percent. Not versus the market or SPY. BTC before the Sep 2020 warehouse tape uses this name's Yahoo volume. Where those units meet, the bar is left blank instead of a fake spike. Missing volume stays a gap.\"],"
+        },
+        {
+          "before": "    saveFav();\n  }\n\n  var css = document.createElement(\"style\");",
+          "after": "    saveFav();\n  }\n  window.jhIndFavList = function () { return favs.slice(); };\n  window.jhIndFavHas = function (id) { return isFav(id); };\n  window.jhIndFavToggle = function (id) { star(id); };\n\n  var css = document.createElement(\"style\");"
+        },
+        {
+          "before": "    if (!pack && id === \"ribbon\") pack = [\"EMA Ribbon\", \"MA\", \"EMAs 8, 13, 21, 34, 55. The first line uses the study color.\", \"A stacked ribbon, short above long, is trend. A braid is a range. One color change does not flip the stack.\", \"Fibonacci EMA ribbon.\"];",
+          "after": "    if (!pack && id === \"ribbon\") pack = [\"EMA Ribbon\", \"MA\", \"EMAs 8, 13, 21, 34, 55, 100, 200 and 250. The short stack is the fib ribbon. 100, 200 and 250 are the position averages. The first line uses the study color.\", \"A stacked ribbon, short above long, is trend. A braid in the short EMAs is a range. 200 and 250 are the slow bias — price under both is not a long until it reclaims them.\", \"Fibonacci ribbon plus the 100 / 200 / 250 position EMAs.\"];"
         }
       ]
     }

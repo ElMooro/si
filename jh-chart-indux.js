@@ -23,6 +23,9 @@
     favs = isFav(id) ? favs.filter(function (x) { return x !== id; }) : favs.concat([id]);
     saveFav();
   }
+  window.jhIndFavList = function () { return favs.slice(); };
+  window.jhIndFavHas = function (id) { return isFav(id); };
+  window.jhIndFavToggle = function (id) { star(id); };
 
   var css = document.createElement("style");
   css.id = "jh-indux-css";
@@ -702,7 +705,7 @@
     if (!pack && id === "tema20") pack = ["TEMA", "MA", "Triple exponential moving average. 3×EMA − 3×EMA(EMA) + EMA(EMA(EMA)).", "Fastest of the EMA family here. In a range it will cross every other bar. Pair it with a slow SMA.", "Mulloy TEMA."];
     if (!pack && id === "wilder") pack = ["Wilder MA", "MA", "Wilder smoothing: previous + (close − previous) / n. Same smoother RSI uses.", "Slower than an EMA of the same length. 14 matches the RSI window.", "Wilder 1978."];
     if (!pack && id === "kama") pack = ["Kaufman AMA", "MA", "Adaptive moving average. It speeds up when the efficiency ratio is high and goes quiet in noise.", "A flat KAMA in a range and a turn when the ratio rises is the point. Do not treat every twitch as a cross.", "Kaufman efficiency ratio, fast 2 / slow 30."];
-    if (!pack && id === "ribbon") pack = ["EMA Ribbon", "MA", "EMAs 8, 13, 21, 34, 55. The first line uses the study color.", "A stacked ribbon, short above long, is trend. A braid is a range. One color change does not flip the stack.", "Fibonacci EMA ribbon."];
+    if (!pack && id === "ribbon") pack = ["EMA Ribbon", "MA", "EMAs 8, 13, 21, 34, 55, 100, 200 and 250. The short stack is the fib ribbon. 100, 200 and 250 are the position averages. The first line uses the study color.", "A stacked ribbon, short above long, is trend. A braid in the short EMAs is a range. 200 and 250 are the slow bias — price under both is not a long until it reclaims them.", "Fibonacci ribbon plus the 100 / 200 / 250 position EMAs."];
     if (!pack && (String(id).indexOf("cq_") === 0 || (window.OSC || []).some(function (o) { return o.id === id && o.k === "cq"; }))) {
       pack = ["CryptoQuant", "On-chain", "CryptoQuant EOD harvest series plotted as its own pane. Daily harvest starts 2025-07; twins (MVRV, NUPL, hashrate, supply, …) extend to 2010 at coarser spacing. Not live. Extra cq-feed fields (aSOPR, in-house flow, block interval, …) are EOD snapshots with no series bank — searchable, not plotted. Armed catalog names (CDD, dormancy, ETH2, v2 MVRV Z, lightning, …) wait for the next EOD pull (1y Professional window). Catalog-only token/pair/matrix endpoints are not banked.", "Add from Indicators → Oscillators → On-chain, or search CQ:btc_mvrv (and every harvest id) in the symbol box. Snapshot / armed / catalog-only fields open the crypto desk.", "Never mixed with ETF flow, FMP, or Polygon prints. Empty pane = harvest miss, not a live outage. Snapshots and armed names are not 2-bar charts."];
     }

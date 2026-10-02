@@ -59,6 +59,13 @@ test("Indicators dropdown is on the chart bar and stamps the engine", () => {
   assert.match(indux, /voldd:/);
   assert.match(indux, /id=sc2/);
   assert.match(indux, /Outlier ×/);
+  assert.match(engine, /8,13,21,34,55,100,200,250/);
+  assert.match(engine, /function toggleChartFs/);
+  assert.match(engine, /function placeSyncedVLine/);
+  assert.match(engine, /row\("sr","Support & Resistance"\)/);
+  assert.match(engine, /data-fav/);
+  assert.match(indux, /jhIndFavToggle/);
+  assert.match(indux, /100, 200 and 250/);
   assert.doesNotMatch(engine, /\[object Object\]/);
   assert.doesNotMatch(html, /undefined%/);
 });
