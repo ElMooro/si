@@ -303,6 +303,11 @@ admission vulnerability and would not by itself restore the prior managed runtim
 This work performed no rollback, source re-release, runtime-policy mutation,
 additional settings writes outside normal reviewed deployment reconciliation,
 baseline replacement, checkpoint/archive read, producer invocation, stored-data
-correction or deletion. No candidate natural-publication observation or live execution of
-the rejected failure path is claimed. Missing checkpoint in a populated namespace
-and the other separate risks above remain unresolved.
+correction or deletion. At `2026-10-02T08:48:42Z`, one normal HTTPS read of the
+[public current Eurostat manifest](https://justhodl.ai/data/providers/eurostat/series-manifest.json)
+reported `updated_at=2026-10-02T08:27:54+00:00` and Last-Modified
+`Fri, 02 Oct 2026 08:27:57 GMT`, both after the code receipt. This records a public
+post-release publication; it does not prove candidate-handler attribution, live
+execution of the rejected failure path, checkpoint integrity or historical-data
+integrity. No producer invoke or forced publication occurred. Missing checkpoint
+in a populated namespace and the other separate risks above remain unresolved.
