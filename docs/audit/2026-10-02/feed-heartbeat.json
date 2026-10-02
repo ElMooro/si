@@ -1,0 +1,224 @@
+{
+  "stage": 546,
+  "status": "complete_source_candidate_not_deployed",
+  "source_hashes": {
+    "aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py": "d006d930e98a50450273b14c6bb911aaf207d390506fc070d2e6515df4b41267",
+    "aws/lambdas/justhodl-feed-heartbeat/config.json": "4e8d1a1e88087a61e8e875bd6ecd53a7e5584051ae2c7d79cbad7497e4599caa",
+    "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+    "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+    "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
+  },
+  "source_counts": {
+    "justhodl-feed-heartbeat": 1
+  },
+  "original_controls": {
+    "justhodl-feed-heartbeat": {
+      "function_name": "justhodl-feed-heartbeat",
+      "timeout": 120,
+      "memory_mb": 256,
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512,
+      "schedules": []
+    }
+  },
+  "operation": "aws/ops/staged/ops_6447_heartbeat_acceptance.py",
+  "declared_producer_sources": {
+    "ticker-360": {
+      "function": "justhodl-ticker-360",
+      "repository_source": "aws/lambdas/justhodl-ticker-360/source/lambda_function.py",
+      "source_sha256": "149b41948a31749bddc361b78de8556a133e3cd1dccc1848e774f0c6f36817e6",
+      "artifact": "data/ticker-360.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "short-interest": {
+      "function": "justhodl-short-book",
+      "repository_source": "aws/lambdas/justhodl-short-book/source/lambda_function.py",
+      "source_sha256": "3ef785c82b34af1716a22c1f11c9938034bb622ae09a07cf6374fbf1b3d2d194",
+      "artifact": "data/short-book.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "sec-8k": {
+      "function": "justhodl-sec-filings-intel",
+      "repository_source": "aws/lambdas/justhodl-sec-filings-intel/source/lambda_function.py",
+      "source_sha256": "d6cc1eae93e0442813096b6da2b23bdc4de15ef13681b22102444bbc2396e5ed",
+      "artifact": "data/sec-filings-intel.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "xbrl-fundamentals": {
+      "function": "justhodl-xbrl-fundamentals",
+      "repository_source": "aws/lambdas/justhodl-xbrl-fundamentals/source/lambda_function.py",
+      "source_sha256": "af242550bfc04835c9e70957ee52b341400f015d9156df52435172124c61232a",
+      "artifact": "data/xbrl-fundamentals/",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "corporate-actions": {
+      "function": "justhodl-corporate-actions",
+      "repository_source": "aws/lambdas/justhodl-corporate-actions/source/lambda_function.py",
+      "source_sha256": "4d61c828f9a2b33528d06fbb2ce12379caf4fc2330d5bb47d5e877b282bc5e81",
+      "artifact": "data/corporate-actions-index.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "etf-holdings": {
+      "function": "justhodl-etf-issuer-holdings",
+      "repository_source": "aws/lambdas/justhodl-etf-issuer-holdings/source/lambda_function.py",
+      "source_sha256": "25f550f189e4b0d56b184db9c28863ca15a79a2dae348675c27b9e997eccea6d",
+      "artifact": "data/etf-issuer-holdings.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "finra-research": {
+      "function": "justhodl-short-interest",
+      "repository_source": "aws/lambdas/justhodl-short-interest/source/lambda_function.py",
+      "source_sha256": "570f68ab5ad828e20ef4c2ec74552df59add7d2a82cc91ff0d4480a8f7661d68",
+      "artifact": "data/short-interest.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "8k-enriched": {
+      "function": "justhodl-sec-8k-enrich",
+      "repository_source": "aws/lambdas/justhodl-sec-8k-enrich/source/lambda_function.py",
+      "source_sha256": "4337d3be625be8e97c47b39470eb2de15cc73f4ef805aedebeffb70af29533d7",
+      "artifact": "data/8k-filings-enriched.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    },
+    "xbrl-index": {
+      "function": "justhodl-xbrl-fundamentals",
+      "repository_source": "aws/lambdas/justhodl-xbrl-fundamentals/source/lambda_function.py",
+      "source_sha256": "af242550bfc04835c9e70957ee52b341400f015d9156df52435172124c61232a",
+      "artifact": "data/xbrl-fundamentals-index.json",
+      "basis": "Reviewed repository output declaration; last actual writer unverified"
+    }
+  },
+  "monitored_bindings": [
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-ticker-360-schedule",
+      "group": "default",
+      "function": "justhodl-ticker-360",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ticker-360",
+      "expression": "cron(20 6,18 * * ? *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge Scheduler",
+      "name": "justhodl-sec-8k-enrich-schedule",
+      "group": "default",
+      "function": "justhodl-sec-8k-enrich",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-8k-enrich",
+      "expression": "cron(10,40 * * * ? *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-sec-8k-enrich-schedule",
+      "group": "default",
+      "function": "justhodl-sec-8k-enrich",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-8k-enrich",
+      "expression": "cron(10,40 * * * ? *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge Scheduler",
+      "name": "justhodl-short-interest-schedule",
+      "group": "default",
+      "function": "justhodl-short-interest",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest",
+      "expression": "cron(15 7 ? * * *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-short-interest-6h",
+      "group": "default",
+      "function": "justhodl-short-interest",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest",
+      "expression": "cron(20 12 * * ? *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-short-interest-sched",
+      "group": "default",
+      "function": "justhodl-short-interest",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest",
+      "expression": "cron(15 21 ? * MON,WED *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge Scheduler",
+      "name": "justhodl-xbrl-fundamentals-schedule",
+      "group": "default",
+      "function": "justhodl-xbrl-fundamentals",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-xbrl-fundamentals",
+      "expression": "cron(0 6 ? * SUN *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-xbrl-fundamentals-schedule",
+      "group": "default",
+      "function": "justhodl-xbrl-fundamentals",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-xbrl-fundamentals",
+      "expression": "cron(0 6 ? * SUN *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge Scheduler",
+      "name": "justhodl-corporate-actions-schedule",
+      "group": "default",
+      "function": "justhodl-corporate-actions",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-corporate-actions",
+      "expression": "cron(30 6 ? * * *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-corporate-actions-schedule",
+      "group": "default",
+      "function": "justhodl-corporate-actions",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-corporate-actions",
+      "expression": "cron(30 6 ? * * *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge Scheduler",
+      "name": "justhodl-etf-issuer-holdings-daily",
+      "group": "default",
+      "function": "justhodl-etf-issuer-holdings",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-issuer-holdings",
+      "expression": "cron(0 4 * * ? *)",
+      "timezone": "UTC"
+    },
+    {
+      "kind": "EventBridge rule",
+      "name": "justhodl-etf-issuer-holdings-daily",
+      "group": "default",
+      "function": "justhodl-etf-issuer-holdings",
+      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-etf-issuer-holdings",
+      "expression": "cron(0 4 * * ? *)",
+      "timezone": "UTC"
+    }
+  ],
+  "legacy_artifacts_preserved": 17,
+  "added_canonical_artifacts": 3,
+  "normal_publication_verified": false,
+  "source_qualified": false,
+  "investment_authority": false,
+  "remaining": [
+    "Engine/integrated checks",
+    "Exact native receipt, packaged source and original runtime/schedule acceptance",
+    "No monitor schedule binding observed; provisioning is separate",
+    "Observation freshness, provider source authenticity, current consumer publication and investment qualification remain unverified"
+  ],
+  "draft_counter_repair": {
+    "before_source_sha256": "4cadd9f0a15c1f4ad38a3c092d3efc0c7c2c9ee5b67267152911a2d0d6ae32c1",
+    "whole_before_fixture": "tests/fixtures/feed-heartbeat/counter-draft-before.py.txt",
+    "before": 1,
+    "expected": 2,
+    "invented_bindings": 2,
+    "deployed_before_repair": false
+  }
+}
