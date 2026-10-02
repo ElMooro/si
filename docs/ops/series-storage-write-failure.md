@@ -1,0 +1,235 @@
+# Series-extractor storage-write failure draft
+
+This is an isolated DRAFT repair of extraction page/checkpoint write-failure
+handling. It is based on main `39f7b521fff3a1a43509de23590d7d8be649e82c`.
+**Publication HOLD:** the required deployment gate fails on an unchanged
+compound-aggregator output assertion, and parent claim coordination is pending.
+No PR or remote branch has been published. The bounded candidate is retained
+locally for independent exact-head review and owner follow-up.
+
+No merge, deployment, runner dispatch, real AWS/data-provider access, producer
+invocation or retained-data operation is authorized or performed by this task.
+Offline calls to the handler use invented objects and fake SDK modules only.
+
+PR75 remains installed, with its strict runtime-version acceptance HOLD. Its
+checkpoint admission, full predecessor fixture, allocation validation, missing-key
+bootstrap, acceptance probe, control baseline and release criterion are unchanged.
+PR78 remains a separate unmerged draft awaiting its user decision. This repair
+imports none of its namespace admission logic and adds no bootstrap observations.
+
+## Confirmed failure and bounded repair
+
+The installed PR75 source is preserved byte-for-byte in
+`aws/lambdas/justhodl-series-extractor/tests/fixtures/storage-predecessor.py.txt`,
+SHA256 `bcd80ce358aa433d9de33c45b9fb2900987c63046d343462b3c359b7c3724867`.
+The original pre-PR75 fixture remains unchanged, SHA256
+`9c82d0046498e7de75d5f24a8346047e0a59635972d438e65d1613331250a312`.
+Full-handler invented fixtures reproduce the same storage defect on both sources:
+page PUT failures become `missing_pages`, but the flow becomes done and the new
+checkpoint and manifest publish success. An unchanged next invocation skips the
+flow instead of repairing the missing page. A one-shot checkpoint PUT failure
+inside either provider's broad per-flow catch becomes a parsing error; a later
+checkpoint/manifest can publish success. Repeated uncertainty can contaminate
+parser retry/retirement state. Before editing, the primary and an independent
+reviewer separately reproduced these paths using the installed handler.
+
+The repair introduces one distinct `StorageWriteError` type for failed or
+uncertain page/checkpoint work. A collection examines every selected result,
+retains still-pending futures, then refuses if any writer failed. The failure
+remains sticky for the invocation. Submission rejection is also fatal because
+allocated work cannot safely be claimed as durable. Both per-flow generic catches
+explicitly rethrow the storage error before normal parser retry/retirement logic.
+Checkpoint PUT failures, including the final idle checkpoint, raise the distinct
+error. Serialization remains outside the new PUT catch.
+
+A `finally` block harvests every outstanding writer result and waits for executor
+shutdown. It performs no checkpoint or manifest write. It can surface a late
+writer failure while unwinding another exception; the storage failure has priority
+and the original exception context is suppressed. Failure messages are fixed and
+include no object key, body, SDK message or exception chain. Normal parser-error
+records retain their original format, retries and retirement behavior.
+
+No newer checkpoint is attempted after an observed failed page result. A failed
+checkpoint is not followed by another checkpoint or a new manifest. There is no
+successful handler return after either failure. Successful siblings may already
+have written their pages; their in-memory counters/hashes are discarded when the
+invocation exits. The handler does not undo any accepted page or checkpoint,
+rewrite the previous checkpoint, or claim an uncertain PUT was definitely absent.
+
+The collector's existing broad catch also includes counter/hash bookkeeping after
+a successful PUT. For example, PR75 admits an optional `pages_objects=None` idle
+state, but an append cannot convert that value to int. The old handler mislabeled
+this as a missing page and published success. The new path refuses conservatively
+with the same storage/accounting error. This is an additional blocked false-success
+case; it is not evidence that the acknowledged PUT failed. Admission and legacy
+idle defaults are unchanged. Stored legacy errors/missing-page records are preserved;
+this repair does not reconcile them.
+
+## Recovery from actual durable state
+
+On a page precommit failure, successful siblings may exist beyond the unchanged
+checkpoint. On an accepted page PUT with a lost response, that page may exist too.
+A normal later scheduled invocation reads the actual checkpoint and repeats the
+ordinary uncommitted-tail allocation and replacement behavior. Identical recorded
+hashes still suppress identical writes; changed input still corrects replayable
+tail bytes. Pages are not made create-only. No tail reconstruction is introduced.
+
+If checkpoint PUT fails before committing, the last earlier committed checkpoint
+remains byte-identical and recovery uses its original buffer/progress/page indices.
+If checkpoint PUT commits but its response is lost, the durable object is newer;
+recovery reads that actual state. The failing invocation cannot know which outcome
+occurred, and does not write a guessed rollback. Once a flow is done in that durable
+checkpoint, the ordinary subsequent invocation skips it. A changed warm input for
+that completed flow remains undetected, as it did before this repair.
+
+More than one checkpoint, carried buffers spanning flows, progress budget stops,
+partial ECB slice progress, repeated ordinary invocation and warm-input changes
+between attempts are exercised in full-handler tests. Recovery is compared against
+running the installed full handler on the exact durable post-failure object store,
+not against a guessed absent page or pre-invocation snapshot. Existing completed
+pages are preserved; only the ordinary replayable tail may be replaced.
+
+## Offline validation
+
+Run:
+
+```sh
+python3 aws/lambdas/justhodl-series-extractor/tests/run_tests.py
+```
+
+The runner preserves the original PR75 admission assertions and predecessor pin.
+Its scope check reverses only the reviewed storage exception/cleanup footprint,
+then enforces PR75's original complete AST scope proof. Four original page-failure
+comparisons and the original lost-checkpoint-response comparison now run against
+the retained installed baseline because candidate failure behavior intentionally
+changes. They are not claimed as candidate-equivalent healthy runs.
+
+Current full-handler coverage:
+
+- 68 original healthy/legacy comparisons, four retained original page-failure
+  comparisons, 166 admission rejection/recovery cases, ten original replay/
+  corruption cases and four actual SymDir/provider-catalog consumer assertions.
+- Eight explicit baseline false-success reproductions on both full predecessor
+  sources; 48 additional healthy comparisons including real local executor use.
+- 56 storage-fault/recovery scenarios: page precommit and accepted/lost response,
+  mixed parallel page outcomes, checkpoint precommit and accepted/lost response,
+  first/middle/final checkpoint, buffers, budget resume, changed warm input and
+  repeated invocation. Every failed candidate forbids new manifest publication.
+- 12 worker-drain/submission scenarios, including nonblocking collection, late
+  completion after another writer fails and real local worker synchronization.
+- Eight ordinary parser-error cases and 12 exception-boundary cases: parser error
+  after yielding a page, storage failure inside parser-error handling, stall
+  checkpoint failure and idle final-checkpoint failure.
+- Ten explicit remaining-risk/bookkeeping scenarios, including both manifest PUT
+  outcomes, completed-flow input changes and unchanged missing-key bootstrap.
+
+Required checks also include the repository deployment static/shell suites,
+selected source/config validators, engine preflight/compilation, stub guard,
+secrets scan, brain public-boundary suite, wiring and unchanged PR75 acceptance
+probe tests. Local evidence and the final task response record the exact-head
+results and independent publication HOLD.
+All engineering fixture execution is offline. The local test venv installs only
+the existing deployment-test dependencies; it does not change repository or runtime
+settings. An external socket guard is used for required Python suites. No tests
+read retained archives or live provider objects.
+
+Independent review separately generated its own baseline, failure, exception-path,
+real-worker and recovery fixtures rather than merely rerunning the author's suite.
+It challenges each changed exception boundary and the actual-durable-checkpoint
+semantics. Draft publication requires its final exact-head verdict; release stays
+held regardless of a draft-publication approval.
+
+## Required-gate hold
+
+The ordinary required command `DEPLOY_TARGETS=justhodl-series-extractor python3 tests/deployment/run_tests.py` fails at
+`test_release_verifier.test_explicit_primary_outputs_are_source_bound_and_do_not_select_control_state`:
+`AssertionError: ('justhodl-compound-aggregator', {'data/prime-convergence.json'})`.
+The same full suite is run on an untouched main worktree. The independent
+reviewer also verifies the complete test, release verifier and generated manifest
+bytes match main, then directly reproduces the same assertion. This is an
+unrelated owner boundary, not an extractor failure. It is not repaired or bypassed
+by this draft. A separate diagnostic runs every test and the shell gates so the
+remaining results can be inspected; it does not convert the failed required gate
+to a pass.
+
+The complete diagnostic runs **1,059** required static tests: **1,058 pass**,
+one fails at the unchanged compound-output boundary above. All **15** shell gates
+pass. This is a failed deployment suite, not 1,059 passing tests. Both primary and
+independent reviewer reproduce the gate on clean main.
+
+Selected source/config validation, engine preflight/compilation, stub guard, all
+**15** brain public-boundary tests, wiring (**36 pages / 143 wired**, no missing or
+stale entry), unchanged PR75 acceptance probe (**21 tests**) and the entire engine/
+consumer suite pass. Final staged secrets scan covers **15,860** files with zero
+findings. The exact five-path staged inventory is checked before committing; it
+contains only the handler, its runner, the new fault suite, the byte-pinned
+installed-source fixture and this document.
+
+Supporting local evidence:
+
+- `/tmp/series-deployment-tests.log`: required gate on candidate.
+- `/tmp/series-main-deployment-tests.log`: required gate on untouched main.
+- `/tmp/series-deployment-diagnostic.json` and `.log`: all-test diagnostic.
+- `/tmp/series-storage-review/independent-baseline.json`,
+  `independent-repair.json` and `independent-exception-paths.json`: independent
+  full-handler cases and actual local worker recovery.
+
+The gate's owner must resolve and independently review the missing compound-output
+boundary before publication; then rerun the complete unmodified required suite
+on the integrated exact head. Parent-owned outstanding claims must also be
+coordinated. Until those conditions are met, this task holds the candidate locally.
+No failed test is removed, skipped, relaxed or made optional.
+
+## Remaining baseline risks and transaction limits
+
+Pages, checkpoint and manifest are separate PUT operations. Without a transaction,
+this code cannot guarantee atomic visibility, exactly-once writing, complete crash
+recovery, or that a completed request corresponds to every retained page. An abrupt
+process termination can occur before failure is observed or before worker cleanup.
+Accepted but uncheckpointed pages can be rewritten on retry, creating additional
+versions/PUTs. This deliberate behavior is retained.
+
+A committed checkpoint can be newer than the manifest if the invocation dies or
+manifest PUT fails; a lost manifest response can mean a new manifest exists even
+though the handler returns an error. This existing manifest behavior is unchanged
+and tested. Readers may observe successful page writes ahead of the old checkpoint
+or old manifest. No rollback, cross-object lock or conditional replacement is added.
+
+The repair does not repair retained missing pages, wrong existing counters/hashes,
+old `missing_pages`, parser-caused partial data, ignored read failures, ECB slice
+aggregation limits, Tier1 behavior, external writers, or changed completed-flow
+inputs. Genuine `NoSuchKey` retains PR75's current bootstrap, including its populated
+namespace replacement risk. PR78 addresses a separate admission decision and is
+not incorporated or preapproved here. The existing discovery/counter-seeding LIST
+request shapes remain unchanged; this repair adds no LIST or other recurring call.
+
+## Coordination, release hold and rollback
+
+No AGENTS.md or `.agents/skills` instruction files were available in the checkout
+or mounted instruction directories. DEPLOY_LANE, current main, original writer,
+actual SymDir/provider-catalog consumers, STATE and accessible GitHub PRs/claim
+references were revalidated. The only accessible open PR overlapping this handler
+was the held PR78 draft. PR75's recorded admission claim is separate; the earlier
+lookup claim is documented as released. The SDMX order claim targets a different
+producer/acceptance path. This task takes no ops number and edits no other batch.
+The private parent-owned claim ledger is not exposed in this delegated environment;
+parent coordination/overlap confirmation is pending and is not claimed complete.
+
+Before any draft publication, resolve parent-owned live-batch overlap and obtain
+independent exact-head approval plus all required gates. Before any release,
+require explicit user approval of this distinct recovery contract, parent claim
+coordination, exact reviewed head and all existing release gates. PR78's bootstrap
+user decision and PR75's strict RuntimeVersionConfig acceptance hold remain
+independent and unchanged. Require authorized predecessor-control qualification
+and post-release exact package/source/CodeSha256, commit-bound receipt, readiness
+and projected-control acceptance. No AWS probe or release verification is run by
+this draft task. Fresh natural publication cannot prove the injected failure path
+ran or establish integrity of retained data.
+
+A reviewed rollback would restore the byte-pinned installed PR75 handler and adapt
+only the new storage-refusal tests/scope proof to the intentional restored failure
+behavior. Retain both predecessor fixtures and this evidence; rerun healthy,
+consumer, admission and tail-replay tests plus the reproduced vulnerability, all
+required gates and independent exact-head review. Rollback is a code release with
+its own authorization/verification. It does not reset, repair, delete or reconstruct
+any retained object or checkpoint. No rollback has been performed.
