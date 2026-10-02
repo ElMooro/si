@@ -1,6 +1,6 @@
 {
   "stage": 565,
-  "status": "integration_and_release_pending",
+  "status": "exact_code_release_accepted_with_qualification_gaps",
   "operation": "aws/ops/staged/ops_6460_fabric_numeric_acceptance.py",
   "source_hashes": {
     "aws/lambdas/justhodl-best-setups/source/lambda_function.py": "7083181b31fb9a1efe606b67e05982e52b374872ebc6b3bd0886fdf11740131c",
@@ -115,5 +115,7 @@
     "portfolio_qualified": false
   },
   "normal_publication_verified": false,
-  "shared_logger_finding": "docs/audit/2026-10-02/fabric-shared-logger-finding.json"
+  "shared_logger_finding": "docs/audit/2026-10-02/fabric-shared-logger-finding.json",
+  "source_commit": "78579d7bcd4b068b98ab39519eb00c1894c96c86",
+  "acceptance": "docs/audit/2026-10-02/fabric-numeric-acceptance.json"
 }

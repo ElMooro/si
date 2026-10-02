@@ -1,5 +1,5 @@
 {
-  "status": "open_reproduced_with_invented_inputs",
+  "status": "numeric_repair_released_source_and_learning_qualification_open",
   "producer_sha256": "0b15175283d97138986ff14a2bdec8d8dff6a171ddc3be259065e5a730ab5d94",
   "findings": [
     {
@@ -329,5 +329,9 @@
   "learning_ledger_reads": 0,
   "investment_authority": false,
   "scope": "These are remaining Fabric adapter/weight defects outside the repaired nonvoting Compound path. All data shown are invented fixtures.",
-  "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd"
+  "source_commit": "b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd",
+  "repair_commit": "78579d7bcd4b068b98ab39519eb00c1894c96c86",
+  "repair_acceptance": "docs/audit/2026-10-02/fabric-numeric-acceptance.json",
+  "remaining_source_clock_qualification": true,
+  "shared_logger_issue_open": true
 }

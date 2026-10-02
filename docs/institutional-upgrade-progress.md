@@ -7998,3 +7998,10 @@ Operation 6459 captured Fabric and Best Setups native runtimes and all three exi
 
 
 Stage 565 scope correction before source publication: direct execution of the actual shared `signals_emit.log_signal` and `_fabric_ctx` against invented S3/DynamoDB reproduced automatic reattachment of `fabric_agreement=100` despite false eligibility. Removing Best Setups' local stamp does not close this shared path. Its 17 importer engines need a coordinated SDK repair and native baseline next. The new producer-to-Best-Setups regression proves ranking invariance and the local wrapper only; no complete learning-path repair is claimed. No real application packet or ledger was accessed.
+
+
+### Stage 565 exact-code release acceptance
+
+Commit `78579d7bcd4b068b98ab39519eb00c1894c96c86` landed all 15 related files in one native Git commit, including the complete 94,146-byte Best Setups source. Both exact release receipts and all 25 packaged sources were verified by operation 6460, with the two runtimes and all three schedule bindings unchanged across two captures. Checks: 1,057 deployment, 15 shell, 2,970 frontend, 32 Fabric, 20 Best Setups, 14 native acceptance unit cases, 600 page graphs, 143 wiring declarations and 16 entirely intercepted browser cases. No pages changed in this batch. Normal application publication remains unverified; no producer, provider, current application/account/private/learning packet or actual ledger was accessed.
+
+The deployed code repairs arithmetic, duplicate and population handling and the Best Setups ranking bypass. It removes the local learning stamp only. The shared SDK reattaches unqualified Fabric metadata; the recorded invented-input reproduction and 17-importer repair are next. Source/observation freshness, independent roots, full original replay, outcome/portfolio qualification and publication recovery remain open. All ten institutional workstreams remain OPEN.
