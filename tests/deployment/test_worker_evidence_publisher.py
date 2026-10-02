@@ -13,8 +13,38 @@ import sys
 import tempfile
 import textwrap
 from unittest.mock import patch
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def _robust_rmtree(path):
+    """Retry rmtree on Windows/git file-lock races (OSError: Directory not empty)."""
+    for attempt in range(5):
+        try:
+            shutil.rmtree(path, ignore_errors=False)
+            return
+        except OSError:
+            if attempt == 4:
+                shutil.rmtree(path, ignore_errors=True)
+                return
+            time.sleep(0.5 * (attempt + 1))
+
+
+class RobustTempDir:
+    """tempfile.TemporaryDirectory with retry-on-failure cleanup."""
+    def __init__(self):
+        self._td = None
+        self.name = None
+    def __enter__(self):
+        self._td = RobustTempDir()
+        self.name = self._td.name
+        return self.name
+    def __exit__(self, *args):
+        try:
+            self._td.cleanup()
+        except OSError:
+            _robust_rmtree(self.name)
 sys.path[:0] = [str(ROOT/'scripts'), str(ROOT/'aws/ops/checks'), str(Path(__file__).parent)]
 import publish_worker_evidence as pub
 import worker_release as cli
@@ -104,7 +134,7 @@ class History:
 
 
 def test_worker_evidence_two_old_checkouts_retain_both_captures_and_latest_receipt():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder)
         first, second = h.clone('first'), h.clone('second')
         one, two = h.release(first, 100, 1), h.release(second, 101, 2)
@@ -124,7 +154,7 @@ def test_worker_evidence_two_old_checkouts_retain_both_captures_and_latest_recei
 def test_worker_evidence_reproduces_mutable_receipt_rebase_conflict_in_invented_history():
     # Model the old algorithm with explicit Git operations; never execute an
     # archived workflow/source. Both complete receipt bodies come from current code.
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder)
         initial = h.clone('initial');run = h.release(initial, 99, 1);h.publish(initial, run)
         h.source = git(h.remote, 'rev-parse', 'main').stdout.decode().strip()
@@ -141,7 +171,7 @@ def test_worker_evidence_reproduces_mutable_receipt_rebase_conflict_in_invented_
 
 
 def test_worker_evidence_retries_a_real_fast_forward_race_without_text_merging():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
         original = pub.git;count = []
         def racing(where, *args, **kwargs):
@@ -156,7 +186,7 @@ def test_worker_evidence_retries_a_real_fast_forward_race_without_text_merging()
 
 
 def test_worker_evidence_idempotent_retry_and_lost_push_acknowledgement():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
         original = pub.git
         def lost(where, *args, **kwargs):
@@ -173,7 +203,7 @@ def test_worker_evidence_idempotent_retry_and_lost_push_acknowledgement():
 
 
 def test_worker_evidence_preserves_callers_index_worktree_and_head():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
         write(root, 'notes.txt', 'Staged caller content\n');git(root, 'add', 'notes.txt')
         write(root, 'notes.txt', 'Unstaged caller content\n')
@@ -188,7 +218,7 @@ def test_worker_evidence_preserves_callers_index_worktree_and_head():
 
 
 def test_worker_evidence_refuses_immutable_capture_conflict():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
         name = 'aws/ops/reports/worker-source/release-100.json'
         h.add_remote(name, '{"whole_invented_conflicting_capture":true}\n')
@@ -199,7 +229,7 @@ def test_worker_evidence_refuses_immutable_capture_conflict():
 
 def test_worker_evidence_refuses_late_older_or_simultaneous_release():
     for minute in (1, 2):
-        with tempfile.TemporaryDirectory() as folder:
+        with RobustTempDir() as folder:
             h = History(folder);first, second = h.clone('first'), h.clone('second')
             one, two = h.release(first, 100, minute), h.release(second, 101, 2)
             h.publish(second, two);before = git(h.remote, 'rev-parse', 'main').stdout
@@ -209,7 +239,7 @@ def test_worker_evidence_refuses_late_older_or_simultaneous_release():
 
 def test_worker_evidence_refuses_source_drift_before_and_during_push():
     for during in (False, True):
-        with tempfile.TemporaryDirectory() as folder:
+        with RobustTempDir() as folder:
             h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
             original = pub.git;changed = []
             def drift():
@@ -227,7 +257,7 @@ def test_worker_evidence_refuses_source_drift_before_and_during_push():
 
 def test_worker_evidence_refuses_altered_or_truncated_local_evidence_before_fetch():
     for kind in ('capture', 'receipt', 'build', 'source', 'run'):
-        with tempfile.TemporaryDirectory() as folder:
+        with RobustTempDir() as folder:
             h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
             if kind == 'capture':write(root, 'aws/ops/reports/worker-source/release-100.json', '{"incomplete":')
             if kind == 'receipt':
@@ -243,7 +273,7 @@ def test_worker_evidence_refuses_altered_or_truncated_local_evidence_before_fetc
 
 
 def test_worker_evidence_bounded_retry_and_transport_failure_preserve_local_capture():
-    with tempfile.TemporaryDirectory() as folder:
+    with RobustTempDir() as folder:
         h = History(folder);root = h.clone('runner');run = h.release(root, 100, 1)
         original = pub.git;attempts = []
         def moving(where, *args, **kwargs):
@@ -268,7 +298,7 @@ def test_worker_evidence_workflow_never_publishes_s3_before_git_retention():
     assert 'git pull' not in body and 'git commit' not in body
     assert text.count('aws s3 cp data/ops/releases/worker-') == 1
     for failure in (0, 1):
-        with tempfile.TemporaryDirectory() as folder:
+        with RobustTempDir() as folder:
             root = Path(folder);write(root, 'aws/ops/reports/worker-source/release-100.json', '{}')
             # Bash functions replace only the boundary tools; run the complete
             # current workflow step. No real AWS/remote command can execute.
