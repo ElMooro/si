@@ -125,7 +125,7 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
         'dlq_already_standard': live.get('DeadLetterConfig', {}).get('TargetArn')
             == 'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default',
     }
-    require(all(controls.values()), 'release_control_mismatch')
+    require(all(controls.values()), 'release_control_mismatch:' + ','.join(k for k, v in controls.items() if not v))
     concurrency = reader.read(lam.get_function_concurrency, FunctionName=FUNCTION).get('ReservedConcurrentExecutions')
     operating = {'configuration_matches': controls, 'reserved_concurrency': concurrency,
                  'architectures': live.get('Architectures'), 'bindings': {}}
