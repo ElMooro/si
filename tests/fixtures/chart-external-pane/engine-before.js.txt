@@ -3113,7 +3113,7 @@
     studyVLines=[];
     collectPackV(lastSweepPack, "rgba(255,109,0,.8)");
     var wrap=document.getElementById("oscwrap");
-    var on=OSC.filter(function(o){ return o.on && o.externalPane !== true; }).slice(0,6);
+    var on=OSC.filter(function(o){ return o.on; }).slice(0,6);
     oscCharts.forEach(function(c){ try{ c.remove(); }catch(e){} });
     oscCharts=[]; oscSeries=[];
     function oscPlaceMap(){

@@ -31,5 +31,5 @@ test('whole deployed predecessor retains all five reproduced faults',()=>{
 });
 test('whole current source matches the separately reviewed pane replacement',()=>{
  const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
- assert.equal(crypto.createHash('sha256').update(require('./helpers/chart-external-pane-preservation.cjs').normalizeSource(fs.readFileSync(path.join(__dirname,'../jh-chart-buyback.js'),'utf8'),'jh-chart-buyback.js')).digest('hex'),'656d0bed4a4ab53021c37a9b6a7a14c8e0047576275fe4dc11a12936ce67d4ab');
+ assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'../jh-chart-buyback.js'))).digest('hex'),'656d0bed4a4ab53021c37a9b6a7a14c8e0047576275fe4dc11a12936ce67d4ab');
 });

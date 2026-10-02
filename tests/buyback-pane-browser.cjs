@@ -1,9 +1,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{chromium}=require('playwright');
 const R=path.resolve(process.env.JH_QA_SOURCE_ROOT||path.join(__dirname,'..')),D=path.resolve(process.argv[2]||'');assert.ok(process.argv[2]);fs.mkdirSync(D,{recursive:true});
 const vendor='tests/fixtures/chart-observations/vendor/lightweight-charts-4.2.3.js.txt';
-const scripts=['jh-observation-series.js','jh-observation-cache.js','jh-cq-fuse.js','jh-chart-catalog.js','jh-chart-engine.js','jh-chart-indux.js','jh-stock-desk-research.js','jh-chart-stock-desk.js','jh-chart-vol-events.js','jh-chart-buyback.js'];
+const scripts=['jh-chart-tvux.js','jh-observation-series.js','jh-observation-cache.js','jh-cq-fuse.js','jh-chart-catalog.js','jh-chart-engine.js','jh-chart-indux.js','jh-stock-desk-research.js','jh-chart-stock-desk.js','jh-chart-vol-events.js','jh-chart-buyback.js'];
 const source=fs.readFileSync(path.join(R,'jh-chart-buyback.js'),'utf8');
-const html=fs.readFileSync(path.join(R,'chart.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'');
+const html=fs.readFileSync(path.join(R,'chart.html'),'utf8').replace(/<script\b[^>]*\bsrc=[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'');
 const served=html.replace('</body>','<script src="/fixture-library.js"></script>'+scripts.map(p=>'<script src="/'+p+'"></script>').join('')+'</body>');
 const clock='2026-10-02T00:00:00Z',canary='<img src="/buyback-canary" onerror="window.__qa_injected=true">';
 const bars=Array.from({length:41},(_,i)=>({time:Date.UTC(2026,0,i+1)/1000,open:100+i,high:102+i,low:99+i,close:101+i,volume:100}));
@@ -53,6 +53,9 @@ const metadata={'/data/symbology/master.json':{by_ticker:{}},'/data/warehouse/ca
   await page.getByRole('button',{name:'Retry reported packet',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#jh-buyback-pane table'));await check('timeout-retry-recovers');
 
 
+  await page.evaluate(()=>paint(lastBars));await page.waitForTimeout(50);assert.equal(await page.locator('#oscwrap .osc[data-oid="buyback"]').count(),0);await check('accounting-pane-has-no-empty-oscillator-after-repaint');
+  await page.evaluate(()=>{OSC.find(x=>x.id==='rsi').on=true;paint(lastBars);});await page.locator('#oscwrap .osc[data-oid="rsi"]').waitFor();assert.equal(await page.locator('#oscwrap .osc[data-oid="buyback"]').count(),0);await check('native-oscillator-still-renders-next-to-accounting');
+  await page.evaluate(()=>{OSC.find(x=>x.id==='rsi').on=false;paint(lastBars);});assert.equal(await page.locator('#oscwrap .osc').count(),0);await check('native-oscillator-toggle-clears-only-native-pane');
   await page.screenshot({path:path.join(D,'final-'+width+'.png')});cases.at(-1).requests=requests;await context.close();
  }
 }finally{await browser.close();}

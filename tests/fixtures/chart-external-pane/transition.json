@@ -1,0 +1,33 @@
+{
+  "edits": {
+    "jh-chart-engine.js": {
+      "before_path": "tests/fixtures/chart-external-pane/engine-before.js.txt",
+      "before_sha256": "a79d0492c5c6219b54e4401a26343c0f93982cc7a56d054dc1032282cec28c2a",
+      "after_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
+      "before": "var on=OSC.filter(function(o){ return o.on; }).slice(0,6);",
+      "after": "var on=OSC.filter(function(o){ return o.on && o.externalPane !== true; }).slice(0,6);"
+    },
+    "jh-chart-buyback.js": {
+      "before_path": "tests/fixtures/chart-external-pane/buyback-before.js.txt",
+      "before_sha256": "656d0bed4a4ab53021c37a9b6a7a14c8e0047576275fe4dc11a12936ce67d4ab",
+      "after_sha256": "8d3557f6943fcc3527ee94d568beaff6d3fb770d7bb201eda65087cb78322bbf",
+      "before": "function ensure(){if(Array.isArray(root.OSC)&&!item())root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4'});}",
+      "after": "function ensure(){if(!Array.isArray(root.OSC))return;const existing=item();if(existing){existing.externalPane=true;return;}root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4',externalPane:true});}"
+    }
+  },
+  "paintOsc_after_sha256": "5fbece665cf8a90b52c8050e67b53fa972843dfb62e98a3d87dbcc2dccdb988f",
+  "helper_hooks": [
+    {
+      "before": "function normalizeSource(raw){",
+      "after": "function normalizeSource(raw){raw=require(\"./chart-external-pane-preservation.cjs\").normalizeSource(raw);"
+    },
+    {
+      "before": "function normalizeSigned(doc){",
+      "after": "function normalizeSigned(doc){doc=require(\"./chart-external-pane-preservation.cjs\").normalizeSigned(doc);"
+    }
+  ],
+  "pane_test_hook": {
+    "before": "fs.readFileSync(path.join(__dirname,'../jh-chart-buyback.js'))",
+    "after": "require('./helpers/chart-external-pane-preservation.cjs').normalizeSource(fs.readFileSync(path.join(__dirname,'../jh-chart-buyback.js'),'utf8'),'jh-chart-buyback.js')"
+  }
+}

@@ -57,7 +57,7 @@
       details.addEventListener('toggle',()=>{if(!details.open||details.dataset.loaded)return;const pre=create('pre',JSON.stringify(value,null,2));pre.tabIndex=0;pre.setAttribute('aria-label',label);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto';details.appendChild(pre);details.dataset.loaded='true';});return details;
     }
     function item(){return Array.isArray(root.OSC)?root.OSC.find(row=>row?.id==='buyback'):null;}
-    function ensure(){if(!Array.isArray(root.OSC))return;const existing=item();if(existing){existing.externalPane=true;return;}root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4',externalPane:true});}
+    function ensure(){if(Array.isArray(root.OSC)&&!item())root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4'});}
     function enabled(){const value=item()?.on;return value===1||value===true;}
     function pane(){
       let el=document.getElementById('jh-buyback-pane');if(el)return el;
