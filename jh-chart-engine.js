@@ -3096,6 +3096,7 @@
   }
 
   function paintOsc(d){
+    try{ ensureChartUi(); }catch(eFs){}
     studyVLines=[];
     collectPackV(lastSweepPack, "rgba(255,109,0,.8)");
     var wrap=document.getElementById("oscwrap");
@@ -3126,6 +3127,7 @@
       if(!pane||!chart||!list||!list.length) return;
       box=document.createElement("div");
       box.id="jh-dock-inds";
+      box.style.cssText="position:absolute;right:72px;top:8px;z-index:40;display:flex;flex-direction:column;gap:4px;pointer-events:none";
       pane.appendChild(box);
       var volBand=lastVolShow?0.16:0.02;
       list.slice(0,2).forEach(function(o, slot){
@@ -3170,11 +3172,14 @@
         }catch(eD){}
         var chip=document.createElement("div");
         chip.className="jh-dock-ind";
-        chip.innerHTML="<span>"+escHtml(o.n)+"</span><button type=button title='Move this indicator to the window below'>↓</button>";
+        chip.style.cssText="pointer-events:auto;display:flex;gap:8px;align-items:center;height:26px;padding:0 8px;background:rgba(19,23,34,.94);border:1px solid #434651;border-radius:3px;color:#d1d4dc;font:600 12px IBM Plex Sans,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer";
+        chip.innerHTML="<span>"+escHtml(o.n)+"</span><button type=button title='Move this indicator back to the window below' style='color:#f0b429;font:700 13px IBM Plex Sans,sans-serif;padding:0 6px'>↓ Down</button>";
         box.appendChild(chip);
-        chip.querySelector("button").onclick=function(ev){
+        chip.onmousedown=function(ev){ ev.preventDefault(); ev.stopPropagation(); };
+        chip.onclick=function(ev){
           ev.preventDefault(); ev.stopPropagation();
           oscPlaceSet(o.id, "below");
+          toast(o.n+" in the window below");
           if(lastBars.length) paint(lastBars);
         };
       });
@@ -4192,31 +4197,36 @@ else if(o.id==="rvol"){
     }
     var atr=atrAt(n-1);
     if(!(atr>0)||!isFinite(atr)) atr=Math.abs(last.close)*0.01||1;
-    var L=intra?6:10, prom=atr*0.7, i, j;
-    function pivot(i, kind){
-      var px=kind==="h"?d[i].high:d[i].low, lo=1e99, hi=-1e99;
-      for(j=i-L;j<=i+L;j++){
-        if(j<0||j>=n) return false;
-        if(j!==i){
-          if(kind==="h"&&d[j].high>px) return false;
-          if(kind==="l"&&d[j].low<px) return false;
+    var minor=harvest(intra?4:6, atr*0.45);
+    var major=harvest(intra?12:18, atr*1.05);
+    var highs=minor.h.concat(major.h), lows=minor.l.concat(major.l);
+    function harvest(len, minProm){
+      var outH=[], outL=[], ii, jj;
+      function piv(idx, kind){
+        var px=kind==="h"?d[idx].high:d[idx].low, lo=1e99, hi=-1e99;
+        for(jj=idx-len;jj<=idx+len;jj++){
+          if(jj<0||jj>=n) return false;
+          if(jj!==idx){
+            if(kind==="h"&&d[jj].high>px) return false;
+            if(kind==="l"&&d[jj].low<px) return false;
+          }
+          if(d[jj].low<lo) lo=d[jj].low;
+          if(d[jj].high>hi) hi=d[jj].high;
         }
-        if(d[j].low<lo) lo=d[j].low;
-        if(d[j].high>hi) hi=d[j].high;
+        return kind==="h"?(px-lo)>=minProm:(hi-px)>=minProm;
       }
-      return kind==="h"?(px-lo)>=prom:(hi-px)>=prom;
-    }
-    var highs=[], lows=[];
-    for(i=L;i<n-L;i++){
-      if(pivot(i,"h")) highs.push({i:i, px:d[i].high, t:d[i].time});
-      if(pivot(i,"l")) lows.push({i:i, px:d[i].low, t:d[i].time});
+      for(ii=len;ii<n-len;ii++){
+        if(piv(ii,"h")) outH.push({i:ii, px:d[ii].high, t:d[ii].time});
+        if(piv(ii,"l")) outL.push({i:ii, px:d[ii].low, t:d[ii].time});
+      }
+      return {h:outH, l:outL};
     }
     function cluster(pivots){
       if(!pivots.length) return [];
       var sorted=pivots.slice().sort(function(a,b){ return a.px-b.px; });
       var groups=[], g=null;
       sorted.forEach(function(p){
-        if(!g||Math.abs(p.px-g.mean)>atr*0.28){
+        if(!g||Math.abs(p.px-g.mean)>atr*0.12){
           g={pts:[p], sum:p.px, mean:p.px, last:p.i};
           groups.push(g);
         } else {
@@ -4226,47 +4236,41 @@ else if(o.id==="rvol"){
       });
       return groups;
     }
-    function closedThrough(px, side, lastTouch){
-      var buf=atr*0.15, hit=0, k, start=Math.max((lastTouch||0)+1, n-40);
-      for(k=start;k<n;k++){
-        if(side==="sup"&&d[k].close<px-buf) hit++;
-        else if(side==="res"&&d[k].close>px+buf) hit++;
+    var maxDist=Math.max(atr*16, Math.abs(last.close)*0.28);
+    function shelfPx(pts, side){
+      var px=side==="res"?-1e99:1e99, t;
+      for(t=0;t<pts.length;t++){
+        if(side==="res"){ if(pts[t].px>px) px=pts[t].px; }
+        else if(pts[t].px<px) px=pts[t].px;
       }
-      return hit>=3;
+      return px;
     }
-    var maxDist=Math.max(atr*5, Math.abs(last.close)*0.055);
-    function collect(pivots, side){
-      var out=[];
-      cluster(pivots).forEach(function(g){
-        var px=g.mean, touches=g.pts.length;
-        if(!(px>0)||!isFinite(px)) return;
-        if(Math.abs(px-last.close)>maxDist) return;
-        if(side==="sup"&&px>=last.close) return;
-        if(side==="res"&&px<=last.close) return;
-        if(closedThrough(px, side, g.last)) return;
-        out.push({px:px, side:side, n:touches, last:g.last, dist:Math.abs(px-last.close)});
-      });
-      out.sort(function(a,b){ return a.dist-b.dist; });
-      return out;
+    function pushLevel(pts, forced){
+      if(!pts||!pts.length) return;
+      var mean=0, touch=0, t;
+      for(t=0;t<pts.length;t++){ mean+=pts[t].px; if(pts[t].i>touch) touch=pts[t].i; }
+      mean/=pts.length;
+      var side=forced||(mean>=last.close?"res":"sup");
+      var px=shelfPx(pts, side);
+      if(!(px>0)||!isFinite(px)||Math.abs(px-last.close)<atr*0.08) return;
+      if(Math.abs(px-last.close)>maxDist) return;
+      bag.push({px:px, side:side, n:pts.length, last:touch, dist:Math.abs(px-last.close)});
     }
-    var sup=collect(lows,"sup").slice(0,2);
-    var res=collect(highs,"res").slice(0,2);
-    function addSwing(pivots, side, bag){
-      if(bag.length) return;
-      var best=null, k;
-      for(k=pivots.length-1;k>=0;k--){
-        var p=pivots[k];
-        if(side==="sup"&&p.px>=last.close) continue;
-        if(side==="res"&&p.px<=last.close) continue;
-        if(Math.abs(p.px-last.close)>maxDist) continue;
-        if(closedThrough(p.px, side, p.i)) continue;
-        best=p; break;
+    var bag=[];
+    cluster(lows).forEach(function(g){ pushLevel(g.pts); });
+    cluster(highs).forEach(function(g){ pushLevel(g.pts); });
+    function pick(side){
+      var rows=bag.filter(function(r){ return r.side===side; });
+      rows.sort(function(a,b){ return (b.n-a.n)||(a.dist-b.dist); });
+      var kept=[], i, j, ok;
+      for(i=0;i<rows.length&&kept.length<10;i++){
+        ok=true;
+        for(j=0;j<kept.length;j++) if(Math.abs(kept[j].px-rows[i].px)<atr*0.22) ok=false;
+        if(ok) kept.push(rows[i]);
       }
-      if(!best) return;
-      bag.push({px:best.px, side:side, n:1, last:best.i, dist:Math.abs(best.px-last.close)});
+      return kept;
     }
-    addSwing(lows,"sup",sup);
-    addSwing(highs,"res",res);
+    var sup=pick("sup"), res=pick("res");
     var rails=[];
     function pushRail(lv){
       var title=(lv.side==="sup"?"S":"R")+(lv.n>=2?" "+Math.min(lv.n,9):"");
@@ -4322,9 +4326,9 @@ else if(o.id==="rvol"){
       "html.jh-fs #menu,html.jh-fs #fly,html.jh-fs #modal,html.jh-fs #symsearch,html.jh-fs #cmdk,html.jh-fs #dtype,html.jh-fs #ctx,html.jh-fs #toast{z-index:120!important}"+
       "#oscwrap .osc-head [data-act=up],#oscwrap .osc-head [data-act=dn],#oscwrap .osc-head [data-act=shorter]{color:#d1d4dc;font-size:13px;padding:0 5px;line-height:1}"+
       "#oscwrap .osc-head [data-act=up]:hover,#oscwrap .osc-head [data-act=dn]:hover,#oscwrap .osc-head [data-act=shorter]:hover{color:#f0b429}"+
-      "#jh-dock-inds{position:absolute;left:8px;top:8px;z-index:7;display:flex;flex-direction:column;gap:4px;pointer-events:none}"+
-      "#jh-dock-inds .jh-dock-ind{pointer-events:auto;display:flex;gap:6px;align-items:center;height:22px;padding:0 8px;background:rgba(19,23,34,.9);border:1px solid #2a2e39;border-radius:3px;color:#d1d4dc;font:600 11px IBM Plex Sans,sans-serif}"+
-      "#jh-dock-inds button{color:#d1d4dc;font-size:14px;padding:0 4px}";
+      "#jh-dock-inds{position:absolute;right:72px;top:8px;left:auto;z-index:40;display:flex;flex-direction:column;gap:4px;pointer-events:none}"+
+      "#jh-dock-inds .jh-dock-ind{pointer-events:auto;display:flex;gap:8px;align-items:center;height:26px;padding:0 8px;background:rgba(19,23,34,.94);border:1px solid #434651;border-radius:3px;color:#d1d4dc;font:600 12px IBM Plex Sans,sans-serif;cursor:pointer}"+
+      "#jh-dock-inds button{color:#f0b429;font-size:13px;font-weight:700;padding:0 6px}";
     document.head.appendChild(st);
     function onFsEnd(){
       if(document.fullscreenElement||document.webkitFullscreenElement) return;
@@ -4446,6 +4450,53 @@ else if(o.id==="rvol"){
     if(!svg||!box) return;
     var w=box.clientWidth, h=box.clientHeight; svg.setAttribute("viewBox","0 0 "+w+" "+h); svg.setAttribute("width",w); svg.setAttribute("height",h);
     var parts=[], i, d;
+    function paintFib(points, kind, color, into){
+      if(!points||points.length<2||!mainSeries) return;
+      var pA=points[0], pB=points[1];
+      if(!pA||!pB||!isFinite(+pA.price)||!isFinite(+pB.price)) return;
+      var ratios=kind==="fibext"?[0,0.618,1,1.272,1.618,2.618]:[0,0.236,0.382,0.5,0.618,0.786,1,1.618];
+      var cols={"0":"#787b86","0.236":"#ef5350","0.382":"#ff9800","0.5":"#90a4ae","0.618":"#089981","0.786":"#2962ff","1":"#787b86","1.272":"#7e57c2","1.618":"#ab47bc","2.618":"#7e57c2"};
+      var plotR=w;
+      try{ var tw=chart&&chart.timeScale&&chart.timeScale().width(); if(tw>40) plotR=tw; }catch(eTw){}
+      var a=xy(pA.time, pA.price), b=xy(pB.time, pB.price);
+      if(a&&b) into.push(ln(a.x,a.y,b.x,b.y,color||"#d1d4dc",1));
+      var xLeft=0, xRight=plotR;
+      if(a&&b) xLeft=Math.max(0, Math.min(a.x,b.x));
+      else if(a) xLeft=Math.max(0, a.x);
+      else if(b) xLeft=Math.max(0, b.x);
+      if(kind==="fibch"&&a&&b){ xLeft=Math.max(0, Math.min(a.x,b.x)); xRight=Math.min(plotR, Math.max(a.x,b.x)); }
+      var specs=[], y382=null, y618=null, ri, price, y, key;
+      for(ri=0;ri<ratios.length;ri++){
+        price=pB.price+(pA.price-pB.price)*ratios[ri];
+        if(!isFinite(price)) continue;
+        try{ y=mainSeries.priceToCoordinate(price); }catch(eY){ y=null; }
+        if(y==null||!isFinite(y)) continue;
+        key=String(ratios[ri]);
+        specs.push({r:ratios[ri], price:price, y:y, col:cols[key]||color||"#d1d4dc", strong:(ratios[ri]===0||ratios[ri]===1||ratios[ri]===0.382||ratios[ri]===0.618)});
+        if(Math.abs(ratios[ri]-0.382)<1e-9) y382=y;
+        if(Math.abs(ratios[ri]-0.618)<1e-9) y618=y;
+      }
+      if(kind!=="fibext"&&y382!=null&&y618!=null) into.push('<rect x="'+xLeft+'" y="'+Math.min(y382,y618)+'" width="'+Math.max(0,xRight-xLeft)+'" height="'+Math.abs(y618-y382)+'" fill="rgba(8,153,129,.12)" />');
+      var placed=[], si, s, lab, labW, labX, ty, clash, guard, pi;
+      for(si=0;si<specs.length;si++){
+        s=specs[si];
+        into.push(ln(xLeft, s.y, xRight, s.y, s.col, s.r===0.618?1.6:1, s.strong?"":"3 3"));
+        lab=(s.r===0.5?"0.5":String(s.r))+"  "+fmt(s.price);
+        labW=Math.max(54, lab.length*6.5+8);
+        labX=Math.max(xLeft+4, xRight-labW-4);
+        ty=s.y-4;
+        if(ty<14) ty=s.y+12;
+        for(guard=0;guard<6;guard++){
+          clash=false;
+          for(pi=0;pi<placed.length;pi++) if(Math.abs(placed[pi]-ty)<13) clash=true;
+          if(!clash) break;
+          ty+=13;
+        }
+        placed.push(ty);
+        into.push('<rect x="'+labX+'" y="'+(ty-11)+'" width="'+labW+'" height="14" rx="2" fill="rgba(19,23,34,.82)" />');
+        into.push('<text x="'+(labX+4)+'" y="'+ty+'" fill="'+s.col+'" font-size="11" font-family="IBM Plex Mono">'+String(lab).replace(/&/g,"&").replace(/</g,"<")+'</text>');
+      }
+    }
     if(hideDraw){ svg.innerHTML=""; try{ drawOscVLines(); }catch(e){} renderObj(); return; }
     for(i=0;i<drawings.length;i++){
       d=drawings[i]; if(d.hide) continue;
@@ -4497,14 +4548,8 @@ else if(o.id==="rvol"){
         if(k==="hs"){ var lb2=["LS","H","RS","N","H","N2","T"]; pts.forEach(function(p,ii){ parts.push(tx(p.x+4,p.y-4,c,lb2[ii]||"")); }); }
         if(k==="elliott"){ pts.forEach(function(p,ii){ parts.push(tx(p.x+4,p.y-4,c,String(ii))); }); }
       }
-      else if((k==="fib"||k==="fibext"||k==="fibch") && pts.length>=2){
-        var lv=k==="fibext"?[0,0.272,0.618,1,1.272,1.618,2.618]:[0,0.236,0.382,0.5,0.618,0.786,1];
-        var fills=["rgba(41,98,255,.06)","rgba(8,153,129,.08)","rgba(242,54,69,.06)","rgba(255,109,0,.07)","rgba(171,71,188,.07)","rgba(38,198,218,.06)","rgba(41,98,255,.05)"];
-        for(var fi=0;fi<lv.length;fi++){
-          var yf=pts[0].y+(pts[1].y-pts[0].y)*lv[fi];
-          if(fi){ var yprev=pts[0].y+(pts[1].y-pts[0].y)*lv[fi-1]; var x0=k==="fibch"?Math.min(pts[0].x,pts[1].x):0, xw=k==="fibch"?Math.abs(pts[1].x-pts[0].x):w; parts.push('<rect x="'+x0+'" y="'+Math.min(yf,yprev)+'" width="'+xw+'" height="'+Math.abs(yf-yprev)+'" fill="'+(fills[(fi-1)%fills.length])+'" />'); }
-          parts.push(ln(k==="fibch"?pts[0].x:0, yf, k==="fibch"?pts[1].x:w, yf, c, 1, "4 3")); parts.push(tx(8,yf-3,c,(lv[fi]*100).toFixed(1)));
-        }
+      else if((k==="fib"||k==="fibext"||k==="fibch") && d.points && d.points.length>=2){
+        paintFib(d.points, k, c, parts);
       }
       else if(k==="fibfan" && pts.length>=2){
         [0,0.382,0.5,0.618,1].forEach(function(lv){ var yf=pts[0].y+(pts[1].y-pts[0].y)*lv; var e=ext(pts[0],{x:pts[1].x,y:yf},w); parts.push(ln(pts[0].x,pts[0].y,e.x,e.y,c,1,"4 3")); });
@@ -4569,8 +4614,11 @@ else if(o.id==="rvol"){
       }
     }
     if(ghostPt && pending && pending.points.length){
-      var g0=xy(pending.points[0].time, pending.points[0].price), g1=xy(ghostPt.time, ghostPt.price);
-      if(g0&&g1){ parts.push(ln(g0.x,g0.y,g1.x,g1.y,ACC,1,"5 4")); var gpct=pending.points[0].price?((ghostPt.price-pending.points[0].price)/pending.points[0].price)*100:0; parts.push(tx((g0.x+g1.x)/2,(g0.y+g1.y)/2-8,ACC,gpct.toFixed(2)+"% · "+fmt(ghostPt.price))); }
+      if((pending.kind==="fib"||pending.kind==="fibext"||pending.kind==="fibch") && pending.points[0]) paintFib([pending.points[0], ghostPt], pending.kind, ACC, parts);
+      else {
+        var g0=xy(pending.points[0].time, pending.points[0].price), g1=xy(ghostPt.time, ghostPt.price);
+        if(g0&&g1){ parts.push(ln(g0.x,g0.y,g1.x,g1.y,ACC,1,"5 4")); var gpct=pending.points[0].price?((ghostPt.price-pending.points[0].price)/pending.points[0].price)*100:0; parts.push(tx((g0.x+g1.x)/2,(g0.y+g1.y)/2-8,ACC,gpct.toFixed(2)+"% · "+fmt(ghostPt.price))); }
+      }
     }
     var patInd=INDS.find(function(x){return x.id==="pat";});
     if(patInd&&patInd.on&&lastBars.length){
