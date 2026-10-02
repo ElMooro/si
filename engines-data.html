@@ -42,6 +42,15 @@ tr:last-child td{border-bottom:none}
 
 <div id="heartbeat"><span class="dot y" id="hb-dot"></span><span id="hb-text" class="loading">Checking feed health…</span></div>
 
+<div class="panel" style="margin-bottom:20px">
+  <h2>Ticker 360° Lookup</h2>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input type="text" id="ticker-input" placeholder="Enter ticker (e.g. AAPL)" style="flex:1;padding:10px;background:#0A0908;border:1px solid var(--line);border-radius:6px;color:var(--fg);font-size:1rem;text-transform:uppercase">
+    <button onclick="lookupTicker()" style="padding:10px 20px;background:var(--acc);color:#0C0B09;border:none;border-radius:6px;font-weight:700;cursor:pointer">Lookup</button>
+  </div>
+  <div id="ticker-result"></div>
+</div>
+
 <div class="grid">
   <div class="panel" tabindex="0">
     <h2>Master Ranker <span class="badge t360" id="mr-ver"></span></h2>
@@ -157,6 +166,35 @@ get('data/options-confluence.json').then(d=>{
     <td><span class="ticker">${esc(display(t.ticker))}</span></td><td>${esc(display(t.posture))}</td><td>${esc(countText(t.n_engines))}</td>
     <td style="text-align:right">${t360cell(t)}</td></tr>`).join('');
 }).catch(e=>{ document.getElementById('oc-body').innerHTML = `<tr><td colspan="4" class="err">${esc(e.message)}</td></tr>`; });
+
+// Ticker lookup
+async function lookupTicker(){
+  const t = document.getElementById('ticker-input').value.trim().toUpperCase();
+  if(!t) return;
+  const res = document.getElementById('ticker-result');
+  res.innerHTML = '<span class="loading">Loading '+t+'…</span>';
+  try{
+    const d = await get('data/ticker-360.json');
+    const tk = d.tickers||{};
+    const data = tk[t];
+    if(!data){
+      res.innerHTML = '<span class="err">Ticker '+t+' not in 360° universe ('+Object.keys(tk).length+' tickers indexed)</span>';
+      return;
+    }
+    const doms = data.domains||{};
+    const dnames = Object.keys(doms);
+    res.innerHTML = '<p style="margin-bottom:8px"><span class="ticker" style="font-size:1.2rem">'+t+'</span> <span class="badge t360">'+data.coverage_count+' domains</span></p>' +
+      '<div class="t360bar" style="margin-bottom:12px">'+dnames.map(n=>'<span>'+n+'</span>').join('')+'</div>' +
+      dnames.map(n=>{
+        const dd = doms[n];
+        const td = dd.data||{};
+        return '<details class="audit" style="margin-bottom:6px"><summary>'+n+' <span style="color:var(--mut)">as of '+ago(dd.as_of)+'</span></summary><pre>'+JSON.stringify(td,null,1).slice(0,1000)+'</pre></details>';
+      }).join('');
+  }catch(e){
+    res.innerHTML = '<span class="err">'+e.message+'</span>';
+  }
+}
+document.getElementById('ticker-input')?.addEventListener('keypress', e=>{ if(e.key==='Enter') lookupTicker(); });
 
 // Ticker 360 summary
 get('data/ticker-360.json').then(d=>{
