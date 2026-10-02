@@ -1,0 +1,285 @@
+{
+  "script": "1094_registry",
+  "read_at": "2026-10-02T00:18:56Z",
+  "domains": [
+    {
+      "domain": "short-interest",
+      "producer": "justhodl-short-interest",
+      "artifact_path": "data/short-book.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T21:18:27",
+        "timeout": 360,
+        "memory": 512
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T21:50:18Z",
+        "age_hours": 2.5,
+        "size": 2950
+      },
+      "verified": true
+    },
+    {
+      "domain": "sec-8k",
+      "producer": "justhodl-sec-8k-enrich",
+      "artifact_path": "data/sec-filings-intel.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-09-30T20:11:23",
+        "timeout": 300,
+        "memory": 512
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T21:07:49Z",
+        "age_hours": 3.2,
+        "size": 3368592
+      },
+      "verified": true
+    },
+    {
+      "domain": "xbrl-fundamentals",
+      "producer": "justhodl-xbrl-fundamentals",
+      "artifact_path": "data/xbrl-fundamentals/",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-09-30T20:50:10",
+        "timeout": 900,
+        "memory": 1024
+      },
+      "artifact": {
+        "exists": true,
+        "type": "prefix",
+        "sample": "data/xbrl-fundamentals/A.json",
+        "modified": "2026-10-01T23:01:14Z"
+      },
+      "verified": true
+    },
+    {
+      "domain": "corporate-actions",
+      "producer": "justhodl-corporate-actions",
+      "artifact_path": "data/corporate-actions-index.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-09-30T21:59:22",
+        "timeout": 300,
+        "memory": 256
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T23:01:47Z",
+        "age_hours": 1.3,
+        "size": 39282
+      },
+      "verified": true
+    },
+    {
+      "domain": "etf-holdings",
+      "producer": "justhodl-etf-issuer-holdings",
+      "artifact_path": "data/etf-issuer-holdings.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T12:36:13",
+        "timeout": 600,
+        "memory": 512
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T23:00:59Z",
+        "age_hours": 1.3,
+        "size": 2771
+      },
+      "verified": true
+    },
+    {
+      "domain": "ticker-360",
+      "producer": "justhodl-ticker-360",
+      "artifact_path": "data/ticker-360.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T15:25:14",
+        "timeout": 600,
+        "memory": 1024
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T18:29:20Z",
+        "age_hours": 5.8,
+        "size": 731747
+      },
+      "verified": true
+    },
+    {
+      "domain": "flow-confluence",
+      "producer": "justhodl-flow-confluence",
+      "artifact_path": "data/flow-confluence.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T16:55:09",
+        "timeout": 120,
+        "memory": 512
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T22:45:36Z",
+        "age_hours": 1.6,
+        "size": 34267
+      },
+      "verified": true
+    },
+    {
+      "domain": "best-ideas",
+      "producer": "justhodl-best-ideas",
+      "artifact_path": "data/best-ideas.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T16:54:40",
+        "timeout": 120,
+        "memory": 320
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-02T00:01:35Z",
+        "age_hours": 0.3,
+        "size": 207790
+      },
+      "verified": true
+    },
+    {
+      "domain": "master-ranker",
+      "producer": "justhodl-master-ranker",
+      "artifact_path": "data/master-ranker.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T23:36:45",
+        "timeout": 900,
+        "memory": 1536
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T20:36:01Z",
+        "age_hours": 3.7,
+        "size": 65007
+      },
+      "verified": true
+    },
+    {
+      "domain": "conviction-engine",
+      "producer": "justhodl-conviction-engine",
+      "artifact_path": "data/conviction.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-01T23:39:43",
+        "timeout": 120,
+        "memory": 256
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T21:45:21Z",
+        "age_hours": 2.6,
+        "size": 11398
+      },
+      "verified": true
+    },
+    {
+      "domain": "options-confluence",
+      "producer": "justhodl-options-confluence",
+      "artifact_path": "data/options-confluence.json",
+      "lambda": {
+        "exists": true,
+        "last_modified": "2026-10-02T00:10:57",
+        "timeout": 120,
+        "memory": 512
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T23:20:03Z",
+        "age_hours": 1.0,
+        "size": 18343
+      },
+      "verified": true
+    },
+    {
+      "domain": "dark-pool",
+      "producer": null,
+      "artifact_path": "data/dark-pool.json",
+      "lambda": {
+        "exists": "n/a"
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-10-01T21:41:41Z",
+        "age_hours": 2.6,
+        "size": 1461967
+      },
+      "verified": false
+    },
+    {
+      "domain": "finra-short-volume",
+      "producer": null,
+      "artifact_path": "data/finra-short-volume.json",
+      "lambda": {
+        "exists": "n/a"
+      },
+      "artifact": {
+        "exists": false
+      },
+      "verified": false
+    },
+    {
+      "domain": "share-flows",
+      "producer": null,
+      "artifact_path": "data/share-flows.json",
+      "lambda": {
+        "exists": "n/a"
+      },
+      "artifact": {
+        "exists": true,
+        "type": "object",
+        "modified": "2026-09-26T13:41:04Z",
+        "age_hours": 130.6,
+        "size": 7595375
+      },
+      "verified": false
+    },
+    {
+      "domain": "cboe-options",
+      "producer": null,
+      "artifact_path": "data/cboe-options.json",
+      "lambda": {
+        "exists": "n/a"
+      },
+      "artifact": {
+        "exists": false
+      },
+      "verified": false
+    },
+    {
+      "domain": "macro-regime",
+      "producer": null,
+      "artifact_path": "data/macro-regime.json",
+      "lambda": {
+        "exists": "n/a"
+      },
+      "artifact": {
+        "exists": false
+      },
+      "verified": false
+    }
+  ],
+  "verified_count": 11,
+  "total": 16,
+  "status": "COMPLETE"
+}
