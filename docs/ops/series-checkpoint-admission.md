@@ -204,6 +204,15 @@ tests and 15 shell gates** pass, along with all 72/166/10/four extractor cases,
 checks and wiring. Subsequent main commits through
 `62cc80106027d3ef80d524adb9821ef4ba1cf4f9` add owner technical probes, their
 reports and supporting evidence only; selected source/tests/deployment scripts
-and operating controls remain unchanged. Exact-head release review, producer
-deployment and post-release package/receipt/control proof remain pending.
-Natural publication cannot prove the failure path executed.
+and operating controls remain unchanged. A further nonoverlapping owner Ranker release at
+`5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce` adds two required boundary tests.
+The complete suite was rerun on this integration: **1,046 deployment static
+tests and 15 shell gates pass**. Independent review again reran all extractor
+and probe cases and selected validators, with unchanged source/tests/baseline
+and no extractor findings. The final secrets scan covers 15,761 files with no
+findings. No other-owner production contract is qualified by this repair.
+Main `a5aa60de960c6931f5845dca3cac9f5ff8221555` adds only that owner's read-only
+acceptance report, leaving every tested input and deployment dependency unchanged.
+Exact-head release review, producer deployment and post-release package/receipt/
+control proof remain pending. Natural publication cannot prove the failure path
+executed.
