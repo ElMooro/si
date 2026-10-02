@@ -403,6 +403,7 @@
     if (!item) return;
     var d = el("indset");
     var tab = "in";
+    var snap = { p: item.p, p2: item.p2, p3: item.p3, ob: item.ob, os: item.os, mult: item.mult, c: item.c, c2: item.c2, c3: item.c3, w: item.w, hide: item.hide, n: item.n };
     d.className = "on";
     function draw() {
       d.innerHTML = "<div class=box><div class=sh><span>" + item.n + "</span><button type=button id=setx>×</button></div>" +
@@ -460,11 +461,7 @@
       } else {
         body.innerHTML = "<div class=srow><span>Visible on all intervals</span><input id=sall type=checkbox checked></div>";
       }
-      d.querySelectorAll("[data-t]").forEach(function (b) {
-        b.onclick = function () { tab = b.getAttribute("data-t"); draw(); };
-      });
-      document.getElementById("setx").onclick = document.getElementById("setc").onclick = function () { d.className = ""; };
-      document.getElementById("setok").onclick = function () {
+      function readFields() {
         var p = document.getElementById("sp");
         var p2 = document.getElementById("sp2");
         var p3 = document.getElementById("sp3");
@@ -495,6 +492,17 @@
         if (c3) item.c3 = c3.value;
         if (w) item.w = +w.value || 1;
         if (vis) item.hide = !vis.checked;
+      }
+      d.querySelectorAll("[data-t]").forEach(function (b) {
+        b.onclick = function () { readFields(); tab = b.getAttribute("data-t"); draw(); };
+      });
+      document.getElementById("setx").onclick = document.getElementById("setc").onclick = function () {
+        item.p = snap.p; item.p2 = snap.p2; item.p3 = snap.p3; item.ob = snap.ob; item.os = snap.os; item.mult = snap.mult;
+        item.c = snap.c; item.c2 = snap.c2; item.c3 = snap.c3; item.w = snap.w; item.hide = snap.hide; item.n = snap.n;
+        d.className = "";
+      };
+      document.getElementById("setok").onclick = function () {
+        readFields();
         d.className = "";
         paintNow();
       };
