@@ -3,13 +3,13 @@
 This is an isolated DRAFT repair of extraction page/checkpoint write-failure
 handling. It was first based on main `39f7b521fff3a1a43509de23590d7d8be649e82c`
 and is now rebased on owner main `86f8aeb755e301b55ea2a253e7237e3fadc8ba75`.
-**Publication HOLD pending final integration review:** the owner correction now
-passes the unchanged compound gate and all required tests. Independent review
-qualifies its three actual candidate mappings; two broader detector limitations
-are retained for active-owner follow-up and do not materially block this isolated
-storage draft. Parent coordination confirms
-PR78 is a completed draft with no live editing turn and authorizes this separate
-storage claim/branch. No PR or remote branch has yet been published.
+**Release HOLD.** The owner correction passes the unchanged compound gate and
+all required tests. Independent review qualifies its three actual candidate
+mappings; two broader detector limitations are retained for active-owner follow-up
+and do not materially block this isolated storage draft. Parent coordination
+confirms PR78 is a completed draft with no live editing turn and authorizes this
+separate storage claim/branch. Draft publication requires final exact-head review;
+the draft PR records that verdict and exact head. No merge or deployment is authorized.
 
 No merge, deployment, runner dispatch, real AWS/data-provider access, producer
 invocation or retained-data operation is authorized or performed by this task.
