@@ -1,24 +1,2 @@
-executing-against: 1edeb540a81ada7f4f3a730e244cfc03a255b198
-{
-  "schedules": {
-    "justhodl-feed-heartbeat-schedule": {
-      "exists": false,
-      "error": "An error occurred (ResourceNotFoundException) when calling the GetSchedule opera"
-    },
-    "justhodl-ticker-360-schedule": {
-      "exists": true,
-      "state": "ENABLED",
-      "expression": "cron(20 6,18 * * ? *)"
-    }
-  },
-  "eventbridge_rules": {
-    "justhodl-feed-heartbeat": [],
-    "justhodl-ticker-360": [
-      {
-        "name": "justhodl-ticker-360-schedule",
-        "state": "ENABLED",
-        "expr": "cron(20 6,18 * * ? *)"
-      }
-    ]
-  }
-}
+executing-against: 15d824b03ddca45d6641252f0fdaba52abb43105
+{"created": true, "schedule": "justhodl-feed-heartbeat-schedule"}
