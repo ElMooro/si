@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| History-snapshotter newest-50 timestamp selection only; exact predecessor/handler differential fixtures and CPU/memory benchmarks, then exact-head review and held release unless equivalence/benefit and unchanged controls are proven. No storage/retention/scan/cutoff/schedules/producer invokes; SDMX and provider-catalog untouched. | none yet | S-codex#hs501002p8 | 2026-10-02 03:10 |
 | Provider-catalog full prefix LIST page-size only (400 to 1000); complete output equivalence, memory/runtime measurements, exact-head independent review and targeted release/natural publication. Preserve all prefixes, duplicates, derived counters, consumers, event flow, data/storage and schedules; no producer invocation. | 6438 RESERVED technical acceptance only (6437 taken by funding owner) | S-codex#pcpage1002r6 | 2026-10-02 00:26 |
 | CloudWatch caller/cadence source investigation and bounded technical-only runner probe; no billing/account payload publication, no private reads, no mutations or schedule changes before exact-head independent review. Existing no-paid owner work untouched. | 6422 complete; 6423 RESERVED | S-codex#cw1001v8 | 2026-10-01 18:00 |
 | Katlin PR56 regime/credit/vol abstention released and parent natural UI accepted at15:22:39; PR57 version2.5.2 source4432045e3 released via run36885982234 with exact receipt. Auction/rawgate votes excluded. See docs/reviews/katlin-version-identification.md. New identifier normal-UI check remains with parent; verification handoff only, no active code edits. Denied raw route stays stopped. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
@@ -81,6 +80,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#hs501002p8 — History newest-50 investigation held in draft PR74, candidate 38cefa71de11de4b5aa37c30f143cd7d2d66f268. 303 index/318 full-handler/four actual API+audit consumer cases and 1,035 deployment/15 shell gates pass. Lower synthetic memory but ordered CPU regressions (~33% at 50,000 rows; ~25% across 45 feeds); actual scan distribution/memory pressure unverified. No production merge/deploy, AWS probe, producer invoke or data/storage/schedule/security changes. Reconciliation baseline and meaningful benefit required before reconsideration. Evidence: draft docs/ops/history-newest50-hold.md.
 
 - S-codex#sdmxset1002m7 — SDMX _order set reuse PR72 independently accepted 3553eb2dd; merged c6d34a1706; normal Actions 36957398475 and exact public receipt verified. Read-only ops 6442 baseline 36956524665/postrelease 36957806995 PASS, unchanged projected controls/ten schedule references and all five intentional monitoring schedules enabled. 8,626+2,020 helper comparisons, 90 handler fixtures, 1,034 deployment/15 shell/six probe tests and consumers pass. Natural S3 summary 02:54:44 and public ECB summary 02:59:41 observed after release; publication/unchanged output does not prove helper execution. Local helper CPU improvement only; AWS bills/duration unmeasured. No producer invoke, archive read, storage/schedule/security/retry/state change. Rollback/evidence: docs/ops/sdmx-order-set-reuse.md.
 
