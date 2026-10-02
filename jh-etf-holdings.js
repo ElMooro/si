@@ -169,7 +169,8 @@
     return '<h3>' + esc(doc.ticker) + ' · ' + esc(role === 'current' ? 'current collection' : role === 'prior' ? 'earlier query cutoff' : 'previous retained snapshot') + '</h3>' +
       '<p>Holdings effective ' + esc(dates(doc.effective_dates)) + '. Processed ' + esc(doc.processed_date) + '. Original acquisition ' + esc(doc.source_acquired_at) + '.</p>' +
       '<p>' + esc(q.status) + ' · ' + doc.indexed_rows + ' reconstructed rows. Missing ticker: ' + (q.missing_ticker_rows ?? 'unknown') +
-      '; missing identity: ' + (q.missing_identity_rows ?? 'unknown') + '; duplicate identity rows: ' + (q.duplicate_identity_rows ?? 'unknown') + '.</p>' +
+      '; missing identity: ' + (q.missing_identity_rows ?? 'unknown') + '; duplicate identity rows: ' + (q.duplicate_identity_rows ?? 'unknown') +
+      '; rows with rejected fields: ' + esc(Number.isSafeInteger(q.rows_with_field_errors) && q.rows_with_field_errors >= 0 ? q.rows_with_field_errors : 'Unavailable') + '.</p>' +
       '<p>Observation ages: ' + esc(Object.entries(age).map(([d,v]) => d + ': ' + v + ' days at compilation').join(' · ') || 'Unavailable') +
       '. Current fund ownership is not confirmed. ' + (at >= Date.parse(doc.source_valid_until) ? 'The source check is overdue.' : 'Source check due ' + esc(doc.source_valid_until) + '.') + '</p>' +
       '<p>Raw reported weight sum: ' + fmt(doc.weight_audit?.raw_observed_sum_decimal) + '. This is not a certified NAV fraction and is not normalized to 100%. Trading currency does not certify the currency of reported market value.</p>';
