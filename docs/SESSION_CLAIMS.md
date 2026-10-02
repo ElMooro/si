@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| SDMX walker _order membership-set reuse only; exact predecessor/list/tuple/iterator and full-handler byte/state equivalence, local CPU benchmark, independent exact-head review and targeted Actions release. Preserve catalogs, prefix processing, retries/reset, providers, storage and all schedules; no producer invocation. | 6442 RESERVED read-only package/control acceptance | S-codex#sdmxset1002m7 | 2026-10-02 02:06 |
 | Provider-catalog full prefix LIST page-size only (400 to 1000); complete output equivalence, memory/runtime measurements, exact-head independent review and targeted release/natural publication. Preserve all prefixes, duplicates, derived counters, consumers, event flow, data/storage and schedules; no producer invocation. | 6438 RESERVED technical acceptance only (6437 taken by funding owner) | S-codex#pcpage1002r6 | 2026-10-02 00:26 |
 | CloudWatch caller/cadence source investigation and bounded technical-only runner probe; no billing/account payload publication, no private reads, no mutations or schedule changes before exact-head independent review. Existing no-paid owner work untouched. | 6422 complete; 6423 RESERVED | S-codex#cw1001v8 | 2026-10-01 18:00 |
 | Katlin PR56 regime/credit/vol abstention released and parent natural UI accepted at15:22:39; PR57 version2.5.2 source4432045e3 released via run36885982234 with exact receipt. Auction/rawgate votes excluded. See docs/reviews/katlin-version-identification.md. New identifier normal-UI check remains with parent; verification handoff only, no active code edits. Denied raw route stays stopped. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
@@ -81,6 +80,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#sdmxset1002m7 — SDMX _order set reuse PR72 independently accepted 3553eb2dd; merged c6d34a1706; normal Actions 36957398475 and exact public receipt verified. Read-only ops 6442 baseline 36956524665/postrelease 36957806995 PASS, unchanged projected controls/ten schedule references and all five intentional monitoring schedules enabled. 8,626+2,020 helper comparisons, 90 handler fixtures, 1,034 deployment/15 shell/six probe tests and consumers pass. Natural S3 summary 02:54:44 and public ECB summary 02:59:41 observed after release; publication/unchanged output does not prove helper execution. Local helper CPU improvement only; AWS bills/duration unmeasured. No producer invoke, archive read, storage/schedule/security/retry/state change. Rollback/evidence: docs/ops/sdmx-order-set-reuse.md.
 
 - S-codex#ebguard1001r2 — ETF execution-budget repair PR60 accepted 9439fbe0414d67bfe60d7ac738c33251937c436f; merge f7a23496153d32fdcfe4bc62ece6a475068c9ee0; normal desk-only run 36896816094 and exact public receipt verified. 93 native/1018 deployment/15 shell tests pass. 17:10 UTC public baseline remains Sep30, 116 funds, supplement absent. Oct1 23:05 UTC natural execution/replay and full-workload memory evidence pending; PR26 disabled/unmerged. Preserve all qhs0930b/edphase0930a evening handoffs. See docs/reviews/etf-execution-budget.md.
 

@@ -157,4 +157,47 @@ Independent source review accepted `8b4c14b484cd1a6cd937c5d77ff133f6d4a4584e`,
 including 2,020 additional helper comparisons, the 8,626 committed comparisons,
 90 complete handler fixtures, consumer suites and all local release gates. Its
 independent interleaved measurement at 8,197 IDs/819 priorities was 80.42 ms to
-3.11 ms (25.85x). Final rebased-head confirmation is still required before merge.
+3.11 ms (25.85x). Final rebased-head confirmation accepted `3553eb2dd8f43ef678d6e5db825ccec94fc5a9bf` before merge; its full deployment suite passed 1,034 tests plus 15 shell checks and six probe tests, with 15,457 files scanned and no secrets found.
+
+
+## Verified release
+
+Production [PR #72](https://github.com/ElMooro/si/pull/72) merged as
+`c6d34a1706ad71d7853da439fc92160e29961fc8` after independent exact-head
+acceptance and passing available Actions checks. CodeRabbit's green context was
+an automatic-review skip; it is not counted as the independent review.
+Normal push-triggered [deployment run 36957398475](https://github.com/ElMooro/si/actions/runs/36957398475)
+passed every release step, including deployment preflight. The public receipt is
+verified, names this exact merge/run, records deployment at
+2026-10-02T02:52:53Z and matches handler SHA-256
+`736138a65f926206688f94fdf08b9a17f5594193234327d16be6f985cd5c4214`.
+Its ZIP hash matches CodeSha256
+`qh4jtwQ0wtThYXmk1RHDd40/WcwXsJLU1pxPWMLi9Rc=`.
+
+Post-release [read-only acceptance run 36957806995](https://github.com/ElMooro/si/actions/runs/36957806995)
+passed with candidate phase, baseline comparison, the exact handler/ZIP/receipt
+and Active/Successful readiness. Every projected control and ten named schedule
+reference equals the baseline, fingerprint `dcf6a81a255eeb1b59254390dfaed6d300f168783fc30b25596825c090dfc4e7`.
+All five intentional monitoring schedules remain enabled, actual walker/retry
+cadences and optional retry absence remain unchanged, temporary storage remains
+2,048 MB and reserved concurrency remains unset. The probe used 19 AWS reads,
+one package download, zero writes and zero producer invokes. Source/config,
+package-receipt and controller evidence are retained in `sdmx-order-release.json`.
+
+The probe observed a naturally published current-summary S3 Last-Modified of
+2026-10-02T02:54:44+00:00, after the release. The public site initially still
+served its cached StatCan summary at 02:49:41 (five visible failures, zero new
+pulls); these are distinct observations. At 02:59:43 the public GET naturally
+refreshed to the ECB summary as of 02:59:41: COMPLETE, 214 total flows, zero
+new pulls and seven visible failures. No helper execution or byte equivalence
+of independently timed live runs is inferred from these publications. No producer was manually
+invoked and no existing failure or checkpoint was repaired.
+
+Actions log download returned HTTP403; successful run/job metadata, the exact
+public receipt and the reviewed live acceptance establish the release evidence.
+An alternate public proxy hostname also returned a network tunnel HTTP403; the
+public site remained reachable. No retention, historical object, security,
+schedule, cadence, timeout, concurrency or billing change was made to obtain
+acceptance. Earlier verifier failures remain recorded above. AWS runtime and
+financial savings remain unmeasured. The reviewed-helper rollback procedure
+above restores the byte fixture without altering data, controls or schedules.
