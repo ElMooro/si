@@ -1,0 +1,1 @@
+{"description":"Institutional-grade data freshness heartbeat monitor - detects stale/missing feeds","environment":{"S3_BUCKET":"justhodl-dashboard-live"},"function_name":"justhodl-feed-heartbeat","handler":"lambda_function.lambda_handler","memory":256,"runtime":"python3.12","schedule":"rate(15 minutes)","timeout":120}
