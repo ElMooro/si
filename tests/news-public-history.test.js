@@ -51,3 +51,31 @@ test('retrieval uses explicit UTC and only its clock advances on normal reload',
   assert.equal(h.elements['source-status'].innerHTML,sourceClocks);
   assert.equal(h.requests.length,16);
 });
+
+test('impossible calendar clocks stay unavailable without discarding received alerts',async()=>{
+  for(const value of ['2026-02-29T10:00:00Z','2026-02-30T10:00:00Z','2026-04-31T10:00:00Z',
+    '2100-02-29T10:00:00Z','2026-02-30T00:30:00+14:00','2026-04-31']){
+    const p=empty();p.generated_at=p.as_of=value;p.alerts=[{title:'Synthetic undated alert',sent_at:value}];
+    const h=await harness(p);
+    assert.equal(h.elements['kpi-alerts'].textContent,1);
+    assert.match(h.elements['source-status'].innerHTML,/ALERT<\/b>: Received · Source publication: Unavailable · Source observation: Unavailable/);
+    assert.match(h.elements.feed.innerHTML,/Sent: time unavailable/);
+    assert.equal(vm.runInContext(`parseTime(${JSON.stringify(value)})`,h.context),null,value);
+  }
+});
+
+test('valid leap days, month ends and offset clocks retain their source instants',async()=>{
+  for(const [value,expected] of [
+    ['2024-02-29T10:00:00Z','2024-02-29T10:00:00.000Z'],
+    ['2000-02-29T10:00:00Z','2000-02-29T10:00:00.000Z'],
+    ['2026-04-30','2026-04-30T00:00:00.000Z'],
+    ['2026-03-01T00:30:00+14:00','2026-02-28T10:30:00.000Z'],
+    ['2026-10-01T23:30:00-03:00','2026-10-02T02:30:00.000Z']]){
+    const p=empty();p.generated_at=p.as_of=value;p.alerts=[{title:'Synthetic dated alert',sent_at:value}];
+    const h=await harness(p);
+    assert.ok(h.elements['source-status'].innerHTML.includes(`Source publication: ${expected} · Source observation: ${expected}`));
+    assert.equal(vm.runInContext(`parseTime(${JSON.stringify(value)}).toISOString()`,h.context),expected);
+    assert.doesNotMatch(h.elements.feed.innerHTML,/Sent: time unavailable/);
+    assert.equal(h.requests.length,8);
+  }
+});
