@@ -1,0 +1,28 @@
+{
+  "script": "1099_error_investigation",
+  "read_at": "2026-10-02T01:23:09Z",
+  "targets": {
+    "short-interest": {
+      "log_group": "/aws/lambda/justhodl-short-interest",
+      "error_events": [
+        {
+          "timestamp": "12:20:48",
+          "message": "[ERROR] ValueError: Reviewed research read required | Traceback (most recent call last): | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler | \u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or event.get('id') or 'scheduled-short-interest:'+datetime.now(timezone.utc).date().i"
+        },
+        {
+          "timestamp": "12:21:43",
+          "message": "[ERROR] ValueError: Reviewed research read required | Traceback (most recent call last): | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler | \u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or event.get('id') or 'scheduled-short-interest:'+datetime.now(timezone.utc).date().i"
+        },
+        {
+          "timestamp": "12:23:54",
+          "message": "[ERROR] ValueError: Reviewed research read required | Traceback (most recent call last): | \u00a0\u00a0File \"/var/task/lambda_function.py\", line 89, in lambda_handler | \u00a0\u00a0\u00a0\u00a0result=producer.run(client,BUCKET,event.get('request_id') or event.get('id') or 'scheduled-short-interest:'+datetime.now(timezone.utc).date().i"
+        }
+      ]
+    },
+    "sec-8k": {
+      "log_group": "/aws/lambda/justhodl-sec-8k-enrich",
+      "error_events": []
+    }
+  },
+  "status": "COMPLETE"
+}
