@@ -4,6 +4,7 @@ Reads one exact Lambda, its signed package (at most 64 MiB), six named schedule
 bindings and its current release receipt. No checkpoint, archive, provider,
 manifest body, log, metric or billing reads; no AWS writes or producer invokes.
 Raw exceptions, signed URLs, environment values and target payloads are withheld.
+Operating mismatches report projection paths/digests and still fail unchanged.
 The predecessor may lack a receipt only on the exact S3 NoSuchKey response.
 A candidate requires the exact live ZIP, receipt-pinned committed handler and a
 reviewed predecessor operating baseline. Handler bytes must match the checkout;
@@ -43,6 +44,20 @@ DEFAULT_DLQ = 'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default'
 
 class Stop(Exception):
     pass
+
+
+class ControlsChanged(Stop):
+    def __init__(self, before, after, runtime_version_config=None, package_evidence=None):
+        super().__init__('operating_controls_changed')
+        self.diagnostic = {'baseline_fingerprint': digest(before),
+                           'observed_fingerprint': digest(after),
+                           'changed_fields': control_differences(before, after)}
+        if package_evidence is not None:
+            self.diagnostic['verified_package'] = package_evidence
+        if any(row['path'] == 'private_configuration.RuntimeVersionConfig'
+               for row in self.diagnostic['changed_fields']):
+            self.diagnostic['observed_runtime_version_shape'] = runtime_version_shape(runtime_version_config)
+            self.diagnostic['baseline_runtime_version_shape'] = 'unavailable_from_retained_digest'
 
 
 def require(condition, reason):
@@ -99,6 +114,49 @@ class Reader:
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str,
                                     allow_nan=False, separators=(',', ':')).encode()).hexdigest()
+
+
+def runtime_version_shape(value):
+    # Only shape is reported, even when Lambda returns RuntimeVersionConfig.Error.
+    def kind(item):
+        return {dict: 'object', list: 'array', str: 'string', bool: 'boolean',
+                int: 'number', float: 'number', type(None): 'null'}.get(type(item), 'other')
+
+    fields = value if isinstance(value, dict) else {}
+    arn = fields.get('RuntimeVersionArn')
+    # AWS RuntimeVersionConfig documented ARN pattern/length, syntax only:
+    # https://docs.aws.amazon.com/lambda/latest/api/API_RuntimeVersionConfig.html
+    valid_arn = isinstance(arn, str) and 26 <= len(arn) <= 2048 and bool(re.fullmatch(
+        r'arn:(aws[a-zA-Z-]*):lambda:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-\d{1}::runtime:.+', arn))
+    return {'value_type': kind(value), 'error_field_present': 'Error' in fields,
+            'error_is_object': isinstance(fields.get('Error'), dict),
+            'runtime_arn_field_present': 'RuntimeVersionArn' in fields,
+            'runtime_arn_type': kind(arn), 'runtime_arn_syntax_valid': valid_arn,
+            'unrecognized_fields_present': any(k not in ('Error', 'RuntimeVersionArn') for k in fields)}
+
+
+def control_differences(before, after):
+    # Paths come only from the probe's known current projection. Compare each
+    # control atomically: never descend into environment values or target bodies.
+    rows = []
+
+    def changed(path, old, new):
+        old_digest, new_digest = digest(old), digest(new)
+        if old_digest != new_digest:
+            rows.append({'path': path, 'before_sha256': old_digest,
+                         'after_sha256': new_digest})
+
+    changed('reserved_concurrency', before.get('reserved_concurrency'), after.get('reserved_concurrency'))
+    for group in ('configuration_matches', 'technical_configuration', 'private_configuration', 'bindings'):
+        old, new = before.get(group), after.get(group)
+        if not isinstance(old, dict) or not isinstance(new, dict):
+            changed(group, old, new)
+            continue
+        for name in sorted(new):
+            changed(group + '.' + name, old.get(name), new[name])
+        # Unknown baseline field names are digested, never printed as paths.
+        changed(group + '.field_inventory', sorted(old), sorted(new))
+    return rows
 
 
 def hidden(value):
@@ -225,7 +283,16 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
                 and baseline.get('handler_sha256') == PREDECESSOR_SHA256
                 and baseline.get('operating_fingerprint') == digest(baseline.get('operating_controls')),
                 'baseline_invalid')
-        require(fingerprint == baseline['operating_fingerprint'], 'operating_controls_changed')
+        if fingerprint != baseline['operating_fingerprint']:
+            raise ControlsChanged(baseline['operating_controls'], operating,
+                runtime_version_config=live.get('RuntimeVersionConfig'), package_evidence={
+                    'source_phase': phase, 'handler_sha256': handler_sha256,
+                    'code_sha256': code_sha256, 'zip_sha256_hex': hashlib.sha256(raw).hexdigest(),
+                    'zip_bytes': len(raw), 'signed_package_gets': 1,
+                    'function_name_matches': live.get('FunctionName') == FUNCTION,
+                    'state_active': live.get('State') == 'Active',
+                    'last_update_successful': live.get('LastUpdateStatus') == 'Successful',
+                    'aws_writes': 0, 'producer_invokes': 0})
     receipt_item = reader.read(s3.get_object, Bucket=BUCKET, Key=RECEIPT_KEY)
     receipt = json.loads(bounded(receipt_item['Body'], SOURCE_BOUND)) if receipt_item is not None else None
     receipt_commit, deployed_at = None, None
@@ -278,6 +345,8 @@ def main():
             out.kv(completed=True, source_phase=result['source_phase'], aws_read_calls=reader.calls,
                    aws_writes=0, producer_invokes=0)
         except Stop as exc:
+            if isinstance(exc, ControlsChanged):
+                out.log('CONTROL_DIFF_JSON ' + json.dumps(exc.diagnostic, sort_keys=True))
             out.kv(completed=False, aws_read_calls=reader.calls, stop_reason=str(exc))
             raise SystemExit(1) from None
         except Exception:

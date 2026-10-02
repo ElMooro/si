@@ -302,6 +302,83 @@ class ProbeTests(unittest.TestCase):
                 mutation(f)
                 self.stop(f, 'operating_controls_changed')
 
+    def test_drift_diagnostic_preserves_failure_gate_read_bound_and_baseline(self):
+        cases = [(lambda f: f.live.update(RuntimeVersionConfig={'RuntimeVersionArn': 'PRIVATE_RUNTIME_ARN'}),
+                  'private_configuration.RuntimeVersionConfig'),
+                 (lambda f: f.live['Environment']['Variables'].update(PRIVATE_ENV_NAME='PRIVATE_NEW_ENV'),
+                  'private_configuration.Environment'),
+                 (lambda f: f.targets[probe.CLASSIC[0]]['Targets'][0].update(Input='PRIVATE_NEW_PAYLOAD'),
+                  'bindings.' + probe.CLASSIC[0])]
+        for mutate, path in cases:
+            with self.subTest(path=path), Fixture() as f:
+                f.candidate()
+                original_baseline = f.baseline.read_bytes()
+                mutate(f)
+                with self.assertRaises(probe.ControlsChanged) as stopped:
+                    f.inspect()
+                self.assertEqual(str(stopped.exception), 'operating_controls_changed')
+                diagnostic = stopped.exception.diagnostic
+                self.assertEqual([row['path'] for row in diagnostic['changed_fields']], [path])
+                self.assertEqual(diagnostic['verified_package'], {
+                    'source_phase': 'candidate', 'handler_sha256': hashlib.sha256(CANDIDATE).hexdigest(),
+                    'code_sha256': f.live['CodeSha256'], 'zip_sha256_hex': hashlib.sha256(f.raw).hexdigest(),
+                    'zip_bytes': len(f.raw), 'signed_package_gets': 1, 'function_name_matches': True,
+                    'state_active': True, 'last_update_successful': True, 'aws_writes': 0, 'producer_invokes': 0})
+                self.assertNotEqual(diagnostic['baseline_fingerprint'], diagnostic['observed_fingerprint'])
+                for row in diagnostic['changed_fields']:
+                    self.assertRegex(row['before_sha256'], '^[a-f0-9]{64}$')
+                    self.assertRegex(row['after_sha256'], '^[a-f0-9]{64}$')
+                    self.assertNotEqual(row['before_sha256'], row['after_sha256'])
+                self.assertNotIn('PRIVATE', json.dumps(diagnostic))
+                if path == 'private_configuration.RuntimeVersionConfig':
+                    self.assertEqual(diagnostic['baseline_runtime_version_shape'], 'unavailable_from_retained_digest')
+                    self.assertEqual(diagnostic['observed_runtime_version_shape']['value_type'], 'object')
+                    self.assertFalse(diagnostic['observed_runtime_version_shape']['runtime_arn_syntax_valid'])
+                    self.assertFalse(diagnostic['observed_runtime_version_shape']['error_field_present'])
+                else:
+                    self.assertNotIn('observed_runtime_version_shape', diagnostic)
+                self.assertEqual(f.baseline.read_bytes(), original_baseline)
+                self.assertEqual(len(f.calls), 13)
+                self.assertNotIn('get_object', [name for name, _ in f.calls])
+                self.assertEqual(len(f.signed_gets), 1)
+        self.assertEqual(probe.control_differences({'reserved_concurrency': 1}, {'reserved_concurrency': 1}), [])
+
+    def test_runtime_shape_does_not_claim_old_digest_was_an_arn_or_expose_current_values(self):
+        arn = 'arn:aws:lambda:us-east-1::runtime:' + 'a' * 64
+        cases = [(None, 'null', False, False), ('PRIVATE_SCALAR', 'string', False, False),
+                 ([], 'array', False, False), ({}, 'object', False, False),
+                 ({'RuntimeVersionArn': arn}, 'object', False, True),
+                 ({'Error': {'Message': 'PRIVATE_RUNTIME_ERROR'}}, 'object', True, False),
+                 ({'RuntimeVersionArn': 'PRIVATE_BAD_ARN', 'Error': {}}, 'object', True, False),
+                 ({'PRIVATE_UNKNOWN_FIELD': 'PRIVATE_UNKNOWN_VALUE'}, 'object', False, False)]
+        for value, kind, error, valid in cases:
+            with self.subTest(kind=kind, error=error, valid=valid):
+                shape = probe.runtime_version_shape(value)
+                self.assertEqual(shape['value_type'], kind)
+                self.assertEqual(shape['error_field_present'], error)
+                self.assertEqual(shape['runtime_arn_syntax_valid'], valid)
+                self.assertNotIn('PRIVATE', json.dumps(shape))
+                self.assertNotIn(arn, json.dumps(shape))
+        with Fixture() as f:
+            f.candidate()
+            f.live['RuntimeVersionConfig'] = {'RuntimeVersionArn': arn, 'Error': {'Message': 'PRIVATE_RUNTIME_ERROR'}}
+            with self.assertRaises(probe.ControlsChanged) as stopped:
+                f.inspect()
+            diagnostic = stopped.exception.diagnostic
+            self.assertEqual(diagnostic['baseline_runtime_version_shape'], 'unavailable_from_retained_digest')
+            self.assertTrue(diagnostic['observed_runtime_version_shape']['runtime_arn_syntax_valid'])
+            self.assertTrue(diagnostic['observed_runtime_version_shape']['error_field_present'])
+            self.assertNotIn(arn, json.dumps(diagnostic))
+            self.assertNotIn('PRIVATE', json.dumps(diagnostic))
+
+    def test_diff_paths_do_not_expose_unknown_baseline_field_names(self):
+        before = {'private_configuration': {'PRIVATE_SECRET_FIELD_NAME': 'PRIVATE_SECRET_VALUE'}}
+        after = {'private_configuration': {'Environment': probe.hidden('PRIVATE_NEW_ENV')}}
+        diagnostic = probe.ControlsChanged(before, after).diagnostic
+        self.assertNotIn('PRIVATE', json.dumps(diagnostic))
+        self.assertEqual([row['path'] for row in diagnostic['changed_fields']],
+                         ['private_configuration.Environment', 'private_configuration.field_inventory'])
+
     def test_target_order_and_deployment_metadata_are_not_operating_changes(self):
         with Fixture() as f:
             f.candidate()
@@ -397,7 +474,9 @@ class ProbeTests(unittest.TestCase):
             self.stop(f, 'byte_bound_reached')
 
     def test_main_withholds_transport_json_and_body_failure_details(self):
-        for failure in (TimeoutError('PRIVATE_TIMEOUT'), json.JSONDecodeError('PRIVATE_JSON', 'PRIVATE_DOC', 0),
+        drift = probe.ControlsChanged({'private_configuration': {'Environment': probe.hidden('PRIVATE_OLD')}},
+                                      {'private_configuration': {'Environment': probe.hidden('PRIVATE_NEW')}})
+        for failure in (drift, TimeoutError('PRIVATE_TIMEOUT'), json.JSONDecodeError('PRIVATE_JSON', 'PRIVATE_DOC', 0),
                         OSError('PRIVATE_BODY_FAILURE'), SDKError('NoSuchKey')):
             with self.subTest(failure=type(failure).__name__):
                 class Report:
@@ -423,7 +502,13 @@ class ProbeTests(unittest.TestCase):
                     with self.assertRaises(SystemExit) as stopped:
                         probe.main()
                 self.assertEqual(stopped.exception.code, 1)
-                self.assertEqual(report.rows[-1]['stop_reason'], 'unexpected_failure_details_withheld')
+                self.assertFalse(report.rows[-1]['completed'])
+                if failure is drift:
+                    self.assertEqual(report.rows[-1]['stop_reason'], 'operating_controls_changed')
+                    self.assertEqual(report.logs, ['CONTROL_DIFF_JSON ' + json.dumps(drift.diagnostic, sort_keys=True)])
+                else:
+                    self.assertEqual(report.rows[-1]['stop_reason'], 'unexpected_failure_details_withheld')
+                    self.assertEqual(report.logs, [])
                 self.assertNotIn('PRIVATE', json.dumps(report.logs + report.rows))
                 alarm.assert_called_with(0)
 
