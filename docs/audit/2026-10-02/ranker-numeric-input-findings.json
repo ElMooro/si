@@ -1,0 +1,58 @@
+{
+  "source_sha256": "3f332301e25981a33edde3ecccb5b12395bf1e28c5db2e79cd1ed1c85ba9dd73",
+  "cases": [
+    {
+      "scenario": "valid_zero",
+      "input_repr": "0",
+      "score_repr": "0.0",
+      "contributions": "[]",
+      "strict_json_valid": true
+    },
+    {
+      "scenario": "missing",
+      "input_repr": "None",
+      "score_repr": "0.0",
+      "contributions": "[]",
+      "strict_json_valid": true
+    },
+    {
+      "scenario": "boolean",
+      "input_repr": "True",
+      "score_repr": "1.0",
+      "contributions": "[{'system': 'invented', 'raw_score': True, 'normalized': 1.0, 'weight': 1.0, 'trust_mult': 1.0, 'contribution': 1.0}]",
+      "strict_json_valid": true
+    },
+    {
+      "scenario": "nan",
+      "input_repr": "nan",
+      "score_repr": "nan",
+      "contributions": "[]",
+      "strict_json_valid": false
+    },
+    {
+      "scenario": "infinity",
+      "input_repr": "inf",
+      "score_repr": "100.0",
+      "contributions": "[{'system': 'invented', 'raw_score': inf, 'normalized': 100, 'weight': 1.0, 'trust_mult': 1.0, 'contribution': 100.0}]",
+      "strict_json_valid": false
+    },
+    {
+      "scenario": "invalid_string",
+      "input_repr": "'unavailable'",
+      "score_repr": "0.0",
+      "contributions": "[]",
+      "strict_json_valid": true
+    }
+  ],
+  "compound_string_count_error": "TypeError",
+  "scope": "Exact isolated source functions and invented inputs only. No whole producer, calibration service, current packet, provider or private data read.",
+  "actual_network_requests": 0,
+  "production_invocations": 0,
+  "compared_main_commit": "62cc80106027d3ef80d524adb9821ef4ba1cf4f9",
+  "compared_main_source_sha256": "a5281cc237df0f88d131d5967266d92405d46c1d2a3b66870a1d848990bf1493",
+  "isolated_scoring_functions_identical_to_main": true,
+  "source_commit": "5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce",
+  "status": "reproduced_not_repaired",
+  "live_incidence_verified": false,
+  "next_work": "Trace score sorters, narrative and consumers before introducing typed finite/nullable numeric contracts; preserve valid arithmetic, distinguish missing from zero, and never infer independent forecasting authority."
+}

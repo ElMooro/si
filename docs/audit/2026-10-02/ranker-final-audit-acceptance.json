@@ -1,7 +1,7 @@
 {
-  "stage": 558,
-  "status": "exact_native_release_and_original_controls_accepted",
-  "source_hashes": {
+  "status": "exact_native_release_checked",
+  "expected_commit": "5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce",
+  "reviewed_source_hashes": {
     "aws/lambdas/justhodl-master-ranker/source/lambda_function.py": "3f332301e25981a33edde3ecccb5b12395bf1e28c5db2e79cd1ed1c85ba9dd73",
     "aws/shared/capital_research_boundary.py": "befc98aad1b412eb523506af93bb404e96554fe61268b389e59e26b79761a27f",
     "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
@@ -29,8 +29,49 @@
     "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
     "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
   },
-  "source_counts": {
-    "justhodl-master-ranker": 23
+  "native_before": {
+    "justhodl-master-ranker": {
+      "code_sha256": "jDMvoaLOrl4tkrPWzgDekPir2HffbuDMYKwnnWaWkSw=",
+      "source_files_checked": 23,
+      "handler_bytes": 85438,
+      "timeout": 900,
+      "memory_mb": 1536,
+      "receipt": {
+        "status": "matched",
+        "commit": "5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce"
+      },
+      "schedules": [],
+      "function_name": "justhodl-master-ranker",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
+  "native_after": {
+    "justhodl-master-ranker": {
+      "code_sha256": "jDMvoaLOrl4tkrPWzgDekPir2HffbuDMYKwnnWaWkSw=",
+      "source_files_checked": 23,
+      "handler_bytes": 85438,
+      "timeout": 900,
+      "memory_mb": 1536,
+      "receipt": {
+        "status": "matched",
+        "commit": "5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce"
+      },
+      "schedules": [],
+      "function_name": "justhodl-master-ranker",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
   },
   "original_controls": {
     "justhodl-master-ranker": {
@@ -47,28 +88,27 @@
       "schedules": []
     }
   },
-  "monitored_bindings": [
-    {
-      "function": "justhodl-master-ranker",
-      "target_arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-master-ranker"
-    }
-  ],
-  "operation": "aws/ops/staged/ops_6453_ranker_audit_acceptance.py",
-  "repairs": [
-    "Move unchanged audit capture after final rationale annotations",
-    "Allow success to reach existing extremes and sector regression suites; retain nonzero failure",
-    "Add exact final-audit and runner-reachability regressions"
-  ],
-  "remaining": [
-    "Numeric-input defects reproduced separately; see ranker-numeric-input-findings.json. No current incidence claimed.",
-    "Normal publication and other invocation routes remain unverified",
-    "Legacy scoring, independent evidence, source qualification and portfolio authority remain unqualified"
-  ],
-  "score_math_changed": false,
-  "configuration_changed": false,
-  "application_packet_reads": 0,
-  "private_reads": 0,
+  "monitored_target_identities": {
+    "justhodl-master-ranker": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-master-ranker"
+  },
+  "normal_publication_verified": false,
   "source_qualified": false,
   "investment_authority": false,
-  "acceptance": "docs/audit/2026-10-02/ranker-final-audit-acceptance.json"
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "application_packet_reads": 0,
+  "private_reads": 0,
+  "account_reads": 0,
+  "native_writes": 0,
+  "schedule_changes": 0,
+  "application_log_queries": 0,
+  "other_invocation_routes_verified": false,
+  "run_id": 36981427811,
+  "operation_commit": "5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce",
+  "report_commit": "a5aa60de960c6931f5845dca3cac9f5ff8221555",
+  "report": {
+    "path": "aws/ops/reports/latest/ops_6453_ranker_audit_acceptance.md",
+    "bytes": 4917,
+    "sha256": "e8a7a372fa0858859cf49ce70a06758e3b4a0ae7302af04654f0fccd52108388"
+  }
 }

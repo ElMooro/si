@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 555/559 chart and Engine Data repairs have exact served-static and controlled-browser acceptance. Stage 557 strict Ticker 360 transport has exact native source/receipt and original-control acceptance. Normal publication, immutable input retention and all ten workstreams remain OPEN. Stage 558 Master Ranker final-audit timing and unreachable test suites are reproduced; read-only native control verification precedes its release.
+October 2 UTC: Stage 555/559 chart and Engine Data repairs are exact static/browser accepted. Stage 557 strict Ticker 360 transport and Stage 558 final Ranker audit/test-runner repair are exact native source/receipt/control accepted. Stage 560 numeric-input defects are reproduced and still open. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7879,3 +7879,8 @@ Commit `df5ad4aefb4af8bac6a310a373ee63da8b316e38` is verified against its named 
 ### Stage 558 Master Ranker final audit and test-runner repair
 
 Invented rows and exact retained source reproduce an audit rationale captured before later annotations. The same unchanged audit block now runs after those annotations, preserving all other source and score arithmetic. The existing test runner exited after its first successful suite, skipping nine extremes and five sector checks; success now reaches both and failures remain nonzero. Five final-audit and three runner-reachability cases pass in preparation; complete integration and exact native acceptance remain required. The named read-only baseline observes Python 3.12, 900 seconds, 1,536 MB, x86_64 and no bound schedules in a complete census. No producer invocation, current/private/account body read or schedule change occurs; other invocation routes and normal publication remain unverified.
+
+
+### Stage 558 exact native acceptance
+
+Source `5b91df2b3c6f57c490caf4f1cf6ecfa711c7fdce` matches its release receipt and all 23 relevant deployed source files. Operation 6453 confirms identical before/after selected runtime controls and the original empty schedule-binding census; other invocation routes and normal publication remain unverified. Integration passed 1,046 deployment tests, fifteen shell checks, the complete 41-test engine runner, three runner-reachability tests and thirteen native-acceptance tests. Invented inputs separately expose NaN entering nonstandard public JSON, infinity saturating to a maximum normalized score and a string compound count raising TypeError. Those scoring functions are unchanged by the audit repair, and the numerical defects remain explicit next work.
