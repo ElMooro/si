@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 569 AI decision-input repair is exact-native accepted after Stage568 outcome/page acceptance. Explicit action tokens, typed integer horizons and confidence fractions, duplicate/conflicting input rejection, retained input accounting and valid abstention replace silent coercion. Deterministic fallback zero/unknown constraints are next. Underlying source qualification, full point-in-time replay, cohorts, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
+October 2 UTC: Stage 570 deterministic fallback constraint repair is exact-native accepted after Stage569 strict AI decision-input acceptance. Zero/no-entry constraints now withhold every directional arm; absent metrics stay unknown, and the unqualified rule table cannot grant investment permission. Peer ticker lookup safety and completeness are next, followed by AI board numeric and publication-clock projections. Source validity, full point-in-time replay, cohorts, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8097,3 +8097,12 @@ Negated prose cannot become ACCUMULATE. Fractional/string/boolean horizons, gues
 Five actual-source invented cases show negated posture text, ignored zero sizing/caps, missing constraints and text false can all return allowed=true through the direct shared veto-check helper. This does not prove every caller bypasses its separate policies. Whole original source and all reproductions are retained.
 
 The candidate preserves explicit zero/null/invalid canonical inputs, checks each cap independently, refuses action inference from substrings, and keeps missing risk legs unknown. Explicit entry blocks/zero limits yield NO_READ for every asset instead of LONG_DURATION for bonds. The historical rule table/ranks/thresholds stay intact as conditional research output; the helper does not grant investment permission. The actual AI fallback binding is tested. Normal publication, source definitions/units/clocks, downstream eligibility and all ten workstreams remain OPEN.
+
+
+### Stage 570 exact deterministic fallback release acceptance
+
+Commit `36aaf0ceae308a96aee86a130fa32412917d4093` shipped 11 related files atomically. The shared-module closure targets justhodl-ai; the exact receipt, all 50 packaged sources and the original runtime/schedule controls match across two captures in operation 6467/run 37023379358. All push-triggered checks and that named acceptance succeeded. 27 served static files remain byte-matched to one coherent build; no frontend source changed.
+
+Checks: 1077 deployment, 15 shell, 25 complete AI suite cases, 49 combined actual-source cases including 13 deterministic-desk cases, 17 owned-settlement cases, 14 native acceptance cases and all 600 page contracts. Every original case remains reproducible from the retained source, and the original table/ranks and stressed boundary behavior remain unchanged for compatible typed nonblocked inputs. The actual AI fallback binding is included.
+
+Explicit zero/no-entry constraints no longer borrow another value or recommend LONG_DURATION during a global entry block. Missing legs appear as unknown and data gaps. Enum substrings, boolean/text/nonfinite numbers and Decimal underflow cannot fabricate measurements. Reported conditional rules remain research-only; no forecasting, sizing or execution permission is granted. No current consumer/private/learning packet or native producer/provider was read or invoked. Normal publication, source definitions/clocks and downstream eligibility remain unverified. All ten workstreams remain OPEN.
