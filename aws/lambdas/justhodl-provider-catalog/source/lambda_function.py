@@ -705,7 +705,7 @@ def lambda_handler(event, context):
             tok = None
             while True:
                 kw = {"Bucket": BUCKET, "Prefix": pref,
-                      "MaxKeys": 400}
+                      "MaxKeys": 1000}
                 if tok:
                     kw["ContinuationToken"] = tok
                 resp = s3.list_objects_v2(**kw)
