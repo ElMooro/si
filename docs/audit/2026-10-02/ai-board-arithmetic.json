@@ -1,6 +1,6 @@
 {
   "stage": 573,
-  "status": "candidate_validation_and_release_pending",
+  "status": "exact_native_code_verified",
   "base_commit": "94b0f412f10e5320abbdfda3959fed81436d28c4",
   "functions": [
     "justhodl-ai"
@@ -204,5 +204,7 @@
     "heartbeat_test": "Preserve predecessor population, intervals and prefix flags; enumerate only two peer path corrections",
     "page_contracts": "Regenerated heartbeat dependency references and whole engine-manifest asset hashes for index/workspace; no unrelated contract changes",
     "initial_checks": "Deployment failed solely at stale heartbeat path preservation expectation; contract check also detected drift. Both retained in stage573 first-run logs; final checks must rerun."
-  }
+  },
+  "source_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+  "acceptance": "docs/audit/2026-10-02/ai-board-arithmetic-acceptance.json"
 }

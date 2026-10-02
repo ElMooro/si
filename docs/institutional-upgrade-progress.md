@@ -8135,3 +8135,13 @@ Final adversarial review found a regression outside the prior cases: a 401-digit
 ### Stage 573 AI board arithmetic repair candidate
 
 Final review of stage 572 reproduced an oversized-integer crash and silently tied rankings from floating-point overflow, underflow and integer rounding. This change rejects unrepresentable integers without converting valid integers, and compares exact rational working products without modifying reported fields or the existing missing-confidence policy. The entire deployed predecessor is retained, its original six-edit proof remains intact, and a new whole-source transition plus actual board cases covers the follow-up. Source qualification, normal publication, confidence policy, historical validity and portfolio authority remain open.
+
+
+### Stage 574 buyback pane repair candidate
+
+The peer renderer coerced booleans/blanks into zero, labelled gross-only repurchases as net, divided mismatched currencies/dates, drew quarter-end values on price bars without publication availability, and selected the input box ahead of the active ticker tab. The replacement retains complete parsed source inspection and uses an accounting table with explicit qualifications. It checks typed reported values and matching period/currency before ratios, keeps gross/net separate, binds to the current tab, and handles late/failed/hung requests and history return. The whole predecessor and its five actual-source reproductions remain testable. No provider/producer/private request or financial-authority claim is made.
+
+
+### Stage 573 exact code acceptance
+
+Commit `27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c` is verified against the public AI release receipt, all 50 deployed packaged sources and the original native controls in operation 6469/run 37033496687. The 1,079 deployment checks, 15 shell checks, 25 AI engine tests, 73 combined source cases, 3,008 frontend tests, 600 page graphs/contracts and 143 wiring entries passed. Twenty-seven AI static assets match one served commit-bound build. This resolves the stage 572 integer regression and silent extreme-value ranking ties, without claiming normal producer publication or investment qualification. A separate invented-input reproduction shows that stale records can still enter the legacy candidate list; source eligibility is the next AI repair after the buyback pane. All ten workstreams remain OPEN.

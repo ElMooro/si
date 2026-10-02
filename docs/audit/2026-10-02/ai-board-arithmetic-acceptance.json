@@ -1,0 +1,645 @@
+{
+  "stage": 573,
+  "status": "exact_native_code_verified",
+  "source_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+  "tree": "fa37966b9161eb19c0178eb1e2d9e92e02fd70ae",
+  "atomic_git_batch": {
+    "paths": [
+      "aws/lambdas/justhodl-ai/source/market_read.py",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_arithmetic.py",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_board.py",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_outcomes.py",
+      "aws/ops/checks/test_ai_board_arithmetic_acceptance.py",
+      "aws/ops/staged/ops_6469_ai_board_arithmetic_acceptance.py",
+      "config/page-data-contracts.json",
+      "docs/SESSION_CLAIMS.md",
+      "docs/audit/2026-10-02/ai-board-arithmetic-transition.json",
+      "docs/audit/2026-10-02/ai-board-arithmetic.json",
+      "docs/institutional-upgrade-progress.md",
+      "tests/deployment/test_ai_board_arithmetic.py",
+      "tests/fixtures/market-read-pre-arithmetic-20261002.py",
+      "tests/test_feed_heartbeat.py"
+    ],
+    "count": 14,
+    "sha256": {
+      "aws/lambdas/justhodl-ai/source/market_read.py": "d3e97d875ff9be02f4c9f850924f6044ad717ed9e5940553e7525bfc3f45904c",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_arithmetic.py": "3979566d645039a183e3a8f626190d1a1b39d62a45e1d53fc3c952e62f90c882",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_board.py": "47597debc77e93d880bccc31fe4a6d78afff4d8326695686e192707ae423aa7c",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_outcomes.py": "2ed8e8cf2ebfa54818e10b33fabd575f8e4d1822bb2a5342d6ee1732a8be148c",
+      "aws/ops/checks/test_ai_board_arithmetic_acceptance.py": "94fc3e0d49da5e07ed4ce350619a41097cf9ff017b291a66c118904c41f5d8ed",
+      "aws/ops/staged/ops_6469_ai_board_arithmetic_acceptance.py": "698f0289e7d3fa8fceb1a7ead98b212a170f7d6bafc0c4715742f1ff973fb3b5",
+      "config/page-data-contracts.json": "a3fa4f2c1b7176d6d8221c402e286cbffc50b8dc4813adf5fd7776d046bdc3cb",
+      "docs/SESSION_CLAIMS.md": "463b428d4b74cf02cafc8eeae30f3dc0c677569f38d7ec1d40302e313f9f012d",
+      "docs/audit/2026-10-02/ai-board-arithmetic-transition.json": "78a1b91461f3a6ebb2d1f1591131d6d07a2b730948e8b9b0d3f9cd25944ea674",
+      "docs/audit/2026-10-02/ai-board-arithmetic.json": "98efecb9b737a4bceff10a4aec1741ec810c218c627223c1a02f42b91aef56b8",
+      "docs/institutional-upgrade-progress.md": "ee84f41f16d6b90348ea2bc278562de2cdeb9cd61eb962c9d612e915f2fdd755",
+      "tests/deployment/test_ai_board_arithmetic.py": "a39f48138723826c822dce8b6a8e3b34a878b3e3d0ddddae589d01fccf1c61d0",
+      "tests/fixtures/market-read-pre-arithmetic-20261002.py": "ea0d38f88975095091943e358d16ea3ccb635985b18afd75299e17fc49a91a90",
+      "tests/test_feed_heartbeat.py": "579705b006c2edaf59293c7a4934e8dfbe7196f54304511bd0ee218e9bf1951a"
+    }
+  },
+  "tests": {
+    "deployment": 1079,
+    "shell": 15,
+    "ai_engine": 25,
+    "combined_actual_source": 73,
+    "arithmetic": 10,
+    "board_projection": 14,
+    "deterministic_desk": 13,
+    "owned_settlement": 17,
+    "native_acceptance": 14,
+    "frontend": 3008,
+    "page_contracts": 600,
+    "page_syntax_graphs": 600,
+    "wiring": 143
+  },
+  "native": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-ai/source/brain_dataset.py": "9ddee60278b4ed8f9919f5ab2db76e37fc540efc024d6ffeaf2d05380dc34069",
+      "aws/lambdas/justhodl-ai/source/cost_guard.py": "2a1f7642b51492f5b1522d6d08160500e524bb85ad8636e66fbd6ce67519c77a",
+      "aws/lambdas/justhodl-ai/source/deployment_gates.py": "8889a4ddf624cd8656f0fd7c9cfdb7323df028aa664a41b4e59b14f7672a1f50",
+      "aws/lambdas/justhodl-ai/source/doctrine_families.py": "9f3fc268c3df5d081db8b2662ecb86c643601d6c54584542a00b6c4c9ad44fd7",
+      "aws/lambdas/justhodl-ai/source/factory_gateway.py": "64ab1a2c02f8b550ee65311363ef72b63ebf0da61697e406f7a1c18b5fa08e01",
+      "aws/lambdas/justhodl-ai/source/factory_inference.py": "732d4596d85e8c5081a13ed00b996cc464aa8055966e61bb5d7bec13c00149d6",
+      "aws/lambdas/justhodl-ai/source/factory_status.py": "e9f7b48b2dfdb9d93ec3f3c0ecb25483c870525b58f603b2e62ffcdcbf5ae3e2",
+      "aws/lambdas/justhodl-ai/source/fleet_inputs.py": "c52fd382f21e99ca2f86dd4d064b1a0e6019f13b1028efb8d051b24c613db16a",
+      "aws/lambdas/justhodl-ai/source/gear_b.py": "63a3a472395d466c4248b7958e721beb291f52b20e5a2ac42bbcb2e4a22b4af8",
+      "aws/lambdas/justhodl-ai/source/gear_b_doctrine.py": "6f666ef2f96c38823ee352c5f2daa164aece9529c7b28ea8e81ce19bc2aec86f",
+      "aws/lambdas/justhodl-ai/source/gear_b_own.py": "3e979cc662e051f1ce62a97e61d6405d0f4126cdd7ef2473c2ab3e5757bf2d7b",
+      "aws/lambdas/justhodl-ai/source/governance_control.py": "fcda09977edea2ede24c69815f75c539d7cb6dced1ff5495ff40ec8235abf9e0",
+      "aws/lambdas/justhodl-ai/source/lambda_function.py": "8af8e404afa80cf45f7893fb675d29f567beee3f136ed6cb6dc3702ce2894a50",
+      "aws/lambdas/justhodl-ai/source/market_read.py": "d3e97d875ff9be02f4c9f850924f6044ad717ed9e5940553e7525bfc3f45904c",
+      "aws/lambdas/justhodl-ai/source/model_governance_consumer.py": "40a4ce082156d6420ae8538ecb0bf7a9e0132bf35b5462145f54a33ebb5a61b9",
+      "aws/lambdas/justhodl-ai/source/model_registry.py": "b9d097ea3a06b526fb329e37fea8a3667ea1b935c86e4fed096873942d6730c2",
+      "aws/lambdas/justhodl-ai/source/outcome_labels.py": "fa20205bc37ccc5e104ed9baeff609179f55bacd28bbca851cbe135c756e11a9",
+      "aws/lambdas/justhodl-ai/source/pipeline.py": "88865acf981af0809599d803ecf74f97d99d852265e5b040d4c219087360c91c",
+      "aws/lambdas/justhodl-ai/source/point_in_time.py": "c23301f8e7d64d8f9113b03deff2e9e6c609d03468c9bf8639fa50c69a71931c",
+      "aws/lambdas/justhodl-ai/source/prediction_ledger.py": "348c5fe8ffc65d61b84e307d8b5745913fa72d757e6ce24651fa93bd742813bf",
+      "aws/lambdas/justhodl-ai/source/prediction_ledger_consumer.py": "d031536979429b0833d658f1894025d5b979fb8f0c22ea0018f5ed98d5711a53",
+      "aws/lambdas/justhodl-ai/source/queue_consumer_runtime.py": "30a79dafdca043a0b152c7665b5af00e9e5c1d5c627234d2e92ee98f41f26194",
+      "aws/lambdas/justhodl-ai/source/s3_event_outbox.py": "5767ab4db779d9778b2323c4e9291b6aaba508029e0ed8884cde76575b0f9e6f",
+      "aws/lambdas/justhodl-ai/source/sagemaker_feature_store.py": "79c70f4b1c2789f31273f1393bf6b76a04384c3d0ba2f84bde99f7ba9b2d09e1",
+      "aws/lambdas/justhodl-ai/source/self_improve.py": "d7e58e5d6708bcfd3f237e60e5ba8a82fd1f6d4b3f87083c9fb5a86a581e6270",
+      "aws/lambdas/justhodl-ai/source/self_improve_ext.py": "301350dae656cfa3eddd5625219038403f131f8147c9db29de416656d172d5a2",
+      "aws/lambdas/justhodl-ai/source/signal_envelope.py": "f5052d75b7714fe6c7e69db2c6509a8077a0d7235bafb1f5ee5ab6bd2aae49d3",
+      "aws/lambdas/justhodl-ai/source/signal_feature_consumer.py": "56f5494013548872f7db328d609d4721c5726a0207790fea937c87055c651919",
+      "aws/lambdas/justhodl-ai/source/sm_hub.py": "415187dfa052fff325e2196d158a055b0d8b774cc329bacf234164b8d72c6620",
+      "aws/lambdas/justhodl-ai/source/training.py": "034f182a7d079ceec4f63190e7c666204e7a8da13289903826e6a7800a2343c6",
+      "aws/lambdas/justhodl-ai/source/training_eligibility.py": "5d5863a3efda87800d43815c69f5280b3821d6cfb3fdc31a2e78c4e277a6b11f",
+      "aws/lambdas/justhodl-ai/source/validation_splits.py": "1ec6e348b99ac552bba133bc90b7559559b381ac52a59a9643fa0c4a9dc88d3d",
+      "aws/lambdas/justhodl-ai/source/wall_post.py": "f2cddd718df3b5a9b122087ed32b6c5cf4341d5e7907c30b1fc2eb64bc696307",
+      "aws/shared/context_evidence_store.py": "48fc8f3470fec9e1fe9b984290858dd956bf70d572de71850ea2c6cc8154fae4",
+      "aws/shared/crisis_authority.py": "b917845d839e6f5c0d314292d5db7e5dc47885fe36528291d6ee10303b5ae73c",
+      "aws/shared/deterministic_desk.py": "e758c8e748e0b0d411cc4238316874358abe540ba0d74d24006a4085ca2925b7",
+      "aws/shared/fabric_logging_context.py": "af8df16f5d582985a5dbb4acfa361c38bc23c6ba496aaecb7a24461253d8d88f",
+      "aws/shared/factory_core.py": "6d05d66b1d5743342e8d69d1a12c3a3423712c2669e10d638e6c4acc36577ed4",
+      "aws/shared/factory_discipline.py": "fcd6fcee4e8f389784050669f444758aaf950dafd6d52b4e94d5122d14f44808",
+      "aws/shared/factory_doctrine.py": "0788a2b80f2b65dd188f00b5748efb2d4622afa59aaaab05a89a88db36b6c485",
+      "aws/shared/factory_evidence.py": "5523d9a62db7feaf5b2b8681095ba85c8fa2871b0bfbdea7126e0d253f500ec7",
+      "aws/shared/factory_forecast.py": "5b7279caef8fad121571d524fb2ec3cb7246e9c3618ecc58bc97b0b073feb2db",
+      "aws/shared/factory_store.py": "c8bcfb23f73b3ca889d8db8ec8d0350cc4607b17a64ee5c402df90462eb5f9cd",
+      "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+      "aws/shared/llm_router.py": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+      "aws/shared/managed_secret.py": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
+      "aws/shared/private_artifact.py": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+      "aws/shared/signal_event_inputs.py": "10c135b4a191bd31d0cde8df3ce1bd8d6d40a06e83a363f3a410b521311175dd",
+      "aws/shared/signals_emit.py": "4aad4d81f5855bbcc0f1ce314c24fe50f0aa765c7e1b78001c4168bcb2cab0c2",
+      "aws/shared/xai_voice.py": "14936b2dc7791c42241ac6adddab1e5d590c5cda202b84ef87e99691dcf9ef1a",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+      "aws/ops/staged/ops_6461_signal_logger_controls.py": "bdefb9c4c1b3d738cad79c18dc8f94639990ad9c4452314f5dc59e3218309384"
+    },
+    "native_before": {
+      "justhodl-ai": {
+        "code_sha256": "h2PdQmlb7o27tRW0fMmMduGHBzGZuVFYiLJQ5aJT6nw=",
+        "source_files_checked": 50,
+        "handler_bytes": 134395,
+        "timeout": 900,
+        "memory_mb": 3008,
+        "receipt": {
+          "status": "matched",
+          "commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-inventory",
+            "state": "ENABLED",
+            "expression": "cron(7 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-pipeline",
+            "state": "ENABLED",
+            "expression": "rate(10 minutes)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-prepare",
+            "state": "ENABLED",
+            "expression": "cron(5 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-post",
+            "state": "ENABLED",
+            "expression": "cron(31 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-market-read",
+            "state": "ENABLED",
+            "expression": "cron(45 5 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-ai",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 2048
+      }
+    },
+    "native_after": {
+      "justhodl-ai": {
+        "code_sha256": "h2PdQmlb7o27tRW0fMmMduGHBzGZuVFYiLJQ5aJT6nw=",
+        "source_files_checked": 50,
+        "handler_bytes": 134395,
+        "timeout": 900,
+        "memory_mb": 3008,
+        "receipt": {
+          "status": "matched",
+          "commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-inventory",
+            "state": "ENABLED",
+            "expression": "cron(7 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-pipeline",
+            "state": "ENABLED",
+            "expression": "rate(10 minutes)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-prepare",
+            "state": "ENABLED",
+            "expression": "cron(5 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-post",
+            "state": "ENABLED",
+            "expression": "cron(31 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-market-read",
+            "state": "ENABLED",
+            "expression": "cron(45 5 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-ai",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 2048
+      }
+    },
+    "original_controls": {
+      "justhodl-ai": {
+        "timeout": 900,
+        "memory_mb": 3008,
+        "schedules": [
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-inventory",
+            "state": "ENABLED",
+            "expression": "cron(7 * * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-pipeline",
+            "state": "ENABLED",
+            "expression": "rate(10 minutes)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-prepare",
+            "state": "ENABLED",
+            "expression": "cron(5 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-wall-post",
+            "state": "ENABLED",
+            "expression": "cron(31 9 ? * MON *)",
+            "timezone": "America/New_York",
+            "native_targets": 1,
+            "group": "default"
+          },
+          {
+            "kind": "EventBridge Scheduler",
+            "name": "justhodl-ai-market-read",
+            "state": "ENABLED",
+            "expression": "cron(45 5 * * ? *)",
+            "timezone": "UTC",
+            "native_targets": 1,
+            "group": "default"
+          }
+        ],
+        "function_name": "justhodl-ai",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "x86_64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 2048
+      }
+    },
+    "monitored_target_identities": {
+      "justhodl-ai": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ai"
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "other_invocation_routes_verified": false,
+    "run_id": 37033496687,
+    "operation_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+    "report_commit": "cf44c608ef233850961bb0062cc4301b24b4f8a0",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6469_ai_board_arithmetic_acceptance.md",
+      "bytes": 10895,
+      "sha256": "bb2b2e4df4471a0706d1f61e01ad60cb98e26beec2580969ef9754c3314ec863"
+    }
+  },
+  "static": {
+    "status": "exact_static_continuity_checked",
+    "static_source_unchanged_from_served_commit": true,
+    "browser_reference": "docs/audit/2026-10-02/ai-reported-outcomes-acceptance.json",
+    "source_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+    "served_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+    "checked_at": "2026-10-02T16:25:58.162928+00:00",
+    "build_manifest_sha256": "d5987edc590ff59d5c7b1ff437be5d772b376abd8adf621822626e3782ded8f5",
+    "static_files": [
+      {
+        "path": "ai.html",
+        "bytes": 127843,
+        "sha256": "6fcf3799d3f162a599dac2ceb1c9627feda0d85a0f7ee4ef5ec42f2222494761",
+        "whole_http_body_sha256": "31508294272c53a56010b53ae38db9fbf35ff3f1e2465976047d34147d71d1fa",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        }
+      },
+      {
+        "path": "auth-config.js",
+        "bytes": 1406,
+        "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "whole_http_body_sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "auth.js",
+        "bytes": 20821,
+        "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+        "whole_http_body_sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "factory-desk.css",
+        "bytes": 4774,
+        "sha256": "b52f965d3f64aaae44b9aeeecf6a653d8ea4418cd96c96f05b31c78443827c6c",
+        "whole_http_body_sha256": "b52f965d3f64aaae44b9aeeecf6a653d8ea4418cd96c96f05b31c78443827c6c",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "factory-desk.js",
+        "bytes": 20482,
+        "sha256": "ed4272d007cf3f5a9a4435bd66349e2245cc0f4a3026688587b409d2e06f5392",
+        "whole_http_body_sha256": "ed4272d007cf3f5a9a4435bd66349e2245cc0f4a3026688587b409d2e06f5392",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-ai-command.js",
+        "bytes": 3841,
+        "sha256": "e6421f3adda3e06d42bb242cbff812371725a5b9efb19b3d79022c681ddc225e",
+        "whole_http_body_sha256": "e6421f3adda3e06d42bb242cbff812371725a5b9efb19b3d79022c681ddc225e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-chart-theme.js",
+        "bytes": 5238,
+        "sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "whole_http_body_sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-data-inspector.js",
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "whole_http_body_sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-evidence-io.js",
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "whole_http_body_sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-footer.js",
+        "bytes": 3650,
+        "sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "whole_http_body_sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-nav-drawer.js",
+        "bytes": 31948,
+        "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "whole_http_body_sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-page-ai.js",
+        "bytes": 12374,
+        "sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181",
+        "whole_http_body_sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-right-rail.js",
+        "bytes": 4776,
+        "sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "whole_http_body_sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-sections.js",
+        "bytes": 21723,
+        "sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "whole_http_body_sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "sidebar.js",
+        "bytes": 12987,
+        "sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "whole_http_body_sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Bold.woff2",
+        "bytes": 50380,
+        "sha256": "ea576f38d05cc44cca48c45314984beb8cc1d2b886f58e1dce99f15dc344eb1d",
+        "whole_http_body_sha256": "ea576f38d05cc44cca48c45314984beb8cc1d2b886f58e1dce99f15dc344eb1d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Medium.woff2",
+        "bytes": 50400,
+        "sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+        "whole_http_body_sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Regular.woff2",
+        "bytes": 49248,
+        "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+        "whole_http_body_sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-SemiBold.woff2",
+        "bytes": 50600,
+        "sha256": "6a825b4824c01cbb401e829e5a066a1818411bcb3538b5a5792c5ca9b82343c3",
+        "whole_http_body_sha256": "6a825b4824c01cbb401e829e5a066a1818411bcb3538b5a5792c5ca9b82343c3",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-Bold.woff2",
+        "bytes": 63012,
+        "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
+        "whole_http_body_sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-Regular.woff2",
+        "bytes": 63020,
+        "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+        "whole_http_body_sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-SemiBold.woff2",
+        "bytes": 67060,
+        "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+        "whole_http_body_sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-market-tape.js",
+        "bytes": 4387,
+        "sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "whole_http_body_sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-theme.css",
+        "bytes": 10031,
+        "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "whole_http_body_sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "nav-manifest.json",
+        "bytes": 36409,
+        "sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "whole_http_body_sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "config/page-data-contracts.json",
+        "bytes": 7999146,
+        "sha256": "9286f65df440123fcb316a13fdd1efcfe8c90bd28b22e6910dbe06c7149ec4e8",
+        "whole_http_body_sha256": "9286f65df440123fcb316a13fdd1efcfe8c90bd28b22e6910dbe06c7149ec4e8",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "engine-manifest.json",
+        "bytes": 3100229,
+        "sha256": "00f75ef7a9017a689912242dc4bc3cf4207981f314126ab554a107a5c49bbeb7",
+        "whole_http_body_sha256": "00f75ef7a9017a689912242dc4bc3cf4207981f314126ab554a107a5c49bbeb7",
+        "sole_edge_script_removed": null
+      }
+    ],
+    "whole_page_inline_renderers_match_source_after_existing_theme_transform": true,
+    "whole_command_module_matches_source": true,
+    "command_script_tag": "/jh-ai-command.js?v=6cda19f7",
+    "inventory_engines": 900,
+    "theme_transform_source_sha256": "992450c03bef610a33ae14367060d0bcab1d03500f356cd991a02c9700bb887c",
+    "application_packet_reads": 0,
+    "page_execution": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Complete AI static page, direct and source-browser-observed static dependencies, fonts and inspection inventories. Normal application publication and actual private/learning packets are not inspected."
+  },
+  "workflow_run_scope": {
+    "source_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+    "release_bound_runs_all_succeeded": true,
+    "runs": [
+      {
+        "id": 37033496687,
+        "path": ".github/workflows/run-ops-direct.yml",
+        "event": "workflow_dispatch",
+        "head_sha": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37032986850,
+        "path": ".github/workflows/guard-lambda-stubs.yml",
+        "event": "push",
+        "head_sha": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37032986783,
+        "path": ".github/workflows/deploy-lambdas.yml",
+        "event": "push",
+        "head_sha": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "separate_runs": [
+      {
+        "id": 37033449081,
+        "path": ".github/workflows/audit-release-progress.yml",
+        "event": "workflow_run",
+        "head_sha": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37033036817,
+        "path": ".github/workflows/pages.yml",
+        "event": "schedule",
+        "head_sha": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "all_runs_green_claimed": false,
+    "foreign_report_bodies_read": false,
+    "scope": "Every push-triggered run and the single recorded 6469 dispatch must succeed. Scheduled, workflow_run and other dispatches are recorded as metadata only; no global all-runs-green claim, foreign log/report body reads or peer executions."
+  },
+  "performance": {
+    "scope": "Invented source-only 10000-row board, three runs per version; local measurement only, no native latency claim",
+    "cases": [
+      {
+        "source": "prior",
+        "rows": 10000,
+        "elapsed_seconds": [
+          0.026397399982670322,
+          0.02389389998279512,
+          0.022823100007371977
+        ],
+        "top": [
+          "QA9999",
+          "QA9998",
+          "QA9997",
+          "QA9996",
+          "QA9995",
+          "QA9994",
+          "QA9993",
+          "QA9992"
+        ]
+      },
+      {
+        "source": "candidate",
+        "rows": 10000,
+        "elapsed_seconds": [
+          0.06095030001597479,
+          0.05377980001503602,
+          0.04917719998047687
+        ],
+        "top": [
+          "QA9999",
+          "QA9998",
+          "QA9997",
+          "QA9996",
+          "QA9995",
+          "QA9994",
+          "QA9993",
+          "QA9992"
+        ]
+      }
+    ]
+  },
+  "initial_failures": "Peer heartbeat paths were absent from the preservation expectation and generated page registry. Explicit path expectations and regenerated references repaired both; complete checks reran successfully.",
+  "source_qualified": false,
+  "normal_publication_verified": false,
+  "investment_authority": false,
+  "all_ten_workstreams": "OPEN",
+  "institutional_completion_claimed": false
+}
