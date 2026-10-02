@@ -1,81 +1,56 @@
 {
-  "stage": 568,
-  "status": "exact_code_and_static_release_accepted_with_qualification_gaps",
-  "source_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-  "tree": "2e0f6e4835b3d852bd11c9588bb4d460e3d0e004",
+  "stage": 569,
+  "status": "exact_code_release_accepted_with_qualification_gaps",
+  "source_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+  "tree": "d92ecafa4ad8df8ec78c78a82c48702d59eaea10",
   "atomic_git_batch": {
     "paths": [
-      "tests/fixtures/market-read-pre-outcome-types-20261002.py",
       "aws/lambdas/justhodl-ai/source/market_read.py",
-      "aws/lambdas/justhodl-ai/source/lambda_function.py",
-      "ai.html",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_inputs.py",
       "aws/lambdas/justhodl-ai/tests/test_market_read_outcomes.py",
-      "aws/lambdas/justhodl-ai/tests/run_tests.py",
-      "tests/factory/test_owned_read.py",
-      "tests/ai-reported-outcomes.test.js",
-      "tests/ai-reported-outcomes-browser.cjs",
-      "aws/ops/staged/ops_6465_ai_outcome_acceptance.py",
-      "aws/ops/checks/test_ai_outcome_acceptance.py",
-      "tests/deployment/test_ai_reported_outcomes.py",
-      "docs/audit/2026-10-02/ai-reported-outcomes.json",
+      "aws/ops/checks/test_ai_input_acceptance.py",
+      "aws/ops/staged/ops_6466_ai_input_acceptance.py",
       "docs/SESSION_CLAIMS.md",
+      "docs/audit/2026-10-02/ai-input-test-deltas.json",
+      "docs/audit/2026-10-02/ai-read-inputs.json",
       "docs/institutional-upgrade-progress.md",
-      "engine-manifest.json",
-      "config/page-data-contracts.json",
-      "tests/fixtures/ai-student-desk-pre-outcomes-20261002.py",
-      "tests/fixtures/ai-command-pre-outcomes-20261002.js",
-      "jh-ai-command.js",
-      "tests/ai-command-outcomes.test.js",
-      "tests/fixtures/no-paid-adapters/ai-outcome-followups.json",
-      "tests/test_no_paid_callers.py"
+      "tests/deployment/test_ai_read_inputs.py",
+      "tests/factory/test_owned_read.py",
+      "tests/fixtures/market-read-pre-input-types-20261002.py",
+      "tests/fixtures/owned-read-pre-input-types-20261002.py"
     ],
-    "count": 23,
+    "count": 13,
     "sha256": {
-      "tests/fixtures/market-read-pre-outcome-types-20261002.py": "1fdd770b7a0a2d4f13abcc0caa04f5ea479fee1171d5567dc0e6e8421f7c1ca6",
-      "aws/lambdas/justhodl-ai/source/market_read.py": "83c4633373e881aba0c5a0fd30e007a60aa70cae42b53ac6a6e56ef40fb2d177",
-      "aws/lambdas/justhodl-ai/source/lambda_function.py": "8af8e404afa80cf45f7893fb675d29f567beee3f136ed6cb6dc3702ce2894a50",
-      "ai.html": "bd0861854d535a704c349021b16e6c0aa26699b482ea3a1b1f48db512397e50a",
-      "aws/lambdas/justhodl-ai/tests/test_market_read_outcomes.py": "eeeef08d102909a9b4728292131f77c6b505063ff8a46f0af64d566fe773a839",
-      "aws/lambdas/justhodl-ai/tests/run_tests.py": "31b95ca0afb0df154c86242ebd7e519a1de9e282c32c30de78e9df0bfd0b87a4",
-      "tests/factory/test_owned_read.py": "9e24bd504aee70429eae87517d328ae71bb9a6eb28924823f94174cd5757f094",
-      "tests/ai-reported-outcomes.test.js": "3f30cdfd908e978a44f6674deb160aece53de623e68bddffe72a44ff874aabe1",
-      "tests/ai-reported-outcomes-browser.cjs": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "aws/ops/staged/ops_6465_ai_outcome_acceptance.py": "7325c1d9d85ede05b1873865e555d708bcfafce29279bc6fbc02d3259a40c5f5",
-      "aws/ops/checks/test_ai_outcome_acceptance.py": "00492b3ad79b4bb120cdec31238011338060360cc0a67d86816e2a4383e3923f",
-      "tests/deployment/test_ai_reported_outcomes.py": "2f095e8e1fa0e5bfec2ad2bfcd5e8a0c5914225017b103df1e32f263b2a83a95",
-      "docs/audit/2026-10-02/ai-reported-outcomes.json": "2421d93b8f8d6262e9f496265f4dfc889169089fc7ae9e805cc55d5686947293",
-      "docs/SESSION_CLAIMS.md": "a55a5055ed8256bc9ad00bfbeb1d567dee5ea8ef1c6708633c8d414c1bb71d79",
-      "docs/institutional-upgrade-progress.md": "3df73e94577bb973b498c13f76b1c5198c0da8e61b00695310fd2b75ba05c222",
-      "engine-manifest.json": "d386de3001c244bf469174e61cfdd32a45e3bd0af494988f73b83f582a9d6c4d",
-      "config/page-data-contracts.json": "0d3294904f7abd5f3f180802f6ac4bc539990d1b70e44c4720c3d7d6f7b59391",
-      "tests/fixtures/ai-student-desk-pre-outcomes-20261002.py": "8fdf9312347d67611f7225b6a86608c0549dfbb330164ba6d8c466dea3281956",
-      "tests/fixtures/ai-command-pre-outcomes-20261002.js": "8999914bb5ce1a3e9e87a5a6a9ce6bf725a56d3dbb7354ba99a4523755467819",
-      "jh-ai-command.js": "e6421f3adda3e06d42bb242cbff812371725a5b9efb19b3d79022c681ddc225e",
-      "tests/ai-command-outcomes.test.js": "0abea57ae9e83642525e3108ff0a19871497bad7df71c36ff6514fdfc4c65e90",
-      "tests/fixtures/no-paid-adapters/ai-outcome-followups.json": "de70a123077aacef211b18d7c98c737cb86a6dc6c70888aeb4993a92965d716d",
-      "tests/test_no_paid_callers.py": "8cfd5dd4b0acd3689ad5d28e4351dbfd20bcacf79bd355b33f96acf61ef72bae"
+      "aws/lambdas/justhodl-ai/source/market_read.py": "d5cc5600fb4e86d7dd0ff3de4440d9034689158bdafb2fe0803abc86e812edf1",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_inputs.py": "945f1f8168e578b1563a26499133aa6101ef825d10cecdb78f27c5045b625037",
+      "aws/lambdas/justhodl-ai/tests/test_market_read_outcomes.py": "d720f54a501273e0bd04deb053c87a9864c3172444b8e5166d193c3c4062b90f",
+      "aws/ops/checks/test_ai_input_acceptance.py": "370c502e84f8599596db59662e453015e9765a2b1a3d24c854d6fdf6df5feed7",
+      "aws/ops/staged/ops_6466_ai_input_acceptance.py": "32c46fa8d5ed07c6e3323f621799982bffafa71203525c1fb394c095faeed61e",
+      "docs/SESSION_CLAIMS.md": "2043cefbe13d9f8ddb373891131cbccd12158c93b34f9cd11b658b09e36d29d8",
+      "docs/audit/2026-10-02/ai-input-test-deltas.json": "c193c906b568212972791e48afaaefb13acf965973a592f8c7bf99d534f6f192",
+      "docs/audit/2026-10-02/ai-read-inputs.json": "0bf50bb42d784d35dd93ae2517a66a71e5bc45d364725b83f76ec80bb4f2e79b",
+      "docs/institutional-upgrade-progress.md": "ed782761384f567de384fccab2aecaec9d6a5b5a6e6b2e45a173d3852a83b1db",
+      "tests/deployment/test_ai_read_inputs.py": "3e79eb055dc166457b33919c6df0c65720dad1d74daeb1af95c9c4392d6c1b1d",
+      "tests/factory/test_owned_read.py": "d026677ad72de6125b3eec855ad136c9e1e92673cd46b19e4c34b0e54e87b51e",
+      "tests/fixtures/market-read-pre-input-types-20261002.py": "83c4633373e881aba0c5a0fd30e007a60aa70cae42b53ac6a6e56ef40fb2d177",
+      "tests/fixtures/owned-read-pre-input-types-20261002.py": "9e24bd504aee70429eae87517d328ae71bb9a6eb28924823f94174cd5757f094"
     },
-    "largest_file": "config/page-data-contracts.json",
-    "largest_file_bytes": 7996692
+    "market_read_bytes": 45429
   },
   "tests": {
-    "deployment": 1075,
+    "deployment": 1076,
     "shell": 15,
-    "frontend": 2989,
     "ai_engine": 25,
-    "reported_outcome_source": 11,
-    "actual_renderer": 15,
+    "reported_outcomes_and_inputs": 36,
+    "input_cases": 25,
+    "owned_settlement": 17,
     "native_acceptance_unit": 14,
-    "page_graphs": 600,
-    "wiring": 143,
-    "source_browser": 22,
-    "served_browser": 6
+    "page_contracts": 600
   },
-  "test_base": "0ec5335c85cce942efc3289555824fa82f752ea6",
-  "reviewed_rebase": null,
+  "test_base": "ac78dd37ff007678f43a890ad0dfa6dd0fc49224",
   "native": {
     "status": "exact_native_release_checked",
-    "expected_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+    "expected_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
     "reviewed_source_hashes": {
       "aws/lambdas/justhodl-ai/source/brain_dataset.py": "9ddee60278b4ed8f9919f5ab2db76e37fc540efc024d6ffeaf2d05380dc34069",
       "aws/lambdas/justhodl-ai/source/cost_guard.py": "2a1f7642b51492f5b1522d6d08160500e524bb85ad8636e66fbd6ce67519c77a",
@@ -90,7 +65,7 @@
       "aws/lambdas/justhodl-ai/source/gear_b_own.py": "3e979cc662e051f1ce62a97e61d6405d0f4126cdd7ef2473c2ab3e5757bf2d7b",
       "aws/lambdas/justhodl-ai/source/governance_control.py": "fcda09977edea2ede24c69815f75c539d7cb6dced1ff5495ff40ec8235abf9e0",
       "aws/lambdas/justhodl-ai/source/lambda_function.py": "8af8e404afa80cf45f7893fb675d29f567beee3f136ed6cb6dc3702ce2894a50",
-      "aws/lambdas/justhodl-ai/source/market_read.py": "83c4633373e881aba0c5a0fd30e007a60aa70cae42b53ac6a6e56ef40fb2d177",
+      "aws/lambdas/justhodl-ai/source/market_read.py": "d5cc5600fb4e86d7dd0ff3de4440d9034689158bdafb2fe0803abc86e812edf1",
       "aws/lambdas/justhodl-ai/source/model_governance_consumer.py": "40a4ce082156d6420ae8538ecb0bf7a9e0132bf35b5462145f54a33ebb5a61b9",
       "aws/lambdas/justhodl-ai/source/model_registry.py": "b9d097ea3a06b526fb329e37fea8a3667ea1b935c86e4fed096873942d6730c2",
       "aws/lambdas/justhodl-ai/source/outcome_labels.py": "fa20205bc37ccc5e104ed9baeff609179f55bacd28bbca851cbe135c756e11a9",
@@ -133,14 +108,14 @@
     },
     "native_before": {
       "justhodl-ai": {
-        "code_sha256": "6kBPqkXneZ1sN8tVnxnx6gt4LwocM0SFYKUvYUMt7QA=",
+        "code_sha256": "NCLtxkeTAQ5mhUHtbh92Afr948UFXHf+p2BlOisdRs4=",
         "source_files_checked": 50,
         "handler_bytes": 134395,
         "timeout": 900,
         "memory_mb": 3008,
         "receipt": {
           "status": "matched",
-          "commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4"
+          "commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e"
         },
         "schedules": [
           {
@@ -200,14 +175,14 @@
     },
     "native_after": {
       "justhodl-ai": {
-        "code_sha256": "6kBPqkXneZ1sN8tVnxnx6gt4LwocM0SFYKUvYUMt7QA=",
+        "code_sha256": "NCLtxkeTAQ5mhUHtbh92Afr948UFXHf+p2BlOisdRs4=",
         "source_files_checked": 50,
         "handler_bytes": 134395,
         "timeout": 900,
         "memory_mb": 3008,
         "receipt": {
           "status": "matched",
-          "commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4"
+          "commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e"
         },
         "schedules": [
           {
@@ -340,27 +315,69 @@
     "schedule_changes": 0,
     "application_log_queries": 0,
     "other_invocation_routes_verified": false,
-    "run_id": 37016311006,
-    "operation_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-    "report_commit": "fac514e455534e08e4eeb7350541d3c7af82fc6c",
+    "run_id": 37020219215,
+    "operation_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+    "report_commit": "219acd9ef8995bdf056bbb53df251a889baf1103",
     "report": {
-      "path": "aws/ops/reports/latest/ops_6465_ai_outcome_acceptance.md",
+      "path": "aws/ops/reports/latest/ops_6466_ai_input_acceptance.md",
       "bytes": 10895,
-      "sha256": "80867f6b52bcff1ed8df8881f399066da055b6ff47ca2c6883743f8827c04952"
+      "sha256": "eb6ee57dcd0006e3ab30ba1fd5888c09ddc909589c5591e354c4a1b12bddbd5b"
     }
   },
-  "static": {
+  "static_continuity": {
     "status": "exact_static_release_checked",
-    "source_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-    "served_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-    "checked_at": "2026-10-02T13:55:55.074125+00:00",
-    "build_manifest_sha256": "085af3af4a7749c9b9b7cd3d5ad4534d56d4780a60088ac35b52feffb904de73",
+    "source_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+    "served_commit": "ac78dd37ff007678f43a890ad0dfa6dd0fc49224",
+    "continuity_review": {
+      "source_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+      "served_commit": "ac78dd37ff007678f43a890ad0dfa6dd0fc49224",
+      "prior_static_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+      "unchanged_static_paths": [
+        "ai.html",
+        "auth-config.js",
+        "auth.js",
+        "factory-desk.css",
+        "factory-desk.js",
+        "jh-ai-command.js",
+        "jh-chart-theme.js",
+        "jh-data-inspector.js",
+        "jh-evidence-io.js",
+        "jh-footer.js",
+        "jh-nav-drawer.js",
+        "jh-page-ai.js",
+        "jh-right-rail.js",
+        "jh-sections.js",
+        "sidebar.js",
+        "fonts/mono/IBMPlexMono-Bold.woff2",
+        "fonts/mono/IBMPlexMono-Medium.woff2",
+        "fonts/mono/IBMPlexMono-Regular.woff2",
+        "fonts/mono/IBMPlexMono-SemiBold.woff2",
+        "fonts/sans/IBMPlexSans-Bold.woff2",
+        "fonts/sans/IBMPlexSans-Regular.woff2",
+        "fonts/sans/IBMPlexSans-SemiBold.woff2",
+        "jh-market-tape.js",
+        "jh-theme.css",
+        "nav-manifest.json",
+        "config/page-data-contracts.json",
+        "engine-manifest.json"
+      ],
+      "intervening_paths": [
+        "aws/ops/reports/latest/ops_6465_ai_outcome_acceptance.md",
+        "docs/SESSION_CLAIMS.md",
+        "docs/audit/2026-10-02/ai-reported-outcomes-acceptance.json",
+        "docs/audit/2026-10-02/ai-reported-outcomes.json",
+        "docs/institutional-upgrade-progress.md"
+      ],
+      "intervening_foreign_report_bodies_read": false
+    },
+    "checked_at": "2026-10-02T14:25:48.757524+00:00",
+    "build_manifest_sha256": "6de14f0507dd2e0793a92e3b5a254c1803261babf21e36b6d8d0b28e27e2974f",
     "static_files": [
       {
         "path": "ai.html",
         "bytes": 127843,
-        "sha256": "797ca8c8ec32e4236c48f1be9e89d967af7c3961f6bb78906206a9648747f332",
-        "whole_http_body_sha256": "ca2d51ddab5eef5a3a8cbf045e91063589fef7dcda5a2f75142ba6037c52655f",
+        "sha256": "674884062b3b98170f75af4fc786fd57c74ec7d1b77e3b1febe0e487adc738e3",
+        "whole_http_body_sha256": "cd12544a72c8a5a1a4f471638e405ada35efb847a43d21d151ed5e9c90ae9d53",
         "sole_edge_script_removed": {
           "bytes": 367,
           "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
@@ -537,15 +554,15 @@
       {
         "path": "config/page-data-contracts.json",
         "bytes": 7996692,
-        "sha256": "9c28a86fade7d64de57c3a7a814e450fca61ce23dba7f68367000baed2be6f8e",
-        "whole_http_body_sha256": "9c28a86fade7d64de57c3a7a814e450fca61ce23dba7f68367000baed2be6f8e",
+        "sha256": "cb3ad03bd32ad373332f264cfa3d50afefe460a7027e5d13d06915ffeebf7d31",
+        "whole_http_body_sha256": "cb3ad03bd32ad373332f264cfa3d50afefe460a7027e5d13d06915ffeebf7d31",
         "sole_edge_script_removed": null
       },
       {
         "path": "engine-manifest.json",
         "bytes": 3100217,
-        "sha256": "4e7b5c30978d90cc9ed81e4dae7bb1a170899fd485e0665ba5a8acebb88837e6",
-        "whole_http_body_sha256": "4e7b5c30978d90cc9ed81e4dae7bb1a170899fd485e0665ba5a8acebb88837e6",
+        "sha256": "bfa959e37bb07532f6781b29cc806f29430cf393567c7f2183eb2ae678e9bfe8",
+        "whole_http_body_sha256": "bfa959e37bb07532f6781b29cc806f29430cf393567c7f2183eb2ae678e9bfe8",
         "sole_edge_script_removed": null
       }
     ],
@@ -556,156 +573,73 @@
     "theme_transform_source_sha256": "992450c03bef610a33ae14367060d0bcab1d03500f356cd991a02c9700bb887c",
     "application_packet_reads": 0,
     "page_execution": false,
+    "static_source_unchanged_from_served_commit": true,
     "source_qualified": false,
     "investment_authority": false,
     "scope": "Complete AI static page, direct and source-browser-observed static dependencies, fonts and inspection inventories. Normal application publication and actual private/learning packets are not inspected."
   },
-  "served_browser": [
-    {
-      "width": 1440,
-      "scenario": "valid",
-      "errors": [],
-      "sizes": {
-        "client": 1440,
-        "scroll": 1440
-      },
-      "actual_network_requests": 0,
-      "requests": 70,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    },
-    {
-      "width": 1440,
-      "scenario": "legacy",
-      "errors": [],
-      "sizes": {
-        "client": 1440,
-        "scroll": 1440
-      },
-      "actual_network_requests": 0,
-      "requests": 69,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    },
-    {
-      "width": 1440,
-      "scenario": "invalid-counts",
-      "errors": [],
-      "sizes": {
-        "client": 1440,
-        "scroll": 1440
-      },
-      "actual_network_requests": 0,
-      "requests": 69,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    },
-    {
-      "width": 390,
-      "scenario": "valid",
-      "errors": [],
-      "sizes": {
-        "client": 390,
-        "scroll": 390
-      },
-      "actual_network_requests": 0,
-      "requests": 69,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    },
-    {
-      "width": 390,
-      "scenario": "legacy",
-      "errors": [],
-      "sizes": {
-        "client": 390,
-        "scroll": 390
-      },
-      "actual_network_requests": 0,
-      "requests": 70,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    },
-    {
-      "width": 390,
-      "scenario": "invalid-counts",
-      "errors": [],
-      "sizes": {
-        "client": 390,
-        "scroll": 390
-      },
-      "actual_network_requests": 0,
-      "requests": 70,
-      "source_harness_sha256": "d73722fd4f703492682d7df3a78a419372fbd43f44af6133a9022c8c4106c7e8",
-      "served_harness_sha256": "786e3bf4f1334af34188840bdd6487f5919bb39e75ce54fe1f36b4edf7d883d3",
-      "harness_change": "Allow already byte-verified local WOFF2 fonts in intercepted routes.",
-      "all_packets_invented": true
-    }
-  ],
   "workflow_run_scope": {
-    "source_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+    "source_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
     "release_bound_runs_all_succeeded": true,
     "runs": [
       {
-        "id": 37016311006,
+        "id": 37020219215,
         "path": ".github/workflows/run-ops-direct.yml",
         "event": "workflow_dispatch",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
         "status": "completed",
         "conclusion": "success"
       },
       {
-        "id": 37015590555,
-        "path": ".github/workflows/page-gate.yml",
-        "event": "push",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-        "status": "completed",
-        "conclusion": "success"
-      },
-      {
-        "id": 37015590386,
-        "path": ".github/workflows/guard-lambda-stubs.yml",
-        "event": "push",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-        "status": "completed",
-        "conclusion": "success"
-      },
-      {
-        "id": 37015590413,
+        "id": 37019660612,
         "path": ".github/workflows/deploy-lambdas.yml",
         "event": "push",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
         "status": "completed",
         "conclusion": "success"
       },
       {
-        "id": 37015590248,
-        "path": ".github/workflows/pages.yml",
+        "id": 37019660252,
+        "path": ".github/workflows/guard-lambda-stubs.yml",
         "event": "push",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
         "status": "completed",
         "conclusion": "success"
       }
     ],
-    "separate_dispatches": [],
+    "separate_runs": [
+      {
+        "id": 37020171621,
+        "path": ".github/workflows/audit-release-progress.yml",
+        "event": "workflow_run",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37019866507,
+        "path": ".github/workflows/factory-exam.yml",
+        "event": "schedule",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37019659881,
+        "path": ".github/workflows/audit-release-progress.yml",
+        "event": "workflow_run",
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
     "all_runs_green_claimed": false,
     "foreign_report_bodies_read": false,
-    "scope": "Every push-triggered run and the single recorded 6465 dispatch must succeed. Any separate dispatch is reported without reading its log/report body or executing it.",
-    "scope_clarification": "Stage569 clarification: the retained five push/named-acceptance runs succeeded. The recorded scope did not cover every schedule/workflow_run event, so no global all-runs-green claim is made. Original receipts, native captures and static proof are unchanged."
+    "scope": "Every push-triggered run and the single recorded 6466 dispatch must succeed. Scheduled, workflow_run and other dispatches are recorded as metadata only; no global all-runs-green claim, foreign log/report body reads or peer executions."
   },
   "release_prerequisites": {
-    "source_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
-    "deploy_run": 37015590413,
+    "source_commit": "c0f3c4016c935b3fcfacc21b0dae823fb046082e",
+    "deploy_run": 37019660612,
     "receipts": [
       {
         "function": "justhodl-ai",
@@ -715,36 +649,38 @@
     "page_publication_separate": true,
     "runs": [
       {
-        "id": 37015590386,
+        "id": 37019660252,
         "path": ".github/workflows/guard-lambda-stubs.yml",
         "status": "completed",
         "conclusion": "success",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4"
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e"
       },
       {
-        "id": 37015590413,
+        "id": 37019660612,
         "path": ".github/workflows/deploy-lambdas.yml",
         "status": "completed",
         "conclusion": "success",
-        "head_sha": "0bff58f369cd9bf5b82d4f236388c8952e0875b4"
+        "head_sha": "c0f3c4016c935b3fcfacc21b0dae823fb046082e"
       }
     ]
   },
-  "first_gate_failure": "Historical whole-file no-paid snapshots rejected later unrelated source/runner changes. Exact follow-up deltas and AST preservation prove all other helpers/assertions unchanged; no-paid behavior checks pass. Original snapshots retained.",
+  "first_gate_failure": "17 owned-read cases exposed two legacy expectations: prose wrapping previously accepted and malformed JSON previously returned no validation_error. Source and original tests retained; policy and settlement assertions preserved.",
+  "frontend_regression_scope": "No HTML/JS/CSS or inspection inventories changed. Prior Stage568 six served browser cases and 2989 frontend regressions remain byte-bound; not rerun or claimed as new tests. Whole static files rechecked after this source-only release.",
   "normal_publication_verified": false,
   "limitations": [
-    "No source-time, mark, instrument, corporate-action, cost or out-of-sample qualification",
-    "Legacy latest-80 population and daily identity/deduplication are unchanged and still need cohort qualification",
-    "AI input normalization still truncates fractional horizons and rounds confidence; retained reproduction remains open",
-    "Existing lesson content, outcome methodology, underlying ledgers and performance claims require separate qualification",
-    "Normal application publication and actual private/learning packet contents were not inspected"
+    "Raw answer and typed validation do not qualify underlying market facts, model calibration, source time or price provenance",
+    "Daily signal identity, legacy cohort limits, outcomes/lessons, cost methodology and point-in-time reproducibility still require qualification",
+    "Deterministic fallback, board selection/freshness and downstream advisory policy remain separate existing paths",
+    "No public/private current application packets or outcome ledgers inspected; normal producer publication unverified",
+    "No paid model, provider, native producer invocation, schedule or learning policy enabled",
+    "Parser/logging outputs retain input evidence; downstream fallback/settlement retention and full response publication remain separately unverified."
   ],
   "source_qualified": false,
   "investment_authority": false,
   "all_ten_workstreams": "OPEN",
   "institutional_completion_claimed": false,
   "post_release_incoming_paths": [
-    "aws/ops/reports/latest/ops_6465_ai_outcome_acceptance.md"
+    "aws/ops/reports/latest/ops_6466_ai_input_acceptance.md"
   ],
   "foreign_report_bodies_read": false
 }

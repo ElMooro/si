@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 568 AI reported-outcome and page/command-overlay repair is exact-code/native/static accepted after the Stage567 17-engine input repair. Reported grades no longer fabricate wins or imply promotion authority. Source qualification, complete point-in-time replay, outcome/cohort validity, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
+October 2 UTC: Stage 569 AI decision-input repair is exact-native accepted after Stage568 outcome/page acceptance. Explicit action tokens, typed integer horizons and confidence fractions, duplicate/conflicting input rejection, retained input accounting and valid abstention replace silent coercion. Deterministic fallback zero/unknown constraints are next. Underlying source qualification, full point-in-time replay, cohorts, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8081,3 +8081,12 @@ Missing/invalid/failed outcomes remain outside hit counts and both lesson adapte
 Actual source reproductions show negated BUY prose becomes ACCUMULATE, fractional horizons truncate, confidence precision rounds, undeclared percent text becomes a fraction, duplicate JSON keys silently choose the last value, and the direct logging adapter changes zero to 0.6. The last reproduction is an adapter test only; normal validation never admitted zero. Whole predecessor source and existing owned-read tests are retained. No actual model, consumer packet or outcome ledger is inspected.
 
 The candidate accepts only explicit complete enum tokens and documented aliases, rejects duplicate/conflicting inputs, requires typed horizons and confidence units, and preserves accepted precision. Rejected and excess rows retain positions/reasons, and private read results retain the bounded answer/hash and full input. The logger validates before quote callbacks and preserves tiny positive numeric baselines. Empty calls are valid abstention. These checks qualify input syntax/types only; source evidence, original timing, complete cohorts, learned skill, portfolio authority and all ten workstreams remain OPEN. Full integration and exact native release acceptance are pending.
+
+
+### Stage 569 exact AI decision-input release acceptance
+
+Commit `c0f3c4016c935b3fcfacc21b0dae823fb046082e` shipped 13 related files atomically through native Git. The AI receipt and all 50 native packaged sources match; runtime settings and the original schedule census are unchanged across two captures in operation 6466/run 37020219215. All push-triggered checks and the named acceptance operation succeeded. The complete served AI static graph remains byte-identical to its prior accepted source; 27 static files are rechecked against one build manifest. No application data packet, actual ledger, model/provider or native producer was read or invoked.
+
+Final checks: 1076 deployment, 15 shell, 25 complete AI suite cases, 36 actual-source outcome/input cases (25 input cases), 17 owned-settlement cases, 14 native acceptance cases and all 600 page contracts. Initial owned-settlement failures identified old prose-wrapper/error-message expectations; whole original tests remain retained, and all policy/settlement assertions pass with explicit JSON fixtures.
+
+Negated prose cannot become ACCUMULATE. Fractional/string/boolean horizons, guessed percent confidence, duplicate keys, conflicting aliases/units and malformed rows are rejected with source positions/reasons. Accepted confidence receives no extra decimal rounding; bounded raw answer bytes/hash remain available in parser output. The logging adapter cannot turn zero into 0.6 or pass malformed prices to its callback. Public projection regression confirms private answer text stays private. These are syntax/type/evidence-retention checks; downstream fallback retention, source validity, original timing, complete cohorts and predictive/portfolio authority remain unqualified. All ten workstreams remain OPEN.
