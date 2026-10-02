@@ -1,0 +1,26 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "37042455337",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/37042455337",
+ "base_sha": "7af6095bcedf7ea339792e7ba2d6a498d6b05001",
+ "result_sha": "9baeaff03fe575f33116ac2b45107ef77ddf0c43",
+ "patchers": [
+  "grok_buyback_level.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "jh-chart-buyback.js"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-10-02T17:42:13Z"
+}
