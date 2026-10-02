@@ -1,0 +1,181 @@
+{
+  "script": "1097_perf_audit",
+  "read_at": "2026-10-02T01:01:34Z",
+  "engines": [
+    {
+      "lambda": "justhodl-ticker-360",
+      "config": {
+        "memory": 1024,
+        "timeout": 600,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 597.1,
+        "avg_duration_s": 567.2,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": [
+        "duration 597.1s near timeout 600s"
+      ]
+    },
+    {
+      "lambda": "justhodl-master-ranker",
+      "config": {
+        "memory": 1536,
+        "timeout": 900,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 8.1,
+        "avg_duration_s": 8.1,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-conviction-engine",
+      "config": {
+        "memory": 256,
+        "timeout": 120,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 4.4,
+        "avg_duration_s": 4.0,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-flow-confluence",
+      "config": {
+        "memory": 512,
+        "timeout": 120,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 2.9,
+        "avg_duration_s": 2.6,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-best-ideas",
+      "config": {
+        "memory": 320,
+        "timeout": 120,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 8.6,
+        "avg_duration_s": 8.3,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-options-confluence",
+      "config": {
+        "memory": 512,
+        "timeout": 120,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 1.9,
+        "avg_duration_s": 1.4,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-short-interest",
+      "config": {
+        "memory": 512,
+        "timeout": 360,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 254.6,
+        "avg_duration_s": 63.8,
+        "errors_24h": 3,
+        "throttles_24h": 0
+      },
+      "issues": [
+        "3 errors"
+      ]
+    },
+    {
+      "lambda": "justhodl-sec-8k-enrich",
+      "config": {
+        "memory": 512,
+        "timeout": 300,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 300.0,
+        "avg_duration_s": 36.2,
+        "errors_24h": 1,
+        "throttles_24h": 0
+      },
+      "issues": [
+        "duration 300.0s near timeout 300s",
+        "1 errors"
+      ]
+    },
+    {
+      "lambda": "justhodl-xbrl-fundamentals",
+      "config": {
+        "memory": 1024,
+        "timeout": 900,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 840.7,
+        "avg_duration_s": 840.7,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": [
+        "duration 840.7s near timeout 900s"
+      ]
+    },
+    {
+      "lambda": "justhodl-corporate-actions",
+      "config": {
+        "memory": 256,
+        "timeout": 300,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 210.3,
+        "avg_duration_s": 210.3,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    },
+    {
+      "lambda": "justhodl-etf-issuer-holdings",
+      "config": {
+        "memory": 512,
+        "timeout": 600,
+        "runtime": "python3.12"
+      },
+      "metrics": {
+        "max_duration_s": 162.3,
+        "avg_duration_s": 162.3,
+        "errors_24h": 0,
+        "throttles_24h": 0
+      },
+      "issues": []
+    }
+  ],
+  "status": "COMPLETE"
+}
