@@ -1,6 +1,6 @@
 {
   "stage": 540,
-  "status": "candidate_not_deployed",
+  "status": "exact_code_and_static_release_accepted",
   "scope": "Reported current-price-valued stock snapshots and complete original retention; no mint/burn or flow inference.",
   "targets": [
     "justhodl-crypto-intel",
@@ -145,16 +145,523 @@
     "actual_provider_requests": 0,
     "actual_application_packet_reads": 0,
     "source_qualified": false,
-    "investment_authority": false
+    "investment_authority": false,
+    "pinned_source_references": {
+      "tree": "https://api.github.com/repos/DefiLlama/peggedassets-server/git/trees/43ea0e28655f7391e57ac687f84377c0bcf8a39a",
+      "reviewed_blobs": [
+        {
+          "path": "api2/cron-task/getStableCoins.ts",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "f8e023a7ed6fc12a85d6b183d37f49358f85fa3d",
+          "size": 7489,
+          "url": "https://api.github.com/repos/DefiLlama/peggedassets-server/git/blobs/f8e023a7ed6fc12a85d6b183d37f49358f85fa3d",
+          "sha256": "707f10681fbc04c01a84dedc035ae65cc7e76873b597cdae5b94fb3e69cd5218"
+        },
+        {
+          "path": "api2/routes/index.ts",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "86671e4953420d3841e409587657121a212dbfe8",
+          "size": 4918,
+          "url": "https://api.github.com/repos/DefiLlama/peggedassets-server/git/blobs/86671e4953420d3841e409587657121a212dbfe8",
+          "sha256": "913e617c86fd3776ab4dffcd1962be28172c2ad78247c32fd66748e5a9402cf9"
+        }
+      ],
+      "provider_deployed_revision_verified": false
+    }
   },
   "source_qualified": false,
   "normal_publication_verified": false,
   "investment_authority": false,
   "remaining": [
-    "Exact native/static release acceptance pending",
     "Normal original retention and replay not yet inspected",
     "Provider deployment identity, source observation clocks and population comparability unqualified",
     "Point-in-time and portfolio consequences not qualified",
     "All ten institutional workstreams remain OPEN"
-  ]
+  ],
+  "source_commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6",
+  "native_acceptance": {
+    "status": "exact_native_release_checked",
+    "expected_commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6",
+    "reviewed_source_hashes": {
+      "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py": "a89b66c3626f51a3d8c47c9637e4c714a7b128c9f9b3db9121daa115649d2029",
+      "aws/shared/_sentry_lite.py": "dad3ef390457a7b0b6b882451bef6f4ef9254bf13aa3c260216ad65ef6e82e44",
+      "aws/shared/crypto_funding_archive.py": "aff1c225cf6877f90a493f60714c9680cfb6c8b7c07c9d6cbcaff9fc64dbef53",
+      "aws/shared/crypto_funding_observations.py": "7ca2f58d527887d1569d4906f5a6135446bb7636a51a4683562c543e80a7e3bc",
+      "aws/shared/crypto_market_cap_extension.py": "091fa4431f966abdb2f1957ca9d2bd9b194e9e4ef343f2f2f7fca96d879f5886",
+      "aws/shared/crypto_stablecoin_archive.py": "0fe0032164161baa532264757a9f5bd55b908b797211fef6d3a2807263cb1835",
+      "aws/shared/crypto_stablecoin_observations.py": "2f35f08de0d2cd276ff6e3f36a0a7c56900eca7ac052a902f784e57e839e6a16",
+      "aws/shared/crypto_stablecoin_transport.py": "33ef41f66adb81afb5b514159c05eb7918987c0e423bfe1791223a7a3cf54395",
+      "aws/shared/ka_aliases.py": "e57211a0cc0779c5a51e67c37bb80f42656e072fb92784ca62fe8422c4b5e76e",
+      "aws/shared/llm_cost.py": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+      "aws/shared/llm_router.py": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+      "aws/shared/option_population_context.py": "ef547b1d1fac62db2e548779e6637907fb44d670ae1a9f62e3623983aeae1b0a",
+      "aws/shared/xai_voice.py": "14936b2dc7791c42241ac6adddab1e5d590c5cda202b84ef87e99691dcf9ef1a",
+      "aws/lambdas/justhodl-financial-secretary/source/lambda_function.py": "c336d2acf0af17fbb0877c62e42b1e091f808af9e2794f3e53a190e6a2421363",
+      "aws/shared/anthropic_shim.py": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+      "aws/shared/fmp_book.py": "fa1abf71c006fefe578b4a016290657ee502201ecc8dd8153873eddcce331150",
+      "aws/ops/checks/market_runtime_evidence.py": "b5221bc3351790e87e34775058883369da31e9184ea346be5b3b4653dd2cf0ca",
+      "aws/ops/checks/release_package_evidence.py": "a0a45ca05400b0940f1e89621785de66216ef4107c2565aa6bec5336ca869480",
+      "aws/ops/staged/ops_6434_crypto_semantics_controls.py": "5799191855f86f9ec100204a5b3fbb6db4c7980905618ff0ff716e156aa0a230"
+    },
+    "native_before": {
+      "justhodl-crypto-intel": {
+        "code_sha256": "msGXb8DVVL8y5sS8ROjYgVAnj3iZA1kskt5N5uaoAJg=",
+        "source_files_checked": 13,
+        "handler_bytes": 64454,
+        "timeout": 180,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-15min",
+            "state": "ENABLED",
+            "expression": "rate(15 minutes)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-fanin",
+            "state": "ENABLED",
+            "expression": null,
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-crypto-intel",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-financial-secretary": {
+        "code_sha256": "Ri8QvZPPigoxVqzOkUEZAElubtg4BKXZaMEWd5X1akw=",
+        "source_files_checked": 10,
+        "handler_bytes": 76404,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-financial-secretary-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "secretary-4h-scan",
+            "state": "ENABLED",
+            "expression": "rate(4 hours)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-financial-secretary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "native_after": {
+      "justhodl-crypto-intel": {
+        "code_sha256": "msGXb8DVVL8y5sS8ROjYgVAnj3iZA1kskt5N5uaoAJg=",
+        "source_files_checked": 13,
+        "handler_bytes": 64454,
+        "timeout": 180,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-15min",
+            "state": "ENABLED",
+            "expression": "rate(15 minutes)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-fanin",
+            "state": "ENABLED",
+            "expression": null,
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-crypto-intel",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      },
+      "justhodl-financial-secretary": {
+        "code_sha256": "Ri8QvZPPigoxVqzOkUEZAElubtg4BKXZaMEWd5X1akw=",
+        "source_files_checked": 10,
+        "handler_bytes": 76404,
+        "timeout": 300,
+        "memory_mb": 1024,
+        "receipt": {
+          "status": "matched",
+          "commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6"
+        },
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-financial-secretary-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "secretary-4h-scan",
+            "state": "ENABLED",
+            "expression": "rate(4 hours)",
+            "native_targets": 1
+          }
+        ],
+        "function_name": "justhodl-financial-secretary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512
+      }
+    },
+    "original_controls": {
+      "justhodl-crypto-intel": {
+        "function_name": "justhodl-crypto-intel",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 180,
+        "memory_mb": 1024,
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-15min",
+            "state": "ENABLED",
+            "expression": "rate(15 minutes)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-crypto-fanin",
+            "state": "ENABLED",
+            "expression": null,
+            "native_targets": 1
+          }
+        ]
+      },
+      "justhodl-financial-secretary": {
+        "function_name": "justhodl-financial-secretary",
+        "runtime": "python3.12",
+        "handler": "lambda_function.lambda_handler",
+        "timeout": 300,
+        "memory_mb": 1024,
+        "architectures": [
+          "arm64"
+        ],
+        "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+        "ephemeral_storage_mb": 512,
+        "schedules": [
+          {
+            "kind": "EventBridge rule",
+            "name": "justhodl-financial-secretary-daily",
+            "state": "ENABLED",
+            "expression": "cron(45 12 * * ? *)",
+            "native_targets": 1
+          },
+          {
+            "kind": "EventBridge rule",
+            "name": "secretary-4h-scan",
+            "state": "ENABLED",
+            "expression": "rate(4 hours)",
+            "native_targets": 1
+          }
+        ]
+      }
+    },
+    "normal_publication_verified": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "application_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "other_invocation_routes_verified": false,
+    "run_id": 36952245507,
+    "operation_commit": "8c67aae6386c8f6fe47ad398174e63d4b3f9ce4d",
+    "report_commit": "6ae0b23dc3d9627a12942161b50e4ae2a4c1b5f2",
+    "report": {
+      "path": "aws/ops/reports/latest/ops_6440_crypto_stablecoin_stock_acceptance.md",
+      "bytes": 7087,
+      "sha256": "b7ca43da1bb790e0882f19f9e6e5c78e9ebc2370881e35b6b875d55876755722"
+    }
+  },
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-02T01:46:24.373114+00:00",
+    "source_commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6",
+    "served_commit": "3aabf6d48263ad0cda166b2aaa2a21911036d8c6",
+    "build_manifest_sha256": "11ec3490221a2e8171a590d8095268d49cd9db6a72a216a546b5174b00469e7d",
+    "pages": [
+      {
+        "path": "crypto/index.html",
+        "bytes": 122213,
+        "sha256": "073ad546d25e3f481d9b023eddd8bbd0dc4337462ff577be5945000b38c7c57b",
+        "whole_http_body_sha256": "f45fa8d51b2961cf5c8531f10571c7de0944a52b0ee448fb9012e38afaf92508",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "whole_changed_helpers_sha256": "04fedd1595f38c42cefa8057186e72331fab2dd54c03998d35e8b52d6a74b91e",
+        "helpers_match_source": true,
+        "existing_script_tags_verified": true
+      },
+      {
+        "path": "classic-dashboard.html",
+        "bytes": 254439,
+        "sha256": "18d35fe132441d0cf960caab1a1394686b6259ae170f3456b2524438b2e22904",
+        "whole_http_body_sha256": "3dec388a6c2e4155c3a796c5af6e3a3526b17f246c64c98544859d09c15426ac",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "whole_changed_helpers_sha256": "52eb8275b22d6321284f47d2342c638256c3ff16eeb50865086050ad02de1af3",
+        "helpers_match_source": true,
+        "existing_script_tags_verified": true
+      }
+    ],
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served static pages match one commit-bound build; actual helpers equal source. Offline invented browser QA is separate; no live application/provider/private/account packet read."
+  },
+  "served_browser_acceptance": {
+    "scope": "Commit-verified served Crypto and Classic function declarations/inline CSS with invented packets; all network blocked. External assets and live application packets are not executed.",
+    "scenarios": 26,
+    "results": [
+      {
+        "width": 390,
+        "scenario": "normal",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "zero",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "missing",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "zero_prior",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "injection",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "empty_population",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "duplicate",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "unavailable",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "scenario": "legacy",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 390,
+        "scenario": "normal",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 390,
+        "scenario": "empty_population",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 390,
+        "scenario": "legacy",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 390,
+        "scenario": "unavailable",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "normal",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "zero",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "missing",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "zero_prior",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "injection",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "empty_population",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "duplicate",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "unavailable",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "scenario": "legacy",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 1280,
+        "scenario": "normal",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 1280,
+        "scenario": "empty_population",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 1280,
+        "scenario": "legacy",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "page": "classic",
+        "width": 1280,
+        "scenario": "unavailable",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      }
+    ]
+  }
 }

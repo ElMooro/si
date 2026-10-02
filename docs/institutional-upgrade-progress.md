@@ -7691,3 +7691,18 @@ Read-only runner operation 6439 replayed a complete stored post-release funding 
 ### Stage 540 reported stablecoin stocks
 
 The candidate removes unweighted name-count inflow votes, missing-as-zero comparisons, silent top-25 truncation and mismatched totals. It preserves every returned row and whole original response, makes current-price valuation and missing observation dates explicit, retains and replays reviewed compilers, and updates Crypto, Classic and Financial Secretary displays. All prior whole-source preservation gates remain in force. Exact native/static and normally published original acceptance remain pending. All ten institutional workstreams remain OPEN.
+
+
+### Stage 540 exact code and static acceptance
+
+Source `3aabf6d48263ad0cda166b2aaa2a21911036d8c6` shipped the stablecoin stock repair in one native Git batch. Both public release receipts match, and native run `36952245507` checked all 23 source members twice with original resources and complete schedules unchanged. Both complete served Crypto and Classic HTML artifacts match that exact build. Twenty-six isolated browser cases on served function/style bytes passed with no requests, errors or page overflow; desktop/mobile screenshots, keyboard disclosure and contrast were checked. The final pre-push gates passed 1032 deployment tests plus fifteen shell checks and 2739 frontend tests. The financial renderer regression found an overbroad draft source edit; it was restored and bounded before shipping, with a whole-function preservation assertion. A malformed-context regression and low-contrast notes were also fixed before the final gate.
+
+This proves exact code/static deployment. Normal current publication, source observation clocks, source authenticity, point-in-time availability, investment efficacy and supported portfolio consequences remain unqualified.
+
+### Stage 541 stablecoin original acceptance
+
+The read-only candidate verifies complete public content-addressed originals against the exact Crypto release, replays all reported rows with current reviewed compilers, and requires an unchanged complete namespace census. Sixteen invented archive cases and five receipt/report cases cover whole reads, malformed/altered objects, unknown compilers, future or duplicate clocks, truncated or changed census and permission denial. Actual retained-source replay remains pending the named runner check. All ten institutional workstreams remain OPEN.
+
+### Current work — Stage 541
+
+Stage 540 code/static acceptance is complete; stablecoin retained-original acceptance is next. All ten platform workstreams remain OPEN. No current-head publication or investment authority is inferred from these acceptance steps.
