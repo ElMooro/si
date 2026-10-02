@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Chart stages 547–549 are exact static and served-module accepted; heartbeat 546 is native accepted without a recurring-publication claim. Stage 550 Worker volume codecs are candidate-tested. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stages 547–549 Chart static/browser and Stage 550 Worker native source releases are accepted within recorded scopes. Stage 551 quote/detail/hover small-ratio precision is candidate-tested. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7800,3 +7800,12 @@ The complete predecessor is retained. Fifty-two synthetic helper and actual Work
 
 
 Stage 550 pre-push reconciliation: peer `f901af33f` changed six Chart UI/rail functions and expanded its exact preservation manifest; these changes are retained, with no source/model qualification inferred. Peer operation 1105 was read as source only and never executed; its reports were not read. Generated heartbeat metadata refreshed, so the source-bound page registry was regenerated and its exact differences recorded. Worker source and the tested compiled runtime remain unchanged; frontend, deployment and browser integration are rerun against the new main tree.
+
+
+### Stage 550 exact native Worker acceptance
+
+Commit `6ea8878e79caf6497396af29a7fa5acbd3acd140`, Worker run `36967232916`: the public receipt equals the retained receipt and complete before/after source capture. Every deployed module byte matches the independent pinned Wrangler 4.144.0 build; repository inputs, active provider representation, configuration and schedules are checked. Final 2,888 frontend, 1,039 deployment/fifteen shell, 53 focused Worker and 25 isolated runtime cases pass. No production route, provider or private consumer was invoked. Current delivery, source units and duplicate conflicts remain unqualified.
+
+### Stage 551 ratio-label precision candidate
+
+Screenshots reproduced a tiny positive relative volume displayed as 0.00x in the quote and crosshair while its pane correctly showed <0.01x. Three display substitutions align quote, transient legacy detail and hover labels; all calculation bytes remain unchanged. Ten focused cases and actual-module desktop/mobile browser fixtures pass. Underflow remains unavailable. The browser detail panel is subsequently rendered by renderDetail, so its existing dated-range contract is checked rather than assuming the transient quoteUI detail survives. Existing mobile hover/legend overlap remains separate open work.

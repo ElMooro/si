@@ -1,0 +1,15 @@
+{
+  "path": "tests/helpers/chart-warehouse-volume-preservation.cjs",
+  "before_sha256": "e21444bb1988a116827690fffeb431b28d0dc8f5fa6a37b08cf4c2e2e3156e1b",
+  "after_sha256": "a85aa48dfdff8306d451a658e61d3e679b2a1a858a42958f25cae475989b19be",
+  "replacements": [
+    {
+      "before": "function normalizeSource(raw){",
+      "after": "function normalizeSource(raw){raw=require('./chart-ratio-precision-preservation.cjs').normalizeSource(raw);"
+    },
+    {
+      "before": "function normalizeSigned(doc){",
+      "after": "function normalizeSigned(doc){doc=require('./chart-ratio-precision-preservation.cjs').normalizeSigned(doc);"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "stage": 550,
-  "status": "candidate_integration_pending",
+  "status": "exact_worker_source_release_accepted",
   "worker": "justhodl-data-proxy",
   "source_sha256": "a3320f85c7827938a592f1396c74a419b8065d5516c694bbd9282f0920e72f66",
   "focused_cases": 52,
@@ -14,9 +14,9 @@
   "documentation": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klinecandlestick-data",
   "scope": "Codec and summed-volume validity only. No source identity, price validation, duplicate conflict or adjustment qualification.",
   "remaining": [
-    "Exact native Worker receipt and whole source capture",
     "Source units/lineage, duplicate conflicts and price validation",
     "Worker crypto fallback source attribution"
   ],
-  "investment_authority": false
+  "investment_authority": false,
+  "acceptance": "docs/audit/2026-10-02/worker-warehouse-volume-acceptance.json"
 }

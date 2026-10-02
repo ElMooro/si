@@ -1,0 +1,18 @@
+{
+  "source_sha256": "b034037f26a88ef73c0d7c0b87b850018fcfadcc956f47b4cfe87348c8e4c345",
+  "candidate_sha256": "02842e562e0b4f4441aae727932983335a552d4ecc878c6b0402d5f52c611e78",
+  "replacements": [
+    {
+      "before": "rvol.toFixed(2)+\"x\"",
+      "after": "(rvol>0&&rvol<0.01?\"&lt;0.01\":rvol.toFixed(2))+\"x\""
+    },
+    {
+      "before": "rvol.toFixed(2)+\"x \"+heat",
+      "after": "(rvol>0&&rvol<0.01?\"&lt;0.01\":rvol.toFixed(2))+\"x \"+heat"
+    },
+    {
+      "before": "rH.toFixed(2)+\"x\"",
+      "after": "(rH>0&&rH<0.01?\"&lt;0.01\":rH.toFixed(2))+\"x\""
+    }
+  ]
+}
