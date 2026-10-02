@@ -147,10 +147,20 @@ are outside this probe's qualification.
 passes 1,041 static tests plus 15 shell gates on the original candidate base, but
 fails after rebase onto newer main. The unrelated preservation test at
 `tests/test_ticker_context_guard.py:88` expects `aws/shared/ticker_360.py` SHA-256
-`815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387`; current main
-has `a3da99fd2430875bae620090e3a2b88ce71fa4b3e7f7480d31ba73191a251aac`.
-The same failure is reproduced on clean main and recorded in
-[main's failing release](https://github.com/ElMooro/si/actions/runs/36976764340).
+`815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387`; clean main
+`bcfc83de1` initially had
+`a3da99fd2430875bae620090e3a2b88ce71fa4b3e7f7480d31ba73191a251aac`.
+Owner source restorations `4765db130` and `cfbc9967c` then changed the actual hash
+to `34cd1f717e0bf5e7aa2e58598ce735d7ff1d256280175b1901d62c5f7448b39c`.
+Clean current main `a69a5d523` reproduces the same one-of-23 failure; the fixture
+pin is unchanged. The exact unrelated paths are `aws/shared/ticker_360.py`,
+`tests/test_ticker_context_guard.py:88` and
+`tests/fixtures/ticker-context-guard/transition.json`. The last transition
+fixture update on main is `bfd28d614` at 06:45:49 UTC. Ownership remains active
+with `S-codex#symdir1001a` (Ticker/Chart/Worker), including ops 6449 native
+acceptance. The latest owner [deploy run 36977445049](https://github.com/ElMooro/si/actions/runs/36977445049)
+failed preflight at this same test; GitHub lists no queued/in-progress run at
+this check. No matching fixture update has reached main.
 No unrelated source/pin/gate changes or bypass are included. The repair remains
 held in reviewed draft until its owner resolves that failure and the complete
 required suite passes against the final head. Refresh/revalidate the baseline
