@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 567 fixes eight reproduced event-input defects across 17 importer engines, 188 packaged sources and 22 unchanged bindings. Exact native code, named receipts and static inventory are accepted. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 568 AI reported-outcome and page/command-overlay repair is exact-code/native/static accepted after the Stage567 17-engine input repair. Reported grades no longer fabricate wins or imply promotion authority. Source qualification, complete point-in-time replay, outcome/cohort validity, portfolio consequences, normal producer publication and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8065,3 +8065,12 @@ The complete original AI handler is also retained. Its actual student_desk funct
 The owner outcome table also stops rounding a small positive baseline to a displayed zero, and rejects booleans/text/nonfinite baseline values. This is a display/type repair, not entry-mark qualification.
 
 The first full gate correctly rejected changes outside the historical no-paid caller snapshots. Explicit anchored follow-up deltas now preserve both original whole-file proofs, with the no-paid helper and all existing assertions unchanged. The command overlay was found to bypass the new narrative boundary, advertise promotion on a reported exam comparison and insert feed text as HTML. Its actual predecessor is retained; the repaired overlay escapes all text, separates windows from calls, preserves zero/missingness and withholds legacy promotion narratives. Full checks must be rerun before shipping.
+
+
+### Stage 568 exact AI outcome release acceptance
+
+Commit `0bff58f369cd9bf5b82d4f236388c8952e0875b4` shipped 23 related files atomically, including the complete AI sources, page, command script, historical originals and both inspection inventories. The named AI receipt and all 50 native source members match; original runtime settings and 5 schedule bindings are unchanged across two native captures. Operation 6465/run 37016311006 supplies the own read-only report. The whole served AI static page, command script, source-observed static dependencies and fonts match the commit-bound build. Six further fully intercepted browser cases use those served assets; no actual application packet or private/learning ledger is read.
+
+Checks: 1075 deployment, 15 shell, 2989 frontend, 25 complete AI suite cases, 11 reported-outcome source cases, 15 actual-renderer cases, 14 native acceptance unit cases, 600 page graphs, 143 wiring declarations, 22 source browser and six served browser cases. The no-paid full-file predecessor proofs remain intact through explicit anchored follow-up records and AST checks; no provider, schedule or policy was enabled.
+
+Missing/invalid/failed outcomes remain outside hit counts and both lesson adapters. Valid reported misses and zero returns stay visible. Neither the student desk nor command overlay opens a promotion path from reported windows or an exam comparison. All received overlay text is escaped; typed counts and small positive baseline display are preserved. These remain descriptive legacy reports, with latest-80 scope explicit. Fractional-horizon/confidence normalization, daily identities and cohort completeness, original source marks, costs, lessons and predictive validity require further work. Normal publication remains unverified; all ten workstreams remain OPEN.

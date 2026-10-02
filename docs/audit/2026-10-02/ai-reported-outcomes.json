@@ -1,5 +1,5 @@
 {
-  "status": "candidate_validation_and_release_pending",
+  "status": "exact_code_and_static_release_accepted_with_qualification_gaps",
   "contract": "market-read-reported-outcomes.v1",
   "base_commit": "0ec5335c85cce942efc3289555824fa82f752ea6",
   "predecessor_release_commit": "7ab550f69d0653d1ad2a63cb65407aa7c0ae663c",
@@ -316,5 +316,7 @@
   },
   "validation_followups": [
     "Historical no-paid full-file assertions needed explicit replayable follow-up deltas for the AI source and appended runner test; original fixtures and no-paid guards are preserved"
-  ]
+  ],
+  "source_commit": "0bff58f369cd9bf5b82d4f236388c8952e0875b4",
+  "acceptance": "docs/audit/2026-10-02/ai-reported-outcomes-acceptance.json"
 }
