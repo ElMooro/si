@@ -1,0 +1,19 @@
+{
+  "path": "tests/test_ticker_context_guard.py",
+  "before_sha256": "e6b738d11eb879159794c3a0a9a489cca70e05fa9fb4344da67c3024a5019500",
+  "after_sha256": "b5f550d95603ac36ab08afa70bfed48c73b354ac304d7b45fae867031b6786dc",
+  "replacements": [
+    {
+      "before": "return {'Body':io.BytesIO(json.dumps(obj).encode())}",
+      "after": "raw=json.dumps(obj).encode();return {'Body':io.BytesIO(raw),'ContentLength':len(raw)}"
+    },
+    {
+      "before": "   if kind=='shared':\n    peer=json.loads((D/'peer-list-keys.json').read_bytes())",
+      "after": "   if kind=='shared':\n    from helpers.ticker_input_reader_preservation import normalize_shared\n    raw=normalize_shared(raw)\n    peer=json.loads((D/'peer-list-keys.json').read_bytes())"
+    },
+    {
+      "before": "expected={'ticker_360'}|{v['context'] for v in hub.SOURCES.values() if v['context']}\n  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),expected-{'ticker_360'})",
+      "after": "contexts={v['context'] for v in hub.SOURCES.values() if v['context']}\n  expected={'ticker_360','context_evidence_store'}|contexts\n  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)"
+    }
+  ]
+}

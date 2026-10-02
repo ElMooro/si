@@ -1,0 +1,18 @@
+{
+  "path": "aws/shared/ticker_360.py",
+  "before_sha256": "34cd1f717e0bf5e7aa2e58598ce735d7ff1d256280175b1901d62c5f7448b39c",
+  "after_sha256": "46519cb54f5a2ce05b2d30357a8a1294badaaa5dbafaea60f23a5c56f5cb0291",
+  "replacements": [
+    {
+      "before": "import json\nfrom datetime import datetime, timezone",
+      "after": "import json\nfrom datetime import datetime, timezone\nfrom context_evidence_store import MAX_BYTES, strict as strict_context_json"
+    },
+    {
+      "before": "        try:\n            cache[key] = json.loads(s3.get_object(Bucket=BUCKET, Key=key)[\"Body\"].read())\n        except Exception:\n            cache[key] = None\n",
+      "after": "        try:\n            response = s3.get_object(Bucket=BUCKET, Key=key)\n            stream = response[\"Body\"]\n            try:\n                length = response.get(\"ContentLength\")\n                if type(length) is not int or not 0 <= length <= MAX_BYTES:\n                    raise ValueError(\"Typed bounded ticker context length required\")\n                chunks = []\n                size = 0\n                while True:\n                    chunk = stream.read(min(65536, MAX_BYTES + 1 - size))\n                    if not isinstance(chunk, bytes):\n                        raise ValueError(\"Ticker context byte stream required\")\n                    if not chunk:\n                        break\n                    size += len(chunk)\n                    if size > MAX_BYTES:\n                        raise ValueError(\"Ticker context exceeds bound\")\n                    chunks.append(chunk)\n                raw = b\"\".join(chunks)\n            finally:\n                stream.close()\n            # Validate whole bounded transport before projecting any quantities.\n            # The reported generation clock or a body hash cannot certify a source.\n            if length != len(raw):\n                raise ValueError(\"Whole stored ticker context required\")\n            encoding = response.get(\"ContentEncoding\", \"\")\n            if not isinstance(encoding, str):\n                raise ValueError(\"Ticker context encoding must be a string\")\n            pkt = strict_context_json(raw, encoding.strip().lower())\n            if not isinstance(pkt, dict):\n                raise ValueError(\"Ticker context must be an object\")\n        except Exception:\n            pkt = None\n        cache[key] = pkt\n"
+    }
+  ],
+  "source_authenticity_verified": false,
+  "immutable_original_retention": false,
+  "production_written": false
+}

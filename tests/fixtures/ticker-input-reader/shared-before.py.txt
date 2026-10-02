@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-from context_evidence_store import MAX_BYTES, strict as strict_context_json
 
 BUCKET = "justhodl-dashboard-live"
 
@@ -142,40 +141,9 @@ def _read_packet(s3, key, cache, fallback_key=None):
     """Read each concrete source once; fallback does not overwrite its identity."""
     if key not in cache:
         try:
-            response = s3.get_object(Bucket=BUCKET, Key=key)
-            stream = response["Body"]
-            try:
-                length = response.get("ContentLength")
-                if type(length) is not int or not 0 <= length <= MAX_BYTES:
-                    raise ValueError("Typed bounded ticker context length required")
-                chunks = []
-                size = 0
-                while True:
-                    chunk = stream.read(min(65536, MAX_BYTES + 1 - size))
-                    if not isinstance(chunk, bytes):
-                        raise ValueError("Ticker context byte stream required")
-                    if not chunk:
-                        break
-                    size += len(chunk)
-                    if size > MAX_BYTES:
-                        raise ValueError("Ticker context exceeds bound")
-                    chunks.append(chunk)
-                raw = b"".join(chunks)
-            finally:
-                stream.close()
-            # Validate whole bounded transport before projecting any quantities.
-            # The reported generation clock or a body hash cannot certify a source.
-            if length != len(raw):
-                raise ValueError("Whole stored ticker context required")
-            encoding = response.get("ContentEncoding", "")
-            if not isinstance(encoding, str):
-                raise ValueError("Ticker context encoding must be a string")
-            pkt = strict_context_json(raw, encoding.strip().lower())
-            if not isinstance(pkt, dict):
-                raise ValueError("Ticker context must be an object")
+            cache[key] = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
         except Exception:
-            pkt = None
-        cache[key] = pkt
+            cache[key] = None
     pkt = cache[key]
     if pkt is None and fallback_key and fallback_key != key:
         return _read_packet(s3, fallback_key, cache)

@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 556 Ticker 360 guard and clock separation has exact native source/control acceptance. Stage 555 chart zero/missing-volume and profile-state repair is in integration. The two observed Ticker 360 schedule bindings are preserved; duplicate invocation risk remains unresolved. All ten workstreams remain OPEN.
+October 2 UTC: Stage 555 chart volume-profile and Stage 559 Engine Data repairs have exact static/browser acceptance. Stage 557 Ticker 360 strict input transport is in integration. Native control ambiguity, original-source replay, row identity and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7864,3 +7864,8 @@ The complete predecessor reproduces valid price frames rejected for low positive
 ### Stage 559 Engine Data page repair bundled with Stage 555
 
 The newly added page executes invented markup from a reported domain name, drops real zero fields, truncates audit text, overflows mobile and labels storage monitoring as observation freshness. Complete-source browser reproduction is retained. The candidate escapes dynamic HTML, keeps zero and unavailable distinct, preserves full audit text, labels the six-feed scope and descriptive coverage, and keeps panels within the viewport. All actual requests are intercepted in QA; no application/private/provider data is read. Table pagination, strict source parsing and complete source-response retention remain open.
+
+
+### Stage 557 Ticker 360 strict reader candidate
+
+Retained whole source and invented transport reproduce silent duplicate-member overwrite, decimal underflow to false zero, nonfinite inputs aborting the entire producer, and unclosed streams. Complete bounded transport, exact lengths and the existing strict decoder isolate malformed sources without changing valid nested values or domain guards. The candidate does not retain original bodies or qualify source identity/availability, resolve duplicate ticker rows, or remove lossy output compaction.

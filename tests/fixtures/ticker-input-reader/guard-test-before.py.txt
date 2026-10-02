@@ -15,7 +15,7 @@ class Storage:
  def get_object(self,**req):
   self.reads.append(req);obj=self.packets[req['Key']]
   if isinstance(obj,Exception):raise obj
-  raw=json.dumps(obj).encode();return {'Body':io.BytesIO(raw),'ContentLength':len(raw)}
+  return {'Body':io.BytesIO(json.dumps(obj).encode())}
  def put_object(self,**req):self.writes.append(req);return {}
 def domain(context=None,kind='packet',name='fixture',obj=None,module=hub):
  data=packet() if obj is None else obj;s3=Storage({'invented.json':data})
@@ -87,8 +87,6 @@ class Preservation(unittest.TestCase):
   for kind,oldname in [('shared','shared-before.py.txt'),('producer','lambda-before.py.txt')]:
    t=doc[kind];raw=(R/t['path']).read_text(encoding='utf-8')
    if kind=='shared':
-    from helpers.ticker_input_reader_preservation import normalize_shared
-    raw=normalize_shared(raw)
     peer=json.loads((D/'peer-list-keys.json').read_bytes());self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),peer['after_sha256']);self.assertEqual(raw.count(peer['after']),1);raw=raw.replace(peer['after'],peer['before']);self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),peer['before_sha256'])
    self.assertEqual(hashlib.sha256(raw.encode()).hexdigest(),t['after_sha256'])
    for change in reversed(t['replacements']):
@@ -97,9 +95,8 @@ class Preservation(unittest.TestCase):
  def test_every_registered_context_is_in_exact_deployment_closure(self):
   sys.path.insert(0,str(R/'aws/ops/checks'));import release_package_evidence
   sources=release_package_evidence.shared_imports(R,[R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py'])
-  contexts={v['context'] for v in hub.SOURCES.values() if v['context']}
-  expected={'ticker_360','context_evidence_store'}|contexts
-  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)
+  expected={'ticker_360'}|{v['context'] for v in hub.SOURCES.values() if v['context']}
+  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),expected-{'ticker_360'})
  def test_existing_raw_inventory_and_per_ticker_selection_match_predecessor(self):
   for kind in ('packet','tkr'):
    for obj in (packet(),{'tickers':{'QAONLY':{'reported':0}}},{'by_ticker':{'OTHER':{'value':1}}}):

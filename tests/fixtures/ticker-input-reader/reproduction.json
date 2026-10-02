@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "raw_utf8": "{\"by_ticker\":{\"QAONLY\":{\"score\":1,\"score\":99}}}",
+      "raw_sha256": "a149ed5a25aa8b7e6cafe3f214221d9c8e084f73ec610197388accd1eca2969f",
+      "parsed_score_repr": "99",
+      "stream_closed": false,
+      "producer_error_type": null,
+      "publications": 1
+    },
+    {
+      "raw_utf8": "{\"by_ticker\":{\"QAONLY\":{\"score\":NaN}}}",
+      "raw_sha256": "ad75995c777be070604c07f090ca1cf1ab7bf26bf0c575c2dcdc633d3b5b2c23",
+      "parsed_score_repr": "nan",
+      "stream_closed": false,
+      "producer_error_type": "ValueError",
+      "publications": 0
+    },
+    {
+      "raw_utf8": "{\"by_ticker\":{\"QAONLY\":{\"score\":1e-1000}}}",
+      "raw_sha256": "f4561b6fcf025926170cf274459d65fadba8b0342df2b7643c99c23bd362d553",
+      "parsed_score_repr": "0.0",
+      "stream_closed": false,
+      "producer_error_type": null,
+      "publications": 1
+    },
+    {
+      "raw_utf8": "{\"by_ticker\":{\"QAONLY\":{\"score\":1e309}}}",
+      "raw_sha256": "49d8df5990f3adb8d64a77eb4f7c1d01545612e555b370d0700f0d8a40ebdbc9",
+      "parsed_score_repr": "inf",
+      "stream_closed": false,
+      "producer_error_type": "ValueError",
+      "publications": 0
+    }
+  ],
+  "actual_network_requests": 0,
+  "production_invocations": 0,
+  "scope": "Invented source bodies, actual candidate hub/producer execution. No claim about live source incidence."
+}
