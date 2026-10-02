@@ -17,7 +17,7 @@ probe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
 
 
-def fixture(candidate=True, alter=None, alter_receipt=None, initial_ephemeral=None):
+def fixture(candidate=True, alter=None, alter_receipt=None, initial_ephemeral=None, missing_retry=False):
     expected = b'candidate fixture: intentionally distinct bytes\n'
     predecessor = b'predecessor fixture\n'
     temporary = tempfile.TemporaryDirectory(prefix='sdmx-probe-')
@@ -56,9 +56,15 @@ def fixture(candidate=True, alter=None, alter_receipt=None, initial_ephemeral=No
     events = types.SimpleNamespace(describe_rule=lambda **kw: {'Name': kw['Name'], 'State': 'ENABLED',
         'ScheduleExpression': 'rate(5 minutes)'}, list_targets_by_rule=lambda **kw: {'Targets': [
             {'Id': '1', 'Arn': arn, 'Input': 'PRIVATE_TARGET_PAYLOAD', 'RoleArn': 'PRIVATE_ROLE'}]})
-    scheduler = types.SimpleNamespace(get_schedule=lambda **kw: {'Name': kw['Name'], 'State': 'ENABLED',
-        'ScheduleExpression': 'rate(1 hour)', 'Target': {'Arn': arn, 'Input': 'PRIVATE_TARGET_PAYLOAD',
-        'RoleArn': 'PRIVATE_ROLE'}, 'FlexibleTimeWindow': {'Mode': 'OFF'}})
+    class Missing(Exception):
+        response = {'Error': {'Code': 'ResourceNotFoundException'}}
+    def get_schedule(**kwargs):
+        if missing_retry and kwargs['Name'] == 'justhodl-eurostat-retry-30min':
+            raise Missing('PRIVATE_MISSING_MESSAGE')
+        return {'Name': kwargs['Name'], 'State': 'ENABLED',
+            'ScheduleExpression': 'rate(1 hour)', 'Target': {'Arn': arn, 'Input': 'PRIVATE_TARGET_PAYLOAD',
+            'RoleArn': 'PRIVATE_ROLE'}, 'FlexibleTimeWindow': {'Mode': 'OFF'}}
+    scheduler = types.SimpleNamespace(get_schedule=get_schedule)
     def git_show(command, **kwargs):
         return predecessor if command[2].startswith('ab0a502c') else expected
     if candidate:
@@ -189,3 +195,33 @@ def test_legacy_ephemeral_metadata_does_not_override_live_setting():
             assert str(error) == 'operating_controls_changed'
         else:
             raise AssertionError('live ephemeral change was accepted')
+
+
+def test_optional_retry_absence_is_preserved_without_ignoring_other_errors():
+    clients, raw, git_show, temporary = fixture(missing_retry=True)
+    with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+         patch.object(probe, 'ROOT', Path(temporary.name)), \
+         patch.object(probe, 'BASELINE', Path(temporary.name) / 'baseline.json'):
+        result = probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+        assert result['optional_missing_bindings'] == ['justhodl-eurostat-retry-30min']
+        assert 'PRIVATE_MISSING_MESSAGE' not in json.dumps(result)
+        def get_schedule(**kwargs):
+            return {'Name': kwargs['Name'], 'State': 'ENABLED', 'Target': clients[2].list_targets_by_rule()['Targets'][0]}
+        clients[3].get_schedule = get_schedule
+        try:
+            probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+        except probe.Stop as error:
+            assert str(error) == 'operating_controls_changed'
+        else:
+            raise AssertionError('new optional binding was accepted')
+    class Missing(Exception):
+        response = {'Error': {'Code': 'ResourceNotFoundException'}}
+    def get_schedule(**kwargs):
+        raise Missing('PRIVATE_MISSING_MESSAGE')
+    for name in ('fleet-error-monitor-sched', 'unknown'):
+        try:
+            probe.Reader().read(get_schedule, Name=name)
+        except probe.Stop as error:
+            assert str(error) == 'aws_read_failed_details_withheld'
+        else:
+            raise AssertionError('protected/unknown missing binding was ignored')
