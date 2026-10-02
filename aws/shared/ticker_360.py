@@ -35,7 +35,8 @@ BUCKET = "justhodl-dashboard-live"
 # kind "packet": universe packet, extract per-ticker slice from decision_view
 # kind "tkr": per-ticker artifact, read ticker entry directly
 SOURCES = {
-    "short-interest":      {"key": "data/short-interest.json",
+    "short-interest":      {"key": "data/short-book.json",
+                            "fallback_key": "data/short-interest.json",
                             "context": "short_interest_context", "kind": "packet"},
     "short-interest-tkr":  {"key": "data/short-interest-tickers.json",
                             "context": None, "kind": "tkr"},
@@ -67,9 +68,11 @@ SOURCES = {
                             "context": None, "kind": "packet"},
     "cboe-options":        {"key": "data/cboe-options-chain.json",
                             "context": None, "kind": "packet"},
-    "xbrl-fundamentals":   {"key": "data/xbrl-fundamentals-index.json",
+    "xbrl-fundamentals":   {"key": "data/xbrl-fundamentals/",
+                            "fallback_key": "data/xbrl-fundamentals-index.json",
                             "context": None, "kind": "packet"},
-    "sec-8k":              {"key": "data/8k-by-ticker.json",
+    "sec-8k":              {"key": "data/sec-filings-intel.json",
+                            "fallback_key": "data/8k-by-ticker.json",
                             "context": None, "kind": "tkr"},
     "corporate-actions":   {"key": "data/corporate-actions-index.json",
                             "context": None, "kind": "packet"},
@@ -130,13 +133,22 @@ def _extract_ticker(view, ticker):
     return None
 
 
-def _read_packet(s3, key, cache):
+def _read_packet(s3, key, cache, fallback_key=None):
+    """Read packet with optional fallback. Fail-soft."""
     if key in cache:
         return cache[key]
+    pkt = None
     try:
         pkt = json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
     except Exception:
-        pkt = None
+        pass
+    # Failover: try fallback key if primary failed
+    if pkt is None and fallback_key:
+        try:
+            pkt = json.loads(
+                s3.get_object(Bucket=BUCKET, Key=fallback_key)["Body"].read())
+        except Exception:
+            pass
     cache[key] = pkt
     return pkt
 
@@ -146,7 +158,8 @@ def _domain_view(s3, domain, spec, ticker, cache):
     out = {"domain": domain, "available": False, "as_of": None,
            "ticker_data": None, "summary": {}}
     try:
-        pkt = _read_packet(s3, spec["key"], cache)
+        pkt = _read_packet(s3, spec["key"], cache,
+                           fallback_key=spec.get("fallback_key"))
         if not isinstance(pkt, dict):
             out["reason"] = "packet missing/unreadable"
             return out
