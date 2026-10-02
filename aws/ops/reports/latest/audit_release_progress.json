@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-02T01:39:45.418002+00:00",
+  "observed_at": "2026-10-02T01:39:56.040476+00:00",
   "runs": [
     {
       "id": 36951967238,
@@ -29,25 +29,25 @@
             {
               "number": 2,
               "name": "Checkout",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-02T01:39:26Z",
-              "completed_at": null
+              "completed_at": "2026-10-02T01:39:37Z"
             },
             {
               "number": 3,
               "name": "Set up Node",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-02T01:39:37Z",
+              "completed_at": "2026-10-02T01:39:37Z"
             },
             {
               "number": 4,
               "name": "Block published credentials",
-              "status": "pending",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-10-02T01:39:37Z",
               "completed_at": null
             },
             {
@@ -77,6 +77,14 @@
             {
               "number": 8,
               "name": "Complete Worker evidence tests",
+              "status": "pending",
+              "conclusion": null,
+              "started_at": null,
+              "completed_at": null
+            },
+            {
+              "number": 15,
+              "name": "Post Set up Node",
               "status": "pending",
               "conclusion": null,
               "started_at": null,
