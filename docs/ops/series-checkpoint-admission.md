@@ -173,10 +173,21 @@ withheld. The original boundary remains enforced. Focused clean-main checks
 pass 25 cases. Owner evidence explicitly leaves the alias delta's native
 delivery unverified; a passing static gate does not qualify that other lane's
 production behavior. Ownership remains with `S-codex#symdir1001a`; this patch
-contains no other-lane repair. Independent review and the complete required
-suite are being refreshed on the rebased admission head before release.
+contains no other-lane repair. Independent review accepted this exact owner correction after rerunning all
+25 focused tests and reconstructing both full source boundaries. The rebased
+admission candidate passes all 1,043 required deployment static tests and 15
+shell gates, its complete 72/166/10/four differential suite, all 18 probe tests,
+selected source/config validators, source compilation, secrets/stub checks,
+15 public-boundary checks and engine wiring. The source, fixture, runner and
+committed baseline are unchanged from the earlier independently approved draft.
 
-Refresh/revalidate the baseline if controls or deployment dependencies change
-before release; it is not authorization to disregard a red gate. Natural
-candidate publication, post-release package/receipt/control proof and producer
-deployment remain pending.
+Read-only [refresh run 36979510081](https://github.com/ElMooro/si/actions/runs/36979510081)
+at exact owner-corrected main `13e5e1e9813b5d34d7fec319275474d33e7e28aa`
+succeeded. Its complete sanitized result is identical to the retained baseline:
+predecessor package/handler, operating controls and fingerprint all match;
+14 AWS reads, one signed package GET, zero AWS writes/invokes. Report commit
+`599fa623c04b7a2137380ea8155f91f87363ce77` changes only that read-only report;
+no tested code or deployment dependency changed on the final rebase. Refresh
+again if controls or deployment dependencies change before release. Exact-head
+release review, producer deployment and post-release package/receipt/control
+proof remain pending. Natural publication cannot prove the failure path executed.
