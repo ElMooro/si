@@ -56,7 +56,11 @@ try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width o
   await page.locator('#filters button[data-f=all]').focus();await page.locator('#filters button[data-f=all]').press('Enter');
  }
  if(scenario==='normal'){
-  const source=page.locator('#research-sources .research-source').filter({has:page.locator('h3',{hasText:/^master —/})});
+  // The site may prepend section badges asynchronously. Exercise the actual
+  // numbering pass without treating that decoration as the source identity.
+  await page.evaluate(()=>window.JustHodlSections?.rerun());
+  const source=page.locator('#research-sources .research-source').filter({has:page.locator('h3',{hasText:/master — received$/})});
+  assert.equal(await source.count(),1);
   await source.locator('summary').filter({hasText:'Complete original JSON text'}).focus();await source.locator('summary').filter({hasText:'Complete original JSON text'}).press('Enter');await source.locator('pre').waitFor();assert.equal(await source.locator('pre').textContent(),JSON.stringify(data['/data/master-ranker.json']));
   const pending=page.waitForEvent('download');await source.getByRole('button',{name:'Download original bytes'}).focus();await source.getByRole('button',{name:'Download original bytes'}).press('Enter');const download=await pending;assert.equal(fs.readFileSync(await download.path(),'utf8'),JSON.stringify(data['/data/master-ranker.json']));
  }
