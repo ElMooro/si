@@ -8111,3 +8111,10 @@ Explicit zero/no-entry constraints no longer borrow another value or recommend L
 ### Stage 571 ticker lookup repair candidate
 
 The peer ticker lookup introduced unescaped HTML, lost falsy payloads, clipped records and unbound asynchronous responses. The repair retains the lookup and all six prior feed renderers, uses text-only nodes, retains complete parsed packet/ticker/domain values for on-demand inspection, and binds both success and errors to the current selection. Coverage disagreement and malformed records are explicit; keyboard, live status and mobile layout are covered by intercepted browser cases. Both complete predecessors and exact reversible edits remain in tests. This page repair does not qualify source observations, original lexical JSON, independence, forecast skill or investment authority. Source and release acceptance remain separate; all ten workstreams stay OPEN.
+
+
+### Stage 571 ticker lookup release acceptance
+
+Commit `f2bf8d9214fd196076abb2c0e0817d38d19dce91` shipped 20 files atomically, including the large page-contract registry. All 3008 frontend cases, 600 syntax/contracts and 143 wiring entries passed on the final reviewed source base. The 1077 deployment and 15 shell checks passed before the peer-only frontend/metadata updates; affected frontend checks were rerun, not claimed unchanged. The lookup and prior feed browser cases passed with invented intercepted inputs.
+
+The published whole HTML, inline renderer and static dependencies match one coherent commit-bound build manifest. Fourteen additional served-page cases verify keyboard submit, complete record inspection, text-only markup, typed counts, mobile layout, selection invalidation and late success/error behavior. No live application packets or private/learning records were fetched or executed. Parsed JSON is not lexical original-source preservation or arbitrary-precision qualification. The peer buyback script is preserved and its historical HTML insertion is proven; its financial/runtime concerns remain open. AI board numeric/clock projections are next. All ten workstreams remain OPEN.

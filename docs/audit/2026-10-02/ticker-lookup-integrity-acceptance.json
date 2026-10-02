@@ -1,0 +1,675 @@
+{
+  "stage": 571,
+  "status": "exact_static_release_accepted_with_qualification_gaps",
+  "source_commit": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+  "tree": "aef3acecc30e3df98f580256e1240c2edd1eac07",
+  "atomic_git_batch": {
+    "paths": [
+      "config/page-data-contracts.json",
+      "docs/SESSION_CLAIMS.md",
+      "docs/audit/2026-10-02/ticker-lookup-integrity.json",
+      "docs/institutional-upgrade-progress.md",
+      "engines-data.html",
+      "tests/engine-data-page.test.js",
+      "tests/fixtures/ticker-lookup/before-peer.html",
+      "tests/fixtures/ticker-lookup/before.html",
+      "tests/fixtures/ticker-lookup/incoming-chart/chart-after.html.txt",
+      "tests/fixtures/ticker-lookup/incoming-chart/chart-before.html.txt",
+      "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback-latest.js.txt",
+      "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback.js.txt",
+      "tests/fixtures/ticker-lookup/incoming-chart/layout-helper-before.cjs.txt",
+      "tests/fixtures/ticker-lookup/incoming-chart/transition.json",
+      "tests/fixtures/ticker-lookup/transition.json",
+      "tests/helpers/incoming-buyback-tag-preservation.cjs",
+      "tests/incoming-buyback-tag.test.js",
+      "tests/ranker-numeric.test.js",
+      "tests/ticker-lookup-browser.cjs",
+      "tests/ticker-lookup.test.js"
+    ],
+    "count": 20,
+    "sha256": {
+      "config/page-data-contracts.json": "bb6dda997202853a69da8f74d0cff6b0a09590badc677803ad84729f9866a2ff",
+      "docs/SESSION_CLAIMS.md": "c6e554f64bf88ca9090653475be800e421a97a36c61fe3000d261658754fdc17",
+      "docs/audit/2026-10-02/ticker-lookup-integrity.json": "64c13409baa68d2d48b93eaf83bbfc9649bc60f4233d504b1c292d8baf024b5e",
+      "docs/institutional-upgrade-progress.md": "ffdfb1469ac0b6a8ae13f741697b06ddd979942adf87f0ac438380bf17990ada",
+      "engines-data.html": "c65f1c92da19a2993dc9a332a836fefc0c088c6987c17c902d3d0d3e3c17c777",
+      "tests/engine-data-page.test.js": "ea375e4e056fc900ccc7484da1c583d004280977c274e5b39bf70dbd6a5b1ce0",
+      "tests/fixtures/ticker-lookup/before-peer.html": "f350ba1b3838cef1f3799d3edcde3055ea5605da0c1930b5ed45b1f09848f86c",
+      "tests/fixtures/ticker-lookup/before.html": "152d923a76f7faa8d856c2e605ef34570662d672689409f193d2f9ffbb6eacab",
+      "tests/fixtures/ticker-lookup/incoming-chart/chart-after.html.txt": "6869aab620946ff8672cb562288ab9872424e775857cd62d0cf758f568e107e6",
+      "tests/fixtures/ticker-lookup/incoming-chart/chart-before.html.txt": "f92d1d3df58a203dc9d5f6934f8af4f28bde0e6a90b119176cfbddaf26a29d45",
+      "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback-latest.js.txt": "0cc4643e2028e70f79132354593347168380e6e0a59856e66ea1ef20ad604691",
+      "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback.js.txt": "068a533091a0d8284b13c249bea2e7a8662ab914347140f6f7bae5d9af3c03cc",
+      "tests/fixtures/ticker-lookup/incoming-chart/layout-helper-before.cjs.txt": "2174465e20da927b37959cee2b20e96dcbb2cca69242cdd5b677e4b0f51c54b0",
+      "tests/fixtures/ticker-lookup/incoming-chart/transition.json": "886c5772ab656d4bf6823549389f9a4fe5a1bda34ab47ba43d9f095c7f2dbe13",
+      "tests/fixtures/ticker-lookup/transition.json": "4c2ab422fd5e2a2faf62aede3de3413cd283a0f018c140d29e19741150bf4d1f",
+      "tests/helpers/incoming-buyback-tag-preservation.cjs": "24ddebcfafc0ab02e02a83d7000698060f919b75af7485d88afa97de7aa7f569",
+      "tests/incoming-buyback-tag.test.js": "c58c4bf3e27720c30cba64999aacc1f93ef9753697ca32e5270011b0bc30a073",
+      "tests/ranker-numeric.test.js": "04e55d2b118434c28cbde8183b46fe45694c4b7c6b0163e1c94fe094c72717dd",
+      "tests/ticker-lookup-browser.cjs": "d48527e223bec493c60faab147fe8dcf79152f6ba73abe9f747f85354b138137",
+      "tests/ticker-lookup.test.js": "e5e4b7137c502f4fb673a3ab3968d81dfee99bf9db21ef90033feff5cd8563a6"
+    }
+  },
+  "tests": {
+    "frontend": 3008,
+    "deployment": 1077,
+    "shell": 15,
+    "source_browser_cases": 18,
+    "served_lookup_browser_cases": 14,
+    "page_contracts": 600,
+    "page_syntax_graphs": 600,
+    "wiring_entries": 143
+  },
+  "frontend_test_base": "49eb1191286827214d4fd4c3dfc7f05703c7cccf",
+  "deployment_test_base": "ad691dfe9a53e8724f6a18e7e0b796a87e060a38",
+  "deployment_scope": "Deployment suite passed before incoming peer page/tag/metadata changes. Native sources, deployment workflows and deployment tests were unchanged; affected frontend/graph/browser checks were repeated after all incoming changes.",
+  "static": {
+    "status": "exact_static_release_checked",
+    "source_commit": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+    "served_commit": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+    "checked_at": "2026-10-02T15:35:01.288427+00:00",
+    "build_manifest_sha256": "4326b00cbb8447aa56eec585806544337815db22839a7ad9110618215a308df8",
+    "static_files": [
+      {
+        "path": "engines-data.html",
+        "bytes": 56262,
+        "sha256": "1bb500c4532ba9109ee47a0320b6bc5cc816fd7122a751022bff2c309729815a",
+        "whole_http_body_sha256": "70df241a7d774e33faf43dd6810453db64e8f0ce557a14b9c58a84d358764f35",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        }
+      },
+      {
+        "path": "jh-chart-theme.js",
+        "bytes": 5238,
+        "sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "whole_http_body_sha256": "3472a3eb2a166dfb41eaa358bef68787e0ed087917aa7c704ab1db82be95e85d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-data-inspector.js",
+        "bytes": 34117,
+        "sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "whole_http_body_sha256": "dd7fc12b2955aa972257183b2e33fb69387f117538745b6e09a0c064637251d5",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-evidence-io.js",
+        "bytes": 5002,
+        "sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "whole_http_body_sha256": "c9fe373a4b12ca8cb2e00b1d8836144e15f49460237e6dabfe126e8329a2c8fe",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-footer.js",
+        "bytes": 3650,
+        "sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "whole_http_body_sha256": "98d64e220d768ed6d6014e39b13c497b652471e42cbf134424d9edb35f2460dd",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-nav-drawer.js",
+        "bytes": 31948,
+        "sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "whole_http_body_sha256": "06670eed744a24eb08b9f35630cb09200177d081f5b8b1512f53706bea8edd92",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-ranker-numeric.js",
+        "bytes": 2840,
+        "sha256": "c0ab0c2693a2cbe543ec69820244bda4bf2636b66b436f4cc4d59c1cb49e347f",
+        "whole_http_body_sha256": "c0ab0c2693a2cbe543ec69820244bda4bf2636b66b436f4cc4d59c1cb49e347f",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-right-rail.js",
+        "bytes": 4776,
+        "sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "whole_http_body_sha256": "14d29f90cfed4688012158f3ab8dae4304b550d7648a577bfdbf74538808095e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-sections.js",
+        "bytes": 21723,
+        "sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "whole_http_body_sha256": "ba9893213a8ec56f71a48d0c613e357772a24b37928bde92585a0140f19c4b43",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "auth-config.js",
+        "bytes": 1406,
+        "sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "whole_http_body_sha256": "4b0fccb43934974de6505a96923ff39f3bc714bdf9546ac46ea1d8d59ca0a748",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "auth.js",
+        "bytes": 20821,
+        "sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+        "whole_http_body_sha256": "6be9b0565233a9f6fd128509e880515aef81e269853a2c23530c085fadf63753",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "factory-desk.css",
+        "bytes": 4774,
+        "sha256": "b52f965d3f64aaae44b9aeeecf6a653d8ea4418cd96c96f05b31c78443827c6c",
+        "whole_http_body_sha256": "b52f965d3f64aaae44b9aeeecf6a653d8ea4418cd96c96f05b31c78443827c6c",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "factory-desk.js",
+        "bytes": 20482,
+        "sha256": "ed4272d007cf3f5a9a4435bd66349e2245cc0f4a3026688587b409d2e06f5392",
+        "whole_http_body_sha256": "ed4272d007cf3f5a9a4435bd66349e2245cc0f4a3026688587b409d2e06f5392",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Bold.woff2",
+        "bytes": 50380,
+        "sha256": "ea576f38d05cc44cca48c45314984beb8cc1d2b886f58e1dce99f15dc344eb1d",
+        "whole_http_body_sha256": "ea576f38d05cc44cca48c45314984beb8cc1d2b886f58e1dce99f15dc344eb1d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Medium.woff2",
+        "bytes": 50400,
+        "sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+        "whole_http_body_sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-Regular.woff2",
+        "bytes": 49248,
+        "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+        "whole_http_body_sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/mono/IBMPlexMono-SemiBold.woff2",
+        "bytes": 50600,
+        "sha256": "6a825b4824c01cbb401e829e5a066a1818411bcb3538b5a5792c5ca9b82343c3",
+        "whole_http_body_sha256": "6a825b4824c01cbb401e829e5a066a1818411bcb3538b5a5792c5ca9b82343c3",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-Bold.woff2",
+        "bytes": 63012,
+        "sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
+        "whole_http_body_sha256": "fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-Regular.woff2",
+        "bytes": 63020,
+        "sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+        "whole_http_body_sha256": "ba711a3085ff9f27440b6b9c4550cfc47c97bf36591d5da958b975bb3add8c1a",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "fonts/sans/IBMPlexSans-SemiBold.woff2",
+        "bytes": 67060,
+        "sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+        "whole_http_body_sha256": "f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-ai-command.js",
+        "bytes": 3841,
+        "sha256": "e6421f3adda3e06d42bb242cbff812371725a5b9efb19b3d79022c681ddc225e",
+        "whole_http_body_sha256": "e6421f3adda3e06d42bb242cbff812371725a5b9efb19b3d79022c681ddc225e",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-market-tape.js",
+        "bytes": 4387,
+        "sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "whole_http_body_sha256": "3a05788ecee1707b3be0144a3d8622ab72c1237712dd2d8f8ea79bcf2d9f48ff",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-page-ai.js",
+        "bytes": 12374,
+        "sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181",
+        "whole_http_body_sha256": "0d4021b341d5020a6a32c5f7babac750642f8d2d2faa8e3ff2fee75397042181",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "jh-theme.css",
+        "bytes": 10031,
+        "sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "whole_http_body_sha256": "2efe4f6a026cb2b3dd694dd38fca76d796bd6945fac505624fecf8adccba5e12",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "sidebar.js",
+        "bytes": 12987,
+        "sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "whole_http_body_sha256": "e8953ce7a9a312a0f7f21e37da431ec5286f6785a41a702f2b1dff2b5d20f119",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "nav-manifest.json",
+        "bytes": 36409,
+        "sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "whole_http_body_sha256": "8ac289ecf9ac00f16f85b9f5b20f74a020b99c949fed4bf83ac096624cbb1cc2",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "config/page-data-contracts.json",
+        "bytes": 7998982,
+        "sha256": "592c25416bf38ef1f113fbf199f92139b1bfbff16b67266a154206231c149c43",
+        "whole_http_body_sha256": "592c25416bf38ef1f113fbf199f92139b1bfbff16b67266a154206231c149c43",
+        "sole_edge_script_removed": null
+      },
+      {
+        "path": "engine-manifest.json",
+        "bytes": 3100217,
+        "sha256": "7869c88239aa88d45ac14df88aba52be26ab729c99939235cae06eda2c028d28",
+        "whole_http_body_sha256": "7869c88239aa88d45ac14df88aba52be26ab729c99939235cae06eda2c028d28",
+        "sole_edge_script_removed": null
+      }
+    ],
+    "whole_page_inline_renderers_match_source_after_existing_theme_transform": true,
+    "whole_ranker_module_matches_source_after_existing_theme_transform": true,
+    "ranker_script_tag": "/jh-ranker-numeric.js",
+    "inventory_engines": 900,
+    "theme_transform_source_sha256": "992450c03bef610a33ae14367060d0bcab1d03500f356cd991a02c9700bb887c",
+    "application_packet_reads": 0,
+    "page_execution": false,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Complete Engine Data static page, direct and source-browser-observed static dependencies, fonts and inspection inventories. Normal application publication and actual private/learning packets are not inspected."
+  },
+  "served_browser": {
+    "source_sha256": "1bb500c4532ba9109ee47a0320b6bc5cc816fd7122a751022bff2c309729815a",
+    "scope": "Entire source or verified served page; every request intercepted; all application responses invented.",
+    "cases": [
+      {
+        "scenario": "keyboard-complete-record-and-safe-markup",
+        "width": 1440,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON){\n  \"generated_at\": \"2026-10-02T00:00:00Z\",\n  \"tickers\": {\n    \"QAONLY\": {\n      \"coverage_count\": 3,\n      \"domains\": {\n        \"zero\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": 0\n        },\n        \"boolean\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": false\n        },\n        \"<img src=\\\"/lookup-canary\\\" onerror=\\\"window.__lookup_injected=true\\\">\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": \"invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented RECORD_TAIL\"\n        }\n      }\n    }\n  }\n}Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "edit-clears-unrelated-record",
+        "width": 1440,
+        "state": {
+          "status": "Selection changed. Submit a lookup to inspect its received record.",
+          "result": "",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "typed-coverage-and-invalid-domain",
+        "width": 1440,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker recordUnavailable reported domains; 2 received domain entries. These are not independent votes.Coverage count is missing, invalid or inconsistent with the received domain map.zero — reported as of Unavailableinvalid — invalid domain record; original value retained",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "invalid-inventory-is-not-empty",
+        "width": 1440,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON)Unavailable: missing or invalid ticker inventory.",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-success-selection-binding",
+        "width": 1440,
+        "state": {
+          "status": "Lookup completed for SECOND.",
+          "result": "SECONDComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-error-keeps-new-loading-state",
+        "width": 1440,
+        "state": {
+          "status": "Loading NEWEST…",
+          "result": "",
+          "busy": "true",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "newest-completes-after-old-error",
+        "width": 1440,
+        "state": {
+          "status": "Lookup completed for NEWEST.",
+          "result": "NEWESTComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 1440,
+          "scroll": 1440
+        },
+        "errors": [],
+        "actual_network_requests": 0,
+        "requests": [
+          "/engines-data.html",
+          "/jh-evidence-io.js",
+          "/jh-data-inspector.js",
+          "/jh-chart-theme.js",
+          "/jh-ranker-numeric.js",
+          "/jh-sections.js",
+          "/jh-right-rail.js",
+          "/jh-footer.js",
+          "/jh-nav-drawer.js",
+          "/data/feed-heartbeat.json",
+          "/data/master-ranker.json",
+          "/data/best-ideas.json",
+          "/data/flow-confluence.json",
+          "/data/conviction.json",
+          "/data/options-confluence.json",
+          "/data/ticker-360.json",
+          "/data/subscribe-endpoint.json",
+          "/jh-theme.css",
+          "/jh-market-tape.js",
+          "/data/market-tape.json",
+          "/nav-manifest.json",
+          "/",
+          "/fonts/mono/IBMPlexMono-Bold.woff2",
+          "/fonts/mono/IBMPlexMono-Regular.woff2",
+          "/fonts/mono/IBMPlexMono-Medium.woff2",
+          "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+          "/fonts/sans/IBMPlexSans-Regular.woff2",
+          "/engines-data.html",
+          "/jh-evidence-io.js",
+          "/jh-data-inspector.js",
+          "/jh-chart-theme.js",
+          "/jh-ranker-numeric.js",
+          "/jh-sections.js",
+          "/jh-right-rail.js",
+          "/jh-footer.js",
+          "/jh-nav-drawer.js",
+          "/data/feed-heartbeat.json",
+          "/data/master-ranker.json",
+          "/data/flow-confluence.json",
+          "/data/conviction.json",
+          "/data/best-ideas.json",
+          "/data/options-confluence.json",
+          "/data/ticker-360.json",
+          "/data/subscribe-endpoint.json",
+          "/jh-theme.css",
+          "/jh-market-tape.js",
+          "/data/market-tape.json",
+          "/nav-manifest.json",
+          "/fonts/mono/IBMPlexMono-Bold.woff2",
+          "/fonts/mono/IBMPlexMono-Regular.woff2",
+          "/fonts/mono/IBMPlexMono-Medium.woff2",
+          "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+          "/fonts/sans/IBMPlexSans-Regular.woff2",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json"
+        ]
+      },
+      {
+        "scenario": "keyboard-complete-record-and-safe-markup",
+        "width": 390,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON){\n  \"generated_at\": \"2026-10-02T00:00:00Z\",\n  \"tickers\": {\n    \"QAONLY\": {\n      \"coverage_count\": 3,\n      \"domains\": {\n        \"zero\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": 0\n        },\n        \"boolean\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": false\n        },\n        \"<img src=\\\"/lookup-canary\\\" onerror=\\\"window.__lookup_injected=true\\\">\": {\n          \"as_of\": \"2026-10-02T00:00:00Z\",\n          \"data\": \"invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented invented RECORD_TAIL\"\n        }\n      }\n    }\n  }\n}Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "edit-clears-unrelated-record",
+        "width": 390,
+        "state": {
+          "status": "Selection changed. Submit a lookup to inspect its received record.",
+          "result": "",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "typed-coverage-and-invalid-domain",
+        "width": 390,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker recordUnavailable reported domains; 2 received domain entries. These are not independent votes.Coverage count is missing, invalid or inconsistent with the received domain map.zero — reported as of Unavailableinvalid — invalid domain record; original value retained",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "invalid-inventory-is-not-empty",
+        "width": 390,
+        "state": {
+          "status": "Lookup completed for QAONLY.",
+          "result": "QAONLYComplete received packet (parsed JSON)Unavailable: missing or invalid ticker inventory.",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-success-selection-binding",
+        "width": 390,
+        "state": {
+          "status": "Lookup completed for SECOND.",
+          "result": "SECONDComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "late-error-keeps-new-loading-state",
+        "width": 390,
+        "state": {
+          "status": "Loading NEWEST…",
+          "result": "",
+          "busy": "true",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0
+      },
+      {
+        "scenario": "newest-completes-after-old-error",
+        "width": 390,
+        "state": {
+          "status": "Lookup completed for NEWEST.",
+          "result": "NEWESTComplete received packet (parsed JSON)Packet timestamp 2026-10-02T00:00:00Z (16h ago). Observation freshness and investment validity are unverified.Complete received ticker record3 reported domains; 3 received domain entries. These are not independent votes.zero — reported as of 2026-10-02T00:00:00Z (16h ago)boolean — reported as of 2026-10-02T00:00:00Z (16h ago)<img src=\"/lookup-canary\" onerror=\"window.__lookup_injected=true\"> — reported as of 2026-10-02T00:00:00Z (16h ago)",
+          "busy": "false",
+          "images": 0,
+          "injected": false,
+          "client": 390,
+          "scroll": 390
+        },
+        "errors": [],
+        "actual_network_requests": 0,
+        "requests": [
+          "/engines-data.html",
+          "/jh-evidence-io.js",
+          "/jh-data-inspector.js",
+          "/jh-chart-theme.js",
+          "/jh-ranker-numeric.js",
+          "/data/feed-heartbeat.json",
+          "/data/flow-confluence.json",
+          "/data/master-ranker.json",
+          "/data/best-ideas.json",
+          "/data/conviction.json",
+          "/data/options-confluence.json",
+          "/data/ticker-360.json",
+          "/jh-sections.js",
+          "/jh-right-rail.js",
+          "/jh-footer.js",
+          "/jh-nav-drawer.js",
+          "/data/subscribe-endpoint.json",
+          "/jh-theme.css",
+          "/jh-market-tape.js",
+          "/data/market-tape.json",
+          "/nav-manifest.json",
+          "/fonts/mono/IBMPlexMono-Bold.woff2",
+          "/fonts/mono/IBMPlexMono-Regular.woff2",
+          "/fonts/mono/IBMPlexMono-Medium.woff2",
+          "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+          "/fonts/sans/IBMPlexSans-Regular.woff2",
+          "/",
+          "/engines-data.html",
+          "/jh-evidence-io.js",
+          "/jh-data-inspector.js",
+          "/jh-chart-theme.js",
+          "/jh-ranker-numeric.js",
+          "/jh-sections.js",
+          "/jh-right-rail.js",
+          "/data/feed-heartbeat.json",
+          "/data/best-ideas.json",
+          "/data/master-ranker.json",
+          "/data/flow-confluence.json",
+          "/data/conviction.json",
+          "/data/options-confluence.json",
+          "/data/ticker-360.json",
+          "/jh-footer.js",
+          "/jh-nav-drawer.js",
+          "/data/subscribe-endpoint.json",
+          "/jh-theme.css",
+          "/jh-market-tape.js",
+          "/data/market-tape.json",
+          "/nav-manifest.json",
+          "/fonts/mono/IBMPlexMono-Bold.woff2",
+          "/fonts/mono/IBMPlexMono-Regular.woff2",
+          "/fonts/mono/IBMPlexMono-Medium.woff2",
+          "/fonts/mono/IBMPlexMono-SemiBold.woff2",
+          "/fonts/sans/IBMPlexSans-Regular.woff2",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json",
+          "/data/ticker-360.json"
+        ]
+      }
+    ]
+  },
+  "workflow_run_scope": {
+    "source_commit": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+    "release_bound_runs_all_succeeded": true,
+    "runs": [
+      {
+        "id": 37026837192,
+        "path": ".github/workflows/page-gate.yml",
+        "event": "push",
+        "head_sha": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 37026836895,
+        "path": ".github/workflows/pages.yml",
+        "event": "push",
+        "head_sha": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "separate_runs": [
+      {
+        "id": 37027036080,
+        "path": ".github/workflows/audit-release-progress.yml",
+        "event": "workflow_run",
+        "head_sha": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "all_runs_green_claimed": false,
+    "foreign_report_bodies_read": false,
+    "scope": "All push-triggered runs; other events retained as metadata only."
+  },
+  "normal_publication_verified": false,
+  "all_application_responses_invented": true,
+  "source_qualified": false,
+  "investment_authority": false,
+  "peer_buyback_runtime_accepted": false,
+  "limitations": [
+    "Parsed JSON is inspectable; original lexical JSON, duplicate-key detection and arbitrary-precision numbers are not qualified by this change.",
+    "No actual consumer/private packet or normal producer publication inspected.",
+    "Domain counts are reported context, not independent evidence, forecast skill or portfolio authority."
+  ],
+  "incoming_paths_after_source": [
+    "aws/ops/reports/latest/ops_6470_series_reliability_prospective_controls.md"
+  ],
+  "all_ten_workstreams": "OPEN",
+  "institutional_completion_claimed": false,
+  "foreign_report_bodies_read": false
+}

@@ -1,6 +1,6 @@
 {
   "stage": 571,
-  "status": "candidate_not_deployed",
+  "status": "exact_static_release_accepted_with_qualification_gaps",
   "source_base": "49eb1191286827214d4fd4c3dfc7f05703c7cccf",
   "source_sha256": {
     "engines-data.html": "c65f1c92da19a2993dc9a332a836fefc0c088c6987c17c902d3d0d3e3c17c777",
@@ -129,5 +129,7 @@
       "Peer buyback date fallback/continuous hook do not resolve typed units, net/gross, PIT or selected-bar binding concerns.",
       "6470 is a separate workstream; preserve staged operation/docs/tests without executing or claiming it."
     ]
-  }
+  },
+  "source_commit": "f2bf8d9214fd196076abb2c0e0817d38d19dce91",
+  "acceptance": "docs/audit/2026-10-02/ticker-lookup-integrity-acceptance.json"
 }
