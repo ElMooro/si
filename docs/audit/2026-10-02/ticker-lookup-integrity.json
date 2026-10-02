@@ -1,0 +1,133 @@
+{
+  "stage": 571,
+  "status": "candidate_not_deployed",
+  "source_base": "49eb1191286827214d4fd4c3dfc7f05703c7cccf",
+  "source_sha256": {
+    "engines-data.html": "c65f1c92da19a2993dc9a332a836fefc0c088c6987c17c902d3d0d3e3c17c777",
+    "tests/ticker-lookup.test.js": "e5e4b7137c502f4fb673a3ab3968d81dfee99bf9db21ef90033feff5cd8563a6",
+    "tests/ticker-lookup-browser.cjs": "d48527e223bec493c60faab147fe8dcf79152f6ba73abe9f747f85354b138137",
+    "tests/engine-data-page.test.js": "ea375e4e056fc900ccc7484da1c583d004280977c274e5b39bf70dbd6a5b1ce0",
+    "tests/ranker-numeric.test.js": "04e55d2b118434c28cbde8183b46fe45694c4b7c6b0163e1c94fe094c72717dd",
+    "tests/fixtures/ticker-lookup/before.html": "152d923a76f7faa8d856c2e605ef34570662d672689409f193d2f9ffbb6eacab",
+    "tests/fixtures/ticker-lookup/before-peer.html": "f350ba1b3838cef1f3799d3edcde3055ea5605da0c1930b5ed45b1f09848f86c",
+    "tests/fixtures/ticker-lookup/transition.json": "4c2ab422fd5e2a2faf62aede3de3413cd283a0f018c140d29e19741150bf4d1f",
+    "config/page-data-contracts.json": "bb6dda997202853a69da8f74d0cff6b0a09590badc677803ad84729f9866a2ff",
+    "tests/helpers/chart-readout-layout-preservation.cjs": "2174465e20da927b37959cee2b20e96dcbb2cca69242cdd5b677e4b0f51c54b0",
+    "tests/helpers/incoming-buyback-tag-preservation.cjs": "24ddebcfafc0ab02e02a83d7000698060f919b75af7485d88afa97de7aa7f569",
+    "tests/incoming-buyback-tag.test.js": "c58c4bf3e27720c30cba64999aacc1f93ef9753697ca32e5270011b0bc30a073",
+    "tests/fixtures/ticker-lookup/incoming-chart/chart-after.html.txt": "6869aab620946ff8672cb562288ab9872424e775857cd62d0cf758f568e107e6",
+    "tests/fixtures/ticker-lookup/incoming-chart/chart-before.html.txt": "f92d1d3df58a203dc9d5f6934f8af4f28bde0e6a90b119176cfbddaf26a29d45",
+    "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback.js.txt": "068a533091a0d8284b13c249bea2e7a8662ab914347140f6f7bae5d9af3c03cc",
+    "tests/fixtures/ticker-lookup/incoming-chart/layout-helper-before.cjs.txt": "2174465e20da927b37959cee2b20e96dcbb2cca69242cdd5b677e4b0f51c54b0",
+    "tests/fixtures/ticker-lookup/incoming-chart/transition.json": "886c5772ab656d4bf6823549389f9a4fe5a1bda34ab47ba43d9f095c7f2dbe13",
+    "tests/fixtures/ticker-lookup/incoming-chart/jh-chart-buyback-latest.js.txt": "0cc4643e2028e70f79132354593347168380e6e0a59856e66ea1ef20ad604691"
+  },
+  "reproduced_original_faults": [
+    "Unescaped received domain markup enters HTML",
+    "Falsy domain payload replaced by empty object",
+    "Domain payload clipped at 1000 characters",
+    "Late old ticker response overwrites newer selection"
+  ],
+  "repairs": [
+    "DOM text rendering throughout lookup",
+    "Complete parsed packet, selected ticker and complete domain records on demand",
+    "Explicit malformed/missing/count-disagreement states; zero/false/null preserved",
+    "Generation and selected-symbol binding on success/error/finally; input edits invalidate old display",
+    "Labelled form, keyboard submit, live status, focusable wrapped records and mobile controls"
+  ],
+  "preservation": "Both original whole-page baselines retained. Exact reverse transitions prove six prior feed renderers and existing ranker hooks unchanged. Original predecessor tests retain the original hash-qualified baseline; added current-page proof covers both intervening changes.",
+  "browser": {
+    "cases": 14,
+    "widths": [
+      1440,
+      390
+    ],
+    "all_requests_intercepted": true,
+    "all_application_responses_invented": true,
+    "screenshots_reviewed": true
+  },
+  "contract_pages_changed": [
+    "index.html",
+    "workspace.html"
+  ],
+  "limitations": [
+    "Parsed JSON is inspectable; original lexical JSON, duplicate-key detection and arbitrary-precision numbers are not qualified by this change.",
+    "No actual consumer/private packet or normal producer publication inspected.",
+    "Domain counts are reported context, not independent evidence, forecast skill or portfolio authority."
+  ],
+  "source_qualified": false,
+  "investment_authority": false,
+  "normal_publication_verified": false,
+  "all_ten_workstreams": "OPEN",
+  "incoming_review": {
+    "test_base": "ad691dfe9a53e8724f6a18e7e0b796a87e060a38",
+    "reviewed_head": "ee0fd123a0867fd5ab96d12f0a1ed4c84d6393ea",
+    "paths": [
+      "STATE.md",
+      "aws/ops/patchers/applied/grok_chart_buyback_pane.py",
+      "aws/ops/pending/1116_schedule_check2.py",
+      "aws/ops/ran/1114_recreate_heartbeat.py",
+      "aws/ops/ran/1115_schedule_audit.py",
+      "aws/ops/reports/1115_schedule_audit.json",
+      "aws/ops/reports/_lastrun.log",
+      "aws/ops/reports/_ops_ledger.json",
+      "chart.html",
+      "engine-manifest.json",
+      "jh-chart-buyback.js"
+    ],
+    "native_sources_unchanged": true,
+    "manifest_changed_only_generated_at": true,
+    "foreign_report_bodies_read": false,
+    "peer_code_accepted": false,
+    "peer_source_findings": [
+      "Buyback numeric coercion accepts booleans/text",
+      "Gross repurchases can be labelled net",
+      "Latest market cap and quarter date are not historical publication evidence",
+      "Ticker selection does not use active tab data-id",
+      "Unescaped date enters HTML and asynchronous paint can mix current symbol with old bars"
+    ],
+    "native_deployment_checks_retained": "1077 deployment +15 shell from original test base; source/workflow/deployment tests unchanged. Incoming frontend scripts require new frontend/graph/browser checks."
+  },
+  "test_repair": {
+    "failed_prior_cases": 4,
+    "cause": "Peer inserted exactly one new chart script tag; previous whole-page proofs detected it.",
+    "repair": "Full predecessor/current HTML and peer module retained. Exact insertion normalizer and three tests preserve all earlier assertions. No buyback runtime/financial acceptance granted.",
+    "targeted_preservation_cases": 18,
+    "all_targeted_passed": true,
+    "contract_regeneration_overlapped_first_followup_checks": true,
+    "overlapped_run_accepted": false,
+    "required_followup": "Repeat all affected checks after registry generation has completed.",
+    "followup": "Peer later updated its historical transition fixtures. Existing helpers now remain unchanged, and prior page proofs use the retained peer lookup baseline. Additional exact insertion tests retain both peer script versions without claiming runtime acceptance."
+  },
+  "incoming_review_2": {
+    "test_base": "ee0fd123a0867fd5ab96d12f0a1ed4c84d6393ea",
+    "reviewed_head": "49eb1191286827214d4fd4c3dfc7f05703c7cccf",
+    "paths": [
+      "STATE.md",
+      "aws/ops/patchers/applied/grok_buyback_gate.py",
+      "aws/ops/ran/1116_schedule_check2.py",
+      "aws/ops/ran/1117_direct_check.py",
+      "aws/ops/reports/1116_schedule_check.json",
+      "aws/ops/reports/_lastrun.log",
+      "aws/ops/reports/_ops_ledger.json",
+      "aws/ops/staged/ops_6470_series_reliability_prospective_controls.py",
+      "docs/SESSION_CLAIMS.md",
+      "docs/ops/series-reliability-prospective-contract.v1.md",
+      "engine-manifest.json",
+      "jh-chart-buyback.js",
+      "tests/fixtures/chart-readout-layout/transition.json",
+      "tests/fixtures/ranker-numeric/pages-transition.json",
+      "tests/ops/test_series_reliability_prospective_controls.py"
+    ],
+    "native_sources_unchanged": true,
+    "manifest_changed_only_generated_at": true,
+    "foreign_report_bodies_read": false,
+    "foreign_operation_executed": false,
+    "peer_code_accepted": false,
+    "notes": [
+      "Peer added its exact lookup/script-tag transition updates; adopt those reviewed historical transitions without removing our actual current lookup regressions.",
+      "Peer buyback date fallback/continuous hook do not resolve typed units, net/gross, PIT or selected-bar binding concerns.",
+      "6470 is a separate workstream; preserve staged operation/docs/tests without executing or claiming it."
+    ]
+  }
+}

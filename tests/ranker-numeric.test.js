@@ -4,7 +4,7 @@ const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 test('both whole pages preserve everything outside reviewed availability hooks',()=>{
  const transition=JSON.parse(fs.readFileSync(path.join(D,'pages-transition.json')));
  for(const [name,t] of Object.entries(transition)){
-  let text=fs.readFileSync(path.join(R,name),'utf8');assert.equal(hash(text),t.after_sha256);
+  let text=fs.readFileSync(path.join(R,name==='engines-data.html'?'tests/fixtures/ticker-lookup/before.html':name),'utf8');assert.equal(hash(text),t.after_sha256);
   for(const edit of [...t.changes].reverse()){assert.equal(text.split(edit.after).length,2);text=text.replace(edit.after,edit.before);}
   assert.equal(hash(text),t.before_sha256);assert.equal(text,fs.readFileSync(path.join(D,name+'.before'),'utf8'));
  }
