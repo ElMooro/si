@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict'),crypto=require('node:crypto'),fs=require('node:fs'),path=require('node:path');
 const D=path.join(__dirname,'../fixtures/ticker-lookup/incoming-chart'),plan=require(path.join(D,'transition.json'));
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
-function normalize(raw){raw=require('./buyback-evidence-preservation.cjs').normalizeHtml(raw);
+function normalize(raw){
  if(!raw.includes(plan.added))return raw;
  const source='/jh-khalid-sniper.js?v=20261001-user-scope',legacy='/jh-khalid-sniper.js?v=20261001-snapshot';
  const canonical=raw.replace(legacy,source);assert.equal(hash(canonical),plan.after_sha256);

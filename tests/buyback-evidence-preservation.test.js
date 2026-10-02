@@ -1,0 +1,5 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const R=path.join(__dirname,'..'),t=require('./fixtures/buyback-evidence/transition.json'),h=require('./helpers/buyback-evidence-preservation.cjs');
+test('whole accounting pane and page retain every unrelated byte',()=>{for(const p of Object.keys(t.changes)){const raw=fs.readFileSync(path.join(R,p),'utf8');h.normalize(raw,p);assert.throws(()=>h.normalize(raw+'changed',p));}});
+test('all earlier assertions remain through only the retained exact adapters',()=>{for(const p of Object.keys(t.hooks)){const raw=fs.readFileSync(path.join(R,p),'utf8');h.normalizeHelper(raw,p);assert.throws(()=>h.normalizeHelper(raw+'changed',p));}});
+test('strict dependencies load in order before the accounting pane',()=>{const s=fs.readFileSync(path.join(R,'chart.html'),'utf8');assert.ok(s.indexOf('/jh-evidence-io.js')<s.indexOf('/jh-numeric-evidence.js'));assert.ok(s.indexOf('/jh-numeric-evidence.js')<s.indexOf('/jh-chart-buyback.js'));});

@@ -52,9 +52,9 @@
     const document=root.document;if(!document)return;
     let cached=null,loadedAt=0,pending=null,generation=0,viewKey=null;
     const create=(tag,text,className='')=>{const el=document.createElement(tag);el.textContent=text;el.className=className;return el;};
-    function audit(label,value,original=false){
+    function audit(label,value){
       const details=create('details','','audit');details.appendChild(create('summary',label));
-      details.addEventListener('toggle',()=>{if(!details.open||details.dataset.loaded)return;const pre=create('pre',original?value:JSON.stringify(value,null,2));pre.tabIndex=0;pre.setAttribute('aria-label',label);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto';details.appendChild(pre);details.dataset.loaded='true';});return details;
+      details.addEventListener('toggle',()=>{if(!details.open||details.dataset.loaded)return;const pre=create('pre',JSON.stringify(value,null,2));pre.tabIndex=0;pre.setAttribute('aria-label',label);pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto';details.appendChild(pre);details.dataset.loaded='true';});return details;
     }
     function item(){return Array.isArray(root.OSC)?root.OSC.find(row=>row?.id==='buyback'):null;}
     function ensure(){if(!Array.isArray(root.OSC))return;const existing=item();if(existing){existing.externalPane=true;return;}root.OSC.push({id:'buyback',n:'Buyback',on:0,cat:'Buyback',c:'#7ec8c4',externalPane:true});}
@@ -65,35 +65,14 @@
       el.style.cssText='display:none;max-height:380px;overflow:auto;min-width:0;padding:10px;border-top:1px solid var(--line);background:var(--bg);color:var(--ink,var(--fg));flex:none;font-size:12px;line-height:1.5';
       const host=document.getElementById('oscwrap');if(host?.parentNode)host.parentNode.insertBefore(el,host.nextSibling);else (document.getElementById('stage')||document.body).appendChild(el);return el;
     }
-    function receiptDetails(host,receipt,symbol){
-      const el=create('details','','audit receipt-evidence');el.appendChild(create('summary','Source receipt and original bytes'));host.appendChild(el);
-      const info=create('p','HTTP '+(receipt.http_status??'Unavailable')+' · Received at: '+(receipt.received_at||'Unavailable')+'. Receipt time is not observation freshness.');el.appendChild(info);
-      const source=create('p','Source: '+(receipt.request_url||receipt.url||'Unavailable'));source.style.overflowWrap='anywhere';el.appendChild(source);
-      if(!receipt.raw)return;
-      const hash=create('p',receipt.raw.byteLength+' complete received bytes · SHA-256: '+(receipt.sha256||'Unavailable'));hash.style.overflowWrap='anywhere';el.appendChild(hash);
-      if(typeof receipt.source==='string')el.appendChild(audit('Complete original JSON text',receipt.source,true));
-      const button=create('button','Download original bytes');button.type='button';button.addEventListener('click',()=>{
-        const url=root.URL.createObjectURL(new root.Blob([receipt.raw],{type:'application/octet-stream'}));
-        const link=create('a','');link.href=url;link.download=symbol+'-buyback-received.json';link.click();root.setTimeout(()=>root.URL.revokeObjectURL(url),1000);
-      });el.appendChild(button);
-      el.appendChild(audit('Receipt metadata (capture only)',{request_url:receipt.request_url,received_at:receipt.received_at,http_status:receipt.http_status,sha256:receipt.sha256,byte_count:receipt.raw.byteLength,byte_limit:receipt.byte_limit,capture_page_commit:document.querySelector('meta[name="jh-build-commit"]')?.content||null,observation_freshness_verified:false,investment_authority:false}));
-    }
     function load(force){
       if(pending)return pending;
       if(!force&&cached!==null&&Date.now()-loadedAt<300000)return Promise.resolve(cached);
-      if(!root.JHNumericEvidence?.receive)throw new Error('Complete evidence reader unavailable');
-      pending=root.JHNumericEvidence.receive('/data/buyback-engine.json',{io:root.JHEvidenceIO,fetcher:root.fetch.bind(root)}).then(receipt=>{
-        cached=receipt.status==='received'?receipt:null;loadedAt=cached===null?0:Date.now();return receipt;
-      }).finally(()=>{pending=null;});return pending;
+      const controller=new root.AbortController(),deadline=root.setTimeout(()=>controller.abort(),20000);
+      pending=root.fetch('/data/buyback-engine.json?nogen=1',{cache:'no-cache',signal:controller.signal}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(value=>{cached=value;loadedAt=Date.now();return value;}).catch(error=>{cached=null;loadedAt=0;throw error;}).finally(()=>{root.clearTimeout(deadline);pending=null;});return pending;
     }
-    function paint(el,receipt,symbol){
+    function paint(el,packet,symbol){
       el.replaceChildren(create('strong','Buyback accounting · '+symbol));
-      receiptDetails(el,receipt,symbol);
-      if(receipt.status!=='received'){
-        el.appendChild(create('p','Reported buybacks unavailable: '+(receipt.reason||'request failed')+'. No accounting projection is shown.'));
-        const retry=create('button','Retry reported packet');retry.type='button';retry.addEventListener('click',()=>draw(true));el.appendChild(retry);return;
-      }
-      const packet=receipt.data;
       el.appendChild(create('p','Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.'));
       el.appendChild(create('p','Packet timestamp: '+(typeof packet?.generated_at==='string'?packet.generated_at:'Unavailable')+'. Amounts are reported context, not investment recommendations.'));
       const refresh=create('button','Refresh reported packet');refresh.type='button';refresh.addEventListener('click',()=>draw(true));el.appendChild(refresh);
@@ -123,7 +102,7 @@
       if(!on)return;if(!symbol){el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));return;}
       el.appendChild(create('p','Loading reported buybacks for '+symbol+'…'));el.setAttribute('aria-busy','true');
       const current=()=>request===generation&&enabled()&&selected(document)===symbol;
-      Promise.resolve().then(()=>load(force)).then(receipt=>{if(current())paint(el,receipt,symbol);}).catch(error=>{
+      load(force).then(packet=>{if(current())paint(el,packet,symbol);}).catch(error=>{
         if(!current())return;
         el.replaceChildren(create('p','Reported buybacks unavailable: '+(typeof error?.message==='string'?error.message:'request failed')));
         const retry=create('button','Retry reported packet');retry.type='button';retry.addEventListener('click',()=>draw(true));el.appendChild(retry);
