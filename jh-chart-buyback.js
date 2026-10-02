@@ -29,6 +29,33 @@
       const end=day(observation.date),start=day(observation.start_date),unit=observation.reported_currency;
       const comparable=row?.measurement_contract===CONTRACT&&observation.eligible===true&&observation.reported_calendar_duration_aligned===true&&start!==null&&end!==null&&start<=end&&typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
       if(!comparable)issues.push('Quarter identity, duration or currency is unqualified.');
+      const read=(key,field,sign)=>{
+        const metric=observation.metrics?.[key];
+        if(!comparable||!object(metric)||metric.status!=='reported_value'||metric.source_field!==field||metric.sign!==sign||metric.unit!==unit)return null;
+        return number(metric.value);
+      };
+      // The producer already converted net issuance to signed net repurchases.
+      const net=read('net_common_repurchases','netCommonStockIssuance','negative');
+      const grossValue=read('gross_common_repurchases','commonStockRepurchased','magnitude');
+      const gross=grossValue!==null&&grossValue>=0?grossValue:null;
+      if(net===null)issues.push('Reported net repurchases unavailable; gross is separate.');
+      const cap=number(row?.market_cap);
+      const aligned=cap!==null&&cap>0&&day(row?.market_cap_asof)===end&&row?.market_cap_unit===unit;
+      let ratio=null;
+      if(net!==null&&aligned){ratio=number(net/cap*100);if(net!==0&&ratio===0)ratio=null;}
+      if(!aligned)issues.push('Market cap date and currency do not match this quarter.');
+      if(net!==null&&aligned&&ratio===null)issues.push('Ratio exceeds supported numeric precision.');
+      return {source_index:index,start_date:start,end_date:end,unit:typeof unit==='string'?unit:null,net,gross,ratio,issues,received};
+    })};
+  }
+  function reported(row){
+    const source=row?.measurements?.cashflow_observations;
+    if(!Array.isArray(source))return {status:'missing_or_invalid_observations',rows:[]};
+    return {status:'reported_observations',rows:source.map((received,index)=>{
+      const issues=[];const observation=object(received)?received:{};
+      const end=day(observation.date),start=day(observation.start_date),unit=observation.reported_currency;
+      const comparable=row?.measurement_contract===CONTRACT&&observation.eligible===true&&observation.reported_calendar_duration_aligned===true&&start!==null&&end!==null&&start<=end&&typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
+      if(!comparable)issues.push('Quarter identity, duration or currency is unqualified.');
       const metricOk=typeof unit==='string'&&/^[A-Z]{3}$/.test(unit);
       const read=(key,field,sign)=>{
         const metric=observation.metrics?.[key];
@@ -110,7 +137,7 @@
       if(!own(packet.tickers,symbol)){paintMissing(el,symbol);return;}
       const row=packet.tickers[symbol];el.appendChild(audit('Complete selected ticker record',row));
       if(!object(row)||row.symbol!==symbol){el.appendChild(create('p','Unavailable: missing or mismatched issuer identity.'));return;}
-      const projected=observations(row);
+      const projected=reported(row);
       if(projected.status!=='reported_observations'){el.appendChild(create('p','Unavailable: missing or invalid reported quarter collection.'));return;}
       el.appendChild(create('p',projected.rows.length+' received accounting observations. Gross and net repurchases stay separate.'));
       remember(symbol, projected.rows);
