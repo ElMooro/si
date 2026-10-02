@@ -1,0 +1,14 @@
+{
+  "status": "read_only_native_census_pending",
+  "operation": "aws/ops/staged/ops_6448_ticker_controls.py",
+  "functions": [
+    "justhodl-ticker-360"
+  ],
+  "reason": "Peer 1108 attempts a Scheduler creation although own 6446 baseline already observed a classic EventBridge rule. Source inspection does not establish whether the attempted creation succeeded. Reinspect both native services before engine release; preserve all observed controls.",
+  "peer_report_reads": 0,
+  "producer_invocations": 0,
+  "schedule_changes": 0,
+  "application_packet_reads": 0,
+  "private_reads": 0,
+  "investment_authority": false
+}
