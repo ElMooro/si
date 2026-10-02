@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 555/559 chart and Engine Data repairs are exact static/browser accepted. Stage 557 strict Ticker 360 transport and Stage 558 final Ranker audit/test-runner repair are exact native source/receipt/control accepted. Stage 560 numeric-input defects are reproduced and still open. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 564 Compound overlays, nonvoting Compound context in Signal Fabric and Convergence Desk are exact native/static/browser accepted. The nine retained Fabric adapter/weight defects and the Best Setups qualification bypass are next. Normal publication, original-source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7965,3 +7965,10 @@ Stage 564 accepted: source `b76ca5353cda8e96f6a2a73f4c4d2e1be63962dd`, deploy ru
 Checks passed: 1054 deployment, 15 shell, 2968 frontend, 56 Compound engine, 14 Fabric engine, 14 native-acceptance tests, 600 page graphs, 143 wiring references, 28 source browser cases and 12 browser cases against 19 exactly verified served static files. Source metadata now identifies Compound as the primary desk engine while retaining both companion feeds. Missing adjusted scores stay unavailable, and original packets/calculations are downloadable. Normal producer publication remains unverified.
 
 Next: the remaining Signal Fabric adapters and weighting/comparison paths need occurrence, source-identity, missingness and calculation-quality review; their old learned-weight labels and group counts do not establish predictive calibration. Broader source qualification, durable point-in-time replay, source lineage, cost-adjusted out-of-sample evidence, portfolio scenarios and operating acceptance remain open. All ten workstreams remain OPEN.
+
+
+### Stage 565 Signal Fabric adapter/weight integrity and consumer qualification
+
+The source-backed nine-case fixture in `docs/audit/2026-10-02/fabric-adapter-findings.json` reproduces missing direction becoming UP, equal-weight duplicate rows selecting a direction by arrival order, 0% and 50% empirical win rates producing the same weight, nonfinite lift receiving the maximum weight, tied balance becoming DOWN, rejected ticker identities counted as added sources, ancient timestamps not affecting eligibility, and invalid weight types crashing the handler. Every input is invented; no current application, outcome ledger or scorecard was read.
+
+Source tracing also shows Best Setups ignores Fabric qualification flags and applies +8%, −10% or −6% rank adjustments from unqualified agreement/conflict fields. Its outgoing signal metadata stamps those same fields. The consumer must retain context without promoting it to ranking or learning authority. Operation 6459 captures only the actual Best Setups and Fabric code identities, runtime settings and bound schedules twice before changes; no producer invocation, provider probe, private/account/learning packet read, schedule mutation or paid AI call is authorized or introduced. Source fixes, resource/retention planning, current-calculation provenance, complete population handling, comparison integrity and deployment acceptance remain pending. This scope does not qualify the legacy scorecard producers or the other Best Setups factors.
