@@ -79,6 +79,8 @@ SOURCES = {
                             "context": None, "kind": "packet"},
     "insider-trading":       {"key": "data/insider-trades.json",
                             "context": None, "kind": "packet"},
+    "earnings":              {"key": "data/earnings-tracker.json",
+                            "context": None, "kind": "packet"},
 }
 
 # Domains that describe the market as a whole, not individual tickers.
