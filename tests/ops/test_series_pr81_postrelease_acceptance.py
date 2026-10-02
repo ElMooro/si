@@ -323,7 +323,9 @@ class Acceptance(unittest.TestCase):
                 self.assertNotIn('PRIVATE', json.dumps(out.logs + out.rows))
                 self.assertFalse(out.rows[-1]['completed'])
         out = Report()
-        with patch.dict('os.environ', {'GITHUB_ACTIONS': 'true'}), \
+        with patch.object(p, 'EXPECTED_RELEASE_COMMIT', 'UNBOUND_RELEASE_COMMIT'), \
+             patch.object(p, 'EXPECTED_RELEASE_RUN', 'UNBOUND_RELEASE_RUN'), \
+             patch.dict('os.environ', {'GITHUB_ACTIONS': 'true'}), \
              patch.object(boto3, 'client') as client, \
              patch.object(ops_report, 'report', side_effect=lambda _: report_for(out)), \
              patch.object(p.signal, 'alarm'), patch.object(p.signal, 'signal'), self.assertRaises(SystemExit):

@@ -35,8 +35,8 @@ PHASE = 'PR81'
 SOURCE_SHA256 = 'd50f2c942d72a97af63cb7a581d10c4c8844a3aab7a3d7a64ccd5d319215f034'
 # Bind ONLY independently verified actual normal merge/deployment evidence.
 # Preparation is deliberately non-executable while these literals are unset.
-EXPECTED_RELEASE_COMMIT = 'UNBOUND_RELEASE_COMMIT'
-EXPECTED_RELEASE_RUN = 'UNBOUND_RELEASE_RUN'
+EXPECTED_RELEASE_COMMIT = 'a5fa03238844132f2b98e49e528d864e14073828'
+EXPECTED_RELEASE_RUN = '37064120027'
 MAX_CALLS = 17
 
 
