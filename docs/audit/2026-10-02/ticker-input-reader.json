@@ -1,6 +1,6 @@
 {
   "stage": 557,
-  "status": "candidate_integration_pending",
+  "status": "exact_native_release_and_original_controls_accepted",
   "source_hashes": {
     "aws/shared/ticker_360.py": "46519cb54f5a2ce05b2d30357a8a1294badaaa5dbafaea60f23a5c56f5cb0291",
     "aws/lambdas/justhodl-ticker-360/source/lambda_function.py": "9761e70c520414631a4c0a1fa46644ef7dfd5082728b6439c9a56d9b3f1839bc",
@@ -73,7 +73,6 @@
     "One corrupt domain cannot abort every other domain"
   ],
   "remaining": [
-    "Complete integration and exact native acceptance",
     "No immutable original retention or deterministic clock replay yet",
     "Duplicate row identity, lossy compaction and aggregate memory budget remain open",
     "Two original enabled schedule bindings remain unchanged; duplicate invocation risk unresolved"
@@ -99,6 +98,7 @@
     "native_delivery_verified": false,
     "comment_cleanup_commit": "a69a5d5235807808e2cd60e17ac56238ebb5e7df"
   },
-  "current_native_release_verified": false,
-  "immutable_original_retention": false
+  "current_native_release_verified": true,
+  "immutable_original_retention": false,
+  "acceptance": "docs/audit/2026-10-02/ticker-input-reader-acceptance.json"
 }

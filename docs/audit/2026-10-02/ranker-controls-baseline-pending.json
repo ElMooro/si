@@ -1,0 +1,24 @@
+{
+  "status": "read_only_control_census_pending",
+  "operation": "aws/ops/staged/ops_6452_ranker_controls.py",
+  "functions": [
+    "justhodl-master-ranker"
+  ],
+  "reason": "Before changing final audit timing, preserve the deployed runtime resources and complete existing schedule bindings. Source configuration is absent; deployment defaults are create-only for an existing function.",
+  "local_findings": [
+    "Audit rationale captured before final annotations",
+    "Successful first test suite exits before two existing suites"
+  ],
+  "offline_validation": {
+    "audit_cases": 5,
+    "runner_reachability_cases": 3,
+    "previously_unreached_boundary_tests": 14,
+    "control_operation_cases": 15
+  },
+  "producer_invocations": 0,
+  "application_packet_reads": 0,
+  "private_reads": 0,
+  "schedule_changes": 0,
+  "source_qualified": false,
+  "investment_authority": false
+}

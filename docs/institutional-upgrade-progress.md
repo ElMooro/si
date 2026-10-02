@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 555 chart volume-profile and Stage 559 Engine Data repairs have exact static/browser acceptance. Stage 557 Ticker 360 strict input transport is in integration. Native control ambiguity, original-source replay, row identity and all ten workstreams remain OPEN.
+October 2 UTC: Stage 555/559 chart and Engine Data repairs have exact served-static and controlled-browser acceptance. Stage 557 strict Ticker 360 transport has exact native source/receipt and original-control acceptance. Normal publication, immutable input retention and all ten workstreams remain OPEN. Stage 558 Master Ranker final-audit timing and unreachable test suites are reproduced; read-only native control verification precedes its release.
 
 ### Retained Stage 482 checkpoint
 
@@ -7869,3 +7869,8 @@ The newly added page executes invented markup from a reported domain name, drops
 ### Stage 557 Ticker 360 strict reader candidate
 
 Retained whole source and invented transport reproduce silent duplicate-member overwrite, decimal underflow to false zero, nonfinite inputs aborting the entire producer, and unclosed streams. Complete bounded transport, exact lengths and the existing strict decoder isolate malformed sources without changing valid nested values or domain guards. The candidate does not retain original bodies or qualify source identity/availability, resolve duplicate ticker rows, or remove lossy output compaction.
+
+
+### Stage 557 strict transport native acceptance
+
+Commit `df5ad4aefb4af8bac6a310a373ee63da8b316e38` is verified against its named release receipt and all fourteen transitive native source files. The before/after resource and schedule captures match the retained original controls; both existing enabled bindings remain unchanged. Verification read code, receipts and control metadata only, without native producer invocation or current/private/account data reads. The local integration passed 1,044 deployment tests, fifteen shell checks and 69 engine/consumer tests. Strict transport cannot certify source authenticity, point-in-time availability, original retention or investment authority.
