@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 566 shared Fabric logger context is exact-code/native/static accepted across 17 importers, 171 packaged sources and 22 unchanged bindings. The seven reproduced event-input defects are next. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 567 fixes eight reproduced event-input defects across 17 importer engines, 188 packaged sources and 22 unchanged bindings. Exact native code, named receipts and static inventory are accepted. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8043,3 +8043,12 @@ The retained real SDK reproduces eight failures using invented storage: zero and
 The shared writer and shadow-lab bundled copy now share a pure typed-input contract. Finite prices/confidence retain their precision, confidence endpoints zero/one remain unchanged, and invalid values fail before context reads or writes. Windows must be an explicit distinct collection of positive whole calendar days before the existing one-year row expiry. The two existing bullish/bearish caller aliases map explicitly to UP/DOWN, with the original spelling retained; unknown directions cannot become predictions. Caller metadata is copied with finite JSON-shaped values and a separate received-input record. Qualification flags remain false, even if a caller supplies a forged prior contract.
 
 Thirteen focused cases reproduce the predecessor and check the actual writer, plus the actual AI logging adapter against invented quote/table callbacks. Eleven Fabric → Best Setups → SDK context cases remain passing in the draft. Daily dedupe, the existing schema fields, source inputs and native resources/schedules remain intact. This does not qualify quote timing, instrument identity, corporate actions, confidence calibration, original replay or forward performance; those and all ten workstreams remain OPEN. Complete deployment and native/static acceptance are pending.
+
+
+### Stage 567 exact event-input release acceptance
+
+Commit `7ab550f69d0653d1ad2a63cb65407aa7c0ae663c` landed the complete 13-file native Git batch, including `config/page-data-contracts.json` (7996692 bytes). All 17 exact receipts, 188 deployed source members and original resources/22 bindings match in two captures by operation 6464. Whole static inspection assets and the 900-engine inventory match one served build. Checks: 1073 deployment, 15 shell, 2974 frontend, 12 affected engine suites, 32 Fabric, 11 actual logger-chain, 13 event-input, 14 native acceptance unit and 16 intercepted browser cases; 600 page graphs and 143 wiring declarations pass.
+
+The shared SDK and bundled copy preserve confidence endpoints, Decimal precision and tiny positive prices. Invalid numeric types, directions, identity fields, nonfinite metadata and malformed/fractional/duplicate/expired horizons cannot become stored events. The retained original SDK reproduces all eight repaired cases; the actual AI callback uses invented quote/storage adapters only. Validity does not grant source-time, instrument, corporate-action, calibration or sizing authority. Legacy daily dedupe, quote retrieval, caller transformations and outcome methodology require continued review. No actual outcome ledger, scorecard, private/account or current application packet was inspected, and normal producer publication remains unverified. All ten institutional workstreams remain OPEN.
+
+The source commit also received a separate direct-ops dispatch, run 37012884621, whose own report commit updated only the 6450 report path and failed. Its report body was not read and it was not rerun. Generic verify_push therefore returned 1; the four release-bound runs (Lambda, Pages, guard, recorded 6464 audit) succeeded. The acceptance retains this distinction and does not claim all workflows or the platform are green.
