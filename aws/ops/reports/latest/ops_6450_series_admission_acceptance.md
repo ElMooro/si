@@ -1,13 +1,19 @@
-- `07:37:37` TECHNICAL_JSON {"aws_read_calls": 14, "aws_writes": 0, "baseline_compared": false, "code_sha256": "Gq4ZfrkuxI3Oak3NxaR3HOsySdn87EL64epCdgy9bVY=", "deployed_at": null, "handler_sha256": "9c82d0046498e7de75d5f24a8346047e0a59635972d438e65d1613331250a312", "named_bindings_checked": 6, "operating_controls": {"bindings": {"cost-anomaly-daily": {"expression": "cron(0 9 * * ? *)", "rule_sha256": "ae46c1476c24e65921fdd1f05b63421332c37e08175720cbb797712c665c943d", "state": "ENABLED", "targets_count": 1, "targets_sha256": "7ba6dbda248935934aca85c9f8c9452bd0d20a346f28dcaac8e3df46b21fafca"}, "fleet-error-monitor-5min": {"expression": "rate(5 minutes)", "rule_sha256": "1a5e92c968a773edc3da04a225ddf4d183f81e5effbc5e61439cfbe291862299", "state": "ENABLED", "targets_count": 1, "targets_sha256": "af8651af59f5b40486ae503f2b921c12292deec515f075ea72822972a232a851"}, "fleet-error-monitor-sched": {"expression": "rate(24 hours)", "schedule_sha256": "dfc08a947d617a68aaeb5119e28feec57248532c38b54ecbdedddfeec4473947", "state": "ENABLED"}, "justhodl-d1-scan-daily": {"expression": "cron(0 5 * * ? *)", "rule_sha256": "7cd4604314e9765673f6405accbb3710ad979ba5d5bcb60d8cfa6f19a047343b", "state": "ENABLED", "targets_count": 1, "targets_sha256": "750c05401a73ba5e4b7eb9eb3415bdcad5e536cc5361c4678409e48d4c3d6528"}, "justhodl-fleet-integrity-weekly": {"expression": "cron(0 8 ? * MON *)", "rule_sha256": "2e9a6a4a81a6b333f01784be36d706ff3a0b8f4a136131455f85d69533144a8a", "state": "ENABLED", "targets_count": 1, "targets_sha256": "750c05401a73ba5e4b7eb9eb3415bdcad5e536cc5361c4678409e48d4c3d6528"}, "justhodl-series-extractor-5min": {"expression": "rate(1 hour)", "rule_sha256": "81de85d9b78e7ff8f6ea440eb452783ec313ed24e631b98cbfeb6969ccbe8b81", "state": "ENABLED", "targets_count": 4, "targets_sha256": "7ba4f930baa3460cdba5433b80ab78c8165d48cbdcfeacf5d7c76914587625d1"}}, "configuration_matches": {"declared_environment_matches": true, "description_matches": true, "dlq_already_standard": true, "ephemeral_matches_managed_configuration": true, "handler_matches": true, "memory_matches": true, "role_matches": true, "runtime_matches": true, "timeout_matches": true, "tracing_already_active": true}, "private_configuration": {"DeadLetterConfig": {"sha256": "8c91751df45f2c154a4b5752becbaccb244199284e8e449a4ea23e85cfd658fc"}, "Description": {"sha256": "9734fed1a1a949fe0405156ef822c8863c0d3de0afb26ae00fc4536cca7ff1f5"}, "Environment": {"sha256": "c0713db405ae18c5ae54a9dc1985dcbfb7704bc338cb243f44c6c729895d3e56"}, "FileSystemConfigs": {"sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"}, "KMSKeyArn": {"sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"}, "Layers": {"sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"}, "LoggingConfig": {"sha256": "395021ca9e4435da54d82a64180f4bda5c1cbac28ee4538b686ad1e9048809ed"}, "MasterArn": {"sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"}, "Role": {"sha256": "bbbfbddde9102c6b972c545619861e5683eaa2c172c6ef7236d71f58a049f4ea"}, "RuntimeVersionConfig": {"sha256": "b1a4f7e90261e78f98d55c45c3a036ddb57d136e156ec072b38b92d3711e92cb"}, "SnapStart": {"sha256": "a9741b4ff038c906ce2b3a966a4da027ed6e07725128c27998c6ee8019097e9d"}, "VpcConfig": {"sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"}}, "reserved_concurrency": 1, "technical_configuration": {"Architectures": ["x86_64"], "EphemeralStorage": {"Size": 512}, "Handler": "lambda_function.lambda_handler", "MemorySize": 10240, "PackageType": "Zip", "Runtime": "python3.12", "Timeout": 900, "TracingConfig": {"Mode": "Active"}}}, "operating_fingerprint": "ae119eb01335b5d1dcec8897bce47ad66e79c3f8579301bf9ef8c80a9c47b199", "producer_invokes": 0, "receipt_commit": null, "scope": "Exact live ZIP and receipt-pinned handler, projected technical controls and six named enabled schedule bindings. Other package source members, arbitrary bindings and runtime failure/publication paths are not independently qualified. Private controls and complete targets are compared as digests; no private bodies are published.", "signed_package_gets": 1, "source_phase": "predecessor", "zip_bytes": 111270, "zip_sha256_hex": "1aae197eb92ec48dce6a4dcdc5a4771ceb3249d9fcec42fae1ea42760cbd6d56"}
-**Status:** success  
-**Duration:** 1.5s  
-**Finished:** 2026-10-02T07:37:37+00:00  
+
+**Status:** failure  
+**Duration:** 1.7s  
+**Finished:** 2026-10-02T08:10:01+00:00  
+
+## Error
+
+```
+SystemExit: 1
+```
 
 ## Data
 
-| aws_read_calls | aws_writes | completed | producer_invokes | source_phase |
-|---|---|---|---|---|
-| 14 | 0 | True | 0 | predecessor |
+| aws_read_calls | completed | stop_reason |
+|---|---|---|
+| 13 | False | operating_controls_changed |
 
 ## Log
 
