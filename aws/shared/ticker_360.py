@@ -75,6 +75,10 @@ SOURCES = {
                             "context": None, "kind": "packet"},
     "etf-holdings":        {"key": "data/etf-issuer-holdings.json",
                             "context": None, "kind": "packet"},
+    "13f-holdings":          {"key": "data/13f-by-ticker.json",
+                            "context": None, "kind": "packet"},
+    "insider-trading":       {"key": "data/insider-trades.json",
+                            "context": None, "kind": "packet"},
 }
 
 # Domains that describe the market as a whole, not individual tickers.
