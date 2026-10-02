@@ -9,30 +9,30 @@
   "tests/chart-cq-fuse.test.js": {
     "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-cq-fuse.test.js.txt",
     "predecessor_sha256": "b062cd13fa4d46709886f8f39b909c8a62dfb5c00dc6392c6176f216ec00d0f4",
-    "current_sha256": "219acfd3f83d6130426a14173b3bf7777d9e222cf6568a312d9789a2539bc945",
-    "before": "/v12\\.34/",
-    "after": "/v12\\.41/"
+    "current_sha256": "b685cefab0a601c0fc8eb616ff028cae4ef6fb0d96a8f6b27de720443f66e5dc",
+    "before": "assert.match(html, /jh-chart-engine\\.js\\?v=20261001aa-ind/);\n  assert.match(cryptoIdx, /jh-cq-fuse\\.js\\?v=20260922ab-cqind/);\n  assert.match(cryptoIdx, /JHCqFuse\\.paneHTML/);\n  assert.match(cryptoIdx, /JHCqFuse\\.load/);\n  assert.match(cryptoIdx, /data-arm/);\n  assert.match(cryptoHtml, /location\\.replace\\(\"\\/crypto\\/\"\\)/);\n  assert.match(onchain, /chart\\.html\\?s=CQ:\\$\\{k\\}/);\n  assert.match(engine, /v12\\.34/",
+    "after": "assert.match(html, /jh-chart-engine\\.js\\?v=20261002ab-spike/);\n  assert.match(cryptoIdx, /jh-cq-fuse\\.js\\?v=20260922ab-cqind/);\n  assert.match(cryptoIdx, /JHCqFuse\\.paneHTML/);\n  assert.match(cryptoIdx, /JHCqFuse\\.load/);\n  assert.match(cryptoIdx, /data-arm/);\n  assert.match(cryptoHtml, /location\\.replace\\(\"\\/crypto\\/\"\\)/);\n  assert.match(onchain, /chart\\.html\\?s=CQ:\\$\\{k\\}/);\n  assert.match(engine, /v12\\.41/"
   },
   "tests/chart-crypto-history.test.js": {
     "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-crypto-history.test.js.txt",
     "predecessor_sha256": "71311fc5fa770989050d0dcaffbf971d96d40a0c190bbe42f51399424f96890b",
-    "current_sha256": "5558ab6ba5e286cd0d95b3c6b49f94d237a7a3a84bca5a61dfcfe31925b8ea28",
-    "before": "/v12\\.34/",
-    "after": "/v12\\.41/"
+    "current_sha256": "927d5b364c0f2e5d91b48264531aea36ffa5a50f4ede3ad35b0699f94fd32e1d",
+    "before": "assert.match(html, /jh-chart-engine\\.js\\?v=20261001aa-ind/);\n  assert.match(html, /jh-chart-catalog\\.js\\?v=20260922ab-cqind/);\n  assert.match(html, /jh-chart-tvsearch\\.js\\?v=20260922ab-cqind/);\n  assert.match(html, /jh-chart-indux\\.js\\?v=20261001aa-ind/);\n  assert.match(html, /jh-cq-fuse\\.js\\?v=20260922ab-cqind/);\n  assert.match(engine, /v12\\.34/",
+    "after": "assert.match(html, /jh-chart-engine\\.js\\?v=20261002ab-spike/);\n  assert.match(html, /jh-chart-catalog\\.js\\?v=20260922ab-cqind/);\n  assert.match(html, /jh-chart-tvsearch\\.js\\?v=20260922ab-cqind/);\n  assert.match(html, /jh-chart-indux\\.js\\?v=20261002ab-spike/);\n  assert.match(html, /jh-cq-fuse\\.js\\?v=20260922ab-cqind/);\n  assert.match(engine, /v12\\.41/"
   },
   "tests/chart-ind-menu.test.js": {
     "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-ind-menu.test.js.txt",
     "predecessor_sha256": "c3273e94f60d4132b69fdd68b3a9d8ced195eed5da10974c82e2643d8cf05b4d",
-    "current_sha256": "95de8fe3507ca15ab2c94166b61483cae70d98e73c29ea10bb535052c849ed80",
-    "before": "/v12\\.34/",
-    "after": "/v12\\.41/"
+    "current_sha256": "c0518765d7a66fb0466cdfa9f5d4c00fc908a2c5810ed385009772710a56f2df",
+    "before": "  assert.match(html, /jh-chart-engine\\.js\\?v=20261001aa-ind/);\n  assert.match(html, /jh-chart-indux\\.js\\?v=20261001aa-ind/);\n  assert.match(html, /\\.menu \\.irow button\\.gr/);\n  assert.match(engine, /Indicators ▾/);\n  assert.match(engine, /function openIndMenu/);\n  assert.match(engine, /data-gear/);\n  assert.match(engine, /data-all>All indicators/);\n  assert.match(engine, /id:\"pspread\"/);\n  assert.match(engine, /id:\"relvol\"/);\n  assert.match(engine, /id:\"voldd\"/);\n  assert.match(engine, /id:\"bb\"/);\n  assert.match(engine, /id:\"macd\"/);\n  assert.match(engine, /id:\"fibauto\"/);\n  assert.match(engine, /ind\\.c2\\|\\|\"#26c6da\"/);\n  assert.match(engine, /o\\.c2\\|\\|\"#ff6d00\"/);\n  assert.match(engine, /c2:i\\.c2,c3:i\\.c3/);\n  assert.match(engine, /v12\\.34/",
+    "after": "  assert.match(html, /jh-chart-engine\\.js\\?v=20261002ab-spike/);\n  assert.match(html, /jh-chart-indux\\.js\\?v=20261002ab-spike/);\n  assert.match(html, /\\.menu \\.irow button\\.gr/);\n  assert.match(engine, /Indicators ▾/);\n  assert.match(engine, /function openIndMenu/);\n  assert.match(engine, /data-gear/);\n  assert.match(engine, /data-all>All indicators/);\n  assert.match(engine, /id:\"pspread\"/);\n  assert.match(engine, /id:\"relvol\"/);\n  assert.match(engine, /id:\"voldd\"/);\n  assert.match(engine, /id:\"bb\"/);\n  assert.match(engine, /id:\"macd\"/);\n  assert.match(engine, /id:\"fibauto\"/);\n  assert.match(engine, /ind\\.c2\\|\\|\"#26c6da\"/);\n  assert.match(engine, /o\\.c2\\|\\|\"#ff6d00\"/);\n  assert.match(engine, /c2:i\\.c2,c3:i\\.c3/);\n  assert.match(engine, /v12\\.41/"
   },
   "tests/chart-qx.test.js": {
     "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-qx.test.js.txt",
     "predecessor_sha256": "6ffae5f887cecd63f81467c01475ccc386fa972946ad29748fb7e092b18162f1",
-    "current_sha256": "fad38c0f9f262406703871467b8388110dfa92177475ff5a3296a08e66168ad4",
-    "before": "/v12\\.34/",
-    "after": "/v12\\.41/"
+    "current_sha256": "426f8cdb6ce34a3dba938ed1500f7348893c595b64395aec5f6407b04e190d43",
+    "before": "assert.match(html, /jh-chart-engine\\.js\\?v=20261001aa-ind/);\n  assert.match(html, /jh-chart-quality\\.js\\?v=20260915ae-qx/);\n  assert.match(html, /font-variant-numeric:tabular-nums/);\n  assert.doesNotMatch(html, /\\[object Object\\]/);\n});\n\ntest(\"engine ships Bloomberg-grade candle, scale, and magnet defaults\", () => {\n  assert.match(engine, /__jhChartEngineV1239/);\n  assert.match(engine, /v12\\.34/",
+    "after": "assert.match(html, /jh-chart-engine\\.js\\?v=20261002ab-spike/);\n  assert.match(html, /jh-chart-quality\\.js\\?v=20260915ae-qx/);\n  assert.match(html, /font-variant-numeric:tabular-nums/);\n  assert.doesNotMatch(html, /\\[object Object\\]/);\n});\n\ntest(\"engine ships Bloomberg-grade candle, scale, and magnet defaults\", () => {\n  assert.match(engine, /__jhChartEngineV1239/);\n  assert.match(engine, /v12\\.41/"
   },
   "tests/chart-help-accessibility.test.js": {
     "predecessor": "tests/fixtures/crypto-sentiment/chart-test-before/tests/chart-help-accessibility.test.js.txt",
