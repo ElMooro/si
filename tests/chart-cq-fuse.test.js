@@ -148,7 +148,7 @@ function loadFuse() {
 test("chart.html and crypto desk load the CQ fuse", () => {
   assert.match(html, /jh-cq-fuse\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-chart-catalog\.js\?v=20260922ab-cqind/);
-assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
+assert.match(html, /jh-chart-engine\.js\?v=20261002ab-spike/);
   assert.match(cryptoIdx, /jh-cq-fuse\.js\?v=20260922ab-cqind/);
   assert.match(cryptoIdx, /JHCqFuse\.paneHTML/);
   assert.match(cryptoIdx, /JHCqFuse\.load/);

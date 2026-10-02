@@ -2656,10 +2656,37 @@
         if(dodSpec){
           volDoD(display, dodSpec.p||50, dodSpec.mult>0?dodSpec.mult:2).forEach(function(p){ outMap[p.time]=p; });
         }
-        var v=chart.addHistogramSeries({ priceFormat:{type:"volume"}, priceScaleId:"vol", lastValueVisible:reportedVolume(display[display.length-1].volume)!==null, priceLineVisible:false, title:"Volume" });
+        var volSeam=false, vsI, vsV, vsVals, vsMed, vsK;
+        for(vsI=20; vsI<display.length && !volSeam; vsI++){
+          vsV=display[vsI]&&display[vsI].volume;
+          if(!(vsV>0)) continue;
+          vsVals=[];
+          for(vsK=vsI-20; vsK<vsI; vsK++) if(display[vsK]&&display[vsK].volume>0) vsVals.push(display[vsK].volume);
+          if(vsVals.length<10) continue;
+          vsVals.sort(function(a,b){return a-b;});
+          vsMed=vsVals[vsVals.length>>1];
+          if(vsMed>0 && (vsV/vsMed>=80 || vsMed/vsV>=80)) volSeam=true;
+        }
+        var v=chart.addHistogramSeries(volSeam
+          ? { priceFormat:{type:"custom", minMove:0.01, formatter:function(n){ n=Number(n); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}, priceScaleId:"vol", lastValueVisible:true, priceLineVisible:false, title:"Vol × own avg" }
+          : { priceFormat:{type:"volume"}, priceScaleId:"vol", lastValueVisible:reportedVolume(display[display.length-1].volume)!==null, priceLineVisible:false, title:"Volume" });
         volSeries=v;
-        chart.priceScale("vol").applyOptions({ scaleMargins:{ top:0.76, bottom:0 } });
+        chart.priceScale("vol").applyOptions({ scaleMargins:{ top: volSeam?0.62:0.76, bottom:0 } });
         v.setData(display.map(function(b,ix){
+          if(volSeam){
+            var rv=rvolAt(display,ix,50);
+            if(rv==null) return {time:b.time};
+            var shown=Math.min(rv, 2.5);
+            var evS=evMap[b.time];
+            var hitS=outMap[b.time];
+            var colS="#5c6b7a";
+            if(evS) colS=evS.color;
+            else if(hitS && hitS.tag==="CAPIT") colS=dodSpec.c3||"#ff6d00";
+            else if(hitS && hitS.tag==="STOP") colS="#00e5ff";
+            else if(rv>=2) colS="#2979ff";
+            else if(rv>=1) colS="#cfd8dc";
+            return {time:b.time, value:shown, color:colS};
+          }
           if(reportedVolume(b.volume)===null)return {time:b.time};
           var r=rvolAt(display,ix,20);
           var ev=evMap[b.time];
@@ -2672,7 +2699,9 @@
           var a=r===null?0.72:r>=2.5?1: r>=1.6?0.88: r>=1?0.72:0.48;
           return {time:b.time,value:b.volume,color: (upBar?"rgba(8,153,129,":"rgba(242,54,69,")+a+")"};
         }));
+        if(volSeam){ try{ v.applyOptions({autoscaleInfoProvider:function(){ return {priceRange:{minValue:0, maxValue:2.5}}; }}); }catch(eSc){} }
         series.push(v);
+        if(!volSeam){
         var vsma=[], ss=0, vn=20, vi;
         for(vi=0;vi<display.length;vi++){var mean=vi>=vn-1?volumeMean(display,vi-vn+1,vi):null;vsma.push(mean===null?{time:display[vi].time}:{time:display[vi].time,value:mean});}
         var volumeRuns=[],volumeRun=[];
@@ -2681,6 +2710,7 @@
         volumeRuns.forEach(function(run){var current=run[run.length-1].time===vsma[vsma.length-1].time;
           var vl=chart.addLineSeries({color:dark?"#f0b429":"#ef6c00",lineWidth:1.5,priceScaleId:"vol",lastValueVisible:current,priceLineVisible:false,title:"Vol MA 20 · complete windows",pointMarkersVisible:true,pointMarkersRadius:1.5});vl.setData(run);series.push(vl);
         });
+        }
         setTimeout(paintVolTape, 0);
         setTimeout(paintVolTape, 60);
       } else {
@@ -2921,7 +2951,22 @@
     if(window.jhTvChips) window.jhTvChips(compare, COLORS);
     try{ window.compare=compare; window.jhActive=active; window.tf=tf; }catch(e){}
     var st=document.getElementById("stat");
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.41"; if(st) st.textContent="v12.41 · "+d.length+" bars · Vol "+fmtVol(lastBars.length?lastBars[lastBars.length-1].volume:0)+" · "+tape.prints.length+" prints · "+lastSource;
+    var stVol=null, stI, stPicked=false;
+    for(stI=d.length-1; stI>=0 && !stPicked; stI--){
+      var sv=d[stI]&&d[stI].volume;
+      if(!(typeof sv==="number"&&isFinite(sv)&&sv>0)) continue;
+      if(stI>=20){
+        var sbag=[], sk, sm;
+        for(sk=stI-20;sk<stI;sk++) if(d[sk]&&d[sk].volume>0) sbag.push(d[sk].volume);
+        if(sbag.length>=10){
+          sbag.sort(function(a,b){return a-b;});
+          sm=sbag[sbag.length>>1];
+          if(sm>0 && (sv/sm>=80 || sm/sv>=80)) continue;
+        }
+      }
+      stVol=sv; stPicked=true;
+    }
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.41"; if(st) st.textContent="v12.41 · "+d.length+" bars · Vol "+fmtVol(stVol)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function closeLocationVolume(bar){
     if(!bar||reportedVolume(bar.volume)===null)return null;
@@ -2945,13 +2990,29 @@
   function quoteUI(d){
     if(observationId(active)){["quote","detail"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=observationText(d);});return;}
     var last=d[d.length-1], prev=d[d.length-2]||last;
+    var volIx=d.length-1, volScan, volPicked=false;
+    for(volScan=d.length-1; volScan>=0 && !volPicked; volScan--){
+      var vv=d[volScan]&&d[volScan].volume;
+      if(!(typeof vv==="number"&&isFinite(vv)&&vv>=0)) continue;
+      if(vv>0 && volScan>=20){
+        var bag=[], kq, md;
+        for(kq=volScan-20;kq<volScan;kq++) if(d[kq]&&d[kq].volume>0) bag.push(d[kq].volume);
+        if(bag.length>=10){
+          bag.sort(function(a,b){return a-b;});
+          md=bag[bag.length>>1];
+          if(md>0 && (vv/md>=80 || md/vv>=80)) continue;
+        }
+      }
+      volIx=volScan; volPicked=true;
+    }
+    var volPrint=d[volIx]||last;
     var chg=prev.close?(last.close-prev.close)/prev.close:0, up=chg>=0, dlt=last.close-prev.close;
     var intra=/^(1m|3m|5m|15m|30m|45m|1h|2h|4h|6h|8h|12h)$/.test(tf);
     var vwapPts=intra?periodVwap(d,"day"):periodVwap(d,"year");
     var vw=vwapPts.length?vwapPts[vwapPts.length-1].value:null;
     var vwLab=intra?"VWAP":"YTD VWAP";
     var tw=twap(d), twv=tw.length?tw[tw.length-1].value:null;
-    var rvol=rvolAt(d,d.length-1,20);
+    var rvol=rvolAt(d,volIx,20);
     var deltaEst=closeLocationVolume(last);
     var vsPx=vw? (last.close-vw)/vw : null;
     var heat=rvol===null?"":rvol>=2?"HOT":rvol>=1.4?"elevated":rvol>=0.8?"normal":"thin";
@@ -2972,7 +3033,7 @@
       var yr=lastVsSpx.from?(window.jhInst&&window.jhInst.nyClock?window.jhInst.nyClock(lastVsSpx.from).y:new Date(lastVsSpx.from*1000).getUTCFullYear()):"";
       vsBit=" <span title='Price relative vs S&P 500 cash (GSPC). NY session join, no interpolation. RS rebased 100 at first overlap. Not SPY (1993).'>vs SPX 1d "+fmtXs(L.d1)+" · YTD "+fmtXs(L.ytd)+" · 1y "+fmtXs(L.y)+" · all "+fmtXs(L.all)+(yr?" · "+yr:"")+"</span>";
     }
-    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+escHtml(active)+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+escHtml(tf)+" · "+escHtml(mode)+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span>Vol "+fmtVol(last.volume)+"</span> <span title='Current reported volume / mean of exactly the preceding 20 chart bars; units and source completeness unverified'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx===null?"":vsPx>=0?"up":"dn")+">"+(vsPx===null?"Unavailable":(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%")+"</span></span> <span title='Close-location multiplier times reported bar volume: (2*(close-low)/(high-low)-1)*volume. An OHLC estimate, not measured buyer-versus-seller flow. Zero-range bars and invalid inputs are unavailable; source units remain unverified.'>CLV × Vol "+fmtSignedVol(deltaEst)+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+fmtSignedVol(dltTape)+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
+    document.getElementById("quote").innerHTML="<b class=tick id=qtick title='Search symbol'>▾ "+escHtml(active)+"</b> <span class=last>"+fmt(last.close)+"</span> <span class="+(up?"up":"dn")+">"+(up?"+":"")+fmt(dlt)+" ("+(chg*100).toFixed(2)+"%)</span> <span>"+escHtml(tf)+" · "+escHtml(mode)+"</span> <span>O "+fmt(last.open)+" H<span class=up> "+fmt(last.high)+"</span> L<span class=dn> "+fmt(last.low)+"</span> C<span class="+(up?"up":"dn")+"> "+fmt(last.close)+"</span></span> <span title='Last bar whose volume is in the same unit as the bars behind it. A Yahoo-versus-warehouse unit break is skipped, not shown as a spike.'>Vol "+fmtVol(volPrint.volume)+"</span> <span title='That bar versus the mean of the preceding 20 chart bars. Not day-to-day percent.'>RVOL "+(rvol!==null?rvol.toFixed(2)+"x":"Unavailable")+" "+heat+"</span> <span>"+vwLab+" "+(vw?fmt(vw):"—")+" <span class="+(vsPx===null?"":vsPx>=0?"up":"dn")+">"+(vsPx===null?"Unavailable":(vsPx>=0?"+":"")+(vsPx*100).toFixed(2)+"%")+"</span></span> <span title='Close-location multiplier times reported bar volume: (2*(close-low)/(high-low)-1)*volume. An OHLC estimate, not measured buyer-versus-seller flow. Zero-range bars and invalid inputs are unavailable; source units remain unverified.'>CLV × Vol "+fmtSignedVol(deltaEst)+"</span>"+(tape.prints.length?" <span title='print tape delta'>QR Δ <span class="+(dltTape>=0?"up":"dn")+">"+fmtSignedVol(dltTape)+"</span></span>":"")+" <span style=color:var(--acc)>"+stance+" · "+loc+"</span>"+adrBit+vsBit+" <button type=button id=qfin>Financials</button> <button type=button id=qnote>Notes</button> <button type=button id=qqr>QR</button>";
     var qt=document.getElementById("qtick"); if(qt) qt.onclick=function(){ openSymSearch(active); };
     var qf=document.getElementById("qfin"); if(qf) qf.onclick=function(){ goSymbol(active,"fin"); };
     var qn=document.getElementById("qnote"); if(qn) qn.onclick=function(){ goSymbol(active,"notes"); };
@@ -3091,19 +3152,21 @@
     wrap.className="on"; wrap.innerHTML="";
     var p=pal();
     on.forEach(function(o, idx){
-      var sp=document.createElement("div"); sp.className="pane-split"; wrap.appendChild(sp);
+      var sp=document.createElement("div"); sp.className="pane-split"; sp.dataset.bound="1"; wrap.appendChild(sp);
       var pane=document.createElement("div"); pane.className="osc"; pane.id="osc"+idx; pane.setAttribute("data-oid", o.id);
-      if(!(o.h>0)){
+      if(!(o.h>=160)){
         var layH=loadJSON(LAY_KEY,null);
         var sxH=layH&&layH.osc&&layH.osc.filter(function(x){ return x.id===o.id; })[0];
-        if(sxH&&sxH.h>0) o.h=+sxH.h;
+        if(sxH&&sxH.h>=160) o.h=+sxH.h;
       }
-      var paneH=Math.max(96, Math.min(720, o.h||(o.id==="voldd"?220:118)));
+      var paneCap=Math.max(520, Math.round((window.innerHeight||800)*0.72));
+      var paneDef=o.id==="voldd"?320:240;
+      var paneH=Math.max(180, Math.min(paneCap, (o.h>=160?o.h:paneDef)));
       pane.style.height=paneH+"px";
       var head=document.createElement("div"); head.className="osc-head";
       var srOn=oscSrOn(o.id);
       var favOnBtn=window.jhIndFavHas&&window.jhIndFavHas(o.id);
-      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=vline title='Vertical line. Click this pane or the price chart. Shift+click also drops one. The line is on every pane.'>│</button><button type=button data-act=sr class='"+(srOn?"on":"")+"' title='Support and resistance on this pane. The last touch is a vertical line on the price chart.'>S/R</button><button type=button data-act=fav class='"+(favOnBtn?"on":"")+"' title='Favorite this indicator'>★</button><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
+      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=vline title='Vertical line. Click this pane or the price chart. Shift+click also drops one. The line is on every pane.'>│</button><button type=button data-act=sr class='"+(srOn?"on":"")+"' title='Support and resistance on this pane. The last touch is a vertical line on the price chart.'>S/R</button><button type=button data-act=fav class='"+(favOnBtn?"on":"")+"' title='Favorite this indicator'>★</button><button type=button data-act=grow title='Make this pane taller. Click again to keep growing. At the max it returns to the start height.'>Taller</button><span class=leg-ops>"+
         "<button type=button data-act=help title='What is this'>?</button>"+
         "<button type=button data-act=eye title=Visibility>"+(o.hide?"○":"◉")+"</button>"+
         "<button type=button data-act=set title=Settings>⚙</button>"+
@@ -3111,14 +3174,36 @@
       pane.appendChild(head);
       var host=document.createElement("div"); host.className="osc-host"; pane.appendChild(host);
       wrap.appendChild(pane);
-      if(o.id==="voldd") head.title="Volume divided by this name's own prior average. BTC before the Sep 2020 warehouse tape uses Yahoo volume. A change of unit is a gap, not a spike. Drag the bar above this pane, or press +, to make it taller.";
-      head.querySelector("[data-act=grow]").onclick=function(ev){
+      head.title=(o.id==="voldd"?"Volume divided by this name's own prior average. A bar that reaches the top is an outlier. BTC uses Yahoo volume before the Sep 2020 warehouse tape, then the coin tape. A unit change is a gap, not a million-× spike. ":"")+"Drag this header or the bar above it downward, or press Taller, to make the pane bigger.";
+      sp.title="Drag down to make this indicator taller";
+      function bindPaneResize(handle){
+        handle.onmousedown=function(e){
+          if(e.target.closest && e.target.closest("button")) return;
+          e.preventDefault();
+          var y0=e.clientY, h0=pane.getBoundingClientRect().height;
+          function mv(ev){
+            var nh=Math.max(160, Math.min(paneCap, h0+(ev.clientY-y0)));
+            pane.style.height=Math.round(nh)+"px";
+            o.h=Math.round(nh);
+          }
+          function up(){
+            document.removeEventListener("mousemove", mv);
+            document.removeEventListener("mouseup", up);
+            saveLay();
+          }
+          document.addEventListener("mousemove", mv);
+          document.addEventListener("mouseup", up);
+        };
+      }
+      bindPaneResize(sp);
+      bindPaneResize(head);
+      var growBtn=head.querySelector("[data-act=grow]");
+      growBtn.style.cssText="margin-left:auto;color:#d1d4dc;font-size:11px;font-weight:700;letter-spacing:.04em;padding:0 8px";
+      growBtn.onclick=function(ev){
         ev.preventDefault(); ev.stopPropagation();
-        var cur=pane.getBoundingClientRect().height||118;
-        var steps=[160,220,300,400,520,640];
-        var next=steps[0], si;
-        for(si=0;si<steps.length;si++) if(steps[si]>cur+12){ next=steps[si]; break; }
-        if(cur+12>=steps[steps.length-1]) next=o.id==="voldd"?220:118;
+        var cur=pane.getBoundingClientRect().height||paneDef;
+        var next=Math.round(cur+Math.max(80, cur*0.35));
+        if(next>paneCap) next=paneDef;
         pane.style.height=next+"px";
         o.h=next;
         saveLay();
@@ -3325,17 +3410,15 @@ else if(o.id==="rvol"){
       else if(o.id==="voldd"){
         var vd=volDoD(d, o.p||50, o.mult>0?o.mult:2);
         var gate=o.mult>0?o.mult:2;
-        var cap=Math.max(6, gate*3);
+        var cap=Math.max(2.5, gate*1.15);
         var hbV=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,base:0,title:"× avg", priceFormat:{type:"custom", minMove:0.01, formatter:function(v){ var n=Number(v); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}});
         hbV.setData(vd.map(function(p){
           if(p.value==null) return {time:p.time};
-          var col="#90a4ae";
+          var hot=p.value>=gate;
+          var col=hot?(o.c2||"#2979ff"):(p.value>=1?"#eceff1":"rgba(120,130,140,.55)");
           if(p.tag==="CAPIT") col=o.c3||"#ff6d00";
           else if(p.tag==="STOP") col="#00e5ff";
-          else if(p.tag==="OUT") col=o.c2||"#2979ff";
-          else if(p.value>=1) col="#cfd8dc";
-          else col="rgba(144,164,174,.45)";
-          return {time:p.time, value:p.value, color:col};
+          return {time:p.time, value:Math.min(p.value, cap), color:col};
         }));
         try{ hbV.applyOptions({autoscaleInfoProvider:function(){ return {priceRange:{minValue:0, maxValue:cap}}; }}); }catch(eSc){}
         oscSeries.push(hbV);
@@ -3343,15 +3426,20 @@ else if(o.id==="rvol"){
           var oneV=c.addLineSeries({color:o.c||"#787b86",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"1× own avg"});
           oneV.setData(vd.map(function(p){ return {time:p.time, value:1}; }));
           var outV=c.addLineSeries({color:o.c3||"#ff6d00",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false,title:gate+"× outlier"});
-          outV.setData(vd.map(function(p){ return {time:p.time, value:gate}; }));
+          outV.setData(vd.map(function(p){ return {time:p.time, value:Math.min(gate, cap)}; }));
           oscSeries.push(oneV, outV);
         }catch(e){}
         var veVd=head.querySelector(".osc-v");
         if(veVd){
-          var lastVd=null, vi;
+          var lastVd=null, firstY=null, vi;
+          for(vi=0; vi<vd.length; vi++) if(vd[vi].value!=null){ firstY=new Date(vd[vi].time*1000).getUTCFullYear(); break; }
           for(vi=vd.length-1; vi>=0; vi--) if(vd[vi].value!=null){ lastVd=vd[vi]; break; }
           if(!lastVd) veVd.textContent="Unavailable";
-          else veVd.textContent=lastVd.value.toFixed(2)+"×"+(lastVd.tag==="CAPIT"?" CAPIT":lastVd.tag==="STOP"?" STOP":lastVd.tag==="OUT"?" outlier":"");
+          else {
+            var tagLab=lastVd.tag==="CAPIT"?" CAPIT":lastVd.tag==="STOP"?" STOP":lastVd.tag==="OUT"?" SPIKE":"";
+            veVd.textContent=(firstY?firstY+"– ":"")+lastVd.value.toFixed(2)+"×"+tagLab;
+            veVd.style.color=lastVd.tag==="CAPIT"?(o.c3||"#ff6d00"):lastVd.tag==="STOP"?"#00e5ff":lastVd.tag==="OUT"?(o.c2||"#2979ff"):"";
+          }
         }
       }
       else if(o.id==="bbw"){

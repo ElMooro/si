@@ -45,9 +45,9 @@ function loadFuse() {
 }
 
 test("audit stamp and identity/interval/tick helpers are live", () => {
-assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
+assert.match(html, /jh-chart-engine\.js\?v=20261002ab-spike/);
   assert.match(html, /jh-chart-inst\.js\?v=20260916aa-fix/);
-  assert.match(html, /jh-chart-indux\.js\?v=20261001aa-ind/);
+  assert.match(html, /jh-chart-indux\.js\?v=20261002ab-spike/);
   assert.match(html, /jh-chart-tvsearch\.js\?v=20260922ab-cqind/);
   assert.match(html, /jh-etf-fuse\.js\?v=20260921-native1/);
   assert.match(engine, /__jhChartEngineV1239/);

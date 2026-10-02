@@ -36,8 +36,8 @@ function loadMath() {
 }
 
 test("Indicators dropdown is on the chart bar and stamps the engine", () => {
-  assert.match(html, /jh-chart-engine\.js\?v=20261001aa-ind/);
-  assert.match(html, /jh-chart-indux\.js\?v=20261001aa-ind/);
+  assert.match(html, /jh-chart-engine\.js\?v=20261002ab-spike/);
+  assert.match(html, /jh-chart-indux\.js\?v=20261002ab-spike/);
   assert.match(html, /\.menu \.irow button\.gr/);
   assert.match(engine, /Indicators ▾/);
   assert.match(engine, /function openIndMenu/);
