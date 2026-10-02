@@ -1,6 +1,6 @@
 {
   "stage": 574,
-  "status": "candidate_validation_and_release_pending",
+  "status": "exact_static_code_verified_followup_required",
   "base_commit": "27f9f9a7d90859677f6d6d8457f9f7495cfc3c4c",
   "predecessor": {
     "path": "tests/fixtures/buyback-pane/predecessor.js.txt",
@@ -25,5 +25,8 @@
     "forecast_qualified": false,
     "investment_authority": false
   },
-  "browser_scope": "Selected complete real chart modules and pinned chart library; invented packets/bars and fully intercepted requests. Keyboard tab selection exercised; mobile pointer reachability of the existing tab strip remains outside this pane change."
+  "browser_scope": "Selected complete real chart modules and pinned chart library; invented packets/bars and fully intercepted requests. Keyboard tab selection exercised; mobile pointer reachability of the existing tab strip remains outside this pane change.",
+  "source_commit": "01b77ae420e1da45a7349d8199df680220720f36",
+  "acceptance": "docs/audit/2026-10-02/buyback-pane-acceptance.json",
+  "known_followup": "After a ticker repaint the legacy oscillator renderer creates an empty data-oid=buyback pane above the accounting section. This consumes chart height; explicit external-pane routing and a browser regression are required."
 }
