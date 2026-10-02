@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Why · JustHodl.AI</title>
+<title>Cross-signal evidence · JustHodl.AI</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#facc15">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="JustHodl">
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/service-worker.js",{scope:"/"}).catch(e=>console.warn("[PWA]",e));});}</script>
-<meta name="description" content="Cross-signal anomaly tracer. For any ticker, walk back the dependency chain — which signals fired, what they contributed to the conviction score, and the historical hit-rate per signal.">
+<meta name="description" content="Trace reported ticker records, scores, calculations and source availability without inferring independent evidence or investment authority.">
 <style>
   :root {
     --bg: #0a0a0a; --bg-card: #131313; --bg-card-elev: #181818; --bg-hover: #1f1f1f;
@@ -123,45 +123,25 @@
 <script src="/tenor-signals.js" defer></script>
 <script src="/liquidity-credit.js" defer></script>
 <script src="/liquidity-pulse.js" defer></script>
-</head>
-<body>
-<p style="padding:12px"><a href="/momentum-observations.html">Momentum source observations</a> — dated descriptions; no investment vote. Other cross-signal inputs remain independently unqualified.</p>
-
-<div class="container">
-  <div class="header">
-    <h1>🧭 Why <span class="sub">cross-signal explainer · walks the dependency chain for any ticker</span></h1>
-    <div class="nav">
-      <a href="/">Desk</a>
-      <a href="/master-rank.html">Action</a>
-      <a href="/alpha-scoreboard.html">Scoreboard</a>
-      <a href="/compound-signals.html">Compound</a>
-      <a href="/portfolio.html">Portfolio</a>
-    
-      <a href="/stress.html">Stress</a>
-    <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
-    <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a></div>
-  </div>
-
-  <div class="picker">
-    <span class="label">Ticker:</span>
-    <input id="tickerInput" type="text" placeholder="TX" autocomplete="off">
-    <button class="quick-btn" onclick="explain(document.getElementById('tickerInput').value)">Explain →</button>
-    <span class="label" style="margin-left:14px">Top picks:</span>
-    <div class="quick" id="quickPicks">
-      <span class="loading" style="font-size:11px;padding:0">loading top tickers…</span>
-    </div>
-  </div>
-
-  <div id="content">
-    <div class="section">
-      <div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">
-        Pick a ticker above to see why the system has conviction (or doesn't). Defaults to top compound-signal pick on page load.
-      </div>
-    </div>
-  </div>
-</div>
-
+<link rel="stylesheet" href="/jh-research-explain.css"></head>
+<body><main class="research-shell">
+<header><h1>Cross-signal evidence</h1>
+<nav class="research-controls"><a href="/">Desk</a><a href="/master-rank.html">Master Rank</a><a href="/compound-signals.html">Compound</a><a href="/why-now.html">Why Now</a></nav></header>
+<p class="research-lead">Trace a ticker through the records actually received. Scores are reported research values. Repeated source occurrences do not establish independent evidence, forecast skill or a position size.</p>
+<p><a href="/momentum-observations.html">Momentum source observations</a> — dated descriptions; no investment vote. This page does not request the retired momentum packet.</p>
+<p class="research-status" id="research-status" role="status">Loading source packets…</p>
+<form id="ticker-form" class="research-controls"><label for="tickerInput">Ticker</label><input id="tickerInput" name="ticker" type="text" placeholder="Ticker" autocomplete="off"><button type="submit">Inspect records</button>
+<div class="research-quick" id="quickPicks" aria-label="Sample received tickers"></div></form>
+<div id="content" aria-live="polite"></div>
+<h2>Received source evidence</h2>
+<p>All source packets remain inspectable below, including fields and collections that have no ticker adapter. Only recognized collection rows with an unambiguous ticker or symbol are matched. Canonical empty or malformed collections never fall back to an older alias. Parsed numeric displays use JavaScript precision; download the original bytes for the exact received representation. Maximum complete packet: 4 MiB; no partial result is accepted.</p>
+<div id="research-sources"></div>
+</main>
+<script src="/jh-evidence-io.js"></script>
+<script src="/jh-research-explain.js"></script>
 <script>
+(async function () {
+  'use strict';
 const BUCKET_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com";
 const URLS = {
   compound: BUCKET_BASE + "/data/compound-signals.json",
@@ -184,343 +164,38 @@ const URLS = {
   filings: BUCKET_BASE + "/data/8k-filings.json",
 };
 
-let DATA = {};
 
-const SIG_META = {
-  insiders:    { name: "Insider activity",         icon: "👀", source: "insider-cluster-scanner + insider-trades", weight: 25 },
-  smart_money: { name: "Smart money cluster",      icon: "💼", source: "smart-money-cluster", weight: 20 },
-  nobrainers:  { name: "Asymmetric (no-brainer)",  icon: "🎯", source: "asymmetric-hunter (Tier-A)", weight: 30 },
-  deep_value:  { name: "Deep value",               icon: "💎", source: "deep-value-screener", weight: 15 },
-  eps_velocity:{ name: "EPS revision velocity",    icon: "📈", source: "eps-revision-velocity", weight: 18 },
-  momentum:    { name: "Momentum breakout",        icon: "🚀", source: "momentum-breakout", weight: 15 },
-  pre_pump:    { name: "Pre-pump detector",        icon: "🌱", source: "pre-pump-detector", weight: 12 },
-  options_flow:{ name: "Options flow",             icon: "📞", source: "options-flow", weight: 22 },
-  activist:    { name: "Activist filings",         icon: "🏛️", source: "activist-filings-scanner", weight: 20 },
-  vol_squeeze: { name: "Volatility squeeze",       icon: "🔋", source: "volatility-squeeze-hunter", weight: 12 },
-  rev_accel:   { name: "Revenue acceleration",     icon: "📊", source: "revenue-acceleration", weight: 18 },
-  microcap_sq: { name: "Microcap float squeeze",   icon: "🔥", source: "microcap-float-squeeze", weight: 15 },
-  pead:        { name: "Post-earnings drift",      icon: "📅", source: "pead-detector", weight: 14 },
-};
-
-async function fetchJSON(url) {
+  const R = window.JHResearchExplain, status = document.getElementById('research-status');
   try {
-    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch (e) { return null; }
-}
-
-async function init() {
-  // Pull the master JSONs in parallel
-  const entries = await Promise.all(
-    Object.entries(URLS).map(async ([k, u]) => [k, k === "momentum" ? {status:"research_only_abstain",investment_votes:0} : await fetchJSON(u)])
-  );
-  DATA = Object.fromEntries(entries);
-  // Populate quick picks
-  populateQuickPicks();
-  // Auto-explain top compound pick on load
-  const url = new URL(window.location);
-  let initialTicker = url.searchParams.get("ticker");
-  if (!initialTicker && DATA.compound?.ranked?.length) initialTicker = DATA.compound.ranked[0].symbol;
-  if (initialTicker) {
-    document.getElementById("tickerInput").value = initialTicker;
-    explain(initialTicker);
-  }
-  // Wire enter key
-  document.getElementById("tickerInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") explain(e.target.value);
-  });
-}
-
-function populateQuickPicks() {
-  const top = (DATA.compound?.ranked || []).slice(0, 6).map(r => r.symbol);
-  const setups = (DATA.asymmetric?.top_setups || []).slice(0, 3).map(s => s.symbol).filter(s => !top.includes(s));
-  const picks = [...top, ...setups].slice(0, 8);
-  if (!picks.length) {
-    document.getElementById("quickPicks").innerHTML = '<span class="loading" style="font-size:11px;padding:0">no compound data yet</span>';
-    return;
-  }
-  document.getElementById("quickPicks").innerHTML = picks.map(t =>
-    `<button class="quick-btn" onclick="explain('${t}')">${t}</button>`
-  ).join("");
-}
-
-function explain(rawTicker) {
-  const ticker = (rawTicker || "").trim().toUpperCase();
-  if (!ticker) return;
-  document.getElementById("tickerInput").value = ticker;
-  const url = new URL(window.location);
-  url.searchParams.set("ticker", ticker);
-  window.history.replaceState({}, "", url);
-
-  // 1. Find ticker in compound-signals
-  const compoundRow = (DATA.compound?.ranked || []).find(r => r.symbol === ticker);
-  // 2. Find in asymmetric-scorer top setups
-  const asymRow = (DATA.asymmetric?.top_setups || []).find(s => s.symbol === ticker);
-  // 3. Find in master rank
-  const masterRow = (DATA.master?.ranked || DATA.master?.rows || []).find(r =>
-    (r.symbol || r.ticker) === ticker);
-  // 4. Find in nobrainers
-  const nobrainerRow = findInNobrainers(ticker);
-
-  const hasAny = compoundRow || asymRow || masterRow || nobrainerRow;
-  if (!hasAny) {
-    document.getElementById("content").innerHTML = `
-      <div class="section">
-        <div class="not-found">
-          <h3>${ticker} not found in active signal feeds</h3>
-          <p>This ticker isn't currently surfacing in compound-signals, asymmetric-scorer, master-rank, or nobrainers. Either it's not in the universe or no signals are firing on it right now.</p>
-          <p style="margin-top:12px;font-size:11px">Try one of the quick-picks above, or check <a href="/master-rank.html" style="color:var(--accent)">master-rank.html</a> for the full universe.</p>
-        </div>
-      </div>`;
-    return;
-  }
-
-  document.getElementById("content").innerHTML = [
-    renderConvictionHero(ticker, compoundRow, asymRow, masterRow, nobrainerRow),
-    renderContributions(ticker, compoundRow),
-    renderAsymmetricBreakdown(ticker, asymRow),
-    renderRelatedFlags(ticker),
-    renderRawData(ticker, compoundRow, asymRow, masterRow, nobrainerRow),
-  ].join("");
-}
-
-function findInNobrainers(ticker) {
-  const data = DATA.nobrainers;
-  if (!data) return null;
-  // Could be in tier_a, tier_b, or top_picks
-  for (const key of ["tier_a", "tier_b", "top_picks", "candidates", "results"]) {
-    const arr = data[key];
-    if (Array.isArray(arr)) {
-      const match = arr.find(r => (r.symbol || r.ticker) === ticker);
-      if (match) return { ...match, _tier: key };
+    const receipts = Object.fromEntries(await Promise.all(Object.entries(URLS).map(async ([k,u]) => [k, k === "momentum" ? {status:"research_only_abstain",investment_votes:0} : await R.receive(u)])));
+    status.textContent = R.receivedSummary(receipts);
+    R.showSources(document.getElementById('research-sources'), receipts);
+    const input = document.getElementById('tickerInput');
+    function explain(value) {
+      const result = R.renderCross(document.getElementById('content'), receipts, value);
+      input.value = result.ticker;
+      const url = new URL(window.location.href);
+      if (result.ticker) url.searchParams.set('ticker', result.ticker); else url.searchParams.delete('ticker');
+      window.history.replaceState({}, '', url);
     }
-  }
-  return null;
-}
-
-function renderConvictionHero(ticker, compound, asym, master, nb) {
-  const score = compound?.score ?? null;
-  const cls = score === null ? "low" : score >= 200 ? "high" : score >= 100 ? "medium" : "low";
-  const systems = compound?.systems || [];
-
-  // Build a one-line plain-English summary
-  let summary = "";
-  if (compound) {
-    const n = systems.length;
-    summary = `<strong>${ticker}</strong> shows up across ${n} independent signal system${n === 1 ? "" : "s"} with a combined compound score of <strong style="color:var(--accent)">${Math.round(compound.score)}</strong>.`;
-    if (compound.score >= 300) summary += " <span style='color:var(--green)'>EXCEPTIONAL stacking — rare event, often precedes major moves.</span>";
-    else if (compound.score >= 200) summary += " <span style='color:var(--green)'>HIGH conviction — multiple systems independently aligned.</span>";
-    else if (compound.score >= 100) summary += " <span style='color:var(--amber)'>Moderate stacking — some confluence but not exceptional.</span>";
-    else summary += " <span style='color:var(--text-dim)'>Light stacking — weak edge.</span>";
-  } else if (asym) {
-    summary = `<strong>${ticker}</strong> doesn't show in compound-signals but is in <strong>asymmetric-scorer</strong> with composite ${asym.composite_score} and ${(asym.dims_passed_list || []).length}/5 dimensions passed.`;
-  } else if (nb) {
-    summary = `<strong>${ticker}</strong> is in nobrainers (${nb._tier || "unknown tier"}) but not in compound-signals.`;
-  } else {
-    summary = `<strong>${ticker}</strong> appears in master-rank but not in any compound signals.`;
-  }
-
-  const systemPills = systems.map(s => {
-    const meta = SIG_META[s] || { name: s, icon: "•" };
-    return `<span class="sys-pill"><span class="emoji">${meta.icon}</span>${meta.name}</span>`;
-  }).join("");
-
-  return `
-  <div class="conviction-hero">
-    <div class="conv-score">
-      <div class="ticker">${ticker}</div>
-      <div class="num ${cls}">${score !== null ? Math.round(score) : "—"}</div>
-      <div class="lbl">compound score</div>
-    </div>
-    <div class="conv-summary">
-      <h2>The chain of evidence</h2>
-      <p>${summary}</p>
-      ${systemPills ? `<div class="conv-systems">${systemPills}</div>` : ""}
-    </div>
-  </div>`;
-}
-
-function renderContributions(ticker, compound) {
-  if (!compound) {
-    return `<div class="section">
-      <div class="section-header"><h3>📊 Per-signal contribution</h3></div>
-      <div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">
-        ${ticker} has no compound-signals entry — no per-system contribution data available.
-      </div>
-    </div>`;
-  }
-  const details = compound.details || {};
-  const systems = compound.systems || [];
-  const totalScore = compound.score || 0;
-
-  const rows = systems.map(sys => {
-    const meta = SIG_META[sys] || { name: sys, icon: "•", source: sys, weight: 10 };
-    const d = details[sys] || {};
-    // Best-effort detail summary per system
-    let detailHTML = "";
-    if (sys === "insiders" && d.rationale) detailHTML = d.rationale;
-    else if (sys === "eps_velocity" && d.fy2_lift_pct !== undefined) {
-      detailHTML = `EPS lift <strong>${d.fy2_lift_pct >= 0 ? "+" : ""}${d.fy2_lift_pct?.toFixed(1)}%</strong> · revenue growth <strong>${d.fwd_rev_growth_pct >= 0 ? "+" : ""}${d.fwd_rev_growth_pct?.toFixed(1)}%</strong>`;
-    } else if (sys === "smart_money" && d.n_funds) {
-      detailHTML = `<strong>${d.n_funds}</strong> funds positioned · <strong>${d.cluster_strength || "—"}</strong> conviction`;
-    } else if (sys === "options_flow" && d.bullish_flow) {
-      detailHTML = `bullish flow <strong>$${(d.bullish_flow / 1e6).toFixed(1)}M</strong>`;
-    } else if (sys === "momentum" && d.breakout_score) {
-      detailHTML = `breakout score <strong>${d.breakout_score}</strong>`;
-    } else if (sys === "deep_value" && d.score !== undefined) {
-      detailHTML = `value score <strong>${d.score}</strong> · P/E <strong>${d.peRatio?.toFixed(1) || "—"}</strong>`;
-    } else if (sys === "nobrainers" && d.tier) {
-      detailHTML = `${d.tier} (${d.tier_score || "—"})`;
-    } else if (sys === "pead" && d.surprise_pct) {
-      detailHTML = `earnings surprise <strong>${d.surprise_pct >= 0 ? "+" : ""}${d.surprise_pct?.toFixed(1)}%</strong>, drift signal active`;
-    } else if (Object.keys(d).length) {
-      detailHTML = Object.entries(d).slice(0, 3).map(([k, v]) =>
-        `<span style="color:var(--text-muted)">${k}:</span> <strong>${typeof v === 'number' ? v.toFixed(2) : (typeof v === 'string' ? v.slice(0, 40) : JSON.stringify(v).slice(0, 40))}</strong>`
-      ).join(" · ");
-    } else {
-      detailHTML = "<em style='color:var(--text-muted)'>signal fired (no detail metadata)</em>";
-    }
-
-    const weight = meta.weight || 10;
-    const pct = Math.min(100, (weight / 30) * 100);
-    return `<div class="contrib-row">
-      <div class="contrib-icon">${meta.icon}</div>
-      <div class="contrib-name">
-        ${meta.name}
-        <span class="sub">${meta.source}</span>
-      </div>
-      <div class="contrib-detail">${detailHTML}</div>
-      <div class="contrib-pts pos">+${weight}</div>
-      <div class="contrib-bar"><div class="contrib-bar-fill" style="width:${pct}%"></div></div>
-      <div class="contrib-hit"><strong>${weight}</strong>pts</div>
-    </div>`;
-  }).join("");
-
-  return `
-  <div class="section">
-    <div class="section-header">
-      <h3>📊 Per-signal contribution to ${ticker}'s compound score</h3>
-      <span class="sub">${systems.length} signals firing · ${Math.round(totalScore)} compound points</span>
-    </div>
-    ${rows || '<div class="section-body" style="padding:30px;text-align:center;color:var(--text-dim)">No system details available.</div>'}
-  </div>`;
-}
-
-function renderAsymmetricBreakdown(ticker, asym) {
-  if (!asym) return "";
-  const dims = asym.dims_passed_list || [];
-  const composite = asym.composite_score;
-  const stacked = asym.stacked_conviction_score;
-  const stackedDetails = asym.stacking_signals || [];
-
-  const dimLabels = {
-    quality: "Quality (Piotroski + safety)",
-    safety: "Safety (debt/equity, current ratio)",
-    value: "Value (P/E vs sector)",
-    momentum: "Momentum (50/200 trend)",
-    growth: "Growth (revenue + EPS)",
-  };
-
-  const dimHTML = ["quality", "safety", "value", "momentum", "growth"].map(d => {
-    const passed = dims.includes(d);
-    return `<div class="info-card" style="border-left:3px solid ${passed ? 'var(--green)' : 'var(--text-muted)'}">
-      <div class="info-label">${dimLabels[d] || d}</div>
-      <div class="info-value" style="color:${passed ? 'var(--green)' : 'var(--text-dim)'}">${passed ? "✓ pass" : "✗"}</div>
-    </div>`;
-  }).join("");
-
-  return `
-  <div class="section">
-    <div class="section-header">
-      <h3>🎯 Asymmetric-scorer breakdown</h3>
-      <span class="sub">composite ${composite} · ${dims.length}/5 dims passed${stacked !== undefined ? ' · stacked conviction ' + stacked : ''}</span>
-    </div>
-    <div class="info-grid" style="grid-template-columns:repeat(5,1fr)">${dimHTML}</div>
-    ${stackedDetails.length ? `
-      <div class="section-body" style="border-top:1px solid var(--border)">
-        <div style="color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">Stacked conviction signals</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${stackedDetails.map(s => `<span class="sys-pill" style="border-color:${s.points >= 0 ? 'var(--green)' : 'var(--red)'};color:${s.points >= 0 ? 'var(--green)' : 'var(--red)'}">${s.label || s.kind} ${s.points >= 0 ? '+' : ''}${s.points}</span>`).join("")}
-        </div>
-      </div>` : ''}
-  </div>`;
-}
-
-function renderRelatedFlags(ticker) {
-  // Show whether the ticker is flagged by individual signal Lambdas (cross-check)
-  const flags = [
-    { feed: DATA.insiders, key: "insiders", label: "Insider buys/sells", finder: (d) => (d.activity || d.events || d.records || []).filter(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.eps, key: "eps", label: "EPS revision velocity", finder: (d) => (d.results || d.tickers || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.smartMoney, key: "smart_money", label: "Smart-money cluster", finder: (d) => (d.clusters || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.deepValue, key: "deep_value", label: "Deep value screener", finder: (d) => (d.results || d.picks || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.momentum, key: "momentum", label: "Momentum breakout", finder: (d) => (d.results || d.breakouts || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.optionsFlow, key: "options", label: "Options flow", finder: (d) => (d.unusual || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.microcap, key: "microcap", label: "Microcap squeeze", finder: (d) => (d.candidates || d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
-    { feed: DATA.revenue, key: "revenue", label: "Revenue acceleration", finder: (d) => (d.results || []).find(r => (r.symbol || r.ticker) === ticker) },
-  ];
-
-  const hits = flags.map(f => {
-    if (!f.feed) return null;
-    try {
-      const found = f.finder(f.feed);
-      if (Array.isArray(found) ? found.length > 0 : !!found) {
-        return { label: f.label, key: f.key };
+    document.getElementById('ticker-form').addEventListener('submit', event => { event.preventDefault(); explain(input.value); });
+    const sample = [], seen = new Set();
+    for (const [key,keys] of [['compound',['ranked']], ['master',['top_tickers','ranked','rows']], ['asymmetric',['top_setups']]]) {
+      for (const record of R.collection(receipts[key]?.data, keys).rows) {
+        const ticker = R.identity(record.value);
+        if (ticker && !seen.has(ticker)) { seen.add(ticker); sample.push(ticker); }
       }
-    } catch (e) {}
-    return null;
-  }).filter(Boolean);
-
-  if (!hits.length) {
-    return `<div class="section">
-      <div class="section-header"><h3>🔗 Related signal feeds</h3></div>
-      <div class="section-body" style="color:var(--text-dim);text-align:center;padding:24px">
-        No direct hits in any individual signal feed for ${ticker} (cross-checks complete).
-      </div>
-    </div>`;
-  }
-
-  return `
-  <div class="section">
-    <div class="section-header">
-      <h3>🔗 Cross-check: ${hits.length} other signal feeds also have ${ticker}</h3>
-      <span class="sub">independent confirmation from raw signal Lambdas</span>
-    </div>
-    <div class="section-body">
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${hits.map(h => `<span class="sys-pill" style="border-color:var(--green);color:var(--green)">✓ ${h.label}</span>`).join("")}
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderRawData(ticker, compound, asym, master, nb) {
-  const sources = [];
-  if (compound) sources.push({ label: "compound-signals", data: compound });
-  if (asym) sources.push({ label: "asymmetric-scorer", data: asym });
-  if (master) sources.push({ label: "master-rank", data: master });
-  if (nb) sources.push({ label: "nobrainers", data: nb });
-
-  return `
-  <div class="section">
-    <div class="section-header">
-      <h3>🗃 Raw source data</h3>
-      <span class="sub">${sources.length} feeds · click to expand</span>
-    </div>
-    ${sources.map(s => `
-      <details style="border-bottom:1px solid var(--border)">
-        <summary style="padding:10px 18px;cursor:pointer;color:var(--text);font-size:12px">${s.label}</summary>
-        <pre style="padding:14px 18px;background:var(--bg);overflow-x:auto;font-size:11px;color:var(--text-dim);font-family:'SF Mono', Menlo, monospace;line-height:1.5">${JSON.stringify(s.data, null, 2)}</pre>
-      </details>
-    `).join("")}
-  </div>`;
-}
-
-init();
+    }
+    for (const ticker of sample.slice(0, 8)) {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = ticker;
+      button.addEventListener('click', () => explain(ticker)); document.getElementById('quickPicks').append(button);
+    }
+    explain(new URL(window.location.href).searchParams.get('ticker') || sample[0] || '');
+    document.documentElement.dataset.researchReady = 'true';
+  } catch (error) { status.textContent = 'Research view unavailable: ' + error.message; document.documentElement.dataset.researchReady = 'error'; }
+})();
 </script>
-
-  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
-</body>
-</html>
+</body></html>

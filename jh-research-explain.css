@@ -1,0 +1,13 @@
+.research-shell{max-width:1140px;margin:0 auto;padding:24px;color:#e5e5e5;font:14px/1.6 system-ui,sans-serif;overflow-wrap:anywhere}
+.research-shell h1{font-size:28px;margin:0 0 8px}.research-shell h2{font-size:19px;margin:16px 0 10px}.research-shell h3{font-size:15px;margin:0 0 8px}
+.research-shell p{margin:8px 0}.research-lead{max-width:850px;color:#b9c1ce}.research-status{padding:14px;border-left:3px solid #facc15;background:#17191e;margin:18px 0}
+.research-shell button,.research-shell input{background:#181c24;color:#e5e5e5;border:1px solid #556078;border-radius:5px;padding:9px 12px;font:inherit;max-width:100%}
+.research-shell button{cursor:pointer}.research-shell button:hover{border-color:#facc15}.research-shell button[aria-pressed=true]{background:#facc15;color:#101114}
+.research-shell :focus-visible{outline:2px solid #facc15;outline-offset:3px}.research-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:18px 0}
+.research-record,.research-source{border:1px solid #343b49;border-radius:7px;padding:16px;margin:12px 0;min-width:0;background:#10141b}
+.research-record{border-left:3px solid #647c95}.research-meta{color:#adb8ca;font:12px/1.6 ui-monospace,monospace}.research-value{font:600 18px/1.5 ui-monospace,monospace}
+.research-shell a{color:#67d4ea}.research-inspect{margin:10px 0}.research-inspect summary{cursor:pointer;color:#c9d8ef;padding:7px 0}
+.research-inspect pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-height:400px;overflow:auto;padding:12px;background:#080c12;color:#ccd5e2;border:1px solid #343b49;font:12px/1.6 ui-monospace,monospace;tab-size:2}
+.research-scores{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:6px 14px;margin:12px 0}.research-scores dd{margin:0;font-family:ui-monospace,monospace}
+.research-shell form label{font-weight:600}.research-shell input{min-width:0;width:180px}.research-quick{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+@media(max-width:600px){.research-shell{padding:16px}.research-record,.research-source{padding:12px}.research-shell h1{font-size:24px}.research-controls{align-items:stretch}.header{height:auto!important;min-height:54px;padding:10px!important;flex-wrap:wrap}.nav{gap:6px!important;margin-left:0!important}}

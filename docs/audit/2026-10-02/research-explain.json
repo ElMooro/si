@@ -1,0 +1,32 @@
+{
+  "status": "candidate_in_integration",
+  "base": "530e56b5a9398303cfd79d4fce7f246b79c127e8",
+  "scope": [
+    "why-now.html",
+    "why-cross-signal.html"
+  ],
+  "predecessor_reproduction": "ranker-consumer-findings.json",
+  "constraints": {
+    "producer_invocations": 0,
+    "application_packet_reads": 0,
+    "provider_probes": 0,
+    "paid_ai_calls": 0,
+    "portfolio_authority": false,
+    "all_workstreams": "OPEN"
+  },
+  "source_adapters": [
+    "Ranker top_tickers and unranked_tickers; canonical presence takes precedence over ranked/rows",
+    "Compound ranked compound_score/scores/details; new_alerts is source-reported event population",
+    "Asymmetric top_setups and actual reported dimension list",
+    "Nobrainers all_scored; insider transaction/sell/cluster/big-buy occurrences",
+    "EPS, revenue and microcap request_records; legacy all_qualifying only if canonical absent",
+    "Unadapted nested fields retained in complete received packet, never called a complete cross-check"
+  ],
+  "limits": [
+    "Received original bytes retained in tab only, not immutable warehouse/PIT proof",
+    "4 MiB complete packet bound and 12-second request deadline; oversized packets unavailable",
+    "JavaScript numeric projection; exact source representation remains downloadable",
+    "No current packet execution or freshness/recommendation qualification",
+    "Shared floating panels can obscure page content; separate layout work remains"
+  ]
+}
