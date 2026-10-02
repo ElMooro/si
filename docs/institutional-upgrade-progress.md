@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC, through Stage 542 accepted: stablecoin source/native/static work remains accepted. Stage 543 sentiment source, archive, eight consumer engines and Crypto/Desk presentation are now a complete local candidate; integration/deployment/native/static/original acceptance remains required. Allocator/logger controls were read twice on the runner without invocation or application reads. All ten institutional workstreams remain OPEN.
+October 2 UTC, Stage 543 exact nine-engine and served Crypto/Desk release accepted. Stage 544 retained-original replay and public artifact bytes are accepted against the exact committed compiler and native package. Stage 545 heartbeat correctness is next: five predecessor defects reproduced with invented metadata; native controls and real schedule bindings are requested before repair. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7744,3 +7744,15 @@ Source `d1f73fa57616453c28e4203f9b7cd2cdc6f08936` landed all 99 related files at
 ### Stage 544 retained sentiment original acceptance
 
 The read-only check binds the receipt to the exact native-accepted function/package/handler identity and commit. It retains and compares the complete bounded original run census, checks whole object addresses and clocks, and replays all supplied rows with reviewed local compilers. Pending or unavailable sources remain explicit. No producer or provider is invoked. All ten institutional workstreams remain OPEN.
+
+
+### Stage 545 heartbeat monitor source findings
+
+The complete predecessor is retained and five invented reproductions prove incomplete first-member prefix selection, access-denial-as-absence, the incompatible 48-hour weekly ceiling, future storage timestamps called fresh and guessed Scheduler-only names. The named read-only baseline covers the monitor and six existing monitored producers, captures runtime controls and actual classic/Scheduler bindings twice, and omits environment values, application bodies and invocation inputs from evidence. No producer is invoked or schedule modified. Source-only searches found no page consumer of this packet.
+
+Concurrent Chart source commits `31b50acda`/`7ae7e8f68` were preserved. Their 80x unit-break inference, undated earlier-volume substitution and clipped relative display remain unqualified measurement issues; source identity/stamp tests are not evidence that those heuristics are valid. These changes do not overlap the sentiment original checker or its seven pinned source files.
+
+
+### Stage 544 original acceptance proof
+
+Read-only run `36960070478`, report commit `cc294b376`, inspected the complete two-manifest namespace twice unchanged. The selected post-release original replayed all 31 recent and 3,162 full-history sentiment rows with zero unresolved rows/clock groups and descriptive status. All six complete addressed public artifacts returned HTTP 200 and matched their exact lengths and SHA-256. Release receipt identity and commit `d1f73fa57616453c28e4203f9b7cd2cdc6f08936` matched before and after. No provider request, producer invocation, schedule change, application/private/account packet read or log query occurred. This establishes retained computation and public addressed-byte availability; current consumer delivery, source authenticity, first-publication timing and investment authority remain unverified.

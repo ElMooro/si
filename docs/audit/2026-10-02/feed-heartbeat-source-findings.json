@@ -1,0 +1,28 @@
+{
+  "source_sha256": "30c2bd0c50807d6600cf7fbf1009fa80351392c95b95e0620435a9efed87cd18",
+  "source": "aws/lambdas/justhodl-feed-heartbeat/source/lambda_function.py",
+  "invented_cases": 5,
+  "native_invocations": 0,
+  "provider_requests": 0,
+  "aws_reads": 0,
+  "aws_writes": 0,
+  "source_qualified": false,
+  "defects": [
+    "Incomplete lexicographic prefix selection",
+    "Access failure conflated with missing",
+    "48-hour ceiling contradicts weekly cadence",
+    "Future metadata called fresh",
+    "Scheduler denial conflated with missing; classic rules omitted"
+  ],
+  "stage": 545,
+  "status": "five_offline_defects_reproduced_native_controls_pending",
+  "operation": "aws/ops/staged/ops_6446_heartbeat_controls.py",
+  "monitored_artifacts_retained": 17,
+  "schedule_monitor_retained": true,
+  "no_page_consumer_found_in_source_scan": true,
+  "remaining": [
+    "Native runtime and actual named bindings baseline",
+    "Source repair, complete-handler regressions, exact native release",
+    "Natural storage-monitor publication and original-observation freshness remain separate"
+  ]
+}

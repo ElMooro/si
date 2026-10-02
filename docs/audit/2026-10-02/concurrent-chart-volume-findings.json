@@ -1,0 +1,58 @@
+{
+  "base": "447c8399e93268f46b05835a3b945a092c0d9a4f",
+  "head": "7ae7e8f68818f200287c39045cbe415681a91e48",
+  "target_overlap": false,
+  "script_executed": false,
+  "path_oids": {
+    "chart.html": "0a094741de7fcfd72dec7fce8bdd9fe4dc64941d",
+    "jh-chart-engine.js": "87258a694a709cfa75d96814e14c646f6cb590b8",
+    "tests/chart-audit-fix.test.js": "4e164598f9610e11bcb0d1bb7b71825e97e746f7",
+    "tests/chart-campaign-marks.test.js": "5468909d799c60c453bbf52433e409db5045aef0",
+    "tests/chart-cq-fuse.test.js": "c4b49d46d19dc41229d6f2945301ac8b6961b814",
+    "tests/chart-crypto-history.test.js": "4eb0d34cae8b8b498e710b8c18b811a2838a23ec",
+    "tests/chart-distribution.test.js": "c8d48f1f12802edd3cd9565be91b2a2459b87462",
+    "tests/chart-ind-menu.test.js": "1e4153c8a4e16d12c3719b08630cdf6ab2f57d8f",
+    "tests/chart-inst.test.js": "6c820670e0b2e717c4f51e1ec1755d29bf46f3bd",
+    "tests/chart-qx.test.js": "4775ca92a0dcbe7b62ea3683f0d0637471ef9562",
+    "tests/fixtures/chart-refresh-status/source-delta.json": "b4514e04ef4df6fb8cd4f71ff45c2502013b14b6",
+    "tests/fixtures/chart-signed-volume/source-delta.json": "316172ff385106b8c905e022b9ad4e0b1f647e35",
+    "tests/fixtures/crypto-sentiment/chart-test-transitions.json": "7d815b2d681fe5e717eb39eb3618c4f30e53eeef",
+    "tests/khalid-sniper.test.js": "eb7d69e6ecdf930b0b67a62c46a001422a8ccdc9"
+  },
+  "json_source_transitions": [
+    {
+      "path": "tests/fixtures/chart-refresh-status/source-delta.json",
+      "changed_top_level_keys": [
+        "html"
+      ],
+      "before_sha256": "7762aec810e66e176e69e0499fda60726e552d7d19136a2dd97ce6fa32f3a9d6",
+      "after_sha256": "cc70a397931bf4adfff442a0e84e254bb4ded32f36eee831cdffdeb29d99d99a"
+    },
+    {
+      "path": "tests/fixtures/chart-signed-volume/source-delta.json",
+      "changed_top_level_keys": [
+        "entries"
+      ],
+      "before_sha256": "3cb6993862b3caa59e178fa8e04e787e210f6d42c7aebe55488a67c800ff68d3",
+      "after_sha256": "da98398d51c7b2187fb9756ce8fdf41f543a8bbae43bc21df10a0aeca0ddef69"
+    },
+    {
+      "path": "tests/fixtures/crypto-sentiment/chart-test-transitions.json",
+      "changed_top_level_keys": [
+        "tests/chart-cq-fuse.test.js",
+        "tests/chart-ind-menu.test.js",
+        "tests/chart-crypto-history.test.js",
+        "tests/chart-qx.test.js"
+      ],
+      "before_sha256": "d39758d98b63cca646c383d0735d03a102ce2e93e87adf132d2a49bb042b5545",
+      "after_sha256": "a187f243fb1270543716cd5c13a171cea44fff1835c1d1d9cd91e10ce5ee5e81"
+    }
+  ],
+  "review": "Complete changed Chart functions and stamp tests read; independent from seven pinned sentiment reader files and its native operation. Existing full deployment/crypto tests retain exact tested bytes. Peer Chart investment and measurement qualification is not established.",
+  "open_findings": [
+    "Volume quotient>=80 is treated as a unit break without retained unit metadata",
+    "Quote/status can display an earlier selected volume beside latest OHLC without the selected observation date",
+    "Seam detection switches the entire volume history into clipped relative units; absolute magnitudes are not recoverable from plotted values",
+    "New pane growth and mouse resize need separate full-browser/mobile acceptance"
+  ]
+}
