@@ -18,7 +18,6 @@ twice: 4819 odds chips, 4827 CSLT probe) waste runs. Protocol:
 ## Active claims
 | workstream | ops | session | claimed (UTC) |
 |---|---|---|---|
-| Series-extractor guarded invocation-local initial selection lookup reuse only; full predecessor differential/failure/consumer/benchmark evidence, independent exact-head review and targeted release. Preserve mutable checks/state, retained data, normal updates and all controls; no producer invokes or archive reads. | acceptance number pending inventory | S-codex#selookup1002h9 | 2026-10-02 04:36 |
 | Provider-catalog full prefix LIST page-size only (400 to 1000); complete output equivalence, memory/runtime measurements, exact-head independent review and targeted release/natural publication. Preserve all prefixes, duplicates, derived counters, consumers, event flow, data/storage and schedules; no producer invocation. | 6438 RESERVED technical acceptance only (6437 taken by funding owner) | S-codex#pcpage1002r6 | 2026-10-02 00:26 |
 | CloudWatch caller/cadence source investigation and bounded technical-only runner probe; no billing/account payload publication, no private reads, no mutations or schedule changes before exact-head independent review. Existing no-paid owner work untouched. | 6422 complete; 6423 RESERVED | S-codex#cw1001v8 | 2026-10-01 18:00 |
 | Katlin PR56 regime/credit/vol abstention released and parent natural UI accepted at15:22:39; PR57 version2.5.2 source4432045e3 released via run36885982234 with exact receipt. Auction/rawgate votes excluded. See docs/reviews/katlin-version-identification.md. New identifier normal-UI check remains with parent; verification handoff only, no active code edits. Denied raw route stays stopped. | none | S-codex#kvote1001r4 | 2026-10-01 15:00 |
@@ -81,6 +80,8 @@ RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 My duplicate ops_4864_*.py removed from pending (failed, inert).
 
 ## Done (this arc)
+
+- S-codex#selookup1002h9 — Series-extractor guarded initial selection lookup reuse COMPLETE / HOLD (claimed 2026-10-02 04:36). Independent review found a reproducible CPU regression on a valid basename-alias input. No producer PR, source deployment or acceptance dispatch occurred. Prior pushed work was limited to coordination claim `93f31ee736c6607034d3f5667d374fffff00a351`; local candidate `1c9dda3a` and probe `3df001ca` were never pushed. Acceptance 6448 was not reserved or dispatched by this extractor workstream. No savings claimed.
 
 - S-codex#hs501002p8 — History newest-50 investigation held in draft PR74, candidate 38cefa71de11de4b5aa37c30f143cd7d2d66f268. 303 index/318 full-handler/four actual API+audit consumer cases and 1,035 deployment/15 shell gates pass. Lower synthetic memory but ordered CPU regressions (~33% at 50,000 rows; ~25% across 45 feeds); actual scan distribution/memory pressure unverified. No production merge/deploy, AWS probe, producer invoke or data/storage/schedule/security changes. Reconciliation baseline and meaningful benefit required before reconsideration. Evidence: draft docs/ops/history-newest50-hold.md.
 
