@@ -1,0 +1,117 @@
+{
+  "status": "exact_static_release_checked",
+  "checked_at": "2026-10-02T04:16:53.903187+00:00",
+  "source_commit": "ceac9fcd7db0321850cb8b754e6a32574a08c6c1",
+  "served_commit": "ceac9fcd7db0321850cb8b754e6a32574a08c6c1",
+  "build_manifest_sha256": "e4205ddeba7e3b298b65d7a23484dea2d404aa1a6ca2924de11bc2d46ccd7086",
+  "static_files": [
+    {
+      "path": "chart.html",
+      "bytes": 52798,
+      "sha256": "5e6f29a4c6a8f83b3ee0f263e45d63c29ccc8569c4270c351e3f656b2215b7f7",
+      "whole_http_body_sha256": "b40a4ffd059af0be0b77ddcb5bb13d2e55e4ba8eafa69adc267a3490ca808af1",
+      "sole_edge_script_removed": {
+        "bytes": 367,
+        "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+      }
+    },
+    {
+      "path": "jh-observation-series.js",
+      "bytes": 9981,
+      "sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "whole_http_body_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-observation-cache.js",
+      "bytes": 8235,
+      "sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "whole_http_body_sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-cq-fuse.js",
+      "bytes": 30205,
+      "sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "whole_http_body_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-catalog.js",
+      "bytes": 41059,
+      "sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "whole_http_body_sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-engine.js",
+      "bytes": 425569,
+      "sha256": "e55cb35002cd25ffa2665e84a72065ba5c404c560c81dd8e639f74f6a94b9494",
+      "whole_http_body_sha256": "e55cb35002cd25ffa2665e84a72065ba5c404c560c81dd8e639f74f6a94b9494",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-indux.js",
+      "bytes": 80274,
+      "sha256": "9bd9b99c2e23e36f14b623cc518c4f34d36b1148544ef0740bd8dec7c1a50e95",
+      "whole_http_body_sha256": "9bd9b99c2e23e36f14b623cc518c4f34d36b1148544ef0740bd8dec7c1a50e95",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-stock-desk-research.js",
+      "bytes": 7111,
+      "sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "whole_http_body_sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-stock-desk.js",
+      "bytes": 15423,
+      "sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "whole_http_body_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-vol-events.js",
+      "bytes": 18272,
+      "sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "whole_http_body_sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "sole_edge_script_removed": null
+    }
+  ],
+  "whole_engine_matches_source_with_existing_content_stamps": true,
+  "stamped_engine_dependencies": {},
+  "page_execution": false,
+  "application_packet_reads": 0,
+  "source_qualified": false,
+  "investment_authority": false,
+  "scope": "Whole served static Chart and modules match one commit-bound build; offline invented full-module browser QA is separate. No live application/provider/private/account packet read.",
+  "pages_run": 36963399812,
+  "browser": {
+    "path": "tests/chart-latest-volume-browser.cjs",
+    "whole_report_sha256": "242a3a7e03084e6cc818056c3d8a590e2d28b846ca7e9fa5c43ee913d376cc33",
+    "widths": [
+      1440,
+      390
+    ],
+    "cases_per_width": [
+      "negative-estimate",
+      "positive-estimate",
+      "signed_tape",
+      "unavailable_tape",
+      "SPIKE",
+      "MISSING",
+      "ZERO"
+    ],
+    "actual_network_requests": 0,
+    "screenshots_inspected": true
+  },
+  "tests": {
+    "frontend": 2784,
+    "deployment": 1039,
+    "shell": 15,
+    "page_graphs": 599,
+    "engine_contracts": 900,
+    "wiring": 143
+  }
+}

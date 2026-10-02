@@ -1,0 +1,39 @@
+{
+  "tests/chart-ind-menu.test.js": {
+    "before_path": "tests/fixtures/chart-volume-outlier/tests__chart-ind-menu.test.js.txt",
+    "before_sha256": "34e2fd6a38a1b22870099dfe0e78e6103194beda81c5ca9f491fd345b8182f2d",
+    "after_sha256": "4458f91eec656a10e64232d57d43031c97efee16e5d437998f433e3eac22e219",
+    "replacements": [
+      {
+        "before": "  assert.equal(seamLast.value, undefined);\n  assert.equal(seamLast.tag, undefined);",
+        "after": "  assert.equal(seamLast.value, 100 / 3e10);\n  assert.equal(seamLast.tag, \"\"); // Magnitude cannot establish a unit change."
+      }
+    ]
+  },
+  "tests/chart-latest-volume.test.js": {
+    "before_path": "tests/fixtures/chart-volume-outlier/tests__chart-latest-volume.test.js.txt",
+    "before_sha256": "bef4b6790b4b43a20e56c59773a880de9598ddc8356b23eeed44f1c1a85efacd",
+    "after_sha256": "2087405f22a29a15be9178ce7dfa39b89f075ba48cb1e008329f39fcb7e9661f",
+    "replacements": [
+      {
+        "before": "raw=fs.readFileSync(current,'utf8'),transition=",
+        "after": "raw=require('./helpers/chart-volume-outlier-preservation.cjs').normalizeSource(fs.readFileSync(current,'utf8')),transition="
+      },
+      {
+        "before": "actual=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-signed-volume/source-delta.json'),'utf8')),transition=",
+        "after": "actual=require('./helpers/chart-volume-outlier-preservation.cjs').normalizeSigned(JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-signed-volume/source-delta.json'),'utf8'))),transition="
+      }
+    ]
+  },
+  "tests/crypto-sentiment-chart-integration.test.js": {
+    "before_path": "tests/fixtures/chart-volume-outlier/tests__crypto-sentiment-chart-integration.test.js.txt",
+    "before_sha256": "34c57d2207d6144a0670081bf241c7846bbf0ded3bd6f69924250151c5ef6110",
+    "after_sha256": "f00375e39550f90da9b5b402b5f59c4fe2f8ea9d59b96971d4d532cb2c37613b",
+    "replacements": [
+      {
+        "before": "after=fs.readFileSync(path.join(root,file),'utf8');",
+        "after": "after=require('./helpers/chart-volume-outlier-preservation.cjs').normalizeTest(fs.readFileSync(path.join(root,file),'utf8'),file);"
+      }
+    ]
+  }
+}

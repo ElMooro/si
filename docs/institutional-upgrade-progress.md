@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 546 heartbeat exact native release accepted; no heartbeat schedule binding observed, so recurring publication remains unverified. Stage 547 repairs latest-bar volume substitution in Chart; candidate tests and invented full-module browser checks pass. Static release acceptance is next. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stage 546 heartbeat exact native release accepted; recurring publication is unverified. Stage 547 latest-volume/main-histogram repair is exact static and served-module-browser accepted. Stage 548 volume-outlier calculation, rendering and help are candidate-tested; full integration and deployment are next. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7770,3 +7770,12 @@ Heartbeat source `e2401bd95a230314df184cbbcf684115bd763e70` matches the release 
 ### Stage 547 latest Chart volume repair
 
 Whole predecessor fixtures reproduce an 80x spike and missing latest volume being silently replaced by an undated earlier bar. The repair retains the latest typed volume, displays its UTC bar clock, preserves measured zero, and withholds ratios with incomplete denominators. The main histogram retains every supplied typed volume without automatic 80x seam inference, conversion to ratios or clipping. Full-module reproduction found that the old path removed all 41 measured points from an invented spike frame. Only paint and quoteUI change; all 398 other functions and every outer statement remain identical. Separate volume-outlier oscillator heuristics and source-unit comparability remain unqualified. Full served-page acceptance is still required.
+
+
+### Stage 547 exact static and served-module acceptance
+
+Commit `ceac9fcd7db0321850cb8b754e6a32574a08c6c1`, Pages run `36963399812`, matches all ten whole served static files and the complete 425,569-byte engine. The actual served modules pass invented-data browser cases at 390/1440px with no real requests, errors or overflow; rendered mobile/desktop layouts were inspected. Final 2,784 frontend, 1,039 deployment and fifteen shell checks pass. Six initial paint-ownership harness failures were repaired by loading the real reportedVolume dependency; all original race/cancellation assertions remain. The source manifest added the heartbeat, so the source-bound registry was regenerated to 900 engine contracts without inferring runtime availability.
+
+### Stage 548 volume-outlier candidate
+
+Twenty-seven whole-frame cases reproduce suppressed measured zero, valid 80x increases/decreases and prior-zero windows, then verify the repaired arithmetic and unchanged ordinary legacy tag cases. The main ratio pane retains exact values without clipping, does not borrow an older ratio, displays its UTC observation clock, and uses a wrapping header after a mobile screenshot exposed overlap. A positive ratio below 0.01 stays visibly distinct from measured zero. Desktop/mobile full-module fixtures pass with all requests intercepted. Legacy CAPIT/STOP/OUT tags, source-unit comparability and predictive significance remain unqualified.

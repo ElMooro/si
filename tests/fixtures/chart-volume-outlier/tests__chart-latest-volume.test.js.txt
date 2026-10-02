@@ -15,7 +15,7 @@ for(const clock of [null,undefined,true,'1577836800',Infinity,NaN,1e100])test('i
 for(const missing of [0,10,20])test('relative volume denominator preserves required bar '+missing,()=>{const h=setup(current),d=bars(8000);d[missing].volume=null;h.c.quoteUI(d);assert.ok(h.els.quote.innerHTML.includes(missing===0?'>RVOL 80.00x':'>RVOL Unavailable'));});
 for(const volume of [8000,null])test('whole predecessor reproduces older-volume substitution for '+String(volume),()=>{const h=setup(prior);h.c.quoteUI(bars(volume));assert.ok(h.els.quote.innerHTML.includes('>Vol 100</span>'));assert.ok(h.els.quote.innerHTML.includes('>RVOL 1.00x'));});
 test('only the two complete reviewed functions change and all outer statements survive',()=>{
- const old=fs.readFileSync(prior,'utf8'),raw=require('./helpers/chart-volume-outlier-preservation.cjs').normalizeSource(fs.readFileSync(current,'utf8')),transition=JSON.parse(fs.readFileSync(path.join(D,'transition.json'),'utf8'));
+ const old=fs.readFileSync(prior,'utf8'),raw=fs.readFileSync(current,'utf8'),transition=JSON.parse(fs.readFileSync(path.join(D,'transition.json'),'utf8'));
  assert.equal(hash(old),transition.source_sha256);assert.equal(hash(raw),transition.candidate_sha256);
  const a=functions(old),b=functions(raw);assert.deepEqual(Object.keys(a),Object.keys(b));assert.deepEqual(Object.keys(a).filter(k=>a[k]!==b[k]),transition.changes.map(x=>x.name));
  for(const change of transition.changes){assert.equal(a[change.name],change.before);assert.equal(b[change.name],change.after);}
@@ -23,7 +23,7 @@ test('only the two complete reviewed functions change and all outer statements s
  const outer=x=>body(x).filter(n=>n.type!=='FunctionDeclaration').map(n=>x.slice(n.start,n.end));assert.deepEqual(outer(old),outer(raw));
 });
 test('prior complete preservation manifest changes only the two reviewed function hashes',()=>{
- const old=JSON.parse(fs.readFileSync(path.join(D,'source-delta-before.json'),'utf8')),actual=require('./helpers/chart-volume-outlier-preservation.cjs').normalizeSigned(JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-signed-volume/source-delta.json'),'utf8'))),transition=JSON.parse(fs.readFileSync(path.join(D,'transition.json'),'utf8'));
+ const old=JSON.parse(fs.readFileSync(path.join(D,'source-delta-before.json'),'utf8')),actual=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-signed-volume/source-delta.json'),'utf8')),transition=JSON.parse(fs.readFileSync(path.join(D,'transition.json'),'utf8'));
  for(const change of transition.changes){const row=old.entries['jh-chart-engine.js'].changed.find(row=>row.name===change.name);assert.ok(row);assert.equal(row.sha256,hash(change.before));row.sha256=hash(change.after);}
  assert.deepEqual(actual,old);
 });

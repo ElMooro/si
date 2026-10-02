@@ -996,6 +996,16 @@
       if(i<n){ o.push({time:b.time}); continue; }
       var r=rvolAt(d, i, n);
       if(r==null){ o.push({time:b.time}); continue; }
+      var lo=1e99, hi=0, v;
+      for(j=i-n;j<=i;j++){
+        v=d[j]&&d[j].volume;
+        if(!(typeof v==="number"&&isFinite(v)&&v>0)){ lo=0; break; }
+        if(v<lo) lo=v;
+        if(v>hi) hi=v;
+      }
+      // A 50-bar window wider than 80× is two volume units (Yahoo USD notional
+      // vs the warehouse coin tape), not a capitulation. Leave a gap.
+      if(!(lo>0) || hi/lo>=80){ o.push({time:b.time}); continue; }
       var prev=d[i-1];
       var range=b.high-b.low;
       var loc=range>0?(b.close-b.low)/range:0.5;
@@ -3105,7 +3115,7 @@
       pane.appendChild(head);
       var host=document.createElement("div"); host.className="osc-host"; pane.appendChild(host);
       wrap.appendChild(pane);
-      head.title=(o.id==="voldd"?"Reported volume divided by the mean of the prior complete window. Ratios are not clipped. Source units, cross-source comparability and legacy pattern labels remain unverified. ":"")+"Drag this header or the bar above it downward, or press Taller, to make the pane bigger.";
+      head.title=(o.id==="voldd"?"Volume divided by this name's own prior average. A bar that reaches the top is an outlier. BTC uses Yahoo volume before the Sep 2020 warehouse tape, then the coin tape. A unit change is a gap, not a million-× spike. ":"")+"Drag this header or the bar above it downward, or press Taller, to make the pane bigger.";
       sp.title="Drag down to make this indicator taller";
       function bindPaneResize(handle){
         handle.onmousedown=function(e){
@@ -3341,34 +3351,34 @@ else if(o.id==="rvol"){
       else if(o.id==="voldd"){
         var vd=volDoD(d, o.p||50, o.mult>0?o.mult:2);
         var gate=o.mult>0?o.mult:2;
-        var hbV=c.addHistogramSeries({lastValueVisible:vd.length>0&&vd[vd.length-1].value!=null,priceLineVisible:false,base:0,title:"× prior mean", priceFormat:{type:"custom", minMove:0.01, formatter:function(v){ var n=Number(v); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}});
+        var cap=Math.max(2.5, gate*1.15);
+        var hbV=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,base:0,title:"× avg", priceFormat:{type:"custom", minMove:0.01, formatter:function(v){ var n=Number(v); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}});
         hbV.setData(vd.map(function(p){
           if(p.value==null) return {time:p.time};
           var hot=p.value>=gate;
           var col=hot?(o.c2||"#2979ff"):(p.value>=1?"#eceff1":"rgba(120,130,140,.55)");
           if(p.tag==="CAPIT") col=o.c3||"#ff6d00";
           else if(p.tag==="STOP") col="#00e5ff";
-          return {time:p.time, value:p.value, color:col};
+          return {time:p.time, value:Math.min(p.value, cap), color:col};
         }));
+        try{ hbV.applyOptions({autoscaleInfoProvider:function(){ return {priceRange:{minValue:0, maxValue:cap}}; }}); }catch(eSc){}
         oscSeries.push(hbV);
         try{
           var oneV=c.addLineSeries({color:o.c||"#787b86",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"1× own avg"});
           oneV.setData(vd.map(function(p){ return {time:p.time, value:1}; }));
           var outV=c.addLineSeries({color:o.c3||"#ff6d00",lineWidth:1,lineStyle:2,lastValueVisible:false,priceLineVisible:false,title:gate+"× outlier"});
-          outV.setData(vd.map(function(p){ return {time:p.time, value:gate}; }));
+          outV.setData(vd.map(function(p){ return {time:p.time, value:Math.min(gate, cap)}; }));
           oscSeries.push(oneV, outV);
         }catch(e){}
-        head.style.height="auto";head.style.minHeight="22px";head.style.flexWrap="wrap";head.style.paddingTop="4px";head.style.paddingBottom="4px";
         var veVd=head.querySelector(".osc-v");
         if(veVd){
-          veVd.style.flexBasis="100%";veVd.style.order="2";veVd.style.overflowWrap="anywhere";
-          var lastVd=vd.length?vd[vd.length-1]:null;
-          if(!lastVd || lastVd.value==null) veVd.textContent="Unavailable";
+          var lastVd=null, firstY=null, vi;
+          for(vi=0; vi<vd.length; vi++) if(vd[vi].value!=null){ firstY=new Date(vd[vi].time*1000).getUTCFullYear(); break; }
+          for(vi=vd.length-1; vi>=0; vi--) if(vd[vi].value!=null){ lastVd=vd[vi]; break; }
+          if(!lastVd) veVd.textContent="Unavailable";
           else {
-            var rawTime=lastVd.time, date=typeof rawTime==="number"&&Number.isFinite(rawTime)?new Date(rawTime*1000):null;
-            var asOf=date&&Number.isFinite(date.getTime())?date.toISOString().replace(".000Z","Z"):"time unavailable";
-            var tagLab=lastVd.tag?" · legacy "+lastVd.tag:"";
-            veVd.textContent=(lastVd.value>0&&lastVd.value<0.01?"<0.01":lastVd.value.toFixed(2))+"× · "+asOf+tagLab;
+            var tagLab=lastVd.tag==="CAPIT"?" CAPIT":lastVd.tag==="STOP"?" STOP":lastVd.tag==="OUT"?" SPIKE":"";
+            veVd.textContent=(firstY?firstY+"– ":"")+lastVd.value.toFixed(2)+"×"+tagLab;
             veVd.style.color=lastVd.tag==="CAPIT"?(o.c3||"#ff6d00"):lastVd.tag==="STOP"?"#00e5ff":lastVd.tag==="OUT"?(o.c2||"#2979ff"):"";
           }
         }
