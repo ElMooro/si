@@ -1,155 +1,146 @@
-/* jh-reskin-skip */
-/* Buyback pane. Own study, not the Events pin buyb. RSI was only the pane reference. */
+/* Buyback pane. Own indicator (id buyback). Not the Events pin buyb.
+   Level = quarterly net repurchase / latest market cap, from data/buyback-engine.json.
+   Step-held on the price bars. Zero line. Last percent on the right. */
 (function () {
-  if (window.__jhBuybackIndV1) return;
-  window.__jhBuybackIndV1 = true;
-  var on = false;
+  var URL = "/data/buyback-engine.json";
   var pack = null;
-  var loading = false;
+  var loading = null;
 
-  function norm(s) {
-    s = String(s || "").toUpperCase().trim();
-    var i = s.lastIndexOf(":");
-    if (i >= 0) s = s.slice(i + 1);
-    return s.replace(/[^A-Z0-9.\-]/g, "");
+  function num(v) {
+    if (v == null) return null;
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    if (typeof v === "object" && v.value != null && isFinite(+v.value)) return +v.value;
+    var n = +v;
+    return isFinite(n) ? n : null;
   }
-  function currentSym() {
-    var onTab = document.querySelector("#tabs .tab.on[data-id], #tabs button.tab.on");
-    if (onTab) return norm(onTab.getAttribute("data-id") || onTab.textContent);
-    var wm = document.getElementById("wm");
-    if (wm && wm.textContent) return norm(wm.textContent);
-    var p = new URLSearchParams(location.search);
-    return norm(p.get("s") || p.get("symbol") || window.jhSymbol || "");
+  function symbol() {
+    var a = window.jhActive;
+    if (typeof a === "string" && a) return a.replace(/[^A-Za-z0-9.\-]/g, "").toUpperCase();
+    var el = document.getElementById("symin");
+    if (el && el.value) return String(el.value).trim().toUpperCase();
+    var tab = document.querySelector(".tab.on");
+    var t = tab ? (tab.textContent || "").trim().split(/\s+/)[0] : "";
+    return t.replace(/[^A-Za-z0-9.\-]/g, "").toUpperCase();
   }
-  function repurchase(m) {
-    if (m == null) return null;
-    if (typeof m === "number") return -m;
-    var v = m.value;
-    if (typeof v !== "number" || !isFinite(v)) return null;
-    if (m.sign === "negative") return Math.abs(v);
-    if (m.sign === "positive") return -Math.abs(v);
-    return -v;
+  function item() {
+    var osc = window.OSC || [];
+    var i;
+    for (i = 0; i < osc.length; i++) if (osc[i] && osc[i].id === "buyback") return osc[i];
+    return null;
   }
-  function rowFor(sym) {
-    if (!pack) return null;
-    var t = pack.tickers || pack;
-    return t[sym] || null;
+  function ensure() {
+    if (!window.OSC) return;
+    if (item()) return;
+    window.OSC.push({ id: "buyback", n: "Buyback", on: 0, cat: "Buyback", c: "#7ec8c4" });
   }
-  function points(sym) {
-    var row = rowFor(sym);
-    if (!row) return [];
-    var cap = row.market_cap;
-    if (typeof cap !== "number" || !(cap > 0)) return [];
-    var obs = (row.measurements && row.measurements.cashflow_observations) || row.cashflow_observations || [];
-    var out = [];
-    for (var i = 0; i < obs.length; i++) {
-      var o = obs[i] || {};
-      var met = o.metrics || o;
-      var usd = repurchase(met.net_common_repurchases);
-      var date = o.date || (o.original && o.original.date);
-      if (usd == null || !date) continue;
-      out.push({ date: String(date).slice(0, 10), pct: (usd / cap) * 100 });
+  function load() {
+    if (pack) return Promise.resolve(pack);
+    if (loading) return loading;
+    loading = fetch(URL, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("buyback engine " + r.status);
+      return r.json();
+    }).then(function (j) {
+      pack = j;
+      return j;
+    }).catch(function () { loading = null; return null; });
+    return loading;
+  }
+  function quarters(row) {
+    var obs = row && row.measurements && row.measurements.cashflow_observations || [];
+    var cap = num(row.market_cap);
+    var out = [], i, met, net, sign, y;
+    for (i = 0; i < obs.length; i++) {
+      met = obs[i].metrics || {};
+      net = num(met.net_common_repurchases);
+      if (net == null) net = num(met.gross_common_repurchases);
+      if (net == null || !cap) continue;
+      sign = met.net_common_repurchases && met.net_common_repurchases.sign;
+      y = net / cap * 100;
+      if (sign === "positive") y = -y;
+      out.push({ date: obs[i].date, y: y });
     }
     out.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
     return out;
   }
-  function load() {
-    if (pack || loading) return Promise.resolve(pack);
-    loading = true;
-    return fetch("/data/buyback-engine.json", { cache: "no-store" }).then(function (r) {
-      return r.ok ? r.json() : null;
-    }).then(function (j) {
-      pack = j;
-      loading = false;
-      return j;
-    }).catch(function () { loading = false; return null; });
+  function day(ts) {
+    var d = new Date(ts * 1000);
+    return d.toISOString().slice(0, 10);
   }
-  function host() {
-    var wrap = document.getElementById("oscwrap");
-    if (!wrap) return null;
-    var n = document.getElementById("jh-buyback-pane");
-    if (n) return n;
-    n = document.createElement("div");
-    n.id = "jh-buyback-pane";
-    n.className = "osc";
-    n.innerHTML = '<div class="olab" id="jh-buyback-lab">Buyback</div><svg id="jh-buyback-svg" width="100%" height="100%" preserveAspectRatio="none"></svg>';
-    wrap.appendChild(n);
-    return n;
-  }
-  function paint() {
-    var wrap = document.getElementById("oscwrap");
-    var pane = document.getElementById("jh-buyback-pane");
-    if (!on) {
-      if (pane) pane.style.display = "none";
-      return;
+  function held(qs, bars) {
+    var pts = [], i, q = 0, y = null;
+    for (i = 0; i < bars.length; i++) {
+      var t = bars[i].time;
+      if (typeof t !== "number") continue;
+      var ds = day(t);
+      while (q < qs.length && qs[q].date <= ds) { y = qs[q].y; q++; }
+      if (y != null) pts.push({ x: i, y: y, t: t });
     }
-    if (wrap) wrap.classList.add("on");
-    pane = host();
-    if (!pane) return;
-    pane.style.display = "block";
-    var sym = currentSym();
-    var pts = points(sym);
-    var lab = document.getElementById("jh-buyback-lab");
-    var svg = document.getElementById("jh-buyback-svg");
-    if (!pts.length) {
-      if (lab) lab.textContent = "Buyback \u00b7 " + (sym || "\u2014") + " \u00b7 not in buyback engine";
-      if (svg) svg.innerHTML = "";
-      return;
-    }
-    var last = pts[pts.length - 1];
-    if (lab) lab.textContent = "Buyback \u00b7 " + last.pct.toFixed(2) + "% \u00b7 " + last.date;
-    var w = pane.clientWidth || 600;
-    var h = pane.clientHeight || 96;
-    var vals = pts.map(function (p) { return p.pct; });
-    var lo = Math.min(0, Math.min.apply(null, vals));
-    var hi = Math.max(0, Math.max.apply(null, vals));
-    if (hi === lo) hi = lo + 0.1;
-    function y(v) { return 8 + (h - 16) * (1 - (v - lo) / (hi - lo)); }
-    function x(i) { return 8 + (w - 16) * (pts.length === 1 ? 0.5 : i / (pts.length - 1)); }
-    var d = "";
-    for (var i = 0; i < pts.length; i++) {
-      var x0 = x(i);
-      var x1 = i + 1 < pts.length ? x(i + 1) : w - 8;
-      var yy = y(pts[i].pct);
-      d += (i ? "L" : "M") + x0.toFixed(1) + "," + yy.toFixed(1) + "L" + x1.toFixed(1) + "," + yy.toFixed(1);
-    }
-    var y0 = y(0);
-    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    svg.innerHTML = '<line x1="8" y1="' + y0.toFixed(1) + '" x2="' + (w - 8) + '" y2="' + y0.toFixed(1) + '" stroke="#787b86" stroke-dasharray="3 3"/>' +
-      '<path d="' + d + '" fill="none" stroke="#2962ff" stroke-width="1.6"/>' +
-      '<text x="' + (w - 8) + '" y="14" text-anchor="end" fill="#d1d4dc" font-size="11" font-family="IBM Plex Mono,monospace">' + last.pct.toFixed(2) + '%</text>';
+    return pts;
   }
-  function setOn(next) {
-    on = next;
-    var btn = document.getElementById("jh-buyback-toggle");
-    if (btn) btn.classList.toggle("on", on);
-    if (on) load().then(paint);
-    else paint();
+  function pane() {
+    var el = document.getElementById("jh-buyback-pane");
+    if (el) return el;
+    var host = document.getElementById("oscwrap");
+    el = document.createElement("div");
+    el.id = "jh-buyback-pane";
+    el.style.cssText = "display:none;height:110px;border-top:1px solid var(--line,#2a2e39);position:relative;background:var(--bg,#131722);flex:none";
+    if (host && host.parentNode) host.parentNode.insertBefore(el, host.nextSibling);
+    else (document.getElementById("stage") || document.body).appendChild(el);
+    return el;
   }
-  function ensureMenu() {
-    if (document.getElementById("jh-buyback-toggle")) return;
-    var menus = document.querySelectorAll(".menu");
-    for (var i = 0; i < menus.length; i++) {
-      var b = menus[i].querySelector("button");
-      if (!b) continue;
-      var txt = menus[i].textContent || "";
-      if (txt.indexOf("RSI") < 0 && txt.indexOf("Relative Volume") < 0 && txt.indexOf("Buybacks") < 0) continue;
-      var row = document.createElement("button");
-      row.id = "jh-buyback-toggle";
-      row.type = "button";
-      row.textContent = "Buyback";
-      row.title = "Quarterly net repurchase as % of latest market cap. Own pane. Not the authorization pin.";
-      row.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        setOn(!on);
-      });
-      menus[i].insertBefore(row, menus[i].firstChild);
-      return;
+  function draw(bars) {
+    ensure();
+    var it = item();
+    var el = pane();
+    if (!it || !it.on) { el.style.display = "none"; return; }
+    el.style.display = "block";
+    load().then(function () { paint(el, bars || window.lastBars || []); });
+  }
+  function paint(el, bars) {
+    var sym = symbol();
+    var row = pack && pack.tickers && pack.tickers[sym];
+    var w = el.clientWidth || 640, h = 110;
+    var qs = row ? quarters(row) : [];
+    var pts = qs.length && bars && bars.length ? held(qs, bars) : [];
+    var last = qs.length ? qs[qs.length - 1] : null;
+    var label = !row ? (sym || "Ticker") + " not in buyback engine" : (last ? (last.y >= 0 ? "+" : "") + last.y.toFixed(2) + "%" : "no quarter");
+    var sub = last ? last.date + " net repurchase / latest mkt cap" : "buyback-engine.json";
+    var min = 0, max = 0, i;
+    for (i = 0; i < pts.length; i++) { if (pts[i].y < min) min = pts[i].y; if (pts[i].y > max) max = pts[i].y; }
+    if (min === max) { min -= 0.05; max += 0.05; }
+    var pad = (max - min) * 0.15;
+    min -= pad; max += pad;
+    function X(i) { return bars.length < 2 ? 8 : 8 + (w - 78) * (i / (bars.length - 1)); }
+    function Y(v) { return 18 + (h - 28) * (1 - (v - min) / (max - min)); }
+    var d = "", zero = Y(0);
+    for (i = 0; i < pts.length; i++) {
+      var x = X(pts[i].x), y = Y(pts[i].y);
+      d += (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+    }
+    var col = last && last.y < 0 ? "#f23645" : "#089981";
+    el.innerHTML = "<div style='position:absolute;left:8px;top:4px;font:11px IBM Plex Mono,monospace;color:#d1d4dc'>Buyback <span style='color:" + col + "'>" + label + "</span> <span style='color:#787b86'>" + sub + "</span></div>" +
+      "<svg width='" + w + "' height='" + h + "' style='display:block'>" +
+      "<line x1='8' x2='" + (w - 64) + "' y1='" + zero.toFixed(1) + "' y2='" + zero.toFixed(1) + "' stroke='#2a2e39'/>" +
+      (d ? "<path d='" + d + "' fill='none' stroke='#7ec8c4' stroke-width='1.6'/>" : "") +
+      "<text x='" + (w - 8) + "' y='" + (last ? Y(last.y) : 24) + "' text-anchor='end' fill='" + col + "' font-size='11' font-family='IBM Plex Mono,monospace'>" + (last ? label : "") + "</text></svg>";
+  }
+  function hook() {
+    ensure();
+    if (window.paint && !window.paint.__jhBuyback) {
+      var orig = window.paint;
+      var wrapped = function (d) {
+        var r = orig.apply(this, arguments);
+        try { draw(d || window.lastBars); } catch (e) {}
+        return r;
+      };
+      wrapped.__jhBuyback = 1;
+      window.paint = wrapped;
     }
   }
-  setInterval(function () {
-    ensureMenu();
-    if (on) paint();
-  }, 800);
+  var n = 0;
+  var timer = setInterval(function () {
+    hook();
+    if (++n > 40) clearInterval(timer);
+  }, 250);
+  window.jhBuybackDraw = draw;
 })();
