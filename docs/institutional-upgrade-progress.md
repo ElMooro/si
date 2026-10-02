@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 553 readout layout is exact static/browser accepted. Stage 554 docked relative-volume gaps and last-value labels are candidate-tested. All ten workstreams remain OPEN.
+October 2 UTC: Stage 554 docked volume has exact static/browser acceptance. Stage 556 Ticker 360 context boundaries and clock separation are in integration. Stage 555 zero-volume frame recovery remains unshipped pending related volume-profile correction. All ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7845,3 +7845,12 @@ The complete-module predecessor drops missing points and leaves an older last-va
 
 
 Stage 554 reconciliation: peer `c3ce0a20b` moved dock controls into the legend, changed search display and added volume codecs. All peer source bytes remain except the reviewed RVOL continuity/label fixes and persistent UI-install guard. Repeated ensureChartUi calls otherwise re-wrap callbacks because its nested function marker is recreated each call. Browser regression verifies stable callback identities, one legend row, exact selected-bar unavailable/tiny values, layout, and Down-button transitions. Source-label inference and cross-provider units remain unqualified. Full frontend/deployment/browser integration repeats on this combined source.
+
+
+### Stage 554 docked volume acceptance
+
+Commit `e76c38e109fcc2c4361a29e8829e25e52fe4de69`, Pages run `36973097601`: complete static source and fourteen served-module synthetic cases pass at 390/1440px, including Down-button transitions. Every valid ratio/date is preserved; missing intervals are separate line runs and unavailable latest values cannot display an older numeric label. Final 2,915 frontend and 1,041 deployment/fifteen shell checks pass.
+
+### Stage 556 Ticker 360 context guard candidate
+
+Whole retained predecessors and invented fixtures reproduce raw rows restored after intentional abstention and failed context imports. Three registered modules expose project/context rather than decision_view; explicit adapters now call their actual interfaces. Literal lazy imports expose all eleven context dependencies to deployment and native package verification. Reported generation/as-of clocks are separate, while source freshness and investment authority remain unqualified. Engine, consumer and exact native acceptance are required before release acceptance. No provider/current/private packets or producer invocation is used.

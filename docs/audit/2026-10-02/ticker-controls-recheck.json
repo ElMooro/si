@@ -1,5 +1,8 @@
 {
-  "status": "read_only_native_census_pending",
+  "status": "read_only_native_census_verified",
+  "acceptance": "docs/audit/2026-10-02/ticker-controls-baseline.json",
+  "run_id": 36973198145,
+  "finding": "Two enabled bindings target Ticker 360 at cron(20 6,18 * * ? *): one classic EventBridge rule and one EventBridge Scheduler. Both were observed twice and preserved. Duplicate invocation risk remains unresolved; this release does not change scheduling.",
   "operation": "aws/ops/staged/ops_6448_ticker_controls.py",
   "functions": [
     "justhodl-ticker-360"

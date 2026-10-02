@@ -29,7 +29,7 @@ import ticker_360
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/ticker-360.json"
-VERSION = "1.3"
+VERSION = "1.2"
 
 s3 = boto3.client("s3", "us-east-1")
 
@@ -81,17 +81,6 @@ def lambda_handler(event, context):
             if td is None and not dv.get("ticker_covered"):
                 continue
             doms[d] = {"as_of": dv.get("as_of"),
-                       "generated_at": dv.get("generated_at"),
-                       "reported_as_of": dv.get("reported_as_of"),
-                       "source_key": dv.get("source_key"),
-                       "configured_source_key": dv.get("configured_source_key"),
-                       "fallback_source_used": dv.get("fallback_source_used", False),
-                       "context_status": dv.get("context_status"),
-                       "research_context": dv.get("research_context"),
-                       "observation_freshness_verified": False,
-                       "independent_investment_votes": 0,
-                       "calls_eligible": False, "sizing_eligible": False,
-                       "execution_eligible": False, "forecast_qualified": False,
                        "data": _compact_td(td)}
         indexed[t] = {"coverage_count": conf.get("coverage_count"),
                       "coverage_pct": conf.get("coverage_pct"),
@@ -101,11 +90,6 @@ def lambda_handler(event, context):
                "universe_size": len(tickers),
                "indexed_tickers": len(indexed),
                "min_coverage": MIN_COVERAGE,
-               "coverage_basis": "reported_domain_inventory_not_independent_votes",
-               "independent_investment_votes": 0,
-               "calls_eligible": False, "sizing_eligible": False,
-               "execution_eligible": False, "forecast_qualified": False,
-               "observation_freshness_verified": False,
                "domains": sorted(ticker_360.SOURCES),
                "tickers": indexed,
                "elapsed_s": round(time.time() - t0, 1)}

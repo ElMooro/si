@@ -1,0 +1,125 @@
+{
+  "source_sha256": "6f101b0eecb92658ac3c6304582a354ac95055e2c636c24c2596ae5f982d34b3",
+  "cases": [
+    {
+      "name": "real_context_abstention",
+      "input": {
+        "generated_at": "2026-10-02T00:00:00Z",
+        "as_of": "2020-01-01",
+        "by_ticker": {
+          "QA_ONLY": {
+            "ticker": "QA_ONLY",
+            "score": 99,
+            "signal": "LONG",
+            "settlement_date": "2020-01-01"
+          }
+        },
+        "call": "LONG"
+      },
+      "domain": "short-interest",
+      "context": "short_interest_context",
+      "output": {
+        "domain": "short-interest",
+        "available": true,
+        "as_of": "2026-10-02T00:00:00Z",
+        "ticker_data": {
+          "ticker": "QA_ONLY",
+          "score": 99,
+          "signal": "LONG",
+          "settlement_date": "2020-01-01"
+        },
+        "summary": {
+          "call": null,
+          "score": null,
+          "signal": null,
+          "state": null
+        },
+        "ticker_covered": true
+      },
+      "synthetic_s3_requests": [
+        {
+          "Bucket": "justhodl-dashboard-live",
+          "Key": "invented-only.json"
+        }
+      ]
+    },
+    {
+      "name": "missing_context_module",
+      "input": {
+        "generated_at": "2026-10-02T00:00:00Z",
+        "as_of": "2020-01-01",
+        "by_ticker": {
+          "QA_ONLY": {
+            "ticker": "QA_ONLY",
+            "score": 99,
+            "signal": "LONG",
+            "settlement_date": "2020-01-01"
+          }
+        },
+        "call": "LONG"
+      },
+      "domain": "short-interest",
+      "context": "deliberately_absent_fixture_context",
+      "output": {
+        "domain": "short-interest",
+        "available": true,
+        "as_of": "2026-10-02T00:00:00Z",
+        "ticker_data": {
+          "ticker": "QA_ONLY",
+          "score": 99,
+          "signal": "LONG",
+          "settlement_date": "2020-01-01"
+        },
+        "summary": {},
+        "ticker_covered": true
+      },
+      "synthetic_s3_requests": [
+        {
+          "Bucket": "justhodl-dashboard-live",
+          "Key": "invented-only.json"
+        }
+      ]
+    },
+    {
+      "name": "raw_news_clock",
+      "input": {
+        "generated_at": "2026-10-02T00:00:00Z",
+        "as_of": "2020-01-01",
+        "by_ticker": {
+          "QA_ONLY": {
+            "ticker": "QA_ONLY",
+            "score": 99,
+            "signal": "LONG",
+            "settlement_date": "2020-01-01"
+          }
+        },
+        "call": "LONG"
+      },
+      "domain": "news-sentiment",
+      "context": null,
+      "output": {
+        "domain": "news-sentiment",
+        "available": true,
+        "as_of": "2026-10-02T00:00:00Z",
+        "ticker_data": {
+          "ticker": "QA_ONLY",
+          "score": 99,
+          "signal": "LONG",
+          "settlement_date": "2020-01-01"
+        },
+        "summary": {
+          "call": "LONG"
+        },
+        "ticker_covered": true
+      },
+      "synthetic_s3_requests": [
+        {
+          "Bucket": "justhodl-dashboard-live",
+          "Key": "invented-only.json"
+        }
+      ]
+    }
+  ],
+  "actual_network_requests": 0,
+  "limitations": "Invented inputs demonstrate source behavior; no live application packet or current consumer output inspected."
+}

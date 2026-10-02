@@ -50,7 +50,18 @@ class Whole(unittest.TestCase):
    lines=raw.decode('utf-8').splitlines(keepends=True)
    for edit in reversed(manifest['edits'][path]):
     i=edit['start_line'];n=len(edit['old'].splitlines(keepends=True));self.assertEqual(''.join(lines[i:i+n]),edit['old']);lines[i:i+n]=edit['new'].splitlines(keepends=True)
-   self.assertEqual(''.join(lines).encode(),(R/path).read_bytes(),path)
+   expected=''.join(lines)
+   if path=='tests/deployment/test_options_complete_closure.py':
+    # The later Options release extended this gate. Retain both complete
+    # predecessors and apply only its already-reviewed pair of exact edits.
+    later=R/'tests/fixtures/crypto-funding-archive'
+    plan=json.loads((later/'edits.json').read_bytes())[path]
+    self.assertEqual(expected.encode(),(later/('before/'+path+'.txt')).read_bytes())
+    self.assertEqual(hashlib.sha256(expected.encode()).hexdigest(),plan['predecessor_sha256'])
+    for before,after in plan['edits']:
+     self.assertEqual(expected.count(before),1,path);expected=expected.replace(before,after)
+    self.assertEqual(hashlib.sha256(expected.encode()).hexdigest(),plan['candidate_sha256'])
+   self.assertEqual(expected.encode(),(R/path).read_bytes(),path)
 
  def test_whole_healthy_output_only_changes_diagnostic_context_and_cross_validation(self):
   def clean(v):

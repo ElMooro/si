@@ -78,3 +78,10 @@ news-sentiment.
 
 Evidence-contract contexts are honored: each domain runs through its
 registered `decision_view` before extraction.
+
+
+## Context boundaries and clocks (2026-10-02)
+
+A registered context is authoritative for the projected row. An empty or withheld row never falls back to raw input; a failed or invalid context is unavailable. All eleven adapters use their explicit lazy import and actual function interface. Register both a source and its context loader when adding a guarded domain so deploy detection and native package checks include its dependencies. Unregistered raw domains remain unqualified inventory.
+
+`as_of` and `reported_as_of` contain only a reported source as-of string; they no longer borrow `generated_at`. Neither clock certifies observation freshness. `source_key`, `context_status`, and any projected `research_context` accompany indexed domains. Every published inventory/domain has zero independent investment votes and false Calls/sizing/execution/forecast permission. Coverage counts are still domain inventory, not independent agreement. Existing `ticker-360.v1` consumers remain compatible. Legacy transport validation, duplicate selection, compaction and source-original authenticity are separate open work.

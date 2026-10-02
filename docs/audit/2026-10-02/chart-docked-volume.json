@@ -1,6 +1,6 @@
 {
   "stage": 554,
-  "status": "candidate_integration_pending",
+  "status": "exact_static_and_served_browser_accepted",
   "source_sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
   "unchanged_functions": 398,
   "repairs": [
@@ -12,7 +12,6 @@
   "invented_browser_cases": 14,
   "actual_network_requests": 0,
   "remaining": [
-    "Complete integration and exact static/browser acceptance",
     "Non-warehouse zero-volume source selection; separate reproduction retained",
     "Provider comparability and original source qualification"
   ],
@@ -21,5 +20,6 @@
   "changed_functions": [
     "paintOsc",
     "ensureChartUi"
-  ]
+  ],
+  "acceptance": "docs/audit/2026-10-02/chart-docked-volume-acceptance.json"
 }

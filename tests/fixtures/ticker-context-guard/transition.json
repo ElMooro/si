@@ -1,0 +1,77 @@
+{
+  "shared": {
+    "path": "aws/shared/ticker_360.py",
+    "before_sha256": "2461da15beef5c80ee9daf479ac33f32fdd62296ec0a38f976bb53e695368be8",
+    "after_sha256": "815435a5384d860dc19bb32a2b9b83d8acd72d70b5969623aa5ce5d029615387",
+    "replacements": [
+      {
+        "before": "def _domain_view(s3, domain, spec, ticker, cache):",
+        "after": "# Explicit existing context interfaces; never guess a fallback after failure.\nCONTEXT_FUNCTIONS = {\"pd_fails_context\": \"project\",\n                     \"futures_research_context\": \"context\",\n                     \"fx_research_context\": \"context\"}\n\n# Literal lazy imports keep each domain fail-soft and make the complete shared\n# dependency closure visible to deploy detection and native package acceptance.\nCONTEXT_LOADERS = {\n    \"short_interest_context\": lambda p: __import__(\"short_interest_context\").decision_view(p),\n    \"short_volume_context\": lambda p: __import__(\"short_volume_context\").decision_view(p),\n    \"offexchange_context\": lambda p: __import__(\"offexchange_context\").decision_view(p),\n    \"capital_structure_context\": lambda p: __import__(\"capital_structure_context\").decision_view(p),\n    \"sec_ftd_context\": lambda p: __import__(\"sec_ftd_context\").decision_view(p),\n    \"statement_context\": lambda p: __import__(\"statement_context\").decision_view(p),\n    \"pd_fails_context\": lambda p: __import__(\"pd_fails_context\").project(p),\n    \"dollar_research_context\": lambda p: __import__(\"dollar_research_context\").decision_view(p),\n    \"futures_research_context\": lambda p: __import__(\"futures_research_context\").context(p),\n    \"fx_research_context\": lambda p: __import__(\"fx_research_context\").context(p),\n    \"gold_rotation_context\": lambda p: __import__(\"gold_rotation_context\").decision_view(p),\n}\n\n\ndef _domain_view(s3, domain, spec, ticker, cache):"
+      },
+      {
+        "before": "                view = __import__(ctx_mod).decision_view(pkt)",
+        "after": "                view = CONTEXT_LOADERS[ctx_mod](pkt)"
+      },
+      {
+        "before": "           \"ticker_data\": None, \"summary\": {}}",
+        "after": "           \"ticker_data\": None, \"summary\": {}, \"packet_available\": False,\n           \"source_key\": spec.get(\"key\"), \"generated_at\": None,\n           \"reported_as_of\": None, \"context_status\": \"not_evaluated\",\n           \"research_context\": None, \"raw_fallback_used\": False,\n           \"observation_freshness_verified\": False,\n           \"independent_investment_votes\": 0,\n           \"calls_eligible\": False, \"sizing_eligible\": False,\n           \"execution_eligible\": False, \"forecast_qualified\": False}"
+      },
+      {
+        "before": "        out[\"as_of\"] = pkt.get(\"generated_at\") or pkt.get(\"as_of\")",
+        "after": "        out[\"packet_available\"] = True\n        # A packet generation clock must never replace its reported as-of clock.\n        # These are reported strings, not verified observation freshness.\n        out[\"generated_at\"] = pkt.get(\"generated_at\") if isinstance(pkt.get(\"generated_at\"), str) else None\n        out[\"reported_as_of\"] = pkt.get(\"as_of\") if isinstance(pkt.get(\"as_of\"), str) else None\n        out[\"as_of\"] = out[\"reported_as_of\"]"
+      },
+      {
+        "before": "        if spec[\"kind\"] == \"tkr\":\n            # per-ticker artifact: direct lookup",
+        "after": "        if spec[\"kind\"] == \"tkr\":\n            out[\"context_status\"] = \"unqualified_raw_inventory\"\n            # per-ticker artifact: direct lookup"
+      },
+      {
+        "before": "            except Exception:\n                view = {}\n        else:\n            view = pkt\n        if not isinstance(view, dict):\n            view = {}\n",
+        "after": "            except Exception:\n                out[\"context_status\"] = \"unavailable\"\n                out[\"reason\"] = \"registered context failed\"\n                return out\n            if not isinstance(view, dict):\n                out[\"context_status\"] = \"invalid\"\n                out[\"reason\"] = \"registered context returned a non-object\"\n                return out\n            out[\"context_status\"] = \"applied\"\n            research = view if ctx_mod in CONTEXT_FUNCTIONS else view.get(\"research_context\")\n            out[\"research_context\"] = research if isinstance(research, dict) else None\n        else:\n            view = pkt\n            out[\"context_status\"] = \"unqualified_raw_inventory\"\n"
+      },
+      {
+        "before": "        if td is None:\n            # fall back to scanning the raw packet itself\n            td = _extract_ticker(pkt, ticker)\n",
+        "after": "        # No raw fallback: absence in a registered decision view is intentional.\n        # A context error or withheld row cannot become an unqualified raw vote.\n"
+      },
+      {
+        "before": "        out[\"reason\"] = \"error: %s\" % str(e)[:80]",
+        "after": "        out[\"reason\"] = \"domain unavailable: \" + type(e).__name__"
+      },
+      {
+        "before": "def _read_packet(s3, key, cache, fallback_key=None):\n    \"\"\"Read packet with optional fallback. Fail-soft.\"\"\"\n    if key in cache:\n        return cache[key]\n    pkt = None\n    try:\n        pkt = json.loads(s3.get_object(Bucket=BUCKET, Key=key)[\"Body\"].read())\n    except Exception:\n        pass\n    # Failover: try fallback key if primary failed\n    if pkt is None and fallback_key:\n        try:\n            pkt = json.loads(\n                s3.get_object(Bucket=BUCKET, Key=fallback_key)[\"Body\"].read())\n        except Exception:\n            pass\n    cache[key] = pkt\n    return pkt\n",
+        "after": "def _read_packet(s3, key, cache, fallback_key=None):\n    \"\"\"Read each concrete source once; fallback does not overwrite its identity.\"\"\"\n    if key not in cache:\n        try:\n            cache[key] = json.loads(s3.get_object(Bucket=BUCKET, Key=key)[\"Body\"].read())\n        except Exception:\n            cache[key] = None\n    pkt = cache[key]\n    if pkt is None and fallback_key and fallback_key != key:\n        return _read_packet(s3, fallback_key, cache)\n    return pkt\n"
+      },
+      {
+        "before": "        out[\"packet_available\"] = True\n        # A packet generation",
+        "after": "        out[\"packet_available\"] = True\n        out[\"configured_source_key\"] = spec[\"key\"]\n        out[\"fallback_source_used\"] = cache.get(spec[\"key\"]) is None and bool(spec.get(\"fallback_key\"))\n        out[\"source_key\"] = spec[\"fallback_key\"] if out[\"fallback_source_used\"] else spec[\"key\"]\n        # A packet generation"
+      },
+      {
+        "before": "            pkt = _read_packet(s3, spec[\"key\"], cache)\n            if not isinstance(pkt, dict):",
+        "after": "            pkt = _read_packet(s3, spec[\"key\"], cache,\n                               fallback_key=spec.get(\"fallback_key\"))\n            if not isinstance(pkt, dict):"
+      }
+    ]
+  },
+  "producer": {
+    "path": "aws/lambdas/justhodl-ticker-360/source/lambda_function.py",
+    "before_sha256": "149b41948a31749bddc361b78de8556a133e3cd1dccc1848e774f0c6f36817e6",
+    "after_sha256": "9761e70c520414631a4c0a1fa46644ef7dfd5082728b6439c9a56d9b3f1839bc",
+    "replacements": [
+      {
+        "before": "            doms[d] = {\"as_of\": dv.get(\"as_of\"),\n                       \"data\": _compact_td(td)}",
+        "after": "            doms[d] = {\"as_of\": dv.get(\"as_of\"),\n                       \"generated_at\": dv.get(\"generated_at\"),\n                       \"reported_as_of\": dv.get(\"reported_as_of\"),\n                       \"source_key\": dv.get(\"source_key\"),\n                       \"context_status\": dv.get(\"context_status\"),\n                       \"research_context\": dv.get(\"research_context\"),\n                       \"observation_freshness_verified\": False,\n                       \"independent_investment_votes\": 0,\n                       \"calls_eligible\": False, \"sizing_eligible\": False,\n                       \"execution_eligible\": False, \"forecast_qualified\": False,\n                       \"data\": _compact_td(td)}"
+      },
+      {
+        "before": "VERSION = \"1.2\"",
+        "after": "VERSION = \"1.3\""
+      },
+      {
+        "before": "               \"min_coverage\": MIN_COVERAGE,\n               \"domains\": sorted(ticker_360.SOURCES),",
+        "after": "               \"min_coverage\": MIN_COVERAGE,\n               \"coverage_basis\": \"reported_domain_inventory_not_independent_votes\",\n               \"independent_investment_votes\": 0,\n               \"calls_eligible\": False, \"sizing_eligible\": False,\n               \"execution_eligible\": False, \"forecast_qualified\": False,\n               \"observation_freshness_verified\": False,\n               \"domains\": sorted(ticker_360.SOURCES),"
+      },
+      {
+        "before": "                       \"source_key\": dv.get(\"source_key\"),",
+        "after": "                       \"source_key\": dv.get(\"source_key\"),\n                       \"configured_source_key\": dv.get(\"configured_source_key\"),\n                       \"fallback_source_used\": dv.get(\"fallback_source_used\", False),"
+      }
+    ]
+  },
+  "scope": "No producer invocation or source qualification. Guarded rows remain withheld; reported clocks are separate; coverage grants no additional votes."
+}

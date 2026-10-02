@@ -1,0 +1,105 @@
+{
+  "status": "exact_static_release_checked",
+  "checked_at": "2026-10-02T06:25:24.337979+00:00",
+  "source_commit": "e76c38e109fcc2c4361a29e8829e25e52fe4de69",
+  "served_commit": "e76c38e109fcc2c4361a29e8829e25e52fe4de69",
+  "build_manifest_sha256": "f507c16aabc9fad9ae204877cc874dd16587facab8f749f1cc0fad6263a51c5e",
+  "static_files": [
+    {
+      "path": "chart.html",
+      "bytes": 53724,
+      "sha256": "e5a4c603f930721b9a9814eca38a490a3ea5610092ce3ff80aaf812fb88e9de0",
+      "whole_http_body_sha256": "a49d66c03bbc4be632476d07e374054e853a07d1faf3d24e56fbfef9b8596550",
+      "sole_edge_script_removed": {
+        "bytes": 367,
+        "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+      }
+    },
+    {
+      "path": "jh-observation-series.js",
+      "bytes": 9981,
+      "sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "whole_http_body_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-observation-cache.js",
+      "bytes": 8235,
+      "sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "whole_http_body_sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-cq-fuse.js",
+      "bytes": 30205,
+      "sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "whole_http_body_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-catalog.js",
+      "bytes": 41059,
+      "sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "whole_http_body_sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-engine.js",
+      "bytes": 441991,
+      "sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
+      "whole_http_body_sha256": "06c9dba4cd26bc308d017b10d917d9cb2277e688de4edc95e532c4b9e862e1d9",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-indux.js",
+      "bytes": 80072,
+      "sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+      "whole_http_body_sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-stock-desk-research.js",
+      "bytes": 7111,
+      "sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "whole_http_body_sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-stock-desk.js",
+      "bytes": 15423,
+      "sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "whole_http_body_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-vol-events.js",
+      "bytes": 18272,
+      "sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "whole_http_body_sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "sole_edge_script_removed": null
+    }
+  ],
+  "whole_engine_matches_source_with_existing_content_stamps": true,
+  "whole_help_matches_source": true,
+  "stamped_engine_dependencies": {},
+  "page_execution": false,
+  "application_packet_reads": 0,
+  "source_qualified": false,
+  "investment_authority": false,
+  "scope": "Whole served static Chart and modules match one commit-bound build; offline invented full-module browser QA is separate. No live application/provider/private/account packet read.",
+  "pages_run": 36973097601,
+  "browser": {
+    "report_sha256": "89b99cfd7d149cd2db8b04f32c1afdc468e6185597687ea55a2a7d3b56c52ff7",
+    "widths": [
+      1440,
+      390
+    ],
+    "screenshots_inspected": true,
+    "down_button_verified": true
+  },
+  "tests": {
+    "frontend": 2915,
+    "deployment": 1041,
+    "shell": 15
+  }
+}
