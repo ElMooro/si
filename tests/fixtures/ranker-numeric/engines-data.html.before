@@ -34,7 +34,6 @@ tr:last-child td{border-bottom:none}
 .audit summary{cursor:pointer;color:var(--acc)}
 .audit pre{white-space:pre-wrap;font-size:.68rem;background:#0A0908;padding:8px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto}
 </style>
-<script src="/jh-ranker-numeric.js?v=1"></script>
 </head>
 <body>
 <h1>Engine Data <span class="badge t360">360° ENRICHED</span></h1>
@@ -46,7 +45,6 @@ tr:last-child td{border-bottom:none}
   <div class="panel" tabindex="0">
     <h2>Master Ranker <span class="badge t360" id="mr-ver"></span></h2>
     <div class="meta" id="mr-meta">loading…</div>
-    <div id="mr-numeric">Calculation details unavailable.</div>
     <table><thead><tr><th>Ticker</th><th>Score</th><th>Systems</th><th style="text-align:right">360°</th></tr></thead>
     <tbody id="mr-body"><tr><td colspan="4" class="loading">loading…</td></tr></tbody></table>
   </div>
@@ -109,7 +107,6 @@ get('data/feed-heartbeat.json').then(h=>{
 
 // Master Ranker
 get('data/master-ranker.json').then(d=>{
-  window.JHRankerNumeric?.render(d, "mr-numeric");
   document.getElementById('mr-ver').textContent = d.schema_version||'';
   document.getElementById('mr-meta').textContent = `Packet timestamp ${ago(d.generated_at||d.as_of)} · duration ${numberText(d.duration_s)}${Number.isFinite(d.duration_s)?'s':''}`;
   document.getElementById('mr-body').innerHTML = rows(d.top_tickers).slice(0,12).map(t=>`<tr>

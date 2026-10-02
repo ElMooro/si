@@ -28,6 +28,8 @@ class AuditTiming(unittest.TestCase):
   rows=[{'ticker':'QAONLY','score':1,'rationale':'one'},{'ticker':'QANEXT','score':2,'rationale':'two'}];out=apply(after,rows,{'QAONLY':{'criticality':1}})
   self.assertEqual(out[1]['rationale'],'two');self.assertEqual(out[1]['audit_trail']['rationale'],'two');self.assertNotEqual(out[0]['rationale'],out[1]['rationale'])
  def test_whole_source_changes_only_unchanged_block_position(self):
+  from ranker_numeric_test_support import prior_source
+  after=prior_source(globals()['after'])
   t=json.loads((D/'transition.json').read_bytes());self.assertEqual(hashlib.sha256(before.encode()).hexdigest(),t['before_sha256']);self.assertEqual(hashlib.sha256(after.encode()).hexdigest(),t['after_sha256'])
   self.assertEqual(before.count(t['moved_block']),1);self.assertEqual(after.count(t['moved_block']),1);self.assertEqual(before.replace(t['moved_block'],''),after.replace(t['moved_block'],''))
 if __name__=='__main__':unittest.main(verbosity=2)

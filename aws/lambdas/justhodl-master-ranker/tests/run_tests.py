@@ -30,3 +30,6 @@ if __name__ == '__main__':
 if __name__ == "__main__":
     import subprocess
     subprocess.run([sys.executable,str(ROOT/"tests/test_ranker_audit_timing.py")],cwd=ROOT,check=True)
+
+if __name__ == "__main__":
+    subprocess.run([sys.executable,str(ROOT/"tests/test_ranker_numeric.py")],cwd=ROOT,check=True)

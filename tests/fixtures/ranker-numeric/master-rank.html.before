@@ -183,7 +183,6 @@ a { color: inherit; }
 <link rel="stylesheet" href="/jh-holdings-boundary.css">
 <script src="/jh-holdings-boundary.js"></script>
 <script src="/jh-statement-context.js"></script>
-<script src="/jh-ranker-numeric.js?v=1"></script>
 </head>
 <body>
   <div class="wrap">
@@ -238,7 +237,6 @@ a { color: inherit; }
           <button data-col="ticker">Ticker</button>
         </div>
       </div>
-      <div id="ranker-numeric">Calculation details unavailable.</div>
       <div id="tickerHost"><div class="loader">Loading ranked tickers…</div></div>
     </div>
 
@@ -414,7 +412,6 @@ function renderSpotlight(top) {
 }
 
 function renderTickers() {
-  window.JHRankerNumeric?.render(DATA, "ranker-numeric");
   let rows = applySort(DATA.top_tickers || [], SORT.col, SORT.dir);
   rows = filterByWatchlist(rows);
   document.getElementById('tickerCount').textContent =
@@ -553,9 +550,7 @@ function renderHeader() {
   document.getElementById('nTier3').textContent = alerts.n_tier_3_plus_systems ?? '—';
   document.getElementById('nExtremeMacro').textContent = alerts.n_extreme_macro ?? '—';
   document.getElementById('nStructural').textContent = alerts.n_structural_chokepoints ?? '—';
-  document.getElementById('calibNote').textContent = DATA.calibration_quality?.available === false
-    ? 'Calibration unavailable; rankings withheld'
-    : alerts.calibration_active ? 'Calibration configured; see input availability below' : 'Uncalibrated legacy weights';
+  document.getElementById('calibNote').innerHTML = `<b>${alerts.calibration_active ? 'Calibration active' : 'Calibration warming up'}</b>`;
   document.getElementById('metaLine').innerHTML =
     `${DATA.n_tickers_total} tickers · ${new Date(DATA.as_of).toLocaleString()} · ${DATA.duration_s}s`;
 }

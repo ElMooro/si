@@ -1,0 +1,58 @@
+{
+  "engines-data.html": {
+    "before_sha256": "838466a7d98c13c05e16ba882592c5de2c516d90de79fd6ddb4622fec833a4dc",
+    "after_sha256": "f350ba1b3838cef1f3799d3edcde3055ea5605da0c1930b5ed45b1f09848f86c",
+    "changes": [
+      {
+        "before": "</head>",
+        "after": "<script src=\"/jh-ranker-numeric.js?v=1\"></script>\n</head>"
+      },
+      {
+        "before": "    <div class=\"meta\" id=\"mr-meta\">loading\u2026</div>",
+        "after": "    <div class=\"meta\" id=\"mr-meta\">loading\u2026</div>\n    <div id=\"mr-numeric\"></div>"
+      },
+      {
+        "before": "get('data/master-ranker.json').then(d=>{",
+        "after": "get('data/master-ranker.json').then(d=>{\n  window.JHRankerNumeric.render(d, \"mr-numeric\");"
+      },
+      {
+        "before": "window.JHRankerNumeric.render(",
+        "after": "window.JHRankerNumeric?.render("
+      },
+      {
+        "before": "<div id=\"mr-numeric\"></div>",
+        "after": "<div id=\"mr-numeric\">Calculation details unavailable.</div>"
+      }
+    ]
+  },
+  "master-rank.html": {
+    "before_sha256": "e4999e3ead939cd240f6ae2a9dfb2c3760ade54be6b93c2c42b328114e4e53a6",
+    "after_sha256": "1aec47f9f8ca41dc9f92115044bc6ffe1e58c161a9434b7e703e80641809b218",
+    "changes": [
+      {
+        "before": "</head>",
+        "after": "<script src=\"/jh-ranker-numeric.js?v=1\"></script>\n</head>"
+      },
+      {
+        "before": "      <div id=\"tickerHost\"><div class=\"loader\">Loading ranked tickers\u2026</div></div>",
+        "after": "      <div id=\"ranker-numeric\"></div>\n      <div id=\"tickerHost\"><div class=\"loader\">Loading ranked tickers\u2026</div></div>"
+      },
+      {
+        "before": "function renderTickers() {",
+        "after": "function renderTickers() {\n  window.JHRankerNumeric.render(DATA, \"ranker-numeric\");"
+      },
+      {
+        "before": "window.JHRankerNumeric.render(",
+        "after": "window.JHRankerNumeric?.render("
+      },
+      {
+        "before": "<div id=\"ranker-numeric\"></div>",
+        "after": "<div id=\"ranker-numeric\">Calculation details unavailable.</div>"
+      },
+      {
+        "before": "  document.getElementById('calibNote').innerHTML = `<b>${alerts.calibration_active ? 'Calibration active' : 'Calibration warming up'}</b>`;",
+        "after": "  document.getElementById('calibNote').textContent = DATA.calibration_quality?.available === false\n    ? 'Calibration unavailable; rankings withheld'\n    : alerts.calibration_active ? 'Calibration configured; see input availability below' : 'Uncalibrated legacy weights';"
+      }
+    ]
+  }
+}

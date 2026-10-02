@@ -1,0 +1,94 @@
+{
+  "before_sha256": "3f332301e25981a33edde3ecccb5b12395bf1e28c5db2e79cd1ed1c85ba9dd73",
+  "after_sha256": "d165205b1d8e6b71e5b0d2ae69acda2f54dede4828df960d2a719e63b87ce448",
+  "changes": [
+    {
+      "before": "import math\n",
+      "after": "import math\nimport ranker_numeric\n"
+    },
+    {
+      "before": "def load_calibration_weights():\n    \"\"\"Read calibration weights from SSM. Returns dict {signal_name: weight 0-1}.\"\"\"\n    try:\n        params = SSM.get_parameters_by_path(\n            Path=CALIBRATION_SSM, Recursive=True, WithDecryption=False\n        )\n        weights = {}\n        for p in params.get(\"Parameters\", []):\n            name = p[\"Name\"].split(\"/\")[-1]\n            try:\n                weights[name] = float(p[\"Value\"])\n            except (ValueError, TypeError):\n                pass\n        return __import__(\"plumbing_authority\").eligible_weights(weights)\n    except Exception as e:\n        print(f\"[master-ranker] calibration load failed: {e} — using flat weights\")\n        return {}",
+      "after": "def load_calibration_weights():\n    \"\"\"Complete SSM census with explicit invalid and unavailable weights.\"\"\"\n    return ranker_numeric.load_weights(SSM, CALIBRATION_SSM,\n                                      __import__(\"plumbing_authority\").eligible_weights)"
+    },
+    {
+      "before": "def normalize_signal_score(system_name, system_data):\n    \"\"\"Map system-specific score to a 0-100 normalized scale.\"\"\"\n    if not system_data or not isinstance(system_data, dict):\n        return 0\n    raw = system_data.get(\"score\") or 0\n    try:\n        raw = float(raw)\n    except (ValueError, TypeError):\n        raw = 0\n    # Most of our systems already use 0-100 conventions\n    if raw >= 100:\n        return 100\n    if raw < 0:\n        return 0\n    # eps_velocity, smart_money, deep_value, asymmetric are 0-100\n    # compound_score can go to 1000+, normalize differently\n    if system_name == \"compound\":\n        n_sys = system_data.get(\"n_systems\", 1)\n        # log-scale compound, multiplicative bonus for systems\n        return min(100, math.log10(max(raw, 1)) * 25 + n_sys * 10)\n    return raw",
+      "after": "def normalize_signal_score(system_name, system_data):\n    \"\"\"Finite legacy normalization; unavailable input is null, never zero.\"\"\"\n    try:\n        return ranker_numeric.normalized(system_name, system_data)\n    except (ranker_numeric.InvalidNumber, OverflowError):\n        return None"
+    },
+    {
+      "before": "def compute_conviction(systems_dict, calibration_weights):\n    \"\"\"Master conviction score combining all systems for a single ticker.\"\"\"\n    if not systems_dict:\n        return 0, []\n    contributions = []\n    total = 0\n    for sys_name, data in systems_dict.items():\n        normalized = normalize_signal_score(sys_name, data)\n        cal_weight = calibration_weights.get(sys_name, 1.0)  # default 1.0 if uncalibrated\n        # EDGE-ACCURACY trust: down-weight signal families the fleet's own truth layer has\n        # shown to be below their null benchmark (net-negative after cost), up-weight the\n        # handful that are alpha-proven. Regime-conditioned, defaults to 1.0 (no-op) until\n        # a family's ledger has matured enough to grade — see aws/shared/engine_trust.py.\n        trust_mult = engine_trust.trust(sys_name, default=1.0) if engine_trust else 1.0\n        weight = cal_weight * trust_mult\n        contribution = normalized * weight\n        total += contribution\n        if normalized > 0:\n            contributions.append({\n                \"system\": sys_name,\n                \"raw_score\": data.get(\"score\"),\n                \"normalized\": round(normalized, 1),\n                \"weight\": round(weight, 2),\n                \"trust_mult\": round(trust_mult, 2),\n                \"contribution\": round(contribution, 1),\n            })\n    # Convergence multiplier: log-linear bonus for multi-system agreement\n    n_active = len(contributions)\n    convergence_mult = 1.0 + 0.4 * math.log(max(n_active, 1))  # 1 sys=1.0, 5 sys=1.64, 10 sys=1.92\n    final = total * convergence_mult / max(n_active, 1)  # weighted average × convergence\n    return round(final, 1), contributions",
+      "after": "def compute_conviction(systems_dict, calibration_weights):\n    \"\"\"Compatibility adapter; the handler publishes the complete calculation.\"\"\"\n    calculation = ranker_numeric.evidence(systems_dict, calibration_weights,\n        (lambda name: engine_trust.trust(name, default=1.0)) if engine_trust else None)\n    return calculation[\"score\"], calculation[\"contributions\"]"
+    },
+    {
+      "before": "    ticker_ranks = []\n    for ticker, systems_dict in ticker_idx.items():\n        score, contributions = compute_conviction(systems_dict, calibration)\n",
+      "after": "    ticker_ranks = []\n    unranked_tickers = []\n    for ticker, systems_dict in ticker_idx.items():\n        base = ranker_numeric.evidence(systems_dict, calibration,\n            (lambda name: engine_trust.trust(name, default=1.0)) if engine_trust else None)\n        if base[\"status\"] != \"usable\":\n            unranked_tickers.append(ranker_numeric.unavailable(ticker, base))\n            continue\n        score, contributions = base[\"score\"], base[\"contributions\"]\n        calculation = {\"base\": base, \"adjustments\": []}\n"
+    },
+    {
+      "before": "        score, cf_mult, cf_note = _cf_overlay(ticker, score)",
+      "after": "        score, cf_mult, cf_note = ranker_numeric.adjustment(\n            calculation, \"capital_flow\", _cf_overlay(ticker, score))"
+    },
+    {
+      "before": "        score, roro_mult, roro_note = _roro_overlay(_sector, score)",
+      "after": "        score, roro_mult, roro_note = ranker_numeric.adjustment(\n            calculation, \"risk_regime\", _roro_overlay(_sector, score))"
+    },
+    {
+      "before": "        score, liq_mult, liq_note = _liq_overlay(_sector, score)",
+      "after": "        score, liq_mult, liq_note = ranker_numeric.adjustment(\n            calculation, \"liquidity\", _liq_overlay(_sector, score))"
+    },
+    {
+      "before": "        score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)",
+      "after": "        score, sf_mult, sf_note = ranker_numeric.adjustment(\n            calculation, \"sector_flow\", _sectorflow_overlay(_sector, score))"
+    },
+    {
+      "before": "        score, nc_mult, nc_note = _nowcast_overlay(_sector, score)",
+      "after": "        score, nc_mult, nc_note = ranker_numeric.adjustment(\n            calculation, \"nowcast\", _nowcast_overlay(_sector, score))"
+    },
+    {
+      "before": "        score, rot_mult, rot_note = _rotation_overlay(_sector, score)",
+      "after": "        score, rot_mult, rot_note = ranker_numeric.adjustment(\n            calculation, \"rotation\", _rotation_overlay(_sector, score))"
+    },
+    {
+      "before": "            score = round(score * rg_mult, 2)\n",
+      "after": "            score = round(score * rg_mult, 2)\n        ranker_numeric.adjustment(calculation, \"risk_gate\", (score, rg_mult, None))\n"
+    },
+    {
+      "before": "        # red-flag gate: dumping / manipulation / poor quality => demote + tag\n",
+      "after": "        ranker_numeric.adjustment(calculation, \"cycle\", (score, 0.93 if _cyc_warn == \"likely_top_bearish_divergence\" else 1.0, None))\n        # red-flag gate: dumping / manipulation / poor quality => demote + tag\n"
+    },
+    {
+      "before": "        rationale = synthesize_rationale(ticker, systems_dict, score)\n",
+      "after": "        ranker_numeric.adjustment(calculation, \"red_flags\", (score, 0.80 if _rf else 1.0, None))\n        rationale = synthesize_rationale(ticker, systems_dict, score)\n"
+    },
+    {
+      "before": "            \"details\": systems_dict,\n",
+      "after": "            \"details\": systems_dict,\n            \"score_calculation\": calculation,\n"
+    },
+    {
+      "before": "        n_sys = len(systems_dict)\n        score, cf_mult, cf_note = ranker_numeric.adjustment(\n            calculation, \"capital_flow\", _cf_overlay(ticker, score))\n        _sector = _ticker_sector(systems_dict, ticker)\n        score, roro_mult, roro_note = ranker_numeric.adjustment(\n            calculation, \"risk_regime\", _roro_overlay(_sector, score))\n        score, liq_mult, liq_note = ranker_numeric.adjustment(\n            calculation, \"liquidity\", _liq_overlay(_sector, score))\n        _rgd = risk_gate_snapshot\n        rg_mult = _RG_RANK_CLAMP.get(_rgd.get(\"posture\"), 1.0)\n        if rg_mult != 1.0:\n            score = round(score * rg_mult, 2)\n        ranker_numeric.adjustment(calculation, \"risk_gate\", (score, rg_mult, None))\n        score, sf_mult, sf_note = ranker_numeric.adjustment(\n            calculation, \"sector_flow\", _sectorflow_overlay(_sector, score))\n        score, nc_mult, nc_note = ranker_numeric.adjustment(\n            calculation, \"nowcast\", _nowcast_overlay(_sector, score))\n        score, rot_mult, rot_note = ranker_numeric.adjustment(\n            calculation, \"rotation\", _rotation_overlay(_sector, score))\n        # cycle gate — tag phase; haircut only the strongest distribution-at-top tell\n        _cyc = _cycle_map.get(ticker)\n        _cyc_phase = (_cyc or {}).get(\"phase\")\n        _cyc_warn = None\n        if _cyc:\n            if _cyc.get(\"flag\") == \"LIKELY_TOP\" and _cyc.get(\"divergence\") == \"bearish\":\n                score = round(score * 0.93, 2); _cyc_warn = \"likely_top_bearish_divergence\"\n            elif _cyc.get(\"flag\") == \"LIKELY_TOP\" or _cyc_phase == \"DISTRIBUTION\":\n                _cyc_warn = \"distribution_at_top\"\n        ranker_numeric.adjustment(calculation, \"cycle\", (score, 0.93 if _cyc_warn == \"likely_top_bearish_divergence\" else 1.0, None))\n        # red-flag gate: dumping / manipulation / poor quality => demote + tag\n        _rf = _redflag.get(ticker)\n        if _rf:\n            score = round(score * 0.80, 2)\n        ranker_numeric.adjustment(calculation, \"red_flags\", (score, 0.80 if _rf else 1.0, None))\n        rationale = synthesize_rationale(ticker, systems_dict, score)\n        if cf_note:\n            rationale += \" · \" + cf_note\n        if roro_note:\n            rationale += \" · \" + roro_note\n        if liq_note:\n            rationale += \" · \" + liq_note\n        if sf_note:\n            rationale += \" · \" + sf_note\n        if nc_note:\n            rationale += \" · \" + nc_note\n        if _cyc_warn:\n            rationale += \" · cycle: \" + _cyc_warn\n        if _rf:\n            rationale += \" · ⚠️ red flag: \" + \"; \".join(_rf)\n        ticker_ranks.append({\n            \"ticker\": ticker,\n            \"score\": score,\n            \"n_systems\": n_sys,\n            \"systems\": sorted(systems_dict.keys()),\n            \"contributions\": contributions,\n            \"capital_flow_mult\": cf_mult,\n            \"risk_regime_mult\": roro_mult,\n            \"risk_gate_posture\": _rgd.get(\"posture\"),\n            \"risk_gate_rank_mult\": rg_mult,\n            \"risk_gate_sizing_mult\": _rgd.get(\"sizing_multiplier\"),\n            \"liquidity_regime_mult\": liq_mult,\n            \"rotation_mult\": rot_mult,\n            \"rotation_note\": rot_note,\n            \"nowcast_regime_mult\": nc_mult,\n            \"cycle_phase\": _cyc_phase,\n            \"cycle_warning\": _cyc_warn,\n            \"red_flags\": _rf,\n            \"rationale\": rationale,\n            \"details\": systems_dict,\n            \"score_calculation\": calculation,\n        })\n",
+      "after": "        try:\n            n_sys = len(systems_dict)\n            score, cf_mult, cf_note = ranker_numeric.adjustment(\n                calculation, \"capital_flow\", _cf_overlay(ticker, score))\n            _sector = _ticker_sector(systems_dict, ticker)\n            score, roro_mult, roro_note = ranker_numeric.adjustment(\n                calculation, \"risk_regime\", _roro_overlay(_sector, score))\n            score, liq_mult, liq_note = ranker_numeric.adjustment(\n                calculation, \"liquidity\", _liq_overlay(_sector, score))\n            _rgd = risk_gate_snapshot\n            rg_mult = _RG_RANK_CLAMP.get(_rgd.get(\"posture\"), 1.0)\n            if rg_mult != 1.0:\n                score = round(score * rg_mult, 2)\n            ranker_numeric.adjustment(calculation, \"risk_gate\", (score, rg_mult, None))\n            score, sf_mult, sf_note = ranker_numeric.adjustment(\n                calculation, \"sector_flow\", _sectorflow_overlay(_sector, score))\n            score, nc_mult, nc_note = ranker_numeric.adjustment(\n                calculation, \"nowcast\", _nowcast_overlay(_sector, score))\n            score, rot_mult, rot_note = ranker_numeric.adjustment(\n                calculation, \"rotation\", _rotation_overlay(_sector, score))\n            # cycle gate — tag phase; haircut only the strongest distribution-at-top tell\n            _cyc = _cycle_map.get(ticker)\n            _cyc_phase = (_cyc or {}).get(\"phase\")\n            _cyc_warn = None\n            if _cyc:\n                if _cyc.get(\"flag\") == \"LIKELY_TOP\" and _cyc.get(\"divergence\") == \"bearish\":\n                    score = round(score * 0.93, 2); _cyc_warn = \"likely_top_bearish_divergence\"\n                elif _cyc.get(\"flag\") == \"LIKELY_TOP\" or _cyc_phase == \"DISTRIBUTION\":\n                    _cyc_warn = \"distribution_at_top\"\n            ranker_numeric.adjustment(calculation, \"cycle\", (score, 0.93 if _cyc_warn == \"likely_top_bearish_divergence\" else 1.0, None))\n            # red-flag gate: dumping / manipulation / poor quality => demote + tag\n            _rf = _redflag.get(ticker)\n            if _rf:\n                score = round(score * 0.80, 2)\n            ranker_numeric.adjustment(calculation, \"red_flags\", (score, 0.80 if _rf else 1.0, None))\n            rationale = synthesize_rationale(ticker, systems_dict, score)\n            if cf_note:\n                rationale += \" · \" + cf_note\n            if roro_note:\n                rationale += \" · \" + roro_note\n            if liq_note:\n                rationale += \" · \" + liq_note\n            if sf_note:\n                rationale += \" · \" + sf_note\n            if nc_note:\n                rationale += \" · \" + nc_note\n            if _cyc_warn:\n                rationale += \" · cycle: \" + _cyc_warn\n            if _rf:\n                rationale += \" · ⚠️ red flag: \" + \"; \".join(_rf)\n            ticker_ranks.append({\n                \"ticker\": ticker,\n                \"score\": score,\n                \"n_systems\": n_sys,\n                \"systems\": sorted(systems_dict.keys()),\n                \"contributions\": contributions,\n                \"capital_flow_mult\": cf_mult,\n                \"risk_regime_mult\": roro_mult,\n                \"risk_gate_posture\": _rgd.get(\"posture\"),\n                \"risk_gate_rank_mult\": rg_mult,\n                \"risk_gate_sizing_mult\": _rgd.get(\"sizing_multiplier\"),\n                \"liquidity_regime_mult\": liq_mult,\n                \"rotation_mult\": rot_mult,\n                \"rotation_note\": rot_note,\n                \"nowcast_regime_mult\": nc_mult,\n                \"cycle_phase\": _cyc_phase,\n                \"cycle_warning\": _cyc_warn,\n                \"red_flags\": _rf,\n                \"rationale\": rationale,\n                \"details\": systems_dict,\n                \"score_calculation\": calculation,\n            })\n        except (TypeError, ValueError, OverflowError):\n            unranked_tickers.append(ranker_numeric.unavailable(ticker, base,\n                reason=\"overlay_or_rationale_unavailable\"))\n"
+    },
+    {
+      "before": "        _tt[\"audit_trail\"] = _audit\n",
+      "after": "        _tt[\"audit_trail\"] = _audit\n        if \"score_calculation\" in _tt:\n            _audit[\"score_calculation\"] = _tt[\"score_calculation\"]\n"
+    },
+    {
+      "before": "        \"schema_version\": \"1.2-t360-xai\",",
+      "after": "        \"schema_version\": \"1.3-numeric-availability\","
+    },
+    {
+      "before": "        \"top_tickers\": top_tickers,\n",
+      "after": "        \"top_tickers\": top_tickers,\n        \"unranked_tickers\": unranked_tickers,\n        \"numeric_quality\": {\n            \"contract\": ranker_numeric.CONTRACT,\n            \"status\": \"unavailable\" if not ticker_ranks else \"partial\" if unranked_tickers else \"usable\",\n            \"input_tickers\": len(ticker_idx), \"rankable_tickers\": len(ticker_ranks),\n            \"unranked_tickers\": len(unranked_tickers),\n            \"independent_evidence_qualified\": False, \"portfolio_qualified\": False,\n        },\n        \"calibration_quality\": getattr(calibration, \"diagnostics\", None),\n"
+    },
+    {
+      "before": "    body_bytes = json.dumps(payload, indent=2, default=str).encode(\"utf-8\")",
+      "after": "    body_bytes = json.dumps(payload, indent=2, default=str, allow_nan=False).encode(\"utf-8\")"
+    },
+    {
+      "before": "            idx.setdefault(sym, {})[\"asymmetric\"] = {\n                \"score\": r.get(\"score\") or r.get(\"asymmetry_score\"),",
+      "after": "            idx.setdefault(sym, {})[\"asymmetric\"] = {\n                \"score\": r.get(\"score\") if r.get(\"score\") is not None else r.get(\"asymmetry_score\"),"
+    },
+    {
+      "before": "            idx.setdefault(sym, {})[\"nobrainers\"] = {\n                \"score\": r.get(\"score\") or r.get(\"asymmetry_score\"),",
+      "after": "            idx.setdefault(sym, {})[\"nobrainers\"] = {\n                \"score\": r.get(\"score\") if r.get(\"score\") is not None else r.get(\"asymmetry_score\"),"
+    }
+  ]
+}

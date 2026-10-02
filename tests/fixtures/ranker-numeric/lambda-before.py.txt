@@ -57,7 +57,6 @@ ZERO DETERIORATION
 """
 import json
 import math
-import ranker_numeric
 import os
 import time
 from datetime import datetime, timezone
@@ -220,9 +219,22 @@ def fetch_json(key, default=None, max_age_h=None):
 
 
 def load_calibration_weights():
-    """Complete SSM census with explicit invalid and unavailable weights."""
-    return ranker_numeric.load_weights(SSM, CALIBRATION_SSM,
-                                      __import__("plumbing_authority").eligible_weights)
+    """Read calibration weights from SSM. Returns dict {signal_name: weight 0-1}."""
+    try:
+        params = SSM.get_parameters_by_path(
+            Path=CALIBRATION_SSM, Recursive=True, WithDecryption=False
+        )
+        weights = {}
+        for p in params.get("Parameters", []):
+            name = p["Name"].split("/")[-1]
+            try:
+                weights[name] = float(p["Value"])
+            except (ValueError, TypeError):
+                pass
+        return __import__("plumbing_authority").eligible_weights(weights)
+    except Exception as e:
+        print(f"[master-ranker] calibration load failed: {e} — using flat weights")
+        return {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -316,7 +328,7 @@ def build_ticker_index():
             if not sym:
                 continue
             idx.setdefault(sym, {})["asymmetric"] = {
-                "score": r.get("score") if r.get("score") is not None else r.get("asymmetry_score"),
+                "score": r.get("score") or r.get("asymmetry_score"),
                 "sector": r.get("sector"),
                 "marketCap": r.get("marketCap"),
                 "pe": r.get("peRatio"),
@@ -572,7 +584,7 @@ def build_ticker_index():
             if not sym:
                 continue
             idx.setdefault(sym, {})["nobrainers"] = {
-                "score": r.get("score") if r.get("score") is not None else r.get("asymmetry_score"),
+                "score": r.get("score") or r.get("asymmetry_score"),
                 "tier": r.get("tier"),
                 "flag": r.get("flag"),
                 "theme": r.get("theme"),
@@ -694,18 +706,59 @@ def build_ticker_index():
 # SCORING
 # ─────────────────────────────────────────────────────────────────────────────
 def normalize_signal_score(system_name, system_data):
-    """Finite legacy normalization; unavailable input is null, never zero."""
+    """Map system-specific score to a 0-100 normalized scale."""
+    if not system_data or not isinstance(system_data, dict):
+        return 0
+    raw = system_data.get("score") or 0
     try:
-        return ranker_numeric.normalized(system_name, system_data)
-    except (ranker_numeric.InvalidNumber, OverflowError):
-        return None
+        raw = float(raw)
+    except (ValueError, TypeError):
+        raw = 0
+    # Most of our systems already use 0-100 conventions
+    if raw >= 100:
+        return 100
+    if raw < 0:
+        return 0
+    # eps_velocity, smart_money, deep_value, asymmetric are 0-100
+    # compound_score can go to 1000+, normalize differently
+    if system_name == "compound":
+        n_sys = system_data.get("n_systems", 1)
+        # log-scale compound, multiplicative bonus for systems
+        return min(100, math.log10(max(raw, 1)) * 25 + n_sys * 10)
+    return raw
 
 
 def compute_conviction(systems_dict, calibration_weights):
-    """Compatibility adapter; the handler publishes the complete calculation."""
-    calculation = ranker_numeric.evidence(systems_dict, calibration_weights,
-        (lambda name: engine_trust.trust(name, default=1.0)) if engine_trust else None)
-    return calculation["score"], calculation["contributions"]
+    """Master conviction score combining all systems for a single ticker."""
+    if not systems_dict:
+        return 0, []
+    contributions = []
+    total = 0
+    for sys_name, data in systems_dict.items():
+        normalized = normalize_signal_score(sys_name, data)
+        cal_weight = calibration_weights.get(sys_name, 1.0)  # default 1.0 if uncalibrated
+        # EDGE-ACCURACY trust: down-weight signal families the fleet's own truth layer has
+        # shown to be below their null benchmark (net-negative after cost), up-weight the
+        # handful that are alpha-proven. Regime-conditioned, defaults to 1.0 (no-op) until
+        # a family's ledger has matured enough to grade — see aws/shared/engine_trust.py.
+        trust_mult = engine_trust.trust(sys_name, default=1.0) if engine_trust else 1.0
+        weight = cal_weight * trust_mult
+        contribution = normalized * weight
+        total += contribution
+        if normalized > 0:
+            contributions.append({
+                "system": sys_name,
+                "raw_score": data.get("score"),
+                "normalized": round(normalized, 1),
+                "weight": round(weight, 2),
+                "trust_mult": round(trust_mult, 2),
+                "contribution": round(contribution, 1),
+            })
+    # Convergence multiplier: log-linear bonus for multi-system agreement
+    n_active = len(contributions)
+    convergence_mult = 1.0 + 0.4 * math.log(max(n_active, 1))  # 1 sys=1.0, 5 sys=1.64, 10 sys=1.92
+    final = total * convergence_mult / max(n_active, 1)  # weighted average × convergence
+    return round(final, 1), contributions
 
 
 def synthesize_rationale(ticker, systems_dict, score):
@@ -1292,90 +1345,69 @@ def lambda_handler(event, context):
 
     # Compute conviction for every ticker
     ticker_ranks = []
-    unranked_tickers = []
     for ticker, systems_dict in ticker_idx.items():
-        base = ranker_numeric.evidence(systems_dict, calibration,
-            (lambda name: engine_trust.trust(name, default=1.0)) if engine_trust else None)
-        if base["status"] != "usable":
-            unranked_tickers.append(ranker_numeric.unavailable(ticker, base))
-            continue
-        score, contributions = base["score"], base["contributions"]
-        calculation = {"base": base, "adjustments": []}
-        try:
-            n_sys = len(systems_dict)
-            score, cf_mult, cf_note = ranker_numeric.adjustment(
-                calculation, "capital_flow", _cf_overlay(ticker, score))
-            _sector = _ticker_sector(systems_dict, ticker)
-            score, roro_mult, roro_note = ranker_numeric.adjustment(
-                calculation, "risk_regime", _roro_overlay(_sector, score))
-            score, liq_mult, liq_note = ranker_numeric.adjustment(
-                calculation, "liquidity", _liq_overlay(_sector, score))
-            _rgd = risk_gate_snapshot
-            rg_mult = _RG_RANK_CLAMP.get(_rgd.get("posture"), 1.0)
-            if rg_mult != 1.0:
-                score = round(score * rg_mult, 2)
-            ranker_numeric.adjustment(calculation, "risk_gate", (score, rg_mult, None))
-            score, sf_mult, sf_note = ranker_numeric.adjustment(
-                calculation, "sector_flow", _sectorflow_overlay(_sector, score))
-            score, nc_mult, nc_note = ranker_numeric.adjustment(
-                calculation, "nowcast", _nowcast_overlay(_sector, score))
-            score, rot_mult, rot_note = ranker_numeric.adjustment(
-                calculation, "rotation", _rotation_overlay(_sector, score))
-            # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
-            _cyc = _cycle_map.get(ticker)
-            _cyc_phase = (_cyc or {}).get("phase")
-            _cyc_warn = None
-            if _cyc:
-                if _cyc.get("flag") == "LIKELY_TOP" and _cyc.get("divergence") == "bearish":
-                    score = round(score * 0.93, 2); _cyc_warn = "likely_top_bearish_divergence"
-                elif _cyc.get("flag") == "LIKELY_TOP" or _cyc_phase == "DISTRIBUTION":
-                    _cyc_warn = "distribution_at_top"
-            ranker_numeric.adjustment(calculation, "cycle", (score, 0.93 if _cyc_warn == "likely_top_bearish_divergence" else 1.0, None))
-            # red-flag gate: dumping / manipulation / poor quality => demote + tag
-            _rf = _redflag.get(ticker)
-            if _rf:
-                score = round(score * 0.80, 2)
-            ranker_numeric.adjustment(calculation, "red_flags", (score, 0.80 if _rf else 1.0, None))
-            rationale = synthesize_rationale(ticker, systems_dict, score)
-            if cf_note:
-                rationale += " · " + cf_note
-            if roro_note:
-                rationale += " · " + roro_note
-            if liq_note:
-                rationale += " · " + liq_note
-            if sf_note:
-                rationale += " · " + sf_note
-            if nc_note:
-                rationale += " · " + nc_note
-            if _cyc_warn:
-                rationale += " · cycle: " + _cyc_warn
-            if _rf:
-                rationale += " · ⚠️ red flag: " + "; ".join(_rf)
-            ticker_ranks.append({
-                "ticker": ticker,
-                "score": score,
-                "n_systems": n_sys,
-                "systems": sorted(systems_dict.keys()),
-                "contributions": contributions,
-                "capital_flow_mult": cf_mult,
-                "risk_regime_mult": roro_mult,
-                "risk_gate_posture": _rgd.get("posture"),
-                "risk_gate_rank_mult": rg_mult,
-                "risk_gate_sizing_mult": _rgd.get("sizing_multiplier"),
-                "liquidity_regime_mult": liq_mult,
-                "rotation_mult": rot_mult,
-                "rotation_note": rot_note,
-                "nowcast_regime_mult": nc_mult,
-                "cycle_phase": _cyc_phase,
-                "cycle_warning": _cyc_warn,
-                "red_flags": _rf,
-                "rationale": rationale,
-                "details": systems_dict,
-                "score_calculation": calculation,
-            })
-        except (TypeError, ValueError, OverflowError):
-            unranked_tickers.append(ranker_numeric.unavailable(ticker, base,
-                reason="overlay_or_rationale_unavailable"))
+        score, contributions = compute_conviction(systems_dict, calibration)
+        n_sys = len(systems_dict)
+        score, cf_mult, cf_note = _cf_overlay(ticker, score)
+        _sector = _ticker_sector(systems_dict, ticker)
+        score, roro_mult, roro_note = _roro_overlay(_sector, score)
+        score, liq_mult, liq_note = _liq_overlay(_sector, score)
+        _rgd = risk_gate_snapshot
+        rg_mult = _RG_RANK_CLAMP.get(_rgd.get("posture"), 1.0)
+        if rg_mult != 1.0:
+            score = round(score * rg_mult, 2)
+        score, sf_mult, sf_note = _sectorflow_overlay(_sector, score)
+        score, nc_mult, nc_note = _nowcast_overlay(_sector, score)
+        score, rot_mult, rot_note = _rotation_overlay(_sector, score)
+        # cycle gate — tag phase; haircut only the strongest distribution-at-top tell
+        _cyc = _cycle_map.get(ticker)
+        _cyc_phase = (_cyc or {}).get("phase")
+        _cyc_warn = None
+        if _cyc:
+            if _cyc.get("flag") == "LIKELY_TOP" and _cyc.get("divergence") == "bearish":
+                score = round(score * 0.93, 2); _cyc_warn = "likely_top_bearish_divergence"
+            elif _cyc.get("flag") == "LIKELY_TOP" or _cyc_phase == "DISTRIBUTION":
+                _cyc_warn = "distribution_at_top"
+        # red-flag gate: dumping / manipulation / poor quality => demote + tag
+        _rf = _redflag.get(ticker)
+        if _rf:
+            score = round(score * 0.80, 2)
+        rationale = synthesize_rationale(ticker, systems_dict, score)
+        if cf_note:
+            rationale += " · " + cf_note
+        if roro_note:
+            rationale += " · " + roro_note
+        if liq_note:
+            rationale += " · " + liq_note
+        if sf_note:
+            rationale += " · " + sf_note
+        if nc_note:
+            rationale += " · " + nc_note
+        if _cyc_warn:
+            rationale += " · cycle: " + _cyc_warn
+        if _rf:
+            rationale += " · ⚠️ red flag: " + "; ".join(_rf)
+        ticker_ranks.append({
+            "ticker": ticker,
+            "score": score,
+            "n_systems": n_sys,
+            "systems": sorted(systems_dict.keys()),
+            "contributions": contributions,
+            "capital_flow_mult": cf_mult,
+            "risk_regime_mult": roro_mult,
+            "risk_gate_posture": _rgd.get("posture"),
+            "risk_gate_rank_mult": rg_mult,
+            "risk_gate_sizing_mult": _rgd.get("sizing_multiplier"),
+            "liquidity_regime_mult": liq_mult,
+            "rotation_mult": rot_mult,
+            "rotation_note": rot_note,
+            "nowcast_regime_mult": nc_mult,
+            "cycle_phase": _cyc_phase,
+            "cycle_warning": _cyc_warn,
+            "red_flags": _rf,
+            "rationale": rationale,
+            "details": systems_dict,
+        })
     ticker_ranks.sort(key=lambda r: r["score"], reverse=True)
     top_tickers = ticker_ranks[:25]
 
@@ -1549,11 +1581,9 @@ def lambda_handler(event, context):
             "rationale": _tt.get("rationale"),
         }
         _tt["audit_trail"] = _audit
-        if "score_calculation" in _tt:
-            _audit["score_calculation"] = _tt["score_calculation"]
 
     payload = {
-        "schema_version": "1.3-numeric-availability",
+        "schema_version": "1.2-t360-xai",
         "method": "master_signal_ranker_v1",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regime_context": regime_ctx,
@@ -1586,15 +1616,6 @@ def lambda_handler(event, context):
             "n_structural_chokepoints": n_structural,
         },
         "top_tickers": top_tickers,
-        "unranked_tickers": unranked_tickers,
-        "numeric_quality": {
-            "contract": ranker_numeric.CONTRACT,
-            "status": "unavailable" if not ticker_ranks else "partial" if unranked_tickers else "usable",
-            "input_tickers": len(ticker_idx), "rankable_tickers": len(ticker_ranks),
-            "unranked_tickers": len(unranked_tickers),
-            "independent_evidence_qualified": False, "portfolio_qualified": False,
-        },
-        "calibration_quality": getattr(calibration, "diagnostics", None),
         "top_macro": macro_signals,
         "feed_health": {
             name: {
@@ -1612,7 +1633,7 @@ def lambda_handler(event, context):
     }
 
     payload["wl_research"] = __import__("wl_fusion").block(("CREDIT",))
-    body_bytes = json.dumps(payload, indent=2, default=str, allow_nan=False).encode("utf-8")
+    body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,
         ContentType="application/json", CacheControl="max-age=300",
