@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stages 546 native heartbeat, 547 chart latest volume and 548 outlier pane are exact-release accepted within their recorded scopes. Stage 549 warehouse volume parsing and crypto primary-bar preservation are candidate-tested. All ten institutional workstreams remain OPEN.
+October 2 UTC: Chart stages 547–549 are exact static and served-module accepted; heartbeat 546 is native accepted without a recurring-publication claim. Stage 550 Worker volume codecs are candidate-tested. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7788,3 +7788,15 @@ Commit `594c2143faa9759bff0260923bf60cedddfddadc`, Pages run `36964861120`: all 
 ### Stage 549 warehouse volume candidate
 
 Forty-five actual-function tests reproduce named-alias validation bypass, volume-equals-price rejection, leading primary crypto bars overwritten on missing/zero volume and 80x tail-volume erasure. The candidate fixes only toBars and klines; 398 other functions and outer bytes remain identical. Complete invented primary/supplementary frames verify cache, failed supplement and weekly missingness. Full-module browser checks at 390/1440px cover conflicts, missingness, zero, equal volume/price and crypto tails without real requests. Worker coercion, cross-provider units/lineage, price sanitization and tiny quote rounding remain separate open defects.
+
+
+### Stage 549 exact static and served-module acceptance
+
+Commit `880c354448b493438dc1e89753368d1ac0294eb3`, Pages run `36965658268`: ten whole assets match one commit-bound build; actual served modules pass desktop/mobile invented warehouse conflicts, missing/zero/equal-price-volume and crypto-tail cases with no real requests. Final 2,835 frontend, 1,039 deployment and fifteen shell checks pass. Primary crypto zero/missing bars and large reported tail volumes now survive acquisition. Unit/source comparability and legacy price filtering remain unqualified.
+
+### Stage 550 Worker volume candidate
+
+The complete predecessor is retained. Fifty-two synthetic helper and actual Worker route cases verify missing and conflicting quantities remain unavailable, zero remains measured, and weekly/monthly sums require every supplied component. Overflow and a positive addend absorbed by floating-point rounding are unavailable. Warehouse/Yahoo codecs require typed numbers; Binance ordinal 5 receives a separate documented decimal-string decoder without blanket coercion. Existing source routing, schedules, prices and merge precedence remain unchanged. Final integration and exact native source receipt are required before acceptance.
+
+
+Stage 550 pre-push reconciliation: peer `f901af33f` changed six Chart UI/rail functions and expanded its exact preservation manifest; these changes are retained, with no source/model qualification inferred. Peer operation 1105 was read as source only and never executed; its reports were not read. Generated heartbeat metadata refreshed, so the source-bound page registry was regenerated and its exact differences recorded. Worker source and the tested compiled runtime remain unchanged; frontend, deployment and browser integration are rerun against the new main tree.

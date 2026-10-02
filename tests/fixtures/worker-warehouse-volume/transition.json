@@ -1,0 +1,45 @@
+{
+  "path": "cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js",
+  "source_sha256": "3ee22a32a1cdd9a30c968012fcb3d4dda93308af576bae5b573270b4d1927202",
+  "candidate_sha256": "a3320f85c7827938a592f1396c74a419b8065d5516c694bbd9282f0920e72f66",
+  "replacements": [
+    {
+      "before": "const DAY = 86400;",
+      "after": "const DAY = 86400;\n\n// Typed quantities stay distinct from missing, invalid and conflicting aliases.\nfunction measuredVolume(value) {\n  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;\n}\n\nfunction rowVolume(row) {\n  if (!row || typeof row !== 'object') return null;\n  if (Array.isArray(row)) return measuredVolume(row[5]);\n  let value = null, seen = false;\n  for (const name of ['volume', 'value', 'v', 'vol', 'Volume']) {\n    if (!Object.prototype.hasOwnProperty.call(row, name)) continue;\n    const next = measuredVolume(row[name]);\n    if (next === null || (seen && next !== value)) return null;\n    value = next; seen = true;\n  }\n  return seen ? value : null;\n}\n\nfunction sumVolume(left, right) {\n  left = measuredVolume(left); right = measuredVolume(right);\n  if (left === null || right === null) return null;\n  const sum = left + right;\n  return Number.isFinite(sum) && !(left > 0 && right > 0 && (sum === left || sum === right)) ? sum : null;\n}\n\n// Binance's documented kline tuple places a decimal string at ordinal 5.\n// Decimal decoding is local to this codec; blanks/booleans are never quantities.\nfunction binanceVolume(value) {\n  if (typeof value === 'number') return measuredVolume(value);\n  if (typeof value !== 'string' || !/^[0-9]+(?:\\.[0-9]+)?$/.test(value)) return null;\n  const number = Number(value);\n  return Number.isFinite(number) && !(number === 0 && /[1-9]/.test(value)) ? number : null;\n}"
+    },
+    {
+      "before": "  for (const r of rows || []) {\n    const a =",
+      "after": "  for (const r of rows || []) {\n    if (!r || typeof r !== 'object') continue;\n    const a ="
+    },
+    {
+      "before": "value: Number(a[5]) || 0",
+      "after": "value: rowVolume(r)"
+    },
+    {
+      "before": "old.value += b.value;",
+      "after": "old.value = sumVolume(old.value, b.value);"
+    },
+    {
+      "before": "else groups.set(key, {...b, time:key});",
+      "after": "else groups.set(key, {...b, time:key, value:measuredVolume(b.value)});"
+    },
+    {
+      "before": "value: row.value != null ? row.value : (row.volume || 0)",
+      "after": "value: rowVolume(row)"
+    },
+    {
+      "before": "const vol = row.value != null ? row.value : (row.volume || 0);",
+      "after": "const vol = rowVolume(row);"
+    },
+    {
+      "before": "value: (q.volume && q.volume[i]) || 0",
+      "after": "value: measuredVolume(q.volume && q.volume[i])"
+    },
+    {
+      "before": "value: +b[5] || 0",
+      "after": "value: binanceVolume(b[5])"
+    }
+  ],
+  "documentation": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klinecandlestick-data",
+  "scope": "Codec and summed-volume validity only. No source identity, price validation, duplicate conflict or adjustment qualification."
+}

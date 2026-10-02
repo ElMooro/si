@@ -1,0 +1,116 @@
+{
+  "status": "exact_static_release_checked",
+  "checked_at": "2026-10-02T04:45:37.092022+00:00",
+  "source_commit": "880c354448b493438dc1e89753368d1ac0294eb3",
+  "served_commit": "880c354448b493438dc1e89753368d1ac0294eb3",
+  "build_manifest_sha256": "11a27e0168e7bd16be09e3d9e665aea5fb2b9a7f9a6afa9a3f6900ed791b112e",
+  "static_files": [
+    {
+      "path": "chart.html",
+      "bytes": 52798,
+      "sha256": "46aa6a0012057e5a1c174e644a8a1ae20dc710c62347491ac57f8e84768eb66c",
+      "whole_http_body_sha256": "97919bc5d40df81357cadd9b7500b980c1893b9e86cd1733d842741786ca0eaf",
+      "sole_edge_script_removed": {
+        "bytes": 367,
+        "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+      }
+    },
+    {
+      "path": "jh-observation-series.js",
+      "bytes": 9981,
+      "sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "whole_http_body_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-observation-cache.js",
+      "bytes": 8235,
+      "sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "whole_http_body_sha256": "907e8152e0c4a7332e1d6d544e4ee1050ae79f8ea3d47869277bc148d7ad68b1",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-cq-fuse.js",
+      "bytes": 30205,
+      "sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "whole_http_body_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-catalog.js",
+      "bytes": 41059,
+      "sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "whole_http_body_sha256": "fdb8a8b03e1456365fc5f5a235f13f817b71abceca52f501d7e7ec853d4b7b8e",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-engine.js",
+      "bytes": 424802,
+      "sha256": "881d1a2a845f26114e1a42beaa77231d67bc320b938b2224d07467a147e334e7",
+      "whole_http_body_sha256": "881d1a2a845f26114e1a42beaa77231d67bc320b938b2224d07467a147e334e7",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-indux.js",
+      "bytes": 80072,
+      "sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+      "whole_http_body_sha256": "e7b3abc13e31db67235a7794d1f440feadf4ebbfcfb309570893932e158c9bea",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-stock-desk-research.js",
+      "bytes": 7111,
+      "sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "whole_http_body_sha256": "bc72f0ad68bb966dc66396e2c91585e6fd688c151ba6e1924cc274588d7d66d3",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-stock-desk.js",
+      "bytes": 15423,
+      "sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "whole_http_body_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "sole_edge_script_removed": null
+    },
+    {
+      "path": "jh-chart-vol-events.js",
+      "bytes": 18272,
+      "sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "whole_http_body_sha256": "80856fa36b061b1a3ced3ba35eba0159fec027ae9702edf5dbeac65d8472f819",
+      "sole_edge_script_removed": null
+    }
+  ],
+  "whole_engine_matches_source_with_existing_content_stamps": true,
+  "whole_help_matches_source": true,
+  "stamped_engine_dependencies": {},
+  "page_execution": false,
+  "application_packet_reads": 0,
+  "source_qualified": false,
+  "investment_authority": false,
+  "scope": "Whole served static Chart and modules match one commit-bound build; offline invented full-module browser QA is separate. No live application/provider/private/account packet read.",
+  "pages_run": 36965658268,
+  "browser": {
+    "script": "tests/chart-warehouse-volume-browser.cjs",
+    "report_sha256": "ccfcf1862a40d201afb162a1ef920b87bb8c90176f7692233139865c6b36e985",
+    "widths": [
+      1440,
+      390
+    ],
+    "states": [
+      "NASDAQ:CONFLICT",
+      "NASDAQ:MISSING",
+      "NASDAQ:ZERO",
+      "NASDAQ:EQUAL",
+      "BTCUSDT"
+    ],
+    "actual_network_requests": 0,
+    "screenshots_inspected": true
+  },
+  "tests": {
+    "frontend": 2835,
+    "deployment": 1039,
+    "shell": 15,
+    "engine_contracts": 900,
+    "page_graphs": 599,
+    "wiring": 143
+  }
+}

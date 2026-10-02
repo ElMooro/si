@@ -1,6 +1,6 @@
 {
   "stage": 549,
-  "status": "candidate_integration_pending",
+  "status": "exact_static_and_served_browser_accepted",
   "source_sha256": "881d1a2a845f26114e1a42beaa77231d67bc320b938b2224d07467a147e334e7",
   "changed_functions": [
     "toBars",
@@ -25,5 +25,6 @@
     "Cross-provider lineage, units and adjustment identity",
     "Price sanitation and mixed-bar filtering",
     "Small positive RVOL rounds to zero in quote header; pane already distinguishes it"
-  ]
+  ],
+  "acceptance": "docs/audit/2026-10-02/chart-warehouse-volume-acceptance.json"
 }
