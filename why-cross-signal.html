@@ -180,7 +180,7 @@ const URLS = {
     }
     document.getElementById('ticker-form').addEventListener('submit', event => { event.preventDefault(); explain(input.value); });
     const sample = [], seen = new Set();
-    for (const [key,keys] of [['compound',['ranked']], ['master',['top_tickers','ranked','rows']], ['asymmetric',['top_setups']]]) {
+    for (const [key,keys] of [['compound',['compound','ranked']], ['master',['top_tickers','ranked','rows']], ['asymmetric',['top_setups']]]) {
       for (const record of R.collection(receipts[key]?.data, keys).rows) {
         const ticker = R.identity(record.value);
         if (ticker && !seen.has(ticker)) { seen.add(ticker); sample.push(ticker); }

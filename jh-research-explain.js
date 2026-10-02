@@ -128,7 +128,7 @@
       'Receipt time is not observation freshness; source independence and portfolio authority are unqualified.';
   }
   const CROSS_COLLECTIONS = {
-    compound:[['ranked']], asymmetric:[['top_setups']], master:[['top_tickers', 'ranked', 'rows'], ['unranked_tickers']],
+    compound:[['compound', 'ranked']], asymmetric:[['top_setups']], master:[['top_tickers', 'ranked', 'rows'], ['unranked_tickers']],
     nobrainers:[['all_scored', 'top_setups', 'setups', 'tier_a', 'top_picks', 'candidates', 'results'], ['tier_b']],
     insiders:[['transactions', 'activity', 'events', 'records', 'trades'], ['sell_transactions'], ['clusters'], ['big_buys']],
     eps:[['request_records', 'all_qualifying', 'results', 'tickers']],

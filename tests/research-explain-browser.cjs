@@ -3,7 +3,7 @@ const R=path.resolve(process.env.JH_STATIC_ROOT||path.join(__dirname,'..')),D=pa
 const bad='<img src="/invented-canary" onerror="window.__research_injected=true">',long='INVENTED '.repeat(1200)+'COMPLETE_END';
 const data={
  '/data/master-ranker.json':{as_of:'2026-10-02T00:00:00Z',alerts:{n_tier_3:4},top_tickers:[{ticker:'QAONLY',score:0,score_calculation:{base:0,note:long}},{ticker:'QAONLY',score:3},{ticker:bad,score:1}],unranked_tickers:[{ticker:'QABAD',score:null,reasons:[long,bad]}]},
- '/data/compound-signals.json':{generated_at:'2026-10-02T00:00:00Z',new_alerts:Array.from({length:52},(_,i)=>({symbol:'QAONLY',score:0,reason:i===51?'LAST_EVENT':bad})),ranked:[{symbol:'QAONLY',compound_score:0,score:999,systems:['invented'],scores:{invented:0,missing:null},details:{invented:{text:long,attack:bad}}}]},
+ '/data/compound-signals.json':{generated_at:'2026-10-02T00:00:00Z',new_alerts:Array.from({length:52},(_,i)=>({symbol:'QAONLY',score:0,reason:i===51?'LAST_EVENT':bad})),compound:[{symbol:'QAONLY',compound_score:0,score:999,systems:['invented'],scores:{invented:0,missing:null},details:{invented:{text:long,attack:bad}}}]},
  '/data/best-setups.json':{top_setups:[{ticker:'QAONLY',conviction:0,verdict:'STRONG BUY'}]},
  '/data/opportunities.json':{changes:[{ticker:bad,reason:'NEW BUY is not a verified upgrade'}]},
  '/data/asymmetric-scorer.json':{top_setups:[{symbol:'QAONLY',composite_score:null}]},
@@ -22,6 +22,7 @@ try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width o
    if(scenario==='malformed' && u.pathname==='/data/master-ranker.json')return route.fulfill({contentType:'application/json',body:'{"top_tickers":[],"top_tickers":[{"ticker":"QAONLY"}]}'});
    let p=structuredClone(data[u.pathname]||{});
    if(scenario==='canonical-empty' && u.pathname==='/data/master-ranker.json')p={top_tickers:[],ranked:[{ticker:'QAONLY',score:99}],alerts:{},unranked_tickers:[]};
+   if(scenario==='canonical-empty' && u.pathname==='/data/compound-signals.json')p={compound:[],ranked:[{symbol:'QAONLY',compound_score:999}],new_alerts:[]};
    return route.fulfill({contentType:'application/json',body:JSON.stringify(p)});
   }
   return route.fulfill({status:404,body:'invented unavailable'});
@@ -47,7 +48,7 @@ try{for(const name of ['why-now.html','why-cross-signal.html'])for(const width o
    await page.locator('#tickerInput').fill('QABAD');await page.locator('#tickerInput').press('Enter');assert.match(await page.locator('#content').innerText(),/Withheld from ranking/);
    await page.locator('#tickerInput').fill(bad);await page.locator('#tickerInput').press('Enter');assert.equal(await main.locator('img').count(),0);
    await page.locator('#tickerInput').fill('QAONLY');await page.locator('#tickerInput').press('Enter');
-  } else if(scenario==='canonical-empty')assert.ok(!content.includes('master · /ranked/'));
+  } else if(scenario==='canonical-empty'){assert.ok(!content.includes('master · /ranked/'));assert.ok(!content.includes('compound · /ranked/'));assert.ok(!content.includes('compound_score: 999'));}
  } else if(scenario==='normal'){
   assert.match(text,/aggregate counters, not timestamped events/);assert.match(text,/Snapshot only/);
   const more=page.locator('#feed button').filter({hasText:'Show more'});await more.focus();await more.press('Enter');assert.match(await page.locator('#feed').innerText(),/LAST_EVENT/);

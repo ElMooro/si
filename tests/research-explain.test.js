@@ -1,6 +1,19 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const R=require('../jh-research-explain.js'),io=require('../jh-evidence-io.js');
 const packet=data=>({status:'received',data});
+test('actual Compound handler public packet reaches the consumer',()=>{
+ const {execFileSync}=require('node:child_process');
+ const output=JSON.parse(execFileSync(process.env.PYTHON||'python3',['-X','utf8','tests/compound_public_fixture.py'],{cwd:path.join(__dirname,'..'),encoding:'utf8'}));
+ const model=R.crossModel({compound:packet(output)},'QAONLY')[0];
+ assert.equal(model.matches.length,1);assert.equal(model.matches[0].pointer,'/compound/0');assert.equal(model.matches[0].value.compound_score,150);
+});
+test('canonical Compound empty, malformed and null never revive ranked alias',()=>{
+ for(const value of [[],{},null]){
+  const model=R.crossModel({compound:packet({compound:value,ranked:[{symbol:'OLD',compound_score:999}]})},'OLD')[0];
+  assert.equal(model.matches.length,0);assert.equal(model.groups[0].key,'compound');
+ }
+ assert.equal(R.crossModel({compound:packet({ranked:[{symbol:'OLD',compound_score:0}]})},'OLD')[0].matches.length,1);
+});
 test('canonical ranker zero and complete duplicate records are retained',()=>{
  const rows=[{ticker:'Q',score:0},{ticker:'Q',score:13}],p={top_tickers:rows,ranked:[{ticker:'OLD'}],unranked_tickers:[{ticker:'Q',score:null,reasons:['missing']}]};
  const m=R.crossModel({master:packet(p)},'Q')[0];assert.equal(m.matches.length,3);assert.equal(m.matches[0].value,rows[0]);assert.equal(R.numberField(rows[0],'score').value,0);assert.equal(m.matches[2].collection,'unranked_tickers');
