@@ -1,25 +1,2 @@
-executing-against: ee0fd123a0867fd5ab96d12f0a1ed4c84d6393ea
-{
-  "schedules": {
-    "justhodl-feed-heartbeat-schedule": {
-      "exists": true,
-      "state": "ENABLED",
-      "expression": "rate(15 minutes)"
-    },
-    "justhodl-ticker-360-schedule": {
-      "exists": true,
-      "state": "ENABLED",
-      "expression": "cron(20 6,18 * * ? *)"
-    }
-  },
-  "eventbridge_rules": {
-    "justhodl-feed-heartbeat": [],
-    "justhodl-ticker-360": [
-      {
-        "name": "justhodl-ticker-360-schedule",
-        "state": "ENABLED",
-        "expr": "cron(20 6,18 * * ? *)"
-      }
-    ]
-  }
-}
+executing-against: 18c06474c34f15503dffaddd4f8e58d4d3b2a500
+{"exists": true, "state": "ENABLED", "expr": "rate(15 minutes)"}
