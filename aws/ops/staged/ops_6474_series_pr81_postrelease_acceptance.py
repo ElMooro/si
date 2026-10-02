@@ -61,7 +61,22 @@ class Reader(h.Reader):
         h.require(self.calls < MAX_CALLS, 'api_bound_reached')
         # The immutable helper independently enforces the exact function,
         # receipt, five rule/target and one Scheduler request allowlist.
-        return super().read(method, **kwargs)
+        result = super().read(method, **kwargs)
+        # The frozen helper maps a typed receipt NoSuchKey to None. That
+        # sentinel is fatal in inspect; it never qualifies a release.
+        if result is None and method.__name__ == 'get_object':
+            return None
+        metadata = result.get('ResponseMetadata') if type(result) is dict else None
+        valid = (type(metadata) is dict and type(metadata.get('HTTPStatusCode')) is int
+                 and metadata['HTTPStatusCode'] == 200)
+        if not valid and method.__name__ == 'get_object' and type(result) is dict:
+            # A rejected streaming response must not leave its body open.
+            try:
+                result['Body'].close()
+            except Exception:
+                pass  # The response remains a fatal, redacted failure.
+        h.require(valid, 'aws_read_response_unqualified')
+        return result
 
 
 def baseline():
@@ -222,6 +237,7 @@ def main():
             safe_reasons = {'release_phase_or_source_binding_invalid',
                 'intended_release_binding_unset_or_invalid', 'postrelease_read_scope_not_allowed',
                 'api_bound_reached', 'read_scope_not_allowed', 'access_denied_stop',
+                'aws_read_response_unqualified',
                 'aws_read_failed_details_withheld', 'unexpected_aws_reader_failure_details_withheld',
                 'prospective_baseline_bytes_changed', 'prospective_baseline_invalid',
                 'checkout_handler_not_exact_PR81', 'intended_commit_handler_not_exact_PR81',

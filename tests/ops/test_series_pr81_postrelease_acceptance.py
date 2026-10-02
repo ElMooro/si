@@ -45,6 +45,18 @@ class Fixture(capture.Fixture):
         self.make_receipt()
         self.calls.clear()
         self.signed_gets.clear()
+        # Only this new fixture adds native-shaped successful response
+        # metadata. Frozen historical fixtures and baseline tests stay exact.
+        for name in ('get_function', 'get_runtime_management_config', 'get_function_concurrency',
+                     'describe_rule', 'list_targets_by_rule', 'get_schedule', 'get_object'):
+            original = getattr(self, name)
+            def native_response(_original=original, **kwargs):
+                result = _original(**kwargs)
+                if type(result) is dict:
+                    result['ResponseMetadata'] = {'HTTPStatusCode': 200}
+                return result
+            native_response.__name__ = name
+            self.stack.enter_context(patch.object(self, name, native_response))
         return self
 
     def inspect(self):
@@ -91,6 +103,69 @@ class Acceptance(unittest.TestCase):
             self.assertFalse({'simulate_principal_policy', 'list_objects_v2', 'assume_role', 'put_object'}
                              & {name for name, _ in f.calls})
             self.assertNotIn('PRIVATE', json.dumps(result))
+
+    def test_full_main_every_sdk_response_requires_native_typed_success_metadata(self):
+        import boto3
+        import sys
+        sys.path.insert(0, str(ROOT / 'aws/ops'))
+        import ops_report
+        missing = object()
+        metadata_values = [missing, None, {}, {'HTTPStatusCode': 500},
+                           {'HTTPStatusCode': False}, {'HTTPStatusCode': True},
+                           {'HTTPStatusCode': 200.0}, {'HTTPStatusCode': '200'},
+                           {'HTTPStatusCode': None}]
+        for name in ('get_function', 'get_runtime_management_config', 'get_function_concurrency',
+                     'describe_rule', 'list_targets_by_rule', 'get_schedule', 'get_object'):
+            for metadata in metadata_values:
+                with self.subTest(method=name, metadata=metadata), Fixture() as f:
+                    original = getattr(f, name)
+                    bodies = []
+                    def unqualified(**kwargs):
+                        result = original(**kwargs)
+                        if metadata is missing:
+                            result.pop('ResponseMetadata', None)
+                        else:
+                            result['ResponseMetadata'] = metadata
+                        if name == 'get_object':
+                            bodies.append(result['Body'])
+                        return result
+                    unqualified.__name__ = name
+                    out = Report()
+                    inspect = p.inspect
+                    with patch.object(f, name, unqualified), \
+                         patch.dict('os.environ', {'GITHUB_ACTIONS': 'true'}), \
+                         patch.object(boto3, 'client', return_value=f), \
+                         patch.object(ops_report, 'report', side_effect=lambda _: report_for(out)), \
+                         patch.object(p.signal, 'alarm'), patch.object(p.signal, 'signal'), \
+                         patch.object(p, 'inspect', side_effect=lambda *args: inspect(*args, opener=f.opener)), \
+                         self.assertRaises(SystemExit):
+                        p.main()
+                    self.assertFalse(out.rows[-1]['completed'])
+                    self.assertEqual(out.rows[-1]['stop_reason'], 'aws_read_response_unqualified')
+                    self.assertFalse(out.logs)
+                    self.assertNotIn('PRIVATE', json.dumps(out.rows))
+                    self.assertTrue(all(body.closed for body in bodies))
+
+    def test_reader_rejects_non_mapping_payloads_and_closes_invalid_receipt_streams(self):
+        for value in [None, [], 'PRIVATE_INVALID', 1, True]:
+            reader = p.Reader()
+            def response(**kwargs):
+                return value
+            response.__name__ = 'get_function'
+            with self.subTest(value=value), self.assertRaisesRegex(p.Stop, 'aws_read_response_unqualified'):
+                reader.read(response, FunctionName=p.h.FUNCTION)
+            self.assertEqual(reader.calls, 1)
+        with Fixture() as f:
+            f.errors['get_object'] = capture.old.SDKError('NoSuchKey')
+            self.stop(f, 'release_receipt_missing')
+        class BrokenClose:
+            def close(self):
+                raise ValueError('PRIVATE_CLOSE_ERROR')
+        def response(**kwargs):
+            return {'Body': BrokenClose(), 'ResponseMetadata': {'HTTPStatusCode': 500}}
+        response.__name__ = 'get_object'
+        with self.assertRaisesRegex(p.Stop, 'aws_read_response_unqualified'):
+            p.Reader().read(response, Bucket=p.h.BUCKET, Key=p.h.RECEIPT_KEY)
 
     def test_unset_or_malformed_bindings_refuse_before_all_reads(self):
         for name, values in [('EXPECTED_RELEASE_COMMIT', [None, True, '', 'x' * 40, 'A' * 40]),
