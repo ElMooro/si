@@ -1855,6 +1855,7 @@
     if(!j) return [];
     var rows=j.bars||j.ohlc||j.results||j.obs||j.points||j.data||(Array.isArray(j)?j:[]);
     var out=[],i;
+    var warehouseVol=!!(j && (j.warehouse_key || j.source==="warehouse"));
     for(i=0;i<rows.length;i++){
       var b=rows[i];
       if(Array.isArray(b)){
@@ -1870,7 +1871,12 @@
         if(typeof tm==="string") tm=Math.floor(Date.parse(tm.length<=10?tm+"T00:00:00Z":tm)/1000);
         if(tm>1e12) tm=Math.floor(tm/1000);
         var c3=+c2; if(!isFinite(c3)) continue;
-        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:volumeFields(b)});
+        var vol=volumeFields(b);
+        if(vol==null && warehouseVol && b.close!=null && Object.prototype.hasOwnProperty.call(b,"value")){
+          var px=reportedVolume(b.close), alt=reportedVolume(b.value);
+          if(alt!=null && px!=null && alt!==px) vol=alt;
+        }
+        out.push({time:+tm,open:+(b.open||b.o||c3),high:+(b.high||b.h||c3),low:+(b.low||b.l||c3),close:c3,volume:vol});
       }
     }
     if(!out.length && j.chart && j.chart.result && j.chart.result[0]){
