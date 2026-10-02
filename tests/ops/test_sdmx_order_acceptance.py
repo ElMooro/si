@@ -6,6 +6,7 @@ import io
 import json
 from pathlib import Path
 import types
+import tempfile
 from unittest.mock import patch
 import zipfile
 
@@ -16,10 +17,13 @@ probe = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
 
 
-def fixture(candidate=True, alter=None):
-    expected = (ROOT / 'aws/lambdas/justhodl-sdmx-walker/source/lambda_function.py').read_bytes()
-    predecessor = probe.subprocess.check_output(['git', 'show',
-        'ab0a502c047c1399815c9c081fe633d9dba3d608:aws/lambdas/justhodl-sdmx-walker/source/lambda_function.py'], cwd=ROOT)
+def fixture(candidate=True, alter=None, alter_receipt=None):
+    expected = b'candidate fixture: intentionally distinct bytes\n'
+    predecessor = b'predecessor fixture\n'
+    temporary = tempfile.TemporaryDirectory(prefix='sdmx-probe-')
+    source = Path(temporary.name) / 'aws/lambdas/justhodl-sdmx-walker/source'
+    source.mkdir(parents=True)
+    (source / 'lambda_function.py').write_bytes(expected)
     actual = expected if candidate else predecessor
     package = io.BytesIO()
     with zipfile.ZipFile(package, 'w') as archive:
@@ -27,6 +31,7 @@ def fixture(candidate=True, alter=None):
     raw = package.getvalue()
     code_sha = base64.b64encode(hashlib.sha256(raw).digest()).decode()
     config = json.loads((ROOT / 'aws/lambdas/justhodl-sdmx-walker/config.json').read_bytes())
+    (source.parent / 'config.json').write_text(json.dumps(config), encoding='utf-8')
     arn = 'arn:aws:lambda:us-east-1:857687956942:function:' + probe.FUNCTION
     live = {'FunctionName': probe.FUNCTION, 'State': 'Active', 'LastUpdateStatus': 'Successful',
             'CodeSha256': code_sha, 'FunctionArn': arn, 'Runtime': config['runtime'],
@@ -45,6 +50,8 @@ def fixture(candidate=True, alter=None):
         receipt = {'function': probe.FUNCTION, 'verified': True, 'code_sha256': code_sha,
                    'commit': 'f' * 40, 'deployed_at': '2026-10-02T00:00:00Z',
                    'source': {'lambda_function.py': {'sha256': hashlib.sha256(expected).hexdigest()}}}
+        if alter_receipt:
+            alter_receipt(receipt)
         return {'Body': io.BytesIO(json.dumps(receipt).encode())} if candidate else None
     s3 = types.SimpleNamespace(get_object=get_object,
         head_object=lambda **kw: {'LastModified': '2026-10-02T00:01:00Z', 'ContentLength': 200})
@@ -56,20 +63,17 @@ def fixture(candidate=True, alter=None):
         'RoleArn': 'PRIVATE_ROLE'}, 'FlexibleTimeWindow': {'Mode': 'OFF'}})
     def git_show(command, **kwargs):
         return predecessor if command[2].startswith('ab0a502c') else expected
-    return (lam, s3, events, scheduler), raw, git_show
+    return (lam, s3, events, scheduler), raw, git_show, temporary
 
 
 def test_package_controls_schedules_and_private_projection():
     for candidate in (False, True):
-        clients, raw, git_show = fixture(candidate)
-        with patch.object(probe.subprocess, 'check_output', git_show), \
-             patch.object(probe, 'BASELINE', Path('/tmp/sdmx-nonexistent-baseline')):
+        clients, raw, git_show, temporary = fixture(candidate)
+        with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+             patch.object(probe, 'ROOT', Path(temporary.name)), \
+             patch.object(probe, 'BASELINE', Path(temporary.name) / 'baseline.json'):
             result = probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
-        expected = 'candidate' if candidate and clients[0].get_function()['Code'] else 'predecessor'
-        # In a predecessor-only checkout the two handlers can legitimately match.
-        if (ROOT / 'aws/lambdas/justhodl-sdmx-walker/source/lambda_function.py').read_bytes() == git_show(['git', 'show', 'ab0a502c']):
-            expected = 'predecessor'
-        assert result['source_phase'] == expected
+        assert result['source_phase'] == ('candidate' if candidate else 'predecessor')
         assert result['aws_read_calls'] == 19
         assert result['named_bindings_checked'] == 10
         assert result['aws_writes'] == result['producer_invokes'] == 0
@@ -79,14 +83,40 @@ def test_package_controls_schedules_and_private_projection():
 
 def test_invalid_package_or_changed_control_stops():
     for alter, bad_package in ((lambda live: live.update(Timeout=1), False), (None, True)):
-        clients, raw, git_show = fixture(alter=alter)
-        with patch.object(probe.subprocess, 'check_output', git_show):
+        clients, raw, git_show, temporary = fixture(alter=alter)
+        with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+             patch.object(probe, 'ROOT', Path(temporary.name)):
             try:
                 probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(b'bad' if bad_package else raw))
             except probe.Stop as error:
                 assert str(error) in ('release_control_mismatch', 'package_hash_mismatch')
             else:
                 raise AssertionError('bad controls/package accepted')
+
+
+def test_candidate_receipt_validation_and_source_failure_are_sanitized():
+    cases = [(lambda r: r.update(commit='PRIVATE_BAD_GIT_ARGUMENT'), 'receipt_commit_invalid'),
+             (lambda r: r.update(commit={'PRIVATE': True}), 'receipt_commit_invalid'),
+             (lambda r: r.update(deployed_at='PRIVATE_CLOCK'), 'receipt_clock_invalid'),
+             (lambda r: r.update(verified=False), 'candidate_receipt_mismatch')]
+    for alter, reason in cases:
+        clients, raw, git_show, temporary = fixture(alter_receipt=alter)
+        with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+             patch.object(probe, 'ROOT', Path(temporary.name)), \
+             patch.object(probe, 'BASELINE', Path(temporary.name) / 'baseline.json'):
+            try:
+                probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+            except probe.Stop as error:
+                assert str(error) == reason
+            else:
+                raise AssertionError('invalid receipt accepted')
+    with patch.object(probe.subprocess, 'check_output', side_effect=RuntimeError('PRIVATE_GIT_ERROR')):
+        try:
+            probe.commit_source('f' * 40, ROOT / 'source.py')
+        except probe.Stop as error:
+            assert str(error) == 'commit_source_unavailable'
+        else:
+            raise AssertionError('Git failure was not sanitized')
 
 
 def test_read_bound_and_access_denied_withhold_details():

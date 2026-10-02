@@ -12,6 +12,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import sys
@@ -75,11 +76,30 @@ def target_projection(target):
     return {k: target.get(k) for k in ('Arn', 'Id', 'RetryPolicy', 'DeadLetterConfig')}
 
 
+def commit_source(commit, source):
+    require(isinstance(commit, str) and re.fullmatch('[a-fA-F0-9]{40}', commit), 'receipt_commit_invalid')
+    try:
+        return subprocess.check_output(['git', 'show', commit + ':' + str(source.relative_to(ROOT))],
+                                       cwd=ROOT, stderr=subprocess.PIPE, timeout=15)
+    except Exception:
+        raise Stop('commit_source_unavailable') from None
+
+
+def receipt_clock(value):
+    require(isinstance(value, str) and re.fullmatch(
+        r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})', value), 'receipt_clock_invalid')
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        require(parsed.tzinfo is not None, 'receipt_clock_invalid')
+        return parsed.isoformat()
+    except ValueError:
+        raise Stop('receipt_clock_invalid') from None
+
+
 def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
     source = ROOT / 'aws/lambdas' / FUNCTION / 'source/lambda_function.py'
     expected = source.read_bytes()
-    before = subprocess.check_output(['git', 'show',
-        'ab0a502c047c1399815c9c081fe633d9dba3d608:' + str(source.relative_to(ROOT))], cwd=ROOT)
+    before = commit_source('ab0a502c047c1399815c9c081fe633d9dba3d608', source)
     cfg = json.loads(source.parent.parent.joinpath('config.json').read_bytes())
     item = reader.read(lam.get_function, FunctionName=FUNCTION)
     live = item['Configuration']
@@ -137,17 +157,22 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
         require(fingerprint == baseline['operating_fingerprint'], 'operating_controls_changed')
     receipt_item = reader.read(s3.get_object, Bucket=BUCKET, Key='data/ops/releases/' + FUNCTION + '.json')
     receipt = json.loads(bounded(receipt_item['Body'], 1024 * 1024)) if receipt_item else None
+    receipt_commit, deployed_at = None, None
+    if receipt is not None:
+        require(isinstance(receipt, dict), 'receipt_shape_invalid')
+        receipt_commit = receipt.get('commit')
+        require(isinstance(receipt_commit, str) and re.fullmatch('[a-fA-F0-9]{40}', receipt_commit), 'receipt_commit_invalid')
+        deployed_at = receipt_clock(receipt.get('deployed_at'))
     if phase == 'candidate':
         require(receipt and receipt.get('verified') is True and receipt.get('function') == FUNCTION
                 and receipt.get('code_sha256') == live['CodeSha256']
                 and receipt.get('source', {}).get('lambda_function.py', {}).get('sha256') == hashlib.sha256(expected).hexdigest(),
                 'candidate_receipt_mismatch')
-        commit_source = subprocess.check_output(['git', 'show', receipt['commit'] + ':' + str(source.relative_to(ROOT))], cwd=ROOT)
-        require(commit_source == expected, 'receipt_commit_source_mismatch')
+        require(commit_source(receipt_commit, source) == expected, 'receipt_commit_source_mismatch')
     summary = reader.read(s3.head_object, Bucket=BUCKET, Key='data/warm/sdmx-walker-summary.json')
     return {'source_phase': phase, 'handler_sha256': hashlib.sha256(actual).hexdigest(),
-            'code_sha256': live['CodeSha256'], 'receipt_commit': receipt.get('commit') if receipt else None,
-            'deployed_at': receipt.get('deployed_at') if receipt else None,
+            'code_sha256': live['CodeSha256'], 'receipt_commit': receipt_commit,
+            'deployed_at': deployed_at,
             'operating_fingerprint': fingerprint, 'operating_controls': operating,
             'baseline_compared': BASELINE.exists(), 'named_bindings_checked': len(operating['bindings']),
             'summary_last_modified': str(summary.get('LastModified')), 'summary_bytes': summary.get('ContentLength'),
