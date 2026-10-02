@@ -1,7 +1,7 @@
 {
   "path": "chart.html",
   "source_sha256": "a74aad1072d2334eb5e4374b5eee157c346d85aee1733209dd2ea047dc7b4971",
-  "candidate_sha256": "f92d1d3df58a203dc9d5f6934f8af4f28bde0e6a90b119176cfbddaf26a29d45",
+  "candidate_sha256": "6869aab620946ff8672cb562288ab9872424e775857cd62d0cf758f568e107e6",
   "replacements": [
     {
       "before": "          <div id=\"legend\"></div>\n          <div id=\"cmpchips\"></div>\n          <div id=\"hud\"></div>",
@@ -10,6 +10,10 @@
     {
       "before": "#dwin{position:absolute;",
       "after": "/* Readouts share one scrollable stack so their text cannot cover each other. */\n#chart-readouts{position:absolute;left:10px;right:72px;top:6px;z-index:8;display:flex;flex-direction:column;gap:4px;max-height:42%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:none;box-sizing:border-box}\n#chart-readouts:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;pointer-events:auto}\n#chart-readouts>#legend,#chart-readouts>#hud{position:static;max-width:100%;width:fit-content;box-sizing:border-box;flex:none;overflow-wrap:anywhere;pointer-events:auto}\n#chart-readouts>#legend .leg-row,#chart-readouts>#legend .leg-sym{max-width:100%;box-sizing:border-box;flex-wrap:wrap}\n#chart-readouts>#hud{line-height:1.45}\n@media(max-width:620px){#ohlc{display:none}}\n#dwin{position:absolute;"
+    },
+    {
+      "before": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves\"></script>\n<script src=\"/jh-chart-tvux.js?v=12\"></script>\n",
+      "after": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves\"></script>\n<script src=\"/jh-chart-buyback.js?v=20261002-buyback\"></script>\n<script src=\"/jh-chart-tvux.js?v=12\"></script>\n"
     }
   ]
 }
