@@ -1,0 +1,35 @@
+{
+  "stage": 544,
+  "status": "candidate_read_only_original_acceptance",
+  "source_commit": "d1f73fa57616453c28e4203f9b7cd2cdc6f08936",
+  "operation": "aws/ops/staged/ops_6445_crypto_sentiment_original_replay.py",
+  "source_hashes": {
+    "aws/ops/checks/crypto_sentiment_archive_acceptance.py": "01d7b83530e6b89f61744f3231adbfc7d6c5327de2926e15f36026b48a9d878e",
+    "aws/ops/checks/crypto_funding_archive_acceptance.py": "8d22664cc95aabe37fb1056bc22b3e4137106dcb1194dd56dfdbafed91bb95ac",
+    "aws/ops/checks/term_premium_archive_acceptance.py": "a0acbd2c24034268d4aa838485b030f3b984b3b60facbc49557f3864249d92a0",
+    "aws/shared/crypto_sentiment_archive.py": "01eb0dd803ed0cfeb57febfa127930047e73e7be79346c985ddd0d255d804a0b",
+    "aws/shared/crypto_sentiment_observations.py": "a53f747a138a3d85a61092d9aa59064945456d0105c47473a69ff9530a66b43c",
+    "aws/shared/crypto_sentiment_transport.py": "142836cedc3e5fa4d498765f49a59d0e7ac23ed3454241d97588ee5f7409b304",
+    "aws/lambdas/justhodl-crypto-intel/source/lambda_function.py": "ec3467b2237725d32551a2a7a43a3ab82ff6dbc694fac2500920cab8be9f1432"
+  },
+  "expected_release_identity": {
+    "schema": "release-receipt.v1",
+    "function": "justhodl-crypto-intel",
+    "code_sha256": "60cgtwTEAYwNSBQhtce5jqrEnn5N+wfUflm3nbtoMIY=",
+    "verified": true,
+    "zip_bytes": 1107136,
+    "zip_sha256_hex": "eb4720b704c4018c0d481421b5c7b98eaac49e7e4dfb07d47e59b79dbb683086",
+    "source": {
+      "lambda_function.py": {
+        "bytes": 61261,
+        "sha256": "ec3467b2237725d32551a2a7a43a3ab82ff6dbc694fac2500920cab8be9f1432"
+      }
+    }
+  },
+  "namespace": "data/crypto-sentiment-research/",
+  "normal_current_publication_verified": false,
+  "source_qualified": false,
+  "point_in_time_qualified": false,
+  "investment_authority": false,
+  "scope": "Complete bounded original run census before/after; whole addressed objects; reviewed compiler replay. No mutable current packets, provider calls, producer invocation or schedule changes."
+}

@@ -7735,3 +7735,12 @@ The integration baseline exposed stale signal-logger architecture metadata: repo
 The same stale x86-64 declaration was present for Financial Secretary and Telegram Bot; both now name the ARM64 architecture already recorded in their accepted native baselines. No architecture transition is intended. Unavailable source populations are labelled unavailable, rather than displaying zero retained rows.
 
 The full deployment gate reproduced an intermittent FI/FX test defect: it rebuilt requested URLs at completion time. The repaired test retains all prior assertions and checks same-second, next-second and UTC-midnight acquisition/completion clocks. Producer source is unchanged. Existing target detection redeploys the test owner, so FI/FX is explicitly added to the exact native acceptance set using its preserved runtime and schedule baseline.
+
+
+### Stage 543 exact code and static acceptance
+
+Source `d1f73fa57616453c28e4203f9b7cd2cdc6f08936` landed all 99 related files atomically through native Git, including files above the connector limit. All nine release receipts match; native run `36959178787` verified 133 packaged source members twice with original runtime controls and schedules unchanged. Complete served Crypto and Desk HTML matched the commit-bound build. Desk’s existing deterministic Amber reskin was reproduced exactly before comparing all served functions. Twenty-two isolated served browser cases passed with no requests, errors or overflow; desktop/mobile screenshots and keyboard disclosure were inspected. Final tests passed 1035 deployment cases plus 15 shell checks, 2758 frontend tests, all nine engine runners, 599 page script graphs and 899 contracts. The FI/FX test clock race was fixed across second/day boundaries; concurrent Chart test source transitions retain the complete earlier fixtures and assertions. Code/static acceptance is separate from current publication or investment qualification.
+
+### Stage 544 retained sentiment original acceptance
+
+The read-only check binds the receipt to the exact native-accepted function/package/handler identity and commit. It retains and compares the complete bounded original run census, checks whole object addresses and clocks, and replays all supplied rows with reviewed local compilers. Pending or unavailable sources remain explicit. No producer or provider is invoked. All ten institutional workstreams remain OPEN.
