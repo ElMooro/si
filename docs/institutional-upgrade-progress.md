@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 564 Compound overlays, nonvoting Compound context in Signal Fabric and Convergence Desk are exact native/static/browser accepted. The nine retained Fabric adapter/weight defects and the Best Setups qualification bypass are next. Normal publication, original-source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 565 Fabric numeric and Best Setups ranking fixes are exact-code/native accepted. Stage 566 addresses the shared logger that still reattaches unqualified Fabric metadata across 17 importers. Native baseline, coordinated SDK repair and complete consumer tests are next. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8005,3 +8005,8 @@ Stage 565 scope correction before source publication: direct execution of the ac
 Commit `78579d7bcd4b068b98ab39519eb00c1894c96c86` landed all 15 related files in one native Git commit, including the complete 94,146-byte Best Setups source. Both exact release receipts and all 25 packaged sources were verified by operation 6460, with the two runtimes and all three schedule bindings unchanged across two captures. Checks: 1,057 deployment, 15 shell, 2,970 frontend, 32 Fabric, 20 Best Setups, 14 native acceptance unit cases, 600 page graphs, 143 wiring declarations and 16 entirely intercepted browser cases. No pages changed in this batch. Normal application publication remains unverified; no producer, provider, current application/account/private/learning packet or actual ledger was accessed.
 
 The deployed code repairs arithmetic, duplicate and population handling and the Best Setups ranking bypass. It removes the local learning stamp only. The shared SDK reattaches unqualified Fabric metadata; the recorded invented-input reproduction and 17-importer repair are next. Source/observation freshness, independent roots, full original replay, outcome/portfolio qualification and publication recovery remain open. All ten institutional workstreams remain OPEN.
+
+
+### Stage 566 shared logger qualification and source retention
+
+The actual shared `signals_emit.log_signal` and `_fabric_ctx` reattach `fabric_agreement` even when both the packet and row reject learning authority. This persists beyond the Best Setups local wrapper. The explicit importer closure contains 17 engines, including the shadow-lab bundled copy. Operation 6461 is a read-only named runtime/schedule baseline before any coordinated SDK change; no native producer, provider, current application/private/account/learning packet, ledger write or schedule mutation is permitted. Missing/denied/incomplete metadata fails, and a complete empty schedule census does not certify all invocation routes. The existing SDK also has unqualified baseline/confidence/window coercion paths that require regression coverage before any broader change.
