@@ -5,8 +5,9 @@ The reviewed code repair is installed from release commit
 `RuntimeVersionConfig` differs from the retained predecessor fingerprint. The
 exact live package/receipt and every other projected control are verified;
 the old runtime field's shape and runtime-management mode are unavailable.
-No baseline replacement, acceptance waiver, runtime/control change or rollback
-has been performed. See the final acceptance evidence below.
+The baseline and rejection remain intact. This work performed no runtime-policy
+mutation, additional settings writes outside normal reviewed deployment
+reconciliation, acceptance waiver or rollback. See the final acceptance evidence below.
 
 This incremental repair admits extraction only after a checkpoint GET, body
 read and JSON decode succeed, or the GET raises a typed botocore `ClientError`
@@ -262,9 +263,11 @@ at that exact merge still fails the original criterion after 13 reads and one
 signed package GET, with zero AWS writes/invokes. Its immutable
 [report at 6b97a1b8f](https://github.com/ElMooro/si/blob/6b97a1b8ff9ba74244b8232a0444e9d935faa3d1/aws/ops/reports/latest/ops_6450_series_admission_acceptance.md)
 contains the actual package/readiness verification and safe control differences.
-Independent review recomputed the baseline and difference digests, verified
-complete projection field/inventory coverage, and bound the actual ZIP/handler
-hashes to the public receipt and exact committed source.
+Independent review recomputed the baseline fingerprint and the BEFORE runtime
+row digest, verified complete projection field/inventory coverage and the actual
+packet, and bound the ZIP/handler hashes to the public receipt and exact committed
+source. The observed runtime row digest is not independently reconstructible
+from the shape-only report.
 
 The **only observed differing projected field** is
 `private_configuration.RuntimeVersionConfig`. The baseline operating fingerprint
@@ -297,8 +300,9 @@ contract. Dropping the whole runtime field would also discard its Error state;
 no such change is implemented. Pinning/changing runtime policy is a broader
 control change outside this repair. A source rollback would restore the old
 admission vulnerability and would not by itself restore the prior managed runtime.
-No rollback, source re-release, control change, baseline replacement, checkpoint/
-archive read, producer invocation, stored-data correction or deletion has been
-performed. No candidate natural-publication observation or live execution of
+This work performed no rollback, source re-release, runtime-policy mutation,
+additional settings writes outside normal reviewed deployment reconciliation,
+baseline replacement, checkpoint/archive read, producer invocation, stored-data
+correction or deletion. No candidate natural-publication observation or live execution of
 the rejected failure path is claimed. Missing checkpoint in a populated namespace
 and the other separate risks above remain unresolved.
