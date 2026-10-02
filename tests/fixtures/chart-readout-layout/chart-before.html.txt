@@ -123,13 +123,6 @@ a{color:inherit;text-decoration:none}
 #legend{position:absolute;left:12px;top:8px;z-index:4;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mut);pointer-events:none;max-width:360px}
 #legend button{pointer-events:auto;display:block;text-align:left;padding:1px 0}
 #hud{position:absolute;right:72px;top:8px;z-index:5;font-family:"IBM Plex Mono",monospace;font-size:11px;background:var(--hud);padding:4px 8px;border:1px solid var(--line);border-radius:4px;display:none}
-/* Readouts share one scrollable stack so their text cannot cover each other. */
-#chart-readouts{position:absolute;left:10px;right:72px;top:6px;z-index:8;display:flex;flex-direction:column;gap:4px;max-height:42%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;pointer-events:none;box-sizing:border-box}
-#chart-readouts:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;pointer-events:auto}
-#chart-readouts>#legend,#chart-readouts>#hud{position:static;max-width:100%;width:fit-content;box-sizing:border-box;flex:none;overflow-wrap:anywhere;pointer-events:auto}
-#chart-readouts>#legend .leg-row,#chart-readouts>#legend .leg-sym{max-width:100%;box-sizing:border-box;flex-wrap:wrap}
-#chart-readouts>#hud{line-height:1.45}
-@media(max-width:620px){#ohlc{display:none}}
 #dwin{position:absolute;left:12px;bottom:36px;top:auto;right:auto;z-index:6;width:200px;max-height:46%;overflow:auto;background:var(--hud);border:1px solid var(--line);border-radius:6px;padding:8px;font-family:"IBM Plex Mono",monospace;font-size:10px;display:none}
 #dwin.on{display:block}
 #dwin b{display:block;letter-spacing:1px;color:var(--acc);margin-bottom:4px}
@@ -522,11 +515,9 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
           <canvas id="vp"></canvas>
           <svg id="patov"></svg>
           <svg id="draw"></svg>
-          <div id="chart-readouts" tabindex="0" role="region" aria-label="Chart legend and selected bar readout">
-            <div id="legend"></div>
-            <div id="hud"></div>
-          </div>
+          <div id="legend"></div>
           <div id="cmpchips"></div>
+          <div id="hud"></div>
           <div id="dwin"></div>
           <div id="ohlc"></div>
           <div id="obj"></div>

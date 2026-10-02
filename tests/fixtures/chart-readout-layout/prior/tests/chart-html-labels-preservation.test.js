@@ -8,7 +8,7 @@ test('refresh preservation retains every earlier assertion through one exact nor
  let expected=prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook);
  const delta=require('./fixtures/crypto-commentary/preservation-helper-edit.json');
  for(const [before,after] of delta.edits){assert.equal(expected.split(before).length-1,1);expected=expected.replace(before,after);}
- assert.equal(require('./helpers/chart-readout-layout-preservation.cjs').normalizePrevious(fs.readFileSync(path.join(R,file),'utf8'),file),expected);
+ assert.equal(fs.readFileSync(path.join(R,file),'utf8'),expected);
 });
 test('all earlier volume assertions survive with the actual escaping dependency',()=>{for(const file of Object.keys(manifest.test_adaptations))normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file);});
 test('restoring executable labels or changing unrelated functions fails preservation',()=>{

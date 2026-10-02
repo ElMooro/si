@@ -1,6 +1,6 @@
 {
   "stage": 552,
-  "status": "candidate_integration_pending",
+  "status": "exact_worker_source_release_accepted",
   "source_sha256": "3fa8076bd03ef6cdfdf3ef8d1f13c07bb223c443b314cf8a86a43ff536c79ddc",
   "changed_function": "extendCryptoDaily",
   "focused_routes": 6,
@@ -13,12 +13,12 @@
   "source_units_qualified": false,
   "investment_authority": false,
   "remaining": [
-    "Exact Worker source receipt and complete build replay",
     "Original source lineage, units and adjustment comparability"
   ],
   "first_gate_failures": [
     "Existing whole-Worker directory guard flagged intended extendCryptoDaily change",
     "Existing snapshot whole-Worker guard flagged the same exact intended change"
   ],
-  "preservation_repair": "Both guards retain every prior assertion after validating and reversing only the complete hash-bound source-attribution transition; predecessor tests retained whole."
+  "preservation_repair": "Both guards retain every prior assertion after validating and reversing only the complete hash-bound source-attribution transition; predecessor tests retained whole.",
+  "acceptance": "docs/audit/2026-10-02/worker-crypto-source-acceptance.json"
 }

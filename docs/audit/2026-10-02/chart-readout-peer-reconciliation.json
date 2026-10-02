@@ -1,0 +1,28 @@
+{
+  "base": "c8a665ef89bc11b096dea6fcfc8ed9c4e02c303c",
+  "reviewed_head": "06ba303bc5699e5806a7f3b1fcb4478fa84daf98",
+  "target_overlap": false,
+  "script_executed": false,
+  "foreign_report_reads": 0,
+  "path_oids": {
+    "STATE.md": "9f7c81810c114dd5a52e23e3afa5f8fe4fb6d678",
+    "aws/ops/ran/1106_hb_artifact.py": "de57e2b9d9c179572988f435d5b1bb2cc7d1b0de",
+    "aws/ops/ran/1107_hb_detail.py": "d9f4f5c564256d94fda9c7525586f48377c6538f",
+    "aws/shared/TICKER_360_GUIDE.md": "a220120e01e21090cb327601629fb6bd33067c94",
+    "aws/shared/ticker_360.py": "f09bb99785998e8f49388411f7032a0c6276b709",
+    "engine-manifest.json": "d29971c83309a81c431a621f4dcfbce69042f72e"
+  },
+  "scope": "Peer Ticker 360 adds news-sentiment only; guide follows. Peer operations read as source only, never executed, and reports not inspected. All engine records identical: only manifest generation clock changes. No acceptance of peer application output.",
+  "registry_changes": [
+    {
+      "path": "/pages/index.html/repository_assets/2/sha256",
+      "before": "ff5d14dd79983a03b1ae0df2a193f4d7f6a51aeba6fcf3a1be2f70268e60986f",
+      "after": "a428b638423aa953e1d42bb28b9d97fe9ea66482858764618eda36bb00b5e7a8"
+    },
+    {
+      "path": "/pages/workspace.html/repository_assets/0/sha256",
+      "before": "ff5d14dd79983a03b1ae0df2a193f4d7f6a51aeba6fcf3a1be2f70268e60986f",
+      "after": "a428b638423aa953e1d42bb28b9d97fe9ea66482858764618eda36bb00b5e7a8"
+    }
+  ]
+}

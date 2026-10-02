@@ -1,0 +1,118 @@
+{
+  "commit": "44b0ebb07811a34a063f7f1c88e43d644438a813",
+  "status": "matched",
+  "version_id": "b0fe1198-e1a9-4444-a4ac-16856bc13e91",
+  "deployment_id": "f837467f-c50f-4ac5-b24c-127d1eb2d4c4",
+  "captured_at": "2026-10-02T05:42:01.421881+00:00",
+  "source_files": {
+    "index.js": {
+      "bytes": 219844,
+      "content_type": "application/javascript+module",
+      "sha256": "dba5dc0660672d0bb83ba93e8c6a8e102cf284364f18008eb8b241f1da02ff92"
+    }
+  },
+  "configuration": {
+    "bindings": [
+      {
+        "configuration_sha256": "2ebdf56cd788ef3d29a88c7bd2bf1beaf0cf5297ca65ac6ece95b83977de6ca0",
+        "name": "ADMIN_TOKEN",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "55bdb46ab9466940dd61509719a63f2b67351e5c84b3cd47318dfa3f5367e37c",
+        "name": "BRAIN_OWNER_STORE",
+        "type": "plain_text"
+      },
+      {
+        "configuration_sha256": "e065ee9a12724ecfa5467642506b88d3a69a5083dbd8fb8557fee827dee9dc68",
+        "name": "FMP_KEY",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "ad189337f7859e091772fef27616629d35abecbab7c67abd1fd1ba7d9d005ef5",
+        "name": "FRED_KEY",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "15b20cc5122c17b2925179e1092e80c244962f28586ef5490d859a5c95d379ea",
+        "name": "OWNER_EMAILS",
+        "type": "plain_text"
+      },
+      {
+        "configuration_sha256": "691b0f25e76203a12b17b408b1873f3af38e420cc6c4be3138a93d01e6a9d60d",
+        "name": "POLYGON_KEY",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "da5792e7b1f325eb06018fb411cccec41ba2fb6d4e10677459fe23299b60ab53",
+        "name": "PRICE_PLAN_MAP",
+        "type": "plain_text"
+      },
+      {
+        "configuration_sha256": "7be92833e7a9562786ab6ce4d61ff3316caf3b7ccea1043b8fbeafc06870d130",
+        "name": "STRIPE_SECRET",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "f73495b93a3c8639378089f2667916d69dc5c57250e4d9bbeb8ed1d6d37d5769",
+        "name": "STRIPE_WEBHOOK_SECRET",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "9ee1f0128229ee032808269a583294e95a8e4f49f5c56ac2666e41fccfb3a0c8",
+        "name": "SUPABASE_SERVICE_KEY",
+        "type": "secret_text"
+      },
+      {
+        "configuration_sha256": "8c127714ed3f395eedfe25c1d7d35ef17325cad0b7163d2e6a32e6fea06b5efa",
+        "name": "SUPABASE_URL",
+        "type": "plain_text"
+      },
+      {
+        "configuration_sha256": "97a8cffb5ca622b53cd86061db7302e10013422134c3020399ccf5b018c2194c",
+        "name": "SYMDIR_URL",
+        "type": "plain_text"
+      },
+      {
+        "configuration_sha256": "63c6aad2f1ad0a595d18097340667a2bf6347b93409ba59d8e59d9ebc9f18f71",
+        "name": "USER_DATA",
+        "type": "kv_namespace"
+      },
+      {
+        "configuration_sha256": "2ca88993a16a6148b7aac2d7fd2a8d4b6b4defa66ffb8f575faf588598f072a2",
+        "name": "WORKSPACE_COORDINATOR",
+        "type": "durable_object_namespace"
+      }
+    ],
+    "compatibility_date": "2025-10-01",
+    "compatibility_flags": [],
+    "configuration_sha256": "2d0813beacba5c6ac4775ec4da73df51b76895bafe0e9dcf9cdf274f2ba9c599",
+    "schedule_count": 0,
+    "schedules_sha256": "6daa9ec137a94fc5962f6d05ab16df8dba70096ae34571ccd552ac130cd733c5"
+  },
+  "capture_artifact": {
+    "path": "aws/ops/reports/worker-source/release-36969937934.json",
+    "sha256": "34b942ab3b83f678d88e2e48ffd24bb1608ce937dbf6b6fe25f4408537e01dc8"
+  },
+  "predecessor_kind": "previous_release",
+  "checked_at": "2026-10-02T05:42:34.717614+00:00",
+  "public_receipt_matches": true,
+  "complete_before_after_capture_verified": true,
+  "repository_input_files_checked": 18,
+  "local_build_matches": true,
+  "private_reads": 0,
+  "capture_worker_invocations": 0,
+  "application_data_route_invocations": 0,
+  "public_receipt_http_requests": 1,
+  "normal_private_publication_verified": false,
+  "worker_run": 36969937934,
+  "tests": {
+    "frontend": 2908,
+    "deployment": 1041,
+    "shell": 15,
+    "focused": 8,
+    "runtime": 25
+  },
+  "provider_probes": 0,
+  "invoked_producers": 0
+}

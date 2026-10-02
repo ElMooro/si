@@ -1,0 +1,30 @@
+{
+  "tests/helpers/chart-refresh-status-preservation.cjs": {
+    "prior": "tests/fixtures/chart-readout-layout/prior/tests/helpers/chart-refresh-status-preservation.cjs",
+    "before_sha256": "7c7b41ec44291fa99300d547a3acaa5add63c2998c4c5de462bf4ccbad1b9610",
+    "after_sha256": "83a639162c0ce3fb174f14d0c9ce0adda8473c23ae2abb58263b1fa01de7b25d",
+    "before": "function normalizeHtml(raw,file){",
+    "after": "function normalizeHtml(raw,file){\n if(file==='chart.html')raw=require('./chart-readout-layout-preservation.cjs').normalizeHtml(raw);"
+  },
+  "tests/chart-refresh-status-preservation.test.js": {
+    "prior": "tests/fixtures/chart-readout-layout/prior/tests/chart-refresh-status-preservation.test.js",
+    "before_sha256": "f88338f18943dd611fef27563d6eeee527ce99e7874eed39fd114495af36e375",
+    "after_sha256": "955b61815e82a4c1e4e3f006b3fd345c84cf15bf77bf9e182d889ba5eecb3890",
+    "before": "fs.readFileSync(path.join(R,'chart.html'),'utf8').replace(",
+    "after": "require('./helpers/chart-readout-layout-preservation.cjs').normalizeHtml(fs.readFileSync(path.join(R,'chart.html'),'utf8')).replace("
+  },
+  "tests/chart-html-labels-preservation.test.js": {
+    "prior": "tests/fixtures/chart-readout-layout/prior/tests/chart-html-labels-preservation.test.js",
+    "before_sha256": "b7dbbb83538ab0f5cd171dbee8434a34ef62d61c8d27cfa798d98fb369cb1c7c",
+    "after_sha256": "6a3ffe6ff11883fb4e451688c9b0e552a61bd119c6c61821e736fcb65f773917",
+    "before": "assert.equal(fs.readFileSync(path.join(R,file),'utf8'),expected);",
+    "after": "assert.equal(require('./helpers/chart-readout-layout-preservation.cjs').normalizePrevious(fs.readFileSync(path.join(R,file),'utf8'),file),expected);"
+  },
+  "tests/crypto-commentary.test.js": {
+    "prior": "tests/fixtures/chart-readout-layout/prior/tests/crypto-commentary.test.js",
+    "before_sha256": "bdc6e67b9682f8c1234323253a6a5bbcb62153f6113c61f53a90a723c8bdd058",
+    "after_sha256": "5eca1f673d32ff6ee02a663c59f36eaa09f906691e911562dd3b4b80f499525d",
+    "before": "assert.equal(fs.readFileSync(path.join(R,plan.target),'utf8'),expected);",
+    "after": "assert.equal(require('./helpers/chart-readout-layout-preservation.cjs').normalizePrevious(fs.readFileSync(path.join(R,plan.target),'utf8'),plan.target),expected);"
+  }
+}

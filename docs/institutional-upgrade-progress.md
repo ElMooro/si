@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 550 Worker volume is native accepted and Stage 551 Chart precision is exact static/browser accepted. Stage 552 actual crypto supplementary-source attribution is candidate-tested. All ten institutional workstreams remain OPEN.
+October 2 UTC: Stage 552 crypto source attribution is exact native-source accepted. Stage 553 chart legend/hover layout is candidate-tested at four widths with keyboard scroll. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7821,3 +7821,15 @@ A complete intercepted request reproduced Binance history being labeled warehous
 
 
 The Stage 552 first ship attempt stopped on concurrent Chart commit `c803069dcde100d5beb4d4fdf023f27390a2b183`. Its five source/preservation paths do not overlap the Worker batch. Dock, shelf and Fibonacci changes are retained, and complete frontend/deployment plus intercepted Chart integration are repeated against that source. Forward-pivot/current-ATR methodology and duplicated minor/major pivot occurrences remain unqualified. No peer operation, provider or application packet is executed/read.
+
+
+### Stage 552 exact native source-attribution acceptance
+
+Commit `44b0ebb07811a34a063f7f1c88e43d644438a813`, Worker run `36969937934`: the receipt, retained complete native source/configuration capture and independent pinned build match exactly. Final 2,908 frontend, 1,041 deployment/fifteen shell, eight focused and 25 isolated runtime cases pass. No provider, producer, application or private consumer was invoked. This qualifies deployed adapter attribution, not source units or investment edge.
+
+### Stage 553 chart readout layout candidate
+
+A whole-module browser test reproduced overlapping legend and selected-bar text. Two HTML/CSS replacements stack them in a bounded scrollable region without changing engine calculations or callbacks. Complete invented source frames pass at 320, 390, 768 and 1440 pixels, including keyboard access to long legends. The narrow-screen duplicate lower readout is hidden; its complete selected-bar content remains in the upper readout. Prior whole-HTML and helper preservation assertions remain through exact hash-bound hooks; their complete predecessors remain retained. Exact static and served-module acceptance remains pending.
+
+
+Stage 553 pre-push reconciliation retains the peer Ticker 360 news domain and both heartbeat probe sources without executing them or reading their reports. All engine manifest records remain identical; only generated_at changed, requiring two repository-asset hashes in the page registry. Complete frontend and static contract/graph/wiring checks are repeated. The prior passed deployment and four-width browser gates are retained against identical production HTML/JS. Ticker 360 qualification remains separate open work.

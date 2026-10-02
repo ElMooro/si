@@ -28,7 +28,6 @@ function normalize(raw,file){
  return old;
 }
 function normalizeHtml(raw,file){
- if(file==='chart.html')raw=require('./chart-readout-layout-preservation.cjs').normalizeHtml(raw);
  if(file==='crypto/index.html'){
   const plan=require('../fixtures/crypto-commentary/edits.json');assert.equal(hash(raw),plan.candidate_sha256);
   for(const [before,after] of [...plan.edits].reverse()){assert.equal(raw.split(after).length-1,1);raw=raw.replace(after,before);}

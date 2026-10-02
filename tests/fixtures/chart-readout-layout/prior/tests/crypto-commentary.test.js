@@ -45,6 +45,6 @@ test('earlier full-page gates retain exact preservation through only this review
  const plan=JSON.parse(fs.readFileSync(path.join(D,planName))),raw=fs.readFileSync(path.join(D,archive));
  assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),plan.predecessor_sha256);let expected=raw.toString();
  for(const [a,b] of plan.edits){assert.equal(expected.split(a).length-1,1);expected=expected.replace(a,b);}
- assert.equal(require('./helpers/chart-readout-layout-preservation.cjs').normalizePrevious(fs.readFileSync(path.join(R,plan.target),'utf8'),plan.target),expected);
+ assert.equal(fs.readFileSync(path.join(R,plan.target),'utf8'),expected);
  }
 });
