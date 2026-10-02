@@ -1,5 +1,5 @@
 {
-  "status": "candidate_test_and_native_acceptance_pending",
+  "status": "exact_code_and_static_release_accepted_with_qualification_gaps",
   "contract": "fabric-logging-research-only.v1",
   "base_commit": "39f7b521fff3a1a43509de23590d7d8be649e82c",
   "functions": [
@@ -885,5 +885,7 @@
     "runtime_ownership_verified": false,
     "tests": 10,
     "source": "scripts/source_staged_writes.py"
-  }
+  },
+  "source_commit": "86f8aeb755e301b55ea2a253e7237e3fadc8ba75",
+  "acceptance": "docs/audit/2026-10-02/signal-logger-research-acceptance.json"
 }

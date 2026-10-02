@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC: Stage 565 Fabric numeric and Best Setups ranking fixes are exact-code/native accepted. Stage 566 addresses the shared logger that still reattaches unqualified Fabric metadata across 17 importers. Native baseline, coordinated SDK repair and complete consumer tests are next. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
+October 2 UTC: Stage 566 shared Fabric logger context is exact-code/native/static accepted across 17 importers, 171 packaged sources and 22 unchanged bindings. The seven reproduced event-input defects are next. Normal publication, source qualification, decision replay, supported portfolio consequences and all ten workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -8027,3 +8027,10 @@ Source-only scope clarification: the optimizer checks presence of `metadata.fabr
 - Full deployment validation caught a regenerated-inventory defect: Compound's returned pending-write bundles lost their three literal output candidates. The AST inventory now follows a conservative append-only local list → explicit return field → direct local builder call → matching `put_object(**item)` chain. Candidate construction/write locations are retained; their handler reachability stays unproven and unresolved writes remain explicit. Ten regressions cover actual Compound, unrelated reads/specs, unused lists, rebinding, shadowed/imported functions and changed loop keys. This is inventory completeness, not runtime ownership certification. Full deployment and static-page checks are being repeated with the repair.
 
 - The companion 600-page inspection contract is regenerated in the same batch. It retains the three candidates with unproven reachability, corrects source-line references and counts, and downgrades affected static access classifications where proof is incomplete. No runtime availability is inferred from this registry. A nested local function cannot borrow the module builder's candidate keys.
+
+
+### Stage 566 exact-code and static release acceptance
+
+Commit `86f8aeb755e301b55ea2a253e7237e3fadc8ba75` landed the complete 18-file native Git batch, including `config/page-data-contracts.json` (7996692 bytes). All 17 exact receipts, 171 deployed source members and original runtime resources/22 bindings match, captured twice by operation 6463. The whole public inventory and static inspection assets match a coherent served build; returned bundle candidates remain explicitly unproven. Validation includes 1071 deployment checks, 15 shell checks, 2974 frontend tests, 12 affected engine suites, 32 Fabric cases, 11 actual logger-chain cases, 14 native acceptance unit cases, ten inventory regressions and 16 intercepted browser cases.
+
+The shared SDK and bundled copy no longer reattach flat unqualified Fabric learning fields. The optimizer stamped-coverage counter is no longer fed by those new flat fields; no learned-weight formula repair or historical ledger rewrite is claimed. Selected diagnostics remain inspectable research. Normal application publication, source/point-in-time qualification, performance validity and portfolio consequences remain OPEN; the seven separately reproduced event-input bugs are the next repair. No actual outcome ledger, scorecard, private/account or current application packet was inspected.

@@ -1,5 +1,5 @@
 {
-  "status": "open_reproduced_with_invented_inputs",
+  "status": "repair_released_original_reproduction_retained",
   "source": "aws/shared/signals_emit.py",
   "source_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
   "case": "shared_logger_readds_fabric_values_despite_false_eligibility",
@@ -29,5 +29,8 @@
   ],
   "actual_native_or_application_reads": 0,
   "actual_ledger_writes": 0,
-  "scope": "Best Setups local wrapper removal alone does not close the shared SDK metadata path. The real log_signal and _fabric_ctx were executed against invented S3/DynamoDB only."
+  "scope": "Best Setups local wrapper removal alone does not close the shared SDK metadata path. The real log_signal and _fabric_ctx were executed against invented S3/DynamoDB only.",
+  "shared_logger_issue_open": false,
+  "shared_logger_repair_commit": "86f8aeb755e301b55ea2a253e7237e3fadc8ba75",
+  "shared_logger_acceptance": "docs/audit/2026-10-02/signal-logger-research-acceptance.json"
 }
