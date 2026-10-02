@@ -64,6 +64,8 @@ def load_tests(loader, tests, pattern):
  tests.addTests(loader.loadTestsFromModule(test_market_read_inputs))
  import test_market_read_board
  tests.addTests(loader.loadTestsFromModule(test_market_read_board))
+ import test_market_read_arithmetic
+ tests.addTests(loader.loadTestsFromModule(test_market_read_arithmetic))
  spec=importlib.util.spec_from_file_location('actual_desk_input_tests',R/'aws/shared/tests/test_deterministic_desk_inputs.py')
  module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
  tests.addTests(loader.loadTestsFromModule(module))

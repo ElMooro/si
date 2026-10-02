@@ -1,0 +1,21 @@
+{
+  "before_sha256": "ea0d38f88975095091943e358d16ea3ccb635985b18afd75299e17fc49a91a90",
+  "after_sha256": "d3e97d875ff9be02f4c9f850924f6044ad717ed9e5940553e7525bfc3f45904c",
+  "edits": [
+    {
+      "before": "from datetime import datetime, timezone\n",
+      "after": "from datetime import datetime, timezone\nfrom fractions import Fraction\n",
+      "count": 1
+    },
+    {
+      "before": "    if type(v) is int:\n        return v\n    if type(v) is float and math.isfinite(v):\n        return v\n    return None\n",
+      "after": "    if type(v) not in (int, float):\n        return None\n    try:\n        return v if math.isfinite(v) else None\n    except (OverflowError, ValueError):\n        return None\n",
+      "count": 1
+    },
+    {
+      "before": "    frows.sort(key=lambda r: -(abs(r[\"fusion_score\"]) * (r[\"confidence\"] if r[\"confidence\"] is not None else 0.5)))\n",
+      "after": "    # Exact working products avoid float overflow, underflow and integer rounding.\n    # Reported values and the existing missing-confidence policy remain unchanged.\n    frows.sort(key=lambda r: -(abs(Fraction(r[\"fusion_score\"])) * Fraction(r[\"confidence\"] if r[\"confidence\"] is not None else 0.5)))\n",
+      "count": 1
+    }
+  ]
+}

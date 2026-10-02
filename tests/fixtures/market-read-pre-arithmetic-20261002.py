@@ -34,7 +34,6 @@ import math
 import re
 import time
 from datetime import datetime, timezone
-from fractions import Fraction
 from typing import Tuple, Any, Dict, List, Optional
 
 SIGNAL_TYPE = "ai_market_read"
@@ -123,12 +122,11 @@ def pick(doc, *paths, default=None):
 
 def _num(v):
     """Reported finite JSON number; no coercion, alias substitution or rounding."""
-    if type(v) not in (int, float):
-        return None
-    try:
-        return v if math.isfinite(v) else None
-    except (OverflowError, ValueError):
-        return None
+    if type(v) is int:
+        return v
+    if type(v) is float and math.isfinite(v):
+        return v
+    return None
 
 
 def _rows(v, n):
@@ -199,9 +197,7 @@ def build_board(s3, public_bucket: str, private_bucket: Optional[str] = None) ->
             continue
         frows.append({"ticker": eid.split(":")[-1].replace("BTCUSD", "BTC-USD").replace("ETHUSD", "ETH-USD"), "fusion_score": fs, "direction": best.get("direction"), "confidence": _num(best.get("confidence")),
                       "contradiction": best.get("contradiction_score"), "horizon": best.get("horizon"), "capital": best.get("capital_decision")})
-    # Exact working products avoid float overflow, underflow and integer rounding.
-    # Reported values and the existing missing-confidence policy remain unchanged.
-    frows.sort(key=lambda r: -(abs(Fraction(r["fusion_score"])) * Fraction(r["confidence"] if r["confidence"] is not None else 0.5)))
+    frows.sort(key=lambda r: -(abs(r["fusion_score"]) * (r["confidence"] if r["confidence"] is not None else 0.5)))
     stocks["fusion_top"] = [r for r in frows if r["fusion_score"] > 0][:8]
     stocks["fusion_bottom"] = [r for r in frows if r["fusion_score"] < 0][:6]
     bonds = {

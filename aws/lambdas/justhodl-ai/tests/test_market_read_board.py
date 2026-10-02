@@ -62,7 +62,7 @@ class BoardInputTests(unittest.TestCase):
   self.assertEqual(self.m._age_h('2026-10-02T10:00:00-04:00'),0)
   self.assertAlmostEqual(self.m._age_h('2026-10-02T13:59:59.999999Z'),1/3600000000,places=15)
  def test_source_changes_are_exactly_the_recorded_six_replacements(self):
-  transition=json.loads((R/'docs/audit/2026-10-02/ai-board-projection-transition.json').read_bytes());s=(R/'aws/lambdas/justhodl-ai/source/market_read.py').read_text(encoding='utf-8');self.assertEqual(hashlib.sha256(s.encode()).hexdigest(),transition['after_sha256'])
+  transition=json.loads((R/'docs/audit/2026-10-02/ai-board-projection-transition.json').read_bytes());s=(R/'tests/fixtures/market-read-pre-arithmetic-20261002.py').read_text(encoding='utf-8');self.assertEqual(hashlib.sha256(s.encode()).hexdigest(),transition['after_sha256'])
   for edit in reversed(transition['edits']):self.assertEqual(s.count(edit['after']),edit['count']);s=s.replace(edit['after'],edit['before'])
   self.assertEqual(hashlib.sha256(s.encode()).hexdigest(),transition['before_sha256']);self.assertEqual(s,(R/'tests/fixtures/market-read-pre-board-projection-20261002.py').read_text(encoding='utf-8'))
  def test_retained_source_reproduces_original_faults(self):
