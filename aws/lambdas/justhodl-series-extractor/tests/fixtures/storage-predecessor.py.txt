@@ -503,10 +503,6 @@ def _validate_allocation_counters(state):
             raise RuntimeError("checkpoint allocation counters invalid")
 
 
-class StorageWriteError(RuntimeError):
-    """A page/checkpoint PUT failed or its commit outcome is unknown."""
-
-
 def lambda_handler(event, context):
     t0 = time.time()
     provider = (event or {}).get("provider", "eurostat")
@@ -596,12 +592,10 @@ def lambda_handler(event, context):
     write_errors = []
 
     def _collect(wait_all):
-        """Harvest all selected results before refusing further claims.
-
-        A failed response does not establish whether the PUT committed.
-        In-memory successes are discarded on failure; the next invocation
-        reads the durable checkpoint and retains normal tail replay.
-        """
+        """Harvest finished page writes. series_count and page_hashes
+        advance ONLY for pages that actually landed, so a failed write
+        can never be recorded as durable. A page that never lands is
+        named in state['missing_pages'] for a targeted repair pass."""
         nonlocal pending
         still = []
         for fut, pkey, digest, n, nb in pending:
@@ -618,13 +612,12 @@ def lambda_handler(event, context):
                         state.get("pages_objects", 0)) + 1
                     state["pages_bytes"] = int(
                         state.get("pages_bytes", 0)) + nb
-                except Exception:
-                    write_errors.append("page write failed or uncertain")
+                except Exception as e:
+                    write_errors.append("%s: %s" % (pkey, str(e)[:70]))
+                    state.setdefault("missing_pages", []).append(pkey)
             else:
                 still.append((fut, pkey, digest, n, nb))
         pending = still
-        if write_errors:
-            raise StorageWriteError("page write failed or uncertain") from None
 
     def _put(pkey, body):
         s3.put_object(Bucket=BUCKET, Key=pkey, Body=body,
@@ -645,12 +638,8 @@ def lambda_handler(event, context):
         if hashes.get(pkey) == digest:
             state["series_count"] += len(rows)
             return False
-        try:
-            future = pool.submit(_put, pkey, body)
-        except Exception:
-            write_errors.append("page write failed or uncertain")
-            raise StorageWriteError("page write failed or uncertain") from None
-        pending.append((future, pkey, digest, len(rows), len(body)))
+        pending.append((pool.submit(_put, pkey, body), pkey, digest,
+                        len(rows), len(body)))
         if len(pending) >= WRITERS * 3:
             _collect(False)
         return True
@@ -672,193 +661,178 @@ def lambda_handler(event, context):
         _prune_hashes()
         state["buffer"] = buf
         state["updated_at"] = now
-        body = json.dumps(state, default=str).encode()
-        try:
-            s3.put_object(Bucket=BUCKET, Key=state_key, Body=body,
-                          ContentType="application/json")
-        except Exception:
-            raise StorageWriteError("checkpoint write failed or uncertain") from None
+        if write_errors:
+            state["write_errors"] = write_errors[-20:]
+        s3.put_object(Bucket=BUCKET, Key=state_key,
+                      Body=json.dumps(state, default=str).encode(),
+                      ContentType="application/json")
 
-    try:
-        grouper = GROUPERS.get(provider)
-        if grouper:
-            # ---- grouped path (ECB): the unit of work is a FLOW, not a file
-            groups = grouper(all_keys)
-            state["flows_total_grouped"] = len(groups)
-            units = [(f, ks) for f, ks in sorted(groups.items())
-                     if f not in set(state["flows_done"])]
-            for fid, ks in units:
-                if _out_of_time(t0, context) or \
-                        pages_this_run >= MAX_PAGES_PER_RUN:
-                    stopped_early = True
-                    break
-                pr = progress.get(fid) or {}
-                attempts = int(pr.get("attempts", 0)) + 1
-                si0 = int(pr.get("slice_idx", 0))
-                if (attempts > STALL_ATTEMPTS
-                        and si0 <= int(pr.get("slice_at_last_check", -1))):
-                    state.setdefault("errors", {})[fid] = (
-                        f"stalled at slice {si0}/{len(ks)} after "
-                        f"{attempts} attempts -- skipped")
-                    if fid not in state["flows_done"]:
-                        state["flows_done"].append(fid)
-                    state.setdefault("failed_flows", []).append(fid)
-                    progress.pop(fid, None)
-                    _checkpoint()
-                    continue
-                progress[fid] = {"slice_idx": si0, "attempts": attempts,
-                                 "slice_at_last_check": si0,
-                                 "slices": len(ks),
-                                 "error_count": int(pr.get("error_count", 0))}
-                stat = {"slice_idx": si0, "done": False}
-                try:
-                    for rec in GROUP_EXTRACTORS[provider](
-                            ks, fid, engine_index, _get_bytes,
-                            lambda: _out_of_time(t0, context), si0, stat):
-                        rec["raw_key"] = ks[0] if ks else None
-                        buf.append(rec)
-                        if len(buf) >= PAGE:
-                            if _flush(buf):
-                                pages_this_run += 1
-                            buf = []
-                    if stat.get("done"):
-                        if fid not in state["flows_done"]:
-                            state["flows_done"].append(fid)
-                        progress.pop(fid, None)
-                        processed_flows.append((fid, len(ks)))
-                    else:
-                        stopped_early = True
-                        progress[fid] = {"slice_idx": stat["slice_idx"],
-                                         "attempts": attempts,
-                                         "slice_at_last_check": si0,
-                                         "slices": len(ks),
-                                         "updated_at": now}
-                    _checkpoint()
-                    if not stat.get("done"):
-                        break
-                except StorageWriteError:
-                    raise
-                except Exception as e:
-                    ec = int((progress.get(fid) or {}).get(
-                        "error_count", 0)) + 1
-                    state.setdefault("errors", {})[fid] = (
-                        f"{type(e).__name__}: {str(e)[:70]} (attempt {ec})")
-                    if ec >= ERROR_ATTEMPTS:
-                        if fid not in state["flows_done"]:
-                            state["flows_done"].append(fid)
-                        state.setdefault("failed_flows", []).append(fid)
-                        progress.pop(fid, None)
-                    else:
-                        pr2 = progress.get(fid) or {}
-                        pr2["error_count"] = ec
-                        progress[fid] = pr2
-                    _checkpoint()
-            todo = []
-
-        for key in todo:
-            if _out_of_time(t0, context) or pages_this_run >= MAX_PAGES_PER_RUN:
+    grouper = GROUPERS.get(provider)
+    if grouper:
+        # ---- grouped path (ECB): the unit of work is a FLOW, not a file
+        groups = grouper(all_keys)
+        state["flows_total_grouped"] = len(groups)
+        units = [(f, ks) for f, ks in sorted(groups.items())
+                 if f not in set(state["flows_done"])]
+        for fid, ks in units:
+            if _out_of_time(t0, context) or \
+                    pages_this_run >= MAX_PAGES_PER_RUN:
                 stopped_early = True
                 break
-            fid = _flow_id_from_key(key)
-            prog = progress.get(fid) or {}
-            skip_rows = int(prog.get("rows_done", 0))
-            attempts = int(prog.get("attempts", 0)) + 1
-            # ops 5030 circuit breaker: a flow is only allowed to be retried
-            # while it is ADVANCING. rows_done grows every run thanks to the
-            # resume offset, so this can only fire on a genuinely stuck flow
-            # -- never on a merely large one. Flow #80 blocked the entire
-            # 8,147-flow lane for 20 days because nothing enforced this.
+            pr = progress.get(fid) or {}
+            attempts = int(pr.get("attempts", 0)) + 1
+            si0 = int(pr.get("slice_idx", 0))
             if (attempts > STALL_ATTEMPTS
-                    and skip_rows <= int(prog.get("rows_at_last_check", -1))):
+                    and si0 <= int(pr.get("slice_at_last_check", -1))):
                 state.setdefault("errors", {})[fid] = (
-                    f"stalled after {attempts} attempts at row {skip_rows} "
-                    f"-- skipped to keep the lane moving")
+                    f"stalled at slice {si0}/{len(ks)} after "
+                    f"{attempts} attempts -- skipped")
                 if fid not in state["flows_done"]:
                     state["flows_done"].append(fid)
+                state.setdefault("failed_flows", []).append(fid)
                 progress.pop(fid, None)
                 _checkpoint()
                 continue
-            progress[fid] = {"rows_done": skip_rows, "attempts": attempts,
-                             "rows_at_last_check": skip_rows,
-                             "error_count": int(prog.get("error_count", 0))}
+            progress[fid] = {"slice_idx": si0, "attempts": attempts,
+                             "slice_at_last_check": si0,
+                             "slices": len(ks),
+                             "error_count": int(pr.get("error_count", 0))}
+            stat = {"slice_idx": si0, "done": False}
             try:
-                obj = s3.get_object(Bucket=BUCKET, Key=key)
-                raw = obj["Body"].read()
-                n_added = 0
-                row_i = 0
-                finished = True
-                for rec in extractor(raw, fid, engine_index):
-                    row_i += 1
-                    if row_i <= skip_rows:      # resume a part-done flow
-                        continue
-                    rec["raw_key"] = key
+                for rec in GROUP_EXTRACTORS[provider](
+                        ks, fid, engine_index, _get_bytes,
+                        lambda: _out_of_time(t0, context), si0, stat):
+                    rec["raw_key"] = ks[0] if ks else None
                     buf.append(rec)
-                    n_added += 1
                     if len(buf) >= PAGE:
                         if _flush(buf):
                             pages_this_run += 1
                         buf = []
-                        # budget is now checked INSIDE the flow: a flow bigger
-                        # than one invocation is resumed, never restarted
-                        if (_out_of_time(t0, context)
-                                or pages_this_run >= MAX_PAGES_PER_RUN):
-                            progress[fid] = {"rows_done": row_i,
-                                             "attempts": attempts,
-                                             "rows_at_last_check": skip_rows,
-                                             "updated_at": now}
-                            finished = False
-                            stopped_early = True
-                            break
-                if finished:
+                if stat.get("done"):
                     if fid not in state["flows_done"]:
                         state["flows_done"].append(fid)
                     progress.pop(fid, None)
-                    processed_flows.append((fid, n_added))
-                    _checkpoint()      # progress survives any later timeout
+                    processed_flows.append((fid, len(ks)))
                 else:
-                    _checkpoint()
+                    stopped_early = True
+                    progress[fid] = {"slice_idx": stat["slice_idx"],
+                                     "attempts": attempts,
+                                     "slice_at_last_check": si0,
+                                     "slices": len(ks),
+                                     "updated_at": now}
+                _checkpoint()
+                if not stat.get("done"):
                     break
-            except StorageWriteError:
-                raise
             except Exception as e:
-                ec = int((progress.get(fid) or {}).get("error_count", 0)) + 1
+                ec = int((progress.get(fid) or {}).get(
+                    "error_count", 0)) + 1
                 state.setdefault("errors", {})[fid] = (
                     f"{type(e).__name__}: {str(e)[:70]} (attempt {ec})")
                 if ec >= ERROR_ATTEMPTS:
-                    # retire it: an identical input raising an identical
-                    # exception will not behave differently on attempt 4.
-                    # It stays listed in errors[] for a later targeted pass.
                     if fid not in state["flows_done"]:
                         state["flows_done"].append(fid)
-                    state.setdefault("failed_flows", [])
-                    if fid not in state["failed_flows"]:
-                        state["failed_flows"].append(fid)
+                    state.setdefault("failed_flows", []).append(fid)
                     progress.pop(fid, None)
                 else:
-                    pr = progress.get(fid) or {}
-                    pr["error_count"] = ec
-                    progress[fid] = pr
+                    pr2 = progress.get(fid) or {}
+                    pr2["error_count"] = ec
+                    progress[fid] = pr2
                 _checkpoint()
-        _collect(True)
-    finally:
-        # Even a nonblocking collection/submission failure must settle all
-        # outstanding workers before the invocation exits. No claims here.
+        todo = []
+
+    for key in todo:
+        if _out_of_time(t0, context) or pages_this_run >= MAX_PAGES_PER_RUN:
+            stopped_early = True
+            break
+        fid = _flow_id_from_key(key)
+        prog = progress.get(fid) or {}
+        skip_rows = int(prog.get("rows_done", 0))
+        attempts = int(prog.get("attempts", 0)) + 1
+        # ops 5030 circuit breaker: a flow is only allowed to be retried
+        # while it is ADVANCING. rows_done grows every run thanks to the
+        # resume offset, so this can only fire on a genuinely stuck flow
+        # -- never on a merely large one. Flow #80 blocked the entire
+        # 8,147-flow lane for 20 days because nothing enforced this.
+        if (attempts > STALL_ATTEMPTS
+                and skip_rows <= int(prog.get("rows_at_last_check", -1))):
+            state.setdefault("errors", {})[fid] = (
+                f"stalled after {attempts} attempts at row {skip_rows} "
+                f"-- skipped to keep the lane moving")
+            if fid not in state["flows_done"]:
+                state["flows_done"].append(fid)
+            progress.pop(fid, None)
+            _checkpoint()
+            continue
+        progress[fid] = {"rows_done": skip_rows, "attempts": attempts,
+                         "rows_at_last_check": skip_rows,
+                         "error_count": int(prog.get("error_count", 0))}
         try:
-            _collect(True)
-        finally:
-            pool.shutdown(wait=True)
+            obj = s3.get_object(Bucket=BUCKET, Key=key)
+            raw = obj["Body"].read()
+            n_added = 0
+            row_i = 0
+            finished = True
+            for rec in extractor(raw, fid, engine_index):
+                row_i += 1
+                if row_i <= skip_rows:      # resume a part-done flow
+                    continue
+                rec["raw_key"] = key
+                buf.append(rec)
+                n_added += 1
+                if len(buf) >= PAGE:
+                    if _flush(buf):
+                        pages_this_run += 1
+                    buf = []
+                    # budget is now checked INSIDE the flow: a flow bigger
+                    # than one invocation is resumed, never restarted
+                    if (_out_of_time(t0, context)
+                            or pages_this_run >= MAX_PAGES_PER_RUN):
+                        progress[fid] = {"rows_done": row_i,
+                                         "attempts": attempts,
+                                         "rows_at_last_check": skip_rows,
+                                         "updated_at": now}
+                        finished = False
+                        stopped_early = True
+                        break
+            if finished:
+                if fid not in state["flows_done"]:
+                    state["flows_done"].append(fid)
+                progress.pop(fid, None)
+                processed_flows.append((fid, n_added))
+                _checkpoint()      # progress survives any later timeout
+            else:
+                _checkpoint()
+                break
+        except Exception as e:
+            ec = int((progress.get(fid) or {}).get("error_count", 0)) + 1
+            state.setdefault("errors", {})[fid] = (
+                f"{type(e).__name__}: {str(e)[:70]} (attempt {ec})")
+            if ec >= ERROR_ATTEMPTS:
+                # retire it: an identical input raising an identical
+                # exception will not behave differently on attempt 4.
+                # It stays listed in errors[] for a later targeted pass.
+                if fid not in state["flows_done"]:
+                    state["flows_done"].append(fid)
+                state.setdefault("failed_flows", [])
+                if fid not in state["failed_flows"]:
+                    state["failed_flows"].append(fid)
+                progress.pop(fid, None)
+            else:
+                pr = progress.get(fid) or {}
+                pr["error_count"] = ec
+                progress[fid] = pr
+            _checkpoint()
+    _collect(True)
+    pool.shutdown(wait=True)
     _prune_hashes()
     state["buffer"] = buf
     state["stopped_early"] = stopped_early
     state["pages_this_run"] = pages_this_run
     state["write_errors_this_run"] = len(write_errors)
     state["updated_at"] = now
-    body = json.dumps(state, default=str).encode()
-    try:
-        s3.put_object(Bucket=BUCKET, Key=state_key, Body=body,
-                      ContentType="application/json")
-    except Exception:
-        raise StorageWriteError("checkpoint write failed or uncertain") from None
+    s3.put_object(Bucket=BUCKET, Key=state_key,
+                  Body=json.dumps(state, default=str).encode(),
+                  ContentType="application/json")
     # manifest: honest, SEPARATE count. Never folds into datasets_total.
     manifest = {
         "provider": provider,

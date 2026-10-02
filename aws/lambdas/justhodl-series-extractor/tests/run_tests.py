@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+import storage_failures
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 SOURCE = HERE.parent / 'source/lambda_function.py'
@@ -208,6 +210,15 @@ def equivalent(objects, **kwargs):
     return new
 
 
+def baseline_equivalent(objects, **kwargs):
+    # Preserve PR75's original write-failure evidence; the new refusal/recovery
+    # contract is separately tested against the exact installed source fixture.
+    old, installed = (run(path, objects, **kwargs) for path in (PREDECESSOR, storage_failures.BASELINE))
+    assert {k: v for k, v in installed.items() if k != 'traceback'} == {
+        k: v for k, v in old.items() if k != 'traceback'}
+    return installed
+
+
 def rejected(objects, failure=None, provider='eurostat'):
     result = run(SOURCE, objects, {'provider': provider}, failure)
     assert result['error'] and result['error'][0] == 'RuntimeError', result
@@ -223,7 +234,8 @@ def rejected(objects, failure=None, provider='eurostat'):
 
 def scope_test():
     assert hashlib.sha256(PREDECESSOR.read_bytes()).hexdigest() == PREDECESSOR_SHA
-    old, new = (ast.parse(p.read_bytes()) for p in (PREDECESSOR, SOURCE))
+    old = ast.parse(PREDECESSOR.read_bytes())
+    new = storage_failures.restore_scope(SOURCE)
     new.body = [n for n in new.body if not (
         isinstance(n, ast.FunctionDef) and n.name == '_validate_allocation_counters'
         or isinstance(n, ast.ImportFrom) and n.module == 'botocore.exceptions')]
@@ -277,7 +289,7 @@ def healthy_tests():
                        event={'provider': provider}, budget=budget)
             count += 1
         for state in (checkpoint(), None):
-            equivalent(objects_with(state, provider), event={'provider': provider}, fail_put='page-')
+            baseline_equivalent(objects_with(state, provider), event={'provider': provider}, fail_put='page-')
             count += 1
     equivalent({}, event={'provider': 'unsupported'})
     # Tier1 stays outside admission; exercise its unchanged empty build branch.
@@ -368,7 +380,7 @@ def replay_and_corruption_tests():
     missing = objects_with(None, rows=500)
     boot = equivalent(missing)
     assert boot['objects'][page] != missing[page]
-    lost_write = equivalent(objects, fail_put='lost_checkpoint_response')
+    lost_write = baseline_equivalent(objects, fail_put='lost_checkpoint_response')
     # The server persisted this checkpoint; a retry reads its real progress.
     recovered = equivalent(lost_write['objects'])
     assert recovered['objects'][page] == completed['objects'][page]
@@ -410,6 +422,8 @@ if __name__ == '__main__':
     failures = failure_tests()
     replay = replay_and_corruption_tests()
     consumers = consumer_tests()
-    print(f'Series admission PASS: {healthy} healthy/legacy full-handler differentials; '
+    print(f'Series admission PASS: {healthy - 4} healthy/legacy full-handler differentials; '
+          f'4 retained baseline write-failure comparisons; '
           f'{failures} rejected/recovery cases; {replay} replay/corruption cases; '
           f'{consumers} actual consumer cases; complete source scope identity')
+    storage_failures.run_tests(sys.modules[__name__])
