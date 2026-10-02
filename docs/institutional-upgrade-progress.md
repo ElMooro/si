@@ -8123,3 +8123,10 @@ The published whole HTML, inline renderer and static dependencies match one cohe
 ### Stage 572 AI board projection repair candidate
 
 Actual source reproductions show booleans becoming numbers, tiny values becoming zero, zero scores borrowing legacy aliases, and rounded ages crossing the existing freshness/future boundaries. The candidate preserves finite JSON numbers and canonical present values and applies unchanged thresholds to unrounded age. The complete prior source, exact reversible edits, actual board compiler and existing rule paths are tested with invented inputs. This does not establish source observation/publication clocks, unit definitions, source eligibility, independent evidence, full replay or portfolio authority. The historical default for missing fusion confidence remains unchanged and unqualified. All ten workstreams remain OPEN.
+
+
+### Stage 572 exact code verification; numerical follow-up required
+
+Commit `3217b1310a9f2784ca35406dd368030d65f640d6` matches the justhodl-ai release receipt, all 50 packaged sources and preserved runtime/schedule controls in operation 6468/run 37029671049. The named deployment, guard and acceptance runs succeeded. Checks passed: 1078 deployment, 15 shell, 25 complete AI suite, 63 combined source cases, 14 board projection cases, 13 deterministic desk, 17 owned settlement, 14 native acceptance and 600 page contracts. Twenty-eight static files were rechecked as unchanged code relative to one coherent served build; this is not new natural producer publication.
+
+Final adversarial review found a regression outside the prior cases: a 401-digit integer now survives the typed parser and overflows during confidence multiplication; the preceding parser withheld it. This is retained as an open repair, so the board work is not declared complete or bug-free. Fix and verify this first; then resume the buyback pane. Peer heartbeat paths, chart Find feature and ops arriving after the source release are retained but not given runtime acceptance by this proof. No private/learning/current consumer packet or producer/model call was accessed. All ten workstreams remain OPEN.

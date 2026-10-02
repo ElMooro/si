@@ -1,6 +1,6 @@
 {
   "stage": 572,
-  "status": "candidate_validation_and_release_pending",
+  "status": "exact_native_code_verified_followup_required",
   "base_commit": "0e6124e7e70e66b28b7707a16f95486d5c42406a",
   "predecessor_release_commit": "36aaf0ceae308a96aee86a130fa32412917d4093",
   "functions": [
@@ -202,5 +202,30 @@
   ],
   "normal_publication_verified": false,
   "source_qualified": false,
-  "investment_authority": false
+  "investment_authority": false,
+  "source_commit": "3217b1310a9f2784ca35406dd368030d65f640d6",
+  "acceptance": "docs/audit/2026-10-02/ai-board-projection-acceptance.json",
+  "known_followup": {
+    "issue": "A finite but float-unrepresentable integer survives _num and overflows when multiplied by fusion confidence. The preceding source withheld it.",
+    "reproduction": {
+      "scope": "Invented 401-digit integer only; no actual packet or provider access.",
+      "cases": [
+        {
+          "source": "prior",
+          "result": {
+            "status": "returned",
+            "fusion_top": []
+          }
+        },
+        {
+          "source": "deployed",
+          "result": {
+            "status": "error",
+            "exception_type": "OverflowError"
+          }
+        }
+      ]
+    },
+    "status": "repair_required_before_board_completion"
+  }
 }
