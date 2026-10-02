@@ -1,6 +1,6 @@
 {
   "stage": 542,
-  "status": "candidate_not_deployed",
+  "status": "exact_static_release_and_served_browser_accepted",
   "scope": "Remove residual legacy category-to-score mapping from actual Sentiment pane",
   "predecessor_reproduction": {
     "scope": "Invented complete render; no network or application packets",
@@ -24,5 +24,176 @@
     ]
   },
   "source_qualified": false,
-  "investment_authority": false
+  "investment_authority": false,
+  "source_commit": "e77a55f02f3aefd63e32476afaeca8f7b23ada55",
+  "static_acceptance": {
+    "status": "exact_static_release_checked",
+    "checked_at": "2026-10-02T02:12:43.758782+00:00",
+    "source_commit": "e77a55f02f3aefd63e32476afaeca8f7b23ada55",
+    "served_commit": "e77a55f02f3aefd63e32476afaeca8f7b23ada55",
+    "build_manifest_sha256": "418bd6449949946ae82520afde0d90d8fd827b802e87a59549228c38deec4974",
+    "pages": [
+      {
+        "path": "crypto/index.html",
+        "bytes": 122122,
+        "sha256": "20eef2238af9887e275e2819d6186ca4c7b7ac65f647a2cc05382e36c463c0f9",
+        "whole_http_body_sha256": "18da09e1a076873b5b6cd8957b87cecdaae42b0c75dfdda731973a7cef8f28d9",
+        "sole_edge_script_removed": {
+          "bytes": 367,
+          "sha256": "075517cbcd5c90f667f138e263fd2467bc4e4f980e2fac9ef625e1a6560fe8e2"
+        },
+        "whole_changed_helpers_sha256": "8bf6ab41227d715e88d0ed33e2a81ed1ed53f7e418b79badac71e50aa19b0c44",
+        "helpers_match_source": true,
+        "existing_script_tags_verified": true
+      }
+    ],
+    "page_execution": false,
+    "application_packet_reads": 0,
+    "source_qualified": false,
+    "investment_authority": false,
+    "scope": "Whole served static pages match one commit-bound build; actual helpers equal source. Offline invented browser QA is separate; no live application/provider/private/account packet read."
+  },
+  "served_browser_acceptance": {
+    "scope": "Commit-verified served Crypto declarations/inline styles; invented inputs, all network blocked; no live application execution",
+    "scenarios": 14,
+    "results": [
+      {
+        "width": 390,
+        "invented_signal": "INFLOW",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": "OUTFLOW",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": "NEUTRAL",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": null,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": true,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": 75,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "invented_signal": "<img src=x onerror=alert(1)>",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": "INFLOW",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": "OUTFLOW",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": "NEUTRAL",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": null,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": true,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": 75,
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "invented_signal": "<img src=x onerror=alert(1)>",
+        "requests": 0,
+        "errors": 0,
+        "overflow": false
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "viewport_width": 390,
+      "bytes": 33948,
+      "sha256": "2ba1ea9a9d2bd3568d184f8a49a4f830d6aedf59083d8155428e04fb193d221a",
+      "candidate_and_served_pixels_identical": true
+    },
+    {
+      "viewport_width": 1280,
+      "bytes": 36820,
+      "sha256": "0dc7899f396234ef212fb5a70dc95be60fcfde27daaec4ea63d947b15d2100cb",
+      "candidate_and_served_pixels_identical": true
+    }
+  ],
+  "workflow_runs": [
+    {
+      "id": 36954005260,
+      "path": ".github/workflows/pages.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "e77a55f02f3aefd63e32476afaeca8f7b23ada55",
+      "event": "push"
+    }
+  ],
+  "checks": {
+    "deployment": 1033,
+    "shell": 15,
+    "frontend": 2743,
+    "whole_page_graphs": 599,
+    "engine_contracts": 899,
+    "wiring": 143,
+    "new_complete_renderer_cases": 4,
+    "browser_scenarios": 14
+  },
+  "remaining": [
+    "Bitcoin sentiment source/calculation/history defects are separate and not fixed by this page repair.",
+    "Current application publication, source qualification, historical availability and investment efficacy remain unverified.",
+    "All ten institutional workstreams remain OPEN."
+  ]
 }

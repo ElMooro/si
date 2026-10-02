@@ -29,7 +29,7 @@ This ledger records implementation status, not a claim that the fleet is already
 
 ## Current work
 
-October 2 UTC, through Stage 541: Crypto and Financial Secretary stablecoin stock semantics have exact native deployment acceptance; Crypto and Classic have exact static and isolated browser acceptance. The complete retained public stock original now replays with current reviewed compilers; whole public archive bytes match their content addresses. This does not verify current-head publication, source authenticity, observation times, point-in-time availability or investment efficacy. Stage 542 repairs a missed legacy category-to-score mapping in the Crypto Sentiment tab, reproduced with invented complete-renderer cases. All ten institutional workstreams remain OPEN.
+October 2 UTC, through Stage 542: stablecoin stock semantics have exact native deployment, whole retained-original replay and public static/browser acceptance. The missed Sentiment tab category-to-score mapping is now repaired and verified live. Stage 543 is the next Bitcoin sentiment source/calculation/history repair; its isolated prototype has 31 passing cases but is not integrated or deployed. Source authenticity, point-in-time availability, independent evidence, investment efficacy and reconciled portfolio consequences remain separate work. All ten institutional workstreams remain OPEN.
 
 ### Retained Stage 482 checkpoint
 
@@ -7715,3 +7715,12 @@ Read-only runner operation 6441 replayed the complete retained stock original wi
 ### Stage 542 residual Sentiment display repair
 
 Full-page tests found that the Sentiment tab still converted legacy stablecoin INFLOW/OUTFLOW/NEUTRAL strings to 75/25/50 despite the repaired stock panel. The candidate withholds that unsupported component independently of stored legacy labels and preserves the other four components. The test exercises the actual complete renderer, including a throwing legacy getter, malformed labels and unrelated valid observations. All prior complete predecessor assertions remain intact. Exact static and browser acceptance are still required. Separate sentiment-source audit reproductions found missing-as-50, boolean-as-one and one-row-as-seven/thirty-day-average defects; these remain open for the next engine repair.
+
+
+### Stage 542 exact served-page acceptance
+
+Source `e77a55f02f3aefd63e32476afaeca8f7b23ada55` is live through Pages run `36954005260`. The entire served Crypto HTML matches its commit-bound build manifest; the changed Sentiment component matches the source. All fourteen isolated browser scenarios on those served declarations/styles pass, with no requests, errors or overflow. Desktop/mobile screenshots are byte-identical to the inspected candidate screenshots. All 2743 frontend, 1033 deployment and fifteen shell checks passed, along with the Crypto engine suite, 599 page graphs, 899 contracts and 143 wiring declarations. Four new complete-renderer tests preserve unrelated observations and prove that the legacy net_signal field is never consumed by this mapping. This is the scoped page repair, not general sentiment-source or investment qualification.
+
+### Stage 543 source-review and candidate status
+
+The Bitcoin sentiment source still replaces missing values with 50, accepts a boolean as 1, labels a single observation as a 7D/30D average, mixes a local pre-2018 price formula with provider observations, samples old rows, and exposes that combined series under a 2016–present chart. Whole-source AST reproductions use invented data only. The provider’s public definition and API example were reviewed at https://alternative.me/crypto/fear-and-greed-index/; its publication timing and historical availability remain unverified. The separate candidate preserves every original row, validates the named series, uses explicit UTC observation dates, requires complete daily averaging windows, keeps duplicate/conflicting clocks explicit, and preserves original response attempts. Seventeen observation tests and fourteen capture/reconciliation tests pass outside the production repository. Storage integration, actual producer/consumer migration, native/static deployment and original acceptance remain pending. No candidate engine change has shipped. All ten workstreams remain OPEN.

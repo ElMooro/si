@@ -1,0 +1,51 @@
+{
+  "scope": "Source AST and invented mocked responses only; zero provider requests",
+  "source_sha256": "a89b66c3626f51a3d8c47c9637e4c714a7b128c9f9b3db9121daa115649d2029",
+  "reproductions": [
+    {
+      "invented_input": null,
+      "current": 50,
+      "avg_7d": 50,
+      "avg_30d": 50,
+      "history_observations": 1
+    },
+    {
+      "invented_input": true,
+      "current": 1,
+      "avg_7d": 1,
+      "avg_30d": 1,
+      "history_observations": 1
+    },
+    {
+      "invented_input": 0,
+      "current": 0,
+      "avg_7d": 0,
+      "avg_30d": 0,
+      "history_observations": 1
+    }
+  ],
+  "source_findings": [
+    "Combines locally derived pre-2018 price formula with provider observations",
+    "Samples older rows before full_history publication",
+    "Labels one available observation as both 7D and 30D averages"
+  ],
+  "source_documentation": "https://alternative.me/crypto/fear-and-greed-index/",
+  "source_qualified": false,
+  "stage": 543,
+  "status": "source_review_and_isolated_candidate_only",
+  "candidate_observation_tests": 17,
+  "candidate_capture_reconciliation_tests": 14,
+  "candidate_deployed": false,
+  "review_notes": [
+    "The provider documentation describes a Bitcoin index and requires adjacent attribution.",
+    "Current/future consumer projection must preserve denied Calls/forecast/sizing permissions.",
+    "Legacy private ledger contents must not be read, rewritten or used as acceptance evidence.",
+    "Existing requests and resource/schedule controls are preserved; no manual producer or provider invocation."
+  ],
+  "remaining": [
+    "Complete original retention and replay before publication",
+    "Consumer/source-field audit and invented full-handler tests",
+    "Historical plot and all-row inspection with correct time axis, gaps and source attribution",
+    "Required gates, exact deployment receipts, live static/browser acceptance and original-source replay"
+  ]
+}
