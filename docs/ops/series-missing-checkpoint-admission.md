@@ -9,7 +9,7 @@ neither that probe, criterion nor `series-admission-baseline.json` (SHA-256
 is authorized. Historical PR75 evidence remains in
 [series-checkpoint-admission.md](series-checkpoint-admission.md).
 
-Current main was revalidated at `6fe20c0484d8a2e08359a0df9558838c59420c0e`:
+Current main was initially revalidated at `6fe20c0484d8a2e08359a0df9558838c59420c0e`:
 producer bytes still equal the installed PR75 handler SHA-256
 `bcd80ce358aa433d9de33c45b9fb2900987c63046d343462b3c359b7c3724867`.
 DEPLOY_LANE.md, AUTONOMY.md, STATE.md and SESSION_CLAIMS.md were read; no
@@ -17,6 +17,10 @@ AGENTS.md or local .agents/skills instructions were available. Prior standalone
 work is not acceptance evidence. Claim `S-codex#semissing1002x4` is draft-only;
 no overlapping extractor source claim was active. Actual provider-catalog
 `_series_list` and SymDir `_page_rows`/`_page_row` were inspected and exercised.
+The final draft integration includes current main `1b4c0a4ec7e57a077107ac0d3d4acb0e890a7f52`. Its additional
+Compound work is retained without edits; it changes no extractor/consumer
+source, deployment workflow or PR75 acceptance baseline. Final-head gates and
+independent review are recorded in the draft PR description.
 
 ## Admission contract
 
@@ -28,11 +32,14 @@ Before returning the unchanged bootstrap state, the helper sequentially requests
 | 2 | `data/providers/{provider}/series-manifest.json` | `/` | 1 |
 
 Every new admission LIST has Delimiter. No continuation, StartAfter, paginator,
-parent/provider-wide prefix or archive/version scan is used. Existing discovery
-and legacy counter-seeding listings retain their exact request shapes; adding
-Delimiter there could change ordinary behavior and is outside this admission
-repair. Application code compares SDK-returned keys literally, without URL
-decoding or filesystem-path normalization.
+parent/provider-wide prefix or archive/version scan is used. The user clarified
+that this requirement applies to both new admission LISTs in this scoped draft.
+Pre-existing discovery and legacy counter-seeding listings omit Delimiter and
+retain their exact request shapes to avoid a separate behavior change. Their
+existing delimiter-rule discrepancy is explicitly out of scope; this is neither
+a waiver of that rule nor a claim that the entire engine conforms. Application
+code compares SDK-returned keys literally, without URL decoding or
+filesystem-path normalization.
 
 Each response must be a known dictionary shape, with matching bucket, prefix,
 delimiter and integer MaxKeys=1; HTTP status integer 200; IsTruncated exactly
