@@ -26,11 +26,13 @@ test("engine merges Yahoo onto katlin crypto-bars only", () => {
   assert.match(engine, /function isCryptoTape/);
   assert.match(engine, /crypto-bars/);
   assert.match(engine, /nowarehouse=1/);
-  assert.match(engine, /mergeByDay\(ydC, d\)/);
+  assert.match(engine, /mergeByDay\(ydC, tape\)/);
   assert.doesNotMatch(engine.slice(engine.indexOf("async function klines"), engine.indexOf("function computeChange")), /nowarehouse=1.*AAPL|AAPL.*nowarehouse=1/);
   const klines = engine.slice(engine.indexOf("async function klines"), engine.indexOf("function computeChange"));
   assert.match(klines, /isCryptoTape/);
   assert.match(klines, /polygon\+yahoo/);
+  assert.match(klines, /tapeStart/);
+  assert.doesNotMatch(klines, /ydC\[yi\]\.volume=null/);
 });
 
 test("catalog preserves every curated CryptoQuant harvest id and routes history through the strict parser", () => {
@@ -70,7 +72,7 @@ test("mergeBarsPrefer keeps warehouse prints on overlap and prepends Yahoo", asy
   const m = mergeBarsPrefer(older, newer);
   assert.equal(m.length, 3);
   assert.equal(m[0].close, 455);
-  assert.equal(m[0].value, 0);
+  assert.equal(m[0].value, 1);
   assert.equal(utcDay(m[0].time), 1410912000);
   assert.equal(m[1].close, 10050);
   assert.equal(m[1].value, 10);

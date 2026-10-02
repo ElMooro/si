@@ -986,11 +986,24 @@
   function volDoD(d, n, mult){
     n=n||50; mult=mult||2;
     var o=[], i, j;
-    if(!d||d.length<n+1) return o;
-    for(i=n;i<d.length;i++){
+    if(!d||!d.length) return o;
+    for(i=0;i<d.length;i++){
+      var b=d[i];
+      if(!b||b.time==null) continue;
+      if(i<n){ o.push({time:b.time}); continue; }
       var r=rvolAt(d, i, n);
-      if(r==null) continue;
-      var b=d[i], prev=d[i-1];
+      if(r==null){ o.push({time:b.time}); continue; }
+      var lo=1e99, hi=0, v;
+      for(j=i-n;j<=i;j++){
+        v=d[j]&&d[j].volume;
+        if(!(typeof v==="number"&&isFinite(v)&&v>0)){ lo=0; break; }
+        if(v<lo) lo=v;
+        if(v>hi) hi=v;
+      }
+      // A 50-bar window wider than 80× is two volume units (Yahoo USD notional
+      // vs the warehouse coin tape), not a capitulation. Leave a gap.
+      if(!(lo>0) || hi/lo>=80){ o.push({time:b.time}); continue; }
+      var prev=d[i-1];
       var range=b.high-b.low;
       var loc=range>0?(b.close-b.low)/range:0.5;
       var priorLo=1e99;
@@ -2074,8 +2087,10 @@
                 var ydC=asDaily(cleanWildTicks(toBars(yrawC)));
                 if(ydC.length>=8){
                   var n0=d.length, t0=d.length?d[0].time:0;
-                  for(var yi=0;yi<ydC.length;yi++) ydC[yi].volume=null;
-                  d=mergeByDay(ydC, d);
+                  var tapeStart=0;
+                  while(tapeStart<d.length && !(reportedVolume(d[tapeStart].volume)>0)) tapeStart++;
+                  var tape=d.slice(tapeStart);
+                  d=mergeByDay(ydC, tape);
                   if(d.length>n0 || (d.length && d[0].time<t0)) src=(src||"warehouse")+"+yahoo";
                 }
               }catch(eC){}
@@ -2955,9 +2970,15 @@
     on.forEach(function(o, idx){
       var sp=document.createElement("div"); sp.className="pane-split"; wrap.appendChild(sp);
       var pane=document.createElement("div"); pane.className="osc"; pane.id="osc"+idx; pane.setAttribute("data-oid", o.id);
-      pane.style.height=(o.h||118)+"px";
+      if(!(o.h>0)){
+        var layH=loadJSON(LAY_KEY,null);
+        var sxH=layH&&layH.osc&&layH.osc.filter(function(x){ return x.id===o.id; })[0];
+        if(sxH&&sxH.h>0) o.h=+sxH.h;
+      }
+      var paneH=Math.max(96, Math.min(720, o.h||(o.id==="voldd"?220:118)));
+      pane.style.height=paneH+"px";
       var head=document.createElement("div"); head.className="osc-head";
-      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><span class=leg-ops>"+
+      head.innerHTML="<span class=osc-n>"+o.n+"</span><span class=osc-v></span><button type=button data-act=grow title='Make this pane taller'>+</button><span class=leg-ops>"+
         "<button type=button data-act=help title='What is this'>?</button>"+
         "<button type=button data-act=eye title=Visibility>"+(o.hide?"○":"◉")+"</button>"+
         "<button type=button data-act=set title=Settings>⚙</button>"+
@@ -2965,6 +2986,18 @@
       pane.appendChild(head);
       var host=document.createElement("div"); host.className="osc-host"; pane.appendChild(host);
       wrap.appendChild(pane);
+      if(o.id==="voldd") head.title="Volume divided by this name's own prior average. BTC before the Sep 2020 warehouse tape uses Yahoo volume. A change of unit is a gap, not a spike. Drag the bar above this pane, or press +, to make it taller.";
+      head.querySelector("[data-act=grow]").onclick=function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        var cur=pane.getBoundingClientRect().height||118;
+        var steps=[160,220,300,400,520,640];
+        var next=steps[0], si;
+        for(si=0;si<steps.length;si++) if(steps[si]>cur+12){ next=steps[si]; break; }
+        if(cur+12>=steps[steps.length-1]) next=o.id==="voldd"?220:118;
+        pane.style.height=next+"px";
+        o.h=next;
+        saveLay();
+      };
       head.querySelector("[data-act=help]").onclick=function(){ if(window.jhInduxHelp) window.jhInduxHelp(o.id); };
       head.querySelector("[data-act=eye]").onclick=function(){ o.hide=!o.hide; saveLay(); if(lastBars.length) paint(lastBars); };
       head.querySelector("[data-act=set]").onclick=function(){ if(window.jhInduxSet) window.jhInduxSet(o, true); };
@@ -3132,16 +3165,19 @@ else if(o.id==="rvol"){
       else if(o.id==="voldd"){
         var vd=volDoD(d, o.p||50, o.mult>0?o.mult:2);
         var gate=o.mult>0?o.mult:2;
-        var hbV=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,title:"× avg", priceFormat:{type:"custom", minMove:0.01, formatter:function(v){ var n=Number(v); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}});
+        var cap=Math.max(6, gate*3);
+        var hbV=c.addHistogramSeries({lastValueVisible:true,priceLineVisible:false,base:0,title:"× avg", priceFormat:{type:"custom", minMove:0.01, formatter:function(v){ var n=Number(v); return Number.isFinite(n)?n.toFixed(1)+"×":""; }}});
         hbV.setData(vd.map(function(p){
-          var col="#546e7a";
+          if(p.value==null) return {time:p.time};
+          var col="#90a4ae";
           if(p.tag==="CAPIT") col=o.c3||"#ff6d00";
-          else if(p.tag==="STOP") col="#26c6da";
-          else if(p.tag==="OUT") col=o.c2||"#2962ff";
-          else if(p.value>=1) col="rgba(120,123,134,.72)";
-          else col="rgba(120,123,134,.35)";
+          else if(p.tag==="STOP") col="#00e5ff";
+          else if(p.tag==="OUT") col=o.c2||"#2979ff";
+          else if(p.value>=1) col="#cfd8dc";
+          else col="rgba(144,164,174,.45)";
           return {time:p.time, value:p.value, color:col};
         }));
+        try{ hbV.applyOptions({autoscaleInfoProvider:function(){ return {priceRange:{minValue:0, maxValue:cap}}; }}); }catch(eSc){}
         oscSeries.push(hbV);
         try{
           var oneV=c.addLineSeries({color:o.c||"#787b86",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"1× own avg"});
@@ -3152,11 +3188,10 @@ else if(o.id==="rvol"){
         }catch(e){}
         var veVd=head.querySelector(".osc-v");
         if(veVd){
-          if(!vd.length) veVd.textContent="Unavailable";
-          else {
-            var lastVd=vd[vd.length-1];
-            veVd.textContent=lastVd.value.toFixed(2)+"×"+(lastVd.tag==="CAPIT"?" CAPIT":lastVd.tag==="STOP"?" STOP":lastVd.tag==="OUT"?" outlier":"");
-          }
+          var lastVd=null, vi;
+          for(vi=vd.length-1; vi>=0; vi--) if(vd[vi].value!=null){ lastVd=vd[vi]; break; }
+          if(!lastVd) veVd.textContent="Unavailable";
+          else veVd.textContent=lastVd.value.toFixed(2)+"×"+(lastVd.tag==="CAPIT"?" CAPIT":lastVd.tag==="STOP"?" STOP":lastVd.tag==="OUT"?" outlier":"");
         }
       }
       else if(o.id==="bbw"){
@@ -3339,6 +3374,7 @@ else if(o.id==="rvol"){
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
+    window.jhSaveLay=saveLay;
   }
   function drawVP(d){
     lastVP={poc:null,vah:null,val:null};
@@ -5529,7 +5565,7 @@ else if(o.id==="rvol"){
   function saveLay(){
     function snap(arr){
       return arr.filter(function(i){ return i.on || i.hide || i.ob!=null || i.os!=null || i.p2!=null; }).map(function(i){
-        return {id:i.id,on:!!i.on,hide:!!i.hide,p:i.p,p2:i.p2,p3:i.p3,ob:i.ob,os:i.os,mult:i.mult,c:i.c,c2:i.c2,c3:i.c3,w:i.w};
+        return {id:i.id,on:!!i.on,hide:!!i.hide,p:i.p,p2:i.p2,p3:i.p3,ob:i.ob,os:i.os,mult:i.mult,c:i.c,c2:i.c2,c3:i.c3,w:i.w,h:i.h};
       });
     }
     saveJSON(LAY_KEY,{gridOn:gridOn,watermark:watermark,magnet:magnet,magnetMode:magnetMode,layout:layout,kind:kind,tf:tf,invert:invert,hiLo:hiLo,crossMode:crossMode,tzName:tzName,tzOff:tzOff,stayTool:stayTool,volOn:volOn,dark:dark,liveOn:liveOn,dwinOn:dwinOn,miniOn:miniOn,leftOn:leftOn,inds:snap(INDS),osc:snap(OSC)});

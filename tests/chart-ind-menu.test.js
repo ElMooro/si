@@ -97,6 +97,12 @@ test("price spread, day-to-day volume, and relative vol match the desk definitio
   const normal = quiet.slice();
   normal.push({ time: 1700000000 + 51 * 86400, open: 100, high: 101, low: 99, close: 100, volume: 1100000 });
   assert.equal(m.volDoD(normal, 50, 2).slice(-1)[0].tag, "");
+  const seam = [];
+  for (let i = 0; i < 50; i++) seam.push({ time: 1800000000 + i * 86400, open: 100, high: 101, low: 99, close: 100, volume: 3e10 });
+  seam.push({ time: 1800000000 + 50 * 86400, open: 100, high: 100, low: 90, close: 92, volume: 100 });
+  const seamLast = m.volDoD(seam, 50, 2).slice(-1)[0];
+  assert.equal(seamLast.value, undefined);
+  assert.equal(seamLast.tag, undefined);
 
   function wave(amp) {
     const o = [];

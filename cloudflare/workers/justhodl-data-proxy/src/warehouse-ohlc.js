@@ -116,10 +116,11 @@ export function mergeBarsPrefer(older, newer) {
   for (const row of older || []) {
     const t = utcDay(row && row.time);
     if (!t) continue;
+    const vol = row.value != null ? row.value : (row.volume || 0);
     m.set(t, {
       time: t,
       open: row.open, high: row.high, low: row.low, close: row.close,
-      value: 0
+      value: vol
     });
   }
   for (const row of newer || []) put(row);
