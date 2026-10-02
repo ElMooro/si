@@ -164,6 +164,7 @@ def inspect(lam, s3, events, scheduler, reader, opener=urllib.request.urlopen):
         require(isinstance(receipt_commit, str) and re.fullmatch('[a-fA-F0-9]{40}', receipt_commit), 'receipt_commit_invalid')
         deployed_at = receipt_clock(receipt.get('deployed_at'))
     if phase == 'candidate':
+        require(BASELINE.exists(), 'candidate_baseline_missing')
         require(receipt and receipt.get('verified') is True and receipt.get('function') == FUNCTION
                 and receipt.get('code_sha256') == live['CodeSha256']
                 and receipt.get('source', {}).get('lambda_function.py', {}).get('sha256') == hashlib.sha256(expected).hexdigest(),

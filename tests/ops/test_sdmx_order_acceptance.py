@@ -40,8 +40,6 @@ def fixture(candidate=True, alter=None, alter_receipt=None):
             'Environment': {'Variables': {**config['env'], 'PRIVATE_CANARY': 'DO_NOT_PUBLISH'}},
             'TracingConfig': {'Mode': 'Active'}, 'DeadLetterConfig': {
                 'TargetArn': 'arn:aws:sqs:us-east-1:857687956942:justhodl-dlq-default'}, 'Architectures': ['x86_64']}
-    if alter:
-        alter(live)
     def get_function(**kw):
         return {'Configuration': live, 'Code': {'Location': 'PRIVATE_SIGNED_URL'}}
     lam = types.SimpleNamespace(get_function=get_function,
@@ -63,6 +61,26 @@ def fixture(candidate=True, alter=None, alter_receipt=None):
         'RoleArn': 'PRIVATE_ROLE'}, 'FlexibleTimeWindow': {'Mode': 'OFF'}})
     def git_show(command, **kwargs):
         return predecessor if command[2].startswith('ab0a502c') else expected
+    if candidate:
+        # Capture a true predecessor baseline before testing candidate acceptance.
+        prior_package = io.BytesIO()
+        with zipfile.ZipFile(prior_package, 'w') as archive:
+            archive.writestr('lambda_function.py', predecessor)
+        prior_raw = prior_package.getvalue()
+        live['CodeSha256'] = base64.b64encode(hashlib.sha256(prior_raw).digest()).decode()
+        original_get_object = s3.get_object
+        s3.get_object = lambda **kw: None
+        baseline_path = Path(temporary.name) / 'baseline.json'
+        with patch.object(probe, 'ROOT', Path(temporary.name)), \
+             patch.object(probe, 'BASELINE', baseline_path), \
+             patch.object(probe.subprocess, 'check_output', git_show):
+            baseline = probe.inspect(lam, s3, events, scheduler, probe.Reader(),
+                                     opener=lambda *a, **k: io.BytesIO(prior_raw))
+        baseline_path.write_text(json.dumps(baseline), encoding='utf-8')
+        live['CodeSha256'] = code_sha
+        s3.get_object = original_get_object
+    if alter:
+        alter(live)
     return (lam, s3, events, scheduler), raw, git_show, temporary
 
 
@@ -85,7 +103,8 @@ def test_invalid_package_or_changed_control_stops():
     for alter, bad_package in ((lambda live: live.update(Timeout=1), False), (None, True)):
         clients, raw, git_show, temporary = fixture(alter=alter)
         with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
-             patch.object(probe, 'ROOT', Path(temporary.name)):
+             patch.object(probe, 'ROOT', Path(temporary.name)), \
+             patch.object(probe, 'BASELINE', Path(temporary.name) / 'baseline.json'):
             try:
                 probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(b'bad' if bad_package else raw))
             except probe.Stop as error:
@@ -110,6 +129,21 @@ def test_candidate_receipt_validation_and_source_failure_are_sanitized():
                 assert str(error) == reason
             else:
                 raise AssertionError('invalid receipt accepted')
+    for remove_baseline in (False, True):
+        clients, raw, git_show, temporary = fixture()
+        baseline_path = Path(temporary.name) / 'baseline.json'
+        if remove_baseline:
+            baseline_path.unlink()
+        else:
+            baseline_path.write_text(json.dumps({'operating_fingerprint': 'changed'}), encoding='utf-8')
+        with temporary, patch.object(probe.subprocess, 'check_output', git_show), \
+             patch.object(probe, 'ROOT', Path(temporary.name)), patch.object(probe, 'BASELINE', baseline_path):
+            try:
+                probe.inspect(*clients, probe.Reader(), opener=lambda *a, **k: io.BytesIO(raw))
+            except probe.Stop as error:
+                assert str(error) == ('candidate_baseline_missing' if remove_baseline else 'operating_controls_changed')
+            else:
+                raise AssertionError('missing/changed baseline accepted')
     with patch.object(probe.subprocess, 'check_output', side_effect=RuntimeError('PRIVATE_GIT_ERROR')):
         try:
             probe.commit_source('f' * 40, ROOT / 'source.py')
