@@ -1,6 +1,6 @@
 {
   "stage": 575,
-  "status": "candidate_validation_pending",
+  "status": "exact_static_code_verified",
   "base_commit": "30c2aaed531eefe8d7aa12c4e624935591f80cc0",
   "repairs": [
     "Explicit externalPane flag keeps the buyback accounting section out of the six native oscillator slots",
@@ -24,5 +24,7 @@
     }
   },
   "normal_publication_verified": false,
-  "investment_authority": false
+  "investment_authority": false,
+  "source_commit": "a265ffcee65ad0f55e1d8ad4228b029f3c0100cc",
+  "acceptance": "docs/audit/2026-10-02/chart-external-pane-acceptance.json"
 }
