@@ -152,6 +152,7 @@
   };
 })();
 (function () {
+  if (typeof document === "undefined") return;
   if (document.getElementById("jh-struct-src")) return;
   var s = document.createElement("script");
   s.id = "jh-struct-src";
