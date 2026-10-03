@@ -1,5 +1,26 @@
 /* NYSE session VWAP on lastBars. America/New_York, not UTC day. */
 (function () {
+  function bindDesk(el, chart) {
+    if (!el || (el.id !== "host" && el.id !== "chart") || !chart || chart.__desk) return;
+    chart.__desk = 1;
+    window.jhDeskChart = chart;
+    ["addCandlestickSeries", "addBarSeries", "addBaselineSeries"].forEach(function (name) {
+      if (!chart[name] || chart[name].__desk) return;
+      var fn = chart[name];
+      chart[name] = function () { var s = fn.apply(chart, arguments); window.jhDeskSeries = s; return s; };
+      chart[name].__desk = 1;
+    });
+  }
+  var LC = window.LightweightCharts;
+  if (LC && LC.createChart && !LC.createChart.__desk) {
+    var orig = LC.createChart;
+    LC.createChart = function (el) {
+      var chart = orig.apply(this, arguments);
+      bindDesk(el, chart);
+      return chart;
+    };
+    LC.createChart.__desk = true;
+  }
   function nyParts(ts) {
     var s = new Date(ts * 1000).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
     var p = s.match(/(\d+)\/(\d+)\/(\d+),\s*(\d+):(\d+)/);
