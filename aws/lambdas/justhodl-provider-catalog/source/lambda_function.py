@@ -340,63 +340,21 @@ REG = {
                   "series_extracted"),
   "_series_from_legacy": ("data/warm/ecb/catalog.json.gz",
                           "dataflows")},
- # ---- ops 1123 (2026-02-02): 11 new free data providers (force deploy) ----
- "usaspending": {"name": "USASpending \u2014 federal contracts",
-  "api": "api.usaspending.gov/api/v2",
-  "engines": ["justhodl-usaspending"],
-  "prefixes": [], "hot": ["data/usaspending-contracts.json"],
-  "cadence": "DAILY", "label": "Federal contract awards mapped to tickers"},
- "prediction-markets": {"name": "Prediction Markets \u2014 Kalshi/Polymarket",
-  "api": "api.elections.kalshi.com + gamma-api.polymarket.com",
-  "engines": ["justhodl-prediction-markets"],
-  "prefixes": [], "hot": ["data/prediction-markets.json"],
-  "cadence": "HOURLY", "label": "Market-implied odds: Fed, elections, recession"},
- "biotech-catalysts": {"name": "Biotech Catalysts \u2014 clinicaltrials.gov",
-  "api": "clinicaltrials.gov/api/v2",
-  "engines": ["justhodl-biotech-catalysts"],
-  "prefixes": [], "hot": ["data/biotech-catalysts.json"],
-  "cadence": "DAILY", "label": "Trial phase transitions + PDUFA watch by ticker"},
- "activist-radar": {"name": "Activist Radar \u2014 13D/13G",
-  "api": "data.sec.gov/submissions",
-  "engines": ["justhodl-activist-radar"],
-  "prefixes": [], "hot": ["data/activist-radar.json"],
-  "cadence": "DAILY", "label": "Beneficial ownership: activist accumulation events"},
- "ipo-calendar": {"name": "IPO Calendar \u2014 S-1 filings",
-  "api": "data.sec.gov/submissions",
-  "engines": ["justhodl-ipo-calendar"],
-  "prefixes": [], "hot": ["data/ipo-calendar.json"],
-  "cadence": "DAILY", "label": "Filed/priced/withdrawn IPOs from EDGAR S-1s"},
- "sentiment-surveys": {"name": "Sentiment Surveys \u2014 AAII/NAAIM",
-  "api": "aaii.com + naaim.org",
-  "engines": ["justhodl-sentiment-surveys"],
-  "prefixes": [], "hot": ["data/sentiment-surveys.json"],
-  "cadence": "WEEKLY", "label": "AAII bull/bear + NAAIM exposure (contrarian gauges)"},
- "ici-flows": {"name": "ICI \u2014 mutual fund flows",
-  "api": "ici.org",
-  "engines": ["justhodl-ici-flows"],
-  "prefixes": [], "hot": ["data/ici-fund-flows.json"],
-  "cadence": "WEEKLY", "label": "Weekly mutual fund/ETF flow estimates"},
- "uspto-patents": {"name": "USPTO \u2014 patents",
-  "api": "api.uspto.gov/patentsview",
-  "engines": ["justhodl-uspto-patents"],
-  "prefixes": [], "hot": ["data/uspto-patents.json"],
-  "cadence": "WEEKLY", "label": "Corporate patent filings mapped to tickers"},
- "regsho": {"name": "Reg SHO \u2014 threshold list",
-  "api": "nasdaqtrader.com",
-  "engines": ["justhodl-regsho"],
-  "prefixes": [], "hot": ["data/regsho-threshold.json"],
-  "cadence": "DAILY", "label": "Reg SHO threshold securities (squeeze candidates)"},
- "retail-attention": {"name": "Retail Attention \u2014 Wikipedia pageviews",
-  "api": "wikimedia.org/api/rest_v1",
-  "engines": ["justhodl-retail-attention"],
-  "prefixes": [], "hot": ["data/retail-attention.json"],
-  "cadence": "DAILY", "label": "Wikipedia attention scores by ticker"},
- "earnings-transcripts": {"name": "Earnings Transcripts",
-  "api": "(free transcript sources)",
-  "engines": ["justhodl-earnings-transcripts"],
-  "prefixes": [], "hot": ["data/earnings-transcripts.json"],
-  "cadence": "EARNINGS", "label": "Earnings call transcripts for S&P 500"},
+
 }
+
+
+def _load_extra_providers():
+    """ops 1129: load additional providers from S3 (data-driven, no code changes)."""
+    try:
+        extra = _get_json("data/providers/extra-providers.json")
+        if isinstance(extra, dict):
+            return extra
+        if isinstance(extra, list):
+            return {p.get("slug", p.get("id")): p for p in extra if isinstance(p, dict)}
+    except Exception:
+        pass
+    return {}
 
 
 def _get_json(key):
@@ -754,6 +712,14 @@ def lambda_handler(event, context):
         "id UNINDEXED,provider,provider_name UNINDEXED,title,key,"
         "kind UNINDEXED,nbytes UNINDEXED,age_h UNINDEXED,hot UNINDEXED,"
         "tokenize='unicode61 remove_diacritics 2')")
+    # ops 1129: merge S3-driven extra providers (data/providers/extra-providers.json)
+    try:
+        _extra = _load_extra_providers()
+        for _slug, _prov in _extra.items():
+            if _slug and _slug not in REG:
+                REG[_slug] = _prov
+    except Exception:
+        pass
     for slug, r in REG.items():
         keys = []
         tot = 0
