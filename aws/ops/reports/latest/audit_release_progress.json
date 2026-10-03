@@ -1,22 +1,22 @@
 {
-  "observed_at": "2026-10-03T16:13:34.498107+00:00",
+  "observed_at": "2026-10-03T16:14:09.451654+00:00",
   "runs": [
     {
       "id": 37135948558,
       "path": ".github/workflows/pages.yml",
       "head_sha": "59912cde3683888fb5906692d3518bf5170c09db",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-10-03T16:11:40Z",
-      "updated_at": "2026-10-03T16:11:45Z",
+      "updated_at": "2026-10-03T16:13:27Z",
       "jobs": [
         {
           "id": 111240395091,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "started_at": "2026-10-03T16:11:44Z",
-          "completed_at": null,
+          "completed_at": "2026-10-03T16:13:27Z",
           "steps": [
             {
               "number": 1,
@@ -165,100 +165,206 @@
             {
               "number": 19,
               "name": "Bake engine directory (source references; availability unchecked)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 20,
               "name": "Preserve provider page source (offline; no live inventory snapshot)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 21,
               "name": "Reskin legacy palette -> Amber (all pages; index+screener untouched)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 22,
               "name": "Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 23,
               "name": "Bake SEO layer (canonical/OG/description + sitemap)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 24,
               "name": "Build complete producer-to-page data contracts",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 25,
               "name": "Final built page syntax gate",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 26,
               "name": "Block repository-only directories in public artifact",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 27,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 28,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 55,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             },
             {
               "number": 56,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
+            },
+            {
+              "number": 57,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T16:13:24Z",
+              "completed_at": "2026-10-03T16:13:24Z"
             }
-          ]
+          ],
+          "failure_diagnostics": {
+            "available": true,
+            "function_failures": [],
+            "exception_types": [
+              "AbortError",
+              "AssertionError"
+            ],
+            "aws_error_codes": [],
+            "missing_modules": [],
+            "traceback_locations": [],
+            "failed_test_names": [],
+            "javascript_test_locations": [
+              "chart-docked-volume.test.js:3:1",
+              "chart-docked-volume.test.js:3:88",
+              "chart-external-pane.test.js:3:1",
+              "chart-external-pane.test.js:3:132",
+              "chart-html-labels-preservation.test.js:3:1",
+              "chart-html-labels-preservation.test.js:3:92",
+              "chart-latest-volume.test.js:17:1",
+              "chart-latest-volume.test.js:18:105",
+              "chart-market-volume-preservation.test.js:3:1",
+              "chart-market-volume-preservation.test.js:3:108",
+              "chart-observation-axis-preservation.test.js:3:1",
+              "chart-observation-axis-preservation.test.js:3:102",
+              "chart-observation-points-preservation.test.js:3:1",
+              "chart-observation-points-preservation.test.js:3:95",
+              "chart-observation-preservation.test.js:4:1",
+              "chart-obv-preservation.test.js:3:1",
+              "chart-obv-preservation.test.js:3:143",
+              "chart-paint-ownership-preservation.test.js:3:1",
+              "chart-paint-ownership-preservation.test.js:3:98",
+              "chart-ratio-precision.test.js:10:1",
+              "chart-ratio-precision.test.js:10:159",
+              "chart-refresh-status-preservation.test.js:3:1",
+              "chart-refresh-status-preservation.test.js:3:96",
+              "chart-search-status.test.js:22:1",
+              "chart-signed-volume-preservation.test.js:3:1",
+              "chart-signed-volume-preservation.test.js:3:97",
+              "chart-volume-definition-preservation.test.js:3:1",
+              "chart-volume-definition-preservation.test.js:3:93",
+              "chart-volume-outlier.test.js:16:1",
+              "chart-volume-outlier.test.js:16:145",
+              "chart-volume-profile.test.js:35:1",
+              "chart-volume-profile.test.js:35:146",
+              "chart-warehouse-volume.test.js:50:1",
+              "chart-warehouse-volume.test.js:50:144",
+              "crypto-sentiment-chart-integration.test.js:4:1",
+              "crypto-sentiment-chart-integration.test.js:4:248",
+              "observation-cache-preservation.test.js:3:1",
+              "observation-diagnostics-preservation.test.js:3:1",
+              "warehouse-observation-preservation.test.js:4:1"
+            ],
+            "failed_javascript_test_numbers": [
+              533,
+              539,
+              551,
+              617,
+              620,
+              640,
+              671,
+              681,
+              685,
+              699,
+              737,
+              743,
+              774,
+              786,
+              817,
+              832,
+              841,
+              894,
+              1034,
+              1889,
+              1903,
+              2720
+            ],
+            "validation_failures": [],
+            "failed_functions": [],
+            "deployed_functions": []
+          }
+        },
+        {
+          "id": 111240706066,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-03T16:13:27Z",
+          "completed_at": "2026-10-03T16:13:27Z",
+          "steps": []
+        },
+        {
+          "id": 111240706666,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-03T16:13:27Z",
+          "completed_at": "2026-10-03T16:13:27Z",
+          "steps": []
         }
       ]
     },
