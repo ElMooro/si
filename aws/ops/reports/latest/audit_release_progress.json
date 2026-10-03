@@ -1,6 +1,194 @@
 {
-  "observed_at": "2026-10-03T00:00:39.976224+00:00",
+  "observed_at": "2026-10-03T00:17:49.770134+00:00",
   "runs": [
+    {
+      "id": 37081170830,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "head_sha": "8d49579069d376afaec7933f90bea4621a9cd9c5",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-03T00:13:53Z",
+      "updated_at": "2026-10-03T00:17:13Z",
+      "jobs": [
+        {
+          "id": 111081799744,
+          "name": "Deploy changed Lambdas",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-10-03T00:13:56Z",
+          "completed_at": "2026-10-03T00:17:13Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:13:57Z",
+              "completed_at": "2026-10-03T00:13:57Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:13:57Z",
+              "completed_at": "2026-10-03T00:14:12Z"
+            },
+            {
+              "number": 3,
+              "name": "Pin exact recovery checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:14:12Z",
+              "completed_at": "2026-10-03T00:14:12Z"
+            },
+            {
+              "number": 4,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:14:12Z",
+              "completed_at": "2026-10-03T00:14:12Z"
+            },
+            {
+              "number": 5,
+              "name": "Detect changed Lambdas",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:14:12Z",
+              "completed_at": "2026-10-03T00:14:19Z"
+            },
+            {
+              "number": 6,
+              "name": "Run deployment preflight tests",
+              "status": "completed",
+              "conclusion": "failure",
+              "started_at": "2026-10-03T00:14:19Z",
+              "completed_at": "2026-10-03T00:17:06Z"
+            },
+            {
+              "number": 7,
+              "name": "Prime selected governed aliases before any code staging",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T00:17:06Z",
+              "completed_at": "2026-10-03T00:17:06Z"
+            },
+            {
+              "number": 8,
+              "name": "Preserve long validation connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T00:17:06Z",
+              "completed_at": "2026-10-03T00:17:06Z"
+            },
+            {
+              "number": 9,
+              "name": "Deploy each changed Lambda",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T00:17:06Z",
+              "completed_at": "2026-10-03T00:17:06Z"
+            },
+            {
+              "number": 10,
+              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:06Z",
+              "completed_at": "2026-10-03T00:17:10Z"
+            },
+            {
+              "number": 11,
+              "name": "Preserve numbered candidate release evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:10Z",
+              "completed_at": "2026-10-03T00:17:10Z"
+            },
+            {
+              "number": 12,
+              "name": "Commit Function URL patches back",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T00:17:10Z",
+              "completed_at": "2026-10-03T00:17:10Z"
+            },
+            {
+              "number": 13,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:10Z",
+              "completed_at": "2026-10-03T00:17:10Z"
+            },
+            {
+              "number": 25,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:10Z",
+              "completed_at": "2026-10-03T00:17:10Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:10Z",
+              "completed_at": "2026-10-03T00:17:11Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T00:17:11Z",
+              "completed_at": "2026-10-03T00:17:11Z"
+            }
+          ],
+          "failure_diagnostics": {
+            "available": true,
+            "function_failures": [],
+            "exception_types": [
+              "AttributeError",
+              "RuntimeError",
+              "TypeError"
+            ],
+            "aws_error_codes": [],
+            "missing_modules": [],
+            "traceback_locations": [
+              {
+                "path": "tests/deployment/test_worker_evidence_publisher.py",
+                "line": 277
+              },
+              {
+                "path": "tests/deployment/test_worker_evidence_publisher.py",
+                "line": 87
+              },
+              {
+                "path": "tests/deployment/run_tests.py",
+                "line": 20
+              },
+              {
+                "path": "tests/deployment/test_worker_evidence_publisher.py",
+                "line": 276
+              },
+              {
+                "path": "tests/deployment/test_worker_evidence_publisher.py",
+                "line": 45
+              }
+            ],
+            "failed_test_names": [],
+            "javascript_test_locations": [],
+            "failed_javascript_test_numbers": [],
+            "validation_failures": [],
+            "failed_functions": [],
+            "deployed_functions": []
+          }
+        }
+      ]
+    },
     {
       "id": 37079892536,
       "path": ".github/workflows/run-ops.yml",
