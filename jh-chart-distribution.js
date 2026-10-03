@@ -35,11 +35,9 @@
     return { time: t, position: pos, color: color, shape: shape, text: text };
   }
 
-  /* Confirmed distribution sequences. Each event is the bar where the rally
-     failed its proof, not the first up day. */
   function distributionScan(d) {
     if (!d || d.length < 280) return [];
-    var highs = [], lows = [], i, j;
+    var highs = [], lows = [], i;
     for (i = 40; i < d.length - 12; i++) {
       if (swingHigh(d, i, 8, 5)) highs.push(i);
       if (swingLow(d, i, 8, 5)) lows.push(i);
@@ -80,7 +78,6 @@
       var worseEffort = effA > 0 && effB > effA * 1.1 && resB < resA * 0.85;
       var smallNet = (d[h].high / d[prevH].high - 1) < 0.025 && resB < resA;
       if (!worseEffort && !smallNet) continue;
-
       var wave = d[h].high - d[lowB].low;
       if (wave <= 0) continue;
       var gave = -1, t;
@@ -93,21 +90,13 @@
       var reclaimed = false;
       for (t = gave; t <= confirm; t++) if (d[t].close >= d[h].high * 0.998) reclaimed = true;
       if (reclaimed) continue;
-
       var priorDrop = d[prevH].high ? (d[lowB].low / d[prevH].high - 1) : 0;
       var newLow = gave, nl;
       for (nl = h + 1; nl <= confirm; nl++) if (d[nl].low < d[newLow].low) newLow = nl;
       var newDrop = d[h].high ? d[newLow].low / d[h].high - 1 : 0;
       var worseReaction = newDrop < priorDrop - 0.005 || newDrop <= -0.045;
       if (!worseReaction && newDrop > -0.03) continue;
-
-      out.push({
-        i: confirm,
-        time: d[confirm].time,
-        highI: h,
-        highTime: d[h].time,
-        text: "DIST"
-      });
+      out.push({ i: confirm, time: d[confirm].time, highI: h, highTime: d[h].time, text: "DIST" });
       lastEmit = h;
       lastHighPx = d[h].high;
     }
@@ -161,4 +150,11 @@
       try { window.paint(window.lastBars); } catch (e) {}
     }
   };
+})();
+(function () {
+  if (document.getElementById("jh-struct-src")) return;
+  var s = document.createElement("script");
+  s.id = "jh-struct-src";
+  s.src = "/jh-chart-structure.js?v=20261003struct3";
+  document.head.appendChild(s);
 })();
