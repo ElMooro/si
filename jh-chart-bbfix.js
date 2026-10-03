@@ -1,16 +1,14 @@
 /* Bollinger safety and BTC volume. No engine edit.
-   The engine paints with its own paint(), not window.paint, and one bad
-   setData aborts the rest of the indicator pass. Clean the line data and
-   continue. BTC daily volume is quote dollars until the warehouse join and base coins
-   after it. Turn the coin side into dollars, then level-match the older dollar
-   prints to that feed so one histogram can show 2021 onward. */
+   alignBeforePaint: scale the coin side before paint reads the bars.
+   One bad setData must not abort the rest of the indicator pass. */
 (function () {
   if (typeof window === "undefined" || window.__jhBbFix) return;
   window.__jhBbFix = 1;
   function finite(v) { return typeof v === "number" && isFinite(v); }
   function isBtc() {
-    var s = String(window.jhActive || window.active || "").toUpperCase();
-    return s === "BTC" || s === "BTCUSD" || s === "BTCUSDT" || s === "BTC-USD" || s === "X:BTCUSD";
+    var el = document.getElementById("symin");
+    var s = String(window.jhActive || window.active || (el && el.value) || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return s.indexOf("BTC") === 0 || s.indexOf("XBTC") >= 0;
   }
   function align(d) {
     if (!d || d.length < 40 || d.__jhVol || !isBtc()) return;
@@ -80,39 +78,38 @@
     }
     return out;
   }
+  function guardSeries(s) {
+    if (!s || !s.setData || s.setData.__jh) return;
+    var sd = s.setData.bind(s);
+    function setData(data) {
+      try { return sd(data); }
+      catch (e) { try { return sd(sane(data)); } catch (e2) {} }
+    }
+    setData.__jh = 1;
+    s.setData = setData;
+  }
   function hook(chart) {
-    if (!chart || chart.__jhBbHook || !chart.applyOptions || !chart.addLineSeries) return false;
+    if (!chart || chart.__jhBbHook || !chart.addLineSeries) return false;
     chart.__jhBbHook = 1;
-    var apply = chart.applyOptions.bind(chart);
-    chart.applyOptions = function () {
-      try { align(window.lastBars); } catch (e) {}
-      return apply.apply(chart, arguments);
-    };
-    var addLine = chart.addLineSeries.bind(chart);
-    chart.addLineSeries = function () {
-      var s = addLine.apply(chart, arguments);
-      if (s && s.setData && !s.setData.__jh) {
-        var sd = s.setData.bind(s);
-        function setData(data) {
-          try { return sd(data); }
-          catch (e) { try { return sd(sane(data)); } catch (e2) {} }
-        }
-        setData.__jh = 1;
-        s.setData = setData;
-      }
-      return s;
-    };
+    ["addLineSeries", "addHistogramSeries"].forEach(function (name) {
+      if (!chart[name]) return;
+      var fn = chart[name].bind(chart);
+      chart[name] = function () {
+        var s = fn.apply(chart, arguments);
+        guardSeries(s);
+        return s;
+      };
+    });
     return true;
   }
-  var painted = 0;
-  var n = 0;
-  var t = setInterval(function () {
+  var seen = null;
+  setInterval(function () {
     var chart = window.jhDeskChart || window.chart;
-    var ok = hook(chart);
-    if (ok && !painted && window.paint && window.lastBars && window.lastBars.length) {
-      painted = 1;
-      try { window.paint(window.lastBars); } catch (e) {}
-    }
-    if ((ok && painted) || ++n > 80) clearInterval(t);
-  }, 50);
+    hook(chart);
+    var bars = window.lastBars;
+    if (!bars || bars === seen || !window.paint) return;
+    try { align(bars); } catch (e) {}
+    seen = bars;
+    try { window.paint(bars); } catch (e2) {}
+  }, 250);
 })();
