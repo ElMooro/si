@@ -1,6 +1,6 @@
 /* Bollinger safety and BTC volume. No engine edit.
    alignBeforePaint: scale the coin side before paint reads the bars.
-   One bad setData must not abort the rest of the indicator pass. */
+   jhBbFrame: arm Bollinger once, then open on the last 160 bars so the band is readable. */
 (function () {
   if (typeof window === "undefined" || window.__jhBbFix) return;
   window.__jhBbFix = 1;
@@ -102,14 +102,43 @@
     });
     return true;
   }
+  function armBb() {
+    var inds = window.INDS, i, bb = null, armed = false;
+    if (!inds) return;
+    for (i = 0; i < inds.length; i++) if (inds[i] && inds[i].id === "bb") bb = inds[i];
+    if (!bb) return;
+    try { armed = localStorage.getItem("jh-bb-armed") === "1"; } catch (e) {}
+    if (armed) return;
+    bb.on = true;
+    bb.hide = false;
+    try { localStorage.setItem("jh-bb-armed", "1"); } catch (e2) {}
+    try { if (window.jhSaveLay) window.jhSaveLay(); } catch (e3) {}
+  }
+  var framedKey = "";
+  function frame(chart) {
+    var bars = window.lastBars;
+    var key = String(window.jhActive || "") + "|" + String(window.tf || "");
+    if (!chart || !chart.timeScale || !bars || bars.length < 40 || framedKey === key) return;
+    framedKey = key;
+    try {
+      chart.timeScale().setVisibleLogicalRange({
+        from: Math.max(-0.5, bars.length - 160),
+        to: bars.length + 5
+      });
+    } catch (e) {}
+  }
   var seen = null;
   setInterval(function () {
     var chart = window.jhDeskChart || window.chart;
     hook(chart);
     var bars = window.lastBars;
     if (!bars || bars === seen || !window.paint) return;
+    try { armBb(); } catch (e0) {}
     try { align(bars); } catch (e) {}
     seen = bars;
-    try { window.paint(bars); } catch (e2) {}
+    var painted = null;
+    try { painted = window.paint(bars); } catch (e2) {}
+    if (painted && painted.then) painted.then(function () { frame(window.jhDeskChart || window.chart); }, function () {});
+    else frame(chart);
   }, 250);
 })();
