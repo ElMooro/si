@@ -1,0 +1,2 @@
+/* Loader note. distribution.js should append this after its IIFE.
+   Not executed by itself. The real load is the script tag added to distribution.js. */
