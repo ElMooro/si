@@ -1544,3 +1544,4 @@ def lambda_handler(event, context):
 
 # ops 1123g: force deploy 2026-10-03
 # ops 1129c: sync trigger
+# ops 1129e: trigger deploy for probe fix
