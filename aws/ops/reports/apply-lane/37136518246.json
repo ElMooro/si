@@ -1,0 +1,26 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "37136518246",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/37136518246",
+ "base_sha": "41e94a4ca2309c09803f1f0a5d0950089945d19c",
+ "result_sha": "fbbd5572fd7eee357277eed2bc13f6158eafefff",
+ "patchers": [
+  "grok_chart_desk_bind_revert.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "jh-chart-engine.js"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-10-03T16:21:27Z"
+}
