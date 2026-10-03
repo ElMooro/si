@@ -26,24 +26,34 @@
     if (!row) return id === "avwap" ? state.avwap : id === "vprof" ? state.vp : state.ref;
     return row.on === 1 || row.on === true;
   }
-  var LC = window.LightweightCharts;
-  if (LC && LC.createChart && !LC.createChart.__desk) {
+  function isMain(el) {
+    if (!el || !el.id) return false;
+    return el.id === "host" || el.id === "chart";
+  }
+  function bind(chart) {
+    if (!chart || chart.__desk) return;
+    chart.__desk = 1;
+    window.jhDeskChart = chart;
+    ["addCandlestickSeries", "addBarSeries", "addBaselineSeries"].forEach(function (name) {
+      if (!chart[name] || chart[name].__desk) return;
+      var fn = chart[name];
+      chart[name] = function () { var s = fn.apply(chart, arguments); window.jhDeskSeries = s; return s; };
+      chart[name].__desk = 1;
+    });
+    try { chart.timeScale().subscribeVisibleLogicalRangeChange(draw); } catch (e) {}
+  }
+  function wrapCreate() {
+    var LC = window.LightweightCharts;
+    if (!LC || !LC.createChart || LC.createChart.__desk) return;
     var orig = LC.createChart;
     LC.createChart = function (el) {
       var chart = orig.apply(this, arguments);
-      if (el && el.id === "chart") {
-        window.jhDeskChart = chart;
-        ["addCandlestickSeries", "addBarSeries"].forEach(function (name) {
-          if (!chart[name]) return;
-          var fn = chart[name];
-          chart[name] = function () { var s = fn.apply(chart, arguments); window.jhDeskSeries = s; return s; };
-        });
-        try { chart.timeScale().subscribeVisibleLogicalRangeChange(draw); } catch (e) {}
-      }
+      if (isMain(el)) bind(chart);
       return chart;
     };
     LC.createChart.__desk = true;
   }
+  wrapCreate();
   function bars() { return window.lastBars || []; }
   function visible(chart, d) {
     var range = null;
@@ -135,8 +145,9 @@
     host.appendChild(row); host.appendChild(lab);
   }
   function draw() {
+    wrapCreate();
     ensure();
-    var chart = window.jhDeskChart, series = window.jhDeskSeries, d = bars();
+    var chart = window.jhDeskChart || window.chart, series = window.jhDeskSeries || window.mainSeries, d = bars();
     if (!chart || !series || !d.length) return;
     var el = null;
     try { el = chart.chartElement(); } catch (e) {}
