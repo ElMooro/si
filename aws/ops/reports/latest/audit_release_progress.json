@@ -1,6 +1,369 @@
 {
-  "observed_at": "2026-10-03T13:32:16.657963+00:00",
+  "observed_at": "2026-10-03T14:07:28.430969+00:00",
   "runs": [
+    {
+      "id": 37128275952,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "head_sha": "d6886eab8bce00b81275921d9a5ea9b734a18e79",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-03T14:02:56Z",
+      "updated_at": "2026-10-03T14:06:55Z",
+      "jobs": [
+        {
+          "id": 111217979457,
+          "name": "Deploy changed Lambdas",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-10-03T14:03:00Z",
+          "completed_at": "2026-10-03T14:06:54Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:03:01Z",
+              "completed_at": "2026-10-03T14:03:02Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:03:02Z",
+              "completed_at": "2026-10-03T14:03:15Z"
+            },
+            {
+              "number": 3,
+              "name": "Pin exact recovery checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:03:15Z",
+              "completed_at": "2026-10-03T14:03:15Z"
+            },
+            {
+              "number": 4,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:03:15Z",
+              "completed_at": "2026-10-03T14:03:16Z"
+            },
+            {
+              "number": 5,
+              "name": "Detect changed Lambdas",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:03:16Z",
+              "completed_at": "2026-10-03T14:03:22Z"
+            },
+            {
+              "number": 6,
+              "name": "Run deployment preflight tests",
+              "status": "completed",
+              "conclusion": "failure",
+              "started_at": "2026-10-03T14:03:22Z",
+              "completed_at": "2026-10-03T14:06:44Z"
+            },
+            {
+              "number": 7,
+              "name": "Prime selected governed aliases before any code staging",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T14:06:44Z",
+              "completed_at": "2026-10-03T14:06:44Z"
+            },
+            {
+              "number": 8,
+              "name": "Preserve long validation connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T14:06:44Z",
+              "completed_at": "2026-10-03T14:06:44Z"
+            },
+            {
+              "number": 9,
+              "name": "Deploy each changed Lambda",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T14:06:44Z",
+              "completed_at": "2026-10-03T14:06:44Z"
+            },
+            {
+              "number": 10,
+              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:44Z",
+              "completed_at": "2026-10-03T14:06:49Z"
+            },
+            {
+              "number": 11,
+              "name": "Preserve numbered candidate release evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:49Z",
+              "completed_at": "2026-10-03T14:06:50Z"
+            },
+            {
+              "number": 12,
+              "name": "Commit Function URL patches back",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-03T14:06:50Z",
+              "completed_at": "2026-10-03T14:06:50Z"
+            },
+            {
+              "number": 13,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:50Z",
+              "completed_at": "2026-10-03T14:06:50Z"
+            },
+            {
+              "number": 25,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:50Z",
+              "completed_at": "2026-10-03T14:06:51Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:51Z",
+              "completed_at": "2026-10-03T14:06:51Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-03T14:06:51Z",
+              "completed_at": "2026-10-03T14:06:51Z"
+            }
+          ],
+          "failure_diagnostics": {
+            "available": true,
+            "function_failures": [],
+            "exception_types": [
+              "AssertionError",
+              "RuntimeError"
+            ],
+            "aws_error_codes": [],
+            "missing_modules": [],
+            "traceback_locations": [
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_acceptance_bounds.py",
+                "line": 65
+              },
+              {
+                "path": "aws/ops/staged/ops_6438_provider_catalog_pages_acceptance.py",
+                "line": 85
+              },
+              {
+                "path": "aws/ops/staged/ops_6438_provider_catalog_pages_acceptance.py",
+                "line": 38
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_acceptance_bounds.py",
+                "line": 75
+              },
+              {
+                "path": "aws/ops/staged/ops_6438_provider_catalog_pages_acceptance.py",
+                "line": 85
+              },
+              {
+                "path": "aws/ops/staged/ops_6438_provider_catalog_pages_acceptance.py",
+                "line": 38
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_acceptance_bounds.py",
+                "line": 90
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_acceptance_bounds.py",
+                "line": 83
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 23
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 40
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 53
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 80
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/test_list_pages.py",
+                "line": 35
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 157
+              },
+              {
+                "path": "aws/lambdas/justhodl-provider-catalog/tests/catalog_fixture.py",
+                "line": 39
+              }
+            ],
+            "failed_test_names": [
+              "test_complete_handler_boundary_inventories",
+              "test_empty_final_page_is_drained",
+              "test_extra_target_page_stops_without_following_token",
+              "test_independent_chains_overlaps_hot_duplicates_order_and_markers",
+              "test_second_page_failure_propagates_without_complete_publication",
+              "test_short_and_empty_truncated_pages_follow_tokens",
+              "test_unknown_release_controls_stop_before_schedule_or_body_reads"
+            ],
+            "javascript_test_locations": [],
+            "failed_javascript_test_numbers": [],
+            "validation_failures": [],
+            "failed_functions": [],
+            "deployed_functions": []
+          }
+        }
+      ]
+    },
     {
       "id": 37126060373,
       "path": ".github/workflows/run-ops.yml",
@@ -6082,354 +6445,6 @@
           "started_at": "2026-10-03T05:20:52Z",
           "completed_at": "2026-10-03T05:20:52Z",
           "steps": []
-        }
-      ]
-    },
-    {
-      "id": 37098529559,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "fe83c47b72d9dbf4d1380c3e4e9c5db70cff4604",
-      "status": "completed",
-      "conclusion": "failure",
-      "created_at": "2026-10-03T05:02:32Z",
-      "updated_at": "2026-10-03T05:04:17Z",
-      "jobs": [
-        {
-          "id": 111133410155,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "failure",
-          "started_at": "2026-10-03T05:03:19Z",
-          "completed_at": "2026-10-03T05:04:16Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:20Z",
-              "completed_at": "2026-10-03T05:03:21Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:21Z",
-              "completed_at": "2026-10-03T05:03:34Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:34Z",
-              "completed_at": "2026-10-03T05:03:34Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:34Z",
-              "completed_at": "2026-10-03T05:03:34Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:34Z",
-              "completed_at": "2026-10-03T05:03:41Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "failure",
-              "started_at": "2026-10-03T05:03:41Z",
-              "completed_at": "2026-10-03T05:04:10Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:04:10Z",
-              "completed_at": "2026-10-03T05:04:10Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:04:10Z",
-              "completed_at": "2026-10-03T05:04:10Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:04:10Z",
-              "completed_at": "2026-10-03T05:04:10Z"
-            },
-            {
-              "number": 10,
-              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:10Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 11,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 12,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 13,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 25,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 26,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            },
-            {
-              "number": 27,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:04:14Z",
-              "completed_at": "2026-10-03T05:04:14Z"
-            }
-          ],
-          "failure_diagnostics": {
-            "available": true,
-            "function_failures": [],
-            "exception_types": [
-              "TypeError"
-            ],
-            "aws_error_codes": [],
-            "missing_modules": [],
-            "traceback_locations": [
-              {
-                "path": "tests/deployment/run_tests.py",
-                "line": 40
-              },
-              {
-                "path": "tests/deployment/test_assemble_batch.py",
-                "line": 134
-              }
-            ],
-            "failed_test_names": [],
-            "javascript_test_locations": [],
-            "failed_javascript_test_numbers": [],
-            "validation_failures": [],
-            "failed_functions": [],
-            "deployed_functions": []
-          }
-        }
-      ]
-    },
-    {
-      "id": 37098507979,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "4b959f97208e49cb7414eaf7337758ff2fc64892",
-      "status": "completed",
-      "conclusion": "failure",
-      "created_at": "2026-10-03T05:02:10Z",
-      "updated_at": "2026-10-03T05:03:16Z",
-      "jobs": [
-        {
-          "id": 111133231281,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "failure",
-          "started_at": "2026-10-03T05:02:13Z",
-          "completed_at": "2026-10-03T05:03:16Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:02:14Z",
-              "completed_at": "2026-10-03T05:02:15Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:02:15Z",
-              "completed_at": "2026-10-03T05:02:26Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:02:26Z",
-              "completed_at": "2026-10-03T05:02:26Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:02:26Z",
-              "completed_at": "2026-10-03T05:02:27Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:02:27Z",
-              "completed_at": "2026-10-03T05:02:32Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "failure",
-              "started_at": "2026-10-03T05:02:32Z",
-              "completed_at": "2026-10-03T05:03:09Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:03:09Z",
-              "completed_at": "2026-10-03T05:03:09Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:03:09Z",
-              "completed_at": "2026-10-03T05:03:09Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:03:09Z",
-              "completed_at": "2026-10-03T05:03:09Z"
-            },
-            {
-              "number": 10,
-              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:09Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 11,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 12,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 13,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 25,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 26,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            },
-            {
-              "number": 27,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-03T05:03:14Z",
-              "completed_at": "2026-10-03T05:03:14Z"
-            }
-          ],
-          "failure_diagnostics": {
-            "available": true,
-            "function_failures": [],
-            "exception_types": [
-              "TypeError"
-            ],
-            "aws_error_codes": [],
-            "missing_modules": [],
-            "traceback_locations": [
-              {
-                "path": "tests/deployment/run_tests.py",
-                "line": 40
-              },
-              {
-                "path": "tests/deployment/test_assemble_batch.py",
-                "line": 134
-              }
-            ],
-            "failed_test_names": [],
-            "javascript_test_locations": [],
-            "failed_javascript_test_numbers": [],
-            "validation_failures": [],
-            "failed_functions": [],
-            "deployed_functions": []
-          }
         }
       ]
     },
