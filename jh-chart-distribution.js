@@ -153,16 +153,22 @@
 })();
 (function () {
   if (typeof document === "undefined") return;
-  if (!document.getElementById("jh-struct-src")) {
+  function arm(id, src) {
+    if (document.getElementById(id)) return;
+    if (document.readyState === "loading") {
+      document.write('<script id="' + id + '" src="' + src + '"><\/script>');
+      return;
+    }
     var s = document.createElement("script");
-    s.id = "jh-struct-src";
-    s.src = "/jh-chart-structure.js?v=20261003struct3";
-    document.head.appendChild(s);
+    s.id = id;
+    s.src = src;
+    s.onload = function () {
+      if (window.paint && window.lastBars && window.lastBars.length) {
+        try { window.paint(window.lastBars); } catch (e) {}
+      }
+    };
+    (document.head || document.documentElement).appendChild(s);
   }
-  if (!document.getElementById("jh-bb-src")) {
-    var b = document.createElement("script");
-    b.id = "jh-bb-src";
-    b.src = "/jh-chart-bbfix.js?v=20261003bb4";
-    document.head.appendChild(b);
-  }
+  arm("jh-struct-src", "/jh-chart-structure.js?v=20261003struct7");
+  arm("jh-bb-src", "/jh-chart-bbfix.js?v=20261003bb4");
 })();
