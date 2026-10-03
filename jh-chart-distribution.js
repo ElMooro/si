@@ -162,7 +162,7 @@
   if (!document.getElementById("jh-bb-src")) {
     var b = document.createElement("script");
     b.id = "jh-bb-src";
-    b.src = "/jh-chart-bbfix.js?v=20261003bb3";
+    b.src = "/jh-chart-bbfix.js?v=20261003bb4";
     document.head.appendChild(b);
   }
 })();
