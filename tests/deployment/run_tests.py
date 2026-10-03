@@ -10,13 +10,13 @@ from pathlib import Path
 
 # ops 1126: global retry for shutil.rmtree — fixes flaky git file-lock races
 _orig_rmtree = shutil.rmtree
-def _retry_rmtree(path, ignore_errors=False, onerror=None):
+def _retry_rmtree(path, ignore_errors=False, onerror=None, **kwargs):
     for attempt in range(5):
         try:
-            return _orig_rmtree(path, ignore_errors=False, onerror=onerror)
+            return _orig_rmtree(path, ignore_errors=False, onerror=onerror, **kwargs)
         except OSError:
             if attempt == 4:
-                return _orig_rmtree(path, ignore_errors=True, onerror=onerror)
+                return _orig_rmtree(path, ignore_errors=True, onerror=onerror, **kwargs)
             time.sleep(0.5 * (attempt + 1))
 shutil.rmtree = _retry_rmtree
 
