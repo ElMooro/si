@@ -4,7 +4,7 @@ import { handlePortfolioPublication, routePortfolioPublication } from './portfol
 import { handleSnapshotPublication, routeSnapshotPublication } from './snapshot-publication.js';
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
-import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
+import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, alignCryptoVolume, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
 /**
  * justhodl-data-proxy v2.1.0
  *
@@ -124,7 +124,7 @@ async function extendCryptoDaily(ticker, warm) {
     try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }
   }
   if (hist.length < 2) return warm;
-  const merged = mergeBarsPrefer(hist, warm.bars);
+  const merged = alignCryptoVolume(mergeBarsPrefer(hist, warm.bars));
   if (merged.length <= warm.bars.length) return warm;
   return Object.assign({}, warm, {
     bars: merged,
