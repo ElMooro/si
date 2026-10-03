@@ -129,7 +129,7 @@
         const retry=create('button','Retry reported packet');retry.type='button';retry.addEventListener('click',()=>draw(true));el.appendChild(retry);return;
       }
       const packet=receipt.data;
-      el.appendChild(create('p','Reported accounting periods are shown below. Publication availability is unverified; these values are not aligned to historical price bars.'));
+      el.appendChild(create('p','Reported accounting periods are shown below. Publication availability is unverified. The line above is step-held on the price bars at each period end. It is reported cash, not a forecast.'));
       el.appendChild(create('p','Packet timestamp: '+(typeof packet?.generated_at==='string'?packet.generated_at:'Unavailable')+'. Amounts are reported context, not investment recommendations.'));
       const refresh=create('button','Refresh reported packet');refresh.type='button';refresh.addEventListener('click',()=>draw(true));el.appendChild(refresh);
       el.appendChild(audit('Complete received packet (parsed JSON)',packet));
@@ -202,7 +202,10 @@
     }
     function eventsOn(){return Array.isArray(root.INDS)&&root.INDS.some(i=>i&&i.id==='buyb'&&!i.hide&&(i.on===1||i.on===true));}
     function remember(symbol, rows){
-      root.__jhBuybackSeries={symbol, rows:(rows||[]).filter(row=>row&&row.end_date&&typeof row.net==='number'&&row.net!==0).map(row=>({date:row.end_date,net:row.net}))};
+      const plot=(rows||[]).filter(row=>row&&row.end_date&&(typeof row.ratio==='number'||typeof row.net==='number'));
+      root.__jhBuybackPlot={symbol, rows:plot.map(row=>({date:row.end_date,ratio:typeof row.ratio==='number'?row.ratio:null,net:typeof row.net==='number'?row.net:null,note:row.ratioNote||null})), message:plot.length?'':'No buyback level for '+symbol};
+      root.__jhBuybackSeries={symbol, rows:plot.filter(row=>typeof row.net==='number'&&row.net!==0).map(row=>({date:row.end_date,net:row.net}))};
+      drawPlot();
       if(eventsOn()&&typeof root.paint==='function'&&Array.isArray(root.lastBars)){try{root.paint(root.lastBars);}catch(e){}}
     }
     function hookMarks(){
@@ -218,14 +221,21 @@
           const target=Date.parse(row.date+'T00:00:00Z')/1000;
           if(!Number.isFinite(target))return;
           let best=null, bd=1e15;
+          const sec=bar=>{
+            if(!bar)return null;
+            if(typeof bar.time==='number')return bar.time;
+            if(typeof bar.time==='string')return Date.parse(bar.time.slice(0,10)+'T00:00:00Z')/1000;
+            if(bar.time&&typeof bar.time==='object'&&bar.time.year)return Date.parse(bar.time.year+'-'+String(bar.time.month).padStart(2,'0')+'-'+String(bar.time.day).padStart(2,'0')+'T00:00:00Z')/1000;
+            return null;
+          };
           d.forEach(bar=>{
-            let bt=null;
-            if(bar&&typeof bar.time==='number')bt=bar.time;
-            else if(bar&&typeof bar.time==='string')bt=Date.parse(bar.time.slice(0,10)+'T00:00:00Z')/1000;
+            const bt=sec(bar);
             if(bt==null||!Number.isFinite(bt))return;
             const diff=Math.abs(bt-target);if(diff<bd){bd=diff;best=bar;}
           });
-          if(!best||bd>10*86400)return;
+          let gap=12*86400;
+          if(d.length>2){const a=sec(d[d.length-1]),b=sec(d[d.length-2]);if(a!=null&&b!=null)gap=Math.max(4*86400,Math.abs(a-b)*1.6);}
+          if(!best||bd>gap)return;
           extra.push({time:best.time, position:row.net>0?'belowBar':'aboveBar', color:row.net>0?'#089981':'#f23645', shape:'square', text:row.net>0?'BB':'ISS'});
         });
         return base.concat(extra).slice(-16);
@@ -268,7 +278,16 @@
             rows.push({source_index:rows.length,start_date:null,end_date:end,fiscal,unit,net,gross,ratio:null,ratioNote:null,capLabel:'No quarter cap',issues:[],received:null});
           });
           rows.sort((a,b)=>a.end_date<b.end_date?-1:a.end_date>b.end_date?1:0);
-          const pack={rows,quote:quoteCap(file)};recordCache[symbol]=pack;return pack;
+          const quote=quoteCap(file);
+          if(quote&&quote.cap>0){
+            rows.forEach(row=>{
+              if(typeof row.net!=='number')return;
+              const q=number(row.net/quote.cap*100);
+              if(q===null||(row.net!==0&&q===0))return;
+              row.ratio=q;row.ratioNote='quote cap, not quarter-matched';row.capLabel='quote cap';
+            });
+          }
+          const pack={rows,quote};recordCache[symbol]=pack;return pack;
         });
       });
     }
@@ -277,14 +296,83 @@
       const alive=guard;
       loadCapital(symbol).then(pack=>{
         if(alive!==guard||!guard())return;
-        if(!pack||!pack.rows.length){el.appendChild(create('p','No received record for the selected ticker.'));return;}
+        if(!pack||!pack.rows.length){root.__jhBuybackPlot={symbol,rows:[],message:'No buyback level for '+symbol};drawPlot();el.appendChild(create('p','No received record for the selected ticker.'));return;}
         remember(symbol, pack.rows);
         el.appendChild(create('p','Not in the buyback-engine packet. The level is reported cash: repurchase minus issuance. Positive is a repurchase, negative is issuance.'));
         el.appendChild(create('p','Quarter start dates are not in this capital-structure record. Each row is the reported statement end.'));
-        if(pack.quote)el.appendChild(create('p','Latest quote cap '+grouped(pack.quote.cap)+' USD. That quote is not dated to these quarters, so it is not used as a matching cap.'));
+        if(pack.quote)el.appendChild(create('p','Latest quote cap '+grouped(pack.quote.cap)+' USD. The line uses that quote. It is not the market cap on each quarter end.'));
         el.appendChild(levelStrip(pack.rows));
         el.appendChild(tableFor(pack.rows));
       }).catch(()=>{if(alive===guard&&guard())el.appendChild(create('p','No received record for the selected ticker.'));});
+    }
+    function plotHost(){
+      let el=document.getElementById('jh-buyback-plot');if(el)return el;
+      el=document.createElement('div');el.id='jh-buyback-plot';
+      el.style.cssText='display:none;height:118px;border-top:1px solid var(--line,#2a2e39);position:relative;background:var(--bg,#131722);flex:none;overflow:hidden';
+      const osc=document.getElementById('oscwrap');
+      if(osc&&osc.parentNode)osc.parentNode.insertBefore(el,osc);
+      else (document.getElementById('stage')||document.body).appendChild(el);
+      return el;
+    }
+    function barDay(t){
+      if(typeof t==='number'&&Number.isFinite(t))return new Date(t*1000).toISOString().slice(0,10);
+      if(typeof t==='string')return /^\d{4}-\d{2}-\d{2}/.test(t)?t.slice(0,10):null;
+      if(t&&typeof t==='object'&&t.year)return t.year+'-'+String(t.month).padStart(2,'0')+'-'+String(t.day).padStart(2,'0');
+      return null;
+    }
+    function heldPoints(series, bars){
+      const pts=[];let q=0,y=null;
+      const rows=series.slice().sort((a,b)=>a.date<b.date?-1:1);
+      for(let i=0;i<bars.length;i++){
+        const ds=barDay(bars[i]&&bars[i].time);if(!ds)continue;
+        while(q<rows.length&&rows[q].date<=ds){y=rows[q].y;q++;}
+        if(y!=null)pts.push({i,y});
+      }
+      return pts;
+    }
+    function drawPlot(){
+      const host=plotHost();
+      if(!enabled()){host.style.display='none';host.replaceChildren();return;}
+      const symbol=selected(document);
+      const pack=root.__jhBuybackPlot&&root.__jhBuybackPlot.symbol===symbol?root.__jhBuybackPlot:{rows:[],message:symbol?('Loading '+symbol+'…'):'Select a ticker'};
+      const bars=Array.isArray(root.lastBars)?root.lastBars:[];
+      const useRatio=(pack.rows||[]).some(row=>typeof row.ratio==='number');
+      const series=(pack.rows||[]).map(row=>{
+        const y=useRatio?row.ratio:row.net;
+        return typeof y==='number'&&row.date?{date:row.date,y}:null;
+      }).filter(Boolean);
+      const pts=series.length&&bars.length?heldPoints(series,bars):[];
+      host.style.display='block';host.replaceChildren();
+      const head=document.createElement('div');
+      head.style.cssText='position:absolute;left:8px;right:8px;top:2px;display:flex;align-items:center;gap:8px;z-index:2;font:11px IBM Plex Mono,monospace;color:#d1d4dc';
+      const last=series.length?series[series.length-1]:null;
+      const note=useRatio?((pack.rows.find(row=>row.note)||{}).note||'latest cap'):'net cash';
+      const shown=last==null?(pack.message||'No buyback level'+(symbol?' for '+symbol:'')):(useRatio?((last.y>=0?'+':'')+String(Math.round(last.y*1000)/1000)+'%'):grouped(last.y));
+      const title=document.createElement('span');
+      title.textContent='Buyback'+(symbol?' · '+symbol:'')+'  '+shown+(last?'  '+note:'');
+      title.style.cssText='min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:'+(last&&last.y<0?'#f23645':'#089981');
+      const btn=document.createElement('button');
+      btn.type='button';btn.textContent='Close';btn.setAttribute('aria-label','Close buyback');btn.title='Close buyback';
+      btn.style.cssText='margin-left:auto;height:26px;padding:0 10px;border:1px solid #089981;border-radius:4px;background:#1e222d;color:#d1d4dc;font:600 12px IBM Plex Sans,sans-serif;cursor:pointer;flex:none';
+      btn.addEventListener('click',shut);
+      head.appendChild(title);head.appendChild(btn);host.appendChild(head);
+      const w=host.clientWidth||640,h=118,svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('width',String(w));svg.setAttribute('height',String(h));svg.style.display='block';
+      let min=0,max=0;pts.forEach(p=>{if(p.y<min)min=p.y;if(p.y>max)max=p.y;});
+      if(min===max){min-=1;max+=1;}
+      const pad=(max-min)*0.18;min-=pad;max+=pad;
+      const X=i=>bars.length<2?8:8+(w-16)*(i/(bars.length-1));
+      const Y=v=>26+(h-34)*(1-(v-min)/(max-min));
+      const zero=document.createElementNS('http://www.w3.org/2000/svg','line');
+      zero.setAttribute('x1','8');zero.setAttribute('x2',String(w-8));zero.setAttribute('y1',String(Y(0)));zero.setAttribute('y2',String(Y(0)));zero.setAttribute('stroke','#2a2e39');
+      svg.appendChild(zero);
+      if(pts.length){
+        const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d',pts.map((p,i)=>(i?'L':'M')+X(p.i).toFixed(1)+' '+Y(p.y).toFixed(1)).join(' '));
+        path.setAttribute('fill','none');path.setAttribute('stroke','#7ec8c4');path.setAttribute('stroke-width','1.6');
+        svg.appendChild(path);
+      }
+      host.appendChild(svg);
     }
     function titleBar(symbol){
       const bar=create('div','');
@@ -303,6 +391,8 @@
       viewKey=JSON.stringify([false,eventsOn(),selected(document)]);
       const el=document.getElementById('jh-buyback-pane');
       if(el){el.style.display='none';el.replaceChildren();el.setAttribute('aria-busy','false');}
+      const plot=document.getElementById('jh-buyback-plot');
+      if(plot){plot.style.display='none';plot.replaceChildren();}
       document.querySelectorAll('[data-add="buyback"]').forEach(node=>node.classList.remove('on'));
     }
     function quoteCap(file){
@@ -317,6 +407,9 @@
     }
     function draw(force=false){
       ensure();hookMarks();const on=enabled(),ev=eventsOn(),symbol=selected(document),key=JSON.stringify([on,ev,symbol]);
+      if(!on){const plot=document.getElementById('jh-buyback-plot');if(plot){plot.style.display='none';plot.replaceChildren();}}
+      else if(force||key!==viewKey){root.__jhBuybackPlot={symbol,rows:[],message:symbol?('Loading '+symbol+'…'):'Select a ticker'};drawPlot();}
+      else drawPlot();
       if(!force&&key===viewKey)return;viewKey=key;const request=++generation,el=pane();
       el.style.display=on?'block':'none';el.replaceChildren();el.setAttribute('aria-busy','false');
       if(!symbol){if(on){el.appendChild(titleBar(''));el.appendChild(create('p','Select a ticker tab to inspect its reported buybacks.'));}return;}
