@@ -153,9 +153,16 @@
 })();
 (function () {
   if (typeof document === "undefined") return;
-  if (document.getElementById("jh-struct-src")) return;
-  var s = document.createElement("script");
-  s.id = "jh-struct-src";
-  s.src = "/jh-chart-structure.js?v=20261003struct3";
-  document.head.appendChild(s);
+  if (!document.getElementById("jh-struct-src")) {
+    var s = document.createElement("script");
+    s.id = "jh-struct-src";
+    s.src = "/jh-chart-structure.js?v=20261003struct3";
+    document.head.appendChild(s);
+  }
+  if (!document.getElementById("jh-bb-src")) {
+    var b = document.createElement("script");
+    b.id = "jh-bb-src";
+    b.src = "/jh-chart-bbfix.js?v=20261003bb2";
+    document.head.appendChild(b);
+  }
 })();
