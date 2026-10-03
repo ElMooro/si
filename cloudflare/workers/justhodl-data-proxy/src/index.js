@@ -155,7 +155,7 @@ async function extendCryptoDaily(ticker, warm) {
     history_source: historySource,
     history_n: hist.length,
     history_added_n: merged.length - warm.bars.length,
-    history_join_policy: "Warehouse price wins on overlapping UTC dates. Volume stays on the warehouse row when it is the same unit as the supplementary row (within 20x). A larger disagreement keeps the supplementary volume so a coin count cannot overwrite a dollar tape. Equities are not joined here.",
+    history_join_policy: "Warehouse price wins on overlapping UTC dates. Volume stays on the warehouse row when it is the same unit as the supplementary row (within 20x). A larger disagreement keeps the supplementary volume so a coin count cannot overwrite a dollar tape. Equities are not joined here. Units and price adjustments remain unverified.",
     yahoo_n: historySource === "yahoo" ? hist.length : 0,
     binance_n: historySource === "binance" ? hist.length : 0,
     warehouse_n: warm.bars.length
