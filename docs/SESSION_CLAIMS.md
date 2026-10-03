@@ -79,6 +79,7 @@ weekly official series. Recommend: official-pulse degrades honestly to
 RRP-only + queue a Fed Data-Download-Program (federalreserve.gov
 /datadownload, rel=H41, csv) direct probe for the custody memo item.
 My duplicate ops_4864_*.py removed from pending (failed, inert).
+| Retail Flow email sentiment display only: finite 0–100 and zero preserved; unavailable for invalid/missing; offline regressions and independent review; codex/retail-flow-sentiment-display. No joining, analyst/NET, delivery, recipient, schedule or deployment changes; Secretary PR40 separate. | none | S-codex#retail1001d8 | 2026-10-01 |
 
 ## Done (this arc)
 
