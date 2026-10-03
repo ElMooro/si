@@ -1,5 +1,5 @@
 /* Bollinger and BTC volume. No engine edit.
-   BB draws after paint if the study row is on. Non-finite closes are skipped.
+   BB draws after paint when study bb is on. Non-finite closes are skipped.
    BTC volume before the warehouse join is quote dollars; from the join it is
    base coins. Scale the later side by close so one histogram is quote. */
 (function () {
@@ -7,7 +7,8 @@
   window.__jhBbFix = 1;
   function finite(v) { return typeof v === "number" && isFinite(v); }
   function isBtc() {
-    var s = String(window.active || window.ticker || "").toUpperCase();
+    var el = document.getElementById && document.getElementById("symin");
+    var s = String((el && el.value) || window.jhActive || window.active || window.ticker || "").toUpperCase();
     return s.indexOf("BTC") >= 0;
   }
   function align(d) {
@@ -44,15 +45,10 @@
     return out;
   }
   function bbOn() {
-    var nodes = document.querySelectorAll("button, .ind-row, [data-id]");
-    var i, el, t;
-    for (i = 0; i < nodes.length; i++) {
-      el = nodes[i];
-      t = (el.textContent || "") + " " + (el.getAttribute("data-id") || "") + " " + (el.id || "");
-      if (!/bollinger|\bbb\b/i.test(t)) continue;
-      if (el.classList && el.classList.contains("on")) return true;
-    }
-    return false;
+    var list = window.INDS || [], i, row;
+    for (i = 0; i < list.length; i++) if (list[i] && list[i].id === "bb" && list[i].on) return true;
+    row = document.querySelector && document.querySelector("[data-tog='bb']");
+    return !!(row && row.parentNode && row.parentNode.classList && row.parentNode.classList.contains("on"));
   }
   function bands(d) {
     var n = 20, k = 2, i, j, s, m, ss, sd, mid = [], up = [], dn = [];
@@ -73,7 +69,7 @@
     return { mid: mid, up: up, dn: dn };
   }
   function draw(d) {
-    var chart = window.jhDeskChart;
+    var chart = window.jhDeskChart || window.chart;
     if (!chart || !chart.addLineSeries || !bbOn()) return;
     if (chart.__jhBb) {
       chart.__jhBb.forEach(function (s) { try { chart.removeSeries(s); } catch (e) {} });
@@ -96,10 +92,13 @@
     if (!window.paint || window.paint.__bb) return false;
     var prev = window.paint;
     function wrapped(d) {
-      var bars = align(d || window.lastBars);
+      var src = d || window.lastBars;
+      var bars = align(src);
       var r;
-      try { r = prev.call(this, bars); } catch (e) { r = undefined; }
-      try { draw(bars); } catch (e2) {}
+      try { r = prev.call(this, bars); } catch (e) {
+        try { r = prev.call(this, src); } catch (e2) { r = undefined; }
+      }
+      try { draw(bars); } catch (e3) {}
       return r;
     }
     wrapped.__bb = 1;
