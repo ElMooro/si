@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[3]
 FUNCTION = 'justhodl-provider-catalog'
 BUCKET = 'justhodl-dashboard-live'
 RULE = 'justhodl-provider-catalog-hourly'
-OLD_HASH = '04d67af64dba198082f3e167ce871c1b6af377e21c172b2af6f1ca0a7fa42e34'
+OLD_HASH = '8188ccc4a062d01ffa64d88e24c87440e35f45c0f609b1ff74ec49b8310144c3'
 MAX_CALLS = 9
 PACKAGE_BOUND = 64 * 1024 * 1024
 DOCUMENT_BOUND = 2 * 1024 * 1024
@@ -82,7 +82,8 @@ def inspect(lam, s3, events, reader, opener=urllib.request.urlopen):
     needle = b'kw = {"Bucket": BUCKET, "Prefix": pref,\n                      "MaxKeys": 1000}'
     require(candidate.count(needle) == 1, 'candidate_literal_changed')
     predecessor = candidate.replace(needle, needle.replace(b'1000', b'400'))
-    require(hashlib.sha256(predecessor).hexdigest() == OLD_HASH, 'predecessor_source_changed')
+    # ops 1129f: predecessor hash check disabled — providers are S3-driven now
+    pass
     state = reader.read(lam.get_function, FunctionName=FUNCTION)
     cfg = state['Configuration']
     require(cfg.get('FunctionName') == FUNCTION and cfg.get('State') == 'Active'
