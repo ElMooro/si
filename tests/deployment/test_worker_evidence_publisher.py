@@ -12,22 +12,21 @@ import subprocess
 import sys
 import tempfile
 import textwrap
-from unittest.mock import patch
+from unittest.mock import call, patch
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def _robust_rmtree(path):
-    """Retry rmtree on Windows/git file-lock races (OSError: Directory not empty)."""
+def _robust_cleanup(directory):
+    """Bound retries while retaining TemporaryDirectory's permission handling."""
     for attempt in range(5):
         try:
-            shutil.rmtree(path, ignore_errors=False)
+            directory.cleanup()
             return
         except OSError:
             if attempt == 4:
-                shutil.rmtree(path, ignore_errors=True)
-                return
+                raise
             time.sleep(0.5 * (attempt + 1))
 
 
@@ -37,19 +36,141 @@ class RobustTempDir:
         self._td = None
         self.name = None
     def __enter__(self):
-        self._td = RobustTempDir()
+        self._td = tempfile.TemporaryDirectory()
         self.name = self._td.name
         return self.name
-    def __exit__(self, *args):
+    def __exit__(self, exc_type, exc_value, traceback):
         try:
-            self._td.cleanup()
-        except OSError:
-            _robust_rmtree(self.name)
+            _robust_cleanup(self._td)
+        except Exception as cleanup_error:
+            if exc_value is not None:
+                raise exc_value.with_traceback(traceback) from cleanup_error
+            raise
+        return False
 sys.path[:0] = [str(ROOT/'scripts'), str(ROOT/'aws/ops/checks'), str(Path(__file__).parent)]
 import publish_worker_evidence as pub
 import worker_release as cli
 from worker_source_evidence import EvidenceError
 from test_worker_release_evidence import evidence, CODE
+
+
+def test_robust_tempdir_creates_a_real_directory_and_removes_git_files():
+    manager = RobustTempDir()
+    with manager as folder:
+        assert folder == manager.name == manager._td.name
+        root = Path(folder)
+        assert root.is_dir()
+        locked = root/'.git/objects/read-only'
+        locked.parent.mkdir(parents=True)
+        locked.write_bytes(b'Invented Git object\n')
+        locked.chmod(0o400)
+    assert not root.exists()
+
+
+def test_robust_tempdir_preserves_body_exception_after_successful_cleanup():
+    body_error = AssertionError('Original test failure')
+    try:
+        with RobustTempDir() as folder:
+            raise body_error
+    except AssertionError as actual:
+        assert actual is body_error
+        assert actual.__cause__ is None
+    else:
+        raise AssertionError('Body exception was suppressed')
+    assert not Path(folder).exists()
+
+
+def test_robust_tempdir_retries_cleanup_and_succeeds_on_the_fifth_attempt():
+    manager = RobustTempDir()
+    folder = manager.__enter__()
+    original = manager._td.cleanup
+    failures = [PermissionError('Invented Git lock') for _ in range(4)]
+    def cleanup():
+        if failures:
+            raise failures.pop(0)
+        original()
+    try:
+        with patch.object(manager._td, 'cleanup', side_effect=cleanup) as retry, patch.object(time, 'sleep') as sleep:
+            assert manager.__exit__(None, None, None) is False
+        assert retry.call_count == 5
+        assert sleep.call_args_list == [call(0.5), call(1.0), call(1.5), call(2.0)]
+        assert not Path(folder).exists()
+    finally:
+        original()
+
+
+def test_robust_tempdir_does_not_retry_successful_cleanup():
+    manager = RobustTempDir()
+    folder = manager.__enter__()
+    with patch.object(manager._td, 'cleanup', wraps=manager._td.cleanup) as cleanup, patch.object(time, 'sleep') as sleep:
+        assert manager.__exit__(None, None, None) is False
+    cleanup.assert_called_once_with()
+    sleep.assert_not_called()
+    assert not Path(folder).exists()
+
+
+def test_robust_tempdir_cleanup_exhaustion_raises_the_last_failure():
+    manager = RobustTempDir()
+    folder = manager.__enter__()
+    original = manager._td.cleanup
+    failures = [OSError('Invented cleanup failure '+str(n)) for n in range(5)]
+    try:
+        with patch.object(manager._td, 'cleanup', side_effect=failures) as cleanup, patch.object(time, 'sleep') as sleep:
+            try:
+                manager.__exit__(None, None, None)
+            except OSError as actual:
+                assert actual is failures[-1]
+            else:
+                raise AssertionError('Cleanup failure was hidden')
+        assert cleanup.call_count == 5
+        assert sleep.call_args_list == [call(0.5), call(1.0), call(1.5), call(2.0)]
+        assert Path(folder).exists()
+    finally:
+        original()
+
+
+def test_robust_tempdir_keeps_body_failure_and_chains_cleanup_exhaustion():
+    for body_error in (AssertionError('Original test failure'), KeyboardInterrupt()):
+        native = tempfile.TemporaryDirectory()
+        failures = [OSError('Invented cleanup failure '+str(n)) for n in range(5)]
+        try:
+            with patch.object(tempfile, 'TemporaryDirectory', return_value=native), patch.object(native, 'cleanup', side_effect=failures) as cleanup, patch.object(time, 'sleep') as sleep:
+                try:
+                    with RobustTempDir():
+                        raise body_error
+                except BaseException as actual:
+                    assert actual is body_error
+                    assert actual.__cause__ is failures[-1]
+                else:
+                    raise AssertionError('Body exception was suppressed')
+            assert cleanup.call_count == 5
+            assert sleep.call_count == 4
+            assert Path(native.name).exists()
+        finally:
+            native.cleanup()
+
+
+def test_robust_tempdir_non_os_cleanup_failure_is_not_retried_or_hidden():
+    for body_error in (None, AssertionError('Original test failure')):
+        native = tempfile.TemporaryDirectory()
+        cleanup_error = RuntimeError('Invented unexpected cleanup failure')
+        try:
+            with patch.object(tempfile, 'TemporaryDirectory', return_value=native), patch.object(native, 'cleanup', side_effect=cleanup_error) as cleanup, patch.object(time, 'sleep') as sleep:
+                try:
+                    with RobustTempDir():
+                        if body_error is not None:
+                            raise body_error
+                except Exception as actual:
+                    assert actual is (body_error if body_error is not None else cleanup_error)
+                    if body_error is not None:
+                        assert actual.__cause__ is cleanup_error
+                else:
+                    raise AssertionError('Cleanup failure was hidden')
+            cleanup.assert_called_once_with()
+            sleep.assert_not_called()
+            assert Path(native.name).exists()
+        finally:
+            native.cleanup()
 
 
 def git(root, *args, check=True):
