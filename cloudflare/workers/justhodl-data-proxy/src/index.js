@@ -125,6 +125,29 @@ async function extendCryptoDaily(ticker, warm) {
   }
   if (hist.length < 2) return warm;
   const merged = mergeBarsPrefer(hist, warm.bars);
+  const older = new Map();
+  function dayKey(t) {
+    t = Number(t) || 0;
+    if (t > 1e12) t = Math.floor(t / 1000);
+    if (!Number.isFinite(t) || t <= 0) return 0;
+    return Math.floor(t / 86400) * 86400;
+  }
+  function volOf(row) {
+    if (!row || typeof row !== "object") return null;
+    const v = row.value != null ? row.value : row.volume;
+    return typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
+  }
+  for (const row of hist) {
+    const t = dayKey(row && row.time);
+    if (t) older.set(t, volOf(row));
+  }
+  for (const row of merged) {
+    if (!older.has(row.time)) continue;
+    const oldVol = older.get(row.time);
+    const newVol = volOf(row);
+    if (!(oldVol > 0)) continue;
+    if (!(newVol > 0) || oldVol / newVol >= 20 || oldVol / newVol <= 0.05) row.value = oldVol;
+  }
   if (merged.length <= warm.bars.length) return warm;
   return Object.assign({}, warm, {
     bars: merged,
@@ -132,7 +155,7 @@ async function extendCryptoDaily(ticker, warm) {
     history_source: historySource,
     history_n: hist.length,
     history_added_n: merged.length - warm.bars.length,
-    history_join_policy: "Primary warehouse rows win on overlapping UTC dates; supplementary rows fill absent dates. Units and price adjustments remain unverified.",
+    history_join_policy: "Warehouse price wins on overlapping UTC dates. Volume stays on the warehouse row when it is the same unit as the supplementary row (within 20x). A larger disagreement keeps the supplementary volume so a coin count cannot overwrite a dollar tape. Equities are not joined here.",
     yahoo_n: historySource === "yahoo" ? hist.length : 0,
     binance_n: historySource === "binance" ? hist.length : 0,
     warehouse_n: warm.bars.length
