@@ -1850,17 +1850,10 @@
     return o.length>=8?o:d;
   }
   function mergeByDay(base, over){
-    /* volume unit guard: 20x — price follows the newer row; a different volume unit does not. */
-    var m={}, i, t;
+    var m={}, i, t, b;
     function put(row, prefer){
       t=utcMidnight(row.time); if(!t) return;
-      var vol=reportedVolume(row.volume), prev=m[t];
-      if(!prev){ m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:vol}; return; }
-      if(!prefer) return;
-      if(!(prev.volume>0)){ /* base has no volume; the newer figure fills it */ }
-      else if(!(vol>0)) vol=prev.volume;
-      else { var ratio=prev.volume/vol; if(ratio>=20 || ratio<=0.05) vol=prev.volume; }
-      m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:vol};
+      if(prefer || !m[t]) m[t]={time:t,open:row.open,high:row.high,low:row.low,close:row.close,volume:reportedVolume(row.volume)};
     }
     for(i=0;i<(base||[]).length;i++) put(base[i], false);
     for(i=0;i<(over||[]).length;i++) put(over[i], true);
