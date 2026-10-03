@@ -2239,7 +2239,7 @@
     };
     return c;
   }
-  chart=mkChart(host);
+  chart=mkChart(host); try{window.jhDeskChart=chart;}catch(e){}
   bindSync(chart);
   function bindSync(c){
     if(!c || c.__jhSync) return;
@@ -2482,7 +2482,7 @@
           priceLineStyle:2,
           title:active,
           priceFormat:pxF
-        });
+        }); try{window.jhDeskSeries=c;}catch(e){}
         if(kind==="volcandle"){
           c.setData(display.map(function(b,ix){ return volCandlePaint(b, rvolAt(d, ix, 20)); }));
         } else if(kind==="hollow"){
