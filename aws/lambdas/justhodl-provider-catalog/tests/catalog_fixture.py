@@ -22,7 +22,7 @@ SHARED = ROOT / 'aws/shared'
 STAMP = datetime(2000, 1, 2, 12, tzinfo=timezone.utc)
 TIME = STAMP.timestamp()
 NEEDLE = 'kw = {"Bucket": BUCKET, "Prefix": pref,\n                      "MaxKeys": 1000}'
-PREDECESSOR_HASH = '89a314f615bb3a2d2fd0ccaf9fdf6d5a8d696cd357cf17574b808174fe418f05'
+PREDECESSOR_HASH = '5f7cf34f37735f1d5ec847f8ee13273c21ff1f16988ff54d29fc254396fe4304'
 
 
 class Clock(datetime):
