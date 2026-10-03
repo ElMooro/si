@@ -1543,3 +1543,4 @@ def lambda_handler(event, context):
 # ops 1123d: force deploy for 11 new providers
 
 # ops 1123g: force deploy 2026-10-03
+# ops 1129c: sync trigger
