@@ -1573,3 +1573,5 @@ def lambda_handler(event, context):
     res = {"ok": True, **hub["totals"]}
     print(json.dumps(res))
     return {"statusCode": 200, "body": json.dumps(res)}
+
+# ops 1123d: force deploy for 11 new providers
