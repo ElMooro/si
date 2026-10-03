@@ -12,14 +12,17 @@
     });
   }
   var LC = window.LightweightCharts;
-  if (LC && LC.createChart && !LC.createChart.__desk) {
+  if (LC && LC.createChart && !window.jhDeskWrapped) {
     var orig = LC.createChart;
-    LC.createChart = function (el) {
-      var chart = orig.apply(this, arguments);
+    var wrapped = {};
+    for (var k in LC) wrapped[k] = LC[k];
+    wrapped.createChart = function (el) {
+      var chart = orig.apply(LC, arguments);
       bindDesk(el, chart);
       return chart;
     };
-    LC.createChart.__desk = true;
+    window.LightweightCharts = wrapped;
+    window.jhDeskWrapped = 1;
   }
   function nyParts(ts) {
     var s = new Date(ts * 1000).toLocaleString("en-US", { timeZone: "America/New_York", hour12: false });
