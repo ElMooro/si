@@ -1575,3 +1575,5 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": json.dumps(res)}
 
 # ops 1123d: force deploy for 11 new providers
+
+# ops 1123g: force deploy 2026-10-03
