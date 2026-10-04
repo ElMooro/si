@@ -251,22 +251,6 @@
     if(observations) barEvidence.get(d).observations=observations;
     return d;
   }
-  function sliceIdentifiedBars(d,end){
-    var part=d.slice(0,end),e=barEvidence.get(d);
-    if(e)barEvidence.set(part,Object.assign({},e,{bars:part}));
-    return part;
-  }
-  function repaintOwnedBars(d,prepare,complete){
-    var owner=barEvidence.get(d),symbol=active,interval=tf,generation=loadGen,ownerChart=chart;
-    function current(){return !!owner&&d===lastBars&&owner===barEvidence.get(d)&&owner.symbol===symbol&&owner.interval===interval&&symbol===active&&interval===tf&&generation===loadGen&&ownerChart===chart;}
-    if(!current())return null;
-    try{if(prepare)prepare();}catch(e){}
-    if(!current())return null;
-    var seq=paintSeq+1,pending=paint(d);
-    return Promise.resolve(pending).then(function(){
-      if(current()&&seq===paintSeq&&complete){try{complete(ownerChart,d,symbol,interval);}catch(e){}}
-    },function(){});
-  }
   var calCache=null, calAt=0;
   var lastVolShow=false, volTapeEvents=[], lastPatPack=null, lastSdPack=null, lastSrPack=null, lastIch=null;
   var lastFvgPack=null, lastEqhPack=null, lastGSess=null, lastSeps=null, lastOrLv=null, lastOrPack=null, lastAdr=null, lastAtrPts=null, lastHudVwap=null, lastSweepPack=null, lastObPack=null, lastHvnPack=null;
@@ -2434,10 +2418,9 @@
     if(window.JHStockDeskController)window.JHStockDeskController.refresh();
   }
   async function paint(d){
-    var identified=barEvidence.get(d);
-    if(!observationId(active)&&identified&&(identified.symbol!==active||identified.interval!==tf))return;
     var seq=++paintSeq,paintSymbol=active,paintTf=tf,paintLoad=loadGen;
     function current(){return seq===paintSeq&&paintSymbol===active&&paintTf===tf&&paintLoad===loadGen;}
+    var identified=barEvidence.get(d);
     if(observationId(active) && (!identified || !identified.observations || identified.symbol!==active || identified.interval!==tf)){
       clearObservationFrame("Observation evidence unavailable for the selected series");return;
     }
@@ -2445,7 +2428,7 @@
     if(!d||!d.length){ toast("No bars for "+active); var qe=document.getElementById("quote"); if(qe) qe.textContent="No bars for "+active; return; }
     var saved=null;
     try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
-    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=repaintOwnedBars;window.lastSource=lastSource;window.volOn=volOn;var evidence=barEvidence.get(d);window.jhChartEvidence=evidence&&evidence.symbol===active&&evidence.interval===tf?evidence:null;}catch(e){}
+    wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;var evidence=barEvidence.get(d);window.jhChartEvidence=evidence&&evidence.symbol===active&&evidence.interval===tf?evidence:null;}catch(e){}
     var p=pal();
     var tapeVol=INDS.some(function(i){ return i.id==="voltape"&&i.on; });
     var volShow=(volOn||tapeVol) && d.some(function(bar){return reportedVolume(bar.volume)!==null;});
@@ -6580,11 +6563,11 @@ else if(o.id==="rvol"){
   function startReplay(){
     if(observationId(active)){toast("Observation replay unavailable: source availability times are not established");return;}
     if(!lastBars.length && !(replay.full&&replay.full.length)) return;
-    if(!replay.full.length) replay.full=sliceIdentifiedBars(lastBars);
+    if(!replay.full.length) replay.full=lastBars.slice();
     replay.on=true; replay.i=Math.max(30, replay.full.length-80); replay.speed=replay.speed||1;
     document.getElementById("replay").className="on";
     var scrub=document.getElementById("rp-scrub"); scrub.max=replay.full.length-1; scrub.value=replay.i;
-    function show(){ paint(sliceIdentifiedBars(replay.full,replay.i+1)); document.getElementById("rp-label").textContent=new Date(replay.full[replay.i].time*1000).toISOString().slice(0,10); scrub.value=replay.i; }
+    function show(){ paint(replay.full.slice(0,replay.i+1)); document.getElementById("rp-label").textContent=new Date(replay.full[replay.i].time*1000).toISOString().slice(0,10); scrub.value=replay.i; }
     document.getElementById("rp-play").onclick=function(){
       if(replay.timer){ clearInterval(replay.timer); replay.timer=null; this.textContent="Play"; return; }
       this.textContent="Pause";
@@ -7118,7 +7101,7 @@ else if(o.id==="rvol"){
   loadDraw();
   if(window.innerWidth<720){ watchOpen=false; }
   applyTheme(false);
-  try{ window.INDS=INDS; window.OSC=OSC; window.volOn=volOn; window.paint=repaintOwnedBars; }catch(e){}
+  try{ window.INDS=INDS; window.OSC=OSC; window.volOn=volOn; window.paint=paint; }catch(e){}
   renderTabs(); renderTf(); renderRail(); renderLetters(); renderWtabs(); renderLegend(); renderDock(); renderQR();
   var dwin=document.getElementById("dwin"); if(dwin) dwin.className=dwinOn?"on":"";
   var mn=document.getElementById("mini"); if(mn) mn.className=miniOn?"on":"";
@@ -7139,7 +7122,6 @@ else if(o.id==="rvol"){
   var zp=document.getElementById("z-plus"); if(zp) zp.onclick=function(){ zoomChart(1); };
   var zm=document.getElementById("z-minus"); if(zm) zm.onclick=function(){ zoomChart(-1); };
   window.jhShowInfo=showInfo;
-  window.jhRepaintOwnedBars=repaintOwnedBars;
   window.jhSetVol=function(v){ volOn=!!v; try{window.volOn=volOn;}catch(e){} if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSaveLay=saveLay;
   try{ window.volOn=volOn; }catch(e){}
