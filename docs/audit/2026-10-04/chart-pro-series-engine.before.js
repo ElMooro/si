@@ -2047,24 +2047,6 @@
       // Scalar download completion cannot publish a label for a superseded selection.
       return [];
     }
-    // Chart Pro path: keep EXCHANGE:SYMBOL and ask the warehouse before any bare alias.
-    if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){
-      try{
-        var tvRaw=await fetchJson(PROXY+"/series?id="+encodeURIComponent(sym));
-        var tvRows=(tvRaw&&Array.isArray(tvRaw.ohlc)&&tvRaw.ohlc.length)?tvRaw.ohlc:((tvRaw&&(tvRaw.obs||tvRaw.bars))||[]);
-        var tvBars=toBars(tvRows);
-        if(tvBars.length>=8){
-          var shown=resampleToTf(tvBars, tfId);
-          if(!shown||shown.length<2) shown=tvBars;
-          if(looksCloseOnly(shown)) shown=fillCandleBodies(shown);
-          if(shown.length>=8 && barsFitTf(shown, tfId)){
-            var tvSrc=(tvRaw&&(tvRaw.source||tvRaw.provider))||"series";
-            if(!quiet) lastSource=tvSrc;
-            return identifyBars(shown,sym,tfId,tvSrc);
-          }
-        }
-      }catch(eTv){}
-    }
     var ws=warehouseSpec(tfId);
     var yInt=(ws.span==="day")?"1d":sp[2], yRange=(ws.span==="day")?"max":sp[3];
     var urls=[
@@ -5467,7 +5449,6 @@ else if(o.id==="rvol"){
     if(/^FRED:/i.test(s) || /^\^/.test(s) || s.indexOf("=")>=0) return rs.ticker||s.toUpperCase();
     if(/^CQ:|^CQSNAP:|^CQARM:|^CQDOC:|^CISS:|^DESK:|^DATA:/i.test(s)) return s;
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;
-    if(s.indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(s)) return s;
     return bare(rs.ticker||s);
   }
   function goSymbol(s, dest){
@@ -6144,7 +6125,7 @@ else if(o.id==="rvol"){
       var q=quotes[s]||quotes[bare(s)]; var up=!q||q.chg>=0;
       var onCmp=compare.indexOf(bare(s))>=0;
       var acc=flags[s]||flags[bare(s)]||(up?UP:DN);
-      return "<button class='wrow "+(bare(s)===active||s===active?"on":"")+"' data-s='"+escHtml(s)+"'><i class=wacc style='background:"+escHtml(acc)+"'></i><span class=wsym>"+escHtml(bare(s))+"</span><span>"+(q?fmt(q.last):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chgv>=0?"+":"")+fmt(q.chgv):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chg>=0?"+":"")+(q.chg*100).toFixed(2)+"%":"—")+"</span><i class='w-cmp"+(onCmp?" on":"")+"' data-cmp='"+escHtml(bare(s))+"' title='Compare on chart'>⚖</i></button>";
+      return "<button class='wrow "+(bare(s)===active?"on":"")+"' data-s='"+escHtml(s)+"'><i class=wacc style='background:"+escHtml(acc)+"'></i><span class=wsym>"+escHtml(bare(s))+"</span><span>"+(q?fmt(q.last):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chgv>=0?"+":"")+fmt(q.chgv):"—")+"</span><span class="+(up?"up":"dn")+">"+(q?(q.chg>=0?"+":"")+(q.chg*100).toFixed(2)+"%":"—")+"</span><i class='w-cmp"+(onCmp?" on":"")+"' data-cmp='"+escHtml(bare(s))+"' title='Compare on chart'>⚖</i></button>";
     }).join("")||"<div style='padding:12px;color:var(--mut)'>No symbols in this filter</div>";
     box.querySelectorAll("[data-s]").forEach(function(b){
       b.onclick=function(){ var s=b.dataset.s; if(TABS.indexOf(bare(s))<0) TABS.push(bare(s)); active=bare(s); loadDraw(); renderTabs(); load(); };
@@ -7173,7 +7154,6 @@ else if(o.id==="rvol"){
   window.jhOpenCmp=openCmp;
   window.jhOpenDataTypeMenu=openDataType;
   window.jhGoSymbol=goSymbol;
-  window.jhWatchlistOpen=function(s){goSymbol(s);};
   window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,crossedAlert:crossedAlert,retCal:retCal,barsFitTf:barsFitTf,escHtml:escHtml,medianGap:medianGap,expectedGap:expectedGap,safeHref:safeHref,retsByTime:retsByTime,alignedRets:alignedRets,isCryptoTape:isCryptoTape};
   window.jhFmtXs=fmtXs;
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };

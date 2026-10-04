@@ -156,7 +156,7 @@
           "start": 24102,
           "end": 24252,
           "before": "if(/^bisfx:/i.test(reference))return",
-          "after": "if(/^oecd:/i.test(reference))return \"Quote unavailable · OECD production-history alternative route (unqualified)\";if(/^bisfx:/i.test(reference))return",
+          "after": "if(/^oecd:/i.test(reference))return \"Quote unavailable \u00b7 OECD production-history alternative route (unqualified)\";if(/^bisfx:/i.test(reference))return",
           "scope": "reviewed-oecd-production-586"
         },
         {
@@ -252,6 +252,41 @@
           "scope": "reviewed-oecd-production-586"
         }
       ]
+    },
+    "jh-chart-engine.js": {
+      "before_path": "docs/audit/2026-10-04/chart-pro-series-engine.before.js",
+      "before_sha256": "83633ae0974271eac795622a1b56842968ce6b13d3b548f99efff842398b0c2f",
+      "edits": [
+        {
+          "start": 446688,
+          "end": 446767,
+          "before": "window.jhGoSymbol=goSymbol;",
+          "after": "window.jhGoSymbol=goSymbol;\n  window.jhWatchlistOpen=function(s){goSymbol(s);};",
+          "scope": "chart-pro-series-pull"
+        },
+        {
+          "start": 331816,
+          "end": 332052,
+          "before": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    return bare(rs.ticker||s);",
+          "after": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    if(s.indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(s)) return s;\n    return bare(rs.ticker||s);",
+          "scope": "chart-pro-series-pull"
+        },
+        {
+          "start": 115942,
+          "end": 117085,
+          "before": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    var ws=warehouseSpec(tfId);",
+          "after": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    // Chart Pro path: keep EXCHANGE:SYMBOL and ask the warehouse before any bare alias.\n    if(String(sym).indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){\n      try{\n        var tvRaw=await fetchJson(PROXY+\"/series?id=\"+encodeURIComponent(sym));\n        var tvRows=(tvRaw&&Array.isArray(tvRaw.ohlc)&&tvRaw.ohlc.length)?tvRaw.ohlc:((tvRaw&&(tvRaw.obs||tvRaw.bars))||[]);\n        var tvBars=toBars(tvRows);\n        if(tvBars.length>=8){\n          var shown=resampleToTf(tvBars, tfId);\n          if(!shown||shown.length<2) shown=tvBars;\n          if(looksCloseOnly(shown)) shown=fillCandleBodies(shown);\n          if(shown.length>=8 && barsFitTf(shown, tfId)){\n            var tvSrc=(tvRaw&&(tvRaw.source||tvRaw.provider))||\"series\";\n            if(!quiet) lastSource=tvSrc;\n            return identifyBars(shown,sym,tfId,tvSrc);\n          }\n        }\n      }catch(eTv){}\n    }\n    var ws=warehouseSpec(tfId);",
+          "scope": "chart-pro-series-pull"
+        },
+        {
+          "start": 373103,
+          "end": 373141,
+          "before": "(bare(s)===active?\"on\":\"\")",
+          "after": "(bare(s)===active||s===active?\"on\":\"\")",
+          "scope": "chart-pro-series-pull"
+        }
+      ],
+      "after_sha256": "80f2e5fc14d8a414415200dd953f5aaedd715ef8b21d5cfb3b65958b94df7309"
     }
   },
   "ledger": {
