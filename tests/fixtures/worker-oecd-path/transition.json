@@ -1,0 +1,53 @@
+{
+  "base": "95cd9909030cce9cdd93b2db60d50d9336f7ac2c",
+  "entries": {
+    "cloudflare/workers/justhodl-data-proxy/src/index.js": {
+      "before_path": "tests/fixtures/worker-oecd-path/cloudflare__workers__justhodl-data-proxy__src__index.js.before.txt",
+      "before_sha256": "5a04e13f6da1c2a0dc9065f8848745c61f65318a9027bfc83338926d6ddc77d5",
+      "after_sha256": "776a546c1bb0b3d5fa2d525349cc34ebbb6bdf14c3d0f4dcb504efa905ac53b0",
+      "replacements": [
+        {
+          "before": "import { searchDeadline,",
+          "after": "import { publicObjectPath } from \"./public-object-path.mjs\";\nimport { searchDeadline,"
+        },
+        {
+          "before": "    const safePath = url.pathname.replace(/^\\/+/, \"\");\n    if (!/^[a-zA-Z0-9_\\-./]+$/.test(safePath) || safePath.includes(\"..\")) {",
+          "after": "    const safePath = publicObjectPath(url.pathname);\n    if (safePath === null) {"
+        }
+      ]
+    },
+    "tests/helpers/worker-crypto-source-preservation.cjs": {
+      "before_path": "tests/fixtures/worker-oecd-path/tests__helpers__worker-crypto-source-preservation.cjs.before.txt",
+      "before_sha256": "2e0980d3788e885012df18bf222e866454c87d93eb42de7aee32687de9519872",
+      "after_sha256": "e860c9cab66f2e8b54a462f7e0d29b198569acdb1a124f5e11014e675bf52b0c",
+      "replacements": [
+        {
+          "before": "function normalize(raw){assert.equal(hash(raw),t.candidate_sha256);",
+          "after": "function normalize(raw){raw=require(\"./worker-oecd-path-preservation.cjs\").normalize(raw,\"cloudflare/workers/justhodl-data-proxy/src/index.js\");assert.equal(hash(raw),t.candidate_sha256);"
+        }
+      ]
+    },
+    "tests/deployment/crypto_source_preservation.py": {
+      "before_path": "tests/fixtures/worker-oecd-path/tests__deployment__crypto_source_preservation.py.before.txt",
+      "before_sha256": "adaa2e7e0fdb736577809543e449a58d3b31dfc22297c1b06c7bc33e6332a500",
+      "after_sha256": "4a830910a12eb07d92f152013fe260522e3d5b483f65d8a7f52ef262cc436468",
+      "replacements": [
+        {
+          "before": "def restore_crypto_source(raw):\n",
+          "after": "def restore_crypto_source(raw):\n    from worker_oecd_path_preservation import normalize\n    raw=normalize(raw,\"cloudflare/workers/justhodl-data-proxy/src/index.js\")\n"
+        }
+      ]
+    },
+    "tests/worker-crypto-source.test.js": {
+      "before_path": "tests/fixtures/worker-oecd-path/tests__worker-crypto-source.test.js.before.txt",
+      "before_sha256": "84d71c87f3d858cb553c5a323f5755b5b4ffa2e5cdab42ee3845de1f0a4da254",
+      "after_sha256": "fa6deb2838754b4a75d38d72f6682f02e4556adbf242c27083c2453f2a8947ab",
+      "replacements": [
+        {
+          "before": "current=fs.readFileSync(path.join(__dirname,'..',t.path),'utf8');",
+          "after": "current=require('./helpers/worker-oecd-path-preservation.cjs').normalize(fs.readFileSync(path.join(__dirname,'..',t.path),'utf8'),t.path);"
+        }
+      ]
+    }
+  }
+}

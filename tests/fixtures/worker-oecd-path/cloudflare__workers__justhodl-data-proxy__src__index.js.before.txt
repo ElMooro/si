@@ -1,4 +1,3 @@
-import { publicObjectPath } from "./public-object-path.mjs";
 import { searchDeadline, searchCacheSeconds, searchCacheControl } from './symsearch-cache.js';
 import { factoryGateway } from './factory-gateway.js';
 import { handlePortfolioPublication, routePortfolioPublication } from './portfolio-publication.js';
@@ -2297,8 +2296,8 @@ export default {
       return new Response("method not allowed", { status: 405, headers: corsHeaders() });
     }
 
-    const safePath = publicObjectPath(url.pathname);
-    if (safePath === null) {
+    const safePath = url.pathname.replace(/^\/+/, "");
+    if (!/^[a-zA-Z0-9_\-./]+$/.test(safePath) || safePath.includes("..")) {
       return new Response("invalid path", { status: 400, headers: corsHeaders() });
     }
     // Exact inspection is a read-only request for this object identity. It

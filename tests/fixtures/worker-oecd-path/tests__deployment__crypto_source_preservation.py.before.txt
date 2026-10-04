@@ -3,8 +3,6 @@ import hashlib,json
 ROOT=Path(__file__).resolve().parents[2]
 D=ROOT/'tests/fixtures/worker-crypto-source'
 def restore_crypto_source(raw):
-    from worker_oecd_path_preservation import normalize
-    raw=normalize(raw,"cloudflare/workers/justhodl-data-proxy/src/index.js")
     t=json.loads((D/'transition.json').read_bytes())
     digest=lambda s:hashlib.sha256(s.encode()).hexdigest()
     assert digest(raw)==t['candidate_sha256']
