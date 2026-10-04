@@ -258,7 +258,7 @@
   "chart.html": {
     "before_path": "tests/fixtures/watchlist-correctness/chart.html.txt",
     "before_sha256": "5a850f55574c17e5ed53fd8bfa65b8a3209d436954b7b05cdd096bd5eda15298",
-    "after_sha256": "9880bcc36d414e46bac05e1b95289d02846c7f889bd4acdd61eae88f1f21df13",
+    "after_sha256": "73a63711d7bb6f2f56d59deb1acbe78a6e95198c65e8456029582eaf2a1b60ed",
     "edits": [
       {
         "start": 54003,
@@ -292,6 +292,13 @@
         "before": "<script src=\"/jh-chart-provider-browser.js",
         "after": "<script src=\"/jh-chart-cftc.js?v=20261004\"></script>\n<script src=\"/jh-chart-provider-browser.js",
         "scope": "exact-cftc-history-581"
+      },
+      {
+        "start": 55079,
+        "end": 55140,
+        "before": "",
+        "after": "\n<script src=\"/jh-chart-row-handoff.js?v=20261004a\"></script>",
+        "scope": "watchlist-row-handoff"
       }
     ]
   },
