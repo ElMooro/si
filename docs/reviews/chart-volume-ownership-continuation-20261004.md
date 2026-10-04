@@ -1,6 +1,6 @@
 # Reported-volume preservation and public repaint containment
 
-This draft proposal is reconciled with main `ba7cb884dcf0fbdd20af191a191f45f861620c3e`. It removes known quantity substitution and guards the known public repaint paths. It does not certify provider units, upstream missingness, expected historical coverage or live release acceptance. No merge, production push, deployment, Actions dispatch, schedule change or provider request is authorized by this proposal.
+This draft proposal is reconciled with main `471f099205db7042f2de9a5bedb533d33bf24e17`. It removes known quantity substitution and guards the known public repaint paths. It does not certify provider units, upstream missingness, expected historical coverage or live release acceptance. No merge, production push, deployment, Actions dispatch, schedule change or provider request is authorized by this proposal.
 
 Only three executable production files change: the data-proxy Worker, `jh-chart-bbfix.js` and `jh-chart-engine.js`. Navigation, layout, watchlist/provider work, complete structure/distribution modules, acquisition/request order, indicator calculations, scalar diagnostics and native setter recovery are retained. New tests use invented data only. Complete predecessor sources make preservation comparisons inspectable.
 
@@ -26,7 +26,7 @@ Open draft PR90 at exact head `57aecc2e5ef1742d6367c64938952f908314fb1a` shares 
 
 Own claim `S-codex#volown1004q2` names this draft on `codex/volume-repaint-owner-containment`. Removing that one row restores every other claim byte; no other owner's claim or workspace changes.
 
-Validation first used main `98667899404c9bfad0509b056f694166a6899f75`, including published PR96 and docs PR97. Main advanced through `781bba855` to `ba7cb884d` with a FRED watchlist mapping. All four upstream changed files are retained byte-for-byte: watchlist module, source-transition record, existing identity test and applied-patcher receipt. Three repair baselines, four guard entrypoints and existing claims are unchanged between those mains. The new integrated checkout preserves earlier candidates and evidence.
+Validation first used main `98667899404c9bfad0509b056f694166a6899f75`, including published PR96 and docs PR97. Main advanced through `781bba855` to `ba7cb884d` with a FRED watchlist mapping. All four upstream changed files are retained byte-for-byte: watchlist module, source-transition record, existing identity test and applied-patcher receipt. Three repair baselines, four guard entrypoints and existing claims are unchanged between those mains. The new integrated checkout preserves earlier candidates and evidence. Before draft publication, main advanced again through `0f75f7581` to `471f09920` with another FRED concept mapping. Its four upstream changed files are also retained byte-for-byte; no repair function, guard baseline or claim changed. The latest source/Node/static/shell/build receipts are separate, and all earlier receipts remain intact.
 
 ## Strict preservation contract
 
@@ -54,8 +54,10 @@ The accepted engine reverses to every byte of prior accepted `bae06914...` and c
 | --- | --- |
 | Unchanged986 main | 3714/3714 Node |
 | 986 candidate | 3818/3818 Node |
-| Unchanged latest ba7 main | 3849/3849 Node |
-| Latest integrated proposal | 3953/3953 Node; 0 failed, 0 skipped |
+| Unchanged ba7 main | 3849/3849 Node |
+| ba7 integrated proposal | 3953/3953 Node; 0 failed, 0 skipped |
+| Unchanged 471 main | 3885/3885 Node |
+| Latest 471 integrated proposal | 3989/3989 Node; 0 failed, 0 skipped |
 | New tests | 104: 67 earlier containment cases plus 37 independently authored public-path cases |
 | Actual unchanged Python attribution/snapshot functions | 4/4 on both reconciled heads |
 | Root source/syntax/secrets/wiring/boundary/evidence gates | 15/15 on both reconciled heads; staged secrets checked separately |
@@ -66,7 +68,7 @@ Independent native Chromium passes at 1440/390. Four actual public paths run whi
 
 Two failed new native-fixture iterations are retained: structure's callback had exhausted before fixture control, then the extra held30m test warmed a synthetic cache required cold by a later case. Corrections affected only the new fixture: execute complete unchanged structure cold; isolate only that invented cache entry before the later cold test. Runtime and assertions did not change to conceal failures. Browser requests are intercepted/aborted and service workers blocked; actual provider requests/page errors are zero.
 
-Thirteen offline build steps pass on the 986 candidate. The final committed proposal's separate diagnostic build receipt binds its actual source head and checks 600 built graphs. No diagnostic build is a live release receipt. The absent `ci/dash_budget.txt` leaves measured 819 dead dashes unverified against a budget; no setting is created to manufacture a pass.
+Thirteen offline build steps pass separately on the 986, ba7 and latest 471 integrations. The final committed proposal's separate diagnostic build receipt binds its actual source head and checks 600 built graphs. No diagnostic build is a live release receipt. The absent `ci/dash_budget.txt` leaves measured 819 dead dashes unverified against a budget; no setting is created to manufacture a pass.
 
 The initial broader static runner stopped at discovery because `boto3` was absent; the initial synthetic shell run likewise failed in its snapshot offline-regression child. Both failed receipts and the precise child diagnostic remain retained. The repository-documented setup at `.github/workflows/deploy-lambdas.yml:219` was then installed from official PyPI into an isolated local test directory: boto3, pytest, jsonschema and NumPy 2.3.5. With external DNS/connections and unexpected real service CLIs refused, the unchanged original runner passes 1075 static tests and all 15 synthetic shell tests, including the required complete snapshot-test acknowledgement. No historical assertion or original runner selection is altered; no AWS request or credential read occurs.
 
@@ -78,6 +80,6 @@ The containment acceptance criteria are preservation of reported source quantiti
 
 Independent execution of the actual asset stamper identifies a concrete release gap: built `chart.html` retains `/jh-chart-engine.js?v=20261002ac-shelves&watch=watchlist-transaction-v1` because the stamper only handles the simple version query. Expected engine content version `3a70581b` is absent. The dynamic BB-helper URL is correctly stamped `87629d9a`. This proves missing engine version stamping, not an observed stale client. A fresh intercepted native context does not prove existing browser caches received new engine bytes.
 
-The comparative dash ratchet has no available baseline: `ci/dash_budget.txt` is absent from exact main ba7 and the committed proposal. The workflow gate tool is present inline at `.github/workflows/pages.yml:117`; its absent-baseline branch bootstraps rather than compares. The local build measures 819 with zero template leaks, but no settings/baseline are created and no historical-budget comparison is claimed.
+The comparative dash ratchet has no available baseline: `ci/dash_budget.txt` is absent from exact main 471 and the committed proposal. The workflow gate tool is present inline at `.github/workflows/pages.yml:117`; its absent-baseline branch bootstraps rather than compares. The local build measures 819 with zero template leaks, but no settings/baseline are created and no historical-budget comparison is claimed. Latest 471 repeats all 15 source gates, 4 actual Python preservation functions, 1075 static deployment tests and 15 synthetic shell tests; all pass.
 
 The retained live HTTP 403/raw-log access stop is honored without retries or alternate routes. Production is HOLD for exact served/client Worker/Pages acceptance, including the demonstrated engine cache-version gap and the retained live-access denial. Local dependency failures are resolved; no active repair-function ownership conflict was found. Minimal coordination is to review this bounded draft with any concurrent complete-engine contract, repair or qualify engine cache versioning and verify exact release/client bytes through an authorized acceptance path. Other claims remain untouched.
