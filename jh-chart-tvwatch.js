@@ -446,19 +446,13 @@
     return symMapReq;
   }
   loadSymMap();
-  function fredId(id) {
-    id = String(id || "").toUpperCase();
-    var cc = { AUS: "AU", AUT: "AT", BEL: "BE", CAN: "CA", CHE: "CH", CHL: "CL", COL: "CO", CZE: "CZ", DEU: "DE", DNK: "DK", ESP: "ES", EST: "EE", FIN: "FI", FRA: "FR", GBR: "GB", GRC: "GR", HUN: "HU", IRL: "IE", ISR: "IL", ITA: "IT", JPN: "JP", KOR: "KR", LTU: "LT", LUX: "LU", LVA: "LV", NLD: "NL", NOR: "NO", NZL: "NZ", POL: "PL", PRT: "PT", SVK: "SK", SVN: "SI", SWE: "SE", TUR: "TR", USA: "US", EA19: "EZ" };
-    var m = /^(BSCICP03|CSCICP03|IRLTLT01|LRHUTTTT|CPALTT01|IR3TIB01|PRINTO01|XTEXVA01|XTIMVA01|XTNTVA01|MABMM301)(AUS|AUT|BEL|CAN|CHE|CHL|COL|CZE|DEU|DNK|ESP|EST|FIN|FRA|GBR|GRC|HUN|IRL|ISR|ITA|JPN|KOR|LTU|LUX|LVA|NLD|NOR|NZL|POL|PRT|SVK|SVN|SWE|TUR|USA|EA19)(M\d+[A-Z])$/.exec(id);
-    if (!m || !cc[m[2]]) return id;
-    return m[1] + cc[m[2]] + m[3];
-  }
-  function chartSymbol(s) {
+  // Candidates are diagnostic only; a routing suggestion is not identity evidence.
+  function chartCandidate(s) {
     s = String(s || "").trim();
     if (!s || s.indexOf("###") === 0) return "";
     var u = s.toUpperCase(), hit = symMap && symMap[u];
     if (hit && hit.source === "MARKET" && hit.id && /^[A-Z0-9.^=-]{1,24}$/.test(String(hit.id).toUpperCase())) return String(hit.id).toUpperCase();
-    if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + fredId(hit.id);
+    if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + hit.id;
     if (hit && hit.source === "COINGECKO" && /^[a-z]{2,6}$/.test(hit.id || "")) return String(hit.id).toUpperCase() + "-USD";
     if (hit && hit.source === "WORLDBANK") {
       var wb = String(hit.id || "").toUpperCase().split("|");
@@ -493,7 +487,7 @@
       if (pair.length === 6 && cc.indexOf(pair.slice(0, 3)) >= 0 && cc.indexOf(pair.slice(3)) >= 0) return pair + "=X";
       return "";
     }
-    if (/^FRED:[A-Z0-9]+$/.test(u)) return "FRED:" + fredId(u.slice(5));
+    if (/^FRED:[A-Z0-9]+$/.test(u)) return u;
     if (venue === "ECONOMICS") {
       var econ = { USINTR: "FEDFUNDS", USCPI: "CPIAUCSL", USCCPI: "CPILFESL", USUR: "UNRATE", USGDP: "GDP", USGDPQQ: "A191RL1Q225SBEA", USNFP: "PAYEMS", USIJC: "ICSA", USCJC: "CCSA", USRSM: "RSAFS", USIP: "INDPRO", USM2: "M2SL", USBOT: "BOPGSTB", USPPI: "PPIACO", USHS: "HOUST", USBP: "PERMIT", USCS: "UMCSENT", USDGO: "DGORDER", USPCE: "PCEPI", USCPCE: "PCEPILFE", USTBL: "BOPGSTB", USGD: "GFDEBTN", USAHE: "AHETPI", USPART: "CIVPART", USJO: "JTSJOL", USBBS: "WALCL", USCBBS: "WALCL", EUINTR: "ECBDFR", DEUR: "LRHUTTTTDEM156S", DECPI: "DEUCPIALLMINMEI", DEGDPQQ: "CLVMNACSCAB1GQDE", GBINTR: "IRSTCB01GBM156N", GBCPI: "GBRCPIALLMINMEI", JPINTR: "IRSTCB01JPM156N", JPCPI: "JPNCPIALLMINMEI", CNGDP: "MKTGDPCNA646NWDB", CNCPI: "CHNCPIALLMINMEI", CAINTR: "IRSTCB01CAM156N", AUINTR: "IRSTCB01AUM156N", USDXY: "DTWEXBGS" };
       if (econ[bare]) return "FRED:" + econ[bare];
@@ -506,20 +500,48 @@
     if (!venue && /^[A-Z][A-Z0-9.-]{0,11}$/.test(u)) return u;
     return "";
   }
+  var chartSelection = null;
+  function chartRoute(s) {
+    var requested = typeof s === "string" ? s.trim() : "", u = requested.toUpperCase();
+    var route = { requested: requested, candidate: null, target: null, relation: "unavailable", reason: "Instrument identity is unverified; chart unchanged" };
+    if (!requested || /^###/.test(requested) || /[\s\x00-\x1f\x7f]/.test(requested)) { route.reason = "Invalid instrument identifier; chart unchanged"; return route; }
+    route.candidate = chartCandidate(requested) || null;
+    var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = "";
+    try {
+      if (cat && typeof cat.chartId === "function") catalogId = String(cat.chartId(requested) || "");
+      // Canonical identifiers outrank any speculative symbol-map candidate. No country/suffix rewrite.
+      if (cat && typeof cat.isWarehouse === "function" && cat.isWarehouse(requested) && catalogId.toUpperCase() === u &&
+          (/^FRED:[A-Z0-9]+$/.test(u) || /^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u) ||
+           (!/^(FRED|WORLDBANK):/.test(u) && /^[A-Z0-9_.-]+:[A-Z0-9_.:=-]+$/.test(u)))) {
+        route.target = requested; route.relation = "exact"; route.reason = "Exact identifier handoff; source observations still require identity evidence"; return route;
+      }
+      // These five original IDs are scalar aliases in the existing native resolver, tested through Enter/klines.
+      // Do not broaden to economic names or suffix-only catalog hits (DFF/SOFR are not native scalar aliases).
+      if (/^(DGS2|DGS5|DGS10|DGS30|T10Y2Y)$/.test(u) && typeof native === "function" && catalogId.toUpperCase() === "FRED:" + u) {
+        route.candidate = catalogId; route.target = requested; route.relation = "provider-prefix";
+        route.reason = "Native FRED prefix alias; identical series ID, original request retained"; return route;
+      }
+      if (typeof native === "function" && requested.indexOf(":") < 0 && /^[A-Z0-9^][A-Z0-9.^=-]{0,23}$/.test(u) &&
+          !/^[A-Z]{6}$|^[A-Z]{1,3}[FGHJKMNQUVXZ][0-9]{1,2}$|^(BTC|ETH)$/.test(u)) {
+        var resolved = native(requested);
+        if (resolved && resolved.engine === "equity" && String(resolved.ticker || "").toUpperCase() === u && String(resolved.yahoo || "").toUpperCase() === u) {
+          route.target = requested; route.relation = "exact"; route.reason = "Unchanged native identifier handoff"; return route;
+        }
+      }
+    } catch (e) { route.reason = "Instrument resolver unavailable; chart unchanged"; }
+    return route;
+  }
   function openSym(s) {
-    if (!symMapReady) { loadSymMap().then(function () { openSym(s); }); return; }
-    var chart = chartSymbol(s);
-    if (!chart) { toast("No series on this tape for " + s); paintCard(s); return; }
-    var q = document.getElementById("q");
-    if (q && typeof q.onkeydown === "function") {
-      q.value = chart;
+    // The map only supplies candidates: never wait and replay a click after a later selection/list change.
+    var route = chartRoute(s), q = document.getElementById("q");
+    chartSelection = route;
+    if (route.target && q && typeof q.onkeydown === "function") {
+      q.value = route.requested;
       q.onkeydown({ key: "Enter", preventDefault: function () {}, stopPropagation: function () {} });
-    } else if (q) {
-      q.value = chart;
-      q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    } else if (window.jhOpenSymbol && /^[A-Z0-9.-]+$/.test(chart)) window.jhOpenSymbol(chart);
-    if (chart !== String(s || "").trim().toUpperCase()) toast(String(s) + " -> " + chart);
-    paintCard(s);
+    } else if (route.target) { route.target = null; route.relation = "unavailable"; route.reason = "Native chart handler unavailable; chart unchanged"; }
+    route.frame = activeSym();
+    if (!route.target) toast(route.requested + " · " + route.reason + (route.candidate ? " · Unverified candidate: " + route.candidate : ""));
+    paintCard(route.requested);
   }
   function paintCard(s) {
     if(actionDraft)return;
@@ -528,6 +550,10 @@
     if (!host && stack) { host = document.createElement("div"); host.id = "tvcard"; stack.insertBefore(host, stack.firstChild); }
     if (!host) return;
     s = s || activeSym();
+    var route = chartSelection && chartSelection.frame === activeSym() && (s === activeSym() || s === chartSelection.requested) ? chartSelection : null;
+    if (route) s = route.requested;
+    var routing = route ? "<div class='meta chart-route' role='status' data-route-version='watchlist-identity-guard-1' data-requested='" + esc(route.requested) + "' data-target='" + esc(route.target || "") + "' data-candidate='" + esc(route.candidate || "") + "'>" +
+      esc("Requested: " + route.requested + " · " + route.reason + (route.candidate && route.candidate.toUpperCase() !== route.requested.toUpperCase() ? " · " + (route.relation === "provider-prefix" ? "Resolved series: " : "Unverified candidate: ") + route.candidate : "")) + "</div>" : "";
     var q = quotes[s] || {};
     var has = q.last != null && isFinite(q.last);
     var range = "";
@@ -543,7 +569,7 @@
       "<div class='px " + cls(q.chg) + "'>" + (has ? num(q.last) : "\u2014") + "</div>" +
       "<div class='" + cls(q.chg) + "'>" + (has ? ((typeof q.chgv==="number"&&Number.isFinite(q.chgv)&&q.chgv>=0 ? "+" : "") + num(q.chgv) + "   " + pct(q.chg)) : "") + (q.ext == null ? "" : "   <span class='ext " + cls(q.ext) + "'>" + esc(q.extTag || "Ext") + " " + pct(q.ext) + "</span>") + "</div>" +
       range + (typeof q.vol==="number"&&Number.isFinite(q.vol)&&q.vol>=0 ? "<div class=rlab><span>Volume " + vol(q.vol) + "</span><span>" + (typeof q.avg==="number"&&Number.isFinite(q.avg)&&q.avg>=0 ? "Avg " + vol(q.avg) : "") + "</span></div>" : "") +
-      "<div class=meta>"+esc(s+" · "+quoteStatus(s))+"</div>"+meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
+      "<div class=meta>"+esc(s+" · "+quoteStatus(s))+"</div>"+routing+meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
     var ta = host.querySelector("textarea");
     if (!ta) return;
     if (keep != null) { ta.value = keep; ta.focus(); }
