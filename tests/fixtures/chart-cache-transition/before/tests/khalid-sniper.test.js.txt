@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 
 test("Khalid sniper sits next to Alert and opens on the chart", () => {
-  const html = require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, "chart.html"), "utf8"));
+  const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
   const eng = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
   const rail = fs.readFileSync(path.join(root, "jh-chart-tvrail.js"), "utf8");
   const page = fs.readFileSync(path.join(root, "khalid.html"), "utf8");
