@@ -506,6 +506,8 @@
     var route = { requested: requested, candidate: null, target: null, relation: "unavailable", reason: "Instrument identity is unverified; chart unchanged" };
     if (!requested || /^###/.test(requested) || /[\s\x00-\x1f\x7f]/.test(requested)) { route.reason = "Invalid instrument identifier; chart unchanged"; return route; }
     route.candidate = chartCandidate(requested) || null;
+    // Catalog browse/desk IDs are not scalar chart contracts in the native handler.
+    if (/^(DATA|DESK):/.test(u)) { route.reason = "Catalog item has no qualified scalar chart handoff; chart unchanged"; return route; }
     var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = "";
     try {
       if (cat && typeof cat.chartId === "function") catalogId = String(cat.chartId(requested) || "");

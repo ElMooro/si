@@ -256,7 +256,7 @@
   "jh-chart-tvwatch.js": {
     "before_path": "tests/fixtures/watchlist-correctness/jh-chart-tvwatch.js.txt",
     "before_sha256": "41b1c217e58942d501eda70d07792522f45115cb1a6cad048372683676917e33",
-    "after_sha256": "2c7b5fd9ea91cb3daeab806d4c4c01141ca4ed2f74fc7d45d2dedfe913631146",
+    "after_sha256": "4d0795b3be8a69be5a0b5dda33ecdf5281c037b0a2777800521256a00c133bf4",
     "edits": [
       {
         "start": 448,
@@ -1099,6 +1099,13 @@
         "end": 36326,
         "before": "    if (route.target && q) {\n      q.value = route.requested;\n      if (typeof q.onkeydown === \"function\") q.onkeydown({ key: \"Enter\", preventDefault: function () {}, stopPropagation: function () {} });\n      else { route.target = null; route.relation = \"unavailable\"; route.reason = \"Native chart handler unavailable; chart unchanged\"; }\n    } else if (route.target) { route.target = null; route.relation = \"unavailable\"; route.reason = \"Native chart input unavailable; chart unchanged\"; }",
         "after": "    if (route.target && q && typeof q.onkeydown === \"function\") {\n      q.value = route.requested;\n      q.onkeydown({ key: \"Enter\", preventDefault: function () {}, stopPropagation: function () {} });\n    } else if (route.target) { route.target = null; route.relation = \"unavailable\"; route.reason = \"Native chart handler unavailable; chart unchanged\"; }",
+        "scope": "watchlist-identity-guard-1"
+      },
+      {
+        "start": 33669,
+        "end": 34036,
+        "before": "    route.candidate = chartCandidate(requested) || null;\n    var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = \"\";",
+        "after": "    route.candidate = chartCandidate(requested) || null;\n    // Catalog browse/desk IDs are not scalar chart contracts in the native handler.\n    if (/^(DATA|DESK):/.test(u)) { route.reason = \"Catalog item has no qualified scalar chart handoff; chart unchanged\"; return route; }\n    var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = \"\";",
         "scope": "watchlist-identity-guard-1"
       }
     ]

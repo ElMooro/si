@@ -5,7 +5,7 @@ const scripts=['jh-watchlist-store.js','jh-watchlist-quotes.js','jh-chart-tvrail
 const html=fs.readFileSync(ROOT+'/chart.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'').replace('</body>','<script src="/fixture-library.js"></script>'+scripts.map(s=>'<script src="/'+s+'"></script>').join('')+'</body>');
 const ids=['NASDAQ:AAPL','NYSE:AAPL','IEX:AAPL','BINANCE:BTCUSDT','BINANCE:BTCUSDC','COINBASE:BTCUSD','BINANCE:ETHBTC','TVC:GOLD','TVC:US10Y','OANDA:EURUSD','CME_MINI:ES1!','FRED:DGS10','AAPL','worldbank:NY.GDP.MKTP.CD:USA','FRED:BSCICP03DEUM665S','ECONOMICS:USDXY'];
 const aliases=['DGS2','DGS5','DGS10','DGS30','T10Y2Y'];
-const scenarios=[{name:'counterexamples',members:ids,allowed:['FRED:DGS10','AAPL','worldbank:NY.GDP.MKTP.CD:USA','FRED:BSCICP03DEUM665S']},
+const scenarios=[{name:'browse-identifiers',members:['DATA:example','DESK:inst'],allowed:[]},{name:'counterexamples',members:ids,allowed:['FRED:DGS10','AAPL','worldbank:NY.GDP.MKTP.CD:USA','FRED:BSCICP03DEUM665S']},
  {name:'synthetic-map',members:['NASDAQ:AAPL','FRED:DGS10','WB:USA|NY.GDP.MKTP.CD'],allowed:['FRED:DGS10'],map:{'NASDAQ:AAPL':{source:'MARKET',id:'MSFT'},'FRED:DGS10':{source:'FRED',id:'DGS2'},'WB:USA|NY.GDP.MKTP.CD':{source:'WORLDBANK',id:'USA|NY.GDP.MKTP.CD'}}},
  {name:'prefix-aliases',members:aliases,allowed:aliases}, {name:'prefix-mismatch',members:aliases,allowed:aliases,mismatch:true},
  {name:'unchanged-market',members:['BTC-USD','GC=F','EURUSD=X'],allowed:['BTC-USD','GC=F','EURUSD=X']},
@@ -52,6 +52,7 @@ for(const width of [1440,390])for(const scenario of scenarios){
    assert.deepEqual(await page.evaluate(()=>({lists:jhWatchlistStore.read('jh-chart-custom-lists'),flags:jhWatchlistStore.read('jh-chart-flags'),favorites:jhWatchlistStore.read('jh-chart-favs'),ui:jhWatchlistStore.read('jh-tv-watch-ui')})),saved);
    report.cases.push({width,scenario:scenario.name,...state,transport:requests.slice(start).filter(r=>['/ohlc','/yf-ohlc','/series'].includes(r.path))});
   }
+  if(scenario.name==='browse-identifiers')assert.ok(requests.filter(r=>['/ohlc','/yf-ohlc','/series'].includes(r.path)).every(r=>!/(EXAMPLE|INST)/i.test(r.query)),'Browse IDs never enter market fallback');
   if(scenario.holdMap){assert.ok(heldMap);const before=await page.evaluate(()=>fixtureSubmits.slice());await heldMap();await page.waitForTimeout(100);assert.deepEqual(await page.evaluate(()=>fixtureSubmits),before);assert.equal(await page.evaluate(()=>jhWatchlistActive()),'FRED:DGS10');}
   assert.deepEqual(errors,[]);await page.screenshot({path:path.join(OUT,scenario.name+'-'+width+'.png')});
  }catch(error){fs.writeFileSync(path.join(OUT,'failure-'+scenario.name+'-'+width+'.json'),JSON.stringify({error:String(error),errors,requests,body:await page.locator('body').innerText()},null,2));throw error;}finally{await context.close();}

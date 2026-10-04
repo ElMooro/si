@@ -20,7 +20,9 @@ The guard keeps requested ID, candidate and accepted handoff separate. An
 unverified candidate is displayed as such and is never sent to the native handler.
 Rejected clicks explicitly say the chart is unchanged. Canonical FRED and World
 Bank IDs retain their full suffix, indicator and country even when a synthetic
-map disagrees. Other exact catalog-qualified warehouse IDs remain supported.
+map disagrees. Other exact catalog-qualified scalar warehouse IDs remain supported. DATA:/DESK:
+browse entries are refused before handoff; they have no native scalar contract
+and must not fall through to market tickers. CQ:/CISS: scalar IDs stay eligible.
 Ordinary bare IDs require an unchanged native ticker and fallback ticker;
 ambiguous currency, futures-shaped and bare BTC/ETH requests remain unavailable.
 Explicit unchanged identifiers such as BTC-USD, GC=F and EURUSD=X are supported;
@@ -65,12 +67,12 @@ python3 scripts/check_secrets.py
 python3 scripts/check_staged_batch.py --inventory /tmp/watchlist-identity-guard-inventory.json
 ```
 
-Local results: 3,194 Node checks (including 88 existing watchlist checks and 61
+Local results: 3,198 Node checks (including 88 existing watchlist checks and 65
 new checks), all passed. The new checks revisit the original 25 exact-function
 counterexamples (19 routing cases plus six unchanged quote guards). The identity
-browser has 68 passing handoff cases across 1440/390: the original 19 browser
+browser has 72 passing handoff cases across 1440/390: the original 19 browser
 counterexamples at both widths plus alias, mismatch, explicit-identity and
-late-map controls. Existing editing/keyboard/scroll/mobile flows pass at both
+late-map and DATA:/DESK: market-fallback controls. Existing editing/keyboard/scroll/mobile flows pass at both
 widths; ten renderer failure cases and nineteen transaction/recovery cases pass.
 Syntax: 600 public graphs, zero errors. Wiring: 36 pages / 143 references, no
 missing or stale entries. Preflight, secrets and exact staged inventory are
