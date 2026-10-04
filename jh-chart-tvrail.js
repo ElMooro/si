@@ -3,43 +3,90 @@
 (function () {
   if (window.__jhTvRail) return;
   window.__jhTvRail = true;
+  // watchlist-storage-v2: read-only preview on explicit action; never auto-migrate.
   (function () {
     var MARK = "jh-chart-pro-imported";
-    function read(k, fb) { try { var v = JSON.parse(localStorage.getItem(k) || ""); return v == null ? fb : v; } catch (e) { return fb; } }
-    function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-    var map = { red: "#f23645", orange: "#ff6d00", yellow: "#fdd835", green: "#089981", blue: "#2962ff", purple: "#ab47bc", "var(--cyan)": "#22d3ee", "var(--green)": "#089981", "var(--amber)": "#fbbf24", "var(--violet)": "#ab47bc", "var(--pink)": "#e91e63", "var(--blue)": "#2962ff" };
-    function hex(c) { if (!c) return ""; c = String(c); if (c.charAt(0) === "#") return c; return map[c] || ""; }
-    try {
-      var seen = read(MARK, { lists: {} }); if (!seen.lists) seen.lists = {};
-      var src = read("jh_custom_watchlists", null);
-      var dst = read("jh-chart-custom-lists", []); if (!Array.isArray(dst)) dst = [];
-      var byName = {}; dst.forEach(function (l) { if (l && l.name) byName[l.name] = l; });
-      if (src && typeof src === "object") {
-        Object.keys(src).forEach(function (id) {
-          var w = src[id]; if (!w || !w.name) return;
-          var tick = (w.tickers || []).filter(Boolean);
-          var rec = seen.lists[id] || [];
-          var have = {}; rec.forEach(function (s) { have[s] = 1; });
-          var L = byName[w.name];
-          if (!L) { L = { id: id, name: w.name, symbols: [], n: 0, custom: 1, color: hex(w.color) || null, from: "chart-pro" }; dst.unshift(L); byName[w.name] = L; }
-          tick.forEach(function (s) { if (have[s]) return; if (L.symbols.indexOf(s) < 0) L.symbols.push(s); have[s] = 1; rec.push(s); });
-          L.n = L.symbols.length; if (!L.color) L.color = hex(w.color) || null;
-          seen.lists[id] = rec;
+    var keys = ["jh_custom_watchlists", "jh_symbol_flags", "jh_favorites", "jh_favs", "jh-chart-custom-lists", "jh-chart-flags", "jh-chart-favs", MARK];
+    var colors = {red:"#f23645",orange:"#ff6d00",yellow:"#fdd835",green:"#089981",blue:"#2962ff",purple:"#ab47bc","var(--cyan)":"#22d3ee","var(--green)":"#089981","var(--amber)":"#fbbf24","var(--violet)":"#ab47bc","var(--pink)":"#e91e63","var(--blue)":"#2962ff"};
+    function object(v) { return v && typeof v === "object" && !Array.isArray(v); }
+    function strings(v) { return Array.isArray(v) && v.every(function(s){return typeof s === "string" && s.trim().length > 0;}); }
+    function hex(c) { return typeof c === "string" ? (/^#[0-9a-f]{6}$/i.test(c) ? c : colors[c] || "") : ""; }
+    function parse(raw, fallback, valid) {
+      var v = raw === null ? fallback : JSON.parse(raw);
+      if (!valid(v)) throw Error("Malformed watchlist storage; original retained");
+      return v;
+    }
+    function snapshot(store) { var raw = {}; keys.forEach(function(k){raw[k]=store.getItem(k);}); return raw; }
+    function prepare(store) {
+      var raw=snapshot(store), src=parse(raw[keys[0]],{},object), flags=parse(raw[keys[1]],{},object);
+      var fav=parse(raw[keys[2]],{},object), favA=parse(raw[keys[3]],[],strings);
+      var dst=parse(raw[keys[4]],[],function(v){return Array.isArray(v) && v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);});});
+      var cf=parse(raw[keys[5]],{},object), mine=parse(raw[keys[6]],[],strings);
+      var old=parse(raw[MARK],{lists:{}},function(v){return object(v)&&object(v.lists);});
+      var legacy=raw[MARK]!==null && old.version!==2;
+      if (old.version!=null && old.version!==2) throw Error("Unknown import ledger version");
+      var ledger=old.version===2 ? old : {version:2,lists:Object.create(null),favorites:[],flags:[]};
+      if (!strings(ledger.favorites)||!strings(ledger.flags)) throw Error("Malformed import ledger");
+      var ids=new Set(); dst.forEach(function(l){if(ids.has(l.id))throw Error("Duplicate destination list identity");ids.add(l.id);});
+      var mappedIds=new Set();
+      Object.keys(ledger.lists).forEach(function(id){var r=ledger.lists[id];if(!object(r)||typeof r.id!=="string"||!strings(r.members)||typeof r.deleted!=="boolean"||mappedIds.has(r.id))throw Error("Malformed or conflicting source mapping");mappedIds.add(r.id);});
+      var changes=0;
+      Object.keys(src).forEach(function(id){
+        var w=src[id];
+        if (!object(w)||typeof w.name!=="string"||!w.name.trim()||!strings(w.tickers)) throw Error("Malformed Chart Pro list; original retained");
+        var rec=Object.prototype.hasOwnProperty.call(ledger.lists,id)?ledger.lists[id]:null, L=null;
+        if (rec && (!object(rec)||typeof rec.id!=="string"||!strings(rec.members)||typeof rec.deleted!=="boolean")) throw Error("Malformed list import mapping");
+        if (!rec && legacy && Object.prototype.hasOwnProperty.call(old.lists,id)) {
+          if(!strings(old.lists[id])) throw Error("Malformed legacy ledger");
+          L=dst.find(function(l){return l.id===id && l.from==="chart-pro";});
+          // Name-based legacy merges cannot be unambiguously recovered. Never guess.
+          if(!L) throw Error("Legacy source ID has no unique destination; original retained for review");
+          rec={id:L.id,members:old.lists[id].slice(),deleted:false};
+        }
+        if (rec) {
+          L=dst.find(function(l){return l.id===rec.id;});
+          if (!L) rec.deleted=true;
+          if(L&&(L.from!=="chart-pro"||(L.sourceId!==id&&L.id!==id)))throw Error("Source mapping conflicts with a saved list identity");
+        } else {
+          var mapped="chart-pro:"+encodeURIComponent(id);
+          while(ids.has(mapped)) mapped+="~";
+          ids.add(mapped);
+          L={id:mapped,name:w.name,symbols:[],n:0,custom:1,color:hex(w.color)||null,from:"chart-pro",sourceId:id};
+          dst.push(L); rec={id:mapped,members:[],deleted:false}; changes++;
+        }
+        // Never replace a destination rename, membership removal, order or color.
+        w.tickers.forEach(function(symbol){
+          if(rec.members.indexOf(symbol)>=0)return;
+          rec.members.push(symbol);
+          if(!rec.deleted && L.symbols.indexOf(symbol)<0){L.symbols.push(symbol);changes++;}
         });
-        write("jh-chart-custom-lists", dst);
-      }
-      var pf = read("jh_symbol_flags", {}); var cf = read("jh-chart-flags", {});
-      if (pf && typeof pf === "object") { Object.keys(pf).forEach(function (k) { if (!cf[k] && hex(pf[k])) cf[k] = hex(pf[k]); }); write("jh-chart-flags", cf); }
-      var mine = read("jh-chart-favs", []); if (!Array.isArray(mine)) mine = [];
-      var set = {}; mine.forEach(function (s) { set[s] = 1; });
-      function addFav(k) { if (k && !set[k]) { mine.push(k); set[k] = 1; } }
-      var fav = read("jh_favorites", null);
-      if (fav && typeof fav === "object" && !Array.isArray(fav)) Object.keys(fav).forEach(function (k) { if (fav[k]) addFav(k); });
-      var favA = read("jh_favs", null); if (Array.isArray(favA)) favA.forEach(addFav);
-      write("jh-chart-favs", mine); write(MARK, seen);
-    } catch (e) {}
+        if(L && !rec.deleted)L.n=L.symbols.length;
+        ledger.lists[id]=rec;
+      });
+      var sourceFav=favA.slice();
+      Object.keys(fav).forEach(function(k){if(fav[k]===true && sourceFav.indexOf(k)<0)sourceFav.push(k);});
+      sourceFav.forEach(function(k){
+        if(ledger.favorites.indexOf(k)>=0)return;
+        ledger.favorites.push(k);
+        // The old migrator reimported removed flags/favorites on every load.
+        // A legacy ledger cannot distinguish a removal: preserve the destination.
+        if(!legacy && mine.indexOf(k)<0){mine.push(k);changes++;}
+      });
+      Object.keys(flags).forEach(function(k){
+        if(ledger.flags.indexOf(k)>=0)return;
+        ledger.flags.push(k);
+        if(!legacy && !Object.prototype.hasOwnProperty.call(cf,k) && hex(flags[k])){cf[k]=hex(flags[k]);changes++;}
+      });
+      var after={}; after[keys[4]]=JSON.stringify(dst);after[keys[5]]=JSON.stringify(cf);after[keys[6]]=JSON.stringify(mine);after[MARK]=JSON.stringify(ledger);
+      if(!keys.every(function(k){return store.getItem(k)===raw[k];}))throw Error("Concurrent edit during preview; original retained");
+      return {before:raw,after:after,changes:changes};
+    }
+    // Import activation is withheld: old/open chart tabs write outside Web Locks.
+    // A preview/export is non-mutating even with concurrent or malformed storage.
+    window.jhWatchlistStore={prepare:prepare};
+
   })();
-  if (!document.getElementById("jh-tvwatch-js")) { var sc = document.createElement("script"); sc.id = "jh-tvwatch-js"; sc.src = "/jh-chart-tvwatch.js?v=20261003-tvwl"; document.head.appendChild(sc); }
+  if (!document.getElementById("jh-tvwatch-js")) { var sc = document.createElement("script"); sc.id = "jh-tvwatch-js"; sc.src = "/jh-chart-tvwatch.js?v=watchlist-correctness-v2"; document.head.appendChild(sc); }
 
   var PIN_KEY = "jh-chart-watch-pin";
   var WKEY = "jh-chart-watch-w";
@@ -163,7 +210,7 @@
     "#tv-zoom{position:absolute!important;left:50%!important;bottom:8px!important;top:auto!important;right:auto!important;transform:translateX(-50%)!important;z-index:12!important;display:flex;flex-direction:row;border:1px solid #2a2e39;border-radius:6px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:auto;width:auto!important;height:auto!important}",
     "#tv-zoom button{width:36px;height:26px;border-bottom:0;border-right:1px solid #2a2e39}",
     "#tv-zoom button:last-child{border-right:0}",
-    "@media(max-width:720px){#rrail{display:none!important}}"
+    "@media(max-width:720px){#rrail{display:none!important}#btn-watch{display:inline-flex!important}#watch.is-open{position:fixed!important;right:0;top:100px;bottom:0;width:min(var(--watch-w,320px),100vw)!important;min-width:0!important;z-index:45}}"
   ].join("");
   document.documentElement.appendChild(css);
   document.documentElement.style.setProperty("--watch-w", watchW + "px");
@@ -484,6 +531,23 @@
         ops.appendChild(b);
         return b;
       }
+      var importButton=ensureBtn("w-import", "Review Chart Pro import; saving is paused for cross-tab safety", "Review import");
+      importButton.onclick=function(e){
+        e.stopPropagation();
+        var message=document.getElementById("w-import-status");
+        if(!message){message=document.createElement("div");message.id="w-import-status";message.setAttribute("role","status");w.appendChild(message);}
+        message.replaceChildren();
+        try{
+          var plan=window.jhWatchlistStore.prepare(localStorage);
+          message.textContent=plan.changes+" additions prepared. Import saving is paused to protect edits made in other tabs. ";
+          var download=document.createElement("button");download.type="button";download.textContent="Download preview and original backup";
+          download.onclick=function(){
+            var blob=new Blob([JSON.stringify({schema:"jh-watchlist-import-preview-v2",applied:false,plan:plan},null,2)],{type:"application/json"});
+            var url=URL.createObjectURL(blob), link=document.createElement("a");link.href=url;link.download="watchlist-import-preview.json";link.click();setTimeout(function(){URL.revokeObjectURL(url);},0);
+          };
+          message.appendChild(download);
+        }catch(error){message.textContent=error.message;}
+      };
       ensureBtn("w-searchbtn", "Search symbol", "⌕");
       ensureBtn("w-chartm", "Chart / company info", "◆");
       ensureBtn("w-pin", "Pin watchlist", "📌");
@@ -553,7 +617,7 @@
           var kind = b.getAttribute("data-rail");
           var w = watch();
           var open = w && w.classList.contains("is-open");
-          if (kind === "watch" && open) {
+          if (kind === "watch" && open && pinned) {
             dismiss();
             return;
           }
