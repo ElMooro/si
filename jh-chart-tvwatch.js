@@ -549,7 +549,7 @@
           (cat && typeof cat.isWarehouse === "function" && cat.isWarehouse(requested) && catalogId.toUpperCase() === u && /^[A-Z0-9_.-]+:[A-Z0-9_.:=-]+$/.test(u))) {
         route.handoff = requested; route.resolved = requested; route.relation = "exact";
       } else {
-        proposal = chartSymbol(requested); route.candidate = proposal || null;
+        proposal = providerRest(requested) || chartSymbol(requested); route.candidate = proposal || null;
         if (/^(DGS2|DGS5|DGS10|DGS30|T10Y2Y)$/.test(u) && catalogId.toUpperCase() === "FRED:" + u) {
           route.handoff = requested; route.resolved = catalogId; route.relation = "provider-prefix";
         } else {
@@ -719,9 +719,9 @@
       var s = b.getAttribute("data-s");
       b.onclick = function (e) {
         if (e.target.closest && e.target.closest(".grip,.tvflag,.wx")) return;
-        openSym(providerRest(s)||s);
+        openSym(s);
       };
-      b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();openSym(providerRest(s)||s);}};
+      b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();openSym(s);}};
       b.oncontextmenu = function (e) { e.preventDefault(); openMenu(e.clientX, e.clientY, s); };
       var flag = b.querySelector(".tvflag");
       if (flag) flag.onclick = intent(function (e) { e.stopPropagation(); openFlags(e.clientX, e.clientY, s); });
@@ -1547,7 +1547,7 @@
     if (sel) sel.onchange = intent(function () { ui.group = sel.value; saveUi(); renderAdv(); });
     if (sum) sum.onchange = intent(function () { ui.summary = sum.checked ? 1 : 0; saveUi(); renderAdv(); });
     host.querySelector("#tvadv-exp").onclick = intent(function () { exportList(L); });
-    host.querySelectorAll("tbody tr[data-s]").forEach(function (tr) { tr.onclick = function () { openSym(providerRest(tr.getAttribute("data-s"))||tr.getAttribute("data-s")); }; });
+    host.querySelectorAll("tbody tr[data-s]").forEach(function (tr) { tr.onclick = function () { openSym(tr.getAttribute("data-s")); }; });
     seeAdv();
   }
 
@@ -1645,7 +1645,7 @@
     i = e.key === "ArrowDown" ? Math.min(rows.length - 1, i + 1) : Math.max(0, i - 1);
     e.preventDefault();
     rows[i].focus({preventScroll:true});rows[i].scrollIntoView({ block: "nearest" });
-    openSym(providerRest(rows[i].getAttribute("data-s"))||rows[i].getAttribute("data-s"));
+    openSym(rows[i].getAttribute("data-s"));
   });
   document.addEventListener("keydown",function(e){var tag=e.target&&e.target.tagName;if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;if(e.key==="Escape"){if(!ui.adv&&!document.querySelector("#tvmenu.on,#tvflags.on,#listdrop.on,#tvimp.on"))return;}else if(["ArrowDown","ArrowUp","Delete","Backspace"].indexOf(e.key)<0||!e.target.closest||!e.target.closest("#wlist .wrow"))return;return watchlistKeyAction(e);});
   document.addEventListener("visibilitychange",function(){if(!document.hidden&&storageReady)refreshQuotes();});
