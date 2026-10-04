@@ -1,0 +1,142 @@
+@@PART 8/9@@
+      if (act === "alert") askAlert("", L && L.id);
+      if (act === "color") openPalette(e.clientX, e.clientY, function (c) { setListColor(L, c); });
+      if (act === "star" && L) toggleStar(L.id);
+      if (act === "restore") restoreList(L);
+      if (act !== "color" && act !== "star" && act !== "imp") { var ld = document.getElementById("listdrop"); if (ld) ld.className = ""; }
+    };
+  }
+
+  function openPalette(x, y, cb) {
+    var box = pop("tvflags");
+    box.className = "on";
+    box.innerHTML = FLAG_COLORS.map(function (c) { return "<button type=button data-c='" + c + "' style='background:" + c + "'></button>"; }).join("") + "<button type=button data-c='' title='Clear' style='background:#2a2e39;color:#787b86'>\u00d7</button>";
+    box.style.left = Math.max(8, x) + "px"; box.style.top = Math.max(8, y) + "px";
+    box.querySelectorAll("button").forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); cb(b.getAttribute("data-c") || ""); closePop(); }; });
+  }
+
+  function ensureChrome() {
+    var head = document.querySelector("#watch .whead");
+    var bar = document.getElementById("tvfbar");
+    if (head && !bar) {
+      bar = document.createElement("div"); bar.id = "tvfbar";
+      head.insertAdjacentElement("afterend", bar);
+      bar.onclick = function (e) {
+        var b = e.target.closest ? e.target.closest("[data-f]") : null; if (!b) return;
+        ui.flag = b.getAttribute("data-f") || ""; saveUi(); paint();
+      };
+    }
+    if (bar) {
+      var html = "<button type=button data-f=''>All</button>";
+      FLAG_COLORS.forEach(function (c) { html += "<button type=button data-f='" + c + "' title='Color list' style='background:" + c + "'></button>"; });
+      if (bar.dataset.h !== html) { bar.dataset.h = html; bar.innerHTML = html; }
+      bar.querySelectorAll("[data-f]").forEach(function (b) { b.classList.toggle("on", (b.getAttribute("data-f") || "") === (ui.flag || "")); });
+    }
+    var ops = document.querySelector("#watch .whead .wops");
+    if (ops && !document.getElementById("tv-pie")) {
+      var pie = document.createElement("button");
+      pie.id = "tv-pie"; pie.type = "button"; pie.title = "Advanced view"; pie.setAttribute("aria-label", "Advanced view"); pie.textContent = "\u25CE";
+      pie.onclick = function (e) { e.preventDefault(); e.stopPropagation(); ui.adv = ui.adv ? 0 : 1; if (ui.adv) qSet = {}; saveUi(); paint(); };
+      var menu = document.getElementById("w-menu");
+      if (menu) ops.insertBefore(pie, menu); else ops.appendChild(pie);
+    }
+  }
+
+  function advGroups(seq) {
+    if (!ui.group || ui.group === "none") return [["", seq.filter(function (x) { return String(x).indexOf("###") !== 0; })]];
+    if (ui.group === "section") {
+      var out = [], cur = "General", bucket = [];
+      function flush() { if (bucket.length) out.push([cur, bucket]); bucket = []; }
+      seq.forEach(function (x) { if (String(x).indexOf("###") === 0) { flush(); cur = String(x).replace(/^#+/, "") || "Section"; } else bucket.push(x); });
+      flush(); return out.length ? out : [["", []]];
+    }
+    var map = {}, order = [];
+    seq.forEach(function (x) {
+      if (String(x).indexOf("###") === 0) return;
+      var k = ui.group === "exch" ? (exch(x) || "\u2014") : kindOf(x);
+      if (!map[k]) { map[k] = []; order.push(k); }
+      map[k].push(x);
+    });
+    return order.map(function (k) { return [k, map[k]]; });
+  }
+
+  function pieStyle(pairs) {
+    var tot = 0, i; for (i = 0; i < pairs.length; i++) tot += pairs[i][1];
+    if (!tot) return "background:#2a2e39";
+    var acc = 0, stops = [];
+    pairs.forEach(function (p) { var a = acc; acc += p[1] / tot * 100; stops.push(p[0] + " " + a.toFixed(2) + "% " + acc.toFixed(2) + "%"); });
+    return "background:conic-gradient(" + stops.join(",") + ")";
+  }
+
+  function fmtSum(k, v) {
+    if (v == null || !isFinite(v)) return "\u2014";
+    if (k === "vol" || k === "avg") return vol(v);
+    if (k === "rsi" || k === "last" || k === "chg" || k === "mom") return k === "rsi" ? v.toFixed(1) : num(v);
+    return pct(v);
+  }
+
+  function renderAdv() {
+    var watch = document.getElementById("watch");
+    var host = document.getElementById("tvadv");
+    if (!ui.adv) { if (host) host.className = ""; return; }
+    if (!host && watch) { host = document.createElement("div"); host.id = "tvadv"; watch.appendChild(host); }
+    if (!host) return;
+    var L = findList(ui.active);
+    host.className = "on";
+    if (!L) { host.innerHTML = "<div class=ah><b>Watchlist</b><button type=button id=tvadv-x>Close</button></div>"; return; }
+    var full = viewOf(L).full;
+    var keys = ADV[ui.advTab] || ADV.price;
+    var sig = [L.id, ui.advTab, ui.group, ui.summary ? 1 : 0, full.join("|")].join("~");
+    if (host.dataset.sig === sig && host.querySelector("table")) { return; }
+    var sc = host.querySelector(".advsc"); var top = sc ? sc.scrollTop : 0;
+    var groups = advGroups(full);
+    var syms = [];
+    groups.forEach(function (g) { g[1].forEach(function (x) { if (String(x).indexOf("###") !== 0) syms.push(x); }); });
+    var head = "<th>Symbol</th>" + keys.map(function (k) { var m = MET.filter(function (x) { return x.id === k; })[0]; return "<th>" + (m ? m.label : k) + "</th>"; }).join("");
+    var body = "";
+    groups.forEach(function (g) {
+      if (g[0]) body += "<tr class=gh><td colspan='" + (keys.length + 1) + "'>" + esc(g[0]) + "  " + g[1].length + "</td></tr>";
+      g[1].forEach(function (s) {
+        if (String(s).indexOf("###") === 0) return;
+        var q = quotes[s] || {};
+        body += "<tr data-s='" + esc(s) + "'><td>" + (ui.logo ? logoHtml(s) : "") + " " + esc(bare(s)) + "</td>" + keys.map(function (k) { return "<td data-k='" + k + "' class='" + cellClass(k, q) + "'>" + fmtCell(k, q) + "</td>"; }).join("") + "</tr>";
+      });
+    });
+    if (ui.summary) {
+      ["min", "max", "avg", "med"].forEach(function (which) {
+        body += "<tr class=gh><td>" + which.toUpperCase() + "</td>";
+        keys.forEach(function (k) {
+          var vals = [];
+          syms.forEach(function (s) { var v = metricNum(s, k); if (typeof v === "number" && isFinite(v)) vals.push(v); });
+          vals.sort(function (a, b) { return a - b; });
+          var v = null;
+          if (vals.length) {
+            if (which === "min") v = vals[0];
+            else if (which === "max") v = vals[vals.length - 1];
+            else if (which === "med") v = vals[Math.floor((vals.length - 1) / 2)];
+            else { var sum = 0; vals.forEach(function (n) { sum += n; }); v = sum / vals.length; }
+          }
+          body += "<td>" + fmtSum(k, v) + "</td>";
+        });
+        body += "</tr>";
+      });
+    }
+    var types = {}, exs = {}, ti;
+    syms.forEach(function (s) { var t = kindOf(s); types[t] = (types[t] || 0) + 1; var e = exch(s) || "\u2014"; exs[e] = (exs[e] || 0) + 1; });
+    var tp = Object.keys(types).map(function (k) { return [TYPE_COLOR[k] || "#434651", types[k]]; });
+    var palette = ["#2962ff", "#089981", "#f23645", "#ff6d00", "#ab47bc", "#fdd835", "#787b86"];
+    var ep = Object.keys(exs).slice(0, 8).map(function (k, i) { return [palette[i % palette.length], exs[k]]; });
+    var legendT = Object.keys(types).map(function (k) { return k + " " + types[k]; }).join(" \u00b7 ");
+    var legendE = Object.keys(exs).slice(0, 8).map(function (k) { return k + " " + exs[k]; }).join(" \u00b7 ");
+    var name = (ui.alias && ui.alias[L.id]) || L.name || "Watchlist";
+    host.innerHTML = "<div class=ah><b>" + esc(name) + "</b><button type=button id=tvadv-x>Close</button></div>" +
+      "<div class=tabs><button type=button data-tab=price>Price</button><button type=button data-tab=perf>Performance</button><button type=button data-tab=tech>Technicals</button></div>" +
+      "<div class=tool><label>Group <select id=tvadv-g><option value=none>No group</option><option value=section>Sections</option><option value=exch>Exchange</option><option value=type>Symbol type</option></select></label><label><input id=tvadv-sum type=checkbox> Summary</label><button type=button id=tvadv-exp>Export</button></div>" +
+      "<div class=advsc><table><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table></div>" +
+      "<div class=pies><div><div class=pie style='" + pieStyle(tp) + "'></div><div class=plab>Type \u00b7 " + esc(legendT) + "</div></div><div><div class=pie style='" + pieStyle(ep) + "'></div><div class=plab>Exchange \u00b7 " + esc(legendE) + "</div></div></div>" +
+      "<div class=note>Built from the daily tape on this chart. EPS, dividends, market cap, and earnings dates are not on this tape, so they are not shown.</div>";
+    host.dataset.sig = sig;
+    host.querySelectorAll(".tabs button").forEach(function (b) { if (b.getAttribute("data-tab") === ui.advTab) b.classList.add("on"); });
+    var sel = host.querySelector("#tvadv-g"); if (sel) sel.value = ui.group || "none";
+    var sum = host.querySelector("#tvadv-sum"); if (sum) sum.checked = !!ui.summary;
+@@END 8@@
