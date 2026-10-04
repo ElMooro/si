@@ -1,0 +1,3635 @@
+{
+  "at": "2026-10-04T19:37:01.986004+00:00",
+  "status": "metadata_identity_checked_not_history_verified",
+  "watchlist_aliases": 346,
+  "contract_identity_matches": 344,
+  "unmatched_aliases": [
+    {
+      "requested": "COT3:11700_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|11700|asset_mgr_positions_long",
+      "contract_names": [],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:11700_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|11700|asset_mgr_positions_short",
+      "contract_names": [],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    }
+  ],
+  "reports_requested_with_watchlist_aliases": 5,
+  "empty_report_query_error": {
+    "dataset": "kh3c-gbw2",
+    "status": 400,
+    "reason": "No watchlist alias uses this report; empty IN predicate in metadata audit query rejected. Not retried."
+  },
+  "official_directory_captures": [
+    {
+      "dataset": "6dca-aqww",
+      "url": "https://publicreporting.cftc.gov/resource/6dca-aqww.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%27067651%27%2C%2706765T%27%2C%27088691%27%2C%27088695%27%2C%27098662%27%2C%27099741%27%2C%27112741%27%2C%27132741%27%2C%27133741%27%2C%27146021%27%2C%27299741%27%2C%27399741%27%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:01.931079+00:00",
+      "requested_codes": [
+        "067651",
+        "06765T",
+        "088691",
+        "088695",
+        "098662",
+        "099741",
+        "112741",
+        "132741",
+        "133741",
+        "146021",
+        "299741",
+        "399741"
+      ],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 200,
+      "bytes": 3027,
+      "sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e",
+      "rows": [
+        {
+          "cftc_contract_market_code": "067651",
+          "market_and_exchange_names": "CRUDE OIL, LIGHT 'SWEET' - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "067651",
+          "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "067651",
+          "market_and_exchange_names": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "06765T",
+          "market_and_exchange_names": "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "06765T",
+          "market_and_exchange_names": "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "088691",
+          "market_and_exchange_names": "GOLD - COMMODITY EXCHANGE INC."
+        },
+        {
+          "cftc_contract_market_code": "088695",
+          "market_and_exchange_names": "MICRO GOLD - COMMODITY EXCHANGE INC."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "USD INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - NEW YORK BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - NEW YORK COTTON EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NEW ZEALAND DOLLARS - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NEW ZEALAND DOLLARS - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "133741",
+          "market_and_exchange_names": "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "146021",
+          "market_and_exchange_names": "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "299741",
+          "market_and_exchange_names": "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "399741",
+          "market_and_exchange_names": "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+        }
+      ],
+      "unmatched_codes": []
+    },
+    {
+      "dataset": "jun7-fc8e",
+      "url": "https://publicreporting.cftc.gov/resource/jun7-fc8e.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%27098662%27%2C%27099741%27%2C%27132741%27%2C%27146021%27%2C%27299741%27%2C%27399741%27%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:02.556224+00:00",
+      "requested_codes": [
+        "098662",
+        "099741",
+        "132741",
+        "146021",
+        "299741",
+        "399741"
+      ],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 200,
+      "bytes": 1609,
+      "sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6",
+      "rows": [
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "USD INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - NEW YORK BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - NEW YORK COTTON EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - NYCE US DOLLAR INDEX"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "146021",
+          "market_and_exchange_names": "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "299741",
+          "market_and_exchange_names": "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "399741",
+          "market_and_exchange_names": "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+        }
+      ],
+      "unmatched_codes": []
+    },
+    {
+      "dataset": "72hh-3qpy",
+      "url": "https://publicreporting.cftc.gov/resource/72hh-3qpy.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%27067651%27%2C%27085692%27%2C%27088691%27%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:03.019318+00:00",
+      "requested_codes": [
+        "067651",
+        "085692",
+        "088691"
+      ],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 200,
+      "bytes": 559,
+      "sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd",
+      "rows": [
+        {
+          "cftc_contract_market_code": "067651",
+          "market_and_exchange_names": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "067651",
+          "market_and_exchange_names": "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "085692",
+          "market_and_exchange_names": "COPPER- #1 - COMMODITY EXCHANGE INC."
+        },
+        {
+          "cftc_contract_market_code": "085692",
+          "market_and_exchange_names": "COPPER-GRADE #1 - COMMODITY EXCHANGE INC."
+        },
+        {
+          "cftc_contract_market_code": "088691",
+          "market_and_exchange_names": "GOLD - COMMODITY EXCHANGE INC."
+        }
+      ],
+      "unmatched_codes": []
+    },
+    {
+      "dataset": "kh3c-gbw2",
+      "url": "https://publicreporting.cftc.gov/resource/kh3c-gbw2.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:03.413268+00:00",
+      "requested_codes": [],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 400,
+      "stopped": true
+    },
+    {
+      "dataset": "gpe5-46if",
+      "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%27020601%27%2C%27020604%27%2C%27045601%27%2C%27092741%27%2C%27097741%27%2C%27098662%27%2C%27099741%27%2C%27112741%27%2C%2711700%27%2C%271170E1%27%2C%2712460%2B%27%2C%27132741%27%2C%27133741%27%2C%27133742%27%2C%27134741%27%2C%27134742%27%2C%27146021%27%2C%2720974%2B%27%2C%27232741%27%2C%27240741%27%2C%27299741%27%2C%27399741%27%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:03.696166+00:00",
+      "requested_codes": [
+        "020601",
+        "020604",
+        "045601",
+        "092741",
+        "097741",
+        "098662",
+        "099741",
+        "112741",
+        "11700",
+        "1170E1",
+        "12460+",
+        "132741",
+        "133741",
+        "133742",
+        "134741",
+        "134742",
+        "146021",
+        "20974+",
+        "232741",
+        "240741",
+        "299741",
+        "399741"
+      ],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 200,
+      "bytes": 3531,
+      "sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196",
+      "rows": [
+        {
+          "cftc_contract_market_code": "020601",
+          "market_and_exchange_names": "UST BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020601",
+          "market_and_exchange_names": "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA US T BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA UST BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "045601",
+          "market_and_exchange_names": "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "045601",
+          "market_and_exchange_names": "FED FUNDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "092741",
+          "market_and_exchange_names": "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "097741",
+          "market_and_exchange_names": "JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "USD INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "098662",
+          "market_and_exchange_names": "U.S. DOLLAR INDEX - ICE FUTURES U.S."
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "112741",
+          "market_and_exchange_names": "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "1170E1",
+          "market_and_exchange_names": "VIX FUTURES - CBOE FUTURES EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "12460+",
+          "market_and_exchange_names": "DJIA Consolidated - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "133741",
+          "market_and_exchange_names": "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "133742",
+          "market_and_exchange_names": "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "134741",
+          "market_and_exchange_names": "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "134741",
+          "market_and_exchange_names": "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "134742",
+          "market_and_exchange_names": "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "134742",
+          "market_and_exchange_names": "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "146021",
+          "market_and_exchange_names": "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "20974+",
+          "market_and_exchange_names": "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "232741",
+          "market_and_exchange_names": "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "240741",
+          "market_and_exchange_names": "NIKKEI STOCK AVERAGE - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "299741",
+          "market_and_exchange_names": "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "399741",
+          "market_and_exchange_names": "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+        }
+      ],
+      "unmatched_codes": [
+        "11700"
+      ]
+    },
+    {
+      "dataset": "yw9f-hn96",
+      "url": "https://publicreporting.cftc.gov/resource/yw9f-hn96.json?%24select=distinct+cftc_contract_market_code%2Cmarket_and_exchange_names&%24where=cftc_contract_market_code+in%28%27020601%27%2C%27020604%27%2C%27099741%27%2C%27132741%27%2C%27133741%27%2C%27146021%27%2C%27299741%27%2C%27399741%27%29&%24order=cftc_contract_market_code%2Cmarket_and_exchange_names&%24limit=500",
+      "at": "2026-10-04T19:36:04.170014+00:00",
+      "requested_codes": [
+        "020601",
+        "020604",
+        "099741",
+        "132741",
+        "133741",
+        "146021",
+        "299741",
+        "399741"
+      ],
+      "scope": "Contract identity directory only; no dates, positions, trader counts, concentration or other observations selected",
+      "status": 200,
+      "bytes": 1512,
+      "sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c",
+      "rows": [
+        {
+          "cftc_contract_market_code": "020601",
+          "market_and_exchange_names": "UST BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020601",
+          "market_and_exchange_names": "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA US T BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA UST BOND - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "020604",
+          "market_and_exchange_names": "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+        },
+        {
+          "cftc_contract_market_code": "099741",
+          "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "132741",
+          "market_and_exchange_names": "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "133741",
+          "market_and_exchange_names": "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "146021",
+          "market_and_exchange_names": "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "299741",
+          "market_and_exchange_names": "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+        },
+        {
+          "cftc_contract_market_code": "399741",
+          "market_and_exchange_names": "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+        }
+      ],
+      "unmatched_codes": []
+    }
+  ],
+  "matched_definitions": [
+    {
+      "requested": "COT3:132741_FO_TAM_S",
+      "canonical": "cftc:yw9f-hn96|132741|traders_asset_mgr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_TAM_S",
+      "canonical": "cftc:gpe5-46if|132741|traders_asset_mgr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_TOR_S",
+      "canonical": "cftc:yw9f-hn96|132741|traders_other_rept_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_TAM_SPREAD",
+      "canonical": "cftc:gpe5-46if|132741|traders_asset_mgr_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_AMP_L",
+      "canonical": "cftc:yw9f-hn96|132741|asset_mgr_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_NCP_L",
+      "canonical": "cftc:jun7-fc8e|132741|noncomm_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_NCP_L_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|noncomm_positions_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:132741_F_TTR_L",
+      "canonical": "cftc:gpe5-46if|132741|traders_tot_rept_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_CON_NET_LE_8_L",
+      "canonical": "cftc:gpe5-46if|132741|conc_net_le_8_tdr_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_CON_NET_LE_8_S",
+      "canonical": "cftc:gpe5-46if|132741|conc_net_le_8_tdr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_CON_NET_LE_4_S",
+      "canonical": "cftc:gpe5-46if|132741|conc_net_le_4_tdr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_AMP_S",
+      "canonical": "cftc:yw9f-hn96|132741|asset_mgr_positions_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|132741|asset_mgr_positions_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:045601_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|045601|lev_money_positions_long",
+      "contract_names": [
+        "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE",
+        "FED FUNDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_CON_NET_LE_4_L",
+      "canonical": "cftc:gpe5-46if|132741|conc_net_le_4_tdr_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_LMP_L",
+      "canonical": "cftc:yw9f-hn96|132741|lev_money_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|132741|lev_money_positions_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT2:067651_F_SP_L",
+      "canonical": "cftc:72hh-3qpy|067651|swap_positions_long_all",
+      "contract_names": [
+        "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+        "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    },
+    {
+      "requested": "COT3:098662_F_DP_L",
+      "canonical": "cftc:gpe5-46if|098662|dealer_positions_long_all",
+      "contract_names": [
+        "USD INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - ICE FUTURES U.S."
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:098662_F_DP_S",
+      "canonical": "cftc:gpe5-46if|098662|dealer_positions_short_all",
+      "contract_names": [
+        "USD INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - ICE FUTURES U.S."
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:098662_F_CP_L",
+      "canonical": "cftc:6dca-aqww|098662|comm_positions_long_all",
+      "contract_names": [
+        "USD INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - NEW YORK BOARD OF TRADE",
+        "U.S. DOLLAR INDEX - NEW YORK COTTON EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:067651_F_CP_L",
+      "canonical": "cftc:6dca-aqww|067651|comm_positions_long_all",
+      "contract_names": [
+        "CRUDE OIL, LIGHT 'SWEET' - NEW YORK MERCANTILE EXCHANGE",
+        "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+        "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:133741_F_TOR_L",
+      "canonical": "cftc:gpe5-46if|133741|traders_other_rept_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_DP_L",
+      "canonical": "cftc:gpe5-46if|133741|dealer_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_DP_S",
+      "canonical": "cftc:gpe5-46if|133741|dealer_positions_short_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|133741|dealer_positions_spread_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_DP_S",
+      "canonical": "cftc:gpe5-46if|099741|dealer_positions_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|dealer_positions_spread_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|133741|nonrept_positions_short_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|133741|nonrept_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT2:088691_F_SP_L",
+      "canonical": "cftc:72hh-3qpy|088691|swap_positions_long_all",
+      "contract_names": [
+        "GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    },
+    {
+      "requested": "COT2:088691_F_SP_SPREAD",
+      "canonical": "cftc:72hh-3qpy|088691|swap__positions_spread_all",
+      "contract_names": [
+        "GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    },
+    {
+      "requested": "COT3:134742_F_DP_L",
+      "canonical": "cftc:gpe5-46if|134742|dealer_positions_long_all",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_DP_S",
+      "canonical": "cftc:gpe5-46if|134741|dealer_positions_short_all",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133742_F_DP_S",
+      "canonical": "cftc:gpe5-46if|133742|dealer_positions_short_all",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|134741|dealer_positions_spread_all",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:12460+_F_DP_S",
+      "canonical": "cftc:gpe5-46if|12460+|dealer_positions_short_all",
+      "contract_names": [
+        "DJIA Consolidated - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:20974+_F_DP_S",
+      "canonical": "cftc:gpe5-46if|20974+|dealer_positions_short_all",
+      "contract_names": [
+        "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|134741|asset_mgr_positions_short",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133742_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|133742|lev_money_positions_long",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|099741|nonrept_positions_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|146021|nonrept_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|134741|asset_mgr_positions_spread",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|134741|other_rept_positions_long",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:146021_F_NRP_L_OLD",
+      "canonical": "cftc:6dca-aqww|146021|nonrept_positions_long_old",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:146021_F_NRP_L",
+      "canonical": "cftc:6dca-aqww|146021|nonrept_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:146021_FO_DP_L",
+      "canonical": "cftc:yw9f-hn96|146021|dealer_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:146021_FO_CP_L",
+      "canonical": "cftc:jun7-fc8e|146021|comm_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:146021_F_NCP_S",
+      "canonical": "cftc:6dca-aqww|146021|noncomm_positions_short_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:133742_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|133742|nonrept_positions_long_all",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_TC_L",
+      "canonical": "cftc:6dca-aqww|132741|traders_comm_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_NRP_S",
+      "canonical": "cftc:6dca-aqww|133741|nonrept_positions_short_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_OI",
+      "canonical": "cftc:6dca-aqww|133741|open_interest_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:067651_F_CP_S",
+      "canonical": "cftc:6dca-aqww|067651|comm_positions_short_all",
+      "contract_names": [
+        "CRUDE OIL, LIGHT 'SWEET' - NEW YORK MERCANTILE EXCHANGE",
+        "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+        "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:088691_F_OI",
+      "canonical": "cftc:6dca-aqww|088691|open_interest_all",
+      "contract_names": [
+        "GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:098662_FO_CP_L",
+      "canonical": "cftc:jun7-fc8e|098662|comm_positions_long_all",
+      "contract_names": [
+        "USD INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - NEW YORK BOARD OF TRADE",
+        "U.S. DOLLAR INDEX - NEW YORK COTTON EXCHANGE",
+        "U.S. DOLLAR INDEX - NYCE US DOLLAR INDEX"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_TAM_L",
+      "canonical": "cftc:gpe5-46if|099741|traders_asset_mgr_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_TAM_S",
+      "canonical": "cftc:gpe5-46if|099741|traders_asset_mgr_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_CP_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|comm_positions_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:098662_FO_CP_S",
+      "canonical": "cftc:jun7-fc8e|098662|comm_positions_short_all",
+      "contract_names": [
+        "USD INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - ICE FUTURES U.S.",
+        "U.S. DOLLAR INDEX - NEW YORK BOARD OF TRADE",
+        "U.S. DOLLAR INDEX - NEW YORK COTTON EXCHANGE",
+        "U.S. DOLLAR INDEX - NYCE US DOLLAR INDEX"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|099741|asset_mgr_positions_long",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|099741|asset_mgr_positions_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|asset_mgr_positions_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_TAM_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|traders_asset_mgr_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_FO_TAM_L",
+      "canonical": "cftc:yw9f-hn96|099741|traders_asset_mgr_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_FO_AMP_L",
+      "canonical": "cftc:yw9f-hn96|099741|asset_mgr_positions_long",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|132741|asset_mgr_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_FO_AMP_S",
+      "canonical": "cftc:yw9f-hn96|099741|asset_mgr_positions_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_FO_AMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|099741|asset_mgr_positions_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_FO_TAM_S",
+      "canonical": "cftc:yw9f-hn96|099741|traders_asset_mgr_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_FO_TAM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|099741|traders_asset_mgr_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_TAM_L",
+      "canonical": "cftc:gpe5-46if|132741|traders_asset_mgr_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|132741|asset_mgr_positions_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:099741_F_CP_L",
+      "canonical": "cftc:6dca-aqww|099741|comm_positions_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:099741_F_CP_S",
+      "canonical": "cftc:6dca-aqww|099741|comm_positions_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CP_S",
+      "canonical": "cftc:6dca-aqww|132741|comm_positions_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CP_L",
+      "canonical": "cftc:6dca-aqww|132741|comm_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:099741_FO_CP_L",
+      "canonical": "cftc:jun7-fc8e|099741|comm_positions_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:099741_FO_CP_S",
+      "canonical": "cftc:jun7-fc8e|099741|comm_positions_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_CP_L",
+      "canonical": "cftc:jun7-fc8e|132741|comm_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_CP_S",
+      "canonical": "cftc:jun7-fc8e|132741|comm_positions_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:088691_F_CP_S",
+      "canonical": "cftc:6dca-aqww|088691|comm_positions_short_all",
+      "contract_names": [
+        "GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:088691_F_CP_L",
+      "canonical": "cftc:6dca-aqww|088691|comm_positions_long_all",
+      "contract_names": [
+        "GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:088695_F_CP_L",
+      "canonical": "cftc:6dca-aqww|088695|comm_positions_long_all",
+      "contract_names": [
+        "MICRO GOLD - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:020601_FO_DP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|dealer_positions_spread_all",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|lev_money_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_TD_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|traders_dealer_spread_all",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_TLM_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|traders_lev_money_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_FO_TD_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|traders_dealer_spread_all",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_F_TAM_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|traders_asset_mgr_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|asset_mgr_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|other_rept_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_TAM_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|traders_asset_mgr_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_TOR_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|traders_other_rept_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020601|dealer_positions_spread_all",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|asset_mgr_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|dealer_positions_spread_all",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_F_TD_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|traders_dealer_spread_all",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_F_TLM_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|traders_lev_money_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020601_FO_AMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|asset_mgr_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_FO_LMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|lev_money_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_FO_ORP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|other_rept_positions_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_FO_TAM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|traders_asset_mgr_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_FO_TLM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|traders_lev_money_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|lev_money_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_FO_TOR_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|traders_other_rept_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_TLM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|traders_lev_money_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_TD_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|traders_dealer_spread_all",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_TAM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|traders_asset_mgr_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_ORP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|other_rept_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_LMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|lev_money_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_DP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|dealer_positions_spread_all",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_FO_AMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020604|asset_mgr_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020601_FO_TOR_SPREAD",
+      "canonical": "cftc:yw9f-hn96|020601|traders_other_rept_spread",
+      "contract_names": [
+        "UST BOND - CHICAGO BOARD OF TRADE",
+        "U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:020604_F_TOR_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|traders_other_rept_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:020604_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|020604|other_rept_positions_spread",
+      "contract_names": [
+        "LONG-TERM U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE",
+        "ULTRA US T BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA UST BOND - CHICAGO BOARD OF TRADE",
+        "ULTRA U.S. TREASURY BONDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:045601_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|045601|lev_money_positions_short",
+      "contract_names": [
+        "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE",
+        "FED FUNDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:045601_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|045601|lev_money_positions_spread",
+      "contract_names": [
+        "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE",
+        "FED FUNDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:06765T_F_CP_L",
+      "canonical": "cftc:6dca-aqww|06765T|comm_positions_long_all",
+      "contract_names": [
+        "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+        "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:06765T_F_CP_S",
+      "canonical": "cftc:6dca-aqww|06765T|comm_positions_short_all",
+      "contract_names": [
+        "BRENT CRUDE OIL LAST DAY - NEW YORK MERCANTILE EXCHANGE",
+        "BRENT LAST DAY - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|132741|other_rept_positions_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:099741_F_TTR_L_OTHER",
+      "canonical": "cftc:6dca-aqww|099741|traders_tot_rept_long_other",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:099741_FO_TC_L_OTHER",
+      "canonical": "cftc:jun7-fc8e|099741|traders_comm_long_other",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:299741_F_TD_SPREAD",
+      "canonical": "cftc:gpe5-46if|299741|traders_dealer_spread_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_TNC_SPREAD_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_noncomm_spead_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TNC_SPREAD",
+      "canonical": "cftc:6dca-aqww|132741|traders_noncomm_spread_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_TLM_SPREAD",
+      "canonical": "cftc:gpe5-46if|132741|traders_lev_money_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_TD_SPREAD",
+      "canonical": "cftc:gpe5-46if|132741|traders_dealer_spread_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:399741_F_TD_L",
+      "canonical": "cftc:gpe5-46if|399741|traders_dealer_long_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_TAM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|132741|traders_asset_mgr_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:299741_F_TD_S",
+      "canonical": "cftc:gpe5-46if|299741|traders_dealer_short_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:399741_F_TAM_L",
+      "canonical": "cftc:gpe5-46if|399741|traders_asset_mgr_long_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:399741_F_TAM_S",
+      "canonical": "cftc:gpe5-46if|399741|traders_asset_mgr_short_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:399741_F_TC_L",
+      "canonical": "cftc:6dca-aqww|399741|traders_comm_long_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:399741_F_TC_S",
+      "canonical": "cftc:6dca-aqww|399741|traders_comm_short_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:299741_F_TC_L",
+      "canonical": "cftc:6dca-aqww|299741|traders_comm_long_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:099741_FO_TOR_S",
+      "canonical": "cftc:yw9f-hn96|099741|traders_other_rept_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_FO_TLM_S",
+      "canonical": "cftc:yw9f-hn96|132741|traders_lev_money_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_FO_TD_L",
+      "canonical": "cftc:yw9f-hn96|132741|traders_dealer_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_FO_TD_L",
+      "canonical": "cftc:yw9f-hn96|099741|traders_dealer_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_TD_L",
+      "canonical": "cftc:gpe5-46if|132741|traders_dealer_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_FO_TD_SPREAD",
+      "canonical": "cftc:yw9f-hn96|099741|traders_dealer_spread_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_F_TNC_L",
+      "canonical": "cftc:6dca-aqww|132741|traders_noncomm_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TNC_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_noncomm_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:299741_F_TAM_L",
+      "canonical": "cftc:gpe5-46if|299741|traders_asset_mgr_long_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_FO_TD_S",
+      "canonical": "cftc:yw9f-hn96|099741|traders_dealer_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_TLM_L",
+      "canonical": "cftc:gpe5-46if|132741|traders_lev_money_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_TD_S",
+      "canonical": "cftc:gpe5-46if|132741|traders_dealer_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_TD_S",
+      "canonical": "cftc:yw9f-hn96|132741|traders_dealer_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_FO_TLM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|132741|traders_lev_money_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:399741_F_TT",
+      "canonical": "cftc:gpe5-46if|399741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:399741_F_TT",
+      "canonical": "cftc:6dca-aqww|399741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:399741_F_TT_OLD",
+      "canonical": "cftc:6dca-aqww|399741|traders_tot_old",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:399741_FO_TT",
+      "canonical": "cftc:yw9f-hn96|399741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:399741_FO_TT",
+      "canonical": "cftc:jun7-fc8e|399741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/JAPANESE YEN XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_F_TC_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_comm_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TC_S_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_comm_short_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TC_S",
+      "canonical": "cftc:6dca-aqww|132741|traders_comm_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_FO_TNC_SPREAD_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_noncomm_spead_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TNC_SPREAD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_noncomm_spread_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_FO_TOR_L",
+      "canonical": "cftc:yw9f-hn96|099741|traders_other_rept_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:099741_F_TLM_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|traders_lev_money_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_CON_GROSS_LE_4_S",
+      "canonical": "cftc:yw9f-hn96|132741|conc_gross_le_4_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_4_S_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_4_tdr_short_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_4_S",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_4_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TC_L",
+      "canonical": "cftc:jun7-fc8e|132741|traders_comm_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TC_L_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_comm_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TC_S",
+      "canonical": "cftc:jun7-fc8e|132741|traders_comm_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TC_S_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_comm_short_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:299741_F_TT",
+      "canonical": "cftc:gpe5-46if|299741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:299741_F_TT",
+      "canonical": "cftc:6dca-aqww|299741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:299741_FO_TT",
+      "canonical": "cftc:yw9f-hn96|299741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:299741_FO_TT",
+      "canonical": "cftc:jun7-fc8e|299741|traders_tot_all",
+      "contract_names": [
+        "EURO FX/BRITISH POUND XRATE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:132741_F_CON_GROSS_LE_4_S",
+      "canonical": "cftc:gpe5-46if|132741|conc_gross_le_4_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_4_S",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_4_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_4_S_OLD",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_4_tdr_short_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_NET_LT_4_S",
+      "canonical": "cftc:6dca-aqww|132741|conc_net_le_4_tdr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:099741_FO_TLM_SPREAD",
+      "canonical": "cftc:yw9f-hn96|099741|traders_lev_money_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_F_TTR_L",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_rept_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TTR_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_rept_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TTR_S",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_rept_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TTR_S_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_rept_short_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_TTR_S",
+      "canonical": "cftc:gpe5-46if|132741|traders_tot_rept_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_FO_TLM_L",
+      "canonical": "cftc:yw9f-hn96|099741|traders_lev_money_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:099741_FO_TNC_SPREAD",
+      "canonical": "cftc:jun7-fc8e|099741|traders_noncomm_spread_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_TLM_L",
+      "canonical": "cftc:gpe5-46if|099741|traders_lev_money_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_CON_GROSS_LE_8_S",
+      "canonical": "cftc:yw9f-hn96|132741|conc_gross_le_8_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_8_S",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_8_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_8_S_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_8_tdr_short_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_TLM_S",
+      "canonical": "cftc:gpe5-46if|099741|traders_lev_money_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_CON_GROSS_LE_4_L",
+      "canonical": "cftc:gpe5-46if|132741|conc_gross_le_4_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_4_L",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_4_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_4_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_4_tdr_long_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:099741_FO_TLM_S",
+      "canonical": "cftc:yw9f-hn96|099741|traders_lev_money_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_F_CON_NET_LT_8_S_OLD",
+      "canonical": "cftc:6dca-aqww|132741|conc_net_le_8_tdr_short_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_NET_LT_8_S",
+      "canonical": "cftc:6dca-aqww|132741|conc_net_le_8_tdr_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_CON_GROSS_LE_8_S",
+      "canonical": "cftc:gpe5-46if|132741|conc_gross_le_8_tdr_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_TTR_L",
+      "canonical": "cftc:yw9f-hn96|132741|traders_tot_rept_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_TTR_L",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_rept_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TTR_L_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_rept_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:132741_FO_CON_GROSS_LE_8_L",
+      "canonical": "cftc:yw9f-hn96|132741|conc_gross_le_8_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_8_L",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_8_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_CON_GROSS_LT_8_L_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|conc_gross_le_8_tdr_long_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:099741_FO_TNC_S",
+      "canonical": "cftc:jun7-fc8e|099741|traders_noncomm_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TTR_S",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_rept_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:132741_FO_TTR_S",
+      "canonical": "cftc:yw9f-hn96|132741|traders_tot_rept_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_TTR_S_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_rept_short_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_F_CON_NET_LT_8_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|conc_net_le_8_tdr_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_NET_LT_8_L",
+      "canonical": "cftc:6dca-aqww|132741|conc_net_le_8_tdr_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_CON_GROSS_LE_8_L",
+      "canonical": "cftc:gpe5-46if|132741|conc_gross_le_8_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_8_L",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_8_tdr_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_CON_GROSS_LT_8_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|conc_gross_le_8_tdr_long_1",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_TT_OLD",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_TT",
+      "canonical": "cftc:gpe5-46if|132741|traders_tot_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_TT",
+      "canonical": "cftc:6dca-aqww|132741|traders_tot_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_FO_TT",
+      "canonical": "cftc:yw9f-hn96|132741|traders_tot_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_TT_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_TT",
+      "canonical": "cftc:jun7-fc8e|132741|traders_tot_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:099741_F_TC_S",
+      "canonical": "cftc:6dca-aqww|099741|traders_comm_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:099741_FO_TNC_L",
+      "canonical": "cftc:jun7-fc8e|099741|traders_noncomm_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:099741_FO_TC_S",
+      "canonical": "cftc:jun7-fc8e|099741|traders_comm_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:099741_F_TC_L",
+      "canonical": "cftc:6dca-aqww|099741|traders_comm_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:099741_FO_TC_L",
+      "canonical": "cftc:jun7-fc8e|099741|traders_comm_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_TTR_S",
+      "canonical": "cftc:gpe5-46if|099741|traders_tot_rept_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:099741_F_TTR_S",
+      "canonical": "cftc:6dca-aqww|099741|traders_tot_rept_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:099741_FO_TTR_S",
+      "canonical": "cftc:yw9f-hn96|099741|traders_tot_rept_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:099741_FO_TTR_S",
+      "canonical": "cftc:jun7-fc8e|099741|traders_tot_rept_short_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:099741_F_TTR_L",
+      "canonical": "cftc:gpe5-46if|099741|traders_tot_rept_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:099741_F_TTR_L",
+      "canonical": "cftc:6dca-aqww|099741|traders_tot_rept_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET",
+        "EUROPEAN CURRENCY UNIT - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:099741_FO_TTR_L",
+      "canonical": "cftc:yw9f-hn96|099741|traders_tot_rept_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:099741_FO_TTR_L",
+      "canonical": "cftc:jun7-fc8e|099741|traders_tot_rept_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+        "EURO FX - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT3:132741_F_ORP_S",
+      "canonical": "cftc:gpe5-46if|132741|other_rept_positions_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_AMP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|132741|asset_mgr_positions_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_FO_ORP_L",
+      "canonical": "cftc:yw9f-hn96|132741|other_rept_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|132741|other_rept_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_ORP_S",
+      "canonical": "cftc:yw9f-hn96|132741|other_rept_positions_short",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:132741_FO_ORP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|132741|other_rept_positions_spread",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_F_NRP_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|nonrept_positions_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_NRP_L",
+      "canonical": "cftc:6dca-aqww|132741|nonrept_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|132741|nonrept_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_FO_NRP_L",
+      "canonical": "cftc:yw9f-hn96|132741|nonrept_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT:132741_FO_NRP_L",
+      "canonical": "cftc:jun7-fc8e|132741|nonrept_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_FO_NRP_L_OLD",
+      "canonical": "cftc:jun7-fc8e|132741|nonrept_positions_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - IMM 3-MO EURODOLLARS",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "25b2520f285244b6d0259dc31aa22d7447c2b9e18b40f14289a0e4531ee4b5f6"
+    },
+    {
+      "requested": "COT:132741_F_NRP_S",
+      "canonical": "cftc:6dca-aqww|132741|nonrept_positions_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:132741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|132741|nonrept_positions_short_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:132741_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|132741|lev_money_positions_long",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:132741_F_NCP_L",
+      "canonical": "cftc:6dca-aqww|132741|noncomm_positions_long_all",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:132741_F_NCP_L_OLD",
+      "canonical": "cftc:6dca-aqww|132741|noncomm_positions_long_old",
+      "contract_names": [
+        "3-MONTH EURODOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "3-MONTH EURODOLLARS - INTERNATIONAL MONETARY MARKET",
+        "EURODOLLARS-3M - CHICAGO MERCANTILE EXCHANGE",
+        "EURODOLLARS (3-MONTH) - INTERNATIONAL MONETARY MARKET"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:134742_F_DP_S",
+      "canonical": "cftc:gpe5-46if|134742|dealer_positions_short_all",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:232741_F_DP_L",
+      "canonical": "cftc:gpe5-46if|232741|dealer_positions_long_all",
+      "contract_names": [
+        "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|1170E1|dealer_positions_spread_all",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|133741|asset_mgr_positions_short",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|133741|asset_mgr_positions_spread",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|133741|lev_money_positions_long",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|133741|lev_money_positions_spread",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|133741|other_rept_positions_long",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_ORP_S",
+      "canonical": "cftc:gpe5-46if|133741|other_rept_positions_short",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|133741|other_rept_positions_spread",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|133741|tot_rept_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|134741|nonrept_positions_long_all",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|134742|nonrept_positions_long_all",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|092741|nonrept_positions_long_all",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|092741|nonrept_positions_short_all",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133742_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|133742|nonrept_positions_short_all",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|134741|nonrept_positions_short_all",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|134742|nonrept_positions_short_all",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:12460+_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|12460+|nonrept_positions_long_all",
+      "contract_names": [
+        "DJIA Consolidated - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|1170E1|nonrept_positions_short_all",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:20974+_F_DP_L",
+      "canonical": "cftc:gpe5-46if|20974+|dealer_positions_long_all",
+      "contract_names": [
+        "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:20974+_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|20974+|dealer_positions_spread_all",
+      "contract_names": [
+        "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:232741_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|232741|nonrept_positions_long_all",
+      "contract_names": [
+        "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:232741_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|232741|nonrept_positions_short_all",
+      "contract_names": [
+        "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:12460+_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|12460+|nonrept_positions_short_all",
+      "contract_names": [
+        "DJIA Consolidated - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:20974+_F_NRP_L",
+      "canonical": "cftc:gpe5-46if|20974+|nonrept_positions_long_all",
+      "contract_names": [
+        "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:20974+_F_NRP_S",
+      "canonical": "cftc:gpe5-46if|20974+|nonrept_positions_short_all",
+      "contract_names": [
+        "NASDAQ-100 Consolidated - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|099741|lev_money_positions_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|lev_money_positions_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|092741|asset_mgr_positions_long",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|092741|asset_mgr_positions_short",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|092741|asset_mgr_positions_spread",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|092741|lev_money_positions_long",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|099741|other_rept_positions_long",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_ORP_S",
+      "canonical": "cftc:gpe5-46if|099741|other_rept_positions_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|099741|other_rept_positions_spread",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|099741|tot_rept_positions_long_all",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:099741_F_TRP_S",
+      "canonical": "cftc:gpe5-46if|099741|tot_rept_positions_short",
+      "contract_names": [
+        "EURO FX - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|1170E1|asset_mgr_positions_long",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|1170E1|asset_mgr_positions_short",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_FO_DP_L",
+      "canonical": "cftc:yw9f-hn96|133741|dealer_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:133741_FO_DP_S",
+      "canonical": "cftc:yw9f-hn96|133741|dealer_positions_short_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:133742_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|133742|asset_mgr_positions_long",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|134741|asset_mgr_positions_long",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|134742|asset_mgr_positions_long",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|134742|asset_mgr_positions_short",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_DP_L",
+      "canonical": "cftc:gpe5-46if|146021|dealer_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_DP_S",
+      "canonical": "cftc:gpe5-46if|146021|dealer_positions_short_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_DP_SPREAD",
+      "canonical": "cftc:gpe5-46if|146021|dealer_positions_spread_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:240741_F_DP_L",
+      "canonical": "cftc:gpe5-46if|240741|dealer_positions_long_all",
+      "contract_names": [
+        "NIKKEI STOCK AVERAGE - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT2:085692_F_MMP_L",
+      "canonical": "cftc:72hh-3qpy|085692|m_money_positions_long_all",
+      "contract_names": [
+        "COPPER- #1 - COMMODITY EXCHANGE INC.",
+        "COPPER-GRADE #1 - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    },
+    {
+      "requested": "COT2:085692_F_MMP_S",
+      "canonical": "cftc:72hh-3qpy|085692|m_money_positions_short_all",
+      "contract_names": [
+        "COPPER- #1 - COMMODITY EXCHANGE INC.",
+        "COPPER-GRADE #1 - COMMODITY EXCHANGE INC."
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    },
+    {
+      "requested": "COT3:097741_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|097741|lev_money_positions_long",
+      "contract_names": [
+        "JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:097741_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|097741|lev_money_positions_short",
+      "contract_names": [
+        "JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:045601_F_DP_L",
+      "canonical": "cftc:gpe5-46if|045601|dealer_positions_long_all",
+      "contract_names": [
+        "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE",
+        "FED FUNDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:045601_F_DP_S",
+      "canonical": "cftc:gpe5-46if|045601|dealer_positions_short_all",
+      "contract_names": [
+        "30-DAY FEDERAL FUNDS - CHICAGO BOARD OF TRADE",
+        "FED FUNDS - CHICAGO BOARD OF TRADE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|092741|lev_money_positions_short",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_LMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|092741|lev_money_positions_spread",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|092741|tot_rept_positions_long_all",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:092741_F_TRP_S",
+      "canonical": "cftc:gpe5-46if|092741|tot_rept_positions_short",
+      "contract_names": [
+        "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133741_FO_DP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|133741|dealer_positions_spread_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:133742_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|133742|asset_mgr_positions_short",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:133742_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|133742|asset_mgr_positions_spread",
+      "contract_names": [
+        "MICRO BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|1170E1|tot_rept_positions_long_all",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|1170E1|other_rept_positions_long",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|1170E1|lev_money_positions_short",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:1170E1_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|1170E1|asset_mgr_positions_spread",
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|134742|other_rept_positions_long",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|134742|lev_money_positions_short",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|134742|lev_money_positions_long",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134742_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|134742|asset_mgr_positions_spread",
+      "contract_names": [
+        "1-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-1M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|134741|tot_rept_positions_long_all",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|134741|lev_money_positions_short",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:134741_F_LMP_L",
+      "canonical": "cftc:gpe5-46if|134741|lev_money_positions_long",
+      "contract_names": [
+        "3-MONTH SOFR - CHICAGO MERCANTILE EXCHANGE",
+        "SOFR-3M - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:112741_F_CP_S",
+      "canonical": "cftc:6dca-aqww|112741|comm_positions_short_all",
+      "contract_names": [
+        "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+        "NEW ZEALAND DOLLARS - CHICAGO MERCANTILE EXCHANGE",
+        "NEW ZEALAND DOLLARS - INTERNATIONAL MONETARY MARKET",
+        "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:112741_F_AMP_SPREAD",
+      "canonical": "cftc:gpe5-46if|112741|asset_mgr_positions_spread",
+      "contract_names": [
+        "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+        "NZ DOLLAR - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_FO_DP_SPREAD",
+      "canonical": "cftc:yw9f-hn96|146021|dealer_positions_spread_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "31a922a102e15d52adb2ca57572a4b9d415560de56da730149c99777ce04f64c"
+    },
+    {
+      "requested": "COT3:146021_F_LMP_S",
+      "canonical": "cftc:gpe5-46if|146021|lev_money_positions_short",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_ORP_L",
+      "canonical": "cftc:gpe5-46if|146021|other_rept_positions_long",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:146021_F_NRP_S",
+      "canonical": "cftc:6dca-aqww|146021|nonrept_positions_short_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:146021_F_NRP_S_OLD",
+      "canonical": "cftc:6dca-aqww|146021|nonrept_positions_short_old",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:146021_F_TRP_S",
+      "canonical": "cftc:gpe5-46if|146021|tot_rept_positions_short",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:146021_F_TRP_L_OLD",
+      "canonical": "cftc:6dca-aqww|146021|tot_rept_positions_long_old",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:146021_F_TRP_L",
+      "canonical": "cftc:6dca-aqww|146021|tot_rept_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:146021_F_TRP_L",
+      "canonical": "cftc:gpe5-46if|146021|tot_rept_positions_long_all",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_ORP_SPREAD",
+      "canonical": "cftc:gpe5-46if|146021|other_rept_positions_spread",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:146021_F_ORP_S",
+      "canonical": "cftc:gpe5-46if|146021|other_rept_positions_short",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:146021_F_TRP_S",
+      "canonical": "cftc:6dca-aqww|146021|tot_rept_positions_short",
+      "contract_names": [
+        "ETHER CASH SETTLED - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_CP_L",
+      "canonical": "cftc:6dca-aqww|133741|comm_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_NCP_S",
+      "canonical": "cftc:6dca-aqww|133741|noncomm_positions_short_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_NCP_L",
+      "canonical": "cftc:6dca-aqww|133741|noncomm_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_NRP_L",
+      "canonical": "cftc:6dca-aqww|133741|nonrept_positions_long_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT3:133741_F_TRP_S",
+      "canonical": "cftc:gpe5-46if|133741|tot_rept_positions_short",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT:133741_F_NCP_SPREAD_OLD",
+      "canonical": "cftc:6dca-aqww|133741|noncomm_positions_spread",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT:133741_F_NCP_SPREAD",
+      "canonical": "cftc:6dca-aqww|133741|noncomm_postions_spread_all",
+      "contract_names": [
+        "BITCOIN - CHICAGO MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "d2b90a678b1c54b5a51a1749cb509b20007536e878f9a4895afc07ac75ed514e"
+    },
+    {
+      "requested": "COT2:067651_F_SP_L_OLD",
+      "canonical": "cftc:72hh-3qpy|067651|swap_positions_long_old",
+      "contract_names": [
+        "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+        "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE"
+      ],
+      "directory_sha256": "e04c6887f2ebc78a3c45864c6a7c5d7ddc83fe6b3e7d0749bf63bed4ee8689fd"
+    }
+  ],
+  "application_measurement_reads": 0,
+  "history_complete": false,
+  "source_observation_availability_verified": false
+}

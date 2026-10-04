@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "exact_code_native_controls_static_source_and_metadata_verified",
   "base": "5a3961e4e72e8fd602fa99d87fbcfdfc7f993187",
   "schema": "chart-cftc-integration.v1",
   "watchlist_aliases": 346,
@@ -797,5 +797,22 @@
     "CFTC contract availability, current histories and source release vintages remain unverified.",
     "The concurrent formula source on main is preserved, not independently qualified by this CFTC work.",
     "Original provider catalogue has no atomic generation identifier; denied endpoints remain stopped."
+  ],
+  "source_commit": "3a16452fa36f969662717ae5ab3d4eebf95ccb19",
+  "acceptance": "docs/audit/2026-10-04/chart-cftc-acceptance.json",
+  "contract_identity_matches": 344,
+  "unmatched_contract_aliases": [
+    {
+      "requested": "COT3:11700_F_AMP_L",
+      "canonical": "cftc:gpe5-46if|11700|asset_mgr_positions_long",
+      "contract_names": [],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    },
+    {
+      "requested": "COT3:11700_F_AMP_S",
+      "canonical": "cftc:gpe5-46if|11700|asset_mgr_positions_short",
+      "contract_names": [],
+      "directory_sha256": "6e5a5fce42ca47e06c2a23c9c9920bf4e4def66126152ab185cf977e88988196"
+    }
   ]
 }
