@@ -1,5 +1,5 @@
 {
-  "status": "explicit_source_alternative_researched_not_shipped",
+  "status": "explicit_alternative_deployed_and_browser_checked",
   "requested": [
     {
       "id": "COT3:11700_F_AMP_L",
@@ -169,5 +169,9 @@
   "left_padded_011700_query": "returned empty; padding rejected as a general rule",
   "native_code": "1170E1",
   "vendor_historical_equivalence_verified": false,
-  "planned_behavior": "Expose a visibly qualified alternative for these two exact aliases, preserving original ID, empty original result and official native code. Never pad numeric contract codes globally."
+  "planned_behavior": "Expose a visibly qualified alternative for these two exact aliases, preserving original ID, empty original result and official native code. Never pad numeric contract codes globally.",
+  "research_status": "explicit_source_alternative_researched_not_shipped",
+  "source_commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587",
+  "original_aliases_changed": false,
+  "historical_equivalence_verified": false
 }

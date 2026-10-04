@@ -5436,5 +5436,21 @@
     "Two original CFTC 11700 aliases remain empty. An explicitly qualified VIX alternative under official code 1170E1 has been researched but is not shipped.",
     "Original ECONOMICS watchlist cards can still show Stock; the selected BIS chart is treated as a scalar.",
     "Legacy market banking can merge provider histories under one last-source label; per-source history qualification still needs repair."
-  ]
+  ],
+  "market_history_repair": {
+    "source_commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587",
+    "native_receipts_verified": [
+      "justhodl-symdir",
+      "justhodl-tv-bars"
+    ],
+    "native_original_controls_verified": true,
+    "served_static_files_checked": 49,
+    "served_desktop_mobile_scenarios_passed": 6,
+    "resolver_dependency_repaired": true,
+    "market_probe": "chart-market-provider-access.json",
+    "market_provider_status": "TradingView HTTP 400 upgrade refused; requests stopped, no fallback tried",
+    "full_market_history_verified": false,
+    "vix_alternatives": "Two explicit 1170E1 provider alternatives; original 11700 aliases unchanged",
+    "route_count_unchanged": true
+  }
 }

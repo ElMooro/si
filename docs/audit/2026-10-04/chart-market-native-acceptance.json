@@ -1,0 +1,290 @@
+{
+  "status": "exact_native_code_and_controls_checked",
+  "source_commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587",
+  "report_path": "aws/ops/reports/latest/ops_6478_market_history_acceptance.md",
+  "report_sha256": "6414e0b93b155b4f8c544ddccaea40ae520277cec9184a5d94504263386c7bca",
+  "evidence": {
+    "status": "exact_market_native_release_checked",
+    "expected_commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587",
+    "functions": {
+      "justhodl-symdir": {
+        "native_before": {
+          "code_sha256": "fAoa/rcyNHGeABeXw+x3RSVZ0PcjT+AmPPZMG1fBU+E=",
+          "source_files_checked": 14,
+          "handler_bytes": 173160,
+          "timeout": 900,
+          "memory_mb": 6144,
+          "receipt": {
+            "status": "matched",
+            "commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-build",
+              "state": "ENABLED",
+              "expression": "cron(40 5 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-codelists",
+              "state": "ENABLED",
+              "expression": "rate(20 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredfresh",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredupdates",
+              "state": "ENABLED",
+              "expression": "rate(15 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-titles",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-ustbank",
+              "state": "ENABLED",
+              "expression": "cron(30 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-warm",
+              "state": "ENABLED",
+              "expression": "rate(5 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-symdir",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 2048
+        },
+        "native_after": {
+          "code_sha256": "fAoa/rcyNHGeABeXw+x3RSVZ0PcjT+AmPPZMG1fBU+E=",
+          "source_files_checked": 14,
+          "handler_bytes": 173160,
+          "timeout": 900,
+          "memory_mb": 6144,
+          "receipt": {
+            "status": "matched",
+            "commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-build",
+              "state": "ENABLED",
+              "expression": "cron(40 5 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-codelists",
+              "state": "ENABLED",
+              "expression": "rate(20 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredfresh",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-fredupdates",
+              "state": "ENABLED",
+              "expression": "rate(15 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-titles",
+              "state": "ENABLED",
+              "expression": "rate(1 hour)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-ustbank",
+              "state": "ENABLED",
+              "expression": "cron(30 21 ? * MON-FRI *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-symdir-warm",
+              "state": "ENABLED",
+              "expression": "rate(5 minutes)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            }
+          ],
+          "function_name": "justhodl-symdir",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 2048
+        },
+        "source_hashes": {
+          "aws/lambdas/justhodl-symdir/source/bis-policy-series.json": "85e7f0b36de1c2baa1ec22846a8e02e40b1ffab7482a1206438d0cc6d23f45c0",
+          "aws/lambdas/justhodl-symdir/source/bis_policy_series.py": "1fce97cb3f98a95fb64d635520e9bb25b3936df03182acfd0a8a4605d82840e0",
+          "aws/lambdas/justhodl-symdir/source/cftc-series.json": "5af4de91d873f415b76e50c06ec9c2d0428498394313fd87cee56020796d5294",
+          "aws/lambdas/justhodl-symdir/source/cftc_series.py": "ce8435383b72aaea7ad14fe57ceb47f831272fa12362d6cc9cb54f959a475389",
+          "aws/lambdas/justhodl-symdir/source/directory_identity.py": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51",
+          "aws/lambdas/justhodl-symdir/source/directory_index.py": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb",
+          "aws/lambdas/justhodl-symdir/source/directory_publication.py": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6",
+          "aws/lambdas/justhodl-symdir/source/directory_resident.py": "86b6ebbe5d956066b518277b72564143131be749f881ba26acb2b612cb5b5e0b",
+          "aws/lambdas/justhodl-symdir/source/lambda_function.py": "e97830a26ac8cc3ee7dfbae4c1e14b467351e2f1a76b3d4c8ed5869d417b0f3b",
+          "aws/lambdas/justhodl-symdir/source/reviewed_symbol_config.py": "ed7db69bec9b2da4e900e5dbf1052cc327648cc955419e0ccd8fa7c0c683ed34",
+          "aws/lambdas/justhodl-symdir/source/tv-symbol-resolver.json": "0580a6bc5546140511cfd1b877a99aa19215bdec8281ed9b89ace8a42ac23db1",
+          "aws/lambdas/justhodl-symdir/source/warehouse_cache.py": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461",
+          "aws/lambdas/justhodl-symdir/source/warehouse_routing.py": "a050b681540df839447db270e9adc9f15a1f0260b8ee420ad48831142983bdc0",
+          "aws/shared/treasury_fiscal_model.py": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3"
+        }
+      },
+      "justhodl-tv-bars": {
+        "native_before": {
+          "code_sha256": "+xv166ZcxcAj0m/2vDsbSOP0pNo2nVBzR3wMfpO1YkU=",
+          "source_files_checked": 2,
+          "handler_bytes": 28685,
+          "timeout": 600,
+          "memory_mb": 1024,
+          "receipt": {
+            "status": "matched",
+            "commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-tv-bars-universe-refresh",
+              "state": "ENABLED",
+              "expression": "cron(30 2 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-tv-bars-hourly",
+              "state": "DISABLED",
+              "expression": "rate(1 hour)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-tv-bars",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "native_after": {
+          "code_sha256": "+xv166ZcxcAj0m/2vDsbSOP0pNo2nVBzR3wMfpO1YkU=",
+          "source_files_checked": 2,
+          "handler_bytes": 28685,
+          "timeout": 600,
+          "memory_mb": 1024,
+          "receipt": {
+            "status": "matched",
+            "commit": "86901cfc8363b5b094ec6bc05712a58d8ea09587"
+          },
+          "schedules": [
+            {
+              "kind": "EventBridge Scheduler",
+              "name": "justhodl-tv-bars-universe-refresh",
+              "state": "ENABLED",
+              "expression": "cron(30 2 * * ? *)",
+              "timezone": "UTC",
+              "native_targets": 1,
+              "group": "default"
+            },
+            {
+              "kind": "EventBridge rule",
+              "name": "justhodl-tv-bars-hourly",
+              "state": "DISABLED",
+              "expression": "rate(1 hour)",
+              "native_targets": 1
+            }
+          ],
+          "function_name": "justhodl-tv-bars",
+          "runtime": "python3.12",
+          "handler": "lambda_function.lambda_handler",
+          "architectures": [
+            "x86_64"
+          ],
+          "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+          "ephemeral_storage_mb": 512
+        },
+        "source_hashes": {
+          "aws/lambdas/justhodl-tv-bars/source/lambda_function.py": "c5f612fb59f9fe7a60b22f1f211ebfdd685cfd4e597612104996f83f1103311c",
+          "aws/lambdas/justhodl-tv-bars/source/market_history_integrity.py": "71908b129ab18736148d6c139aa9a0693daa79564d41f9afd9057a1488a94667"
+        }
+      }
+    },
+    "native_invocations": 0,
+    "provider_requests": 0,
+    "engine_packet_reads": 0,
+    "private_reads": 0,
+    "account_reads": 0,
+    "credential_reads": 0,
+    "native_writes": 0,
+    "schedule_changes": 0,
+    "application_log_queries": 0,
+    "history_coverage_verified": false,
+    "point_in_time_verified": false,
+    "scope": "Only named native packages, exact release receipts and complete schedule/control census. No environment values, credentials, private packets, provider sessions, bank or index bodies."
+  }
+}

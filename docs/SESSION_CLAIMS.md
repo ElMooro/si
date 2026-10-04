@@ -208,4 +208,4 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
   (BCCh token) -- BLOCKED ON KHALID
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
 
-- ChatGPT stage583: reserve ops 6478 for read-only symdir + tv-bars exact native acceptance. Source/code and full history are not yet live-accepted. Baseline 6477 confirmed one enabled nightly Scheduler and one disabled hourly rule; both preserved.
+- ChatGPT stage583 accepted: source 86901cfc8363b5b094ec6bc05712a58d8ea09587; ops 6478 exact two-function code/control acceptance passed (run 37238673953), 49 whole static assets and six desktop/mobile served scenarios passed. Public TradingView FTSE probe refused HTTP 400; requests stopped, no market history coverage claimed. Routes remain 6729/10745, 4016 unresolved.
