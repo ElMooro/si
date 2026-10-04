@@ -1,0 +1,192 @@
+@@PART 6/9@@
+      if (isFinite(hiB) && hiB > hi) hi = hiB;
+      if (isFinite(loB) && loB > 0 && loB < lo) lo = loB;
+    }
+    if (bars.length >= 20 && isFinite(hi) && isFinite(lo)) { q.h52 = hi; q.l52 = lo; }
+    for (i = 0; i < bars.length; i++) {
+      var c = +bars[i].close; if (isFinite(c)) closes.push(c);
+      if (i >= bars.length - 10) { var v = +bars[i].value; if (v > 0) vols.push(v); }
+    }
+    function back(n) { if (closes.length <= n) return null; var x = closes[closes.length - 1 - n]; return x ? last / x - 1 : null; }
+    if (closes.length > 5) q.w1 = back(5);
+    if (closes.length > 21) q.m1 = back(21);
+    if (closes.length > 63) q.m3 = back(63);
+    if (closes.length > 252) q.y1 = back(252);
+    var y = new Date((b.time > 1e12 ? b.time : b.time * 1000)).getUTCFullYear();
+    for (i = 0; i < bars.length; i++) {
+      var ts = bars[i].time > 1e12 ? bars[i].time : bars[i].time * 1000;
+      if (new Date(ts).getUTCFullYear() === y && +bars[i].close) { q.ytd = last / (+bars[i].close) - 1; break; }
+    }
+    if (vols.length) q.avg = vols.reduce(function (x, z) { return x + z; }, 0) / vols.length;
+    if (closes.length > 15) q.rsi = rsi(closes, 14);
+    if (closes.length > 10) q.mom = last - closes[closes.length - 1 - 10];
+    quotes[s] = q;
+    checkAlerts(s, q);
+    remember(s, prev);
+  }
+  function pump() {
+    if (inflight >= 3 || !wait.length) return;
+    var s = wait.shift(); inflight++;
+    var t = tickerOf(s);
+    var days = (ui.table || ui.adv) ? 420 : 12;
+    if (!t) { inflight--; pump(); return; }
+    fetch("https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=" + encodeURIComponent(t) + "&span=day&mult=1&days=" + days)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { takeBars(s, j && j.bars, ui.table); })
+      .catch(function () {})
+      .then(function () { inflight--; pump(); });
+    if (ui.cols.ext || ui.adv) wantExt(s);
+  }
+  function want(s) {
+    var need = (ui.table || ui.adv) ? 420 : 12;
+    var hit = quotes[s];
+    if (hit && hit.span >= need) { if (ui.cols.ext || ui.adv) wantExt(s); return; }
+    var key = s + "@" + need;
+    if (qSet[key] || !tickerOf(s)) return;
+    qSet[key] = 1; wait.push(s); pump();
+  }
+  function nyMins(ts) {
+    var ms = ts > 1e12 ? ts : ts * 1000;
+    var parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(ms));
+    var h = 0, m = 0;
+    parts.forEach(function (p) { if (p.type === "hour") h = +p.value; if (p.type === "minute") m = +p.value; });
+    return h * 60 + m;
+  }
+  function inRegular(ts) { var m = nyMins(ts); return m >= 9 * 60 + 30 && m < 16 * 60; }
+  function takeExt(s, bars) {
+    if (!bars || bars.length < 2) return;
+    var i, lastReg = null, last = bars[bars.length - 1];
+    for (i = bars.length - 1; i >= 0; i--) if (inRegular(bars[i].time)) { lastReg = bars[i]; break; }
+    if (!lastReg || inRegular(last.time)) return;
+    var base = +lastReg.close, ext = +last.close;
+    if (!base || !isFinite(ext)) return;
+    if (!quotes[s]) quotes[s] = {};
+    var prev = quotes[s].ext;
+    quotes[s].extTag = nyMins(last.time) < 9 * 60 + 30 ? "Pre" : "Post";
+    quotes[s].ext = ext / base - 1;
+    if (prev !== quotes[s].ext) remember(s, quotes[s].last);
+  }
+  function pumpExt() {
+    if (einflight >= 2 || !ewait.length) return;
+    var s = ewait.shift(); einflight++;
+    var t = tickerOf(s);
+    if (!t) { einflight--; pumpExt(); return; }
+    fetch("https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=" + encodeURIComponent(t) + "&span=minute&mult=5&days=2")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { takeExt(s, j && j.bars); })
+      .catch(function () {})
+      .then(function () { einflight--; pumpExt(); });
+  }
+  function wantExt(s) { if (eSet[s] || !tickerOf(s)) return; eSet[s] = 1; ewait.push(s); pumpExt(); }
+  function see() {
+    var box = document.getElementById("wlist"); if (!box || !window.IntersectionObserver) return;
+    if (see.io) see.io.disconnect();
+    see.io = new IntersectionObserver(function (ents) {
+      ents.forEach(function (en) { if (en.isIntersecting) { var s = en.target.getAttribute("data-s"); if (s) want(s); } });
+    }, { root: box, rootMargin: "120px" });
+    box.querySelectorAll(".wrow").forEach(function (n) { see.io.observe(n); });
+  }
+  var NOTES_KEY = "jh-tv-notes", ALERTS_KEY = "jh-tv-alerts";
+  var ETF = {SPY:1,QQQ:1,IWM:1,DIA:1,GLD:1,SLV:1,TLT:1,IEF:1,HYG:1,LQD:1,EEM:1,VTI:1,VOO:1,IVV:1,IBIT:1,ETHA:1,BITO:1,SMH:1,XLF:1,XLE:1,XLK:1,XLV:1,XLY:1,XLP:1,XLI:1,XLB:1,XLU:1,XLRE:1,ARKK:1,VNQ:1,BND:1,TIP:1,SHY:1,EFA:1,EWJ:1,FXI:1,USO:1,SOXX:1,GDX:1,JNK:1,AGG:1,BIL:1,SGOV:1,VEA:1,VWO:1,MAGS:1};
+  var CRYPTO = {BTC:1,ETH:1,SOL:1,XRP:1,DOGE:1,ADA:1,AVAX:1,LINK:1,BNB:1,LTC:1,DOT:1,BCH:1,UNI:1,ATOM:1,NEAR:1,APT:1,ARB:1,OP:1,SUI:1,TON:1,TRX:1,XLM:1,PEPE:1,SHIB:1};
+  var TYPE_COLOR = {Stock:"#2962ff",ETF:"#089981",Crypto:"#f7931a",FX:"#ab47bc",Macro:"#787b86",Index:"#ff6d00",Other:"#434651"};
+  var ADV = {price:["last","chg","chgp","vol","avg","ext"],perf:["w1","m1","m3","ytd","y1"],tech:["rsi","mom","chgp"]};
+
+  function colW(id) {
+    var w = ui.widths && ui.widths[id];
+    if (w) return Math.max(36, Math.min(200, +w)) + "px";
+    if (id === "sym") return "minmax(72px,1fr)";
+    if (id === "last") return "72px";
+    if (id === "vol" || id === "avg") return "64px";
+    if (id === "ext") return "74px";
+    return "58px";
+  }
+
+  function applyWidths() {
+    var g = gridCss();
+    var cols = document.getElementById("cols");
+    if (cols) cols.style.gridTemplateColumns = g;
+    document.querySelectorAll("#wlist .wrow").forEach(function (r) { r.style.gridTemplateColumns = g; });
+  }
+
+  function kindOf(s) {
+    var e = exch(s).toUpperCase(), b = bare(s).toUpperCase(), ck;
+    if (/^(FRED|ECB|BOJ|OECD|BIS|NYFED|CENSUS|BEA|BLS|EIA|USDA)$/.test(e)) return "Macro";
+    if (/CRYPTO|BINANCE|COINBASE|BITSTAMP|KRAKEN|BYBIT/.test(e) || CRYPTO[b]) return "Crypto";
+    for (ck in CRYPTO) { if (b.indexOf(ck) === 0 && b.length > ck.length && b.length <= ck.length + 5) return "Crypto"; }
+    if (ETF[b]) return "ETF";
+    if (/^[A-Z]{6}$/.test(b) && /^(USD|EUR|JPY|GBP|CHF|AUD|CAD|NZD)(USD|EUR|JPY|GBP|CHF|AUD|CAD|NZD)$/.test(b) && b.slice(0, 3) !== b.slice(3)) return "FX";
+    if (/INDEX|TVC/.test(e) || /^(SPX|NDX|DJI|RUT|VIX|DXY)$/.test(b)) return "Index";
+    if (e || /^[A-Z][A-Z0-9.\-]{0,9}$/.test(b)) return "Stock";
+    return "Other";
+  }
+
+  function descOf(s) {
+    var e = exch(s), k = kindOf(s);
+    if (e && k) return e + " \u00b7 " + k;
+    return e || k || "";
+  }
+
+  function listColorOf(L) {
+    if (!L) return "#787b86";
+    if (ui.listColor && ui.listColor[L.id]) return ui.listColor[L.id];
+    if (L.color && String(L.color).charAt(0) === "#") return L.color;
+    return "#787b86";
+  }
+
+  function rsi(closes, n) {
+    n = n || 14;
+    if (!closes || closes.length < n + 1) return null;
+    var ag = 0, al = 0, i, d;
+    for (i = 1; i <= n; i++) { d = closes[i] - closes[i - 1]; if (d >= 0) ag += d; else al -= d; }
+    ag /= n; al /= n;
+    for (i = n + 1; i < closes.length; i++) {
+      d = closes[i] - closes[i - 1];
+      ag = (ag * (n - 1) + (d > 0 ? d : 0)) / n;
+      al = (al * (n - 1) + (d < 0 ? -d : 0)) / n;
+    }
+    if (!(al > 0)) return ag > 0 ? 100 : null;
+    return 100 - 100 / (1 + ag / al);
+  }
+
+  function parseImport(text) {
+    var seq = [], i, parts = String(text || "").split(/[\n,]+/);
+    for (i = 0; i < parts.length; i++) {
+      var tok = parts[i].trim();
+      if (!tok) continue;
+      if (tok.indexOf("###") === 0) seq.push("###" + tok.replace(/^#+/, "").trim());
+      else seq.push(tok.toUpperCase());
+    }
+    return seq;
+  }
+
+  function symCount(seq) {
+    var n = 0, i;
+    for (i = 0; i < seq.length; i++) if (String(seq[i]).indexOf("###") !== 0) n++;
+    return n;
+  }
+
+  function toast(msg) {
+    var n = document.getElementById("tvtoast");
+    if (!n) { n = document.createElement("div"); n.id = "tvtoast"; document.body.appendChild(n); }
+    n.textContent = msg; n.className = "on";
+    clearTimeout(toast._t); toast._t = setTimeout(function () { n.className = ""; }, 6000);
+  }
+
+  function noteOf(s) { var n = read(NOTES_KEY, {}) || {}; return n[s] || ""; }
+
+  function setNote(s, t) { var n = read(NOTES_KEY, {}) || {}; if (t) n[s] = t; else delete n[s]; write(NOTES_KEY, n); }
+
+  function checkAlerts(s, q) {
+    var arr = read(ALERTS_KEY, []); if (!Array.isArray(arr)) return;
+    var changed = false;
+    arr.forEach(function (a) {
+      if (!a) return;
+      var on = a.kind === "listpct" ? a.list === ui.active : a.sym === s;
+      if (!on) return;
+      if (a.kind === "px") {
+        if (q.last == null || a.done) return;
+        var side = q.last >= a.value ? "above" : "below";
+        if (a.armed == null) { a.armed = side; changed = true; return; }
+        if (side !== a.armed && ((a.op === ">" && side === "above") || (a.op === "<" && side === "below"))) {
+@@END 6@@
