@@ -1,0 +1,137 @@
+@@PART 5/9@@
+    var colBtns = MET.filter(function (m) { return !m.table || ui.table; }).map(function (m) {
+      return "<button type=button data-col='" + m.id + "'>" + tick(ui.cols[m.id]) + m.label + "</button>";
+    }).join("");
+    var flagsHtml = FLAG_COLORS.map(function (c) { return "<button type=button data-fc='" + c + "'><i style='background:" + c + ";width:10px;height:10px;border-radius:2px;display:inline-block'></i></button>"; }).join("");
+    box.innerHTML = sym
+      ? ("<button type=button data-act=copy>Copy " + esc(bare(sym)) + "</button><button type=button data-act=rm>Remove</button><button type=button data-act=sec>Add section above</button><button type=button data-act=fav>Add to favorites</button><button type=button data-act=alert>Add alert</button><div class=lab>FLAG</div>" + flagsHtml + "<button type=button data-fc=''>Clear flag</button>")
+      : ("<div class=lab>SYMBOL</div><button type=button data-tog=logo>" + tick(ui.logo) + "Logo</button><button type=button data-tog=ticker>" + tick(ui.ticker) + "Ticker</button><button type=button data-tog=desc>" + tick(ui.desc) + "Description</button><div class=lab>COLUMNS</div>" + colBtns + "<div class=lab>VIEW</div><button type=button data-act=table>" + tick(ui.table) + "Table view</button><button type=button data-act=adv>" + tick(ui.adv) + "Advanced view</button><button type=button data-act=widths>Reset column widths</button><div class=lab>SORT</div><button type=button data-sort=''>" + tick(!ui.sort) + "Custom order</button><button type=button data-sort=sym>" + tick(ui.sort === "sym") + "Symbol</button><button type=button data-sort=last>" + tick(ui.sort === "last") + "Last</button><button type=button data-sort=chgp>" + tick(ui.sort === "chgp") + "Change %</button><button type=button data-sort=vol>" + tick(ui.sort === "vol") + "Volume</button>");
+    box.style.left = Math.max(8, Math.min(x, window.innerWidth - 248)) + "px";
+    box.style.top = Math.max(8, Math.min(y, window.innerHeight - 80)) + "px";
+    box.onclick = function (e) {
+      var t = e.target.closest ? e.target.closest("[data-act],[data-col],[data-tog],[data-sort],[data-fc]") : null;
+      if (!t) return;
+      e.stopPropagation();
+      var act = t.getAttribute("data-act"), col = t.getAttribute("data-col"), tog = t.getAttribute("data-tog"), sk = t.getAttribute("data-sort"), fc = t.getAttribute("data-fc");
+      if (fc != null && sym) { setFlag(sym, fc); closePop(); paint(); return; }
+      if (col) { ui.cols[col] = ui.cols[col] ? 0 : 1; saveUi(); openMenu(x, y, sym); paint(); return; }
+      if (tog) { ui[tog] = ui[tog] ? 0 : 1; saveUi(); openMenu(x, y, sym); paint(); return; }
+      if (sk != null) { ui.sort = sk; ui.dir = sk === "sym" || !sk ? 1 : -1; saveUi(); closePop(); paint(); return; }
+      if (act === "copy" && sym) exportText(sym);
+      if (act === "rm" && sym) removeSym(L, sym);
+      if (act === "sec") { var nm = prompt("Section name", "Section"); if (nm) addSection(L, nm, sym); }
+      if (act === "fav" && sym) toggleFav(sym);
+      if (act === "alert") askAlert(sym || "", L.id);
+      if (act === "table") { ui.table = ui.table ? 0 : 1; if (ui.table) { ui.cols.w1 = ui.cols.m1 = ui.cols.m3 = ui.cols.ytd = ui.cols.y1 = ui.cols.avg = 1; } qSet = {}; saveUi(); }
+      if (act === "adv") { ui.adv = ui.adv ? 0 : 1; if (ui.adv) qSet = {}; saveUi(); }
+      if (act === "widths") { ui.widths = {}; saveUi(); }
+      closePop(); paint();
+    };
+  }
+  function exportText(s) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).catch(function () {});
+  }
+  function boxClearQuotes() { qSet = {}; }
+  function showAdd() {
+    var n = document.getElementById("tvadd");
+    var list = document.getElementById("w-list");
+    if (!n && list) {
+      n = document.createElement("div"); n.id = "tvadd";
+      n.innerHTML = "<input placeholder='Add symbol — AAPL, NASDAQ:NVDA, FRED:DGS10' />";
+      list.appendChild(n);
+      n.querySelector("input").onkeydown = function (e) {
+        if (e.key === "Escape") { n.className = ""; return; }
+        if (e.key !== "Enter") return;
+        addSym(findList(ui.active), n.querySelector("input").value);
+        n.querySelector("input").value = "";
+      };
+    }
+    if (!n) return;
+    n.className = "on";
+    var inp = n.querySelector("input"); if (inp) inp.focus();
+  }
+  function fillDrop() {
+    ensureFoot();
+    var d = document.getElementById("listdrop"); if (!d) return;
+    d.className = "on";
+    var btn = document.getElementById("listbtn");
+    if (btn) {
+      var r = btn.getBoundingClientRect();
+      d.style.left = Math.max(8, r.left) + "px";
+      d.style.top = (r.bottom + 4) + "px";
+      d.style.width = Math.max(280, r.width) + "px";
+    }
+    var q = document.getElementById("listq"); if (q) { q.value = ""; q.oninput = function () { renderDrop(q.value); }; q.focus(); }
+    renderDrop("");
+  }
+  function renderDrop(q) {
+    var box = document.getElementById("listres"); if (!box) return;
+    q = String(q || "").toLowerCase();
+    function row(L) {
+      var c = listColorOf(L);
+      var name = (ui.alias && ui.alias[L.id]) || L.name || L.id;
+      var n = symCount(L.symbols || []);
+      var star = ui.starred && ui.starred[L.id] ? " on" : "";
+      return "<div class='ld-row" + (String(L.id) === String(ui.active) ? " on" : "") + "'><button type=button data-id='" + esc(L.id) + "'><i class=ld-flag style='background:" + esc(c) + "'></i><b>" + esc(name) + "</b><span>" + n + "</span></button><button type=button class='ld-star" + star + "' data-star='" + esc(L.id) + "'>\u2605</button></div>";
+    }
+    function block(title, rows) {
+      var html = "", i, shown = 0;
+      for (i = 0; i < rows.length; i++) {
+        var L = rows[i]; if (!L) continue;
+        var name = ((ui.alias && ui.alias[L.id]) || L.name || "");
+        if (q && String(name).toLowerCase().indexOf(q) < 0 && String(L.id).toLowerCase().indexOf(q) < 0) continue;
+        if (shown === 0) html += "<div class=ld-h>" + title + "</div>";
+        if (shown >= 60 && q === "") break;
+        html += row(L); shown++;
+      }
+      return html;
+    }
+    var starred = [], mine = customLists().slice(), cats = [];
+    Object.keys(catalog).forEach(function (id) { cats.push(catalog[id]); });
+    mine.concat(cats).forEach(function (L) { if (L && ui.starred && ui.starred[L.id]) starred.push(L); });
+    var fav = findList("favorites");
+    var flagsL = [];
+    FLAG_COLORS.forEach(function (c) { var L = findList("flag:" + c); if (L && L.symbols.length) flagsL.push(L); });
+    var html = "";
+    if (fav && (fav.symbols || []).length) html += block("FAVORITES", [fav]);
+    html += block("STARRED LISTS", starred);
+    html += block("COLOR LISTS", flagsL);
+    html += block("MY LISTS", mine.filter(function (L) { return !(ui.starred && ui.starred[L.id]); }));
+    html += block("YOUR LISTS", cats.filter(function (L) { return !(ui.starred && ui.starred[L.id]); }));
+    box.innerHTML = html || "<div style='padding:12px;color:#787b86'>No lists</div>";
+    box.querySelectorAll("[data-id]").forEach(function (b) {
+      b.onclick = function (e) { e.stopPropagation(); ui.active = b.getAttribute("data-id"); ui.flag = ""; saveUi(); var ld = document.getElementById("listdrop"); if (ld) ld.className = ""; closePop(); paint(); };
+    });
+    box.querySelectorAll("[data-star]").forEach(function (b) {
+      b.onclick = function (e) { e.stopPropagation(); toggleStar(b.getAttribute("data-star")); };
+    });
+  }
+  function remember(s, prev) {
+    var box = document.getElementById("wlist"); if (!box || lock) { advUpdate(s); return; }
+    var sel = (window.CSS && CSS.escape) ? CSS.escape(s) : s;
+    var row = box.querySelector("[data-s='" + sel + "']");
+    var q = quotes[s] || {};
+    if (row) ["last", "chg", "chgp", "vol", "ext", "avg", "w1", "m1", "m3", "ytd", "y1", "rsi", "mom"].forEach(function (k) {
+      var el = row.querySelector("[data-k='" + k + "']"); if (!el) return;
+      el.textContent = fmtCell(k, q);
+      el.className = cellClass(k, q);
+      if (k === "last" && prev != null && prev !== q.last) el.className += q.last > prev ? " flash-up" : " flash-dn";
+    });
+    if (activeSym() === s || bare(activeSym()) === bare(s)) paintCard(s);
+    advUpdate(s);
+  }
+  function takeBars(s, bars, rich) {
+    if (!bars || bars.length < 2) return;
+    var b = bars[bars.length - 1], a = bars[bars.length - 2];
+    var last = +b.close, p = +a.close;
+    if (!isFinite(last) || !isFinite(p) || !p) return;
+    var prev = quotes[s] && quotes[s].last;
+    var q = quotes[s] || {};
+    q.last = last; q.chg = (last - p) / p; q.chgv = last - p;
+    q.vol = +b.value || q.vol; q.high = +b.high; q.low = +b.low; q.open = +b.open; q.prev = p;
+    q.flag = flags()[s] || q.flag || "";
+    q.span = bars.length;
+    var closes = [], vols = [], i, hi = -Infinity, lo = Infinity, n52 = Math.min(bars.length, 252);
+    for (i = bars.length - n52; i < bars.length; i++) {
+      var hiB = +bars[i].high, loB = +bars[i].low;
+@@END 5@@
