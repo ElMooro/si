@@ -446,12 +446,19 @@
     return symMapReq;
   }
   loadSymMap();
+  function fredId(id) {
+    id = String(id || "").toUpperCase();
+    var cc = { AUS: "AU", AUT: "AT", BEL: "BE", CAN: "CA", CHE: "CH", CHL: "CL", COL: "CO", CZE: "CZ", DEU: "DE", DNK: "DK", ESP: "ES", EST: "EE", FIN: "FI", FRA: "FR", GBR: "GB", GRC: "GR", HUN: "HU", IRL: "IE", ISR: "IL", ITA: "IT", JPN: "JP", KOR: "KR", LTU: "LT", LUX: "LU", LVA: "LV", NLD: "NL", NOR: "NO", NZL: "NZ", POL: "PL", PRT: "PT", SVK: "SK", SVN: "SI", SWE: "SE", TUR: "TR", USA: "US", EA19: "EZ" };
+    var m = /^(BSCICP03|CSCICP03|IRLTLT01|LRHUTTTT|CPALTT01|IR3TIB01|PRINTO01|XTEXVA01|XTIMVA01|XTNTVA01|MABMM301)(AUS|AUT|BEL|CAN|CHE|CHL|COL|CZE|DEU|DNK|ESP|EST|FIN|FRA|GBR|GRC|HUN|IRL|ISR|ITA|JPN|KOR|LTU|LUX|LVA|NLD|NOR|NZL|POL|PRT|SVK|SVN|SWE|TUR|USA|EA19)(M\d+[A-Z])$/.exec(id);
+    if (!m || !cc[m[2]]) return id;
+    return m[1] + cc[m[2]] + m[3];
+  }
   function chartSymbol(s) {
     s = String(s || "").trim();
     if (!s || s.indexOf("###") === 0) return "";
     var u = s.toUpperCase(), hit = symMap && symMap[u];
     if (hit && hit.source === "MARKET" && hit.id && /^[A-Z0-9.^=-]{1,24}$/.test(String(hit.id).toUpperCase())) return String(hit.id).toUpperCase();
-    if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + hit.id;
+    if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + fredId(hit.id);
     if (hit && hit.source === "COINGECKO" && /^[a-z]{2,6}$/.test(hit.id || "")) return String(hit.id).toUpperCase() + "-USD";
     if (hit && hit.source === "WORLDBANK") {
       var wb = String(hit.id || "").toUpperCase().split("|");
@@ -486,7 +493,11 @@
       if (pair.length === 6 && cc.indexOf(pair.slice(0, 3)) >= 0 && cc.indexOf(pair.slice(3)) >= 0) return pair + "=X";
       return "";
     }
-    if (/^FRED:[A-Z0-9]+$/.test(u)) return u;
+    if (/^FRED:[A-Z0-9]+$/.test(u)) return "FRED:" + fredId(u.slice(5));
+    if (venue === "ECONOMICS") {
+      var econ = { USINTR: "FEDFUNDS", USCPI: "CPIAUCSL", USCCPI: "CPILFESL", USUR: "UNRATE", USGDP: "GDP", USGDPQQ: "A191RL1Q225SBEA", USNFP: "PAYEMS", USIJC: "ICSA", USCJC: "CCSA", USRSM: "RSAFS", USIP: "INDPRO", USM2: "M2SL", USBOT: "BOPGSTB", USPPI: "PPIACO", USHS: "HOUST", USBP: "PERMIT", USCS: "UMCSENT", USDGO: "DGORDER", USPCE: "PCEPI", USCPCE: "PCEPILFE", USTBL: "BOPGSTB", USGD: "GFDEBTN", USAHE: "AHETPI", USPART: "CIVPART", USJO: "JTSJOL", USBBS: "WALCL", USCBBS: "WALCL", EUINTR: "ECBDFR", DEUR: "LRHUTTTTDEM156S", DECPI: "DEUCPIALLMINMEI", DEGDPQQ: "CLVMNACSCAB1GQDE", GBINTR: "IRSTCB01GBM156N", GBCPI: "GBRCPIALLMINMEI", JPINTR: "IRSTCB01JPM156N", JPCPI: "JPNCPIALLMINMEI", CNGDP: "MKTGDPCNA646NWDB", CNCPI: "CHNCPIALLMINMEI", CAINTR: "IRSTCB01CAM156N", AUINTR: "IRSTCB01AUM156N", USDXY: "DTWEXBGS" };
+      if (econ[bare]) return "FRED:" + econ[bare];
+    }
     var fut = { ES: "ES=F", NQ: "NQ=F", YM: "YM=F", RTY: "RTY=F", CL: "CL=F", GC: "GC=F", SI: "SI=F", NG: "NG=F", ZN: "ZN=F", ZB: "ZB=F", ZF: "ZF=F", ZT: "ZT=F", HG: "HG=F", "6E": "6E=F", "6J": "6J=F", "6B": "6B=F", "6A": "6A=F" };
     var fm = /^([A-Z0-9]{1,3})1!$/.exec(bare);
     if (fm && fut[fm[1]] && /^(CME|CME_MINI|CBOT|NYMEX|COMEX):/.test(u)) return fut[fm[1]];
