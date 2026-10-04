@@ -1,0 +1,43 @@
+{
+  "schema": "tv-resolver-1.0",
+  "rule": "add-only; never invent licensed PMI/FTSE levels",
+  "prefix": {
+    "NASDAQ": {"engine": "equity", "strip": true},
+    "NYSE": {"engine": "equity", "strip": true},
+    "AMEX": {"engine": "equity", "strip": true},
+    "ARCA": {"engine": "equity", "strip": true},
+    "BATS": {"engine": "equity", "strip": true},
+    "CBOE": {"engine": "equity", "strip": true},
+    "FRED": {"engine": "fred", "strip": false},
+    "FX": {"engine": "yahoo", "strip": false},
+    "OANDA": {"engine": "yahoo", "strip": false}
+  },
+  "exact": {
+    "TVC:VIX": {"id": "^VIX", "engine": "yahoo"},
+    "TVC:DXY": {"id": "DX-Y.NYB", "engine": "yahoo"},
+    "TVC:GOLD": {"id": "GC=F", "engine": "yahoo"},
+    "TVC:USOIL": {"id": "CL=F", "engine": "yahoo"},
+    "TVC:US10Y": {"id": "FRED:DGS10", "engine": "fred"},
+    "TVC:US02Y": {"id": "FRED:DGS2", "engine": "fred"},
+    "SPX": {"id": "SPY", "engine": "equity", "note": "ETF proxy"},
+    "NDX": {"id": "QQQ", "engine": "equity", "note": "ETF proxy"},
+    "RUT": {"id": "IWM", "engine": "equity", "note": "ETF proxy"},
+    "ECONOMICS:USLEI": {"id": "COMPUTE:ADS_NFCI_CURVE", "engine": "computed", "inputs": ["FRED:ADS", "FRED:NFCI", "FRED:T10Y2Y"]},
+    "USI:TICKBA.DJ": {"id": "SKIP", "reason": "usi_intraday_only"},
+    "USI:TICKBA.US": {"id": "SKIP", "reason": "usi_intraday_only"}
+  },
+  "licensed_econ_skip": [
+    "ECONOMICS:CHMPMI", "ECONOMICS:CLLEI", "ECONOMICS:CNLEI", "ECONOMICS:CNMPMI",
+    "ECONOMICS:CNSPMI", "ECONOMICS:DEMPMI", "ECONOMICS:EUMPMI", "ECONOMICS:FILEI",
+    "ECONOMICS:GBLEI", "ECONOMICS:JPLEI", "ECONOMICS:JPMPMI", "ECONOMICS:NLMPMI",
+    "ECONOMICS:TWMPMI", "ECONOMICS:USCPMI", "ECONOMICS:USLEI", "ECONOMICS:WWMPMI"
+  ],
+  "computed_internals": {
+    "JH:AD_LINE": "advance-decline from finviz/polygon universe",
+    "JH:PCT_ABOVE_50": "% closes above 50d SMA",
+    "JH:PCT_ABOVE_200": "% closes above 200d SMA",
+    "JH:NH_NL": "52w new highs minus new lows",
+    "JH:2S10S": "FRED DGS10 - DGS2",
+    "JH:LIQ_PROXY": "WALCL - TGA - ONRRP"
+  }
+}

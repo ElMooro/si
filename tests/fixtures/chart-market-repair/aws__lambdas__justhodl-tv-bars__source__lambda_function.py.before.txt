@@ -36,7 +36,6 @@ import time
 from datetime import datetime, timezone
 
 import boto3
-from market_history_integrity import ProviderDenied, stop_on_denial, validate_upgrade, read_bank, merged_document, valid_bar
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 TRANCHE = int(os.environ.get("TRANCHE", "12"))
@@ -83,22 +82,21 @@ class WS:
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 "
             "Safari/537.36\r\n"
+            "Sec-WebSocket-Extensions: permessage-deflate; "
+            "client_max_window_bits\r\n"
             "Cookie: %s\r\n\r\n" % (host, key, origin, cookie))
-        try:
-            self.s.sendall(req.encode())
-            buf = b""
-            while b"\r\n\r\n" not in buf:
-                c = self.s.recv(4096)
-                if not c:
-                    raise RuntimeError("handshake closed")
-                buf += c
-                if len(buf) > 65536:
-                    raise ValueError("WebSocket upgrade exceeds bound")
-            header, self.buf = buf.split(b"\r\n\r\n", 1)
-            validate_upgrade(header, key)
-        except Exception:
-            self.close()
-            raise
+        self.s.sendall(req.encode())
+        buf = b""
+        while b"\r\n\r\n" not in buf:
+            c = self.s.recv(4096)
+            if not c:
+                raise RuntimeError("handshake closed")
+            buf += c
+        if b"101" not in buf.split(b"\r\n")[0]:
+            raise RuntimeError("handshake %s [%s]"
+                               % (buf.split(b"\r\n")[0][:90],
+                                  host + (path or "")[:40]))
+        self.buf = b""
 
     def send(self, msg):
         data = msg.encode()
@@ -187,7 +185,6 @@ def _connect(cookie):
             return WS(host, "https://www.tradingview.com", cookie,
                       path), host
         except Exception as e:
-            stop_on_denial(e, "TradingView")
             errs.append("%s%s -> %s" % (host, path[:26], str(e)[:70]))
     raise RuntimeError("all endpoints refused: " + " | ".join(errs))
 
@@ -209,8 +206,7 @@ def pull(symbol, token, cookie, countback=20000, budget=45):
         while not done and time.time() - t0 < budget:
             try:
                 raw = ws.recv(timeout=15)
-            except Exception as error:
-                stop_on_denial(error, "TradingView")
+            except Exception:
                 break
             if raw.startswith("~h~") or "~h~" in raw[:12]:
                 ws.send(raw)                     # heartbeat echo
@@ -232,14 +228,14 @@ def pull(symbol, token, cookie, countback=20000, budget=45):
                                     a = row.get("v") if isinstance(
                                         row, dict) else None
                                     if a and len(a) >= 5:
-                                        candidate = [a[0], a[1], a[2], a[3], a[4], a[5] if len(a)>5 else None]
-                                        if not valid_bar(candidate):
-                                            raise ValueError("Invalid TradingView market row")
-                                        bars[int(a[0])] = candidate[1:]
+                                        bars[int(a[0])] = [
+                                            float(a[1]), float(a[2]),
+                                            float(a[3]), float(a[4])]
                 elif m in ("series_completed", "critical_error",
                            "symbol_error", "series_error"):
                     if m != "series_completed":
-                        raise ProviderDenied("TradingView " + m + "; no alternate provider attempted")
+                        raise RuntimeError("%s %s" % (m, str(
+                            msg.get("p"))[:120]))
                     done = True
     finally:
         ws.close()
@@ -250,10 +246,8 @@ def _gj(key, dflt):
     try:
         return json.loads(s3.get_object(Bucket=BUCKET,
                                         Key=key)["Body"].read())
-    except Exception as error:
-        if getattr(error, "response", {}).get("Error", {}).get("Code") in ("404", "NoSuchKey"):
-            return dflt
-        raise
+    except Exception:
+        return dflt
 
 
 def build_worklist():
@@ -309,8 +303,7 @@ def tv_to_yahoo(sym):
             _FEED["r"] = fd.get("resolved") if isinstance(fd.get("resolved"), dict) else {}
             _FEED["p"] = fd.get("prices") if isinstance(fd.get("prices"), dict) else {}
         except Exception:
-            # Unknown/read-denied metadata must not activate guessed fallbacks.
-            raise
+            _FEED["r"], _FEED["p"] = {}, {}
     out = []
     rs = _FEED["r"].get(sym) if isinstance(_FEED.get("r"), dict) else None
     if isinstance(rs, str):
@@ -387,9 +380,7 @@ def yahoo_bars(ysym, rng="max"):
         if c is None or o is None:
             continue
         v = (q.get("volume") or [None] * len(ts))[i]
-        candidate = [t, o, h, l, c, v]
-        if valid_bar(candidate):
-            rows.append(candidate)
+        rows.append([int(t), float(o), float(h if h is not None else c), float(l if l is not None else c), float(c), float(v or 0)])
     return rows
 
 
@@ -399,15 +390,12 @@ def bank_symbol(sym, token, cookie, countback=20000, budget=45, ysym=None, refre
     already banked. Source order: TradingView chart socket (session) when it
     answers, else Yahoo's chart API resolved through the fleet's symbol map
     (full history since inception, volume included). Returns (doc, key)."""
-    key = "data/warm/tv-bars/universe/%s.json.gz" % safe_name(sym)
-    old = read_bank(s3, BUCKET, key)
     rows, src, err = [], None, []
     if cookie:
         try:
             rows = pull(sym, token, cookie, countback=countback, budget=min(budget, 12))
             src = "tradingview-ws (session-auth, server-side)"
         except Exception as e:
-            stop_on_denial(e, "TradingView")
             err.append("tv:" + str(e)[:70])
     if not rows:
         for y in ([ysym] if ysym else []) + tv_to_yahoo(sym):
@@ -417,11 +405,24 @@ def bank_symbol(sym, token, cookie, countback=20000, budget=45, ysym=None, refre
                     src = "yahoo-chart:%s" % y
                     break
             except Exception as e:
-                stop_on_denial(e, "Yahoo")
                 err.append("yahoo %s: %s" % (y, str(e)[:60]))
     if not rows:
         raise RuntimeError("no bars for %s (%s)" % (sym, "; ".join(err)[:200] or "no yahoo mapping"))
-    doc = merged_document(old, rows, sym, sym, src)
+    key = "data/warm/tv-bars/universe/%s.json.gz" % safe_name(sym)
+    prev = {}
+    try:
+        old = json.loads(gzip.decompress(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()))
+        prev = {int(b[0]): b for b in old.get("bars") or []}
+    except Exception:
+        pass
+    for b in rows:
+        prev[int(b[0])] = b
+    merged = [prev[k] for k in sorted(prev)]
+    d0 = datetime.fromtimestamp(merged[0][0], tz=timezone.utc).strftime("%Y-%m-%d")
+    d1 = datetime.fromtimestamp(merged[-1][0], tz=timezone.utc).strftime("%Y-%m-%d")
+    doc = {"symbol": sym, "tv_symbol": sym, "source": src,
+           "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"), "n": len(merged),
+           "first_date": d0, "last_date": d1, "pulled_now": len(rows), "bars": merged}
     s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(json.dumps(doc).encode()),
                   ContentType="application/gzip", CacheControl="public, max-age=900")
     return doc, key
@@ -462,8 +463,6 @@ def universe_pull(event, context):
         except Exception as e:
             out[sym] = {"ok": False, "error": "%s: %s" % (type(e).__name__, str(e)[:120])}
             idx.setdefault("failures", {})[sym] = {"err": str(e)[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-            if isinstance(e, ProviderDenied):
-                break
         time.sleep(0.4)
     idx["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     idx["n_symbols"] = len(idx["symbols"])
@@ -504,8 +503,6 @@ def universe_refresh(event, context):
         except Exception as e:
             idx.setdefault("failures", {})[sym] = {"err": str(e)[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
             fail += 1
-            if isinstance(e, ProviderDenied):
-                break
         time.sleep(0.4)
     # per-shard write of the shared index: merge with the latest copy to keep other shards' updates
     cur = _gj(UNIV_IDX_KEY, {"symbols": {}})
@@ -564,22 +561,30 @@ def lambda_handler(event, context):
             st.setdefault("failures", {})[sid] = \
                 "%s: %s" % (type(e).__name__, str(e)[:90])
             failed += 1
-            if isinstance(e, ProviderDenied):
-                break
             continue
         if not rows:
             st.setdefault("failures", {})[sid] = "no bars returned"
             failed += 1
             continue
         key = "data/warm/tv-bars/%s.json.gz" % sid
+        prev = {}
         try:
-            old = read_bank(s3, BUCKET, key)
-            doc = merged_document(old, rows, sid, sym, "tradingview-ws (session-auth, server-side)")
-        except Exception as error:
-            st.setdefault("failures", {})[sid] = type(error).__name__ + ": history preserved"
-            failed += 1
-            continue
-        merged, d0, d1 = doc["bars"], doc["first_date"], doc["last_date"]
+            old = json.loads(gzip.decompress(s3.get_object(
+                Bucket=BUCKET, Key=key)["Body"].read()))
+            prev = {int(b[0]): b for b in old.get("bars") or []}
+        except Exception:
+            pass
+        for b in rows:
+            prev[int(b[0])] = b            # append-only union
+        merged = [prev[k] for k in sorted(prev)]
+        d0 = datetime.fromtimestamp(merged[0][0],
+                                    tz=timezone.utc).strftime("%Y-%m-%d")
+        d1 = datetime.fromtimestamp(merged[-1][0],
+                                    tz=timezone.utc).strftime("%Y-%m-%d")
+        doc = {"symbol": sid, "tv_symbol": sym,
+               "source": "tradingview-ws (session-auth, server-side)",
+               "as_of": now, "n": len(merged),
+               "first_date": d0, "last_date": d1, "bars": merged}
         s3.put_object(Bucket=BUCKET, Key=key,
                       Body=gzip.compress(json.dumps(doc).encode()),
                       ContentType="application/gzip")

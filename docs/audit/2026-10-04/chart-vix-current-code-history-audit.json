@@ -1,0 +1,142 @@
+{
+  "at": "2026-10-04T21:12:11.283523+00:00",
+  "catalogue_sha256": "5af4de91d873f415b76e50c06ec9c2d0428498394313fd87cee56020796d5294",
+  "aliases": 2,
+  "unique_series": 2,
+  "statuses": {
+    "history_response_replayed": 2
+  },
+  "rows": [
+    {
+      "id": "cftc:gpe5-46if|1170E1|asset_mgr_positions_long",
+      "aliases": [
+        "COT3:11700_F_AMP_L"
+      ],
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=cftc%3Agpe5-46if%7C1170E1%7Casset_mgr_positions_long",
+      "at": "2026-10-04T21:12:10.045542+00:00",
+      "http_status": 200,
+      "bytes": 695208,
+      "sha256": "f3361675a1d8198fdcdea8a2ed8585fbdba0234ce4b8e0fc0d4434f69cb7518f",
+      "status": "history_response_replayed",
+      "n": 1019,
+      "first": "2006-08-29",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 1019,
+        "accepted_rows": 1019,
+        "rejected_rows": 0
+      },
+      "history": {
+        "pagination_complete": true,
+        "atomic_snapshot_verified": false,
+        "point_in_time_vintages_verified": false,
+        "full_upstream_history_verified": false,
+        "observation_clock": "CFTC report observation date; publication timestamp is not supplied",
+        "missing_periods_filled": false,
+        "max_pages": 8,
+        "page_size": 1000
+      },
+      "source_receipts": [
+        {
+          "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json?%24select=id%2Creport_date_as_yyyy_mm_dd%2Ccftc_contract_market_code%2Cmarket_and_exchange_names%2Casset_mgr_positions_long&%24where=cftc_contract_market_code%3D%271170E1%27&%24order=report_date_as_yyyy_mm_dd+ASC%2Cid+ASC&%24limit=1000&%24offset=0",
+          "page": 0,
+          "received_at": "2026-10-04T21:12:10.606324+00:00",
+          "http_status": 200,
+          "bytes": 215875,
+          "sha256": "5c3cfd3caada70aa669af31528e4387b226905d1e7a13d68b440b24a0db5c109",
+          "headers": {
+            "Last-Modified": "Fri, 02 Oct 2026 19:30:08 GMT",
+            "ETag": "W/\"aG90ZWwuNDkzNTZfM18zNTJQNHRsVE9fSWtpd0hRM0QzOVdyU0FOMUJ6M2M---gziqzns3K_5o31ianjhVqCIvFWxUXJQ--gzip--gzip\"",
+            "Content-Type": "application/json;charset=utf-8"
+          }
+        },
+        {
+          "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json?%24select=id%2Creport_date_as_yyyy_mm_dd%2Ccftc_contract_market_code%2Cmarket_and_exchange_names%2Casset_mgr_positions_long&%24where=cftc_contract_market_code%3D%271170E1%27&%24order=report_date_as_yyyy_mm_dd+ASC%2Cid+ASC&%24limit=1000&%24offset=1000",
+          "page": 1,
+          "received_at": "2026-10-04T21:12:10.785435+00:00",
+          "http_status": 200,
+          "bytes": 4105,
+          "sha256": "bbcef3f1215d2323945c7cdc036418a0c8d5245a787eada386c1711e5f009e31",
+          "headers": {
+            "Last-Modified": "Fri, 02 Oct 2026 19:30:08 GMT",
+            "ETag": "W/\"aG90ZWwuNDkzNTZfM18zNTJDQVNfbkloM2pkajhfU2t4OF80c3NKVm1BOGM---gziqrJF7DBaL9f0JWY4AM55BO_deDuA--gzip--gzip\"",
+            "Content-Type": "application/json;charset=utf-8"
+          }
+        }
+      ],
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "unit": "contracts"
+    },
+    {
+      "id": "cftc:gpe5-46if|1170E1|asset_mgr_positions_short",
+      "aliases": [
+        "COT3:11700_F_AMP_S"
+      ],
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=cftc%3Agpe5-46if%7C1170E1%7Casset_mgr_positions_short",
+      "at": "2026-10-04T21:12:10.045542+00:00",
+      "http_status": 200,
+      "bytes": 695197,
+      "sha256": "6ba686ee7ab35492c8219548ff39dc2dcc30409ff753214bfd9bf2b8e20aec04",
+      "status": "history_response_replayed",
+      "n": 1019,
+      "first": "2006-08-29",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 1019,
+        "accepted_rows": 1019,
+        "rejected_rows": 0
+      },
+      "history": {
+        "pagination_complete": true,
+        "atomic_snapshot_verified": false,
+        "point_in_time_vintages_verified": false,
+        "full_upstream_history_verified": false,
+        "observation_clock": "CFTC report observation date; publication timestamp is not supplied",
+        "missing_periods_filled": false,
+        "max_pages": 8,
+        "page_size": 1000
+      },
+      "source_receipts": [
+        {
+          "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json?%24select=id%2Creport_date_as_yyyy_mm_dd%2Ccftc_contract_market_code%2Cmarket_and_exchange_names%2Casset_mgr_positions_short&%24where=cftc_contract_market_code%3D%271170E1%27&%24order=report_date_as_yyyy_mm_dd+ASC%2Cid+ASC&%24limit=1000&%24offset=0",
+          "page": 0,
+          "received_at": "2026-10-04T21:12:10.545182+00:00",
+          "http_status": 200,
+          "bytes": 216319,
+          "sha256": "59a162616adf33d46bb77353a6b8db8faeb4153d5e75d3202399e6da9a92fa3d",
+          "headers": {
+            "Last-Modified": "Fri, 02 Oct 2026 19:30:08 GMT",
+            "ETag": "W/\"aG90ZWwuNDkzNTZfM18zNTJwd2RlX3ZCc2J2dW5fUnVQV284RGJiMi1QUmc---gzioCoHDR4GYIHtanxiXCXWV5DLWkzg--gzip--gzip\"",
+            "Content-Type": "application/json;charset=utf-8"
+          }
+        },
+        {
+          "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json?%24select=id%2Creport_date_as_yyyy_mm_dd%2Ccftc_contract_market_code%2Cmarket_and_exchange_names%2Casset_mgr_positions_short&%24where=cftc_contract_market_code%3D%271170E1%27&%24order=report_date_as_yyyy_mm_dd+ASC%2Cid+ASC&%24limit=1000&%24offset=1000",
+          "page": 1,
+          "received_at": "2026-10-04T21:12:10.707255+00:00",
+          "http_status": 200,
+          "bytes": 4127,
+          "sha256": "1dbc833a4027dcbbd380e029ab03aadb9e341164032eba6ab2e1da2ba20b8983",
+          "headers": {
+            "Last-Modified": "Fri, 02 Oct 2026 19:30:08 GMT",
+            "ETag": "W/\"aG90ZWwuNDkzNTZfM18zNTJFYkNFLUNlME9KU2paNEw2NlJSZDNPV0RwaWM---gziqONIU62g1YKbVAG0yIiRSpvIHelA--gzip--gzip\"",
+            "Content-Type": "application/json;charset=utf-8"
+          }
+        }
+      ],
+      "contract_names": [
+        "VIX FUTURES - CBOE FUTURES EXCHANGE"
+      ],
+      "unit": "contracts"
+    }
+  ],
+  "point_in_time_verified": false,
+  "complete_upstream_history_verified": false,
+  "interpretation": "A successful source-receipt replay verifies delivered historical observations only, not missing releases, point-in-time vintages, or independent equivalence to a different vendor."
+}

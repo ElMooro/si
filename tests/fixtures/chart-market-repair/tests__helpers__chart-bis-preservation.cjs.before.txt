@@ -1,7 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-bis/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 function normalize(raw,file){
- raw=require("./chart-market-repair-preservation.cjs").normalize(raw,file);
  // Older normalizers can pass the same immutable predecessor through twice.
  for(const older of [require('../fixtures/chart-cftc/transition.json'),require('../fixtures/chart-provider-browser/transition.json')]) {
   const prior=file===older.ledger.path?older.ledger:older.changes[file];

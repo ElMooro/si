@@ -619,7 +619,6 @@
         route.handoff = cot.id; route.resolved = cot.id; route.primary = cot.id;
         route.relation = cot.id === requested ? "exact" : "schema-defined";
         route.definition = cot; route.handoffHints = routeHints(cot.id);
-        route.alternative = window.JHChartCFTC.alternative && window.JHChartCFTC.alternative(requested);
         route.reason = "CFTC " + cot.report_name + " / " + cot.contract_market_code + " / " + cot.label + " / " + cot.unit + " (" + cot.unit_basis + "); history and contract availability still require the provider response";
         return route;
       }
@@ -717,7 +716,7 @@ function chartRouteText(route, evidence, bars) {
   }
   function paintChartRoute() {
     var route = chartSelection, node = document.getElementById("watchlist-chart-route"), quote = document.getElementById("quote");
-    if (!route || route.frame !== activeSym()) { if (node) node.hidden = true; var staleAlternative=document.getElementById("watchlist-cftc-alternative"); if(staleAlternative){staleAlternative.hidden=true;staleAlternative.onclick=null;} chartSelection = null; window.jhWatchlistHandoff = null; var oldCard = document.querySelector("#tvcard .chart-route"); if (oldCard) oldCard.remove(); paintEconomicSources(null); return; }
+    if (!route || route.frame !== activeSym()) { if (node) node.hidden = true; chartSelection = null; window.jhWatchlistHandoff = null; var oldCard = document.querySelector("#tvcard .chart-route"); if (oldCard) oldCard.remove(); paintEconomicSources(null); return; }
     if (!node && quote && quote.parentNode) { node = document.createElement("div"); node.id = "watchlist-chart-route"; node.setAttribute("role", "status"); node.setAttribute("aria-live", "polite"); quote.parentNode.insertBefore(node, quote.nextSibling); }
     if (!node) return;
     var evidence = window.jhChartEvidence, bars = window.lastBars, text = chartRouteText(route, evidence, bars);
@@ -725,28 +724,8 @@ function chartRouteText(route, evidence, bars) {
     if (node.textContent !== text) node.textContent = text;
     var cardStatus = document.querySelector("#tvcard .chart-route");
     if (cardStatus && cardStatus.dataset.requested === route.requested && cardStatus.textContent !== text) cardStatus.textContent = text;
-    var alternative = document.getElementById("watchlist-cftc-alternative");
-    if (route.alternative) {
-      if (!alternative) { alternative = document.createElement("button"); alternative.id="watchlist-cftc-alternative"; alternative.type="button"; alternative.style.maxWidth="100%"; alternative.style.whiteSpace="normal"; node.parentNode.insertBefore(alternative,node.nextSibling); }
-      alternative.hidden=false;
-      alternative.textContent="Open current CFTC VIX " + route.alternative.side + " series · alternative, equivalence unverified";
-      alternative.title=route.alternative.reason;
-      alternative.onclick=function(){ if(chartSelection!==route)return; openCFTCAlternative(route); };
-    } else if(alternative) { alternative.hidden=true; alternative.onclick=null; }
     paintEconomicSources(route);
     window.jhWatchlistHandoff = Object.freeze({ economic_qualification: economicQualification(route), requested: route.requested, handoff: route.handoff, resolved: route.resolved, primary: route.primary, fallback: route.fallback, relation: route.relation, native_frame: evidence && evidence.symbol || null, scalar_requested_id: evidence && evidence.observations && evidence.observations.requested_id || null, packet_instrument_verified: false, packet_venue_verified: false, packet_currency_verified: false });
-  }
-  function openCFTCAlternative(original) {
-    var alternative=original.alternative;
-    if(!alternative)return;
-    openSym(alternative.id);
-    if(!chartSelection || chartSelection.requested!==alternative.id)return;
-    chartSelection.requested=original.requested;
-    chartSelection.requestHints=original.requestHints;
-    chartSelection.relation="explicit-provider-alternative";
-    chartSelection.reason=alternative.reason;
-    chartSelection.original_handoff=original.handoff;
-    paintCard(original.requested);paintChartRoute();
   }
   function openSym(s) {
     // A map completion never replays a click after another selection/list owns the frame.
@@ -1257,8 +1236,7 @@ function chartRouteText(route, evidence, bars) {
 
   function kindOf(s) {
     var e = exch(s).toUpperCase(), b = bare(s).toUpperCase(), ck;
-    if (/^(COT|COT2|COT3|CFTC)$/.test(e)) return "Positioning";
-    if (/^(ECONOMICS|FRED|ECB|BOJ|OECD|BIS|NYFED|CENSUS|BEA|BLS|EIA|USDA)$/.test(e)) return "Macro";
+    if (/^(FRED|ECB|BOJ|OECD|BIS|NYFED|CENSUS|BEA|BLS|EIA|USDA)$/.test(e)) return "Macro";
     if (/CRYPTO|BINANCE|COINBASE|BITSTAMP|KRAKEN|BYBIT/.test(e) || CRYPTO[b]) return "Crypto";
     for (ck in CRYPTO) { if (b.indexOf(ck) === 0 && b.length > ck.length && b.length <= ck.length + 5) return "Crypto"; }
     if (ETF[b]) return "ETF";

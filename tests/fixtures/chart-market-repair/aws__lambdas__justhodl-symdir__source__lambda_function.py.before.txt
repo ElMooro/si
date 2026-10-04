@@ -2605,17 +2605,11 @@ def _bars_result(sid, prov, doc, name, source, extra=None):
     for b in bars:
         try:
             dt = datetime.fromtimestamp(int(b[0]), tz=timezone.utc).strftime("%Y-%m-%d")
-            ohlc.append([dt, float(b[1]), float(b[2]), float(b[3]), float(b[4]), float(b[5]) if len(b) > 5 and b[5] is not None else None])
+            ohlc.append([dt, float(b[1]), float(b[2]), float(b[3]), float(b[4]), float(b[5]) if len(b) > 5 and b[5] is not None else 0.0])
         except Exception:  # noqa: BLE001
             continue
     out = _result(sid, prov, [(o[0], o[4]) for o in ohlc], name=name, freq="D", source=source, extra=extra)
     out["ohlc"] = ohlc
-    out["market_history_quality"] = doc.get("market_history_quality") or {
-        "status":"legacy_bank_unqualified", "provider_identity_verified":False,
-        "full_history_verified":False, "raw_upstream_replay_verified":False,
-        "point_in_time_verified":False, "reason":"Legacy bank has no row-level source receipts"}
-    if isinstance(doc.get("bar_sources"), list) and len(doc["bar_sources"]) == len(ohlc) == len(bars):
-        out["bar_sources"] = doc["bar_sources"]
     return out
 
 
@@ -2719,11 +2713,7 @@ def r_tvsym(sid, sym, d):
         out = _fetch_series(resolved)
         if not out.get("n"):
             raise ValueError("Resolved warehouse series has no observations: " + resolved)
-        from reviewed_symbol_config import evidence as resolver_evidence
-        out = dict(out)
-        out.update(id=sid, tv_symbol=sym, via=resolved,
-                   routing_evidence={**resolver_evidence(), "requested_id":sid, "resolved_id":resolved,
-                                     "status":"provider_mapping_unqualified"})
+        out.update(id=sid, tv_symbol=sym, via=resolved)
         return out
     # 2. curated warehouse equivalents first (TVC:DE10Y -> Bundesbank daily before the OECD monthly the dictionary knows)
     alt_err = []

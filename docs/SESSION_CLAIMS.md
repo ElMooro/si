@@ -207,3 +207,5 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 - global-flows key-gated: Korea (BOK ECOS + KRX keys) and Chile
   (BCCh token) -- BLOCKED ON KHALID
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
+
+- ChatGPT stage583: reserve ops 6478 for read-only symdir + tv-bars exact native acceptance. Source/code and full history are not yet live-accepted. Baseline 6477 confirmed one enabled nightly Scheduler and one disabled hourly rule; both preserved.

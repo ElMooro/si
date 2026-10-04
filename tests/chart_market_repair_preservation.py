@@ -1,13 +1,12 @@
-"""Remove only hash-bound CFTC deltas before earlier whole-source tests."""
-import hashlib
-import json
+"""Reverse only exact reviewed deltas before existing complete-source assertions."""
+import hashlib,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-TRANSITION=json.loads((ROOT/'tests/fixtures/chart-bis/transition.json').read_bytes())
+TRANSITION=json.loads((ROOT/'tests/fixtures/chart-market-repair/transition.json').read_bytes())
 def normalize(file,raw):
-    from chart_market_repair_preservation import normalize as newer
-    raw=newer(file,raw)
-    row=TRANSITION['changes'][file]
+    row=TRANSITION['changes'].get(file)
+    if not row:return raw
+    if hashlib.sha256(raw).hexdigest()==row['before_sha256']:return raw
     assert hashlib.sha256(raw).hexdigest()==row['after_sha256'],file
     text=raw.decode('utf-8').encode('utf-16-le')
     for edit in reversed(row['edits']):

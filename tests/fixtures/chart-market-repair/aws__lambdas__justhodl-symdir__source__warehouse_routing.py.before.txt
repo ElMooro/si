@@ -59,13 +59,11 @@ def banked_ohlc(s3, bucket, symbol, span="day", mult=1):
                 or (source_span == "week" and span == "month")
                 or (source_mult > 1 and source_span != span)):
             continue
-        bars, labels = [], []
-        original_labels = doc.get("bar_sources") or []
-        source_rows = doc.get("bars") or doc.get("ohlc") or doc.get("rows") or []
-        for index, row in enumerate(source_rows):
+        bars = []
+        for row in doc.get("bars") or doc.get("ohlc") or doc.get("rows") or []:
             try:
                 a = row if isinstance(row,list) else [row.get("time",row.get("date",row.get("t"))),
-                    row.get("open",row.get("o")),row.get("high",row.get("h")),row.get("low",row.get("l")),row.get("close",row.get("c")),row.get("volume",row.get("value",row.get("v"))) ]
+                    row.get("open",row.get("o")),row.get("high",row.get("h")),row.get("low",row.get("l")),row.get("close",row.get("c")),row.get("volume",row.get("value",row.get("v",0))) ]
                 prices = [float(v) for v in a[1:5]]
                 if len(prices) != 4 or not all(math.isfinite(v) for v in prices):
                     continue
@@ -75,26 +73,22 @@ def banked_ohlc(s3, bucket, symbol, span="day", mult=1):
                 else:
                     dt = datetime.fromisoformat(str(a[0]).replace("Z","+00:00"))
                     ts = dt.replace(tzinfo=dt.tzinfo or timezone.utc).timestamp()
-                volume = float(a[5]) if len(a)>5 and a[5] is not None else None
-                bars.append([int(ts)]+prices+[volume if volume is not None and math.isfinite(volume) else None])
-                labels.append(original_labels[index] if isinstance(original_labels,list) and len(original_labels)==len(source_rows) and isinstance(original_labels[index],str) else "legacy:unverified")
+                volume = float(a[5]) if len(a)>5 and a[5] is not None else 0
+                bars.append([int(ts)]+prices+[volume if math.isfinite(volume) else 0])
             except (TypeError,ValueError,IndexError):
                 continue
         if bars:
             return {"warehouse_empty":False,"source":"warehouse","warehouse_key":key,
                     "last_modified":obj["LastModified"].isoformat(),"bars":bars,
-                    "source_span":source_span,"source_mult":source_mult,"vendor_requests":0,
-                    "market_history_quality":doc.get("market_history_quality"),
-                    "bar_sources":labels}
+                    "source_span":source_span,"source_mult":source_mult,"vendor_requests":0}
     return {"warehouse_empty":True,"bars":[],"vendor_requests":0}
 
 
 def resolved_id(sym, read, extra=None):
-    from reviewed_symbol_config import reviewed_resolver
-    resolver = reviewed_resolver()
+    resolver = read("data/tv-symbol-resolver.json")
     symbol_map = read("data/symbol-map.json")
-    if not isinstance(symbol_map, dict) or not isinstance(symbol_map.get("map"), dict):
-        raise ValueError("Runtime symbol map unavailable; refusing TV fallback")
+    if not isinstance(resolver, dict) or not isinstance(symbol_map, dict):
+        raise ValueError("Symbol resolution unavailable; refusing TV fallback")
     if sym in resolver.get("licensed_econ_skip", []):
         return "SKIP"
     exact = resolver.get("exact", {}).get(sym, {})

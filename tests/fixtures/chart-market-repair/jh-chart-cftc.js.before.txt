@@ -15,14 +15,5 @@
       unit:field.unit,unit_basis:field.unit_basis,scope:field.scope,label:field.label,schema_sha256:report.schema_sha256,
       history_verified:false,contract_existence_verified:false};
   }
-  function alternative(raw){
-    var m=/^COT3:11700_F_AMP_([LS])$/.exec(String(raw||"").toUpperCase());
-    if(!m)return null;
-    var side=m[1]==="L"?"long":"short";
-    return {id:"cftc:gpe5-46if|1170E1|asset_mgr_positions_"+side,side:side,
-      requested:raw,provider:"CFTC",unit:"contracts",equivalence_verified:false,
-      reason:"Requested "+raw+" has no observations in the reviewed CFTC response. Explicit alternative: CFTC TFF futures-only VIX FUTURES - CBOE FUTURES EXCHANGE, current code 1170E1, asset-manager "+side+" contracts. TradingView alias continuity and historical equivalence remain unverified; original route retained.",
-      source:"https://publicreporting.cftc.gov/resource/gpe5-46if.json"};
-  }
-  global.JHChartCFTC=Object.freeze({family:family,resolve:resolve,alternative:alternative});
+  global.JHChartCFTC=Object.freeze({family:family,resolve:resolve});
 })(typeof window!=='undefined'?window:globalThis);

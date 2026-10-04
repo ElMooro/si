@@ -1,0 +1,38 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{chromium}=require('playwright');
+const ROOT=path.resolve(process.env.JH_BROWSER_SOURCE_ROOT||path.join(__dirname,'..')),OUT=path.resolve(process.argv[2]||'/tmp/chart-cftc-browser');fs.mkdirSync(OUT,{recursive:true});
+const scripts=['jh-watchlist-store.js','jh-watchlist-quotes.js','jh-chart-tvrail.js','jh-observation-series.js','jh-observation-cache.js','jh-chart-cftc.js','jh-chart-catalog.js','jh-chart-engine.js','jh-chart-row-handoff.js','jh-chart-provider-browser.js'];
+const html=fs.readFileSync(path.join(ROOT,'chart.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'').replace('</body>','<script src="/fixture-library.js"></script>'+scripts.map(s=>'<script src="/'+s+'"></script>').join('')+'</body>');
+const aliases=['COT3:11700_F_AMP_L','COT3:11700_F_AMP_S'];
+(async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE_PATH});const report=[];try{for(const width of [1440,390]){const context=await browser.newContext({viewport:{width,height:1000},serviceWorkers:'block'}),page=await context.newPage(),requests=[],errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await context.addInitScript(aliases=>{localStorage.setItem('jh-chart-custom-lists',JSON.stringify([{id:'cftc-fixture',name:'Invented CFTC list',symbols:aliases,custom:1}]));localStorage.setItem('jh-tv-watch-ui',JSON.stringify({active:'cftc-fixture'}));localStorage.setItem('jh-chart-watch-pin','0');},aliases);
+await context.route('**/*',async route=>{const u=new URL(route.request().url());requests.push(u.pathname+u.search);const send=(v,type='application/json',status=200)=>route.fulfill({status,contentType:type,body:typeof v==='string'?v:JSON.stringify(v)});
+if(u.pathname==='/chart.html')return send(html,'text/html');
+if(u.pathname==='/fixture-library.js')return send(fs.readFileSync(path.join(ROOT,'tests/fixtures/chart-observations/vendor/lightweight-charts-4.2.3.js.txt'),'utf8'),'application/javascript');
+if(scripts.includes(u.pathname.slice(1))||u.pathname==='/jh-chart-tvwatch.js')return send(fs.readFileSync(path.join(ROOT,u.pathname.slice(1)),'utf8'),'application/javascript');
+if(u.pathname==='/data/tv-watchlists.json')return send({lists:[{id:'cftc-fixture',name:'Invented CFTC list',symbols:aliases}]});
+if(u.pathname==='/series'){const id=u.searchParams.get('id');const unit=id.includes('traders_')?'traders':id.includes('conc_')?'percent_of_open_interest':'contracts';return send({id,provider:'cftc',unit,freq:'W',obs:[['2026-01-06',1],['2026-01-13',2],['2026-01-20',3]],source:'invented CFTC response',definition:{report_basis:id.includes('yw9f')||id.includes('jun7')?'futures_and_options':'futures_only'},history:{full_upstream_history_verified:false},calls_eligible:false});}
+if(['/ohlc','/yf-ohlc'].includes(u.pathname))return send({ticker:u.searchParams.get('ticker')||u.searchParams.get('symbol'),span:'day',mult:1,bars:[0,1,2].map(i=>({time:Date.UTC(2026,9,i+1)/1000,open:10,high:11,low:9,close:10,volume:1}))});
+if(u.pathname==='/data/provider-catalog.json')return send({providers:[{slug:'cftc',name:'CFTC'}]});
+if(u.pathname==='/explorer')return send({provider:'cftc',offset:0,total:1,rows:[{id:'cftc:yw9f-hn96|132741|traders_asset_mgr_short_all',provider:'cftc',kind:'series',chartable:true,name:'Invented report metric',unit:'traders',freq:'W'}]});
+if(u.pathname==='/symsearch')return send({q:u.searchParams.get('q'),rows:[{id:'cftc:yw9f-hn96|132741|traders_asset_mgr_short_all',provider:'cftc',kind:'series',chartable:true,name:'Invented CFTC search metric',unit:'traders',freq:'W'}],total:1});
+if(u.pathname.startsWith('/data/')||u.pathname.startsWith('/api/'))return send({});return route.abort('blockedbyclient');});
+try{await page.goto('https://fixture.cftc.test/chart.html');await page.waitForFunction(()=>window.__jhTvWatch2&&window.JHChartCFTC&&document.querySelector('#wlist .wrow'));
+if(!(await page.locator('#watch').evaluate(e=>e.classList.contains('is-open')))){if(width===390)await page.locator('#btn-watch').click();else await page.locator('#rrail [data-rail=watch]').click();}
+for(const alias of aliases){const expected=await page.evaluate(s=>JHChartCFTC.resolve(s),alias);const row=page.locator('#wlist [data-s="'+alias+'"]');await row.click();await page.waitForFunction(id=>window.jhWatchlistActive()===id,expected.id);assert.equal(await page.locator('#tabs .tab.on').getAttribute('data-id'),expected.id);await page.waitForFunction(id=>window.jhChartEvidence&&jhChartEvidence.symbol===id,expected.id);assert.ok(requests.some(p=>p==='/series?id='+encodeURIComponent(expected.id)));assert.ok((await page.locator('#watchlist-chart-route').innerText()).includes(alias));}
+const original=aliases[1],alternate='cftc:gpe5-46if|1170E1|asset_mgr_positions_short';
+if(width===390)await page.locator('#btn-watch').click();
+const choice=page.locator('#watchlist-cftc-alternative');await choice.waitFor({state:'visible'});
+assert.ok((await choice.innerText()).includes('equivalence unverified'));
+await choice.click();await page.waitForFunction(id=>jhChartEvidence&&jhChartEvidence.symbol===id,alternate);
+assert.equal(await page.evaluate(()=>jhWatchlistHandoff.requested),original);
+assert.equal(await page.evaluate(()=>jhWatchlistHandoff.relation),'explicit-provider-alternative');
+assert.ok((await page.locator('#watchlist-chart-route').innerText()).includes('alias continuity'));
+assert.equal(await choice.isVisible(),false);
+await page.screenshot({path:path.join(OUT,'vix-alternative-'+width+'.png')});
+const sizes=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth}));assert.ok(sizes.scroll<=sizes.client+1);
+await page.evaluate(()=>jhWatchlistOpen('COT3:11700_F_AMP_L'));await choice.waitFor({state:'visible'});
+await page.locator('#symchip').click();await page.locator('#ssin').fill('CFTC');await page.locator('#ssres .ss-hit').filter({hasText:'Invented CFTC search metric'}).first().click();await page.waitForFunction(()=>jhWatchlistActive()==='cftc:yw9f-hn96|132741|traders_asset_mgr_short_all');await page.waitForFunction(()=>!document.getElementById('watchlist-cftc-alternative')||document.getElementById('watchlist-cftc-alternative').hidden);
+assert.deepEqual(errors,[]);assert.ok(!requests.some(p=>/^\/(ohlc|yf-ohlc)\?/.test(p)&&/COT|cftc/i.test(decodeURIComponent(p))));report.push({width,passed:true,errors,actual_network_requests:0,requests,watchlist_aliases:aliases,scope:'Invented complete packets; no live source availability claimed'});
+}catch(e){fs.writeFileSync(path.join(OUT,'failure-'+width+'.json'),JSON.stringify({error:String(e),errors,requests,body:await page.locator('body').innerText()},null,2));await page.screenshot({path:path.join(OUT,'failure-'+width+'.png')});throw e;}finally{await context.close();}}
+fs.writeFileSync(path.join(OUT,'browser-qa.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({passed:true,widths:[1440,390],actual_network_requests:0}));}finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
