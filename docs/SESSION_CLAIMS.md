@@ -209,3 +209,5 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 - Fusion 5/6 (sector triangle + mispriced-boom) — wave 2, after Sat
 
 - ChatGPT stage583 accepted: source 86901cfc8363b5b094ec6bc05712a58d8ea09587; ops 6478 exact two-function code/control acceptance passed (run 37238673953), 49 whole static assets and six desktop/mobile served scenarios passed. Public TradingView FTSE probe refused HTTP 400; requests stopped, no market history coverage claimed. Routes remain 6729/10745, 4016 unresolved.
+
+- 2026-10-04 ChatGPT: reserve ops 6479 for read-only exact BIS FX chart release acceptance (source ZIP, receipt and unchanged symdir controls). No invocation, IAM, schedule or private-data work. Stage584 source and browser checks pending.

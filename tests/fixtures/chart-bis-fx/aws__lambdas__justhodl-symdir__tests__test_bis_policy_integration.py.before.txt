@@ -25,8 +25,7 @@ class BISIntegrationTests(unittest.TestCase):
  def test_reviewed_dataset_directory_and_exact_search_no_build(self):
   m=self.module();self.assertEqual(m.browse('bis:WS_CBPOL',limit=500)['total'],98);self.assertEqual(m.browse('bis:WS_CBPOL')['ds'],'bis:WS_CBPOL')
   self.assertEqual(m.search('bis:WS_CBPOL:M.US')['rows'][0]['id'],'bis:WS_CBPOL:M.US')
-  self.assertEqual(sum(row['id'].startswith('bis:WS_CBPOL:') for row in m.explorer({'provider':'bis','kind':'series','limit':'500'})['rows']),98)
-  self.assertEqual(m.explorer({'provider':'bis','kind':'series','limit':'500'})['total'],1332)
+  self.assertEqual(m.explorer({'provider':'bis','kind':'series','limit':'500'})['total'],98)
   m.load_index.assert_not_called()
 
 if __name__=='__main__':unittest.main()

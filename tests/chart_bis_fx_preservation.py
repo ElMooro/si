@@ -2,10 +2,8 @@
 import hashlib,json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-TRANSITION=json.loads((ROOT/'tests/fixtures/chart-market-repair/transition.json').read_bytes())
+TRANSITION=json.loads((ROOT/'tests/fixtures/chart-bis-fx/transition.json').read_bytes())
 def normalize(file,raw):
-    from chart_bis_fx_preservation import normalize as newer
-    raw=newer(file,raw)
     row=TRANSITION['changes'].get(file)
     if not row:return raw
     if hashlib.sha256(raw).hexdigest()==row['before_sha256']:return raw
