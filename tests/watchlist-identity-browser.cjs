@@ -4,8 +4,9 @@ const ROOT=path.resolve(__dirname,'..'),OUT=path.resolve(process.argv[2]||'/tmp/
 const scripts=['jh-watchlist-store.js','jh-watchlist-quotes.js','jh-chart-tvrail.js','jh-observation-series.js','jh-observation-cache.js','jh-chart-catalog.js','jh-chart-engine.js'];
 const html=fs.readFileSync(ROOT+'/chart.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'').replace('</body>','<script src="/fixture-library.js"></script>'+scripts.map(s=>'<script src="/'+s+'"></script>').join('')+'</body>');
 const acorn={exports:{}};Function('exports','module',process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'])(acorn.exports,acorn);const src=fs.readFileSync(ROOT+'/jh-chart-tvwatch.js','utf8'),stack=[acorn.exports.parse(src,{ecmaVersion:'latest'})];let extra;
-while(stack.length){const n=stack.pop();if(!n||typeof n!=='object')continue;if(n.type==='FunctionDeclaration'&&n.id.name==='extraChart')extra=src.slice(n.start,n.end);for(const v of Object.values(n)){if(Array.isArray(v))stack.push(...v);else if(v&&typeof v==='object')stack.push(v);}}
+let provider;while(stack.length){const n=stack.pop();if(!n||typeof n!=='object')continue;if(n.type==='FunctionDeclaration'&&n.id.name==='extraChart')extra=src.slice(n.start,n.end);if(n.type==='FunctionDeclaration'&&n.id.name==='providerRest')provider=src.slice(n.start,n.end);for(const v of Object.values(n)){if(Array.isArray(v))stack.push(...v);else if(v&&typeof v==='object')stack.push(v);}}
 const routeContext=vm.createContext({atob:s=>Buffer.from(s,'base64').toString('binary')});vm.runInContext(extra+';extraChart("NONE")',routeContext);const extras=Object.entries(routeContext.extraChart.map);assert.equal(extras.length,461);
+vm.runInContext(provider+';providerRest("NONE")',routeContext);const providers=Object.entries(routeContext.providerRest.map);assert.equal(providers.length,55);
 const ids=[['NASDAQ:AAPL','NASDAQ:AAPL'],['NYSE:AAPL','NYSE:AAPL'],['IEX:AAPL','IEX:AAPL'],['BINANCE:BTCUSDT','BINANCE:BTCUSDT'],['BINANCE:BTCUSDC','BINANCE:BTCUSDC'],['COINBASE:BTCUSD','BTC-USD'],['BINANCE:ETHBTC','BINANCE:ETHBTC'],['TVC:GOLD','GC=F'],['TVC:US10Y','FRED:DGS10'],['OANDA:EURUSD','EURUSD=X'],['CME_MINI:ES1!','ES=F'],['FRED:DGS10','FRED:DGS10'],['AAPL','AAPL'],['worldbank:NY.GDP.MKTP.CD:USA','worldbank:NY.GDP.MKTP.CD:USA'],['FRED:BSCICP03DEUM665S','FRED:BSCICP03DEUM665S'],['ECONOMICS:USDXY','FRED:DTWEXBGS']];
 const aliases=['DGS2','DGS5','DGS10','DGS30','T10Y2Y'];
 const scenarios=[...Array.from({length:Math.ceil(extras.length/24)},(_,i)=>({name:'extra-current-main-'+i,pairs:extras.slice(i*24,(i+1)*24)})),{name:'counterexamples',pairs:[...ids.filter(p=>p[0]!=='TVC:US10Y'),ids.find(p=>p[0]==='TVC:US10Y')]},{name:'non-chartable',pairs:[['DATA:example',null],['DESK:inst',null],['FRED:DGS10:EXTRA',null]]},
@@ -17,11 +18,13 @@ const scenarios=[...Array.from({length:Math.ceil(extras.length/24)},(_,i)=>({nam
 {name:'crypto-supplementary',pairs:[['BINANCE:BTCUSDT','BINANCE:BTCUSDT']],supplement:true},
 {name:'crypto-fallback',pairs:[['BINANCE:BTCUSDT','BINANCE:BTCUSDT']],failPrimary:true},
 {name:'late-response',pairs:[['AAPL','AAPL'],['NASDAQ:QALATE','NASDAQ:QALATE'],['FRED:DGS10','FRED:DGS10']],race:true}];
+for(const mode of ['mouse','enter','arrow','advanced'])for(let i=0;i<Math.ceil(providers.length/24);i++)scenarios.push({name:'provider-rest-'+mode+'-'+i,pairs:providers.slice(i*24,(i+1)*24),mode,provider:true});
+const selected=process.env.WATCHLIST_IDENTITY_SCENARIOS?scenarios.filter(s=>new RegExp(process.env.WATCHLIST_IDENTITY_SCENARIOS).test(s.name)):scenarios;assert.ok(selected.length);
 const watchKeys=['jh-chart-custom-lists','jh-chart-flags','jh-chart-favs','jh-tv-watch-ui'];
-const report={source_sha256:Object.fromEntries([...scripts,'jh-chart-tvwatch.js','chart.html'].map(f=>[f,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,f))).digest('hex')])),head:cp.execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),scope:'Actual chart/native handoffs and loading/late-response lifecycle at 1440/390. All requests intercepted; invented stores/packets/maps only.',cases:[],external_network_requests:0,extra_routes:extras.length};
+const report={source_sha256:Object.fromEntries([...scripts,'jh-chart-tvwatch.js','chart.html'].map(f=>[f,crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,f))).digest('hex')])),head:cp.execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),scope:'Actual chart/native handoffs and loading/late-response lifecycle at 1440/390. All requests intercepted; invented stores/packets/maps only.',selected_scenarios:selected.map(s=>s.name),cases:[],external_network_requests:0,extra_routes:extras.length,provider_routes:providers.length};
 const bars=()=>Array.from({length:25},(_,i)=>({time:Date.UTC(2026,8,i+1)/1000,open:100+i,high:102+i,low:98+i,close:101+i,volume:1000}));
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE_PATH||'/usr/bin/chromium'});try{
-for(const width of [1440,390])for(const scenario of scenarios.filter(s=>!s.name.startsWith("extra-current-main")).concat(scenarios.filter(s=>s.name.startsWith("extra-current-main")))){
+for(const width of [1440,390])for(const scenario of selected.filter(s=>!s.name.startsWith("extra-current-main")).concat(selected.filter(s=>s.name.startsWith("extra-current-main")))){
  const context=await browser.newContext({viewport:{width,height:1000},isMobile:width===390,hasTouch:width===390,serviceWorkers:'block'}),page=await context.newPage(),errors=[],requests=[];let heldMap=null,heldPrice=null,holdPrice=false;
  page.on('pageerror',e=>errors.push(e.message));
  await context.addInitScript(members=>{const data={'jh-chart-custom-lists':[{id:'fixture',name:'Invented identity fixture',symbols:members,custom:1}],'jh-chart-flags':{},'jh-chart-favs':[],'jh-tv-watch-ui':{active:'fixture',cols:{last:1,chg:1,chgp:1},widths:{sym:100},order:{},extra:{},hide:{}}};for(const[k,v]of Object.entries(data))localStorage.setItem(k,JSON.stringify(v));localStorage.setItem('jh-chart-watch-pin','0');window.Notification=undefined;},scenario.pairs.map(p=>p[0]));
@@ -41,13 +44,17 @@ for(const width of [1440,390])for(const scenario of scenarios.filter(s=>!s.name.
   await page.goto('https://fixture.identity.test/chart.html');await page.waitForFunction(()=>window.jhWatchlistActive&&document.querySelector('#wlist .wrow')&&typeof document.getElementById('q').onkeydown==='function');
   if(!await page.locator('#watch').evaluate(e=>e.classList.contains('is-open')))await page.locator(width===390?'#btn-watch':'#rrail [data-rail=watch]').click();await page.waitForFunction(()=>document.getElementById('watch').classList.contains('is-open'));
   await page.evaluate(()=>{fixtureSubmits=[];const q=document.getElementById('q'),native=q.onkeydown;q.onkeydown=function(e){if(e.key==='Enter')fixtureSubmits.push(q.value);return native.call(q,e);};});
+  if(scenario.mode==='advanced'){await page.locator('#tv-pie').click();await page.waitForFunction(()=>document.getElementById('tvadv')?.classList.contains('on'));}
   const originals=await page.evaluate(keys=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)])),watchKeys);
   const saved=await page.evaluate(()=>({lists:jhWatchlistStore.read('jh-chart-custom-lists'),flags:jhWatchlistStore.read('jh-chart-flags'),favorites:jhWatchlistStore.read('jh-chart-favs'),ui:jhWatchlistStore.read('jh-tv-watch-ui')}));
   for(const [requested,target]of scenario.pairs){
    const prior=await page.evaluate(()=>jhWatchlistActive()),count=await page.evaluate(()=>fixtureSubmits.length),start=requests.length;
-   const exactRow=page.locator('#wlist .wrow[data-s="'+requested+'"]');await exactRow.scrollIntoViewIfNeeded();
+   const exactRow=page.locator((scenario.mode==='advanced'?'#tvadv tbody tr':'#wlist .wrow')+'[data-s="'+requested+'"]');await exactRow.scrollIntoViewIfNeeded();
    if(scenario.race&&requested==='NASDAQ:QALATE')holdPrice=true;
-   if(scenario.name.startsWith('extra-current-main')){assert.equal(await exactRow.isVisible(),true);await exactRow.dispatchEvent('keydown',{key:'Enter',bubbles:true});}
+   if(scenario.mode==='mouse'||scenario.mode==='advanced')await exactRow.click();
+   else if(scenario.mode==='enter'){await exactRow.focus();await page.keyboard.press('Enter');}
+   else if(scenario.mode==='arrow'){const index=scenario.pairs.findIndex(p=>p[0]===requested),from=page.locator('#wlist .wrow[data-s="'+scenario.pairs[Math.max(0,index-1)][0]+'"]');await from.scrollIntoViewIfNeeded();await from.focus();await page.keyboard.press(index?'ArrowDown':'ArrowUp');}
+   else if(scenario.name.startsWith('extra-current-main')){assert.equal(await exactRow.isVisible(),true);await exactRow.dispatchEvent('keydown',{key:'Enter',bubbles:true});}
    else if(width===390){await exactRow.focus();await page.keyboard.press('Enter');}else await exactRow.click();
    await page.waitForFunction(id=>document.querySelector('#watchlist-chart-route')?.dataset.requested===id,requested);
    if(scenario.race&&requested==='NASDAQ:QALATE'){
@@ -65,6 +72,7 @@ for(const width of [1440,390])for(const scenario of scenarios.filter(s=>!s.name.
    if(scenario.supplement){assert.equal(state.bars,33);assert.match(state.evidence.source,/\+yahoo/);assert.match(state.route_text,/supplementary Yahoo data, including after a successful primary lookup/);assert.match(state.route_text,/BTC\/USDT/);assert.match(state.route_text,/BTC\/USD/);}
    if(scenario.failPrimary){assert.ok(requests.slice(start).some(r=>r.path==='/yf-ohlc'&&r.invented_response_id==='BTC-USD'));assert.match(state.route_text,/Possible fallback\/supplemental lookup: BTC-USD/);assert.match(state.route_text,/unverified/);}
    if(scenario.name.startsWith('extra-current-main')){assert.equal(state.handoff.resolved,target);assert.match(state.route_text,/equivalence unverified/);}
+   if(scenario.provider){assert.equal(state.handoff.requested,requested);assert.equal(state.handoff.resolved,target);assert.equal(state.handoff.relation,'mapped-route');assert.match(state.route_text,/Possible proxy or source substitution; equivalence unverified/);assert.ok((await page.locator('#tvcard').innerText()).includes(requested));}
    if(scenario.race&&requested==='FRED:DGS10'){holdPrice=false;await heldPrice();await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>jhWatchlistActive()),'FRED:DGS10');assert.equal(await page.evaluate(()=>jhChartEvidence.symbol),'FRED:DGS10');assert.equal(await page.evaluate(()=>jhWatchlistHandoff.requested),'FRED:DGS10');}
    assert.deepEqual(await page.evaluate(keys=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)])),watchKeys),originals);
    assert.deepEqual(await page.evaluate(()=>({lists:jhWatchlistStore.read('jh-chart-custom-lists'),flags:jhWatchlistStore.read('jh-chart-flags'),favorites:jhWatchlistStore.read('jh-chart-favs'),ui:jhWatchlistStore.read('jh-tv-watch-ui')})),saved);
@@ -86,5 +94,5 @@ for(const width of [1440,390])for(const scenario of scenarios.filter(s=>!s.name.
   assert.deepEqual(errors,[]);console.log(JSON.stringify({width,scenario:scenario.name,passed:scenario.pairs.length,total:report.cases.length}));await page.screenshot({path:path.join(OUT,scenario.name+'-'+width+'.png')});
  }catch(error){fs.writeFileSync(path.join(OUT,'failure-'+scenario.name+'-'+width+'.json'),JSON.stringify({error:String(error),errors,requests,body:await page.locator('body').innerText()},null,2));throw error;}finally{await context.close();}
 }
-fs.writeFileSync(OUT+'/browser-qa.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({passed:true,cases:report.cases.length,extra_routes_per_width:extras.length,external_network_requests:0,report:OUT+'/browser-qa.json'}));
+fs.writeFileSync(OUT+'/browser-qa.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({passed:true,cases:report.cases.length,extra_routes_per_width:selected.filter(s=>s.name.startsWith('extra-current-main')).reduce((n,s)=>n+s.pairs.length,0),provider_control_cases_per_width:selected.filter(s=>s.provider).reduce((n,s)=>n+s.pairs.length,0),external_network_requests:0,report:OUT+'/browser-qa.json'}));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});
