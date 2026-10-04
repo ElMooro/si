@@ -186,6 +186,9 @@
     "#tvtoast.on{display:block}",
     "#tvcard textarea{width:100%;margin-top:8px;height:48px;background:#131722;color:#d1d4dc;border:1px solid #2a2e39;border-radius:4px;padding:6px;font-size:12px;resize:vertical}",
     "#tvcard .meta{display:flex;justify-content:space-between;gap:8px;color:#787b86;font-size:11px;margin-top:4px}",
+    "#tvcard .chart-route{display:block;overflow-wrap:anywhere;line-height:1.4}",
+    "#watchlist-chart-route{flex:none;padding:6px 10px;font-size:11px;line-height:1.45;color:#d1d4dc;background:#1e222d;border-left:3px solid #f0b429;overflow-wrap:anywhere}",
+    "#watchlist-chart-route[hidden]{display:none}",
     "#tvadv{display:none;position:absolute;inset:0;z-index:40;background:#131722;color:#d1d4dc;flex-direction:column}",
     "#tvadv.on{display:flex}",
     "#tvadv .ah{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #2a2e39;flex:none}",
@@ -437,7 +440,7 @@
   var symMap = null, symMapReady = 0, symMapReq = null;
   function loadSymMap() {
     if (symMapReq) return symMapReq;
-    symMapReq = fetch("/data/symbol-map.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    symMapReq = window.JHWatchlistQuotes.request("/data/symbol-map.json", fetch, 10000).then(function (j) {
       if (!j || !j.map) return;
       var o = Object.create(null);
       Object.keys(j.map).forEach(function (k) { o[String(k).toUpperCase()] = j.map[k]; });
@@ -520,20 +523,113 @@
     if (!venue && /^[A-Z][A-Z0-9.-]{0,11}$/.test(u)) return u;
     return "";
   }
+  var chartSelection = null, chartRouteObserver = null;
+  function routeHints(id) {
+    var u = String(id || "").toUpperCase(), cut = u.indexOf(":"), ns = cut > 0 ? u.slice(0, cut) : "", b = cut > 0 ? u.slice(cut + 1) : u;
+    var pair = "unknown";
+    if (/^(FX|FX_IDC|OANDA)$/.test(ns) && /^[A-Z]{6}$/.test(b)) pair = b.slice(0, 3) + "/" + b.slice(3);
+    else if (/^(BINANCE|COINBASE|BITSTAMP|KRAKEN|BYBIT|CRYPTO)$/.test(ns)) {
+      var m = /^([A-Z0-9]+)(USDT|USDC|BUSD|USD|BTC|ETH)$/.exec(b); if (m) pair = m[1] + "/" + m[2];
+    } else if (!ns && /^[A-Z]{6}=X$/.test(b)) pair = b.slice(0, 3) + "/" + b.slice(3, 6);
+    else if (!ns && /^[A-Z0-9]+-USD$/.test(b)) pair = b.slice(0, -4) + "/USD";
+    return { namespace: ns || "none", pair: pair };
+  }
+  function chartRoute(s) {
+    var requested = typeof s === "string" ? s.trim() : "", u = requested.toUpperCase();
+    var route = { requested: requested, candidate: null, handoff: null, resolved: null, primary: null, fallback: null, relation: "unavailable", reason: "No supported chart route; chart unchanged", frame: null };
+    route.requestHints = routeHints(requested);
+    if (!requested || /^###/.test(requested) || /[\s\x00-\x1f\x7f]/.test(requested)) { route.reason = "Invalid instrument identifier; chart unchanged"; return route; }
+    if (/^(DATA|DESK):/.test(u)) { route.reason = "Catalog browse item has no scalar chart contract; chart unchanged"; return route; }
+    if ((/^FRED:/.test(u) && !/^FRED:[A-Z0-9]+$/.test(u)) || (/^WORLDBANK:/.test(u) && !/^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u))) { route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
+    var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = "", proposal = "", original = null;
+    try {
+      if (cat && typeof cat.chartId === "function") catalogId = String(cat.chartId(requested) || "");
+      // Full canonical IDs outrank all symbol-map, alias and country-code heuristics.
+      if (/^FRED:[A-Z0-9]+$/.test(u) || /^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u) ||
+          (cat && typeof cat.isWarehouse === "function" && cat.isWarehouse(requested) && catalogId.toUpperCase() === u && /^[A-Z0-9_.-]+:[A-Z0-9_.:=-]+$/.test(u))) {
+        route.handoff = requested; route.resolved = requested; route.relation = "exact";
+      } else {
+        proposal = chartSymbol(requested); route.candidate = proposal || null;
+        if (/^(DGS2|DGS5|DGS10|DGS30|T10Y2Y)$/.test(u) && catalogId.toUpperCase() === "FRED:" + u) {
+          route.handoff = requested; route.resolved = catalogId; route.relation = "provider-prefix";
+        } else {
+          if (typeof native === "function") original = native(requested);
+          var base = u.indexOf(":") > 0 ? u.slice(u.indexOf(":") + 1) : u;
+          var rawVenue = /^(NASDAQ|NYSE|AMEX|ARCA|BATS|IEX|OTC|BINANCE|COINBASE|BITSTAMP|KRAKEN|BYBIT|CRYPTO):/.test(u);
+          var mapHit = symMap && symMap[u];
+          var prefixId = cat && Array.isArray(cat.curated) && /^[A-Z0-9]+$/.test(u) && cat.curated.some(function (x) { return String(x.s || "").toUpperCase() === "FRED:" + u; });
+          var listed = /^(NASDAQ|NYSE|AMEX|ARCA|BATS|IEX|OTC|LSE|MIL|XETR|BMV|EURONEXT|GETTEX|HKEX|KRX|LSIN|MUN|SIX|SWB|TASE|TSE):/.test(u);
+          if (listed && mapHit && mapHit.source === "MARKET" && proposal.toUpperCase() !== base && proposal.toUpperCase().split(".")[0] !== base && proposal !== extraChart(u)) {
+            proposal = extraChart(u); route.reason = "Conflicting MARKET suggestion ignored; supported original/static route retained";
+          }
+          // Preserve the exact literal primary lookup where native routing already supports it.
+          // A conflicting MARKET suggestion cannot silently replace AAPL with MSFT.
+          if (!prefixId && original && original.engine === "equity" && String(original.ticker || "").toUpperCase() === base &&
+              (rawVenue || (!u.includes(":") && (!mapHit || mapHit.source === "MARKET") && !/^(BTC|ETH)$/.test(u)))) {
+            route.handoff = requested; route.resolved = original.ticker; route.primary = original.ticker; route.fallback = original.yahoo || null;
+            route.relation = rawVenue || String(route.fallback || "").toUpperCase() !== base ? "native-route" : "exact";
+            if (proposal && proposal.toUpperCase() !== base && mapHit && mapHit.source === "MARKET") route.reason = "Conflicting map suggestion ignored; original native route retained";
+          } else {
+            // Same-id provider-prefix routing from the existing catalog is explicit, not a guessed economic definition.
+            if (!proposal && catalogId) proposal = catalogId;
+            if (prefixId) {
+              var sameId = cat.curated.filter(function (x) { return String(x.s || "").toUpperCase() === "FRED:" + u; });
+              if (sameId.length) proposal = sameId[0].s;
+            }
+            if (proposal && !/^(DATA|DESK):/i.test(proposal)) {
+              route.handoff = proposal; route.resolved = proposal;
+              route.relation = proposal.toUpperCase() === u ? "exact" : proposal.toUpperCase() === "FRED:" + u ? "provider-prefix" : "mapped-route";
+            }
+          }
+        }
+      }
+      if (!route.handoff) { if (!symMapReady) route.reason = "Symbol map loading; retry this selection after it settles"; return route; }
+      if (/^(FRED|WORLDBANK):/.test(u) && route.handoff.toUpperCase() !== u) { route.handoff = null; route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
+      route.handoffHints = routeHints(route.handoff);
+      if (!route.primary) route.primary = route.resolved;
+      if (route.reason === "No supported chart route; chart unchanged") route.reason = route.relation === "exact" ? "Identifier routing unchanged; underlying data identity is not certified" : route.relation === "provider-prefix" ? "Provider prefix route; identical series ID with explicit provider prefix" : "Possible proxy or source substitution; equivalence unverified";
+    } catch (e) { route.handoff = null; route.reason = "Instrument resolver unavailable; chart unchanged"; }
+    return route;
+  }
+  function chartRouteText(route, evidence, bars) {
+    var text = "Requested: " + route.requested + " · Resolved route: " + (route.resolved || "unavailable") + " · Handoff: " + (route.handoff || "none") + " · " + route.reason;
+    text += " · Primary lookup: " + (route.primary || "unknown") + (route.fallback && route.fallback !== route.primary ? " · Possible fallback/supplemental lookup: " + route.fallback + " (pair hint: " + routeHints(route.fallback).pair + ")" : "");
+    text += " · Requested namespace/venue hint: " + route.requestHints.namespace + " · Requested pair hint: " + route.requestHints.pair;
+    text += " · Handoff namespace hint: " + (route.handoffHints ? route.handoffHints.namespace : "unknown") + " · Handoff pair hint: " + (route.handoffHints ? route.handoffHints.pair : "unknown");
+    text += " · Returned instrument, venue and currency: unverified";
+    if (route.handoff && !/^(FRED|WORLDBANK):/i.test(route.resolved || "")) text += " · Native market history may merge supplementary Yahoo data, including after a successful primary lookup; pair/currency equivalence unverified";
+    if (route.candidate && route.candidate.toUpperCase() !== String(route.resolved || "").toUpperCase() && /ignored/i.test(route.reason)) text += " · Ignored map suggestion: " + route.candidate;
+    if (!route.handoff) return text + " · Chart unchanged";
+    if (!evidence || evidence.symbol !== route.frame) return text + " · Route has no accepted frame yet (loading or unavailable); " + (evidence && evidence.symbol ? "previous chart label " + evidence.symbol + " may remain displayed" : "awaiting chart frame");
+    var obs = evidence.observations;
+    text += " · Chart label: " + evidence.symbol + " · Inherited source: " + (evidence.source || "unknown");
+    if (obs) text += " · Observation request: " + (obs.requested_id || "unknown") + (obs.chart_alias ? " · Native resolved series: " + obs.chart_alias.resolved : "") + " · Source unit: " + (obs.unit || "unverified");
+    return text + (bars && bars.length ? " · Retained bars displayed; routing is not provenance verification" : " · Unavailable: no accepted plotted bars" + (obs && obs.reason ? " (" + obs.reason + ")" : ""));
+  }
+  function paintChartRoute() {
+    var route = chartSelection, node = document.getElementById("watchlist-chart-route"), quote = document.getElementById("quote");
+    if (!route || route.frame !== activeSym()) { if (node) node.hidden = true; chartSelection = null; window.jhWatchlistHandoff = null; var oldCard = document.querySelector("#tvcard .chart-route"); if (oldCard) oldCard.remove(); return; }
+    if (!node && quote && quote.parentNode) { node = document.createElement("div"); node.id = "watchlist-chart-route"; node.setAttribute("role", "status"); node.setAttribute("aria-live", "polite"); quote.parentNode.insertBefore(node, quote.nextSibling); }
+    if (!node) return;
+    var evidence = window.jhChartEvidence, bars = window.lastBars, text = chartRouteText(route, evidence, bars);
+    node.hidden = false; node.dataset.routeVersion = "watchlist-handoff-coverage-2"; node.dataset.requested = route.requested; node.dataset.handoff = route.handoff || "";
+    if (node.textContent !== text) node.textContent = text;
+    var cardStatus = document.querySelector("#tvcard .chart-route");
+    if (cardStatus && cardStatus.dataset.requested === route.requested && cardStatus.textContent !== text) cardStatus.textContent = text;
+    window.jhWatchlistHandoff = Object.freeze({ requested: route.requested, handoff: route.handoff, resolved: route.resolved, primary: route.primary, fallback: route.fallback, relation: route.relation, native_frame: evidence && evidence.symbol || null, scalar_requested_id: evidence && evidence.observations && evidence.observations.requested_id || null, packet_instrument_verified: false, packet_venue_verified: false, packet_currency_verified: false });
+  }
   function openSym(s) {
-    if (!symMapReady) { loadSymMap().then(function () { openSym(s); }); return; }
-    var chart = chartSymbol(s);
-    if (!chart) { toast("No series on this tape for " + s); paintCard(s); return; }
-    var q = document.getElementById("q");
-    if (q && typeof q.onkeydown === "function") {
-      q.value = chart;
-      q.onkeydown({ key: "Enter", preventDefault: function () {}, stopPropagation: function () {} });
-    } else if (q) {
-      q.value = chart;
-      q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    } else if (window.jhOpenSymbol && /^[A-Z0-9.-]+$/.test(chart)) window.jhOpenSymbol(chart);
-    if (chart !== String(s || "").trim().toUpperCase()) toast(String(s) + " -> " + chart);
-    paintCard(s);
+    // A map completion never replays a click after another selection/list owns the frame.
+    var route = chartRoute(s), q = document.getElementById("q");
+    chartSelection = route; route.frame = route.handoff ? route.handoff.toUpperCase() : activeSym();
+    if (route.handoff && q && typeof q.onkeydown === "function") { q.value = route.handoff; q.onkeydown({ key: "Enter", preventDefault: function () {}, stopPropagation: function () {} }); }
+    else if (route.handoff) { route.handoff = null; route.frame = activeSym(); route.reason = "Native chart handler unavailable; chart unchanged"; }
+    if (!chartRouteObserver && typeof MutationObserver !== "undefined") {
+      chartRouteObserver = new MutationObserver(paintChartRoute);
+      ["quote", "st", "wlist"].forEach(function (id) { var el = document.getElementById(id); if (el) chartRouteObserver.observe(el, { childList: true, subtree: true, characterData: true }); });
+    }
+    if (!route.handoff) toast(route.requested + " · " + route.reason);
+    paintCard(route.requested); paintChartRoute();
   }
   function paintCard(s) {
     if(actionDraft)return;
@@ -542,6 +638,10 @@
     if (!host && stack) { host = document.createElement("div"); host.id = "tvcard"; stack.insertBefore(host, stack.firstChild); }
     if (!host) return;
     s = s || activeSym();
+    var route = chartSelection && chartSelection.frame === activeSym() && (s === activeSym() || s === chartSelection.requested) ? chartSelection : null;
+    if (route) s = route.requested;
+    var routing = route ? "<div class='meta chart-route' role='status' data-route-version='watchlist-handoff-coverage-2' data-requested='" + esc(route.requested) + "' data-handoff='" + esc(route.handoff || "") + "'>" + esc(chartRouteText(route, window.jhChartEvidence, window.lastBars)) + "</div>" : "";
+    paintChartRoute();
     var q = quotes[s] || {};
     var has = q.last != null && isFinite(q.last);
     var range = "";
@@ -557,7 +657,7 @@
       "<div class='px " + cls(q.chg) + "'>" + (has ? num(q.last) : "\u2014") + "</div>" +
       "<div class='" + cls(q.chg) + "'>" + (has ? ((typeof q.chgv==="number"&&Number.isFinite(q.chgv)&&q.chgv>=0 ? "+" : "") + num(q.chgv) + "   " + pct(q.chg)) : "") + (q.ext == null ? "" : "   <span class='ext " + cls(q.ext) + "'>" + esc(q.extTag || "Ext") + " " + pct(q.ext) + "</span>") + "</div>" +
       range + (typeof q.vol==="number"&&Number.isFinite(q.vol)&&q.vol>=0 ? "<div class=rlab><span>Volume " + vol(q.vol) + "</span><span>" + (typeof q.avg==="number"&&Number.isFinite(q.avg)&&q.avg>=0 ? "Avg " + vol(q.avg) : "") + "</span></div>" : "") +
-      "<div class=meta>"+esc(s+" · "+quoteStatus(s))+"</div>"+meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
+      "<div class=meta>"+esc(s+" · "+quoteStatus(s))+"</div>"+routing+meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
     var ta = host.querySelector("textarea");
     if (!ta) return;
     if (keep != null) { ta.value = keep; ta.focus(); }
