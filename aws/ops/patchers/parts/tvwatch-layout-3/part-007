@@ -1,0 +1,192 @@
+@@PART 7/9@@
+          a.done = 1; changed = true; toast(bare(s) + " crossed " + a.op + " " + a.value + " (" + num(q.last) + ")");
+        }
+        a.armed = side;
+      } else if (q.chg != null) {
+        a.hit = a.hit || {};
+        if (a.hit[s]) return;
+        if (Math.abs(q.chg) * 100 >= a.value) { a.hit[s] = 1; changed = true; toast(bare(s) + " " + pct(q.chg) + " \u2014 alert"); }
+      }
+    });
+    if (changed) write(ALERTS_KEY, arr);
+  }
+
+  function askAlert(sym, listId) {
+    var raw = prompt(sym ? "Alert for " + bare(sym) + " \u2014 use > 200, < 50, or % 3" : "Alert when any symbol on this list moves \u2014 use % 2", sym ? "> " : "% 2");
+    if (!raw) return;
+    raw = String(raw).trim();
+    var a = { id: Date.now() }, m;
+    if ((m = raw.match(/^%\s*([0-9.]+)/))) { a.kind = sym ? "pct" : "listpct"; a.value = +m[1]; if (sym) a.sym = sym; else a.list = listId; }
+    else if ((m = raw.match(/^([<>])\s*([0-9.]+)/))) { if (!sym) { toast("Right-click a symbol for a price alert"); return; } a.kind = "px"; a.op = m[1]; a.value = +m[2]; a.sym = sym; }
+    else { toast("Use > 200, < 50, or % 3"); return; }
+    var arr = read(ALERTS_KEY, []); if (!Array.isArray(arr)) arr = [];
+    arr.push(a); write(ALERTS_KEY, arr); toast("Alert saved on this browser");
+  }
+
+  function fmtCell(k, q) {
+    q = q || {};
+    if (k === "last") return q.last == null ? "\u2014" : num(q.last);
+    if (k === "chg") return q.last == null ? "\u2014" : (q.chgv >= 0 ? "+" : "") + num(q.chgv);
+    if (k === "chgp") return q.last == null ? "\u2014" : pct(q.chg);
+    if (k === "vol") return vol(q.vol);
+    if (k === "avg") return vol(q.avg);
+    if (k === "rsi") return q.rsi == null ? "\u2014" : Number(q.rsi).toFixed(1);
+    if (k === "mom") return q.mom == null ? "\u2014" : num(q.mom);
+    if (k === "ext") return q.ext == null ? "\u2014" : ((q.extTag ? q.extTag + " " : "") + pct(q.ext));
+    return q[k] == null ? "\u2014" : pct(q[k]);
+  }
+
+  function cellClass(k, q) {
+    q = q || {};
+    if (k === "vol" || k === "avg" || k === "rsi") return "";
+    if (k === "last") return q.last == null ? "" : "px " + cls(q.chg);
+    if (k === "chg") return q.chgv == null ? "" : cls(q.chgv);
+    if (k === "chgp") return q.chg == null ? "" : cls(q.chg);
+    if (k === "ext") return q.ext == null ? "" : "ext " + cls(q.ext);
+    if (k === "mom") return q.mom == null ? "" : cls(q.mom);
+    if (q[k] == null) return "";
+    return cls(q[k]);
+  }
+
+  function metricNum(s, k) {
+    var q = quotes[s] || {};
+    if (k === "last") return q.last;
+    if (k === "chg") return q.chgv;
+    if (k === "chgp") return q.chg;
+    if (k === "vol") return q.vol;
+    if (k === "avg") return q.avg;
+    if (k === "ext") return q.ext;
+    if (k === "rsi") return q.rsi;
+    if (k === "mom") return q.mom;
+    return q[k];
+  }
+
+  function deleteSection(L, name) {
+    if (!L || L.virtual) return;
+    var seq = baseSeq(L).filter(function (x) { return x !== "###" + name; });
+    delete ui.collapsed[L.id + "|" + name];
+    persistSeq(L, seq);
+  }
+
+  function setListColor(L, c) {
+    if (!L) return;
+    ui.listColor[L.id] = c || "";
+    var own = findCustom(L.id);
+    if (own) {
+      own.color = c || "";
+      saveCustom(customLists().map(function (x) { return String(x.id) === String(L.id) ? own : x; }));
+      L.color = c;
+    }
+    saveUi(); paint();
+  }
+
+  function toggleStar(id) {
+    ui.starred[id] = ui.starred[id] ? 0 : 1;
+    saveUi();
+    var d = document.getElementById("listdrop");
+    if (d && d.classList.contains("on")) renderDrop((document.getElementById("listq") || {}).value || "");
+    paintButton(findList(ui.active));
+  }
+
+  function toggleFav(s) {
+    var fav = read("jh-chart-favs", []);
+    if (!Array.isArray(fav)) fav = [];
+    var i = fav.indexOf(s);
+    if (i >= 0) fav.splice(i, 1); else fav.push(s);
+    write("jh-chart-favs", fav);
+    toast(i >= 0 ? "Removed from favorites" : "Added to favorites");
+  }
+
+  function exportBody(L) {
+    var seq = viewOf(L).full, lines = [], buf = [];
+    function flush() { if (buf.length) { lines.push(buf.join(",")); buf = []; } }
+    seq.forEach(function (x) { if (String(x).indexOf("###") === 0) { flush(); lines.push(x); } else buf.push(x); });
+    flush();
+    return lines.join("\n");
+  }
+
+  function applyImport(seq, asNew) {
+    if (!seq || !seq.length) { toast("Nothing to import"); return; }
+    if (asNew) createList("Imported");
+    var L = findList(ui.active);
+    if (!L || L.virtual) { toast("Open a list you can edit, or import as a new list."); return; }
+    var syms = seq.filter(function (x) { return String(x).indexOf("###") !== 0; });
+    var own = findCustom(L.id);
+    if (own) {
+      syms.forEach(function (x) { if ((own.symbols || []).indexOf(x) < 0) own.symbols.push(x); });
+      own.n = own.symbols.length;
+      saveCustom(customLists().map(function (x) { return String(x.id) === String(L.id) ? own : x; }));
+      L.symbols = own.symbols;
+    } else {
+      ui.extra[L.id] = ui.extra[L.id] || [];
+      syms.forEach(function (x) {
+        if ((L.symbols || []).indexOf(x) < 0 && ui.extra[L.id].indexOf(x) < 0) ui.extra[L.id].push(x);
+        if (ui.hide[L.id]) delete ui.hide[L.id][x];
+      });
+    }
+    var order = baseSeq(L);
+    seq.forEach(function (x) { if (order.indexOf(x) < 0) order.push(x); });
+    ui.order[L.id] = order; ui.sort = "";
+    saveUi(); paint();
+    toast("Imported " + syms.length + " symbols");
+  }
+
+  function openImport() {
+    var box = pop("tvimp");
+    box.className = "on";
+    box.style.left = "16px"; box.style.top = "72px";
+    box.innerHTML = "<div class=lab>IMPORT</div><p style='color:#787b86;font-size:12px;margin:6px 0'>Comma or one symbol per line. A ### line is a section. Symbols already saved are kept.</p><textarea id=tvimp-t placeholder='###TECH&#10;NASDAQ:NVDA,NASDAQ:AAPL'></textarea><div class=row><button type=button data-m=add>Add to this list</button><button type=button data-m=new>New list</button><button type=button data-m=file>From file</button></div>";
+    box.onclick = function (e) {
+      var b = e.target.closest ? e.target.closest("[data-m]") : null;
+      if (!b) return;
+      e.stopPropagation();
+      var mode = b.getAttribute("data-m");
+      if (mode === "file") {
+        var inp = document.createElement("input"); inp.type = "file"; inp.accept = ".txt,text/plain";
+        inp.onchange = function () {
+          var f = inp.files && inp.files[0]; if (!f) return;
+          var rd = new FileReader();
+          rd.onload = function () { applyImport(parseImport(String(rd.result || "")), false); box.className = ""; };
+          rd.readAsText(f);
+        };
+        inp.click(); return;
+      }
+      applyImport(parseImport(box.querySelector("textarea").value), mode === "new");
+      box.className = "";
+    };
+  }
+
+  function openSectionMenu(x, y, L, name) {
+    var box = pop("tvmenu");
+    box.className = "on";
+    box.style.left = Math.max(8, x) + "px"; box.style.top = Math.max(8, y) + "px";
+    box.innerHTML = "<button type=button data-act=ren>Rename section</button><button type=button data-act=del>Remove section</button><button type=button data-act=add>Add symbol</button>";
+    box.onclick = function (e) {
+      var t = e.target.closest ? e.target.closest("[data-act]") : null;
+      if (!t) return;
+      e.stopPropagation();
+      var act = t.getAttribute("data-act");
+      if (act === "ren") { var n = prompt("Rename section", name); if (n) renameSection(L, name, n); }
+      if (act === "del") deleteSection(L, name);
+      if (act === "add") showAdd();
+      closePop();
+    };
+  }
+
+  function ensureFoot() {
+    var d = document.getElementById("listdrop"); if (!d || document.getElementById("ld-foot")) return;
+    var f = document.createElement("div"); f.id = "ld-foot";
+    f.innerHTML = "<button type=button data-foot=new>Create new list</button><button type=button data-foot=ren>Rename</button><button type=button data-foot=dup>Make a copy</button><button type=button data-foot=sec>Add section</button><button type=button data-foot=clear>Clear list</button><button type=button data-foot=imp>Import</button><button type=button data-foot=exp>Export</button><button type=button data-foot=alert>List alert</button><button type=button data-foot=color>List color</button><button type=button data-foot=star>Star this list</button><button type=button data-foot=restore>Restore order</button>";
+    d.appendChild(f);
+    f.onclick = function (e) {
+      var b = e.target.closest ? e.target.closest("[data-foot]") : null; if (!b) return;
+      e.stopPropagation();
+      var L = findList(ui.active), act = b.getAttribute("data-foot");
+      if (act === "new") { var nn = prompt("New list name", "My list"); if (nn) createList(nn); }
+      if (act === "ren") renameList(L);
+      if (act === "dup") duplicateList(L);
+      if (act === "sec") { var nm = prompt("Section name", "Section"); if (nm) addSection(L, nm); }
+      if (act === "clear") clearList(L);
+      if (act === "imp") openImport();
+      if (act === "exp") exportList(L);
+@@END 7@@
