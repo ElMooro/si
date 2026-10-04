@@ -1493,8 +1493,10 @@
   },
   "denial_stopped_remaining_requests": false,
   "warning": "Only current public BIS source histories; no vendor equivalence, same-time FX fixing, original entire universe coverage or point-in-time archive certified.",
-  "stage": "candidate_not_yet_deployed",
+  "stage": "deployed_and_checked",
   "source_definition_reviewed": true,
   "independent_replay_file": "chart-bis-fx-independent-replay.json",
-  "methodology": "https://www.bis.org/statistics/xrusd/xrusd_doc.pdf"
+  "methodology": "https://www.bis.org/statistics/xrusd/xrusd_doc.pdf",
+  "source_commit": "75a0ecfa11d0784e0e6181d1381ac70b6757162d",
+  "history_acceptance": "chart-bis-fx-live-history-audit.json"
 }

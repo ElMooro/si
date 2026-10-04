@@ -210,4 +210,4 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 
 - ChatGPT stage583 accepted: source 86901cfc8363b5b094ec6bc05712a58d8ea09587; ops 6478 exact two-function code/control acceptance passed (run 37238673953), 49 whole static assets and six desktop/mobile served scenarios passed. Public TradingView FTSE probe refused HTTP 400; requests stopped, no market history coverage claimed. Routes remain 6729/10745, 4016 unresolved.
 
-- 2026-10-04 ChatGPT: reserve ops 6479 for read-only exact BIS FX chart release acceptance (source ZIP, receipt and unchanged symdir controls). No invocation, IAM, schedule or private-data work. Stage584 source and browser checks pending.
+- ChatGPT stage584 accepted: source 75a0ecfa11d0784e0e6181d1381ac70b6757162d; ops 6479 exact native code/control acceptance passed, whole served chart and desktop/mobile checks passed. Added 1234 exact BIS FX definitions and 59 explicitly unqualified reference routes; routes 6788/10745, unresolved 3957. Full upstream history, common FX fixing time, vendor equivalence and historical vintages remain unverified.
