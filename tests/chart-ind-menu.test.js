@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 const engine = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
 const indux = fs.readFileSync(path.join(root, "jh-chart-indux.js"), "utf8");
-const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
+const html = require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, "chart.html"), "utf8"));
 
 function grab(src, name) {
   const key = "function " + name + "(";

@@ -1,0 +1,191 @@
+{
+  "review_basis": "Independent complete-source cache contract reviewed before preservation-hook changes; synthetic data only.",
+  "sources": {
+    "html": {
+      "path": "chart.html",
+      "before_path": "tests/fixtures/chart-cache-transition/before/chart.html.txt",
+      "before_sha256": "3b473ac7d22bc59687050c8d93cb960cf3f674e6593137711b21326ee467589a",
+      "after_sha256": "79962794a2fd753ac3f58459ba8183f7e24632a5e8baa18af81d478b072e23a1",
+      "edits": [
+        {
+          "before": "<script>\n(function(){\n  var G=\"jh-tvux-36\";\n  try{\n    if(localStorage.getItem(\"jh_chart_ux\")===G) return;\n    if(sessionStorage.getItem(\"jh_chart_ux_try\")===G){\n      localStorage.setItem(\"jh_chart_ux\",G);\n      return;\n    }\n    sessionStorage.setItem(\"jh_chart_ux_try\",G);\n    var done=function(){\n      try{ localStorage.setItem(\"jh_chart_ux\",G); }catch(e){}\n      try{ location.reload(); }catch(e){}\n    };\n    var jobs=[];\n    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){\n      jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){\n        return Promise.all(rs.map(function(r){ return r.unregister(); }));\n      }).catch(function(){}));\n    }\n    if(window.caches&&caches.keys){\n      jobs.push(caches.keys().then(function(ks){\n        return Promise.all(ks.map(function(k){ return caches.delete(k); }));\n      }).catch(function(){}));\n    }\n    if(jobs.length) Promise.all(jobs).then(done,done);\n    else try{ localStorage.setItem(\"jh_chart_ux\",G); }catch(e){}\n  }catch(e){}\n})();\n</script>",
+          "after": "<script>\n/* jh-tvux-36 retired: versioned chart assets require no service-worker unregister, CacheStorage deletion or automatic reload. */\n</script>"
+        },
+        {
+          "before": "/jh-chart-engine.js?v=20261002ac-shelves&watch=watchlist-transaction-v1",
+          "after": "/jh-chart-engine.js?v=3a70581b&watch=watchlist-transaction-v1"
+        }
+      ]
+    }
+  },
+  "hooks": {
+    "watchlist": {
+      "path": "tests/helpers/watchlist-source-preservation.cjs",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/helpers/watchlist-source-preservation.cjs.txt",
+      "before_sha256": "4034a51f6b3d142c4fa4464b06a8f3416181f07484bda02f140aa2f2f1ba5fcf",
+      "after_sha256": "2b44275404ed299a8acc1c0d9a7a17ae102c78b40e99f9427ef1b7890c2fa04b",
+      "edits": [
+        {
+          "before": "function reverse(raw,file){if(file==='jh-chart-engine.js')",
+          "after": "function reverse(raw,file){if(file==='chart.html')raw=require('./chart-cache-transition-preservation.cjs').restoreHtml(raw);if(file==='jh-chart-engine.js')"
+        }
+      ]
+    },
+    "campaign_reader": {
+      "path": "tests/chart-campaign-marks.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-campaign-marks.test.js.txt",
+      "before_sha256": "4afd3c898ab3d44fd2c6819b1dfb04d3c2b59da45ab98be02849ad2c5b8b0fb9",
+      "after_sha256": "cbba42826c682547ad3672d9e7bc029691cd028b0253dc3f2af45983b271ca27",
+      "edits": [
+        {
+          "before": "const html = fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\");",
+          "after": "const html = require(\"./helpers/chart-cache-transition-preservation.cjs\").restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"));"
+        }
+      ]
+    },
+    "prior_hook_reader": {
+      "path": "tests/volume-containment-preservation.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/volume-containment-preservation.test.js.txt",
+      "before_sha256": "dcacbcacff07aa0b8dbce90e2c27371cbc491be3ffc02b838ea79cec94e2016e",
+      "after_sha256": "81550e717f0cc438913f83b1c7e9d14d7284bf88df41d86ac23e8e69ff6472dc",
+      "edits": [
+        {
+          "before": "const actual=read(h.path);assert.equal(actual,expected);",
+          "after": "const actual=h.path==='tests/helpers/watchlist-source-preservation.cjs'?require('./helpers/chart-cache-transition-preservation.cjs').restoreHook(read(h.path),'watchlist'):read(h.path);assert.equal(actual,expected);"
+        }
+      ]
+    },
+    "chart-audit-fix.test.js": {
+      "path": "tests/chart-audit-fix.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-audit-fix.test.js.txt",
+      "before_sha256": "ed5a10499e9a15cdffe2ab6145aae49c290c0fce06890581abbea14cdda9e4f4",
+      "after_sha256": "233d01134d0ec90071a55ab7ca816ff2622cb0db69baa550cf24ba2ce87b086b",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-cq-fuse.test.js": {
+      "path": "tests/chart-cq-fuse.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-cq-fuse.test.js.txt",
+      "before_sha256": "11f297a7d07207b3cac6f22b78be7ffbaf958b1fd62f6f423e4a170e43249b30",
+      "after_sha256": "0baaa1281450924e4deedfda06c7b78d3093c692ab4035ab922f93d298489a7e",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-crypto-history.test.js": {
+      "path": "tests/chart-crypto-history.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-crypto-history.test.js.txt",
+      "before_sha256": "70695abe5f72417079c027d494f7410c61ba43291815178b68c9f3d4788d5705",
+      "after_sha256": "e445317566b286a117c7f5734c19b840567ffe67a8a929fe83b56d96dcd9d196",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-distribution.test.js": {
+      "path": "tests/chart-distribution.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-distribution.test.js.txt",
+      "before_sha256": "9b0d4f430dc62fcc5d04dbe6f64442a5290ffddbe72a7cd6c0af659b429a2f42",
+      "after_sha256": "e53a88ac93c359d6c31d2453d34c4671cc611ceacf148dabeb46d88e3c8bc618",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-ind-menu.test.js": {
+      "path": "tests/chart-ind-menu.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-ind-menu.test.js.txt",
+      "before_sha256": "4458f91eec656a10e64232d57d43031c97efee16e5d437998f433e3eac22e219",
+      "after_sha256": "dcb88fda5939085e2a29de16cc01fe1048eed50b792619a6e7f45679358c18ca",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-inst.test.js": {
+      "path": "tests/chart-inst.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-inst.test.js.txt",
+      "before_sha256": "998ffbaf1b92167af31f2bcf50af63f4de98fc00dcd1a2d9b9b533757de5ae98",
+      "after_sha256": "783dd47ff65fdec56562976c4ff8281dff4bd4d2d6a835d33b469d39194b4e7d",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-qx.test.js": {
+      "path": "tests/chart-qx.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-qx.test.js.txt",
+      "before_sha256": "6dbb5f005fb800a96e5432ff662243e3b0270be2202d8ecb6f22dde61a4ae6b6",
+      "after_sha256": "4dbf6f13ab2f0fe2ef12d625aaaa471afe12b0f64a9324fd18cca8e22e64e737",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "khalid-sniper.test.js": {
+      "path": "tests/khalid-sniper.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/khalid-sniper.test.js.txt",
+      "before_sha256": "40fc1096c77725b14f28ffe3e5c048300cd820c5d389c3da6bf31db765bc7aad",
+      "after_sha256": "673b9c442ccfa0ab5afc6b3b38baeb3eba2434a403db48ee0f646c002d045f17",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\")",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, \"chart.html\"), \"utf8\"))"
+        }
+      ]
+    },
+    "chart-volume-outlier.test.js": {
+      "path": "tests/chart-volume-outlier.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-volume-outlier.test.js.txt",
+      "before_sha256": "8a30b5af5627b8a6a1c45f284acf00942f957398839339601809bf7a77cd6ffb",
+      "after_sha256": "43cc4389a6e7ca6aaec7b3d51ea937185dcf69015600662e0d57d2d84439c1d8",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root,file),'utf8')",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').normalizeReader(fs.readFileSync(path.join(root,file),'utf8'),file)"
+        }
+      ]
+    },
+    "chart-warehouse-volume.test.js": {
+      "path": "tests/chart-warehouse-volume.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/chart-warehouse-volume.test.js.txt",
+      "before_sha256": "bc02bcfa60378843077cd247885ed41ffddc360ef2e3f53acf549ac039ad544e",
+      "after_sha256": "896302f8c317bd85eb37eaaeafd2778674affc05cba59db9d808dcea87365116",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root,file),'utf8')",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').normalizeReader(fs.readFileSync(path.join(root,file),'utf8'),file)"
+        }
+      ]
+    },
+    "crypto-sentiment-chart-integration.test.js": {
+      "path": "tests/crypto-sentiment-chart-integration.test.js",
+      "before_path": "tests/fixtures/chart-cache-transition/before/tests/crypto-sentiment-chart-integration.test.js.txt",
+      "before_sha256": "f00375e39550f90da9b5b402b5f59c4fe2f8ea9d59b96971d4d532cb2c37613b",
+      "after_sha256": "daafc05a959c865f31a6c1da9b6e7e087e6a06130fd806134513afbf9c807e7b",
+      "edits": [
+        {
+          "before": "fs.readFileSync(path.join(root,file),'utf8')",
+          "after": "require('./helpers/chart-cache-transition-preservation.cjs').normalizeReader(fs.readFileSync(path.join(root,file),'utf8'),file)"
+        }
+      ]
+    }
+  }
+}

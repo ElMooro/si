@@ -1,0 +1,117 @@
+{
+  "base": "93f8d6bc335269d4d009f7a09697adead2c15f9e",
+  "scope": "Separately reviewed exact source-text inverses only. Runtime quantities are never rescaled or restored by these test helpers.",
+  "sources": {
+    "worker": {
+      "path": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+      "before_path": "tests/fixtures/volume-containment/worker-before/index.js",
+      "before_sha256": "5a04e13f6da1c2a0dc9065f8848745c61f65318a9027bfc83338926d6ddc77d5",
+      "after_sha256": "9c381d12e99e440e4e6ee23135e2cad598cd36b9018cfa3f95b8f6a7b87fb835",
+      "edits": [
+        {
+          "before": "async function extendCryptoDaily(ticker, warm) {\n  if (!warm || !isCryptoWarehouse(warm.warehouse_key) || (warm.span && warm.span !== \"day\") || (warm.mult && warm.mult !== 1)) return warm;\n  let hist = [], historySource = \"yahoo\";\n  try { hist = await fetchYahooDaily(ticker); } catch (eY) { hist = []; }\n  if (hist.length < 2) {\n    historySource = \"binance\";\n    try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }\n  }\n  if (hist.length < 2) return warm;\n  const merged = mergeBarsPrefer(hist, warm.bars);\n  const older = new Map();\n  function dayKey(t) {\n    t = Number(t) || 0;\n    if (t > 1e12) t = Math.floor(t / 1000);\n    if (!Number.isFinite(t) || t <= 0) return 0;\n    return Math.floor(t / 86400) * 86400;\n  }\n  function volOf(row) {\n    if (!row || typeof row !== \"object\") return null;\n    const v = row.value != null ? row.value : row.volume;\n    return typeof v === \"number\" && Number.isFinite(v) && v >= 0 ? v : null;\n  }\n  for (const row of hist) {\n    const t = dayKey(row && row.time);\n    if (t) older.set(t, volOf(row));\n  }\n  for (const row of merged) {\n    if (!older.has(row.time)) continue;\n    const oldVol = older.get(row.time);\n    const newVol = volOf(row);\n    if (!(oldVol > 0)) continue;\n    if (!(newVol > 0) || oldVol / newVol >= 20 || oldVol / newVol <= 0.05) row.value = oldVol;\n  }\n  if (merged.length <= warm.bars.length) return warm;\n  return Object.assign({}, warm, {\n    bars: merged,\n    source: \"warehouse+\" + historySource,\n    history_source: historySource,\n    history_n: hist.length,\n    history_added_n: merged.length - warm.bars.length,\n    history_join_policy: \"Warehouse price wins on overlapping UTC dates. Volume stays on the warehouse row when it is the same unit as the supplementary row (within 20x). A larger disagreement keeps the supplementary volume so a coin count cannot overwrite a dollar tape. Equities are not joined here. Units and price adjustments remain unverified.\",\n    yahoo_n: historySource === \"yahoo\" ? hist.length : 0,\n    binance_n: historySource === \"binance\" ? hist.length : 0,\n    warehouse_n: warm.bars.length\n  });\n}",
+          "after": "async function extendCryptoDaily(ticker, warm) {\n  if (!warm || !isCryptoWarehouse(warm.warehouse_key) || (warm.span && warm.span !== \"day\") || (warm.mult && warm.mult !== 1)) return warm;\n  let hist = [], historySource = \"yahoo\";\n  try { hist = await fetchYahooDaily(ticker); } catch (eY) { hist = []; }\n  if (hist.length < 2) {\n    historySource = \"binance\";\n    try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }\n  }\n  if (hist.length < 2) return warm;\n  const merged = mergeBarsPrefer(hist, warm.bars);\n  if (merged.length <= warm.bars.length) return warm;\n  return Object.assign({}, warm, {\n    bars: merged,\n    source: \"warehouse+\" + historySource,\n    history_source: historySource,\n    history_n: hist.length,\n    history_added_n: merged.length - warm.bars.length,\n    history_join_policy: \"Warehouse rows own every field on overlapping UTC dates, including measured zero and unavailable volume. Supplementary rows add uncovered dates with their reported volume unchanged. No volume unit is inferred or converted. Equities are not joined here. Units and price adjustments remain unverified.\",\n    yahoo_n: historySource === \"yahoo\" ? hist.length : 0,\n    binance_n: historySource === \"binance\" ? hist.length : 0,\n    warehouse_n: warm.bars.length\n  });\n}"
+        }
+      ]
+    },
+    "engine": {
+      "path": "jh-chart-engine.js",
+      "before_path": "tests/fixtures/volume-containment/engine-before.js.txt",
+      "before_sha256": "4ece6b9ecfd913d89943d0f617a7acd2f311cae25e4f2fcf7f5fe4aa4e64d8d0",
+      "after_sha256": "564e150db0635ef05d9ba7872b39b36b83101fb8031bdea1c938713e0e8a6b74",
+      "edits": [
+        {
+          "before": "  var calCache=null, calAt=0;",
+          "after": "  function sliceIdentifiedBars(d,end){\n    var part=d.slice(0,end),e=barEvidence.get(d);\n    if(e)barEvidence.set(part,Object.assign({},e,{bars:part}));\n    return part;\n  }\n  function repaintOwnedBars(d,prepare,complete){\n    var owner=barEvidence.get(d),symbol=active,interval=tf,generation=loadGen,ownerChart=chart;\n    function current(){return !!owner&&d===lastBars&&owner===barEvidence.get(d)&&owner.symbol===symbol&&owner.interval===interval&&symbol===active&&interval===tf&&generation===loadGen&&ownerChart===chart;}\n    if(!current())return null;\n    try{if(prepare)prepare();}catch(e){}\n    if(!current())return null;\n    var seq=paintSeq+1,pending=paint(d);\n    return Promise.resolve(pending).then(function(){\n      if(current()&&seq===paintSeq&&complete){try{complete(ownerChart,d,symbol,interval);}catch(e){}}\n    },function(){});\n  }\n  var calCache=null, calAt=0;"
+        },
+        {
+          "before": "    if(!replay.full.length) replay.full=lastBars.slice();",
+          "after": "    if(!replay.full.length) replay.full=sliceIdentifiedBars(lastBars);"
+        },
+        {
+          "before": "    function show(){ paint(replay.full.slice(0,replay.i+1));",
+          "after": "    function show(){ paint(sliceIdentifiedBars(replay.full,replay.i+1));"
+        },
+        {
+          "before": "  window.jhShowInfo=showInfo;",
+          "after": "  window.jhShowInfo=showInfo;\n  window.jhRepaintOwnedBars=repaintOwnedBars;"
+        },
+        {
+          "before": "window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;",
+          "after": "window.OSC=OSC;window.paint=repaintOwnedBars;window.lastSource=lastSource;"
+        },
+        {
+          "before": "  try{ window.INDS=INDS; window.OSC=OSC; window.volOn=volOn; window.paint=paint; }catch(e){}",
+          "after": "  try{ window.INDS=INDS; window.OSC=OSC; window.volOn=volOn; window.paint=repaintOwnedBars; }catch(e){}"
+        },
+        {
+          "before": "  async function paint(d){\n    var seq=++paintSeq,paintSymbol=active,paintTf=tf,paintLoad=loadGen;",
+          "after": "  async function paint(d){\n    var identified=barEvidence.get(d);\n    if(!observationId(active)&&identified&&(identified.symbol!==active||identified.interval!==tf))return;\n    var seq=++paintSeq,paintSymbol=active,paintTf=tf,paintLoad=loadGen;"
+        },
+        {
+          "before": "    function current(){return seq===paintSeq&&paintSymbol===active&&paintTf===tf&&paintLoad===loadGen;}\n    var identified=barEvidence.get(d);\n    if(observationId(active) &&",
+          "after": "    function current(){return seq===paintSeq&&paintSymbol===active&&paintTf===tf&&paintLoad===loadGen;}\n    if(observationId(active) &&"
+        }
+      ]
+    }
+  },
+  "guard_hooks": {
+    "worker_reader": {
+      "path": "tests/worker-crypto-source.test.js",
+      "before_path": "tests/fixtures/volume-containment/guards-before/tests/worker-crypto-source.test.js.txt",
+      "before_sha256": "84d71c87f3d858cb553c5a323f5755b5b4ffa2e5cdab42ee3845de1f0a4da254",
+      "after_sha256": "9dd180eb8074d8d020802a42277308ed841d4e6a1d8c738dcca7bdb73f59dcb8",
+      "edits": [
+        {
+          "before": "current=fs.readFileSync(path.join(__dirname,'..',t.path),'utf8');",
+          "after": "current=require('./helpers/volume-containment-preservation.cjs').restoreWorker(fs.readFileSync(path.join(__dirname,'..',t.path),'utf8'));"
+        }
+      ]
+    },
+    "worker_js": {
+      "path": "tests/helpers/worker-crypto-source-preservation.cjs",
+      "before_path": "tests/fixtures/volume-containment/guards-before/tests/helpers/worker-crypto-source-preservation.cjs.txt",
+      "before_sha256": "2e0980d3788e885012df18bf222e866454c87d93eb42de7aee32687de9519872",
+      "after_sha256": "efd0c32f7c0787e134cca2938348809107ef191012ad8a7ad9afaa5a664c16f1",
+      "edits": [
+        {
+          "before": "function normalize(raw){",
+          "after": "function normalize(raw){raw=require('./volume-containment-preservation.cjs').restoreWorker(raw);"
+        }
+      ]
+    },
+    "worker_python": {
+      "path": "tests/deployment/crypto_source_preservation.py",
+      "before_path": "tests/fixtures/volume-containment/guards-before/tests/deployment/crypto_source_preservation.py.txt",
+      "before_sha256": "adaa2e7e0fdb736577809543e449a58d3b31dfc22297c1b06c7bc33e6332a500",
+      "after_sha256": "1844a90d9d3bc34178bc2b730c61cbe8ec1a91f5c2113b3cdd544d3731c68ffc",
+      "edits": [
+        {
+          "before": "def restore_crypto_source(raw):\n",
+          "after": "def restore_crypto_source(raw):\n    from volume_containment_preservation import restore_volume_containment\n    raw=restore_volume_containment(raw)\n"
+        }
+      ]
+    },
+    "engine_js": {
+      "path": "tests/helpers/watchlist-source-preservation.cjs",
+      "before_path": "tests/fixtures/volume-containment/guards-before/tests/helpers/watchlist-source-preservation.cjs.txt",
+      "before_sha256": "67dc0c07a8a2fa4bfb4db35c207cf6c1ca4bbdca63b676bc1ba3e9c149772838",
+      "after_sha256": "4034a51f6b3d142c4fa4464b06a8f3416181f07484bda02f140aa2f2f1ba5fcf",
+      "edits": [
+        {
+          "before": "function reverse(raw,file){",
+          "after": "function reverse(raw,file){if(file==='jh-chart-engine.js')raw=require('./volume-containment-preservation.cjs').restoreEngine(raw);"
+        }
+      ]
+    }
+  },
+  "reviewed_owner_extension": {
+    "base": "98667899404c9bfad0509b056f694166a6899f75",
+    "previous_proposal_manifest_sha256": "ba6362978280090b5f968795e2daf9df5143d56fb346ee2ceff4e53481288ff8",
+    "previous_accepted_engine_sha256": "bae06914d55c5ba042409b569578e2c534eddc7fd0622b33fd7a6fd28836debe",
+    "new_engine_sha256": "564e150db0635ef05d9ba7872b39b36b83101fb8031bdea1c938713e0e8a6b74",
+    "exact_added_sites": 4,
+    "independent_contract_accepted_before_manifest_change": true,
+    "contract": "Two public exports require existing private frame ownership. Canonical market-only known identity mismatch refuses before paintSeq; fresh private arrays, unidentified private legacy behavior and scalar diagnostics remain unchanged and unqualified beyond their existing contract."
+  }
+}

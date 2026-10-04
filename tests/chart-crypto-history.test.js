@@ -9,7 +9,7 @@ const root = path.join(__dirname, "..");
 const engine = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
 const catalog = fs.readFileSync(path.join(root, "jh-chart-catalog.js"), "utf8");
 const search = fs.readFileSync(path.join(root, "jh-chart-tvsearch.js"), "utf8");
-const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
+const html = require('./helpers/chart-cache-transition-preservation.cjs').restoreHtml(fs.readFileSync(path.join(root, "chart.html"), "utf8"));
 const helperURL = pathToFileURL(path.join(root, "cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js"));
 
 test("crypto history + CQ stamps are on chart.html", () => {

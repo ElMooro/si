@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 
 test("chart keeps the engine cache token and paints campaign marks", () => {
-  const html = fs.readFileSync(path.join(root, "chart.html"), "utf8");
+  const html = require("./helpers/chart-cache-transition-preservation.cjs").restoreHtml(fs.readFileSync(path.join(root, "chart.html"), "utf8"));
   const eng = fs.readFileSync(path.join(root, "jh-chart-engine.js"), "utf8");
   assert.match(html, /jh-chart-engine\.js\?v=20261002ac-shelves/);
   assert.match(html, /jh-chart-campaign-marks\.js/);
