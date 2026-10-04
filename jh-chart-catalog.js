@@ -8,7 +8,7 @@
   var CQ = null, CISS = null, SYM = null, IND = null, INST = null, PROV = null, IDX_P = null;
   var WAREHOUSE_CACHES=new Map(),WAREHOUSE_CACHE_CAPACITY=8;
   var EXCH = { NASDAQ:1, NYSE:1, AMEX:1, ARCA:1, CBOE:1, TVC:1, BINANCE:1, INDEX:1, FX:1, CRYPTO:1, CME:1, COMEX:1, NYMEX:1, OTC:1, BATS:1, IEX:1, OPRA:1 };
-  var SERIES_PROV = { fred:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, "ofr-fsi":1, "ofr-hfm":1, "ofr-bsrm":1, "ofr-site":1, bls:1, census:1, "census-us":1, bea:1, treasury:1, boe:1, eia:1, te:1, "te-mirror":1, "te-feed":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, "official-yields":1, tic:1, "kr-ecos":1, "taiwan-moea":1, "peru-copper":1, "cl-datos":1, "hk-data":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, "fed-board":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, "indicator-bus":1, "nyfed-research":1, "sec-edgar":1, "sec-midas":1, "sec-dera":1, "sec-bulk":1 };
+  var SERIES_PROV = { fred:1, calc:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, "ofr-fsi":1, "ofr-hfm":1, "ofr-bsrm":1, "ofr-site":1, bls:1, census:1, "census-us":1, bea:1, treasury:1, boe:1, eia:1, te:1, "te-mirror":1, "te-feed":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, "official-yields":1, tic:1, "kr-ecos":1, "taiwan-moea":1, "peru-copper":1, "cl-datos":1, "hk-data":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, "fed-board":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, "indicator-bus":1, "nyfed-research":1, "sec-edgar":1, "sec-midas":1, "sec-dera":1, "sec-bulk":1 };
   var CHIPS = [
     ["all", "All"],
     ["stocks", "Stocks"],
@@ -726,8 +726,69 @@
     return cache.read('warehouse');
   }
 
+
+  function calcShift(iso, years, months) {
+    var y = +String(iso).slice(0, 4), m = +String(iso).slice(5, 7);
+    var d = String(iso).length >= 10 ? String(iso).slice(8, 10) : "01";
+    if (!y || !m) return "";
+    y -= years; m -= months;
+    while (m < 1) { m += 12; y -= 1; }
+    return y + "-" + (m < 10 ? "0" : "") + m + "-" + d;
+  }
+  function calcMap(obs) {
+    var m = Object.create(null), i, p, v;
+    if (!Array.isArray(obs)) return m;
+    for (i = 0; i < obs.length; i++) {
+      p = obs[i];
+      if (!Array.isArray(p) || typeof p[0] !== "string") continue;
+      v = p[1];
+      if (typeof v !== "number" || !isFinite(v)) continue;
+      m[p[0]] = v;
+    }
+    return m;
+  }
+  async function calcSeries(id) {
+    var raw = String(id || ""), body = raw.slice(5), cut = body.indexOf(":"), kind = cut > 0 ? body.slice(0, cut) : "", rest = cut > 0 ? body.slice(cut + 1) : "";
+    var obs = [], name = "", unit = "Percent", freq = null;
+    if (!global.JHObservationSeries || typeof global.JHObservationSeries.warehouse !== "function" || !global.JHObservationCache) return { d: [], src: "Observation history unavailable: required module not loaded" };
+    if (kind === "minus") {
+      var parts = rest.split("~");
+      if (parts.length !== 2 || !parts[0] || !parts[1]) return { d: [], src: "calc identity rejected" };
+      var ea = await loadWarehouse(parts[0]), eb = await loadWarehouse(parts[1]);
+      var pa = ea && ea.packet, pb = eb && eb.packet;
+      if (!pa || !pb || String(pa.id || "").toLowerCase() !== parts[0].toLowerCase() || String(pb.id || "").toLowerCase() !== parts[1].toLowerCase()) return { d: [], src: "calc inputs unavailable" };
+      if (!/Exports of goods and services/i.test(pa.name || "") || !/Imports of goods and services/i.test(pb.name || "")) return { d: [], src: "calc inputs are not exports and imports" };
+      var mb = calcMap(pb.obs), ma = calcMap(pa.obs);
+      Object.keys(ma).sort().forEach(function (dt) {
+        if (Object.prototype.hasOwnProperty.call(mb, dt)) obs.push([dt, ma[dt] - mb[dt]]);
+      });
+      name = "Exports minus imports of goods and services";
+      unit = "Current US$";
+      freq = pa.freq || null;
+    } else if (kind === "yoy" || kind === "mom") {
+      var got = await loadWarehouse(rest), pkt = got && got.packet;
+      if (!pkt || String(pkt.id || "").toLowerCase() !== rest.toLowerCase() || !Array.isArray(pkt.obs)) return { d: [], src: "calc input unavailable" };
+      if (!/index/i.test(pkt.name || "")) return { d: [], src: "calc input is not an index" };
+      var base = calcMap(pkt.obs);
+      Object.keys(base).sort().forEach(function (dt) {
+        var prev = kind === "mom" ? calcShift(dt, 0, 1) : calcShift(dt, 1, 0);
+        var b = base[prev];
+        if (b === undefined || b === 0) return;
+        obs.push([dt, 100 * (base[dt] / b - 1)]);
+      });
+      name = (kind === "mom" ? "Month-over-month percent of " : "Year-over-year percent of ") + (pkt.name || rest);
+      unit = "Percent";
+      freq = pkt.freq || null;
+    } else return { d: [], src: "calc identity rejected" };
+    if (obs.length < 8) return { d: [], src: "calc produced fewer than 8 observations" };
+    var doc = { id: raw, provider: "calc", provider_name: "Calculated", name: name, unit: unit, freq: freq, source: "calc", obs: obs };
+    var parsed = global.JHObservationSeries.warehouse(doc, raw, PROXY + "/series?id=" + encodeURIComponent(raw));
+    parsed.src += " · calculated from stored observations of the same instrument";
+    return parsed;
+  }
   async function klines(sym) {
     var s = String(sym || "");
+    if (/^calc:/i.test(s)) return calcSeries(s);
     if (isWarehouse(s) && !/^CQ:|^CISS:|^DESK:|^DATA:/i.test(s)) {
       if(!global.JHObservationSeries||typeof global.JHObservationSeries.warehouse!=="function"||!global.JHObservationCache)return {d:[],src:"Observation history unavailable: required module not loaded"};
       var received=await loadWarehouse(s), parsed=global.JHObservationSeries.warehouse(received.packet,s,PROXY+"/series?id="+encodeURIComponent(s));
