@@ -258,29 +258,29 @@
       "before_sha256": "83633ae0974271eac795622a1b56842968ce6b13d3b548f99efff842398b0c2f",
       "edits": [
         {
-          "start": 446688,
-          "end": 446767,
+          "start": 446713,
+          "end": 446792,
           "before": "window.jhGoSymbol=goSymbol;",
           "after": "window.jhGoSymbol=goSymbol;\n  window.jhWatchlistOpen=function(s){goSymbol(s);};",
           "scope": "chart-pro-series-pull"
         },
         {
-          "start": 331816,
-          "end": 332052,
+          "start": 331823,
+          "end": 332059,
           "before": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    return bare(rs.ticker||s);",
           "after": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    if(s.indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(s)) return s;\n    return bare(rs.ticker||s);",
           "scope": "chart-pro-series-pull"
         },
         {
-          "start": 115942,
-          "end": 117085,
+          "start": 115943,
+          "end": 117086,
           "before": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    var ws=warehouseSpec(tfId);",
           "after": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    // Chart Pro path: keep EXCHANGE:SYMBOL and ask the warehouse before any bare alias.\n    if(String(sym).indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){\n      try{\n        var tvRaw=await fetchJson(PROXY+\"/series?id=\"+encodeURIComponent(sym));\n        var tvRows=(tvRaw&&Array.isArray(tvRaw.ohlc)&&tvRaw.ohlc.length)?tvRaw.ohlc:((tvRaw&&(tvRaw.obs||tvRaw.bars))||[]);\n        var tvBars=toBars(tvRows);\n        if(tvBars.length>=8){\n          var shown=resampleToTf(tvBars, tfId);\n          if(!shown||shown.length<2) shown=tvBars;\n          if(looksCloseOnly(shown)) shown=fillCandleBodies(shown);\n          if(shown.length>=8 && barsFitTf(shown, tfId)){\n            var tvSrc=(tvRaw&&(tvRaw.source||tvRaw.provider))||\"series\";\n            if(!quiet) lastSource=tvSrc;\n            return identifyBars(shown,sym,tfId,tvSrc);\n          }\n        }\n      }catch(eTv){}\n    }\n    var ws=warehouseSpec(tfId);",
           "scope": "chart-pro-series-pull"
         },
         {
-          "start": 373103,
-          "end": 373141,
+          "start": 373128,
+          "end": 373166,
           "before": "(bare(s)===active?\"on\":\"\")",
           "after": "(bare(s)===active||s===active?\"on\":\"\")",
           "scope": "chart-pro-series-pull"
@@ -293,6 +293,6 @@
     "path": "tests/fixtures/watchlist-correctness/source-transition.json",
     "before_path": "tests/fixtures/chart-oecd/watchlist-transition.before.json",
     "before_sha256": "64c20ba349c368fe197c6f3143161e75d34e614c22bc7e8c63d0701cdf1c930c",
-    "after_sha256": "219b4f0df540fcf6959c2730476ae9835048d22a109987b404eb69bb912b6df7"
+    "after_sha256": "5ca1dc8ac03af87dce32458d170fab69be9512a932d7d2371174ede08c7878a7"
   }
 }

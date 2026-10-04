@@ -2,7 +2,7 @@
   "jh-chart-engine.js": {
     "before_path": "tests/fixtures/watchlist-correctness/jh-chart-engine.js.txt",
     "before_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
-    "after_sha256": "83633ae0974271eac795622a1b56842968ce6b13d3b548f99efff842398b0c2f",
+    "after_sha256": "80f2e5fc14d8a414415200dd953f5aaedd715ef8b21d5cfb3b65958b94df7309",
     "edits": [
       {
         "start": 35883,
@@ -252,6 +252,34 @@
         "before": "  function goSymbol(s, dest){\n",
         "after": "  function goSymbol(s, dest){\n    if (/^(COT[23]?|cftc):/i.test(String(s||\"\")) && (!window.JHChartCFTC || !window.JHChartCFTC.resolve(s))) {\n      toast(\"CFTC definition unavailable; select a reviewed report, contract and field\"); return;\n    }\n",
         "scope": "exact-cftc-history-581"
+      },
+      {
+        "start": 446713,
+        "end": 446792,
+        "before": "window.jhGoSymbol=goSymbol;",
+        "after": "window.jhGoSymbol=goSymbol;\n  window.jhWatchlistOpen=function(s){goSymbol(s);};",
+        "scope": "chart-pro-series-pull"
+      },
+      {
+        "start": 331823,
+        "end": 332059,
+        "before": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    return bare(rs.ticker||s);",
+        "after": "if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(s)) return s;\n    if(s.indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(s)) return s;\n    return bare(rs.ticker||s);",
+        "scope": "chart-pro-series-pull"
+      },
+      {
+        "start": 115943,
+        "end": 117086,
+        "before": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    var ws=warehouseSpec(tfId);",
+        "after": "    // A measurement ID cannot become a similarly named exchange ticker.\n    if(scalar){\n      // Scalar download completion cannot publish a label for a superseded selection.\n      return [];\n    }\n    // Chart Pro path: keep EXCHANGE:SYMBOL and ask the warehouse before any bare alias.\n    if(String(sym).indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){\n      try{\n        var tvRaw=await fetchJson(PROXY+\"/series?id=\"+encodeURIComponent(sym));\n        var tvRows=(tvRaw&&Array.isArray(tvRaw.ohlc)&&tvRaw.ohlc.length)?tvRaw.ohlc:((tvRaw&&(tvRaw.obs||tvRaw.bars))||[]);\n        var tvBars=toBars(tvRows);\n        if(tvBars.length>=8){\n          var shown=resampleToTf(tvBars, tfId);\n          if(!shown||shown.length<2) shown=tvBars;\n          if(looksCloseOnly(shown)) shown=fillCandleBodies(shown);\n          if(shown.length>=8 && barsFitTf(shown, tfId)){\n            var tvSrc=(tvRaw&&(tvRaw.source||tvRaw.provider))||\"series\";\n            if(!quiet) lastSource=tvSrc;\n            return identifyBars(shown,sym,tfId,tvSrc);\n          }\n        }\n      }catch(eTv){}\n    }\n    var ws=warehouseSpec(tfId);",
+        "scope": "chart-pro-series-pull"
+      },
+      {
+        "start": 373128,
+        "end": 373166,
+        "before": "(bare(s)===active?\"on\":\"\")",
+        "after": "(bare(s)===active||s===active?\"on\":\"\")",
+        "scope": "chart-pro-series-pull"
       }
     ]
   },
