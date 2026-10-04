@@ -751,7 +751,7 @@
     return m;
   }
   async function calcSeries(id) {
-    var raw = String(id || ""), body = raw.slice(5), cut = body.indexOf(":"), kind = cut > 0 ? body.slice(0, cut) : "", rest = cut > 0 ? body.slice(cut + 1) : "";
+    var raw = String(id || ""), body = raw.slice(5), cut = body.indexOf(":"), kind = (cut > 0 ? body.slice(0, cut) : "").toLowerCase(), rest = cut > 0 ? body.slice(cut + 1) : "";
     var obs = [], name = "", unit = "Percent", freq = null;
     if (!global.JHObservationSeries || typeof global.JHObservationSeries.warehouse !== "function" || !global.JHObservationCache) return { d: [], src: "Observation history unavailable: required module not loaded" };
     if (kind === "minus") {
@@ -782,11 +782,66 @@
       name = (kind === "mom" ? "Month-over-month percent of " : "Year-over-year percent of ") + (pkt.name || rest);
       unit = "Percent";
       freq = pkt.freq || null;
+    } else if (kind === "arith") {
+      var tokens = String(rest || "").toUpperCase().split("~");
+      if (tokens.length < 2 || tokens.length > 24) return { d: [], src: "calc identity rejected" };
+      var leaves = [], ti, tok, depth = 0, anyScale = false;
+      for (ti = 0; ti < tokens.length; ti++) {
+        tok = tokens[ti];
+        if (/^N:[0-9]+(?:\.[0-9]+)?$/.test(tok)) { depth++; continue; }
+        if (/^S:(?:FRED:[A-Z0-9]+|WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3})$/.test(tok)) {
+          var sid = tok.slice(2);
+          if (leaves.indexOf(sid) < 0) leaves.push(sid);
+          depth++;
+          continue;
+        }
+        if (tok === "NEG") { if (depth < 1) return { d: [], src: "calc identity rejected" }; continue; }
+        if (tok !== "ADD" && tok !== "SUB" && tok !== "MUL" && tok !== "DIV") return { d: [], src: "calc identity rejected" };
+        if (depth < 2) return { d: [], src: "calc identity rejected" };
+        depth--;
+        if (tok === "MUL" || tok === "DIV") anyScale = true;
+      }
+      if (depth !== 1 || !leaves.length) return { d: [], src: "calc identity rejected" };
+      var maps = Object.create(null), pkt0 = null;
+      for (ti = 0; ti < leaves.length; ti++) {
+        var gotA = await loadWarehouse(leaves[ti]), pktA = gotA && gotA.packet;
+        if (!pktA || String(pktA.id || "").toUpperCase() !== leaves[ti] || !Array.isArray(pktA.obs)) return { d: [], src: "calc inputs unavailable" };
+        maps[leaves[ti]] = calcMap(pktA.obs);
+        if (!pkt0) pkt0 = pktA;
+      }
+      var dates = Object.keys(maps[leaves[0]]);
+      for (ti = 1; ti < leaves.length; ti++) {
+        var keep = maps[leaves[ti]];
+        dates = dates.filter(function (dt) { return Object.prototype.hasOwnProperty.call(keep, dt); });
+      }
+      dates.sort();
+      for (ti = 0; ti < dates.length; ti++) {
+        var dt = dates[ti], st = [], ok = true, vi;
+        for (vi = 0; vi < tokens.length && ok; vi++) {
+          tok = tokens[vi];
+          if (tok.slice(0, 2) === "N:") st.push(+tok.slice(2));
+          else if (tok.slice(0, 2) === "S:") st.push(maps[tok.slice(2)][dt]);
+          else if (tok === "NEG") st.push(-st.pop());
+          else {
+            var rb = st.pop(), ra = st.pop(), rv = NaN;
+            if (tok === "ADD") rv = ra + rb;
+            else if (tok === "SUB") rv = ra - rb;
+            else if (tok === "MUL") rv = ra * rb;
+            else if (rb !== 0) rv = ra / rb;
+            if (typeof rv !== "number" || !isFinite(rv)) ok = false;
+            else st.push(rv);
+          }
+        }
+        if (ok && st.length === 1) obs.push([dt, st[0]]);
+      }
+      name = "Arithmetic of stored series";
+      unit = anyScale ? "Ratio" : ((pkt0 && pkt0.unit) || "Calculated");
+      freq = (pkt0 && pkt0.freq) || null;
     } else return { d: [], src: "calc identity rejected" };
     if (obs.length < 8) return { d: [], src: "calc produced fewer than 8 observations" };
     var doc = { id: raw, provider: "calc", provider_name: "Calculated", name: name, unit: unit, freq: freq, source: "calc", obs: obs };
     var parsed = global.JHObservationSeries.warehouse(doc, raw, PROXY + "/series?id=" + encodeURIComponent(raw));
-    parsed.src += " · calculated from stored observations of the same instrument";
+    parsed.src += kind === "arith" ? " · calculated from stored observations of the named inputs; not a published series" : " · calculated from stored observations of the same instrument";
     return parsed;
   }
   async function klines(sym) {

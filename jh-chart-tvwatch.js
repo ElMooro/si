@@ -534,13 +534,87 @@
     else if (!ns && /^[A-Z0-9]+-USD$/.test(b)) pair = b.slice(0, -4) + "/USD";
     return { namespace: ns || "none", pair: pair };
   }
+  function formulaRoute(raw) {
+    var u = String(raw || "").toUpperCase();
+    if (!/[+\-*/()]/.test(u) || /\s/.test(u) || u.length > 240) return "";
+    var i = 0, toks = [], c, j, sym, num;
+    while (i < u.length) {
+      c = u.charAt(i);
+      if ("+-*/()".indexOf(c) >= 0) { toks.push(c); i++; continue; }
+      if ((c >= "0" && c <= "9") || c === ".") {
+        j = i + 1;
+        while (j < u.length && ((u.charAt(j) >= "0" && u.charAt(j) <= "9") || u.charAt(j) === ".")) j++;
+        num = u.slice(i, j);
+        if (!/^(?:\d+\.\d+|\d+|\.\d+)$/.test(num)) return "";
+        toks.push(num); i = j; continue;
+      }
+      if ((c >= "A" && c <= "Z") || c === "^") {
+        j = i + 1;
+        while (j < u.length && /[A-Z0-9:._^=]/.test(u.charAt(j))) j++;
+        sym = u.slice(i, j);
+        if (!/^[A-Z^][A-Z0-9:._^=]*$/.test(sym)) return "";
+        toks.push(sym); i = j; continue;
+      }
+      return "";
+    }
+    var ops = 0, syms = 0, t;
+    for (i = 0; i < toks.length; i++) {
+      t = toks[i];
+      if (t === "+" || t === "-" || t === "*" || t === "/") ops++;
+      else if (t !== "(" && t !== ")" && !/^(?:\d+\.\d+|\d+|\.\d+)$/.test(t)) syms++;
+    }
+    if (!ops || !syms || toks.length > 48) return "";
+    var out = [], stack = [], prec = { ADD: 1, SUB: 1, MUL: 2, DIV: 2, NEG: 3 };
+    function pushOp(op) {
+      while (stack.length && stack[stack.length - 1] !== "(" && prec[stack[stack.length - 1]] >= prec[op]) out.push(stack.pop());
+      stack.push(op);
+    }
+    for (i = 0; i < toks.length; i++) {
+      t = toks[i];
+      if (/^(?:\d+\.\d+|\d+|\.\d+)$/.test(t)) { out.push("N:" + String(+t)); continue; }
+      if (t === "(") { stack.push(t); continue; }
+      if (t === ")") {
+        while (stack.length && stack[stack.length - 1] !== "(") out.push(stack.pop());
+        if (!stack.length || stack.pop() !== "(") return "";
+        continue;
+      }
+      if (t === "+" || t === "-" || t === "*" || t === "/") {
+        if ((t === "-" || t === "+") && (i === 0 || "+-*/(".indexOf(toks[i - 1]) >= 0)) {
+          if (t === "-") pushOp("NEG");
+          continue;
+        }
+        pushOp(t === "+" ? "ADD" : t === "-" ? "SUB" : t === "*" ? "MUL" : "DIV");
+        continue;
+      }
+      var leaf = providerRest(t) || chartSymbol(t);
+      if (!leaf) return "";
+      leaf = String(leaf).toUpperCase();
+      if (!/^FRED:[A-Z0-9]+$/.test(leaf) && !/^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(leaf)) return "";
+      out.push("S:" + leaf);
+    }
+    while (stack.length) {
+      var top = stack.pop();
+      if (top === "(" || top === ")") return "";
+      out.push(top);
+    }
+    var depth = 0, k;
+    for (k = 0; k < out.length; k++) {
+      top = out[k];
+      if (top.slice(0, 2) === "N:" || top.slice(0, 2) === "S:") depth++;
+      else if (top === "NEG") { if (depth < 1) return ""; }
+      else if (top === "ADD" || top === "SUB" || top === "MUL" || top === "DIV") { if (depth < 2) return ""; depth--; }
+      else return "";
+    }
+    if (depth !== 1) return "";
+    return "CALC:ARITH:" + out.join("~");
+  }
   function chartRoute(s) {
     var requested = typeof s === "string" ? s.trim() : "", u = requested.toUpperCase();
     var route = { requested: requested, candidate: null, handoff: null, resolved: null, primary: null, fallback: null, relation: "unavailable", reason: "No supported chart route; chart unchanged", frame: null };
     route.requestHints = routeHints(requested);
     if (!requested || /^###/.test(requested) || /[\s\x00-\x1f\x7f]/.test(requested)) { route.reason = "Invalid instrument identifier; chart unchanged"; return route; }
     if (/^(DATA|DESK):/.test(u)) { route.reason = "Catalog browse item has no scalar chart contract; chart unchanged"; return route; }
-    if ((/^FRED:/.test(u) && !/^FRED:[A-Z0-9]+$/.test(u)) || (/^WORLDBANK:/.test(u) && !/^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u))) { route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
+    if (!/[+\-*/()]/.test(u) && ((/^FRED:/.test(u) && !/^FRED:[A-Z0-9]+$/.test(u)) || (/^WORLDBANK:/.test(u) && !/^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u)))) { route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
     var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = "", proposal = "", original = null;
     try {
       if (cat && typeof cat.chartId === "function") catalogId = String(cat.chartId(requested) || "");
@@ -583,8 +657,9 @@
           }
         }
       }
+      if (!route.handoff && symMapReady) { var arith = formulaRoute(requested); if (arith) { route.handoff = arith; route.resolved = arith; route.relation = "mapped-route"; } }
       if (!route.handoff) { if (!symMapReady) route.reason = "Symbol map loading; retry this selection after it settles"; return route; }
-      if (/^(FRED|WORLDBANK):/.test(u) && route.handoff.toUpperCase() !== u) { route.handoff = null; route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
+      if (/^(FRED|WORLDBANK):/.test(u) && !/^CALC:ARITH:/.test(route.handoff) && route.handoff.toUpperCase() !== u) { route.handoff = null; route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
       route.handoffHints = routeHints(route.handoff);
       if (!route.primary) route.primary = route.resolved;
       if (route.reason === "No supported chart route; chart unchanged") route.reason = route.relation === "exact" ? "Identifier routing unchanged; underlying data identity is not certified" : route.relation === "provider-prefix" ? "Provider prefix route; identical series ID with explicit provider prefix" : "Possible proxy or source substitution; equivalence unverified";
