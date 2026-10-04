@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "exact_static_code_verified",
   "at": "2026-10-04T18:46:15.596280+00:00",
   "base_commit": "8b086c7d2d2cbb339d8f24f158760251f9b3e658",
   "incoming_reconciliation": {
@@ -788,5 +788,7 @@
     ],
     "peer_math_source_preserved": true,
     "math_definitions_not_qualified": true
-  }
+  },
+  "source_commit": "c94b77a3a5c090347e9d17d5df5027dc6c2be80a",
+  "acceptance": "docs/audit/2026-10-04/chart-provider-browser-acceptance.json"
 }
