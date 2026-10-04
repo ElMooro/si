@@ -1,5 +1,5 @@
 {
-  "status": "candidate_not_deployed",
+  "status": "deployed_and_public_history_replayed",
   "base": "72bf76a1a2bca9cb990e1f723724a6d16db40100",
   "at": "2026-10-04T20:51:50.773155+00:00",
   "series": 98,
@@ -44,5 +44,14 @@
     "commit": "72bf76a1a2bca9cb990e1f723724a6d16db40100",
     "preserved": "Nine yield aliases and watchlist row namespace handoff",
     "repair": "Row/search clicks use the shared qualified router synchronously, preserving requested ID and explicit alternative warnings. No source-text map download or delayed selection replay."
-  }
+  },
+  "source_commit": "9ef23ac5f8e5a2686670862ef09ec2d6e6e970cd",
+  "acceptance_at": "2026-10-04T21:31:18.485671+00:00",
+  "bis_application_histories_replayed": 98,
+  "served_files_verified": 49,
+  "served_modules_verified": 20,
+  "native_source_files_verified": 12,
+  "original_schedules_verified": 7,
+  "desktop_mobile_served_browser_passed": true,
+  "acceptance": "chart-bis-acceptance.md"
 }

@@ -1,0 +1,4424 @@
+{
+  "source_commit": "9ef23ac5f8e5a2686670862ef09ec2d6e6e970cd",
+  "at": "2026-10-04T21:27:38.677439+00:00",
+  "catalogue_sha256": "85e7f0b36de1c2baa1ec22846a8e02e40b1ffab7482a1206438d0cc6d23f45c0",
+  "total": 98,
+  "statuses": {
+    "history_response_replayed": 98
+  },
+  "rows": [
+    {
+      "id": "bis:WS_CBPOL:D.AR",
+      "key": "D.AR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.AR",
+      "at": "2026-10-04T21:26:25.313665+00:00",
+      "http_status": 200,
+      "packet_bytes": 1069357,
+      "packet_sha256": "161b218327c482082065b01e2609b2343e282e306600511c6ec577a2be0e26e2",
+      "status": "history_response_replayed",
+      "n": 8768,
+      "first": "1993-04-01",
+      "last": "2025-07-10",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 11786,
+        "rejected_rows": 3018
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AR?format=csv",
+          "received_at": "2026-10-04T21:26:27.376907+00:00",
+          "http_status": 200,
+          "wire_bytes": 111121,
+          "wire_sha256": "53c1327462bd367be5c291768ea3f2378b22e454b2c9c54928d5fcfca0894c88",
+          "bytes": 15140129,
+          "sha256": "9779de60fa3e93abf579a98b4f75ea85ba1e1d34dae67e59f70c8a535174082d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "7b593a02-f2aa-4011-9c71-bdbf7a0bb235",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.AT",
+      "key": "D.AT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.AT",
+      "at": "2026-10-04T21:26:25.313665+00:00",
+      "http_status": 200,
+      "packet_bytes": 1475044,
+      "packet_sha256": "9faaf8c9bb65ea1038499b4e7815d80a7f4af401ab8ab898b1314f38bd463e39",
+      "status": "history_response_replayed",
+      "n": 19633,
+      "first": "1945-04-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19633,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AT?format=csv",
+          "received_at": "2026-10-04T21:26:27.249373+00:00",
+          "http_status": 200,
+          "wire_bytes": 73830,
+          "wire_sha256": "1f14cec440e2957ebfb19a6ae7c3480b005ce80a9ed1ae92ac0562c646ad3aef",
+          "bytes": 9732233,
+          "sha256": "5d7f18c2c29bdd0ea2b92af67b46b1ac9193410bf1d3bb203761d707fc1ca5a8",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c417efd0-2a26-40f6-a573-bf0f9a8a54d9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.AU",
+      "key": "D.AU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.AU",
+      "at": "2026-10-04T21:26:28.600206+00:00",
+      "http_status": 200,
+      "packet_bytes": 1016195,
+      "packet_sha256": "d3ace5098ddfd0dfb5101166c21ea3d089dfe2f81f4092c1474d2f891c9a991e",
+      "status": "history_response_replayed",
+      "n": 12792,
+      "first": "1976-04-07",
+      "last": "2026-09-24",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12887,
+        "rejected_rows": 95
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AU?format=csv",
+          "received_at": "2026-10-04T21:26:30.403078+00:00",
+          "http_status": 200,
+          "wire_bytes": 76287,
+          "wire_sha256": "981a3e1d22bdb3190cffd24cbc71b80d691e90d03e080579f5e99d718d462797",
+          "bytes": 8922508,
+          "sha256": "12a50e6d321429c209dd128a0d5ba222bbc66e1a4da151782cd2b73ddcdd2f0a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "0fec3d4d-0e15-44ea-833b-7b54e8069bd5",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.BE",
+      "key": "D.BE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.BE",
+      "at": "2026-10-04T21:26:28.835909+00:00",
+      "http_status": 200,
+      "packet_bytes": 1431894,
+      "packet_sha256": "c65bcf76123d423b2b31626e82375c4d1ee933ff33057e53643f9d99a5c418de",
+      "status": "history_response_replayed",
+      "n": 18806,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 18897,
+        "rejected_rows": 91
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.BE?format=csv",
+          "received_at": "2026-10-04T21:26:29.805679+00:00",
+          "http_status": 200,
+          "wire_bytes": 72481,
+          "wire_sha256": "d9d047f013e5976e3efdf83113aa7661e0ba5d040b02a849c7b2b158fcbd2f47",
+          "bytes": 8178734,
+          "sha256": "7ced72e083e584cbcee878d7298a130fead0bb7ce6d6cd1fa1a7e441cf5bf0ff",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "1284d7d8-6869-406c-8ed5-6349b7c9931f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.BR",
+      "key": "D.BR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.BR",
+      "at": "2026-10-04T21:26:31.042751+00:00",
+      "http_status": 200,
+      "packet_bytes": 1126520,
+      "packet_sha256": "bd7cb1ec5298a57487416efb0c0d6003ca0a77f31d5163e668948b932a6e72a4",
+      "status": "history_response_replayed",
+      "n": 13252,
+      "first": "1986-06-04",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 13581,
+        "rejected_rows": 329
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.BR?format=csv",
+          "received_at": "2026-10-04T21:26:31.935386+00:00",
+          "http_status": 200,
+          "wire_bytes": 99294,
+          "wire_sha256": "c0792881e99829e9633f40bf136f532661e32837880e6251917251e392f56439",
+          "bytes": 12062252,
+          "sha256": "9551517d068b234eb273e5c3a66731549fb9e55c8170f6e5bcb13d8001f43f04",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "71359251-29ba-4c1d-912e-57e6bc1c9f82",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CA",
+      "key": "D.CA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CA",
+      "at": "2026-10-04T21:26:31.481458+00:00",
+      "http_status": 200,
+      "packet_bytes": 1964747,
+      "packet_sha256": "6e20cdb3b3d230b486e7022ac40287871c5c0f75eec0d75b393c9ade967d998d",
+      "status": "history_response_replayed",
+      "n": 17205,
+      "first": "1960-07-27",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23152,
+        "rejected_rows": 5947
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CA?format=csv",
+          "received_at": "2026-10-04T21:26:32.446399+00:00",
+          "http_status": 200,
+          "wire_bytes": 125961,
+          "wire_sha256": "1690a07df8cfc18c03269469ed99bc0aa868167d8805a6592000da764f03e321",
+          "bytes": 14451001,
+          "sha256": "a7426a41e545fbdfb7cb6b43051bf4a2c9de1045e3fe65b81dcd008887ce0784",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "8c846414-ff0a-4d91-aa32-05dcd11df85b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CH",
+      "key": "D.CH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CH",
+      "at": "2026-10-04T21:26:33.197068+00:00",
+      "http_status": 200,
+      "packet_bytes": 1585939,
+      "packet_sha256": "4708e5815542d6595024c44209805f717eb335c88f63371492b2575676c416af",
+      "status": "history_response_replayed",
+      "n": 21006,
+      "first": "1946-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 21066,
+        "rejected_rows": 60
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CH?format=csv",
+          "received_at": "2026-10-04T21:26:35.106457+00:00",
+          "http_status": 200,
+          "wire_bytes": 73437,
+          "wire_sha256": "14265e2eca3abbe8a72b9434e6ca53cb831652d6a7b18220dbdf17bf866d493e",
+          "bytes": 5831364,
+          "sha256": "863176c3dc12c53399e81001f31884166a245069aee83a8015d94cfd6fbc8e95",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e877dd2d-de13-4526-a8f8-5383dba2ebe9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CL",
+      "key": "D.CL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CL",
+      "at": "2026-10-04T21:26:34.110325+00:00",
+      "http_status": 200,
+      "packet_bytes": 906062,
+      "packet_sha256": "0410b858ff2a0630739446fe9402f71151d0b8ce35be5102ab3b71293c36d37e",
+      "status": "history_response_replayed",
+      "n": 7396,
+      "first": "1997-02-07",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10827,
+        "rejected_rows": 3431
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CL?format=csv",
+          "received_at": "2026-10-04T21:26:34.848926+00:00",
+          "http_status": 200,
+          "wire_bytes": 43704,
+          "wire_sha256": "67eada0446aeee155fcbe05910080fb81ffa6d36a64ac7bda5db8cc73af4d58b",
+          "bytes": 4621907,
+          "sha256": "749eec574131d7fb38a7aa27de49c75c552d129657d84ba50094f0c52260eb61",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2ad120b9-8745-4f34-8a3a-8799651c49c0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CN",
+      "key": "D.CN",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CN",
+      "at": "2026-10-04T21:26:35.770188+00:00",
+      "http_status": 200,
+      "packet_bytes": 819068,
+      "packet_sha256": "75980ba510dec15d6c0f06bfa05190b79157770c42b590eec9f93dbdfad61817",
+      "status": "history_response_replayed",
+      "n": 10957,
+      "first": "1996-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10959,
+        "rejected_rows": 2
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CN?format=csv",
+          "received_at": "2026-10-04T21:26:36.436652+00:00",
+          "http_status": 200,
+          "wire_bytes": 33425,
+          "wire_sha256": "70fc6a8a38025669d88cc328140fbeca471077ab48540c5e43f3e576549de15c",
+          "bytes": 2593306,
+          "sha256": "63583091d24166d5d52fa0d951e8c504749123820184c4e54557021a43d4488f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "8fed6b67-a40f-4073-8249-f717a1bbb998",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CO",
+      "key": "D.CO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CO",
+      "at": "2026-10-04T21:26:36.344816+00:00",
+      "http_status": 200,
+      "packet_bytes": 868634,
+      "packet_sha256": "5d7f652272636637f7873534c67d84f2d4dbdab895e367098792dd4a7a24dd9a",
+      "status": "history_response_replayed",
+      "n": 11492,
+      "first": "1995-04-06",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 11492,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CO?format=csv",
+          "received_at": "2026-10-04T21:26:37.080237+00:00",
+          "http_status": 200,
+          "wire_bytes": 41733,
+          "wire_sha256": "8da62a1313ba0229d1320746960315d50438c50e3373e79b0c20b56ec931e6a9",
+          "bytes": 3758835,
+          "sha256": "2d432076ec91fe977753f2c1111c562437e7db0e6dc2d4a85510240858d47ded",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3e5163f5-4d1b-4d23-b999-ff8a53df3b8f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CZ",
+      "key": "D.CZ",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.CZ",
+      "at": "2026-10-04T21:26:37.234597+00:00",
+      "http_status": 200,
+      "packet_bytes": 612388,
+      "packet_sha256": "19e3ec021faef886f44621e7e544ffd447a9bc16601e789c11882e31edcb3626",
+      "status": "history_response_replayed",
+      "n": 7893,
+      "first": "1995-12-08",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8029,
+        "rejected_rows": 136
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CZ?format=csv",
+          "received_at": "2026-10-04T21:26:37.927703+00:00",
+          "http_status": 200,
+          "wire_bytes": 32322,
+          "wire_sha256": "487da370cb1295077cf4cc0bc6667e3199f8a306eff67b7deee41dba36972401",
+          "bytes": 3719464,
+          "sha256": "57c2527b4a5655dd12d06dc702e473f3846aec5fe677c6394734d4f141814d57",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ba58024f-5430-40cd-989f-413150667cbf",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.DE",
+      "key": "D.DE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.DE",
+      "at": "2026-10-04T21:26:38.041705+00:00",
+      "http_status": 200,
+      "packet_bytes": 1417143,
+      "packet_sha256": "0c6f9bde0f39467e088df7bcd025a58f194090ab103c88a230d55eeab3620235",
+      "status": "history_response_replayed",
+      "n": 18446,
+      "first": "1948-07-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 18446,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.DE?format=csv",
+          "received_at": "2026-10-04T21:26:39.197182+00:00",
+          "http_status": 200,
+          "wire_bytes": 97354,
+          "wire_sha256": "afc5563827f629d308e490010f501a8573ee4a501e142314f02de1d798eb206b",
+          "bytes": 13927414,
+          "sha256": "468197a419548452168a443dc21fca070704d0bba04d8532c3d2a5c8651bfd38",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3a494c99-84e9-4204-a0cc-cc888a7781cc",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.DK",
+      "key": "D.DK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.DK",
+      "at": "2026-10-04T21:26:38.836402+00:00",
+      "http_status": 200,
+      "packet_bytes": 1848722,
+      "packet_sha256": "71526062ba2fd5518b92536d03fc3fe9f92d0afbfd6dbed212d8382338f0b0a3",
+      "status": "history_response_replayed",
+      "n": 24127,
+      "first": "1946-01-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 24489,
+        "rejected_rows": 362
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.DK?format=csv",
+          "received_at": "2026-10-04T21:26:39.860120+00:00",
+          "http_status": 200,
+          "wire_bytes": 87830,
+          "wire_sha256": "74473d7d3ed467c7ad16407d20248ec598095e84df240e19d0f1e63f53556205",
+          "bytes": 7216351,
+          "sha256": "18927ad365e41bb5b566cab7d3df90de67534dbba1c3881e4c122b29ec21238c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c6189c5e-9ada-4dab-9f50-004835204bf0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ES",
+      "key": "D.ES",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.ES",
+      "at": "2026-10-04T21:26:40.689285+00:00",
+      "http_status": 200,
+      "packet_bytes": 1533696,
+      "packet_sha256": "2c6b806c2319dbc28b2fd2d57de166f2ed02e5269f99eb7748c10dbfc4cc4878",
+      "status": "history_response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ES?format=csv",
+          "received_at": "2026-10-04T21:26:41.586105+00:00",
+          "http_status": 200,
+          "wire_bytes": 102914,
+          "wire_sha256": "0e96836061df3fdead30c6ce7935a89b1b2e8f6c4bffad9d7ac5ae95cfb415d0",
+          "bytes": 12264323,
+          "sha256": "04cb38a3ad607d1cec515eb6d70eadf92defffa3dc14b4f5bd82ea5c3d05a499",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ff8d0e75-0ebe-4d08-83b7-899b11ee5d06",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.FR",
+      "key": "D.FR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.FR",
+      "at": "2026-10-04T21:26:41.275336+00:00",
+      "http_status": 200,
+      "packet_bytes": 1564616,
+      "packet_sha256": "6c04315c726282fb374440244f61013f00eb244d3efc1fef1850078f66cc954e",
+      "status": "history_response_replayed",
+      "n": 19704,
+      "first": "1945-01-20",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19704,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.FR?format=csv",
+          "received_at": "2026-10-04T21:26:42.574716+00:00",
+          "http_status": 200,
+          "wire_bytes": 128509,
+          "wire_sha256": "ab112c616380e62038820011da32dae9287f0a308e1370feabcd342dfb02d39a",
+          "bytes": 17494017,
+          "sha256": "2896b684dfc81a52fe90f5e8de53a6e136e69c1a799b3b08725fb106ec0ae570",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "adf7d537-5603-4d86-aa40-ec3204fbc1f3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.GB",
+      "key": "D.GB",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.GB",
+      "at": "2026-10-04T21:26:43.012732+00:00",
+      "http_status": 200,
+      "packet_bytes": 1821953,
+      "packet_sha256": "a7fe48219495929889583eb3e93c905dbaf74d1342112681d17916e8b384de18",
+      "status": "history_response_replayed",
+      "n": 23447,
+      "first": "1946-01-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23870,
+        "rejected_rows": 423
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.GB?format=csv",
+          "received_at": "2026-10-04T21:26:43.762304+00:00",
+          "http_status": 200,
+          "wire_bytes": 89379,
+          "wire_sha256": "081701fdf76c7e08af5b93860e8dfcc81bdf9daf84a6d0f013b16c8b89f178fd",
+          "bytes": 9088095,
+          "sha256": "fc18269e38796ad9b49886a8a93df7c5955cad0f99d39c520d57b40842513a7c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9dcc032f-131b-4b73-8293-8a9cd29ae172",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.GR",
+      "key": "D.GR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.GR",
+      "at": "2026-10-04T21:26:44.236397+00:00",
+      "http_status": 200,
+      "packet_bytes": 1359817,
+      "packet_sha256": "2fabcb852ec911a15658b146c773c6830852fa4058ab57e625528bd2576aae78",
+      "status": "history_response_replayed",
+      "n": 16316,
+      "first": "1956-05-01",
+      "last": "2000-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 16316,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.GR?format=csv",
+          "received_at": "2026-10-04T21:26:45.120940+00:00",
+          "http_status": 200,
+          "wire_bytes": 153188,
+          "wire_sha256": "eb9e9acd1e3188a559800b97489e2886f9950c9ea75f20a458a37e706cf121a1",
+          "bytes": 21353101,
+          "sha256": "95fe4ccf11b1fbffcc969198b891f21272f5c8a05d213cb6ab72c67ef4fd6360",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2e3200f4-5f96-4e1e-a00f-a7b3d48325da",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HK",
+      "key": "D.HK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.HK",
+      "at": "2026-10-04T21:26:45.244240+00:00",
+      "http_status": 200,
+      "packet_bytes": 835995,
+      "packet_sha256": "a3a695bb8a182e345c94185cc94454a989dee4cfc1cda9748b506d0268214d7b",
+      "status": "history_response_replayed",
+      "n": 7285,
+      "first": "1998-09-07",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10243,
+        "rejected_rows": 2958
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HK?format=csv",
+          "received_at": "2026-10-04T21:26:45.870975+00:00",
+          "http_status": 200,
+          "wire_bytes": 34841,
+          "wire_sha256": "09541a671986561c011e066a72418e9e1da99c03c80c53e1d385c6a4582ba7d6",
+          "bytes": 1547636,
+          "sha256": "9495251e2663410166a9bef889517c5add8d9d0d3f4ba139e34dd1c5157366d7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c125ec76-e145-44f2-97aa-10556e90ac87",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HR",
+      "key": "D.HR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.HR",
+      "at": "2026-10-04T21:26:46.687248+00:00",
+      "http_status": 200,
+      "packet_bytes": 1022506,
+      "packet_sha256": "3014a26a638819c03f6704a02d6e8d4e5b17fdfaa5e8cd9555a59184fa1b351c",
+      "status": "history_response_replayed",
+      "n": 5963,
+      "first": "1993-01-01",
+      "last": "2022-12-31",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10957,
+        "rejected_rows": 4994
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HR?format=csv",
+          "received_at": "2026-10-04T21:26:49.220101+00:00",
+          "http_status": 200,
+          "wire_bytes": 86940,
+          "wire_sha256": "5b768b87689c16dc3c3d66cc3bb023104a525596ac0dfc8685c3c39f2c764942",
+          "bytes": 9833158,
+          "sha256": "3be3489f5030c4c0d830d86b83289c31bfcffc9a077cbb66bfa65f6fe10ebe9c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e787f8ef-a9aa-4d9e-b2c7-dfa647bc0054",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HU",
+      "key": "D.HU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.HU",
+      "at": "2026-10-04T21:26:46.841473+00:00",
+      "http_status": 200,
+      "packet_bytes": 1207521,
+      "packet_sha256": "8f58c6871429dac67841e0387bc80be588ad3952857c87847aad5d14107e605d",
+      "status": "history_response_replayed",
+      "n": 10167,
+      "first": "1987-01-01",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 14485,
+        "rejected_rows": 4318
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HU?format=csv",
+          "received_at": "2026-10-04T21:26:47.965300+00:00",
+          "http_status": 200,
+          "wire_bytes": 55409,
+          "wire_sha256": "933c7d68298e3c9655bee40b8ec8a8f3e59b50807f1d2798e48d9a58d3cc372e",
+          "bytes": 5197044,
+          "sha256": "5cd6d46bed08c7daf9708f49a710436022dee9653cb39afaf116534e1ea6b6da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "53316bb5-0f19-4635-9582-c7a6019ac65d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ID",
+      "key": "D.ID",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.ID",
+      "at": "2026-10-04T21:26:49.055203+00:00",
+      "http_status": 200,
+      "packet_bytes": 664820,
+      "packet_sha256": "accf623dac805abebb58ea1d8f3e4a761b47926f3be2082843d23a666abb3408",
+      "status": "history_response_replayed",
+      "n": 5192,
+      "first": "2005-07-05",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 7721,
+        "rejected_rows": 2529
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ID?format=csv",
+          "received_at": "2026-10-04T21:26:49.789235+00:00",
+          "http_status": 200,
+          "wire_bytes": 42386,
+          "wire_sha256": "cad911dcb299597ddeab05e467b871943c7034ba98cb017be0243c5ffe8f50be",
+          "bytes": 5197491,
+          "sha256": "c3ae0449dced83d96ce56e02e6b66c6ad0285e51af7db4664221911defae8047",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "90361ae6-9770-480f-bfff-69cd12425d29",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IL",
+      "key": "D.IL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.IL",
+      "at": "2026-10-04T21:26:50.398768+00:00",
+      "http_status": 200,
+      "packet_bytes": 892574,
+      "packet_sha256": "b409e1bb2ef5153df621fe9b3cb0cec6593bdf66369eca6bdec9bc11cf7f1a46",
+      "status": "history_response_replayed",
+      "n": 12084,
+      "first": "1993-07-01",
+      "last": "2026-07-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 12084,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IL?format=csv",
+          "received_at": "2026-10-04T21:26:51.130496+00:00",
+          "http_status": 200,
+          "wire_bytes": 36382,
+          "wire_sha256": "f19a967052a2fec73166545456b4f964a99876e892997748d090e166084b5137",
+          "bytes": 1657435,
+          "sha256": "b8e5a2d243e67380bd5d3456c1739e59ee4fe8d8c8ab0f17480eaab39e827d75",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5752ef26-2ed4-4560-a3ed-4bdb1eb54c74",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IN",
+      "key": "D.IN",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.IN",
+      "at": "2026-10-04T21:26:50.662742+00:00",
+      "http_status": 200,
+      "packet_bytes": 1832060,
+      "packet_sha256": "aa7ac460ff90119e01297b605c9919d5b578a41d43f7d19f2df85d55f7112c00",
+      "status": "history_response_replayed",
+      "n": 21465,
+      "first": "1946-01-01",
+      "last": "2026-07-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23612,
+        "rejected_rows": 2147
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IN?format=csv",
+          "received_at": "2026-10-04T21:26:51.446230+00:00",
+          "http_status": 200,
+          "wire_bytes": 87679,
+          "wire_sha256": "8f38d45def960a0f34b4aed221e4613f5fd553317c80a4e0e009231f37f39800",
+          "bytes": 8500421,
+          "sha256": "0c6f8d2dec3c6821610f76570e890239064c827ba476aa685340fe6f7ed65d62",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3e63b699-afe6-4403-9be5-32f8f4ec9aad",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IS",
+      "key": "D.IS",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.IS",
+      "at": "2026-10-04T21:26:51.940361+00:00",
+      "http_status": 200,
+      "packet_bytes": 831039,
+      "packet_sha256": "02aae9061b0900a818357888b9ac2dca823bfc973b4b9c206e8c7a7d61ed4623",
+      "status": "history_response_replayed",
+      "n": 7152,
+      "first": "1998-03-02",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 9934,
+        "rejected_rows": 2782
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IS?format=csv",
+          "received_at": "2026-10-04T21:26:52.638584+00:00",
+          "http_status": 200,
+          "wire_bytes": 41262,
+          "wire_sha256": "b67b3a2066b181f00c07c6fe5b32d299f9f82bc3c1d30b38801ec2c3dd64f323",
+          "bytes": 4177959,
+          "sha256": "c94614a13f0986df3d950db7cdd368ac1ffafd12caeccd991fbf60c036025214",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "1d0d80d8-1fcc-4502-900d-c3fa9c08c624",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IT",
+      "key": "D.IT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.IT",
+      "at": "2026-10-04T21:26:52.802902+00:00",
+      "http_status": 200,
+      "packet_bytes": 1515000,
+      "packet_sha256": "3274c55bb7520e44a6d0623f4d836c6aebf30b8c6ceeee196bd6376a5bf2ce8c",
+      "status": "history_response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IT?format=csv",
+          "received_at": "2026-10-04T21:26:53.614681+00:00",
+          "http_status": 200,
+          "wire_bytes": 96933,
+          "wire_sha256": "28e3331f0c39a15b3beb69e15d6bd2cb28bf761396c89138c24b4e9277220979",
+          "bytes": 10894203,
+          "sha256": "20ef1a21bafc4ddc8fe5cae567e05f27785ab59dbcfaced7021f9b47934d1bad",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "54811488-9c23-4f73-828d-a39db690dbcd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.JP",
+      "key": "D.JP",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.JP",
+      "at": "2026-10-04T21:26:53.452347+00:00",
+      "http_status": 200,
+      "packet_bytes": 2311137,
+      "packet_sha256": "f36dc968943e815934f2e6e7ca76e8e6b03b8c94fe6a87446c0aa3732681b4e1",
+      "status": "history_response_replayed",
+      "n": 24894,
+      "first": "1946-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 24894,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.JP?format=csv",
+          "received_at": "2026-10-04T21:26:55.581127+00:00",
+          "http_status": 200,
+          "wire_bytes": 410124,
+          "wire_sha256": "3a118b972ac13dad2a45a4448f33734950330847eb1eea8adb66e0e8e8f927c0",
+          "bytes": 62368083,
+          "sha256": "fe0400080c14eb0de55d439d0660340d6aa89de7b75abab96dca13b5ae10a568",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3fd487fb-147e-4c4c-b3f1-cc0bf6bfeedd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.KR",
+      "key": "D.KR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.KR",
+      "at": "2026-10-04T21:26:54.940681+00:00",
+      "http_status": 200,
+      "packet_bytes": 511852,
+      "packet_sha256": "23c25472e5071b88049b119f1f8e898d7406c847782a55160bc649d09b4235fd",
+      "status": "history_response_replayed",
+      "n": 6815,
+      "first": "1999-05-06",
+      "last": "2026-08-28",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 6815,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.KR?format=csv",
+          "received_at": "2026-10-04T21:26:55.634520+00:00",
+          "http_status": 200,
+          "wire_bytes": 26019,
+          "wire_sha256": "dbe016671b2d16fc0731cf0f44dd121ae4a557c3b00ba0b72efe1f45521c3202",
+          "bytes": 2412408,
+          "sha256": "7854e57177b292f6bc22a8260e3295d92359fc3f199eab6f288e7e85c2399c7a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "16f53b5a-d9ee-45fa-ba45-b3794491dc67",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.KW",
+      "key": "D.KW",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.KW",
+      "at": "2026-10-04T21:26:56.252213+00:00",
+      "http_status": 200,
+      "packet_bytes": 654327,
+      "packet_sha256": "25f4886c700cff2364f124379e721206651ee26c18e9bd4e6d4334a51073fc39",
+      "status": "history_response_replayed",
+      "n": 8885,
+      "first": "2002-06-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 8885,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.KW?format=csv",
+          "received_at": "2026-10-04T21:26:56.948111+00:00",
+          "http_status": 200,
+          "wire_bytes": 26524,
+          "wire_sha256": "444ba208a5d074664bb1ba08267d8bd76b36a07e6326f2e9ac0f607b3d0b4c3f",
+          "bytes": 1410298,
+          "sha256": "c5109397aff2a6446a759333e3530a8a042d01822a986b21b0b57adc0e3d79a2",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5785d8b5-fe5d-4eed-b08a-766d303512e3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MA",
+      "key": "D.MA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.MA",
+      "at": "2026-10-04T21:26:57.684336+00:00",
+      "http_status": 200,
+      "packet_bytes": 695657,
+      "packet_sha256": "9baf0e77910cf0b62f81406e454f89db168d08d31fadb271eed95aa5d7b6707b",
+      "status": "history_response_replayed",
+      "n": 9371,
+      "first": "2001-01-01",
+      "last": "2026-08-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 9371,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MA?format=csv",
+          "received_at": "2026-10-04T21:26:58.419614+00:00",
+          "http_status": 200,
+          "wire_bytes": 28699,
+          "wire_sha256": "c0189633c28be5e9d0d402f4a0352e9a8014cd344d8a3f4099d035d335d9bd07",
+          "bytes": 1923945,
+          "sha256": "3a73e6200cb9ac2effddddd9af2b6c7223ea2f7b79ce25a24c8240e70f26e86d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "14574d21-8429-4f59-a81c-d63e0d72d999",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MK",
+      "key": "D.MK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.MK",
+      "at": "2026-10-04T21:26:58.971039+00:00",
+      "http_status": 200,
+      "packet_bytes": 807003,
+      "packet_sha256": "acad436475dd969fb99dc8cc2bbc020680e0f8f003d0632f55e500f11fb346d1",
+      "status": "history_response_replayed",
+      "n": 6691,
+      "first": "2000-01-01",
+      "last": "2026-09-22",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 9761,
+        "rejected_rows": 3070
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MK?format=csv",
+          "received_at": "2026-10-04T21:26:59.573296+00:00",
+          "http_status": 200,
+          "wire_bytes": 34155,
+          "wire_sha256": "ebf4ebca7d0bb24e19f7b33f882d2371e511ec63b5d5f2ff4073322b4c63697b",
+          "bytes": 1649572,
+          "sha256": "e24afaad16b9b0d2a4486d702aba3b81e243fa2e90da86690744137cd9632a7b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d4ebfadd-bcca-4422-a09f-d819aae020d3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MX",
+      "key": "D.MX",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.MX",
+      "at": "2026-10-04T21:26:59.149308+00:00",
+      "http_status": 200,
+      "packet_bytes": 804973,
+      "packet_sha256": "671f35c96bc958bbb48dc515cfb0bbd46032681f8102dd1f020afcb9e2c85cd3",
+      "status": "history_response_replayed",
+      "n": 9054,
+      "first": "1998-11-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10181,
+        "rejected_rows": 1127
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MX?format=csv",
+          "received_at": "2026-10-04T21:26:59.872169+00:00",
+          "http_status": 200,
+          "wire_bytes": 44168,
+          "wire_sha256": "c618fb1f8bf4c902274e2d41ead29cdece43e6bd37f1d41632cf51cdd1e1a017",
+          "bytes": 4156129,
+          "sha256": "7bf4f6aec77aabc6d1686dcc022a690f99ab06bb20bf0b044f6ae9575fe0e9e1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a5485ecd-4120-4dd6-a981-4657c58aa502",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MY",
+      "key": "D.MY",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.MY",
+      "at": "2026-10-04T21:27:00.186021+00:00",
+      "http_status": 200,
+      "packet_bytes": 890265,
+      "packet_sha256": "102fe06a8dd4389699bcafea0be325bcd0b11ec47c80de8a8ee9fe6853adb2dc",
+      "status": "history_response_replayed",
+      "n": 8584,
+      "first": "1995-11-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 11056,
+        "rejected_rows": 2472
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MY?format=csv",
+          "received_at": "2026-10-04T21:27:00.921682+00:00",
+          "http_status": 200,
+          "wire_bytes": 39877,
+          "wire_sha256": "500602c0154454e3059a864ce7cb38962ef333fe15472a37f4f44007e0337cb6",
+          "bytes": 3124845,
+          "sha256": "4218ff5f923a62d9b9e5230b5ddb331bdf003f3035f14ef19c30cb9796240d24",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b34493d3-e243-4178-a97f-cf118f8cd84c",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NL",
+      "key": "D.NL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.NL",
+      "at": "2026-10-04T21:27:00.601710+00:00",
+      "http_status": 200,
+      "packet_bytes": 1473567,
+      "packet_sha256": "4e4accb6220e9b00496f03c6c4b39c181d308b4128049a5dd0900177f0b77918",
+      "status": "history_response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NL?format=csv",
+          "received_at": "2026-10-04T21:27:01.336234+00:00",
+          "http_status": 200,
+          "wire_bytes": 70887,
+          "wire_sha256": "f25ad34cc2132f3f3ebc33f62c6fcf32e7646ae08aecb0e46516a2533735babb",
+          "bytes": 7461052,
+          "sha256": "054ce685803e65ccfae4cbcff5c7cd24ce828df81d0296493683ffb2fe6a3fe0",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4d3336ef-7f0f-4ea3-92fb-f9e35403ec66",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NO",
+      "key": "D.NO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.NO",
+      "at": "2026-10-04T21:27:01.770309+00:00",
+      "http_status": 200,
+      "packet_bytes": 1222015,
+      "packet_sha256": "273182dc74dc9d06adbc1c46f331276bddd7a8a99d39fbf178cd9769a1b8447d",
+      "status": "history_response_replayed",
+      "n": 10239,
+      "first": "1986-03-03",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 14781,
+        "rejected_rows": 4542
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NO?format=csv",
+          "received_at": "2026-10-04T21:27:02.552025+00:00",
+          "http_status": 200,
+          "wire_bytes": 51984,
+          "wire_sha256": "a52d8eb92486ea740c4fb6626b83756c00c27b4726f3c7e3dcc5b7f6a1e9bf5e",
+          "bytes": 3354060,
+          "sha256": "2f245a781c7afdd66a89eff7ad999a3f5b23c53b886c189846a237d29bfd220a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "dcd26285-ce82-4fb5-89bb-820c0e937555",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NZ",
+      "key": "D.NZ",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.NZ",
+      "at": "2026-10-04T21:27:02.604646+00:00",
+      "http_status": 200,
+      "packet_bytes": 1230697,
+      "packet_sha256": "1618c51961cc5bdff477fc07542ba34fde5d0bc566d8d9b112c26c3ebc5cc35e",
+      "status": "history_response_replayed",
+      "n": 12392,
+      "first": "1985-01-04",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 15218,
+        "rejected_rows": 2826
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NZ?format=csv",
+          "received_at": "2026-10-04T21:27:03.345782+00:00",
+          "http_status": 200,
+          "wire_bytes": 62413,
+          "wire_sha256": "2d2b21c7c4ac180e482924cf0357ae08d0e2b03e60a931e03a8a88dd3e6e3665",
+          "bytes": 5345623,
+          "sha256": "ee0264fde55066494cba8424a502f212d6f36772ef59109cfd96276377a5c003",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ba0ae286-44b5-402d-bf0b-132063ef1487",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PE",
+      "key": "D.PE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.PE",
+      "at": "2026-10-04T21:27:03.413100+00:00",
+      "http_status": 200,
+      "packet_bytes": 437851,
+      "packet_sha256": "aa0a75a80014fbe67f79a302c54b28fc615217c9ed78f53b82a7d3359e9789c3",
+      "status": "history_response_replayed",
+      "n": 5897,
+      "first": "2003-09-05",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 5899,
+        "rejected_rows": 2
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PE?format=csv",
+          "received_at": "2026-10-04T21:27:04.062004+00:00",
+          "http_status": 200,
+          "wire_bytes": 18846,
+          "wire_sha256": "e315b0c04096327cb8f4b9666c1065edab2314cf39ea9942a8da5ddf6bc9450b",
+          "bytes": 903734,
+          "sha256": "4a0c34fac5c703750b6c17e95ae37d39ab19f43f57640dbd9d012fb81b55d9a5",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "37d38fd4-2b82-4053-8523-88e85cbb5c18",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PH",
+      "key": "D.PH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.PH",
+      "at": "2026-10-04T21:27:04.367493+00:00",
+      "http_status": 200,
+      "packet_bytes": 1117244,
+      "packet_sha256": "88a05ce9b7666af70b26800103b8c35ddb5d2c414b5ee1f3b5ade34a851c493e",
+      "status": "history_response_replayed",
+      "n": 9497,
+      "first": "1986-01-02",
+      "last": "2026-09-27",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 13546,
+        "rejected_rows": 4049
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PH?format=csv",
+          "received_at": "2026-10-04T21:27:05.132544+00:00",
+          "http_status": 200,
+          "wire_bytes": 48101,
+          "wire_sha256": "8e33e3132842402c2ffa0393c13d9ad63de3a7631ae3c09b80233d0fa152947b",
+          "bytes": 3043704,
+          "sha256": "6052df87419969f51be9a49ff41b7568297eaf4bf53efd0dbe93a925931154ad",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b171c9fd-7164-4c00-adac-4dc56757f143",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PL",
+      "key": "D.PL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.PL",
+      "at": "2026-10-04T21:27:04.643608+00:00",
+      "http_status": 200,
+      "packet_bytes": 1036177,
+      "packet_sha256": "7120fc461ff7cf5db920f40db46597a2907699bec09c4dc81fd7376a6a086d6f",
+      "status": "history_response_replayed",
+      "n": 9097,
+      "first": "1993-01-16",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12310,
+        "rejected_rows": 3213
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PL?format=csv",
+          "received_at": "2026-10-04T21:27:05.382709+00:00",
+          "http_status": 200,
+          "wire_bytes": 64834,
+          "wire_sha256": "b51e3cff7a0b4aeaf7c8a0519d78f9ebeb9c950121d640ffe09761da1b08e05f",
+          "bytes": 7913450,
+          "sha256": "b2cf9ba9811a04073f5e3f9a61ac4482f3a70122ce1dd0594cee1d4f0258c6d7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "6904701e-a736-49b4-a08c-282ff298a9e7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PT",
+      "key": "D.PT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.PT",
+      "at": "2026-10-04T21:27:06.027112+00:00",
+      "http_status": 200,
+      "packet_bytes": 1520198,
+      "packet_sha256": "b90a5ce926311e540ab0c32b630202444029713734e45eff7712393cacaed239",
+      "status": "history_response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PT?format=csv",
+          "received_at": "2026-10-04T21:27:06.923315+00:00",
+          "http_status": 200,
+          "wire_bytes": 99693,
+          "wire_sha256": "8fed4675313c44e8ba9552e166af935d440ae567601c95e60be2248b33bcaf6d",
+          "bytes": 11767831,
+          "sha256": "47f03039bdcf64bda986630ef7d61be29da96dafa517d1dd4f374c30f1e202da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d01e5fe5-0f4e-42d8-b876-78a31293d0ea",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RO",
+      "key": "D.RO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.RO",
+      "at": "2026-10-04T21:27:06.445593+00:00",
+      "http_status": 200,
+      "packet_bytes": 714781,
+      "packet_sha256": "b094ac075107ae23c72ecd4deee642df900daf9501cbe24178d0eefa5980b932",
+      "status": "history_response_replayed",
+      "n": 5998,
+      "first": "2003-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8671,
+        "rejected_rows": 2673
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RO?format=csv",
+          "received_at": "2026-10-04T21:27:07.085634+00:00",
+          "http_status": 200,
+          "wire_bytes": 29555,
+          "wire_sha256": "35e62ced285cb6ecd18d30bc9edc372cb1dd542a7239740d2775d4b4a4eb30a4",
+          "bytes": 1250289,
+          "sha256": "36da9ea52cf8e0926368a9b1344bc9d5801fafc5e36f2cb7af504c06115ffb80",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d2247f0c-a73c-4d04-a224-667b77f53b58",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RS",
+      "key": "D.RS",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.RS",
+      "at": "2026-10-04T21:27:07.900828+00:00",
+      "http_status": 200,
+      "packet_bytes": 806866,
+      "packet_sha256": "4cbf738f718ff0fae978ef245c713e108d6da29bd462a42e13d055ac27ca7e8e",
+      "status": "history_response_replayed",
+      "n": 10828,
+      "first": "1997-01-01",
+      "last": "2026-09-11",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 10828,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RS?format=csv",
+          "received_at": "2026-10-04T21:27:08.658984+00:00",
+          "http_status": 200,
+          "wire_bytes": 33786,
+          "wire_sha256": "49c2ad006bdeb09b81c4b78871ff0931c223533f51803f30df7424e036ef365c",
+          "bytes": 2503000,
+          "sha256": "513f0e9c02cc390574a8ac908f0476d3740cec5311ab85f90bf76e85de32bef7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b0e9e1f5-d74e-42a2-a51a-5b86380c3ca0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RU",
+      "key": "D.RU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.RU",
+      "at": "2026-10-04T21:27:08.300963+00:00",
+      "http_status": 200,
+      "packet_bytes": 1055250,
+      "packet_sha256": "a98a6f3c2af1a82d2a5c34e84ee4827cffe42cb6b37b8f5e3dae058a5b5fa1b0",
+      "status": "history_response_replayed",
+      "n": 8754,
+      "first": "1992-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12691,
+        "rejected_rows": 3937
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RU?format=csv",
+          "received_at": "2026-10-04T21:27:08.995926+00:00",
+          "http_status": 200,
+          "wire_bytes": 43682,
+          "wire_sha256": "0630a1ea1f529718b33f56c62a1ee6ebeaf085579c205e470708183140d722a5",
+          "bytes": 2725144,
+          "sha256": "17885391d3805a97e16f67af87c72e2ef1e4c45026a84245377e0af0319c04f6",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "879335d0-5b39-47e8-befb-a1f02fe16985",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.SA",
+      "key": "D.SA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.SA",
+      "at": "2026-10-04T21:27:09.491354+00:00",
+      "http_status": 200,
+      "packet_bytes": 511830,
+      "packet_sha256": "8c5badc901f448c2e50021e5b8dacf9efa337a111815892f045b63f2a5d1a1d1",
+      "status": "history_response_replayed",
+      "n": 6965,
+      "first": "2000-01-31",
+      "last": "2026-09-13",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 6965,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.SA?format=csv",
+          "received_at": "2026-10-04T21:27:10.197048+00:00",
+          "http_status": 200,
+          "wire_bytes": 22352,
+          "wire_sha256": "9e57002f7f6a16371731da5e70ec07e290d9063df8e240889ceb4606712e0792",
+          "bytes": 1288377,
+          "sha256": "cada0b4421e2e6f68a68e33f41c878f21bb680577cf9d73fa57c2c750f0da10e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e4f5e83e-d19d-42e5-954c-8c7ba281ccbd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.SE",
+      "key": "D.SE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.SE",
+      "at": "2026-10-04T21:27:09.804405+00:00",
+      "http_status": 200,
+      "packet_bytes": 1775932,
+      "packet_sha256": "b90087fe9e6c1288ca50070966a609fb1a6182da8c40e856fe60b07367a9209a",
+      "status": "history_response_replayed",
+      "n": 20473,
+      "first": "1946-01-02",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 22811,
+        "rejected_rows": 2338
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.SE?format=csv",
+          "received_at": "2026-10-04T21:27:10.528741+00:00",
+          "http_status": 200,
+          "wire_bytes": 81494,
+          "wire_sha256": "7b4e0188faf39cf7a6aab9277d88c22a2620d4bb1e807b551026efdafe8170c5",
+          "bytes": 6331586,
+          "sha256": "e820f92c342081229cb8d51313655ad877883a03869c4d83a368762bfe338c0a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "09d4e740-0fb1-4834-949c-1b6d6a0f83f4",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.TH",
+      "key": "D.TH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.TH",
+      "at": "2026-10-04T21:27:10.838748+00:00",
+      "http_status": 200,
+      "packet_bytes": 617759,
+      "packet_sha256": "c6ef8264d105ba0aeeb3fb513a09a607613633abc0992367b3f27d82817f5d4b",
+      "status": "history_response_replayed",
+      "n": 8150,
+      "first": "2000-05-23",
+      "last": "2026-09-24",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8247,
+        "rejected_rows": 97
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.TH?format=csv",
+          "received_at": "2026-10-04T21:27:11.544483+00:00",
+          "http_status": 200,
+          "wire_bytes": 28746,
+          "wire_sha256": "06cdf35c9a756aed67af8323b96981976628c3df70c966f37aeeff85104def21",
+          "bytes": 2243309,
+          "sha256": "20ec6c4c02c7d392d7f9cc9a831378dcd7b3ae8c7ea8d1ca45e2af193db6d61f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "eba55351-27c3-4a99-a211-be2b51279907",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.TR",
+      "key": "D.TR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.TR",
+      "at": "2026-10-04T21:27:11.906852+00:00",
+      "http_status": 200,
+      "packet_bytes": 755913,
+      "packet_sha256": "b14bab118ff9b43c3d1d3ce55bb0b91bd9e1347958a2e3f590cb22b0dcbd85bf",
+      "status": "history_response_replayed",
+      "n": 6186,
+      "first": "2002-02-20",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8984,
+        "rejected_rows": 2798
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.TR?format=csv",
+          "received_at": "2026-10-04T21:27:12.651885+00:00",
+          "http_status": 200,
+          "wire_bytes": 36528,
+          "wire_sha256": "44e544a0832e0aa1e95bc7765bc34b01c405f5dc31a562d7fe2558d92b61d6a5",
+          "bytes": 3952478,
+          "sha256": "c5e723864b9f3f0757622d1445d6fb9d8a4cbcbd01b4bf0cec6a23171ecf7fbe",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "bdff8f73-a658-457f-bf84-ef1ae32a21a2",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.US",
+      "key": "D.US",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.US",
+      "at": "2026-10-04T21:27:12.292581+00:00",
+      "http_status": 200,
+      "packet_bytes": 2016467,
+      "packet_sha256": "27e82bdcdcefaa5a7ea2cf0136926df62ab67979c597903eed95e8fe3e09a3c8",
+      "status": "history_response_replayed",
+      "n": 26387,
+      "first": "1954-07-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 26387,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.US?format=csv",
+          "received_at": "2026-10-04T21:27:13.458600+00:00",
+          "http_status": 200,
+          "wire_bytes": 95576,
+          "wire_sha256": "d68e265a4a85ee04423097a1e63f5de3236ef7ee48da97d3fef851ff378385ce",
+          "bytes": 6906512,
+          "sha256": "b3aca93c0454181b7b56ddc77e57a6fcb3b6dccd9b9195a8b08819e6ecb1e6eb",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "355ca880-086b-4e89-b73f-97e63afd2666",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.XM",
+      "key": "D.XM",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.XM",
+      "at": "2026-10-04T21:27:13.404255+00:00",
+      "http_status": 200,
+      "packet_bytes": 776485,
+      "packet_sha256": "11489c9efda83e8caf9a94eaa6877a45cc7cbbeccadcde019919697d44fd40b7",
+      "status": "history_response_replayed",
+      "n": 10102,
+      "first": "1999-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10134,
+        "rejected_rows": 32
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.XM?format=csv",
+          "received_at": "2026-10-04T21:27:14.170821+00:00",
+          "http_status": 200,
+          "wire_bytes": 51392,
+          "wire_sha256": "b37f8af3a514395ae5a1686a0166a6ca9bea90a64759f92d30b719eae0a274f1",
+          "bytes": 5890534,
+          "sha256": "551fd43690cc0a523d32bd78e3fb0105c5221d6d15981d0ff6aad7879f55bfe1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f27acdcb-7ed7-405a-b64a-f12936c81f97",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ZA",
+      "key": "D.ZA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AD.ZA",
+      "at": "2026-10-04T21:27:14.951056+00:00",
+      "http_status": 200,
+      "packet_bytes": 1331601,
+      "packet_sha256": "d962a3d500bd9e68db6edecfd4ff222379911a8208c16b917d06d39499cc396f",
+      "status": "history_response_replayed",
+      "n": 13729,
+      "first": "1980-12-12",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 16726,
+        "rejected_rows": 2997
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Daily effective date",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ZA?format=csv",
+          "received_at": "2026-10-04T21:27:16.674712+00:00",
+          "http_status": 200,
+          "wire_bytes": 56900,
+          "wire_sha256": "32a3e30c4faf9496acd99c988e5de4d7eacbdfce4cc08938112bdc57e1f0b5f1",
+          "bytes": 2473272,
+          "sha256": "204b3775634fcc55722e042bfe36a96d762db2cb52fa68999acb826abdfa188f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "43150b94-fcdd-428e-b523-d99f0607ed80",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AR",
+      "key": "M.AR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.AR",
+      "at": "2026-10-04T21:27:15.107219+00:00",
+      "http_status": 200,
+      "packet_bytes": 36154,
+      "packet_sha256": "ba10786efe8fa38b6898e91f4ab1e651cc9906698970334c112ac36b002174de",
+      "status": "history_response_replayed",
+      "n": 386,
+      "first": "1993-04-01",
+      "last": "2025-06-01",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 387,
+        "rejected_rows": 1
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AR?format=csv",
+          "received_at": "2026-10-04T21:27:15.608903+00:00",
+          "http_status": 200,
+          "wire_bytes": 5142,
+          "wire_sha256": "db5e0cc728af563142c0c06f66b3d639b6c711311f3cb07b87b855abc4ae4bab",
+          "bytes": 497021,
+          "sha256": "7fc1a53f549167af6a6ff68ae1fe5e799d8f8827db3a6e482f9019f7627b653c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "878d547d-2b5a-430d-86e0-66996239d887",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AT",
+      "key": "M.AT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.AT",
+      "at": "2026-10-04T21:27:15.896165+00:00",
+      "http_status": 200,
+      "packet_bytes": 49022,
+      "packet_sha256": "914bb4bf62cfe9ea1d768704800123727c4f2dc90450afd817a75bebde9e083e",
+      "status": "history_response_replayed",
+      "n": 645,
+      "first": "1945-04-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 645,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AT?format=csv",
+          "received_at": "2026-10-04T21:27:16.401470+00:00",
+          "http_status": 200,
+          "wire_bytes": 3300,
+          "wire_sha256": "7d011b5a0452e228189eec3a646981aa806c7ef7fbbe6ce4d090c2f25f8cf989",
+          "bytes": 319238,
+          "sha256": "03b122f1cbe23411296bc692fcb30e9fc3da74c5689dcfc539b5a3757464ec2a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f62530fe-9400-4522-b875-245d197e3ced",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AU",
+      "key": "M.AU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.AU",
+      "at": "2026-10-04T21:27:16.711720+00:00",
+      "http_status": 200,
+      "packet_bytes": 48978,
+      "packet_sha256": "ab98469291a594b5558315c18d7aba8ba5e64c1b6a438a249b8d1763b59ff64d",
+      "status": "history_response_replayed",
+      "n": 605,
+      "first": "1976-04-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 605,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AU?format=csv",
+          "received_at": "2026-10-04T21:27:17.217806+00:00",
+          "http_status": 200,
+          "wire_bytes": 4651,
+          "wire_sha256": "1abbea8b86d8bce4331aceb400e3989eac5982b94f0e1a687470eb29cddd09fe",
+          "bytes": 418466,
+          "sha256": "20ac145f543623f88525c39c11620f54c83f46ad1fba7cb25323f6e54dc97bbe",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "57655212-e86f-47f5-b97a-39f385c80c2d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.BE",
+      "key": "M.BE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.BE",
+      "at": "2026-10-04T21:27:17.556973+00:00",
+      "http_status": 200,
+      "packet_bytes": 49636,
+      "packet_sha256": "6b7a811c10ea37e3fb33ef56be96cdf88144822cbe849e11621c90c697b99ac6",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.BE?format=csv",
+          "received_at": "2026-10-04T21:27:18.036066+00:00",
+          "http_status": 200,
+          "wire_bytes": 3432,
+          "wire_sha256": "9683cf57c19ac56994a43b4d7b158009366277eaa7c182edf57328a596e4e442",
+          "bytes": 279992,
+          "sha256": "ae3b6fb5842c92f8858560cc596e630d8a6e2dcbeda6a7618413af20ad18af46",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9418d9db-2303-4213-ab4f-ca0246b75ddb",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.BR",
+      "key": "M.BR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.BR",
+      "at": "2026-10-04T21:27:17.678603+00:00",
+      "http_status": 200,
+      "packet_bytes": 42535,
+      "packet_sha256": "0e6950050ce9d41d7b800107c8fd4253e1b7b73079eb62e74a6b4e1e8cddad4e",
+      "status": "history_response_replayed",
+      "n": 483,
+      "first": "1986-06-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 483,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.BR?format=csv",
+          "received_at": "2026-10-04T21:27:18.196703+00:00",
+          "http_status": 200,
+          "wire_bytes": 5037,
+          "wire_sha256": "f7d2fa7edfd8211e254bb2e63e43d18f70c1d8b4a47350534033fa9ca6bfc40c",
+          "bytes": 428759,
+          "sha256": "c631e814f411faca28c023cf7adc5fca631f0ff71424ab310f38d2296718235a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f9ce6dd4-435f-4249-9098-e296310811ce",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CA",
+      "key": "M.CA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CA",
+      "at": "2026-10-04T21:27:18.330389+00:00",
+      "http_status": 200,
+      "packet_bytes": 62959,
+      "packet_sha256": "32c7b55b364d8461a452278c835e6c22eb1edc8993c63fce1d086e051344b6f5",
+      "status": "history_response_replayed",
+      "n": 794,
+      "first": "1960-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 794,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CA?format=csv",
+          "received_at": "2026-10-04T21:27:18.826245+00:00",
+          "http_status": 200,
+          "wire_bytes": 5826,
+          "wire_sha256": "f7683d4fab98adc78280a26c2b90e2c1b9ebe2de8f9ce0313cfed628ea256425",
+          "bytes": 495005,
+          "sha256": "62d96173e0f1a2b848e494eeb332fd2863b4ec4b0ff8a2f0aec679880059b6b4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "0bbe4038-9ddd-464b-b312-423eae45a1b4",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CH",
+      "key": "M.CH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CH",
+      "at": "2026-10-04T21:27:18.526140+00:00",
+      "http_status": 200,
+      "packet_bytes": 71510,
+      "packet_sha256": "549336d64ed811483d1b6b3b1d10f219c659dfbb7c548e8ead3c818228d1693d",
+      "status": "history_response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CH?format=csv",
+          "received_at": "2026-10-04T21:27:19.013805+00:00",
+          "http_status": 200,
+          "wire_bytes": 4132,
+          "wire_sha256": "784f94264e5df455ef64e0edc0b201e7a5c8a14fa442856635464548cfdea39d",
+          "bytes": 267126,
+          "sha256": "767675616cda8f9f27e82482b4e2f29db9822c0b1ed382a5ef09ae1f8c831f58",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ff30e442-2c96-4d61-87f2-b8b527067f33",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CL",
+      "key": "M.CL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CL",
+      "at": "2026-10-04T21:27:19.135797+00:00",
+      "http_status": 200,
+      "packet_bytes": 28523,
+      "packet_sha256": "141053a69a7e9e76cf7852d775337e92d68010f0934c24fd06aaa80780b16546",
+      "status": "history_response_replayed",
+      "n": 355,
+      "first": "1997-02-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 355,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CL?format=csv",
+          "received_at": "2026-10-04T21:27:19.616158+00:00",
+          "http_status": 200,
+          "wire_bytes": 2164,
+          "wire_sha256": "7ed26e2f025e984b7ff3d9cb3cfa9f72903b9b36c3c2a948190a4366bd2104c3",
+          "bytes": 151325,
+          "sha256": "b148cf45792f5d4773d3fda1d41ca0465957f528ab9230345a7de2b907651cca",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e9793301-e8d1-4be7-ad02-aab6c6e5860a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CN",
+      "key": "M.CN",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CN",
+      "at": "2026-10-04T21:27:19.314007+00:00",
+      "http_status": 200,
+      "packet_bytes": 28672,
+      "packet_sha256": "46bb0da1abf4390dc69c0c7abe6353593db819f6a89738cdfd6801050e17f000",
+      "status": "history_response_replayed",
+      "n": 368,
+      "first": "1996-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 368,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CN?format=csv",
+          "received_at": "2026-10-04T21:27:19.811340+00:00",
+          "http_status": 200,
+          "wire_bytes": 1582,
+          "wire_sha256": "a53dd62508edffa16fd9916f650223752b85f6f18a1fcf1272597949c1f58b81",
+          "bytes": 86872,
+          "sha256": "b6fe8244f808152abe4e6e1d519e4c2e50314034f7b9adf46fd3aec07fcfbc3e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4cace171-6c1d-4b2d-a75a-8a30d2cca812",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CO",
+      "key": "M.CO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CO",
+      "at": "2026-10-04T21:27:19.905305+00:00",
+      "http_status": 200,
+      "packet_bytes": 30185,
+      "packet_sha256": "9d7b42476f75c043351eb84ee66d63492ea919110c41807b628e86d15f07c3e7",
+      "status": "history_response_replayed",
+      "n": 377,
+      "first": "1995-04-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 377,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CO?format=csv",
+          "received_at": "2026-10-04T21:27:20.381044+00:00",
+          "http_status": 200,
+          "wire_bytes": 2201,
+          "wire_sha256": "fe67aee893eabf4826a1a3b40439d155d30400f38d67846044bc43e1002593be",
+          "bytes": 123090,
+          "sha256": "56910124f444a14cdfcdcec395539c6b30bb9e26309a28978c8d8d277074e8c7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "798cb877-2b02-4245-9b45-074a48000fb6",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CZ",
+      "key": "M.CZ",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.CZ",
+      "at": "2026-10-04T21:27:20.079077+00:00",
+      "http_status": 200,
+      "packet_bytes": 29685,
+      "packet_sha256": "eacd0f3425ac945786ba16df579329285118a5a42c247f5e63d99b9f63b19daa",
+      "status": "history_response_replayed",
+      "n": 369,
+      "first": "1995-12-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 369,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CZ?format=csv",
+          "received_at": "2026-10-04T21:27:20.571575+00:00",
+          "http_status": 200,
+          "wire_bytes": 2189,
+          "wire_sha256": "0cffd2ce9f02b512eeaa492a39c722b79515f4890ac8eb83689c8d07e834c4cb",
+          "bytes": 170721,
+          "sha256": "a4fefdd1a60e363c091c77c55b53a69318553aa5ca94305e363997b76330f685",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "270d81ce-f2fa-447e-8f6a-da1f4114d2e0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.DE",
+      "key": "M.DE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.DE",
+      "at": "2026-10-04T21:27:20.659633+00:00",
+      "http_status": 200,
+      "packet_bytes": 48067,
+      "packet_sha256": "d328b8a04a47cc23b697b16fb48ac43fed150e626809fe1f7a7a8d3d7e50f9b9",
+      "status": "history_response_replayed",
+      "n": 606,
+      "first": "1948-07-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 606,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.DE?format=csv",
+          "received_at": "2026-10-04T21:27:21.178784+00:00",
+          "http_status": 200,
+          "wire_bytes": 4446,
+          "wire_sha256": "97003ac1cece2dc60a3608f1aa0b34618a7f8be29c78da813005c92f961addeb",
+          "bytes": 457096,
+          "sha256": "cbb0a693f17e0edfa762eec6ac6dc4787b7ef7699bbd02e7f40ba15d4efbf0f4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3d9895bd-3005-4a7a-bef8-44500ba01d83",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.DK",
+      "key": "M.DK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.DK",
+      "at": "2026-10-04T21:27:20.846517+00:00",
+      "http_status": 200,
+      "packet_bytes": 71802,
+      "packet_sha256": "fc62c121b29d395b7da5b389550ef2a0c5d739486a24baa101625bc68c53854f",
+      "status": "history_response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.DK?format=csv",
+          "received_at": "2026-10-04T21:27:21.375117+00:00",
+          "http_status": 200,
+          "wire_bytes": 4472,
+          "wire_sha256": "630355765447b12caab9d61eb7a8faa4801b77359e01d97d1e289ea097aa9a73",
+          "bytes": 284509,
+          "sha256": "5afd709703394a238b2b60e0e81716dcb5efa4d816b616ff9aab1007f037ce25",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "726dc60f-f323-4e34-bbf1-c9865d5aeb09",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ES",
+      "key": "M.ES",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.ES",
+      "at": "2026-10-04T21:27:21.494886+00:00",
+      "http_status": 200,
+      "packet_bytes": 51477,
+      "packet_sha256": "3fcba07c796cf2e39e28cc018374c53fe72b97e858d6a029b096d674b26ab45d",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ES?format=csv",
+          "received_at": "2026-10-04T21:27:22.015921+00:00",
+          "http_status": 200,
+          "wire_bytes": 4553,
+          "wire_sha256": "bd76c7654856de98b5dca71f7e211598695a3e2dd4aec196ba51ce46645af5d3",
+          "bytes": 402474,
+          "sha256": "5d4cf2935a1a3851be42144195fb13b6ed6cc8f1c16053b028bcae2a09f61956",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "57aebf9e-e5dd-4e65-8525-8f81329c07b9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.FR",
+      "key": "M.FR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.FR",
+      "at": "2026-10-04T21:27:21.716916+00:00",
+      "http_status": 200,
+      "packet_bytes": 53073,
+      "packet_sha256": "dee5f377a8ef00a3bfcad9f87469a7dc7c4dc89d64c787911ebd7903ad41497d",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.FR?format=csv",
+          "received_at": "2026-10-04T21:27:22.252304+00:00",
+          "http_status": 200,
+          "wire_bytes": 5608,
+          "wire_sha256": "ffc09cb50359dca5461f92d36c004bded0fde5cc2332b10c7daa59cfa431438c",
+          "bytes": 574821,
+          "sha256": "a37a81047ee4aae0a55aa8d70ee71a2d93481e6434056bc5e0e677d31b69c1de",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "56021a06-8493-4105-85bc-c5405c484e75",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.GB",
+      "key": "M.GB",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.GB",
+      "at": "2026-10-04T21:27:22.319419+00:00",
+      "http_status": 200,
+      "packet_bytes": 72779,
+      "packet_sha256": "a642e80446dc544ca820379de12b26df3a82af9fea1881a03eede027879c3421",
+      "status": "history_response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.GB?format=csv",
+          "received_at": "2026-10-04T21:27:23.412032+00:00",
+          "http_status": 200,
+          "wire_bytes": 4662,
+          "wire_sha256": "15a0745fa5949c7c37aadf2fd75e1f4881014b6a305772c98b92f49fce8426e7",
+          "bytes": 367939,
+          "sha256": "4bc6c599d477053711d66ee5fd55890f1db68fdb2b2d2602a55ca045f7c1fe48",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "208f9ab6-7304-4459-8f93-8a687b6154bd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.GR",
+      "key": "M.GR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.GR",
+      "at": "2026-10-04T21:27:22.574370+00:00",
+      "http_status": 200,
+      "packet_bytes": 47213,
+      "packet_sha256": "92c8c8ce97132df51e87bb31fee13c572b449790b630e36b77552aa53dadb6aa",
+      "status": "history_response_replayed",
+      "n": 536,
+      "first": "1956-05-01",
+      "last": "2000-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 536,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.GR?format=csv",
+          "received_at": "2026-10-04T21:27:24.128966+00:00",
+          "http_status": 200,
+          "wire_bytes": 6391,
+          "wire_sha256": "d4b042a652c1b78b440e31adf09961bf8d0a83fc40260b4bf827c8cb125c4b28",
+          "bytes": 701096,
+          "sha256": "81b81459cda7b012f4afd7b8696e17948e1cb34819a0063c96b7c46b645af43d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a9a62edf-2bca-40b5-bf0f-c7befd5a19f9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HK",
+      "key": "M.HK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.HK",
+      "at": "2026-10-04T21:27:23.764817+00:00",
+      "http_status": 200,
+      "packet_bytes": 26063,
+      "packet_sha256": "ac648fc31d5e7bacd511dabb870dbe59e2aa80eabaaf00b6d3d86248a8bb7f26",
+      "status": "history_response_replayed",
+      "n": 336,
+      "first": "1998-09-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 336,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HK?format=csv",
+          "received_at": "2026-10-04T21:27:24.246899+00:00",
+          "http_status": 200,
+          "wire_bytes": 1494,
+          "wire_sha256": "4ba008b60b31e7bcfc8436cee5c65af43b2b0d6a2effa01be1b9f9b23b748f5c",
+          "bytes": 50614,
+          "sha256": "1d198f8dc77d8ea35b4b6fe0540fb8059daf225061a23c3c8620645469c477a1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ccdda20a-98aa-4a12-b595-7923f45f6ccd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HR",
+      "key": "M.HR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.HR",
+      "at": "2026-10-04T21:27:24.432624+00:00",
+      "http_status": 200,
+      "packet_bytes": 33448,
+      "packet_sha256": "67b5074d74e435b929553c95e2a8d91bdd6ebc8980dfc212e202871dbad2e995",
+      "status": "history_response_replayed",
+      "n": 308,
+      "first": "1993-01-01",
+      "last": "2022-12-01",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 360,
+        "rejected_rows": 52
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HR?format=csv",
+          "received_at": "2026-10-04T21:27:24.973328+00:00",
+          "http_status": 200,
+          "wire_bytes": 3969,
+          "wire_sha256": "cf38e4216c5ff9eb66549a2edbc3d17d4ecb25bbeb44b4a78f29b2379ed854d4",
+          "bytes": 322907,
+          "sha256": "b45916d33cbfa7105db1091633af486fee81d4c01d7455e180e58f107bf2399d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c56afd1e-0c93-4ab9-84bf-d24c3e46fa0e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HU",
+      "key": "M.HU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.HU",
+      "at": "2026-10-04T21:27:24.509703+00:00",
+      "http_status": 200,
+      "packet_bytes": 37238,
+      "packet_sha256": "1836d279c088b9b9f4a7310509f1fef702907b81456eadddd073a402ad5ce899",
+      "status": "history_response_replayed",
+      "n": 476,
+      "first": "1987-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 476,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HU?format=csv",
+          "received_at": "2026-10-04T21:27:24.984859+00:00",
+          "http_status": 200,
+          "wire_bytes": 2650,
+          "wire_sha256": "c9776ff8794c1de572ae9fa04355c704a81eb01feffb4f83046afb65d2684d50",
+          "bytes": 170425,
+          "sha256": "21993335cefeb6e3875b283f523ef1f1b590ba42a8fe283f1a34e7ab54e39185",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "46e083a0-2167-43a5-97ad-655d59d24c63",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ID",
+      "key": "M.ID",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.ID",
+      "at": "2026-10-04T21:27:25.242552+00:00",
+      "http_status": 200,
+      "packet_bytes": 22250,
+      "packet_sha256": "531bfb75252ee300d18fdfea5ba906d9c05574bd4a9c4fb2f37c5664bcb286fb",
+      "status": "history_response_replayed",
+      "n": 254,
+      "first": "2005-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 254,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ID?format=csv",
+          "received_at": "2026-10-04T21:27:25.770893+00:00",
+          "http_status": 200,
+          "wire_bytes": 2202,
+          "wire_sha256": "01d69f515d339bf78eb80b3de2887e65e35ce413efca4412093c24a844239fd3",
+          "bytes": 170900,
+          "sha256": "83d3fc5a295c190363330b690978963ddd562cad03286ada8f3ac235669ffa69",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "bc1b4350-f4a3-4dbb-bf8a-5a709a28b2be",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IL",
+      "key": "M.IL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.IL",
+      "at": "2026-10-04T21:27:25.265006+00:00",
+      "http_status": 200,
+      "packet_bytes": 30442,
+      "packet_sha256": "de8f1486553f63369b4a2f837bf9250497f737e741b9eb65878c0150b746a1ab",
+      "status": "history_response_replayed",
+      "n": 397,
+      "first": "1993-07-01",
+      "last": "2026-07-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 397,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IL?format=csv",
+          "received_at": "2026-10-04T21:27:25.755761+00:00",
+          "http_status": 200,
+          "wire_bytes": 1827,
+          "wire_sha256": "2a1eec35acc7af820171684ed8b14e5767c04fdd481d9c817187739302674075",
+          "bytes": 54213,
+          "sha256": "a0f906db0f27387c0651c61020ed10965093076c4dd52755b8bc2ed61223c167",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c5ba1ebf-f424-4292-a5a5-263db70ee5e8",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IN",
+      "key": "M.IN",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.IN",
+      "at": "2026-10-04T21:27:26.026823+00:00",
+      "http_status": 200,
+      "packet_bytes": 71388,
+      "packet_sha256": "222646e0ddd827bd7ead5e9a07b5ad493f5e2949fd7851e43c66366869db44ad",
+      "status": "history_response_replayed",
+      "n": 966,
+      "first": "1946-01-01",
+      "last": "2026-06-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 966,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IN?format=csv",
+          "received_at": "2026-10-04T21:27:26.534110+00:00",
+          "http_status": 200,
+          "wire_bytes": 4351,
+          "wire_sha256": "b3ac6a84e182f528566f49e3ab6cce8209433c81dc59e9f4c9c8b582dcfe554b",
+          "bytes": 346844,
+          "sha256": "0c8f93a8b06dd07384c24d4a26568a9ebb6cb08e7b92014cb289e7aa364d8515",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "acde6aeb-345b-4194-9f2c-0a267eea3b95",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IS",
+      "key": "M.IS",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.IS",
+      "at": "2026-10-04T21:27:26.039784+00:00",
+      "http_status": 200,
+      "packet_bytes": 28067,
+      "packet_sha256": "e436e37978e3aeb21c24f4a675a1f8eb68319ddcdac44faac48041c88c86719c",
+      "status": "history_response_replayed",
+      "n": 342,
+      "first": "1998-03-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 342,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IS?format=csv",
+          "received_at": "2026-10-04T21:27:26.582465+00:00",
+          "http_status": 200,
+          "wire_bytes": 2167,
+          "wire_sha256": "4e315620f0a43ed54df52884b2b420288aef6fa8e161ec9f62a7e72718f0b41d",
+          "bytes": 143724,
+          "sha256": "2530c006e639cd38de161d18a1a9691c47de667f4e1f5263047f4d7df4d6c95b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "dc4bf0f0-86b8-4607-908c-a4c9ff1b3742",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IT",
+      "key": "M.IT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.IT",
+      "at": "2026-10-04T21:27:26.841064+00:00",
+      "http_status": 200,
+      "packet_bytes": 50542,
+      "packet_sha256": "d14e9a5a20cbdc952d3e038355a63ab8fe430ecb0aad4033617de96982f8c7e8",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IT?format=csv",
+          "received_at": "2026-10-04T21:27:27.369992+00:00",
+          "http_status": 200,
+          "wire_bytes": 4180,
+          "wire_sha256": "9444c8e1f10c6655be9e68dbdb16a3cefbdfa07aad783923cea24f210acf6d5d",
+          "bytes": 357435,
+          "sha256": "d3c8132aa1230fe91a7b9834635849d3068b84675914ca30fc23bbcd1091a07e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d094b2b2-1493-4fd2-baae-1feb6465234e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.JP",
+      "key": "M.JP",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.JP",
+      "at": "2026-10-04T21:27:26.874333+00:00",
+      "http_status": 200,
+      "packet_bytes": 81456,
+      "packet_sha256": "c763a0e19b5401987fd2425ee6e81401a461aa52cdd274303d37487771e96f81",
+      "status": "history_response_replayed",
+      "n": 852,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 852,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.JP?format=csv",
+          "received_at": "2026-10-04T21:27:27.525901+00:00",
+          "http_status": 200,
+          "wire_bytes": 15549,
+          "wire_sha256": "c9917b951e48ece169f27cf28ae5ea196976c9c413d04f277d829f5dcadf99b0",
+          "bytes": 2133881,
+          "sha256": "466b12ceac2f703da3085445e338bbf2476ea98d55b26fe0fb3e843184e2780e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2e3eea84-9b88-4ce6-914a-dbe643756af3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.KR",
+      "key": "M.KR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.KR",
+      "at": "2026-10-04T21:27:27.708491+00:00",
+      "http_status": 200,
+      "packet_bytes": 26168,
+      "packet_sha256": "b13eb6269bdb089d11eade10b9ba3e07febcb117e6aa126047b42c6811d96705",
+      "status": "history_response_replayed",
+      "n": 327,
+      "first": "1999-05-01",
+      "last": "2026-07-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 327,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.KR?format=csv",
+          "received_at": "2026-10-04T21:27:28.186763+00:00",
+          "http_status": 200,
+          "wire_bytes": 1831,
+          "wire_sha256": "77b2e4ee2120cc2f01994021ea772aa77ad2e2e89691f6d42fd6b311faf40e89",
+          "bytes": 115578,
+          "sha256": "617e211dae7c6c55caefc521561d9e15a9929999f1479fa92a3b1a2eaef6c898",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e81ddc61-80ae-4fc3-b36d-ed2cf4a1c18a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.KW",
+      "key": "M.KW",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.KW",
+      "at": "2026-10-04T21:27:27.898751+00:00",
+      "http_status": 200,
+      "packet_bytes": 22746,
+      "packet_sha256": "18927156b000bf7ce1d78c496ca362208218206c8b33a401d728d74b320829e6",
+      "status": "history_response_replayed",
+      "n": 291,
+      "first": "2002-06-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 291,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.KW?format=csv",
+          "received_at": "2026-10-04T21:27:28.402042+00:00",
+          "http_status": 200,
+          "wire_bytes": 1241,
+          "wire_sha256": "835fdd5fdc9d3320fe2bf2916b7396338572cdddd8badc4a43f424210d13f04d",
+          "bytes": 46059,
+          "sha256": "463acf93cf79786f03dddc6cb8a19077398860924fb6f95fb224b28b9402c148",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "359976b3-9710-4fe2-af87-99c07b32e165",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MA",
+      "key": "M.MA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.MA",
+      "at": "2026-10-04T21:27:28.463498+00:00",
+      "http_status": 200,
+      "packet_bytes": 24183,
+      "packet_sha256": "a27141739974d1dc11c968d40102ebf3635c554b05963286880cbcd8e2546ae6",
+      "status": "history_response_replayed",
+      "n": 308,
+      "first": "2001-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 308,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MA?format=csv",
+          "received_at": "2026-10-04T21:27:28.951666+00:00",
+          "http_status": 200,
+          "wire_bytes": 1310,
+          "wire_sha256": "1354d1e9acbbb0916a834a088b8d9b1de1e80109719b15d9265b0128350a009f",
+          "bytes": 63084,
+          "sha256": "057b1d7b94bdb1d40c2f5e4bdd4bf3b74606eaa67442ab610158530bf1c9abb4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2d474539-1e14-49f8-bfb0-eb67dec077a0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MK",
+      "key": "M.MK",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.MK",
+      "at": "2026-10-04T21:27:28.687482+00:00",
+      "http_status": 200,
+      "packet_bytes": 25245,
+      "packet_sha256": "349c502623c4c77eba1d750d8b52ab8758e4977d4e843931a5a97d84b9f51729",
+      "status": "history_response_replayed",
+      "n": 320,
+      "first": "2000-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 320,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MK?format=csv",
+          "received_at": "2026-10-04T21:27:29.174047+00:00",
+          "http_status": 200,
+          "wire_bytes": 1612,
+          "wire_sha256": "41385b5699762beb4b2d7612aaa0699946b81770cd01d8ba6a95a1bbd560a22c",
+          "bytes": 53906,
+          "sha256": "7387bca951e8062a4822a8625b072d89d25e95004145b81922b8649c2532ac04",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b7707b9c-43a8-45a0-9e5e-7d0dc97d4d1f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MX",
+      "key": "M.MX",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.MX",
+      "at": "2026-10-04T21:27:29.233718+00:00",
+      "http_status": 200,
+      "packet_bytes": 27457,
+      "packet_sha256": "37908391c7d624ea62206506e201f09027e92f629b3b164fb4ae2d474992c269",
+      "status": "history_response_replayed",
+      "n": 334,
+      "first": "1998-11-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 334,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MX?format=csv",
+          "received_at": "2026-10-04T21:27:29.803261+00:00",
+          "http_status": 200,
+          "wire_bytes": 2270,
+          "wire_sha256": "b56507f4cec10df8b2d5ac32eb77d078baa79ea651298d642f4ac621980f757c",
+          "bytes": 136208,
+          "sha256": "1d62aa5a53746ce044592edea520c4d4ce2b65d1e3d5c4f7497fa281f977a3da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e036dc15-87d3-4ede-ba1b-9e13d4c6d276",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MY",
+      "key": "M.MY",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.MY",
+      "at": "2026-10-04T21:27:29.462563+00:00",
+      "http_status": 200,
+      "packet_bytes": 29018,
+      "packet_sha256": "0fd27b1ac65a83f6493c355e781a661db29127a6486fea96d151c4a8ec1d0423",
+      "status": "history_response_replayed",
+      "n": 370,
+      "first": "1995-11-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 370,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MY?format=csv",
+          "received_at": "2026-10-04T21:27:29.937820+00:00",
+          "http_status": 200,
+          "wire_bytes": 1933,
+          "wire_sha256": "352d82ebfefd1113c8b5411fba152035a52a179803a7ee810fddc57918feb13d",
+          "bytes": 104335,
+          "sha256": "766d2ad943da44f3444d20ff2318aff9483f3a3c69cfa7cbc183603feb50c492",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "8dd4979e-94b7-4998-80cb-8c9785ae3f85",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NL",
+      "key": "M.NL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.NL",
+      "at": "2026-10-04T21:27:30.076461+00:00",
+      "http_status": 200,
+      "packet_bytes": 48872,
+      "packet_sha256": "949c5299c29967e2ecb8809709b03c534b93de0ed04354785a675b10a73889c5",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NL?format=csv",
+          "received_at": "2026-10-04T21:27:30.612426+00:00",
+          "http_status": 200,
+          "wire_bytes": 3210,
+          "wire_sha256": "aefafb13e033f2786a391c15a8d8549cd83b40091ed6fb9d56f7e54e4f47f380",
+          "bytes": 244647,
+          "sha256": "7fa984640641a217db31c03ab962a5f48d9f839c88f72efb3796c3b6c2f81d9b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "598b7621-0a8d-4815-9906-9208f888de3b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NO",
+      "key": "M.NO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.NO",
+      "at": "2026-10-04T21:27:30.204818+00:00",
+      "http_status": 200,
+      "packet_bytes": 36734,
+      "packet_sha256": "70c4966bf45b08c90c1df352814a795c9bbf52c7a4fdfe969511229fc5bc3bbe",
+      "status": "history_response_replayed",
+      "n": 486,
+      "first": "1986-03-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 486,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NO?format=csv",
+          "received_at": "2026-10-04T21:27:30.728340+00:00",
+          "http_status": 200,
+          "wire_bytes": 2073,
+          "wire_sha256": "ff3b05f0b2a2d145f0402cae67c4bd084f8f2d422d69edfa9227ac930ab269e6",
+          "bytes": 109925,
+          "sha256": "73e6741dd85bce8022bdfeab2cd0a650cd6335d34692c1b0984398e52f91db75",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2f5c018e-fea1-4be2-9526-3f21eae69f9c",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NZ",
+      "key": "M.NZ",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.NZ",
+      "at": "2026-10-04T21:27:30.923009+00:00",
+      "http_status": 200,
+      "packet_bytes": 39184,
+      "packet_sha256": "141d51c8f246876092a08fff501a0abfd5d9f77892b5f7149063cc6aecf8c87c",
+      "status": "history_response_replayed",
+      "n": 500,
+      "first": "1985-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 500,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NZ?format=csv",
+          "received_at": "2026-10-04T21:27:31.435951+00:00",
+          "http_status": 200,
+          "wire_bytes": 2914,
+          "wire_sha256": "c2c2c06691bd66f286add17d91e5973f11a31406717fc9bf8539227b8ecf7046",
+          "bytes": 175305,
+          "sha256": "e06c71bffabae1edb9047ef398def940c8d3248b3d7a9b3c2a07b89750e79f9d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "09c1eb4c-ca26-4167-b7bf-d524b7cbd9f5",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PE",
+      "key": "M.PE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.PE",
+      "at": "2026-10-04T21:27:31.017654+00:00",
+      "http_status": 200,
+      "packet_bytes": 21907,
+      "packet_sha256": "3e86d1b15810c4c8b3bf5de5c0b52233713a85d5ebd4be14f33bd558405fdf1a",
+      "status": "history_response_replayed",
+      "n": 276,
+      "first": "2003-09-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 276,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PE?format=csv",
+          "received_at": "2026-10-04T21:27:31.541003+00:00",
+          "http_status": 200,
+          "wire_bytes": 1294,
+          "wire_sha256": "c0fb9a09a70f1403e0e78bde1f52558c72f6cfc80f858e594751bc38a14ba47d",
+          "bytes": 42162,
+          "sha256": "d9d44ad185744c0144c479775f2d760279f977e051d3e10cef5cf39d007bb6f9",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "081eca2d-9f44-446f-a0a2-a46d9818a5ec",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PH",
+      "key": "M.PH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.PH",
+      "at": "2026-10-04T21:27:31.720061+00:00",
+      "http_status": 200,
+      "packet_bytes": 36554,
+      "packet_sha256": "f26b1c50d955284616298ee81f19e5729b66f787d5bfab5bdb6d3c9af2cd6e72",
+      "status": "history_response_replayed",
+      "n": 478,
+      "first": "1986-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 478,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PH?format=csv",
+          "received_at": "2026-10-04T21:27:32.196247+00:00",
+          "http_status": 200,
+          "wire_bytes": 2267,
+          "wire_sha256": "afebad68b88736a3e39a4bf37fd647876fc6b4c2bc545b3408a4a714a3a9a106",
+          "bytes": 107018,
+          "sha256": "ada2b44326a6ff61e745030603ccefd76e41b0427a22fccfa17c1b48650d50f4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "592858c8-d482-41e8-a554-94782afa1f6f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PL",
+      "key": "M.PL",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.PL",
+      "at": "2026-10-04T21:27:31.822587+00:00",
+      "http_status": 200,
+      "packet_bytes": 33160,
+      "packet_sha256": "89892ca28843d976f1eda5d47b5e656720f382f1242bf212cc33f79198df91e1",
+      "status": "history_response_replayed",
+      "n": 404,
+      "first": "1993-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 404,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PL?format=csv",
+          "received_at": "2026-10-04T21:27:32.340299+00:00",
+          "http_status": 200,
+          "wire_bytes": 3001,
+          "wire_sha256": "3ae538075fc81ed9b10dd92b71c89fe9136eaa4452b8cb80e7e3022064cba64e",
+          "bytes": 259458,
+          "sha256": "b650eaab5e8ca9723a26bb7b67df737abaacaf6b83afd5331a7d9cce9e2dc846",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5fe3a09f-9d89-458c-88bb-8c716efdf7ff",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PT",
+      "key": "M.PT",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.PT",
+      "at": "2026-10-04T21:27:32.468964+00:00",
+      "http_status": 200,
+      "packet_bytes": 50502,
+      "packet_sha256": "ea12f535b5f1db922d46c41d87502274697c7b3b847ffa6c1eb9cf55d5e842e9",
+      "status": "history_response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PT?format=csv",
+          "received_at": "2026-10-04T21:27:33.024981+00:00",
+          "http_status": 200,
+          "wire_bytes": 4080,
+          "wire_sha256": "6db269491f1e7779e2659f33d6349a9e065b7cc344fd23fa1dc521c3e5ccc22b",
+          "bytes": 386138,
+          "sha256": "d5dce27514a3d29177de16b77890c9053929bd79bf0d5bf9ef52980500cf5438",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9e0f32b4-446e-4b42-a38b-b3ab54370a4e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RO",
+      "key": "M.RO",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.RO",
+      "at": "2026-10-04T21:27:32.628248+00:00",
+      "http_status": 200,
+      "packet_bytes": 22456,
+      "packet_sha256": "345da66d520b259b50f0f740bddded0ed83ce692b5b3f94e28cf3e5c1dded455",
+      "status": "history_response_replayed",
+      "n": 284,
+      "first": "2003-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 284,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RO?format=csv",
+          "received_at": "2026-10-04T21:27:33.118564+00:00",
+          "http_status": 200,
+          "wire_bytes": 1313,
+          "wire_sha256": "ec912200c092bce5f063a01c7c5b1061f6a151701d541c5bbc5ca60e7fda375b",
+          "bytes": 40842,
+          "sha256": "4a1b04c14749abafb55e087f7906e4b786e2cdb39e5f1405e08f62bb5a71048e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "584e5b2f-e9df-4272-a42d-8defc6b0c404",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RS",
+      "key": "M.RS",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.RS",
+      "at": "2026-10-04T21:27:33.359428+00:00",
+      "http_status": 200,
+      "packet_bytes": 27975,
+      "packet_sha256": "1c3dbdf842b25cf215017dd0fc6becd2f0aa956329094650158562526c47e788",
+      "status": "history_response_replayed",
+      "n": 356,
+      "first": "1997-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 356,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RS?format=csv",
+          "received_at": "2026-10-04T21:27:34.150211+00:00",
+          "http_status": 200,
+          "wire_bytes": 1754,
+          "wire_sha256": "d529bfa41ec3ae17e32fc12e4ed682362cc661bb97c5523bb36171b93357ba83",
+          "bytes": 82089,
+          "sha256": "f0c686884b9a82a3c9132ce0547a5be054c53f6f1ea2d1cf5ced6903dd17c8f7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b9c80bfe-ba13-43d8-8854-3ceda8492c4a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RU",
+      "key": "M.RU",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.RU",
+      "at": "2026-10-04T21:27:33.385869+00:00",
+      "http_status": 200,
+      "packet_bytes": 32273,
+      "packet_sha256": "8a38c4d9efab91678b83cc91bb9d73fa6bfe0177f6549c518e8fa98ea517c534",
+      "status": "history_response_replayed",
+      "n": 416,
+      "first": "1992-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 416,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RU?format=csv",
+          "received_at": "2026-10-04T21:27:34.163127+00:00",
+          "http_status": 200,
+          "wire_bytes": 1868,
+          "wire_sha256": "441c6eabc5924d672e37f1bf94c54c18df90282e50c4c91faa2e928c2228c293",
+          "bytes": 89016,
+          "sha256": "38f02cc127ae714beb11589cfce1e3f8f016a63b61bc6676ed5eb7bbe60fece1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "7bde0833-ba92-4e27-9432-d27c9d6423e9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.SA",
+      "key": "M.SA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.SA",
+      "at": "2026-10-04T21:27:34.434665+00:00",
+      "http_status": 200,
+      "packet_bytes": 24800,
+      "packet_sha256": "d3dbf32383e2dd2f526c5d2459471d9c909a0126f96e9908198bebadec56e792",
+      "status": "history_response_replayed",
+      "n": 320,
+      "first": "2000-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 320,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.SA?format=csv",
+          "received_at": "2026-10-04T21:27:34.947609+00:00",
+          "http_status": 200,
+          "wire_bytes": 1407,
+          "wire_sha256": "2fd347a44a8763042d88a5cd619bfc58ee4efc08777eeb2448cac06afaf66771",
+          "bytes": 59026,
+          "sha256": "ed7a7964904b5fbc4e6227f33b2cc1103fc1e2764c8583d3ae3d0a73f135acc0",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5103e3f2-ef48-440f-99ce-5a1bd2b38c88",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.SE",
+      "key": "M.SE",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.SE",
+      "at": "2026-10-04T21:27:34.478199+00:00",
+      "http_status": 200,
+      "packet_bytes": 71722,
+      "packet_sha256": "4edfda3807f7babbca80e52dfa4b1eab65c6d43b49ab21c148c48cd54eda3592",
+      "status": "history_response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.SE?format=csv",
+          "received_at": "2026-10-04T21:27:35.863026+00:00",
+          "http_status": 200,
+          "wire_bytes": 4434,
+          "wire_sha256": "e04759a5a0fe2a9ff9d39add4c7432bea5b8e4e8111c2694916c9816d2ca3bed",
+          "bytes": 267820,
+          "sha256": "f851a5be3edf2064552ff153a1dac5940de7657c9a67710f3d6e277c6ccbb16e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "fe523130-43a1-4834-8bbb-65d205d53de4",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.TH",
+      "key": "M.TH",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.TH",
+      "at": "2026-10-04T21:27:35.235018+00:00",
+      "http_status": 200,
+      "packet_bytes": 25158,
+      "packet_sha256": "48ab79d4418539a87ff20fd9df8fcc9426e570bca89a4f9b0202a7389b408013",
+      "status": "history_response_replayed",
+      "n": 316,
+      "first": "2000-05-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 316,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.TH?format=csv",
+          "received_at": "2026-10-04T21:27:35.806316+00:00",
+          "http_status": 200,
+          "wire_bytes": 1695,
+          "wire_sha256": "37255634331f9db1319cc90b8aa00d1dce25cb5c04d233cf2072ff265e2647e5",
+          "bytes": 85795,
+          "sha256": "dba592056618213546095ddb590233b2da30d788b9025dc86271106d2234d572",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "89f2c97c-ae86-48d5-af31-fb07c412563b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.TR",
+      "key": "M.TR",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.TR",
+      "at": "2026-10-04T21:27:36.102954+00:00",
+      "http_status": 200,
+      "packet_bytes": 24568,
+      "packet_sha256": "784a57b24bba2283fbbb7dd7487ee5881e1d9abaae4499354ca04d30004340b2",
+      "status": "history_response_replayed",
+      "n": 295,
+      "first": "2002-02-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 295,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.TR?format=csv",
+          "received_at": "2026-10-04T21:27:36.594187+00:00",
+          "http_status": 200,
+          "wire_bytes": 1942,
+          "wire_sha256": "bf1a4c2ff9fddd18f4e771305affd01f9001dc483ce68e57ccebe9a823e2f666",
+          "bytes": 129632,
+          "sha256": "69cf1024c4813ea88aa3b45be90fb7162b6f3f8c5decdbdde150b2b171e6cc28",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "1910170f-3569-48b3-bd74-5f67d7a44925",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.US",
+      "key": "M.US",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.US",
+      "at": "2026-10-04T21:27:36.185533+00:00",
+      "http_status": 200,
+      "packet_bytes": 65714,
+      "packet_sha256": "54bee7e877bd91dac6c4d25bd0055c94d909d3d3a18c4eaf706bc7f0cce6b1ad",
+      "status": "history_response_replayed",
+      "n": 866,
+      "first": "1954-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 866,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.US?format=csv",
+          "received_at": "2026-10-04T21:27:36.712925+00:00",
+          "http_status": 200,
+          "wire_bytes": 4273,
+          "wire_sha256": "8dfea7174b4290b014bbbf88e000a0a7897abaf6d5f7217759da742bef59b18b",
+          "bytes": 225967,
+          "sha256": "44d13209357b032a76a4ba51c5ef1f42540913a89ddb6fb9511be64a346ec1c1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "befa10ab-c73c-4aaf-96ae-acadca16d6fc",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.XM",
+      "key": "M.XM",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.XM",
+      "at": "2026-10-04T21:27:36.884969+00:00",
+      "http_status": 200,
+      "packet_bytes": 27400,
+      "packet_sha256": "55fa075efafd68db6df23b467e95e1e7c48f90470dc2d766051aaeb0fdaa4098",
+      "status": "history_response_replayed",
+      "n": 332,
+      "first": "1999-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 332,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.XM?format=csv",
+          "received_at": "2026-10-04T21:27:38.406630+00:00",
+          "http_status": 200,
+          "wire_bytes": 2385,
+          "wire_sha256": "34d58de72a1abff8f4515fa97ff9c91ce640e0dbc550487d4a39d6bf37e57bda",
+          "bytes": 192803,
+          "sha256": "d29ece2172d311cd7d4f01a1029a501d84cb52a34fb509988833271c0886e3b3",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "72d04728-4605-47ff-bc40-d87580f07b62",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ZA",
+      "key": "M.ZA",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bis%3AWS_CBPOL%3AM.ZA",
+      "at": "2026-10-04T21:27:37.042983+00:00",
+      "http_status": 200,
+      "packet_bytes": 41391,
+      "packet_sha256": "724df0a4b74236811a938fd1214d1a813a6161793ef838320a0113c14a159dac",
+      "status": "history_response_replayed",
+      "n": 549,
+      "first": "1980-12-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 549,
+        "rejected_rows": 0
+      },
+      "history": {
+        "response_complete": true,
+        "full_upstream_history_verified": false,
+        "point_in_time_vintages_verified": false,
+        "missing_periods_filled": false,
+        "observation_clock": "Monthly reference period anchored to day 1 for plotting",
+        "release_clock_verified": false
+      },
+      "unit": "Percent per annum",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ZA?format=csv",
+          "received_at": "2026-10-04T21:27:37.557799+00:00",
+          "http_status": 200,
+          "wire_bytes": 2274,
+          "wire_sha256": "4715675b33e41f3199a227a1629055e0d431aa403a97eace4a06a794a3ce3d4a",
+          "bytes": 80767,
+          "sha256": "d9452375a3d80c2fa42088c9feef481e6ace0b55591babdb98031d7032f62437",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "31c64801-7a59-4a7c-bcc8-acdb975dc114",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    }
+  ],
+  "complete_upstream_history_verified": false,
+  "point_in_time_vintages_verified": false,
+  "interpretation": "Every successful row replays the complete received official response embedded in the deployed application packet. This does not prove missing observations, historical release vintages or equivalence to another vendor."
+}

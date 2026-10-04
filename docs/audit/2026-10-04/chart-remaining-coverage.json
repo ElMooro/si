@@ -5416,7 +5416,7 @@
     "ECONOMICS:WWCRLPI",
     "ECONOMICS:WWDRPI"
   ],
-  "routing_source_state": "BIS candidate not deployed; current main plus 13 explicitly unqualified alternatives",
+  "routing_source_state": "Deployed 9ef23ac5f8e5a2686670862ef09ec2d6e6e970cd; 13 explicitly unqualified BIS alternatives, original peer aliases and qualified row handoff preserved",
   "live_history_verification": {
     "cftc": {
       "series_with_replayed_observations": 344,
@@ -5425,8 +5425,16 @@
     },
     "bis": {
       "official_api_responses_replayed": 98,
-      "application_endpoint_verification": "pending_deployment"
+      "application_endpoint_histories_replayed": 98,
+      "application_endpoint_verification": "deployed_source_response_replayed",
+      "audit": "chart-bis-live-history-audit.json"
     }
   },
-  "complete_metadata_scan": "chart-complete-provider-metadata-scan.json"
+  "complete_metadata_scan": "chart-complete-provider-metadata-scan.json",
+  "remaining_runtime_findings": [
+    "Several unresolved market requests fail at a shared resolver configuration dependency before provider retrieval.",
+    "Two original CFTC 11700 aliases remain empty. An explicitly qualified VIX alternative under official code 1170E1 has been researched but is not shipped.",
+    "Original ECONOMICS watchlist cards can still show Stock; the selected BIS chart is treated as a scalar.",
+    "Legacy market banking can merge provider histories under one last-source label; per-source history qualification still needs repair."
+  ]
 }
