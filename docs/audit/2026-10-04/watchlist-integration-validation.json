@@ -1,0 +1,92 @@
+{
+  "baseline": "78f26ed545810f5a42a37992f14d8353317d86ed",
+  "scope": "Current main renderer, invented synthetic fixture storage, all browser requests intercepted; no user/provider data or external requests.",
+  "tests": {
+    "node": {
+      "passed": 3133,
+      "failed": 0,
+      "cancelled": 0,
+      "concurrency": 4
+    },
+    "targeted": {
+      "passed": 88,
+      "failed": 0
+    },
+    "browser": {
+      "widths": [
+        1440,
+        390
+      ],
+      "passed": true
+    },
+    "failure_browser": {
+      "cases": 10,
+      "passed": true
+    },
+    "transaction_browser": {
+      "cases": 19,
+      "passed": true
+    },
+    "syntax": {
+      "graphs": 600,
+      "errors": 0
+    },
+    "wiring": {
+      "pages": 36,
+      "wired": 143,
+      "missing": 0,
+      "stale": 0
+    },
+    "preflight": {
+      "files": 6,
+      "warnings": 0
+    }
+  },
+  "evidence": {
+    "node": {
+      "path": "/tmp/watchlist-integrated-node-frozen.txt",
+      "sha256": "1118a25d9b4c68078d30c0ab9de38cfa25a2cad0675f1a9b7c5a8d09d4957a83"
+    },
+    "targeted": {
+      "path": "/tmp/watchlist-integrated-targeted-frozen.txt",
+      "sha256": "6f7505857c8f7d637f053fdee96070367a8e011eb8e9d350aa04f610aa44201b"
+    },
+    "browser": {
+      "path": "/tmp/watchlist-integrated-browser-frozen/browser-qa.json",
+      "sha256": "15f86d93a2af097d1990a928b6980d487073548567d40cb67e1ce00a8b0d20a1"
+    },
+    "failure_browser": {
+      "path": "/tmp/watchlist-renderer-failures-frozen/failure-qa.json",
+      "sha256": "75ee1f76e942f18d741871d479ac1b137bc82e632b1c9fdf5b14bd4c259756b2"
+    },
+    "transaction_browser": {
+      "path": "/tmp/watchlist-integrated-transaction-r3/transaction-qa.json",
+      "sha256": "735f9d155aa325a7fffbf4365e99288ddfd320e604f4a828b6c38d61a56b7c42"
+    },
+    "syntax": {
+      "path": "/tmp/watchlist-integrated-syntax-frozen.txt",
+      "sha256": "5adcff161f95bf7118ac335935e5ba76060cd5553dcc1df29371cd40c33f5790"
+    },
+    "wiring": {
+      "path": "/tmp/watchlist-integrated-wiring-frozen.txt",
+      "sha256": "e1891d695c8baf641e68ee280a6d0b4d46100468d0c4c4d799bf661fc5ae148c"
+    },
+    "preflight": {
+      "path": "/tmp/watchlist-integrated-preflight-frozen.txt",
+      "sha256": "d49709f0204f1ce67a0f23eb62c5c49643827938d5bb2bb4e2f31d6e5c809f7e"
+    }
+  },
+  "production": {
+    "attempted": false,
+    "served_baseline_status": 403,
+    "retried_denial": false,
+    "merge_deploy_hold": "Parent release conditions must be reconciled; no alternate access."
+  },
+  "independent_exact_head_review": "Required before promotion; review record is commit-specific outside this immutable tree.",
+  "prior_exact_review": {
+    "head": "d3926f7bf6c541b87e858ff5c2e02aa1c06965ed",
+    "verdict": "HOLD",
+    "report": "/tmp/watchlist-review-d3926.json",
+    "resolution": "Native flag key safety, both advanced close saves and row qualifiers, Add-only raw More identity, explicit reserved-ID read-only status, independent private-note save, and keyboard scoping addressed in this follow-up; fresh exact-head review required."
+  }
+}
