@@ -3,10 +3,8 @@ import hashlib
 import json
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-TRANSITION=json.loads((ROOT/'tests/fixtures/chart-cftc/transition.json').read_bytes())
+TRANSITION=json.loads((ROOT/'tests/fixtures/chart-bis/transition.json').read_bytes())
 def normalize(file,raw):
-    from chart_bis_preservation import normalize as newer
-    raw=newer(file,raw)
     row=TRANSITION['changes'][file]
     assert hashlib.sha256(raw).hexdigest()==row['after_sha256'],file
     text=raw.decode('utf-8').encode('utf-16-le')

@@ -3,8 +3,7 @@
   "use strict";
   var PROXY="https://justhodl-data-proxy.raafouis.workers.dev", PAGE=50, MAX_BYTES=4000000;
   // Exact adapters implemented by justhodl-symdir. Unknown prefixes must not fall through to a market symbol.
-  var BIS_POLICY_KEYS=new Set(["D.AR","D.AT","D.AU","D.BE","D.BR","D.CA","D.CH","D.CL","D.CN","D.CO","D.CZ","D.DE","D.DK","D.ES","D.FR","D.GB","D.GR","D.HK","D.HR","D.HU","D.ID","D.IL","D.IN","D.IS","D.IT","D.JP","D.KR","D.KW","D.MA","D.MK","D.MX","D.MY","D.NL","D.NO","D.NZ","D.PE","D.PH","D.PL","D.PT","D.RO","D.RS","D.RU","D.SA","D.SE","D.TH","D.TR","D.US","D.XM","D.ZA","M.AR","M.AT","M.AU","M.BE","M.BR","M.CA","M.CH","M.CL","M.CN","M.CO","M.CZ","M.DE","M.DK","M.ES","M.FR","M.GB","M.GR","M.HK","M.HR","M.HU","M.ID","M.IL","M.IN","M.IS","M.IT","M.JP","M.KR","M.KW","M.MA","M.MK","M.MX","M.MY","M.NL","M.NO","M.NZ","M.PE","M.PH","M.PL","M.PT","M.RO","M.RS","M.RU","M.SA","M.SE","M.TH","M.TR","M.US","M.XM","M.ZA"]);
-  var SCALAR=new Set(["bis","cftc","ustpar","official-yields","fred","te","eurostat","ecb","nyfed","ofr","ofr-fsi","ofr-hfm","ofr-bsrm","boj","statcan","worldbank","treasury","boe","census","bls"]);
+  var SCALAR=new Set(["cftc","ustpar","official-yields","fred","te","eurostat","ecb","nyfed","ofr","ofr-fsi","ofr-hfm","ofr-bsrm","boj","statcan","worldbank","treasury","boe","census","bls"]);
   var model={provider:"",dataset:"",query:"",offset:0,destination:"chart",view:"directory",filePage:-1,filePages:0}, generation=0, controller=null, opener=null, dialog=null, response=null;
   function text(value){return typeof value==="string"?value:"";}
   function providerId(value){return typeof value==="string"&&/^[a-z0-9][a-z0-9-]*$/.test(value)?value:"";}
@@ -21,7 +20,6 @@
     var id=text(row.id),kind=text(row.kind),provider=providerId(text(row.provider))||id.split(":")[0].toLowerCase();
     if(/^provider:[a-z0-9-]+$/.test(id))return "provider";
     if((kind==="dataset"||kind==="indicator_ref")&&id.includes(":")&&!/^asset:/.test(id))return "dataset";
-    if(provider==="bis"&&(!/^bis:WS_CBPOL:[DM]\.[A-Z]{2}$/.test(id)||!BIS_POLICY_KEYS.has(id.split(":")[2])))return "inspect";
     if(provider==="cftc"&&(!global.JHChartCFTC||!global.JHChartCFTC.resolve(id)))return "inspect";
     if(kind==="series"&&row.chartable===true&&id.includes(":")&&SCALAR.has(provider)&&id.split(":")[0].toLowerCase()===provider)return "chart";
     return "inspect";

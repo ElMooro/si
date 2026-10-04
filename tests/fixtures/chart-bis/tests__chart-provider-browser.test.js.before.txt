@@ -10,9 +10,9 @@ test('metadata byte and UTF-8 bounds reject oversized or malformed captures',asy
 
 test('every advertised native scalar adapter agrees with server registry and chart classification',()=>{
  const api=boot(),lambda=fs.readFileSync(path.join(ROOT,'aws/lambdas/justhodl-symdir/source/lambda_function.py'),'utf8');
- const block=lambda.match(/RESOLVERS = (\{[\s\S]*?\})\s*\n/)[1],prefixes=[...block.matchAll(/"([a-z0-9-]+)":/g)].map(m=>m[1]);assert.equal(prefixes.length,20);
+ const block=lambda.match(/RESOLVERS = (\{[\s\S]*?\})\s*\n/)[1],prefixes=[...block.matchAll(/"([a-z0-9-]+)":/g)].map(m=>m[1]);assert.equal(prefixes.length,19);
  const window={};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-cftc.js'),'utf8'),{window});vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-catalog.js'),'utf8'),{window,Set,Map});
- for(const provider of prefixes){const id=provider==='bis'?'bis:WS_CBPOL:M.US':provider==='cftc'?'cftc:yw9f-hn96|132741|traders_asset_mgr_short_all':provider+':Exact.MiXeD';assert.equal(api.action({provider,id,kind:'series',chartable:true}),'chart',provider);assert.equal(window.JHChartCatalog.isWarehouse(id),true,provider);assert.equal(window.JHChartCatalog.chartId(id),id);}
+ for(const provider of prefixes){const id=provider==='cftc'?'cftc:yw9f-hn96|132741|traders_asset_mgr_short_all':provider+':Exact.MiXeD';assert.equal(api.action({provider,id,kind:'series',chartable:true}),'chart',provider);assert.equal(window.JHChartCatalog.isWarehouse(id),true,provider);assert.equal(window.JHChartCatalog.chartId(id),id);}
 });
 test('native dataset routing retains destination and full case-sensitive dataset ID',()=>{
  const calls=[],window={JHChartProviderBrowser:{open:arg=>{calls.push(plain(arg));return true;}},location:{href:'unchanged'}};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-catalog.js'),'utf8'),{window,Set,Map});

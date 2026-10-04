@@ -1,0 +1,3246 @@
+{
+  "catalogue_sha256": "85e7f0b36de1c2baa1ec22846a8e02e40b1ffab7482a1206438d0cc6d23f45c0",
+  "source": "Official BIS public API; unrelated denied warehouse key was not accessed",
+  "total": 98,
+  "statuses": {
+    "response_replayed": 98
+  },
+  "rows": [
+    {
+      "id": "bis:WS_CBPOL:D.AR",
+      "key": "D.AR",
+      "status": "response_replayed",
+      "n": 8768,
+      "first": "1993-04-01",
+      "last": "2025-07-10",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 11786,
+        "rejected_rows": 3018
+      },
+      "seconds": 2.781,
+      "packet_sha256": "7876be945c6cb8da740d5e50a670b3d889b2d892ee06b8f9a3374220a5e28d38",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AR?format=csv",
+          "received_at": "2026-10-04T20:42:25.572162+00:00",
+          "http_status": 200,
+          "wire_bytes": 111121,
+          "wire_sha256": "53c1327462bd367be5c291768ea3f2378b22e454b2c9c54928d5fcfca0894c88",
+          "bytes": 15140129,
+          "sha256": "9779de60fa3e93abf579a98b4f75ea85ba1e1d34dae67e59f70c8a535174082d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "7b593a02-f2aa-4011-9c71-bdbf7a0bb235",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.AT",
+      "key": "D.AT",
+      "status": "response_replayed",
+      "n": 19633,
+      "first": "1945-04-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19633,
+        "rejected_rows": 0
+      },
+      "seconds": 2.609,
+      "packet_sha256": "007f6139edf04add078fc9ba6b2345f6d59767c046f127c77d043ef26624dc2a",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AT?format=csv",
+          "received_at": "2026-10-04T20:42:25.361601+00:00",
+          "http_status": 200,
+          "wire_bytes": 73830,
+          "wire_sha256": "1f14cec440e2957ebfb19a6ae7c3480b005ce80a9ed1ae92ac0562c646ad3aef",
+          "bytes": 9732233,
+          "sha256": "5d7f18c2c29bdd0ea2b92af67b46b1ac9193410bf1d3bb203761d707fc1ca5a8",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c417efd0-2a26-40f6-a573-bf0f9a8a54d9",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.AU",
+      "key": "D.AU",
+      "status": "response_replayed",
+      "n": 12792,
+      "first": "1976-04-07",
+      "last": "2026-09-24",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12887,
+        "rejected_rows": 95
+      },
+      "seconds": 2.39,
+      "packet_sha256": "81e98a2b127bc93b78bb5a5bf2b5abb769a2be86f348b04c985a748a3eb457a6",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.AU?format=csv",
+          "received_at": "2026-10-04T20:42:28.061955+00:00",
+          "http_status": 200,
+          "wire_bytes": 76287,
+          "wire_sha256": "981a3e1d22bdb3190cffd24cbc71b80d691e90d03e080579f5e99d718d462797",
+          "bytes": 8922508,
+          "sha256": "12a50e6d321429c209dd128a0d5ba222bbc66e1a4da151782cd2b73ddcdd2f0a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "0fec3d4d-0e15-44ea-833b-7b54e8069bd5",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.BE",
+      "key": "D.BE",
+      "status": "response_replayed",
+      "n": 18806,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 18897,
+        "rejected_rows": 91
+      },
+      "seconds": 2.484,
+      "packet_sha256": "3f0aaf68b23660973ee298c9ddf2f2aca27c629ea90d4d2ef0359e98150e1979",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.BE?format=csv",
+          "received_at": "2026-10-04T20:42:28.338273+00:00",
+          "http_status": 200,
+          "wire_bytes": 72481,
+          "wire_sha256": "d9d047f013e5976e3efdf83113aa7661e0ba5d040b02a849c7b2b158fcbd2f47",
+          "bytes": 8178734,
+          "sha256": "7ced72e083e584cbcee878d7298a130fead0bb7ce6d6cd1fa1a7e441cf5bf0ff",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f3819d7e-d552-4cda-8756-87674e6db31d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.BR",
+      "key": "D.BR",
+      "status": "response_replayed",
+      "n": 13252,
+      "first": "1986-06-04",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 13581,
+        "rejected_rows": 329
+      },
+      "seconds": 2.781,
+      "packet_sha256": "1a94b9b757d82182665de36e35083f797f7c2f952a129bf5c8acedabc7c99a31",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.BR?format=csv",
+          "received_at": "2026-10-04T20:42:31.083308+00:00",
+          "http_status": 200,
+          "wire_bytes": 99294,
+          "wire_sha256": "c0792881e99829e9633f40bf136f532661e32837880e6251917251e392f56439",
+          "bytes": 12062252,
+          "sha256": "9551517d068b234eb273e5c3a66731549fb9e55c8170f6e5bcb13d8001f43f04",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "71359251-29ba-4c1d-912e-57e6bc1c9f82",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CA",
+      "key": "D.CA",
+      "status": "response_replayed",
+      "n": 17205,
+      "first": "1960-07-27",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23152,
+        "rejected_rows": 5947
+      },
+      "seconds": 3.328,
+      "packet_sha256": "7ad251ab0a5b434ee0ea0f7df2f23e2584ada95897815efb1ed8ff2adf222e79",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CA?format=csv",
+          "received_at": "2026-10-04T20:42:31.470196+00:00",
+          "http_status": 200,
+          "wire_bytes": 125961,
+          "wire_sha256": "1690a07df8cfc18c03269469ed99bc0aa868167d8805a6592000da764f03e321",
+          "bytes": 14451001,
+          "sha256": "a7426a41e545fbdfb7cb6b43051bf4a2c9de1045e3fe65b81dcd008887ce0784",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c5e7a8a6-0815-44bf-882d-9caf0a1d0323",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CH",
+      "key": "D.CH",
+      "status": "response_replayed",
+      "n": 21006,
+      "first": "1946-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 21066,
+        "rejected_rows": 60
+      },
+      "seconds": 2.297,
+      "packet_sha256": "f55e808cd00de217018be2a2f7d9b87ab44eddeb1e5b919e9d4cdd71a3d8e49b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CH?format=csv",
+          "received_at": "2026-10-04T20:42:33.991088+00:00",
+          "http_status": 200,
+          "wire_bytes": 73437,
+          "wire_sha256": "14265e2eca3abbe8a72b9434e6ca53cb831652d6a7b18220dbdf17bf866d493e",
+          "bytes": 5831364,
+          "sha256": "863176c3dc12c53399e81001f31884166a245069aee83a8015d94cfd6fbc8e95",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "953c8531-b8b1-4f8e-8e3b-e38892a624da",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CL",
+      "key": "D.CL",
+      "status": "response_replayed",
+      "n": 7396,
+      "first": "1997-02-07",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10827,
+        "rejected_rows": 3431
+      },
+      "seconds": 1.64,
+      "packet_sha256": "54496cb1879d7fc9dc3496cb9327a5d03427c7ef3ae4e46dc46fb5b495836644",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CL?format=csv",
+          "received_at": "2026-10-04T20:42:34.558203+00:00",
+          "http_status": 200,
+          "wire_bytes": 43704,
+          "wire_sha256": "67eada0446aeee155fcbe05910080fb81ffa6d36a64ac7bda5db8cc73af4d58b",
+          "bytes": 4621907,
+          "sha256": "749eec574131d7fb38a7aa27de49c75c552d129657d84ba50094f0c52260eb61",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2ad120b9-8745-4f34-8a3a-8799651c49c0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CN",
+      "key": "D.CN",
+      "status": "response_replayed",
+      "n": 10957,
+      "first": "1996-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10959,
+        "rejected_rows": 2
+      },
+      "seconds": 1.313,
+      "packet_sha256": "a6760bb92d7d93cbcd1c810e605dda700d5cbd8ae980c52c2d79436c39ffd7ce",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CN?format=csv",
+          "received_at": "2026-10-04T20:42:36.226942+00:00",
+          "http_status": 200,
+          "wire_bytes": 33425,
+          "wire_sha256": "70fc6a8a38025669d88cc328140fbeca471077ab48540c5e43f3e576549de15c",
+          "bytes": 2593306,
+          "sha256": "63583091d24166d5d52fa0d951e8c504749123820184c4e54557021a43d4488f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f9c72d25-5287-4b60-879f-2b54ed5f2814",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CO",
+      "key": "D.CO",
+      "status": "response_replayed",
+      "n": 11492,
+      "first": "1995-04-06",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 11492,
+        "rejected_rows": 0
+      },
+      "seconds": 1.516,
+      "packet_sha256": "eafc88418b72085b35d97e1a5312ddda46836d2275c25f75dea2319f6c229036",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CO?format=csv",
+          "received_at": "2026-10-04T20:42:36.482631+00:00",
+          "http_status": 200,
+          "wire_bytes": 41733,
+          "wire_sha256": "8da62a1313ba0229d1320746960315d50438c50e3373e79b0c20b56ec931e6a9",
+          "bytes": 3758835,
+          "sha256": "2d432076ec91fe977753f2c1111c562437e7db0e6dc2d4a85510240858d47ded",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c399d7e2-4e4a-46cd-92b2-74145c4a9de0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.CZ",
+      "key": "D.CZ",
+      "status": "response_replayed",
+      "n": 7893,
+      "first": "1995-12-08",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8029,
+        "rejected_rows": 136
+      },
+      "seconds": 1.203,
+      "packet_sha256": "42b93aaa5a51a2cff63f95ea776417f5baca4d7fd399800d5149357da6230e77",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.CZ?format=csv",
+          "received_at": "2026-10-04T20:42:37.895723+00:00",
+          "http_status": 200,
+          "wire_bytes": 32322,
+          "wire_sha256": "487da370cb1295077cf4cc0bc6667e3199f8a306eff67b7deee41dba36972401",
+          "bytes": 3719464,
+          "sha256": "57c2527b4a5655dd12d06dc702e473f3846aec5fe677c6394734d4f141814d57",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ba58024f-5430-40cd-989f-413150667cbf",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.DE",
+      "key": "D.DE",
+      "status": "response_replayed",
+      "n": 18446,
+      "first": "1948-07-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 18446,
+        "rejected_rows": 0
+      },
+      "seconds": 2.484,
+      "packet_sha256": "fa429db52332514309a7424d6b4cb111ccd47b0d9e87f40bfbb02f221950ad00",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.DE?format=csv",
+          "received_at": "2026-10-04T20:42:38.632755+00:00",
+          "http_status": 200,
+          "wire_bytes": 97354,
+          "wire_sha256": "afc5563827f629d308e490010f501a8573ee4a501e142314f02de1d798eb206b",
+          "bytes": 13927414,
+          "sha256": "468197a419548452168a443dc21fca070704d0bba04d8532c3d2a5c8651bfd38",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f3655eef-5c01-4c82-845d-6303e4d5eb97",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.DK",
+      "key": "D.DK",
+      "status": "response_replayed",
+      "n": 24127,
+      "first": "1946-01-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 24489,
+        "rejected_rows": 362
+      },
+      "seconds": 2.328,
+      "packet_sha256": "6fdbbf03485bb3a645b33fadad1320da0bc7e3e1174f50e7a374bad029e979be",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.DK?format=csv",
+          "received_at": "2026-10-04T20:42:39.697925+00:00",
+          "http_status": 200,
+          "wire_bytes": 87830,
+          "wire_sha256": "74473d7d3ed467c7ad16407d20248ec598095e84df240e19d0f1e63f53556205",
+          "bytes": 7216351,
+          "sha256": "18927ad365e41bb5b566cab7d3df90de67534dbba1c3881e4c122b29ec21238c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d3083853-5dfc-4ec2-b25e-2c1f1689a77d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ES",
+      "key": "D.ES",
+      "status": "response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "seconds": 2.484,
+      "packet_sha256": "07287075060c78608e4e86e91bd52c176a74910fe39bdad120b3be0fe03e2783",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ES?format=csv",
+          "received_at": "2026-10-04T20:42:41.571822+00:00",
+          "http_status": 200,
+          "wire_bytes": 102914,
+          "wire_sha256": "0e96836061df3fdead30c6ce7935a89b1b2e8f6c4bffad9d7ac5ae95cfb415d0",
+          "bytes": 12264323,
+          "sha256": "04cb38a3ad607d1cec515eb6d70eadf92defffa3dc14b4f5bd82ea5c3d05a499",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ff8d0e75-0ebe-4d08-83b7-899b11ee5d06",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.FR",
+      "key": "D.FR",
+      "status": "response_replayed",
+      "n": 19704,
+      "first": "1945-01-20",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19704,
+        "rejected_rows": 0
+      },
+      "seconds": 5.86,
+      "packet_sha256": "436338b25ccde1e9fc0f036450c528e13fcae83b51d83a4ff6be1c0b4197d614",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.FR?format=csv",
+          "received_at": "2026-10-04T20:42:44.119055+00:00",
+          "http_status": 200,
+          "wire_bytes": 128509,
+          "wire_sha256": "ab112c616380e62038820011da32dae9287f0a308e1370feabcd342dfb02d39a",
+          "bytes": 17494017,
+          "sha256": "2896b684dfc81a52fe90f5e8de53a6e136e69c1a799b3b08725fb106ec0ae570",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "afcff3e1-351f-47d4-bf0c-2a383cc1299d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.GB",
+      "key": "D.GB",
+      "status": "response_replayed",
+      "n": 23447,
+      "first": "1946-01-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23870,
+        "rejected_rows": 423
+      },
+      "seconds": 3.829,
+      "packet_sha256": "53c44648ffef9cd24728db2f910feb29d6c5c8a1bf4edc9482254b3a7c3795b6",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.GB?format=csv",
+          "received_at": "2026-10-04T20:42:44.141549+00:00",
+          "http_status": 200,
+          "wire_bytes": 89379,
+          "wire_sha256": "081701fdf76c7e08af5b93860e8dfcc81bdf9daf84a6d0f013b16c8b89f178fd",
+          "bytes": 9088095,
+          "sha256": "fc18269e38796ad9b49886a8a93df7c5955cad0f99d39c520d57b40842513a7c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f5dbead9-a20f-42d8-8a09-52cd84937f6f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.GR",
+      "key": "D.GR",
+      "status": "response_replayed",
+      "n": 16316,
+      "first": "1956-05-01",
+      "last": "2000-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 16316,
+        "rejected_rows": 0
+      },
+      "seconds": 4.469,
+      "packet_sha256": "f036f3bfa5698379a17cb1d49862f1b35e02709c0819ddebc7b64f2038e82df0",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.GR?format=csv",
+          "received_at": "2026-10-04T20:42:48.838204+00:00",
+          "http_status": 200,
+          "wire_bytes": 153188,
+          "wire_sha256": "eb9e9acd1e3188a559800b97489e2886f9950c9ea75f20a458a37e706cf121a1",
+          "bytes": 21353101,
+          "sha256": "95fe4ccf11b1fbffcc969198b891f21272f5c8a05d213cb6ab72c67ef4fd6360",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2e3200f4-5f96-4e1e-a00f-a7b3d48325da",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HK",
+      "key": "D.HK",
+      "status": "response_replayed",
+      "n": 7285,
+      "first": "1998-09-07",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10243,
+        "rejected_rows": 2958
+      },
+      "seconds": 1.594,
+      "packet_sha256": "04496b1f850b23d0318a48cd61b9ddbe30c2729a71cc29713b5ff6f6d25fe97b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HK?format=csv",
+          "received_at": "2026-10-04T20:42:48.202819+00:00",
+          "http_status": 200,
+          "wire_bytes": 34841,
+          "wire_sha256": "09541a671986561c011e066a72418e9e1da99c03c80c53e1d385c6a4582ba7d6",
+          "bytes": 1547636,
+          "sha256": "9495251e2663410166a9bef889517c5add8d9d0d3f4ba139e34dd1c5157366d7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c125ec76-e145-44f2-97aa-10556e90ac87",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HR",
+      "key": "D.HR",
+      "status": "response_replayed",
+      "n": 5963,
+      "first": "1993-01-01",
+      "last": "2022-12-31",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10957,
+        "rejected_rows": 4994
+      },
+      "seconds": 4.047,
+      "packet_sha256": "71e16227b5b2693443410758ed3551886c6204449d61fc03ae27422dfccc3587",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HR?format=csv",
+          "received_at": "2026-10-04T20:42:51.806339+00:00",
+          "http_status": 200,
+          "wire_bytes": 86940,
+          "wire_sha256": "5b768b87689c16dc3c3d66cc3bb023104a525596ac0dfc8685c3c39f2c764942",
+          "bytes": 9833158,
+          "sha256": "3be3489f5030c4c0d830d86b83289c31bfcffc9a077cbb66bfa65f6fe10ebe9c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4a520b62-ad4c-47e7-9524-5f586f25be03",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.HU",
+      "key": "D.HU",
+      "status": "response_replayed",
+      "n": 10167,
+      "first": "1987-01-01",
+      "last": "2026-09-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 14485,
+        "rejected_rows": 4318
+      },
+      "seconds": 2.953,
+      "packet_sha256": "5f63aa98cef57591a0b60256b282b3dca8868a6d5e7008132b4cd389445ad5b4",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.HU?format=csv",
+          "received_at": "2026-10-04T20:42:53.481561+00:00",
+          "http_status": 200,
+          "wire_bytes": 55409,
+          "wire_sha256": "933c7d68298e3c9655bee40b8ec8a8f3e59b50807f1d2798e48d9a58d3cc372e",
+          "bytes": 5197044,
+          "sha256": "5cd6d46bed08c7daf9708f49a710436022dee9653cb39afaf116534e1ea6b6da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c43a53c9-cd42-46a1-9168-6be800831741",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ID",
+      "key": "D.ID",
+      "status": "response_replayed",
+      "n": 5192,
+      "first": "2005-07-05",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 7721,
+        "rejected_rows": 2529
+      },
+      "seconds": 2.141,
+      "packet_sha256": "8b4197c51af57f5dcc274ec031473e5101f6b47cb47624a5f58fb32c65a5f8b8",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ID?format=csv",
+          "received_at": "2026-10-04T20:42:54.907235+00:00",
+          "http_status": 200,
+          "wire_bytes": 42386,
+          "wire_sha256": "cad911dcb299597ddeab05e467b871943c7034ba98cb017be0243c5ffe8f50be",
+          "bytes": 5197491,
+          "sha256": "c3ae0449dced83d96ce56e02e6b66c6ad0285e51af7db4664221911defae8047",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "94e98412-03b1-439b-afd2-d02cd06b742c",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IL",
+      "key": "D.IL",
+      "status": "response_replayed",
+      "n": 12084,
+      "first": "1993-07-01",
+      "last": "2026-07-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 12084,
+        "rejected_rows": 0
+      },
+      "seconds": 1.797,
+      "packet_sha256": "848c832c1239e0b54a8174fc8f0991eb299523baf7d7d70221fc846b1e67b2a0",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IL?format=csv",
+          "received_at": "2026-10-04T20:42:56.144991+00:00",
+          "http_status": 200,
+          "wire_bytes": 36382,
+          "wire_sha256": "f19a967052a2fec73166545456b4f964a99876e892997748d090e166084b5137",
+          "bytes": 1657435,
+          "sha256": "b8e5a2d243e67380bd5d3456c1739e59ee4fe8d8c8ab0f17480eaab39e827d75",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e0c3ec47-a284-460a-9a03-a9b7f2fbd2d7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IN",
+      "key": "D.IN",
+      "status": "response_replayed",
+      "n": 21465,
+      "first": "1946-01-01",
+      "last": "2026-07-23",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 23612,
+        "rejected_rows": 2147
+      },
+      "seconds": 4.75,
+      "packet_sha256": "ead703311cd1ec7b02789db0e7793868f3a494f520336bbb1d4b892cde19025b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IN?format=csv",
+          "received_at": "2026-10-04T20:42:58.025813+00:00",
+          "http_status": 200,
+          "wire_bytes": 87679,
+          "wire_sha256": "8f38d45def960a0f34b4aed221e4613f5fd553317c80a4e0e009231f37f39800",
+          "bytes": 8500421,
+          "sha256": "0c6f8d2dec3c6821610f76570e890239064c827ba476aa685340fe6f7ed65d62",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3e63b699-afe6-4403-9be5-32f8f4ec9aad",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IS",
+      "key": "D.IS",
+      "status": "response_replayed",
+      "n": 7152,
+      "first": "1998-03-02",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 9934,
+        "rejected_rows": 2782
+      },
+      "seconds": 2.797,
+      "packet_sha256": "25bd130aff4d37e42df80726f281a26ef27129e843391103090af99ea40d5d6b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IS?format=csv",
+          "received_at": "2026-10-04T20:42:58.411131+00:00",
+          "http_status": 200,
+          "wire_bytes": 41262,
+          "wire_sha256": "b67b3a2066b181f00c07c6fe5b32d299f9f82bc3c1d30b38801ec2c3dd64f323",
+          "bytes": 4177959,
+          "sha256": "c94614a13f0986df3d950db7cdd368ac1ffafd12caeccd991fbf60c036025214",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "1d0d80d8-1fcc-4502-900d-c3fa9c08c624",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.IT",
+      "key": "D.IT",
+      "status": "response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "seconds": 3.625,
+      "packet_sha256": "cb4d4915f79e8875f625e91f29cbd78c0ae6e2d3539ecf1bb2a48802744fb012",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.IT?format=csv",
+          "received_at": "2026-10-04T20:43:02.108110+00:00",
+          "http_status": 200,
+          "wire_bytes": 96933,
+          "wire_sha256": "28e3331f0c39a15b3beb69e15d6bd2cb28bf761396c89138c24b4e9277220979",
+          "bytes": 10894203,
+          "sha256": "20ef1a21bafc4ddc8fe5cae567e05f27785ab59dbcfaced7021f9b47934d1bad",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "54811488-9c23-4f73-828d-a39db690dbcd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.JP",
+      "key": "D.JP",
+      "status": "response_replayed",
+      "n": 24894,
+      "first": "1946-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 24894,
+        "rejected_rows": 0
+      },
+      "seconds": 7.797,
+      "packet_sha256": "30bcb03b2954ce84eb8308dada00339a26b29c90dab381aa6781add39aba7625",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.JP?format=csv",
+          "received_at": "2026-10-04T20:46:25.646359+00:00",
+          "http_status": 200,
+          "wire_bytes": 410124,
+          "wire_sha256": "3a118b972ac13dad2a45a4448f33734950330847eb1eea8adb66e0e8e8f927c0",
+          "bytes": 62368083,
+          "sha256": "fe0400080c14eb0de55d439d0660340d6aa89de7b75abab96dca13b5ae10a568",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f0f136b8-694d-433f-bbb5-b54613dd6e55",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.KR",
+      "key": "D.KR",
+      "status": "response_replayed",
+      "n": 6815,
+      "first": "1999-05-06",
+      "last": "2026-08-28",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 6815,
+        "rejected_rows": 0
+      },
+      "seconds": 1.593,
+      "packet_sha256": "7b92e40aed31d880ce9ffd1689dabc17b6e140df10de1d4335165d366be28f33",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.KR?format=csv",
+          "received_at": "2026-10-04T20:43:04.954922+00:00",
+          "http_status": 200,
+          "wire_bytes": 26019,
+          "wire_sha256": "dbe016671b2d16fc0731cf0f44dd121ae4a557c3b00ba0b72efe1f45521c3202",
+          "bytes": 2412408,
+          "sha256": "7854e57177b292f6bc22a8260e3295d92359fc3f199eab6f288e7e85c2399c7a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4967487c-539e-4b23-abfc-c7baa1296cd6",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.KW",
+      "key": "D.KW",
+      "status": "response_replayed",
+      "n": 8885,
+      "first": "2002-06-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 8885,
+        "rejected_rows": 0
+      },
+      "seconds": 1.578,
+      "packet_sha256": "f88b0dcad2005229f03a8ca9f80c57a2d463e8df8f4ed2973f53b29cb06053fc",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.KW?format=csv",
+          "received_at": "2026-10-04T20:43:05.410920+00:00",
+          "http_status": 200,
+          "wire_bytes": 26524,
+          "wire_sha256": "444ba208a5d074664bb1ba08267d8bd76b36a07e6326f2e9ac0f607b3d0b4c3f",
+          "bytes": 1410298,
+          "sha256": "c5109397aff2a6446a759333e3530a8a042d01822a986b21b0b57adc0e3d79a2",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d17244e3-7262-4ff3-b31a-114885bc71f6",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MA",
+      "key": "D.MA",
+      "status": "response_replayed",
+      "n": 9371,
+      "first": "2001-01-01",
+      "last": "2026-08-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 9371,
+        "rejected_rows": 0
+      },
+      "seconds": 1.484,
+      "packet_sha256": "7fe9251fea9abe1e8000b26afb44ed884c4052fcf11bd5eb9c2c84d6355e4a4b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MA?format=csv",
+          "received_at": "2026-10-04T20:43:06.840471+00:00",
+          "http_status": 200,
+          "wire_bytes": 28699,
+          "wire_sha256": "c0189633c28be5e9d0d402f4a0352e9a8014cd344d8a3f4099d035d335d9bd07",
+          "bytes": 1923945,
+          "sha256": "3a73e6200cb9ac2effddddd9af2b6c7223ea2f7b79ce25a24c8240e70f26e86d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e2c63ab0-3803-4581-9cee-2da3fa14043a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MK",
+      "key": "D.MK",
+      "status": "response_replayed",
+      "n": 6691,
+      "first": "2000-01-01",
+      "last": "2026-09-22",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 9761,
+        "rejected_rows": 3070
+      },
+      "seconds": 2.469,
+      "packet_sha256": "a8a3ea74fd1d72acdea8cf57d0c10ba58e0e64008f25441e40829043c8942a6f",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MK?format=csv",
+          "received_at": "2026-10-04T20:43:08.104836+00:00",
+          "http_status": 200,
+          "wire_bytes": 34155,
+          "wire_sha256": "ebf4ebca7d0bb24e19f7b33f882d2371e511ec63b5d5f2ff4073322b4c63697b",
+          "bytes": 1649572,
+          "sha256": "e24afaad16b9b0d2a4486d702aba3b81e243fa2e90da86690744137cd9632a7b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d4ebfadd-bcca-4422-a09f-d819aae020d3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MX",
+      "key": "D.MX",
+      "status": "response_replayed",
+      "n": 9054,
+      "first": "1998-11-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10181,
+        "rejected_rows": 1127
+      },
+      "seconds": 3.375,
+      "packet_sha256": "c07c60eed084bf7298f06e1d77b801cb90235f307ac55b88923b364818f71912",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MX?format=csv",
+          "received_at": "2026-10-04T20:43:09.786146+00:00",
+          "http_status": 200,
+          "wire_bytes": 44168,
+          "wire_sha256": "c618fb1f8bf4c902274e2d41ead29cdece43e6bd37f1d41632cf51cdd1e1a017",
+          "bytes": 4156129,
+          "sha256": "7bf4f6aec77aabc6d1686dcc022a690f99ab06bb20bf0b044f6ae9575fe0e9e1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a5485ecd-4120-4dd6-a981-4657c58aa502",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.MY",
+      "key": "D.MY",
+      "status": "response_replayed",
+      "n": 8584,
+      "first": "1995-11-03",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 11056,
+        "rejected_rows": 2472
+      },
+      "seconds": 2.219,
+      "packet_sha256": "7b7230f088344393db27f56da18fb247aed5f26a006b62b19854fe79f9f37db5",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.MY?format=csv",
+          "received_at": "2026-10-04T20:43:10.076911+00:00",
+          "http_status": 200,
+          "wire_bytes": 39877,
+          "wire_sha256": "500602c0154454e3059a864ce7cb38962ef333fe15472a37f4f44007e0337cb6",
+          "bytes": 3124845,
+          "sha256": "4218ff5f923a62d9b9e5230b5ddb331bdf003f3035f14ef19c30cb9796240d24",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "459b4eb3-744e-4408-93c3-bf9995985a50",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NL",
+      "key": "D.NL",
+      "status": "response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "seconds": 3.75,
+      "packet_sha256": "a81c552387803cf822de2bf4247f7ce3b000fda02a1480704d1164aa6c0c4151",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NL?format=csv",
+          "received_at": "2026-10-04T20:43:12.731973+00:00",
+          "http_status": 200,
+          "wire_bytes": 70887,
+          "wire_sha256": "f25ad34cc2132f3f3ebc33f62c6fcf32e7646ae08aecb0e46516a2533735babb",
+          "bytes": 7461052,
+          "sha256": "054ce685803e65ccfae4cbcff5c7cd24ce828df81d0296493683ffb2fe6a3fe0",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4d3336ef-7f0f-4ea3-92fb-f9e35403ec66",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NO",
+      "key": "D.NO",
+      "status": "response_replayed",
+      "n": 10239,
+      "first": "1986-03-03",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 14781,
+        "rejected_rows": 4542
+      },
+      "seconds": 3.0,
+      "packet_sha256": "66e4e8d4ce9d3eae87b2446105330e02b757698ecc1ef010b79cda7ffb74dd38",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NO?format=csv",
+          "received_at": "2026-10-04T20:43:12.735073+00:00",
+          "http_status": 200,
+          "wire_bytes": 51984,
+          "wire_sha256": "a52d8eb92486ea740c4fb6626b83756c00c27b4726f3c7e3dcc5b7f6a1e9bf5e",
+          "bytes": 3354060,
+          "sha256": "2f245a781c7afdd66a89eff7ad999a3f5b23c53b886c189846a237d29bfd220a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "6695be18-9784-4c7d-9373-d6beec20e84e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.NZ",
+      "key": "D.NZ",
+      "status": "response_replayed",
+      "n": 12392,
+      "first": "1985-01-04",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 15218,
+        "rejected_rows": 2826
+      },
+      "seconds": 2.953,
+      "packet_sha256": "fe62bb02baa014998892d52c427deff9bc05fbdff57d4609624509a808771362",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.NZ?format=csv",
+          "received_at": "2026-10-04T20:43:16.424609+00:00",
+          "http_status": 200,
+          "wire_bytes": 62413,
+          "wire_sha256": "2d2b21c7c4ac180e482924cf0357ae08d0e2b03e60a931e03a8a88dd3e6e3665",
+          "bytes": 5345623,
+          "sha256": "ee0264fde55066494cba8424a502f212d6f36772ef59109cfd96276377a5c003",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e10262d7-a68f-4b24-b53a-a0a8693e8460",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PE",
+      "key": "D.PE",
+      "status": "response_replayed",
+      "n": 5897,
+      "first": "2003-09-05",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 5899,
+        "rejected_rows": 2
+      },
+      "seconds": 1.594,
+      "packet_sha256": "b064e2436fad4937ee905f8622e22a778b5c5155b0e35e66f2a18bcb87dc0a04",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PE?format=csv",
+          "received_at": "2026-10-04T20:43:16.409025+00:00",
+          "http_status": 200,
+          "wire_bytes": 18846,
+          "wire_sha256": "e315b0c04096327cb8f4b9666c1065edab2314cf39ea9942a8da5ddf6bc9450b",
+          "bytes": 903734,
+          "sha256": "4a0c34fac5c703750b6c17e95ae37d39ab19f43f57640dbd9d012fb81b55d9a5",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "919fcede-840f-4f54-ac59-d8949504f554",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PH",
+      "key": "D.PH",
+      "status": "response_replayed",
+      "n": 9497,
+      "first": "1986-01-02",
+      "last": "2026-09-27",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 13546,
+        "rejected_rows": 4049
+      },
+      "seconds": 2.219,
+      "packet_sha256": "cfe74dfa347ec661da2df7c4df1a8a8952c1039fa89b69f206be74cad9453448",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PH?format=csv",
+          "received_at": "2026-10-04T20:43:18.657708+00:00",
+          "http_status": 200,
+          "wire_bytes": 48101,
+          "wire_sha256": "8e33e3132842402c2ffa0393c13d9ad63de3a7631ae3c09b80233d0fa152947b",
+          "bytes": 3043704,
+          "sha256": "6052df87419969f51be9a49ff41b7568297eaf4bf53efd0dbe93a925931154ad",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "90ae86ae-1a19-43d6-bd4b-7f5d5f61187d",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PL",
+      "key": "D.PL",
+      "status": "response_replayed",
+      "n": 9097,
+      "first": "1993-01-16",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12310,
+        "rejected_rows": 3213
+      },
+      "seconds": 2.562,
+      "packet_sha256": "a09c7505a7fa088735264105bc08c54abdc38f5b37b0406d95b2ce031433596c",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PL?format=csv",
+          "received_at": "2026-10-04T20:43:19.471700+00:00",
+          "http_status": 200,
+          "wire_bytes": 64834,
+          "wire_sha256": "b51e3cff7a0b4aeaf7c8a0519d78f9ebeb9c950121d640ffe09761da1b08e05f",
+          "bytes": 7913450,
+          "sha256": "b2cf9ba9811a04073f5e3f9a61ac4482f3a70122ce1dd0594cee1d4f0258c6d7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "6904701e-a736-49b4-a08c-282ff298a9e7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.PT",
+      "key": "D.PT",
+      "status": "response_replayed",
+      "n": 19723,
+      "first": "1945-01-01",
+      "last": "1998-12-31",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 19723,
+        "rejected_rows": 0
+      },
+      "seconds": 3.922,
+      "packet_sha256": "c9eb4a6aa92888ee79a70cd8725cb8f90b9fc76c933cb5d02845a853e00c13d8",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.PT?format=csv",
+          "received_at": "2026-10-04T20:43:21.649764+00:00",
+          "http_status": 200,
+          "wire_bytes": 99693,
+          "wire_sha256": "8fed4675313c44e8ba9552e166af935d440ae567601c95e60be2248b33bcaf6d",
+          "bytes": 11767831,
+          "sha256": "47f03039bdcf64bda986630ef7d61be29da96dafa517d1dd4f374c30f1e202da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d01e5fe5-0f4e-42d8-b876-78a31293d0ea",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RO",
+      "key": "D.RO",
+      "status": "response_replayed",
+      "n": 5998,
+      "first": "2003-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8671,
+        "rejected_rows": 2673
+      },
+      "seconds": 2.062,
+      "packet_sha256": "aef0043b0c152ad57e350e7e7e2904650dad165b6c5b196ef991a68dd0bc247f",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RO?format=csv",
+          "received_at": "2026-10-04T20:43:22.164140+00:00",
+          "http_status": 200,
+          "wire_bytes": 29555,
+          "wire_sha256": "35e62ced285cb6ecd18d30bc9edc372cb1dd542a7239740d2775d4b4a4eb30a4",
+          "bytes": 1250289,
+          "sha256": "36da9ea52cf8e0926368a9b1344bc9d5801fafc5e36f2cb7af504c06115ffb80",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c1300c81-6b56-409c-8f5f-096192584bae",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RS",
+      "key": "D.RS",
+      "status": "response_replayed",
+      "n": 10828,
+      "first": "1997-01-01",
+      "last": "2026-09-11",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 10828,
+        "rejected_rows": 0
+      },
+      "seconds": 1.75,
+      "packet_sha256": "71c9b0fb30f0b3a899ea0b16aa226353fa65921649059470f76371a52f8cb527",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RS?format=csv",
+          "received_at": "2026-10-04T20:43:24.562252+00:00",
+          "http_status": 200,
+          "wire_bytes": 33786,
+          "wire_sha256": "49c2ad006bdeb09b81c4b78871ff0931c223533f51803f30df7424e036ef365c",
+          "bytes": 2503000,
+          "sha256": "513f0e9c02cc390574a8ac908f0476d3740cec5311ab85f90bf76e85de32bef7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "12135c7d-3404-497a-bfdd-6e3817153f91",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.RU",
+      "key": "D.RU",
+      "status": "response_replayed",
+      "n": 8754,
+      "first": "1992-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 12691,
+        "rejected_rows": 3937
+      },
+      "seconds": 2.031,
+      "packet_sha256": "f702f215d020d1be5e079706a913e520b770d48b8ccdafcc0c13976a5b060ecb",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.RU?format=csv",
+          "received_at": "2026-10-04T20:43:25.492641+00:00",
+          "http_status": 200,
+          "wire_bytes": 43682,
+          "wire_sha256": "0630a1ea1f529718b33f56c62a1ee6ebeaf085579c205e470708183140d722a5",
+          "bytes": 2725144,
+          "sha256": "17885391d3805a97e16f67af87c72e2ef1e4c45026a84245377e0af0319c04f6",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "16a7bf8c-bc13-44f9-ad88-9939c914bd60",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.SA",
+      "key": "D.SA",
+      "status": "response_replayed",
+      "n": 6965,
+      "first": "2000-01-31",
+      "last": "2026-09-13",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 6965,
+        "rejected_rows": 0
+      },
+      "seconds": 1.532,
+      "packet_sha256": "e7753f82a4c566d40461bfdba0c86b1a6d1e53a7d4100a8d763034b15f39eccb",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.SA?format=csv",
+          "received_at": "2026-10-04T20:43:26.800739+00:00",
+          "http_status": 200,
+          "wire_bytes": 22352,
+          "wire_sha256": "9e57002f7f6a16371731da5e70ec07e290d9063df8e240889ceb4606712e0792",
+          "bytes": 1288377,
+          "sha256": "cada0b4421e2e6f68a68e33f41c878f21bb680577cf9d73fa57c2c750f0da10e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "39b6a6ad-1619-43f5-ae0a-119f4e0a2c4c",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.SE",
+      "key": "D.SE",
+      "status": "response_replayed",
+      "n": 20473,
+      "first": "1946-01-02",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 22811,
+        "rejected_rows": 2338
+      },
+      "seconds": 3.797,
+      "packet_sha256": "0e5cf715faf2486e160d911200dfdfa05cb216099763e447dcc72f10542ec29f",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.SE?format=csv",
+          "received_at": "2026-10-04T20:43:28.072245+00:00",
+          "http_status": 200,
+          "wire_bytes": 81494,
+          "wire_sha256": "7b4e0188faf39cf7a6aab9277d88c22a2620d4bb1e807b551026efdafe8170c5",
+          "bytes": 6331586,
+          "sha256": "e820f92c342081229cb8d51313655ad877883a03869c4d83a368762bfe338c0a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d68f8b1f-0dbb-469f-bae9-2e4d45b923df",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.TH",
+      "key": "D.TH",
+      "status": "response_replayed",
+      "n": 8150,
+      "first": "2000-05-23",
+      "last": "2026-09-24",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8247,
+        "rejected_rows": 97
+      },
+      "seconds": 2.578,
+      "packet_sha256": "0534179c47eedd0b7bdda1df21bac6d1c6a574d5742ffe95606ce9bf3f11c11b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.TH?format=csv",
+          "received_at": "2026-10-04T20:43:28.833569+00:00",
+          "http_status": 200,
+          "wire_bytes": 28746,
+          "wire_sha256": "06cdf35c9a756aed67af8323b96981976628c3df70c966f37aeeff85104def21",
+          "bytes": 2243309,
+          "sha256": "20ec6c4c02c7d392d7f9cc9a831378dcd7b3ae8c7ea8d1ca45e2af193db6d61f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "eba55351-27c3-4a99-a211-be2b51279907",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.TR",
+      "key": "D.TR",
+      "status": "response_replayed",
+      "n": 6186,
+      "first": "2002-02-20",
+      "last": "2026-09-25",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 8984,
+        "rejected_rows": 2798
+      },
+      "seconds": 1.735,
+      "packet_sha256": "a898daa67a91549068123890ffa5fdd6968b002999af5a4b276fc2bbb60e966e",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.TR?format=csv",
+          "received_at": "2026-10-04T20:43:31.300161+00:00",
+          "http_status": 200,
+          "wire_bytes": 36528,
+          "wire_sha256": "44e544a0832e0aa1e95bc7765bc34b01c405f5dc31a562d7fe2558d92b61d6a5",
+          "bytes": 3952478,
+          "sha256": "c5e723864b9f3f0757622d1445d6fb9d8a4cbcbd01b4bf0cec6a23171ecf7fbe",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "62a23019-0291-4b82-9aa1-7fe400612ca0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.US",
+      "key": "D.US",
+      "status": "response_replayed",
+      "n": 26387,
+      "first": "1954-07-01",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 26387,
+        "rejected_rows": 0
+      },
+      "seconds": 3.656,
+      "packet_sha256": "a49d09601b6f1a15f38205e52bcd65d3e9161a513c62a20c0738b23b3a6777b5",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.US?format=csv",
+          "received_at": "2026-10-04T20:43:32.025143+00:00",
+          "http_status": 200,
+          "wire_bytes": 95576,
+          "wire_sha256": "d68e265a4a85ee04423097a1e63f5de3236ef7ee48da97d3fef851ff378385ce",
+          "bytes": 6906512,
+          "sha256": "b3aca93c0454181b7b56ddc77e57a6fcb3b6dccd9b9195a8b08819e6ecb1e6eb",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "21be6ec0-3c91-412b-9c7e-699a2ba2e972",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.XM",
+      "key": "D.XM",
+      "status": "response_replayed",
+      "n": 10102,
+      "first": "1999-01-01",
+      "last": "2026-09-29",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 10134,
+        "rejected_rows": 32
+      },
+      "seconds": 2.484,
+      "packet_sha256": "652e5333907ab3579cb425e9631c35ebfce78a18f9085e9c3b3f16dc9a219f3e",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.XM?format=csv",
+          "received_at": "2026-10-04T20:43:33.927065+00:00",
+          "http_status": 200,
+          "wire_bytes": 51392,
+          "wire_sha256": "b37f8af3a514395ae5a1686a0166a6ca9bea90a64759f92d30b719eae0a274f1",
+          "bytes": 5890534,
+          "sha256": "551fd43690cc0a523d32bd78e3fb0105c5221d6d15981d0ff6aad7879f55bfe1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "82bd6599-4506-402a-969b-e2530c35533c",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:D.ZA",
+      "key": "D.ZA",
+      "status": "response_replayed",
+      "n": 13729,
+      "first": "1980-12-12",
+      "last": "2026-09-28",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 16726,
+        "rejected_rows": 2997
+      },
+      "seconds": 2.375,
+      "packet_sha256": "29ae291a66a3a3942415c2fd5245e47ea88f7b553f982e68a0384af9d473e108",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/D.ZA?format=csv",
+          "received_at": "2026-10-04T20:43:36.133086+00:00",
+          "http_status": 200,
+          "wire_bytes": 56900,
+          "wire_sha256": "32a3e30c4faf9496acd99c988e5de4d7eacbdfce4cc08938112bdc57e1f0b5f1",
+          "bytes": 2473272,
+          "sha256": "204b3775634fcc55722e042bfe36a96d762db2cb52fa68999acb826abdfa188f",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "61fea267-cee2-4c9b-bf5e-ffa279aaebcb",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AR",
+      "key": "M.AR",
+      "status": "response_replayed",
+      "n": 386,
+      "first": "1993-04-01",
+      "last": "2025-06-01",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 387,
+        "rejected_rows": 1
+      },
+      "seconds": 0.656,
+      "packet_sha256": "7e03cd7788e93167638a8f64eb9444a3a846586f71f056c21e27df486711ceb9",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AR?format=csv",
+          "received_at": "2026-10-04T20:43:36.071773+00:00",
+          "http_status": 200,
+          "wire_bytes": 5142,
+          "wire_sha256": "db5e0cc728af563142c0c06f66b3d639b6c711311f3cb07b87b855abc4ae4bab",
+          "bytes": 497021,
+          "sha256": "7fc1a53f549167af6a6ff68ae1fe5e799d8f8827db3a6e482f9019f7627b653c",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "52e955e7-c5bb-42b5-9147-69882092d7fb",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AT",
+      "key": "M.AT",
+      "status": "response_replayed",
+      "n": 645,
+      "first": "1945-04-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 645,
+        "rejected_rows": 0
+      },
+      "seconds": 0.766,
+      "packet_sha256": "fe93bda0a01a3c018992b1345e6319cff14221bb4fa7d3fec3f2efa61477e9ea",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AT?format=csv",
+          "received_at": "2026-10-04T20:43:37.135379+00:00",
+          "http_status": 200,
+          "wire_bytes": 3300,
+          "wire_sha256": "7d011b5a0452e228189eec3a646981aa806c7ef7fbbe6ce4d090c2f25f8cf989",
+          "bytes": 319238,
+          "sha256": "03b122f1cbe23411296bc692fcb30e9fc3da74c5689dcfc539b5a3757464ec2a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f62530fe-9400-4522-b875-245d197e3ced",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.AU",
+      "key": "M.AU",
+      "status": "response_replayed",
+      "n": 605,
+      "first": "1976-04-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 605,
+        "rejected_rows": 0
+      },
+      "seconds": 2.172,
+      "packet_sha256": "cb88c324b267d747e7e707ed509c21af873856cc9255a2ed23983968962b14dd",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.AU?format=csv",
+          "received_at": "2026-10-04T20:43:39.604028+00:00",
+          "http_status": 200,
+          "wire_bytes": 4651,
+          "wire_sha256": "1abbea8b86d8bce4331aceb400e3989eac5982b94f0e1a687470eb29cddd09fe",
+          "bytes": 418466,
+          "sha256": "20ac145f543623f88525c39c11620f54c83f46ad1fba7cb25323f6e54dc97bbe",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "818b331a-6bd7-47e2-a515-fdfafa329427",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.BE",
+      "key": "M.BE",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.562,
+      "packet_sha256": "8bd264bd66c9c51011ff52b239f798bb45ca514c06a94ab464712f0f1596e2d5",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.BE?format=csv",
+          "received_at": "2026-10-04T20:43:38.307115+00:00",
+          "http_status": 200,
+          "wire_bytes": 3432,
+          "wire_sha256": "9683cf57c19ac56994a43b4d7b158009366277eaa7c182edf57328a596e4e442",
+          "bytes": 279992,
+          "sha256": "ae3b6fb5842c92f8858560cc596e630d8a6e2dcbeda6a7618413af20ad18af46",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "89be8292-603c-4095-9010-d4f2c0c41b83",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.BR",
+      "key": "M.BR",
+      "status": "response_replayed",
+      "n": 483,
+      "first": "1986-06-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 483,
+        "rejected_rows": 0
+      },
+      "seconds": 2.078,
+      "packet_sha256": "7f2b09cc23770b93e26ab5a3b08d2391bf2e87e41950db45d94a4caeb3a4368c",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.BR?format=csv",
+          "received_at": "2026-10-04T20:43:40.657481+00:00",
+          "http_status": 200,
+          "wire_bytes": 5037,
+          "wire_sha256": "f7d2fa7edfd8211e254bb2e63e43d18f70c1d8b4a47350534033fa9ca6bfc40c",
+          "bytes": 428759,
+          "sha256": "c631e814f411faca28c023cf7adc5fca631f0ff71424ab310f38d2296718235a",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "948908a8-20ac-41a1-99ea-55cbaa6cc8b5",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CA",
+      "key": "M.CA",
+      "status": "response_replayed",
+      "n": 794,
+      "first": "1960-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 794,
+        "rejected_rows": 0
+      },
+      "seconds": 1.094,
+      "packet_sha256": "32d67a0bb66f3a8e0e856a832dacf1d130963207da7c1cf3fcfe472ebba2fcf1",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CA?format=csv",
+          "received_at": "2026-10-04T20:43:40.983668+00:00",
+          "http_status": 200,
+          "wire_bytes": 5826,
+          "wire_sha256": "f7683d4fab98adc78280a26c2b90e2c1b9ebe2de8f9ce0313cfed628ea256425",
+          "bytes": 495005,
+          "sha256": "62d96173e0f1a2b848e494eeb332fd2863b4ec4b0ff8a2f0aec679880059b6b4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e9273a70-321c-4caa-a787-b75ed70c51c3",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CH",
+      "key": "M.CH",
+      "status": "response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "seconds": 0.656,
+      "packet_sha256": "4740794792e4d7a1036c9e4807d4f5239cf4fc4aad4a8a7b2a57edb1ea53aafe",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CH?format=csv",
+          "received_at": "2026-10-04T20:43:41.634691+00:00",
+          "http_status": 200,
+          "wire_bytes": 4132,
+          "wire_sha256": "784f94264e5df455ef64e0edc0b201e7a5c8a14fa442856635464548cfdea39d",
+          "bytes": 267126,
+          "sha256": "767675616cda8f9f27e82482b4e2f29db9822c0b1ed382a5ef09ae1f8c831f58",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "eccb15d3-e151-4a60-bf7e-5a26a0afcfa1",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CL",
+      "key": "M.CL",
+      "status": "response_replayed",
+      "n": 355,
+      "first": "1997-02-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 355,
+        "rejected_rows": 0
+      },
+      "seconds": 0.531,
+      "packet_sha256": "34037310d9128652ccf85ed30b6f464e122d339cbf08504f9f49632b0c4e35c2",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CL?format=csv",
+          "received_at": "2026-10-04T20:43:41.921629+00:00",
+          "http_status": 200,
+          "wire_bytes": 2164,
+          "wire_sha256": "7ed26e2f025e984b7ff3d9cb3cfa9f72903b9b36c3c2a948190a4366bd2104c3",
+          "bytes": 151325,
+          "sha256": "b148cf45792f5d4773d3fda1d41ca0465957f528ab9230345a7de2b907651cca",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3152835a-60fe-4844-84bc-4fbb9fe27a5b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CN",
+      "key": "M.CN",
+      "status": "response_replayed",
+      "n": 368,
+      "first": "1996-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 368,
+        "rejected_rows": 0
+      },
+      "seconds": 0.75,
+      "packet_sha256": "bb5370bf1a7a6972ef8836946b8c785ede1833f09ec36bf02a5511560a0a7020",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CN?format=csv",
+          "received_at": "2026-10-04T20:43:42.744563+00:00",
+          "http_status": 200,
+          "wire_bytes": 1582,
+          "wire_sha256": "a53dd62508edffa16fd9916f650223752b85f6f18a1fcf1272597949c1f58b81",
+          "bytes": 86872,
+          "sha256": "b6fe8244f808152abe4e6e1d519e4c2e50314034f7b9adf46fd3aec07fcfbc3e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "cc65948d-4163-4fc4-9f74-1ba730d19242",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CO",
+      "key": "M.CO",
+      "status": "response_replayed",
+      "n": 377,
+      "first": "1995-04-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 377,
+        "rejected_rows": 0
+      },
+      "seconds": 0.656,
+      "packet_sha256": "826bafde76e995d3b560507db2649f5a7b963aa2d0799b901a5f5b0670866cf1",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CO?format=csv",
+          "received_at": "2026-10-04T20:43:42.877983+00:00",
+          "http_status": 200,
+          "wire_bytes": 2201,
+          "wire_sha256": "fe67aee893eabf4826a1a3b40439d155d30400f38d67846044bc43e1002593be",
+          "bytes": 123090,
+          "sha256": "56910124f444a14cdfcdcec395539c6b30bb9e26309a28978c8d8d277074e8c7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "798cb877-2b02-4245-9b45-074a48000fb6",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.CZ",
+      "key": "M.CZ",
+      "status": "response_replayed",
+      "n": 369,
+      "first": "1995-12-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 369,
+        "rejected_rows": 0
+      },
+      "seconds": 0.985,
+      "packet_sha256": "6d7eab2875ad760d9fb175557a5a8a1b925f4a34a3a296f95577e2a705d1d360",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.CZ?format=csv",
+          "received_at": "2026-10-04T20:43:44.004315+00:00",
+          "http_status": 200,
+          "wire_bytes": 2189,
+          "wire_sha256": "0cffd2ce9f02b512eeaa492a39c722b79515f4890ac8eb83689c8d07e834c4cb",
+          "bytes": 170721,
+          "sha256": "a4fefdd1a60e363c091c77c55b53a69318553aa5ca94305e363997b76330f685",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "270d81ce-f2fa-447e-8f6a-da1f4114d2e0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.DE",
+      "key": "M.DE",
+      "status": "response_replayed",
+      "n": 606,
+      "first": "1948-07-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 606,
+        "rejected_rows": 0
+      },
+      "seconds": 1.25,
+      "packet_sha256": "d55bcd1f7d025d69eae8132e9110728536188ad833b379a1aec6178aa8997981",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.DE?format=csv",
+          "received_at": "2026-10-04T20:43:44.313706+00:00",
+          "http_status": 200,
+          "wire_bytes": 4446,
+          "wire_sha256": "97003ac1cece2dc60a3608f1aa0b34618a7f8be29c78da813005c92f961addeb",
+          "bytes": 457096,
+          "sha256": "cbb0a693f17e0edfa762eec6ac6dc4787b7ef7699bbd02e7f40ba15d4efbf0f4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "74d9963a-2477-4a89-9501-275baeb92637",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.DK",
+      "key": "M.DK",
+      "status": "response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "seconds": 0.625,
+      "packet_sha256": "e69e1fafcdf5cab1fefc165568a78fa2654a764ee12a81bb735bf89a89cfeded",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.DK?format=csv",
+          "received_at": "2026-10-04T20:43:44.913205+00:00",
+          "http_status": 200,
+          "wire_bytes": 4472,
+          "wire_sha256": "630355765447b12caab9d61eb7a8faa4801b77359e01d97d1e289ea097aa9a73",
+          "bytes": 284509,
+          "sha256": "5afd709703394a238b2b60e0e81716dcb5efa4d816b616ff9aab1007f037ce25",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a7fc6dab-d6a4-42ab-bdca-c3def49c23fe",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ES",
+      "key": "M.ES",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.672,
+      "packet_sha256": "857128baa27dce528d3dfa3ad72739f4f1e25004219eb68741e0db0c71d8c072",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ES?format=csv",
+          "received_at": "2026-10-04T20:43:45.277763+00:00",
+          "http_status": 200,
+          "wire_bytes": 4553,
+          "wire_sha256": "bd76c7654856de98b5dca71f7e211598695a3e2dd4aec196ba51ce46645af5d3",
+          "bytes": 402474,
+          "sha256": "5d4cf2935a1a3851be42144195fb13b6ed6cc8f1c16053b028bcae2a09f61956",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "afbecc48-4a40-454c-8e9c-0eb3fcfbb395",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.FR",
+      "key": "M.FR",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.64,
+      "packet_sha256": "f14ae05f626bed37ef83b137e60011117fdc7e78bdb71b56361ea36e0acaf996",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.FR?format=csv",
+          "received_at": "2026-10-04T20:43:45.873329+00:00",
+          "http_status": 200,
+          "wire_bytes": 5608,
+          "wire_sha256": "ffc09cb50359dca5461f92d36c004bded0fde5cc2332b10c7daa59cfa431438c",
+          "bytes": 574821,
+          "sha256": "a37a81047ee4aae0a55aa8d70ee71a2d93481e6434056bc5e0e677d31b69c1de",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "0f67b0b9-ebac-440b-a782-6a4481cd9a57",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.GB",
+      "key": "M.GB",
+      "status": "response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "seconds": 0.672,
+      "packet_sha256": "63a35c74e64e0fa115966806ae919463b4596e2e4c9b20649a636261e29214c7",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.GB?format=csv",
+          "received_at": "2026-10-04T20:43:46.304635+00:00",
+          "http_status": 200,
+          "wire_bytes": 4662,
+          "wire_sha256": "15a0745fa5949c7c37aadf2fd75e1f4881014b6a305772c98b92f49fce8426e7",
+          "bytes": 367939,
+          "sha256": "4bc6c599d477053711d66ee5fd55890f1db68fdb2b2d2602a55ca045f7c1fe48",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "023f386d-ee55-4950-99c5-de2c68928218",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.GR",
+      "key": "M.GR",
+      "status": "response_replayed",
+      "n": 536,
+      "first": "1956-05-01",
+      "last": "2000-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 536,
+        "rejected_rows": 0
+      },
+      "seconds": 0.609,
+      "packet_sha256": "325d70294c30cae6218d3a496575d9e40b528d9ca4a0e0a0ce14bcb291c6b031",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.GR?format=csv",
+          "received_at": "2026-10-04T20:43:46.789031+00:00",
+          "http_status": 200,
+          "wire_bytes": 6391,
+          "wire_sha256": "d4b042a652c1b78b440e31adf09961bf8d0a83fc40260b4bf827c8cb125c4b28",
+          "bytes": 701096,
+          "sha256": "81b81459cda7b012f4afd7b8696e17948e1cb34819a0063c96b7c46b645af43d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "62202ee2-a8b3-4691-8b1d-9b3dff5caf92",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HK",
+      "key": "M.HK",
+      "status": "response_replayed",
+      "n": 336,
+      "first": "1998-09-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 336,
+        "rejected_rows": 0
+      },
+      "seconds": 1.438,
+      "packet_sha256": "30257e43559622ea241498950847756a71180beaf21c345203f6c4fedd4763bd",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HK?format=csv",
+          "received_at": "2026-10-04T20:43:48.113515+00:00",
+          "http_status": 200,
+          "wire_bytes": 1494,
+          "wire_sha256": "4ba008b60b31e7bcfc8436cee5c65af43b2b0d6a2effa01be1b9f9b23b748f5c",
+          "bytes": 50614,
+          "sha256": "1d198f8dc77d8ea35b4b6fe0540fb8059daf225061a23c3c8620645469c477a1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ccdda20a-98aa-4a12-b595-7923f45f6ccd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HR",
+      "key": "M.HR",
+      "status": "response_replayed",
+      "n": 308,
+      "first": "1993-01-01",
+      "last": "2022-12-01",
+      "quality": {
+        "status": "partial",
+        "error": null,
+        "received_rows": 360,
+        "rejected_rows": 52
+      },
+      "seconds": 0.578,
+      "packet_sha256": "e6bfe9d97d555d05c48c60482e4f567da7cdebf8ccb9f3d0b49d7e4fa6ebf0d2",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HR?format=csv",
+          "received_at": "2026-10-04T20:43:47.714090+00:00",
+          "http_status": 200,
+          "wire_bytes": 3969,
+          "wire_sha256": "cf38e4216c5ff9eb66549a2edbc3d17d4ecb25bbeb44b4a78f29b2379ed854d4",
+          "bytes": 322907,
+          "sha256": "b45916d33cbfa7105db1091633af486fee81d4c01d7455e180e58f107bf2399d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "7c7ff27b-2ece-439c-b274-173ea80e7315",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.HU",
+      "key": "M.HU",
+      "status": "response_replayed",
+      "n": 476,
+      "first": "1987-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 476,
+        "rejected_rows": 0
+      },
+      "seconds": 0.563,
+      "packet_sha256": "036e4fe769217d5cd0c083f6dec9b8d8cd564a76f7607e6a080e2a2bede64dae",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.HU?format=csv",
+          "received_at": "2026-10-04T20:43:48.588076+00:00",
+          "http_status": 200,
+          "wire_bytes": 2650,
+          "wire_sha256": "c9776ff8794c1de572ae9fa04355c704a81eb01feffb4f83046afb65d2684d50",
+          "bytes": 170425,
+          "sha256": "21993335cefeb6e3875b283f523ef1f1b590ba42a8fe283f1a34e7ab54e39185",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3219b21e-36a1-4e6d-a269-f61151630cbb",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ID",
+      "key": "M.ID",
+      "status": "response_replayed",
+      "n": 254,
+      "first": "2005-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 254,
+        "rejected_rows": 0
+      },
+      "seconds": 0.578,
+      "packet_sha256": "cdbd3b0aff6b236bf78827b8c1437f78f36f421a9d90202e72c2d7c6da6b8222",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ID?format=csv",
+          "received_at": "2026-10-04T20:43:48.981335+00:00",
+          "http_status": 200,
+          "wire_bytes": 2202,
+          "wire_sha256": "01d69f515d339bf78eb80b3de2887e65e35ce413efca4412093c24a844239fd3",
+          "bytes": 170900,
+          "sha256": "83d3fc5a295c190363330b690978963ddd562cad03286ada8f3ac235669ffa69",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "646e2ed9-bdda-42d1-be86-4fa95627dc55",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IL",
+      "key": "M.IL",
+      "status": "response_replayed",
+      "n": 397,
+      "first": "1993-07-01",
+      "last": "2026-07-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 397,
+        "rejected_rows": 0
+      },
+      "seconds": 0.531,
+      "packet_sha256": "f29e77f817f378bad9d8c8a6b77904baa4e35326ddf8b835b6c907d58211f37f",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IL?format=csv",
+          "received_at": "2026-10-04T20:43:49.432151+00:00",
+          "http_status": 200,
+          "wire_bytes": 1827,
+          "wire_sha256": "2a1eec35acc7af820171684ed8b14e5767c04fdd481d9c817187739302674075",
+          "bytes": 54213,
+          "sha256": "a0f906db0f27387c0651c61020ed10965093076c4dd52755b8bc2ed61223c167",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5f61fefe-359b-47ce-a494-d388d1062a43",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IN",
+      "key": "M.IN",
+      "status": "response_replayed",
+      "n": 966,
+      "first": "1946-01-01",
+      "last": "2026-06-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 966,
+        "rejected_rows": 0
+      },
+      "seconds": 0.641,
+      "packet_sha256": "b7a1e3ca2808ebf07655c7ee0c630e31b466eaf7d4c8a240a98c2818916bb8ad",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IN?format=csv",
+          "received_at": "2026-10-04T20:43:49.844661+00:00",
+          "http_status": 200,
+          "wire_bytes": 4351,
+          "wire_sha256": "b3ac6a84e182f528566f49e3ab6cce8209433c81dc59e9f4c9c8b582dcfe554b",
+          "bytes": 346844,
+          "sha256": "0c8f93a8b06dd07384c24d4a26568a9ebb6cb08e7b92014cb289e7aa364d8515",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "acde6aeb-345b-4194-9f2c-0a267eea3b95",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IS",
+      "key": "M.IS",
+      "status": "response_replayed",
+      "n": 342,
+      "first": "1998-03-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 342,
+        "rejected_rows": 0
+      },
+      "seconds": 0.61,
+      "packet_sha256": "461c0d5be96b7e403b1cd968fc92ee0ca9519347d19f07d275df60ec2c909596",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IS?format=csv",
+          "received_at": "2026-10-04T20:43:50.357359+00:00",
+          "http_status": 200,
+          "wire_bytes": 2167,
+          "wire_sha256": "4e315620f0a43ed54df52884b2b420288aef6fa8e161ec9f62a7e72718f0b41d",
+          "bytes": 143724,
+          "sha256": "2530c006e639cd38de161d18a1a9691c47de667f4e1f5263047f4d7df4d6c95b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "55031d29-2f1e-4308-bdcb-41d4f264c8cd",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.IT",
+      "key": "M.IT",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.594,
+      "packet_sha256": "6600fb2c6ed912ba68df35d3f8fc8fc2b592f50866ef4069d9400fb9664304af",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.IT?format=csv",
+          "received_at": "2026-10-04T20:43:50.796301+00:00",
+          "http_status": 200,
+          "wire_bytes": 4180,
+          "wire_sha256": "9444c8e1f10c6655be9e68dbdb16a3cefbdfa07aad783923cea24f210acf6d5d",
+          "bytes": 357435,
+          "sha256": "d3c8132aa1230fe91a7b9834635849d3068b84675914ca30fc23bbcd1091a07e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d094b2b2-1493-4fd2-baae-1feb6465234e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.JP",
+      "key": "M.JP",
+      "status": "response_replayed",
+      "n": 852,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 852,
+        "rejected_rows": 0
+      },
+      "seconds": 0.891,
+      "packet_sha256": "979ed56adcee291490a739b822d03d49752cabe1a58da6ada87765644778710a",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.JP?format=csv",
+          "received_at": "2026-10-04T20:43:51.397348+00:00",
+          "http_status": 200,
+          "wire_bytes": 15549,
+          "wire_sha256": "c9917b951e48ece169f27cf28ae5ea196976c9c413d04f277d829f5dcadf99b0",
+          "bytes": 2133881,
+          "sha256": "466b12ceac2f703da3085445e338bbf2476ea98d55b26fe0fb3e843184e2780e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "d202aaac-ca32-4c1f-8e0b-808927d539d1",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.KR",
+      "key": "M.KR",
+      "status": "response_replayed",
+      "n": 327,
+      "first": "1999-05-01",
+      "last": "2026-07-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 327,
+        "rejected_rows": 0
+      },
+      "seconds": 0.578,
+      "packet_sha256": "12bea811642f6576713fe089b07dca14727a7fe6bde07ec7b067ba85ba0b5d84",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.KR?format=csv",
+          "received_at": "2026-10-04T20:43:51.707239+00:00",
+          "http_status": 200,
+          "wire_bytes": 1831,
+          "wire_sha256": "77b2e4ee2120cc2f01994021ea772aa77ad2e2e89691f6d42fd6b311faf40e89",
+          "bytes": 115578,
+          "sha256": "617e211dae7c6c55caefc521561d9e15a9929999f1479fa92a3b1a2eaef6c898",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "e81ddc61-80ae-4fc3-b36d-ed2cf4a1c18a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.KW",
+      "key": "M.KW",
+      "status": "response_replayed",
+      "n": 291,
+      "first": "2002-06-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 291,
+        "rejected_rows": 0
+      },
+      "seconds": 0.547,
+      "packet_sha256": "32cf8c524b4a831d40b0ac1be09d8c31f521130f3053472d3dd1d35d29986d57",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.KW?format=csv",
+          "received_at": "2026-10-04T20:43:52.420810+00:00",
+          "http_status": 200,
+          "wire_bytes": 1241,
+          "wire_sha256": "835fdd5fdc9d3320fe2bf2916b7396338572cdddd8badc4a43f424210d13f04d",
+          "bytes": 46059,
+          "sha256": "463acf93cf79786f03dddc6cb8a19077398860924fb6f95fb224b28b9402c148",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "c04a4573-4d68-4c5e-bd40-845cfc26ac04",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MA",
+      "key": "M.MA",
+      "status": "response_replayed",
+      "n": 308,
+      "first": "2001-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 308,
+        "rejected_rows": 0
+      },
+      "seconds": 0.516,
+      "packet_sha256": "81549faa80c5623bd3f510f327258f5ae4f069e021cf00ac0595d04ef2983d7b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MA?format=csv",
+          "received_at": "2026-10-04T20:43:52.538992+00:00",
+          "http_status": 200,
+          "wire_bytes": 1310,
+          "wire_sha256": "1354d1e9acbbb0916a834a088b8d9b1de1e80109719b15d9265b0128350a009f",
+          "bytes": 63084,
+          "sha256": "057b1d7b94bdb1d40c2f5e4bdd4bf3b74606eaa67442ab610158530bf1c9abb4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "2d474539-1e14-49f8-bfb0-eb67dec077a0",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MK",
+      "key": "M.MK",
+      "status": "response_replayed",
+      "n": 320,
+      "first": "2000-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 320,
+        "rejected_rows": 0
+      },
+      "seconds": 0.563,
+      "packet_sha256": "7478fe9359a4376b571efb9e35b02304fcba0b7c987c18cb76606322f1dd052d",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MK?format=csv",
+          "received_at": "2026-10-04T20:43:53.276738+00:00",
+          "http_status": 200,
+          "wire_bytes": 1612,
+          "wire_sha256": "41385b5699762beb4b2d7612aaa0699946b81770cd01d8ba6a95a1bbd560a22c",
+          "bytes": 53906,
+          "sha256": "7387bca951e8062a4822a8625b072d89d25e95004145b81922b8649c2532ac04",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "b7707b9c-43a8-45a0-9e5e-7d0dc97d4d1f",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MX",
+      "key": "M.MX",
+      "status": "response_replayed",
+      "n": 334,
+      "first": "1998-11-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 334,
+        "rejected_rows": 0
+      },
+      "seconds": 0.594,
+      "packet_sha256": "24b7b53927a7f83a455960e8523097dad8b398cfec60d26074f3cdaacf04567c",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MX?format=csv",
+          "received_at": "2026-10-04T20:43:53.431751+00:00",
+          "http_status": 200,
+          "wire_bytes": 2270,
+          "wire_sha256": "b56507f4cec10df8b2d5ac32eb77d078baa79ea651298d642f4ac621980f757c",
+          "bytes": 136208,
+          "sha256": "1d62aa5a53746ce044592edea520c4d4ce2b65d1e3d5c4f7497fa281f977a3da",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9d434f20-be19-4937-a9d2-9aab4b6fecd1",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.MY",
+      "key": "M.MY",
+      "status": "response_replayed",
+      "n": 370,
+      "first": "1995-11-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 370,
+        "rejected_rows": 0
+      },
+      "seconds": 0.579,
+      "packet_sha256": "d2ecbb3c38490e880d70f7f10ee9c6f67e4f27ca1a6a12b8eefeaa7b414cf596",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.MY?format=csv",
+          "received_at": "2026-10-04T20:43:54.157742+00:00",
+          "http_status": 200,
+          "wire_bytes": 1933,
+          "wire_sha256": "352d82ebfefd1113c8b5411fba152035a52a179803a7ee810fddc57918feb13d",
+          "bytes": 104335,
+          "sha256": "766d2ad943da44f3444d20ff2318aff9483f3a3c69cfa7cbc183603feb50c492",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "04681a6f-4562-430a-8c0d-d4de8ac67e25",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NL",
+      "key": "M.NL",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.578,
+      "packet_sha256": "182aac9169d038ff329cdfedd4f948a5bf5d2a0f0da66167ec78e003ff38fb6b",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NL?format=csv",
+          "received_at": "2026-10-04T20:43:54.293785+00:00",
+          "http_status": 200,
+          "wire_bytes": 3210,
+          "wire_sha256": "aefafb13e033f2786a391c15a8d8549cd83b40091ed6fb9d56f7e54e4f47f380",
+          "bytes": 244647,
+          "sha256": "7fa984640641a217db31c03ab962a5f48d9f839c88f72efb3796c3b6c2f81d9b",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "598b7621-0a8d-4815-9906-9208f888de3b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NO",
+      "key": "M.NO",
+      "status": "response_replayed",
+      "n": 486,
+      "first": "1986-03-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 486,
+        "rejected_rows": 0
+      },
+      "seconds": 0.578,
+      "packet_sha256": "907e2bca304512d3f378780cffa38da5e444c98d47aa8c8b2888d5e224ba89ca",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NO?format=csv",
+          "received_at": "2026-10-04T20:43:55.029877+00:00",
+          "http_status": 200,
+          "wire_bytes": 2073,
+          "wire_sha256": "ff3b05f0b2a2d145f0402cae67c4bd084f8f2d422d69edfa9227ac930ab269e6",
+          "bytes": 109925,
+          "sha256": "73e6741dd85bce8022bdfeab2cd0a650cd6335d34692c1b0984398e52f91db75",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "521bb4e2-374c-4a0e-bcc8-00b0a8a4f54a",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.NZ",
+      "key": "M.NZ",
+      "status": "response_replayed",
+      "n": 500,
+      "first": "1985-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 500,
+        "rejected_rows": 0
+      },
+      "seconds": 0.61,
+      "packet_sha256": "cc658a645306edc36e3d783992e3a5c652ab787a04a82d6d9ece4adbfa158e25",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.NZ?format=csv",
+          "received_at": "2026-10-04T20:43:55.207835+00:00",
+          "http_status": 200,
+          "wire_bytes": 2914,
+          "wire_sha256": "c2c2c06691bd66f286add17d91e5973f11a31406717fc9bf8539227b8ecf7046",
+          "bytes": 175305,
+          "sha256": "e06c71bffabae1edb9047ef398def940c8d3248b3d7a9b3c2a07b89750e79f9d",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "8ff2afba-3b81-496b-b09b-0cd35b752cb7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PE",
+      "key": "M.PE",
+      "status": "response_replayed",
+      "n": 276,
+      "first": "2003-09-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 276,
+        "rejected_rows": 0
+      },
+      "seconds": 0.593,
+      "packet_sha256": "b7857c320c69f106a190a0194b9bcf1b1e55f8b7992beb5bd912b514f6f9eea0",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PE?format=csv",
+          "received_at": "2026-10-04T20:43:55.954493+00:00",
+          "http_status": 200,
+          "wire_bytes": 1294,
+          "wire_sha256": "c0fb9a09a70f1403e0e78bde1f52558c72f6cfc80f858e594751bc38a14ba47d",
+          "bytes": 42162,
+          "sha256": "d9d44ad185744c0144c479775f2d760279f977e051d3e10cef5cf39d007bb6f9",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "3b0f5d62-fa27-49c8-b0a0-a7c88599dbaa",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PH",
+      "key": "M.PH",
+      "status": "response_replayed",
+      "n": 478,
+      "first": "1986-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 478,
+        "rejected_rows": 0
+      },
+      "seconds": 0.562,
+      "packet_sha256": "4523e66c554c09741f1a5c31b45f06e484a15d5eaca4d4953052e4bc077cd664",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PH?format=csv",
+          "received_at": "2026-10-04T20:43:56.081389+00:00",
+          "http_status": 200,
+          "wire_bytes": 2267,
+          "wire_sha256": "afebad68b88736a3e39a4bf37fd647876fc6b4c2bc545b3408a4a714a3a9a106",
+          "bytes": 107018,
+          "sha256": "ada2b44326a6ff61e745030603ccefd76e41b0427a22fccfa17c1b48650d50f4",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "12f9db1b-5896-4514-8312-9d023f30f3a7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PL",
+      "key": "M.PL",
+      "status": "response_replayed",
+      "n": 404,
+      "first": "1993-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 404,
+        "rejected_rows": 0
+      },
+      "seconds": 0.594,
+      "packet_sha256": "056dbd3f83bc0702dd15adc0c052df66bbf163fabeb7ce6a4147632f900aa187",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PL?format=csv",
+          "received_at": "2026-10-04T20:43:56.818284+00:00",
+          "http_status": 200,
+          "wire_bytes": 3001,
+          "wire_sha256": "3ae538075fc81ed9b10dd92b71c89fe9136eaa4452b8cb80e7e3022064cba64e",
+          "bytes": 259458,
+          "sha256": "b650eaab5e8ca9723a26bb7b67df737abaacaf6b83afd5331a7d9cce9e2dc846",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "5fe3a09f-9d89-458c-88bb-8c716efdf7ff",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.PT",
+      "key": "M.PT",
+      "status": "response_replayed",
+      "n": 648,
+      "first": "1945-01-01",
+      "last": "1998-12-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 648,
+        "rejected_rows": 0
+      },
+      "seconds": 0.594,
+      "packet_sha256": "a70cb5edba670486751d2491fbeda2a63de408c00fe6dae1925d59934b8f08bf",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.PT?format=csv",
+          "received_at": "2026-10-04T20:43:56.938544+00:00",
+          "http_status": 200,
+          "wire_bytes": 4080,
+          "wire_sha256": "6db269491f1e7779e2659f33d6349a9e065b7cc344fd23fa1dc521c3e5ccc22b",
+          "bytes": 386138,
+          "sha256": "d5dce27514a3d29177de16b77890c9053929bd79bf0d5bf9ef52980500cf5438",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9e0f32b4-446e-4b42-a38b-b3ab54370a4e",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RO",
+      "key": "M.RO",
+      "status": "response_replayed",
+      "n": 284,
+      "first": "2003-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 284,
+        "rejected_rows": 0
+      },
+      "seconds": 0.547,
+      "packet_sha256": "f414e33a56ac3fb8084dd2ec91c141cf31154310af438e7ba0a67729ed604d0e",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RO?format=csv",
+          "received_at": "2026-10-04T20:43:57.689988+00:00",
+          "http_status": 200,
+          "wire_bytes": 1313,
+          "wire_sha256": "ec912200c092bce5f063a01c7c5b1061f6a151701d541c5bbc5ca60e7fda375b",
+          "bytes": 40842,
+          "sha256": "4a1b04c14749abafb55e087f7906e4b786e2cdb39e5f1405e08f62bb5a71048e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "9cec4bfa-3ceb-4e96-a34a-3a27f07952d7",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RS",
+      "key": "M.RS",
+      "status": "response_replayed",
+      "n": 356,
+      "first": "1997-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 356,
+        "rejected_rows": 0
+      },
+      "seconds": 0.562,
+      "packet_sha256": "85ca5240f4fbd903153911b7d6a91371b960aaf087509fb3752de3cde3dbbfe9",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RS?format=csv",
+          "received_at": "2026-10-04T20:43:57.808240+00:00",
+          "http_status": 200,
+          "wire_bytes": 1754,
+          "wire_sha256": "d529bfa41ec3ae17e32fc12e4ed682362cc661bb97c5523bb36171b93357ba83",
+          "bytes": 82089,
+          "sha256": "f0c686884b9a82a3c9132ce0547a5be054c53f6f1ea2d1cf5ced6903dd17c8f7",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a88cc5b1-ecc7-46fd-8ad6-6818daadc4a6",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.RU",
+      "key": "M.RU",
+      "status": "response_replayed",
+      "n": 416,
+      "first": "1992-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 416,
+        "rejected_rows": 0
+      },
+      "seconds": 0.578,
+      "packet_sha256": "fe0f4c54b974c36605e0792145126e5e4a8bc7a95521a99afac395535a52d6df",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.RU?format=csv",
+          "received_at": "2026-10-04T20:43:58.549701+00:00",
+          "http_status": 200,
+          "wire_bytes": 1868,
+          "wire_sha256": "441c6eabc5924d672e37f1bf94c54c18df90282e50c4c91faa2e928c2228c293",
+          "bytes": 89016,
+          "sha256": "38f02cc127ae714beb11589cfce1e3f8f016a63b61bc6676ed5eb7bbe60fece1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "57361fd3-af33-49fb-9560-36ec83a5a31b",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.SA",
+      "key": "M.SA",
+      "status": "response_replayed",
+      "n": 320,
+      "first": "2000-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 320,
+        "rejected_rows": 0
+      },
+      "seconds": 0.516,
+      "packet_sha256": "30569bd120ee714e73d8bc52fa20333f422bd8b93157b1bedbf531a2a83aa945",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.SA?format=csv",
+          "received_at": "2026-10-04T20:43:58.656733+00:00",
+          "http_status": 200,
+          "wire_bytes": 1407,
+          "wire_sha256": "2fd347a44a8763042d88a5cd619bfc58ee4efc08777eeb2448cac06afaf66771",
+          "bytes": 59026,
+          "sha256": "ed7a7964904b5fbc4e6227f33b2cc1103fc1e2764c8583d3ae3d0a73f135acc0",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "f2bb486d-b098-4c61-b81c-e039ec13b5e2",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.SE",
+      "key": "M.SE",
+      "status": "response_replayed",
+      "n": 968,
+      "first": "1946-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 968,
+        "rejected_rows": 0
+      },
+      "seconds": 0.843,
+      "packet_sha256": "4f45a794da11455dd1c35616f4f853c0a6e9fb648d61981bb5209e2ab755b582",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.SE?format=csv",
+          "received_at": "2026-10-04T20:43:59.637294+00:00",
+          "http_status": 200,
+          "wire_bytes": 4434,
+          "wire_sha256": "e04759a5a0fe2a9ff9d39add4c7432bea5b8e4e8111c2694916c9816d2ca3bed",
+          "bytes": 267820,
+          "sha256": "f851a5be3edf2064552ff153a1dac5940de7657c9a67710f3d6e277c6ccbb16e",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "4f0d53c5-3e85-4f63-a19f-35b52d576dea",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.TH",
+      "key": "M.TH",
+      "status": "response_replayed",
+      "n": 316,
+      "first": "2000-05-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 316,
+        "rejected_rows": 0
+      },
+      "seconds": 0.75,
+      "packet_sha256": "9fbd256f3402a5b2b813b4c77b415d1dc2799adcf9deadc3ec1d513bc66c4bc1",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.TH?format=csv",
+          "received_at": "2026-10-04T20:43:59.680295+00:00",
+          "http_status": 200,
+          "wire_bytes": 1695,
+          "wire_sha256": "37255634331f9db1319cc90b8aa00d1dce25cb5c04d233cf2072ff265e2647e5",
+          "bytes": 85795,
+          "sha256": "dba592056618213546095ddb590233b2da30d788b9025dc86271106d2234d572",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "a3c9b005-0387-43a8-abf0-d4873a8d8485",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.TR",
+      "key": "M.TR",
+      "status": "response_replayed",
+      "n": 295,
+      "first": "2002-02-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 295,
+        "rejected_rows": 0
+      },
+      "seconds": 0.688,
+      "packet_sha256": "769217ca60a0d0ec7f0eebf21d008413be3e1c9f6248081da4032fa4e8fe0cac",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.TR?format=csv",
+          "received_at": "2026-10-04T20:44:00.619574+00:00",
+          "http_status": 200,
+          "wire_bytes": 1942,
+          "wire_sha256": "bf1a4c2ff9fddd18f4e771305affd01f9001dc483ce68e57ccebe9a823e2f666",
+          "bytes": 129632,
+          "sha256": "69cf1024c4813ea88aa3b45be90fb7162b6f3f8c5decdbdde150b2b171e6cc28",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "1910170f-3569-48b3-bd74-5f67d7a44925",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.US",
+      "key": "M.US",
+      "status": "response_replayed",
+      "n": 866,
+      "first": "1954-07-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 866,
+        "rejected_rows": 0
+      },
+      "seconds": 0.703,
+      "packet_sha256": "ae734cc98be326884a11218c8f362a3228d972d55e07b6412dafaed6572d8356",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.US?format=csv",
+          "received_at": "2026-10-04T20:44:00.620720+00:00",
+          "http_status": 200,
+          "wire_bytes": 4273,
+          "wire_sha256": "8dfea7174b4290b014bbbf88e000a0a7897abaf6d5f7217759da742bef59b18b",
+          "bytes": 225967,
+          "sha256": "44d13209357b032a76a4ba51c5ef1f42540913a89ddb6fb9511be64a346ec1c1",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "fca4ab14-36f1-4993-aa46-d606be4cdcc8",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.XM",
+      "key": "M.XM",
+      "status": "response_replayed",
+      "n": 332,
+      "first": "1999-01-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 332,
+        "rejected_rows": 0
+      },
+      "seconds": 0.828,
+      "packet_sha256": "86ba443968e849859a02522c291e990bb6b48cd38c83dc4f70131d05be8f1b55",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.XM?format=csv",
+          "received_at": "2026-10-04T20:44:01.758442+00:00",
+          "http_status": 200,
+          "wire_bytes": 2385,
+          "wire_sha256": "34d58de72a1abff8f4515fa97ff9c91ce640e0dbc550487d4a39d6bf37e57bda",
+          "bytes": 192803,
+          "sha256": "d29ece2172d311cd7d4f01a1029a501d84cb52a34fb509988833271c0886e3b3",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "ec7e18b1-5620-43c4-a700-8a117ce35d59",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bis:WS_CBPOL:M.ZA",
+      "key": "M.ZA",
+      "status": "response_replayed",
+      "n": 549,
+      "first": "1980-12-01",
+      "last": "2026-08-01",
+      "quality": {
+        "status": "observations",
+        "error": null,
+        "received_rows": 549,
+        "rejected_rows": 0
+      },
+      "seconds": 0.781,
+      "packet_sha256": "37e71eda7180ad5e3a2c50278e9deb5905dc3c7e0fa72da7d82fe028e59758f4",
+      "source_receipts": [
+        {
+          "url": "https://stats.bis.org/api/v2/data/dataflow/BIS/WS_CBPOL/1.0/M.ZA?format=csv",
+          "received_at": "2026-10-04T20:44:01.759441+00:00",
+          "http_status": 200,
+          "wire_bytes": 2274,
+          "wire_sha256": "4715675b33e41f3199a227a1629055e0d431aa403a97eace4a06a794a3ce3d4a",
+          "bytes": 80767,
+          "sha256": "d9452375a3d80c2fa42088c9feef481e6ace0b55591babdb98031d7032f62437",
+          "body_encoding": "gzip+base64",
+          "headers": {
+            "etag": "31c64801-7a59-4a7c-bcc8-acdb975dc114",
+            "content-encoding": "gzip",
+            "content-type": "text/csv;charset=UTF-8"
+          }
+        }
+      ]
+    }
+  ],
+  "complete_history_verified": false,
+  "point_in_time_vintages_verified": false
+}

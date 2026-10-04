@@ -1,7 +1,11 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
-const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-cftc/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-bis/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 function normalize(raw,file){
- raw=require("./chart-bis-preservation.cjs").normalize(raw,file);
+ // Older normalizers can pass the same immutable predecessor through twice.
+ for(const older of [require('../fixtures/chart-cftc/transition.json'),require('../fixtures/chart-provider-browser/transition.json')]) {
+  const prior=file===older.ledger.path?older.ledger:older.changes[file];
+  if(prior&&hash(raw)===prior.before_sha256){assert.equal(raw,fs.readFileSync(path.join(R,prior.before_path),'utf8'));return raw;}
+ }
  const ledger=transition.ledger;
  if(file===ledger.path){if(hash(raw)===ledger.before_sha256)return raw;assert.equal(hash(raw),ledger.after_sha256);const old=fs.readFileSync(path.join(R,ledger.before_path),'utf8');assert.equal(hash(old),ledger.before_sha256);return old;}
  const row=transition.changes[file];if(!row||hash(raw)===row.before_sha256)return raw;

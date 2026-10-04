@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{chromium}=require('playwright');
 const ROOT=path.resolve(__dirname,'..'),OUT=path.resolve(process.argv[2]||'/tmp/watchlist-integrated-browser');fs.mkdirSync(OUT,{recursive:true});
-const scripts=['jh-watchlist-store.js','jh-watchlist-quotes.js','jh-chart-tvrail.js','jh-observation-series.js','jh-observation-cache.js','jh-chart-catalog.js','jh-chart-engine.js','jh-chart-row-handoff.js'];
+const scripts=['jh-watchlist-store.js','jh-watchlist-quotes.js','jh-chart-tvrail.js','jh-observation-series.js','jh-observation-cache.js','jh-chart-catalog.js','jh-chart-engine.js'];
 const html=fs.readFileSync(path.join(ROOT,'chart.html'),'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'').replace('</body>','<script src="/fixture-library.js"></script>'+scripts.map(s=>'<script src="/'+s+'"></script>').join('')+'</body>');
 const bars=[0,1,2].map(i=>({time:Date.UTC(2026,9,i+1)/1000,open:100+i,high:104+i,low:98+i,close:101+i,value:1000,volume:1000}));
 const members=['AAPL','ERR429','ERR500','MALFORMED','ONE','WAIT1','WAIT2','WAIT3','QUEUED','NASDAQ:AAPL','NYSE:AAPL','FRED:DGS10','EURUSD','TVC:GOLD','BINANCE:BTCUSDT',...Array.from({length:122},(_,i)=>'EQ'+String(i).padStart(3,'0'))];

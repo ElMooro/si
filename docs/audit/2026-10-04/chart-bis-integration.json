@@ -1,0 +1,48 @@
+{
+  "status": "candidate_not_deployed",
+  "base": "72bf76a1a2bca9cb990e1f723724a6d16db40100",
+  "at": "2026-10-04T20:51:50.773155+00:00",
+  "series": 98,
+  "economies": 49,
+  "new_watchlist_alternatives": 13,
+  "watchlist_routes": 6729,
+  "unrouted": 4016,
+  "bis_source_responses_replayed": 98,
+  "cftc_public_series_responses_replayed": 344,
+  "cftc_empty": 2,
+  "historical_gaps_in_cftc_series": 29,
+  "cftc_missing_source_fields": 3699,
+  "source_json_twin_sha256": "85e7f0b36de1c2baa1ec22846a8e02e40b1ffab7482a1206438d0cc6d23f45c0",
+  "native_source_hashes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": "3122161c1ca14b847b82385dea1a6c93b0a7bfabdb3f1203265c1823aaac3aee",
+    "aws/lambdas/justhodl-symdir/source/warehouse_routing.py": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1",
+    "aws/shared/treasury_fiscal_model.py": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3",
+    "aws/lambdas/justhodl-symdir/source/directory_identity.py": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51",
+    "aws/lambdas/justhodl-symdir/source/directory_index.py": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb",
+    "aws/lambdas/justhodl-symdir/source/warehouse_cache.py": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461",
+    "aws/lambdas/justhodl-symdir/source/directory_publication.py": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6",
+    "aws/lambdas/justhodl-symdir/source/directory_resident.py": "86b6ebbe5d956066b518277b72564143131be749f881ba26acb2b612cb5b5e0b",
+    "aws/lambdas/justhodl-symdir/source/cftc_series.py": "ce8435383b72aaea7ad14fe57ceb47f831272fa12362d6cc9cb54f959a475389",
+    "aws/lambdas/justhodl-symdir/source/cftc-series.json": "5af4de91d873f415b76e50c06ec9c2d0428498394313fd87cee56020796d5294",
+    "aws/lambdas/justhodl-symdir/source/bis_policy_series.py": "1fce97cb3f98a95fb64d635520e9bb25b3936df03182acfd0a8a4605d82840e0",
+    "aws/lambdas/justhodl-symdir/source/bis-policy-series.json": "85e7f0b36de1c2baa1ec22846a8e02e40b1ffab7482a1206438d0cc6d23f45c0"
+  },
+  "point_in_time_vintages_verified": false,
+  "full_upstream_history_verified": false,
+  "institutional_complete": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "limitations": [
+    "BIS alternatives use a spliced policy instrument; equivalence to TradingView ECONOMICS is unqualified.",
+    "Historical euro-area national rates can be discontinued; a successfully returned history is not a current national policy instrument.",
+    "BIS monthly period uses day 1 only as a chart anchor; release time is unavailable.",
+    "One denied public warehouse key remains stopped; the new adapter uses the independently documented official BIS public API.",
+    "Each source response is retained and replayed; completeness of all upstream releases and point-in-time vintages are not claimed.",
+    "Other BIS dataset entries remain in the provider directory; this exact adapter supports WS_CBPOL only."
+  ],
+  "peer_integration": {
+    "commit": "72bf76a1a2bca9cb990e1f723724a6d16db40100",
+    "preserved": "Nine yield aliases and watchlist row namespace handoff",
+    "repair": "Row/search clicks use the shared qualified router synchronously, preserving requested ID and explicit alternative warnings. No source-text map download or delayed selection replay."
+  }
+}
