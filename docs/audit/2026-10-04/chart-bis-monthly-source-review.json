@@ -1,0 +1,228 @@
+{
+  "status": "candidate_not_yet_deployed",
+  "alternatives": {
+    "FX_IDC:JPYVND": {
+      "id": "bisfx:JPY:VND:M",
+      "base": "JPY",
+      "quote": "VND",
+      "freq": "M",
+      "numerator": "bis:WS_XRU:M.VN.VND.E",
+      "denominator": "bis:WS_XRU:M.JP.JPY.E",
+      "unit": "VND per JPY",
+      "name": "BIS reference-rate ratio JPY/VND",
+      "formula": "(quote currency per USD) / (base currency per USD)",
+      "warning": "Derived ratio of BIS reference observations, not a traded FX cross or a verified same-time fixing. Daily labels may conceal different source fixing times; ratio of averages is not an average cross rate. Historical sources and redenominations may change."
+    },
+    "FX_IDC:JPYEGP": {
+      "id": "bisfx:JPY:EGP:M",
+      "base": "JPY",
+      "quote": "EGP",
+      "freq": "M",
+      "numerator": "bis:WS_XRU:M.EG.EGP.E",
+      "denominator": "bis:WS_XRU:M.JP.JPY.E",
+      "unit": "EGP per JPY",
+      "name": "BIS reference-rate ratio JPY/EGP",
+      "formula": "(quote currency per USD) / (base currency per USD)",
+      "warning": "Derived ratio of BIS reference observations, not a traded FX cross or a verified same-time fixing. Daily labels may conceal different source fixing times; ratio of averages is not an average cross rate. Historical sources and redenominations may change."
+    },
+    "FX_IDC:JPYETB": {
+      "id": "bisfx:JPY:ETB:M",
+      "base": "JPY",
+      "quote": "ETB",
+      "freq": "M",
+      "numerator": "bis:WS_XRU:M.ET.ETB.E",
+      "denominator": "bis:WS_XRU:M.JP.JPY.E",
+      "unit": "ETB per JPY",
+      "name": "BIS reference-rate ratio JPY/ETB",
+      "formula": "(quote currency per USD) / (base currency per USD)",
+      "warning": "Derived ratio of BIS reference observations, not a traded FX cross or a verified same-time fixing. Daily labels may conceal different source fixing times; ratio of averages is not an average cross rate. Historical sources and redenominations may change."
+    },
+    "FX_IDC:XDRBWP": {
+      "id": "bisfx:XDR:BWP:M",
+      "base": "XDR",
+      "quote": "BWP",
+      "freq": "M",
+      "numerator": "bis:WS_XRU:M.BW.BWP.E",
+      "denominator": "bis:WS_XRU:M.XW.XDR.E",
+      "unit": "BWP per XDR",
+      "name": "BIS reference-rate ratio XDR/BWP",
+      "formula": "(quote currency per USD) / (base currency per USD)",
+      "warning": "Derived ratio of BIS reference observations, not a traded FX cross or a verified same-time fixing. Daily labels may conceal different source fixing times; ratio of averages is not an average cross rate. Historical sources and redenominations may change."
+    }
+  },
+  "public_history_audit": {
+    "backend_source_commit": "75a0ecfa11d0784e0e6181d1381ac70b6757162d",
+    "status": "backend_public_history_only_frontend_routes_not_deployed",
+    "rows": [
+      {
+        "id": "bisfx:JPY:VND:M",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bisfx%3AJPY%3AVND%3AM",
+        "at": "2026-10-04T22:42:05.926579+00:00",
+        "catalogue_sha256": "ad2bd58847a911c12d7bb0ab209009434bc901485f6adaf63286545a87bd5c27",
+        "http_status": 200,
+        "packet_bytes": 121096,
+        "packet_sha256": "47fc4bb9de02888ea573c9f56913733a3342e38aa5f57650edc41662c2894655",
+        "status": "public_history_independently_replayed",
+        "n": 834,
+        "periods": 836,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "quality": {
+          "status": "partial",
+          "rejected_rows": 2
+        },
+        "unit": "VND per JPY",
+        "source_sha256": [
+          "94a7e7f3a67abc610133da00489daccd111e67294df178a54567563e67b19eca",
+          "3ec8b66d71cb95f06f90d449d12afd29d29be5950f201fac07e1d8aadff7f9fd"
+        ]
+      },
+      {
+        "id": "bisfx:JPY:EGP:M",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bisfx%3AJPY%3AEGP%3AM",
+        "at": "2026-10-04T22:42:07.492009+00:00",
+        "catalogue_sha256": "ad2bd58847a911c12d7bb0ab209009434bc901485f6adaf63286545a87bd5c27",
+        "http_status": 200,
+        "packet_bytes": 120645,
+        "packet_sha256": "96821979e1136d2caec905cc235a530a2dd0334b52fc8f3acac1b55fd2a4ef2f",
+        "status": "public_history_independently_replayed",
+        "n": 835,
+        "periods": 836,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "quality": {
+          "status": "partial",
+          "rejected_rows": 1
+        },
+        "unit": "EGP per JPY",
+        "source_sha256": [
+          "cf212d4f891ded27c00b674a865186281a2e4e0f72d56891cd498e4198222acb",
+          "3ec8b66d71cb95f06f90d449d12afd29d29be5950f201fac07e1d8aadff7f9fd"
+        ]
+      },
+      {
+        "id": "bisfx:JPY:ETB:M",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bisfx%3AJPY%3AETB%3AM",
+        "at": "2026-10-04T22:42:08.586923+00:00",
+        "catalogue_sha256": "ad2bd58847a911c12d7bb0ab209009434bc901485f6adaf63286545a87bd5c27",
+        "http_status": 200,
+        "packet_bytes": 119294,
+        "packet_sha256": "5c97bcfd402d87ad2ffbeea448beec99796e85875e6286b05ee639107e82eddb",
+        "status": "public_history_independently_replayed",
+        "n": 825,
+        "periods": 836,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "quality": {
+          "status": "partial",
+          "rejected_rows": 11
+        },
+        "unit": "ETB per JPY",
+        "source_sha256": [
+          "f270e3dd6023da675cf4743ed5ca6f88f249527143ac8703306f8c83c86bad5e",
+          "3ec8b66d71cb95f06f90d449d12afd29d29be5950f201fac07e1d8aadff7f9fd"
+        ]
+      },
+      {
+        "id": "bisfx:XDR:BWP:M",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=bisfx%3AXDR%3ABWP%3AM",
+        "at": "2026-10-04T22:42:09.676097+00:00",
+        "catalogue_sha256": "ad2bd58847a911c12d7bb0ab209009434bc901485f6adaf63286545a87bd5c27",
+        "http_status": 200,
+        "packet_bytes": 106730,
+        "packet_sha256": "fc40214f3dd8457a75b9b547c4ff8562889e3d59ff510b821b9bac5de9300def",
+        "status": "public_history_independently_replayed",
+        "n": 626,
+        "periods": 836,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "quality": {
+          "status": "partial",
+          "rejected_rows": 210
+        },
+        "unit": "BWP per XDR",
+        "source_sha256": [
+          "d25cba90400efcc1862d8d7b14f7d35b25e0bf2face7c9d0bf254badab1991ed",
+          "4374a038593003f3f767ac0a124e67774f85b4ca9c6b984affecc5759726e53d"
+        ]
+      }
+    ]
+  },
+  "independent_replay": {
+    "at": "2026-10-04T22:29:08.225665+00:00",
+    "results": [
+      {
+        "requested": "FX_IDC:JPYVND",
+        "candidate": "bisfx:JPY:VND:M",
+        "n": 834,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "unit": "VND per JPY",
+        "frequency": "M",
+        "collection": "end_of_period",
+        "sha256": "8674c29c000889e93eb6a0f45416ba2cb176cd03ef9216824460085f7c40af29",
+        "bytes": 121072,
+        "equivalence_verified": false,
+        "deployed_route": false,
+        "browser_verified": false,
+        "independent_original_csv_and_ratio_replay": 836,
+        "last_valid": "2026-07-01"
+      },
+      {
+        "requested": "FX_IDC:JPYEGP",
+        "candidate": "bisfx:JPY:EGP:M",
+        "n": 835,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "unit": "EGP per JPY",
+        "frequency": "M",
+        "collection": "end_of_period",
+        "sha256": "6f27825a5e6a45a8ee70530eb395c1155cfc8875deb82545124bcd3545083e55",
+        "bytes": 120621,
+        "equivalence_verified": false,
+        "deployed_route": false,
+        "browser_verified": false,
+        "independent_original_csv_and_ratio_replay": 836,
+        "last_valid": "2026-07-01"
+      },
+      {
+        "requested": "FX_IDC:JPYETB",
+        "candidate": "bisfx:JPY:ETB:M",
+        "n": 825,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "unit": "ETB per JPY",
+        "frequency": "M",
+        "collection": "end_of_period",
+        "sha256": "7c2a42ff9331eb9acb622853221b34183d19c4d826ae699123165a4a742a348d",
+        "bytes": 119270,
+        "equivalence_verified": false,
+        "deployed_route": false,
+        "browser_verified": false,
+        "independent_original_csv_and_ratio_replay": 836,
+        "last_valid": "2025-09-01"
+      },
+      {
+        "requested": "FX_IDC:XDRBWP",
+        "candidate": "bisfx:XDR:BWP:M",
+        "n": 626,
+        "first": "1957-01-01",
+        "last": "2026-08-01",
+        "unit": "BWP per XDR",
+        "frequency": "M",
+        "collection": "end_of_period",
+        "sha256": "333ce90730efc49d0783e796a74ac89faebb58a01e2b78edc0303a04096783cb",
+        "bytes": 106705,
+        "equivalence_verified": false,
+        "deployed_route": false,
+        "browser_verified": false,
+        "independent_original_csv_and_ratio_replay": 836,
+        "last_valid": "2026-08-01"
+      }
+    ],
+    "status": "research_only_not_a_route_or_deploy"
+  },
+  "equivalence_verified": false,
+  "history_complete_verified": false,
+  "definition": "Historical monthly end-period rates; first-day chart anchors label months, not daily prices; stale observations retained with their actual dates."
+}

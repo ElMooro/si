@@ -1,0 +1,109 @@
+{
+  "base": "1f0c820bea823460e5a77b426662e16c5e3503a3",
+  "changes": {
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-bis-monthly/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "93d6d6588845424adf2ed493ae8911000744b101fae3887abad87eb2e6133098",
+      "edits": [
+        {
+          "start": 182639,
+          "end": 182792,
+          "before": "FX_IDC:ZARXDR|bisfx:ZAR:XDR:D",
+          "after": "FX_IDC:ZARXDR|bisfx:ZAR:XDR:D\\nFX_IDC:JPYEGP|bisfx:JPY:EGP:M\\nFX_IDC:JPYETB|bisfx:JPY:ETB:M\\nFX_IDC:JPYVND|bisfx:JPY:VND:M\\nFX_IDC:XDRBWP|bisfx:XDR:BWP:M",
+          "scope": "reviewed-monthly-fx-reference-585"
+        },
+        {
+          "start": 120718,
+          "end": 121822,
+          "before": "[\"FX_IDC:AUDXDR\", \"FX_IDC:CADXDR\", \"FX_IDC:CHFPEN\", \"FX_IDC:CHFXDR\", \"FX_IDC:CLPHKD\", \"FX_IDC:CLPSGD\", \"FX_IDC:CNYXDR\", \"FX_IDC:EURXDR\", \"FX_IDC:INRXDR\", \"FX_IDC:JPYKWD\", \"FX_IDC:JPYLKR\", \"FX_IDC:JPYPEN\", \"FX_IDC:JPYPHP\", \"FX_IDC:JPYTRY\", \"FX_IDC:JPYXDR\", \"FX_IDC:MYRXDR\", \"FX_IDC:NZDXDR\", \"FX_IDC:OMRXDR\", \"FX_IDC:PKRCHF\", \"FX_IDC:QARXDR\", \"FX_IDC:SARXDR\", \"FX_IDC:SGDLKR\", \"FX_IDC:SGDPHP\", \"FX_IDC:SGDQAR\", \"FX_IDC:SGDSAR\", \"FX_IDC:TTDXDR\", \"FX_IDC:XDRAED\", \"FX_IDC:XDRAUD\", \"FX_IDC:XDRBND\", \"FX_IDC:XDRBRL\", \"FX_IDC:XDRCAD\", \"FX_IDC:XDRCHF\", \"FX_IDC:XDRCLP\", \"FX_IDC:XDRCNY\", \"FX_IDC:XDRDZD\", \"FX_IDC:XDREUR\", \"FX_IDC:XDRGBP\", \"FX_IDC:XDRILS\", \"FX_IDC:XDRINR\", \"FX_IDC:XDRJPY\", \"FX_IDC:XDRKRW\", \"FX_IDC:XDRKWD\", \"FX_IDC:XDRMUR\", \"FX_IDC:XDRMXN\", \"FX_IDC:XDRMYR\", \"FX_IDC:XDRNOK\", \"FX_IDC:XDRNZD\", \"FX_IDC:XDROMR\", \"FX_IDC:XDRPEN\", \"FX_IDC:XDRPHP\", \"FX_IDC:XDRQAR\", \"FX_IDC:XDRRUB\", \"FX_IDC:XDRSAR\", \"FX_IDC:XDRSGD\", \"FX_IDC:XDRTHB\", \"FX_IDC:XDRTTD\", \"FX_IDC:XDRUYU\", \"FX_IDC:XDRZAR\", \"FX_IDC:ZARXDR\"].indexOf(String(s).toUpperCase())",
+          "after": "[\"FX_IDC:AUDXDR\", \"FX_IDC:CADXDR\", \"FX_IDC:CHFPEN\", \"FX_IDC:CHFXDR\", \"FX_IDC:CLPHKD\", \"FX_IDC:CLPSGD\", \"FX_IDC:CNYXDR\", \"FX_IDC:EURXDR\", \"FX_IDC:INRXDR\", \"FX_IDC:JPYEGP\", \"FX_IDC:JPYETB\", \"FX_IDC:JPYKWD\", \"FX_IDC:JPYLKR\", \"FX_IDC:JPYPEN\", \"FX_IDC:JPYPHP\", \"FX_IDC:JPYTRY\", \"FX_IDC:JPYVND\", \"FX_IDC:JPYXDR\", \"FX_IDC:MYRXDR\", \"FX_IDC:NZDXDR\", \"FX_IDC:OMRXDR\", \"FX_IDC:PKRCHF\", \"FX_IDC:QARXDR\", \"FX_IDC:SARXDR\", \"FX_IDC:SGDLKR\", \"FX_IDC:SGDPHP\", \"FX_IDC:SGDQAR\", \"FX_IDC:SGDSAR\", \"FX_IDC:TTDXDR\", \"FX_IDC:XDRAED\", \"FX_IDC:XDRAUD\", \"FX_IDC:XDRBND\", \"FX_IDC:XDRBRL\", \"FX_IDC:XDRBWP\", \"FX_IDC:XDRCAD\", \"FX_IDC:XDRCHF\", \"FX_IDC:XDRCLP\", \"FX_IDC:XDRCNY\", \"FX_IDC:XDRDZD\", \"FX_IDC:XDREUR\", \"FX_IDC:XDRGBP\", \"FX_IDC:XDRILS\", \"FX_IDC:XDRINR\", \"FX_IDC:XDRJPY\", \"FX_IDC:XDRKRW\", \"FX_IDC:XDRKWD\", \"FX_IDC:XDRMUR\", \"FX_IDC:XDRMXN\", \"FX_IDC:XDRMYR\", \"FX_IDC:XDRNOK\", \"FX_IDC:XDRNZD\", \"FX_IDC:XDROMR\", \"FX_IDC:XDRPEN\", \"FX_IDC:XDRPHP\", \"FX_IDC:XDRQAR\", \"FX_IDC:XDRRUB\", \"FX_IDC:XDRSAR\", \"FX_IDC:XDRSGD\", \"FX_IDC:XDRTHB\", \"FX_IDC:XDRTTD\", \"FX_IDC:XDRUYU\", \"FX_IDC:XDRZAR\", \"FX_IDC:ZARXDR\"].indexOf(String(s).toUpperCase())",
+          "scope": "reviewed-monthly-fx-reference-585"
+        },
+        {
+          "start": 24000,
+          "end": 24329,
+          "before": "    if(q.last==null)return \"Unavailable · \"+(q.reason||identity.reason||\"awaiting aggregate\");",
+          "after": "    if(q.last==null){var reference=(typeof providerRest===\"function\"&&providerRest(s))||String(s||\"\");if(/^bisfx:/i.test(reference))return \"Quote unavailable · \"+(/:M$/i.test(reference)?\"monthly\":\"daily\")+\" BIS reference alternative route (unqualified)\";return \"Unavailable · \"+(q.reason||identity.reason||\"awaiting aggregate\");}",
+          "scope": "reviewed-monthly-fx-reference-585"
+        },
+        {
+          "start": 63212,
+          "end": 63714,
+          "before": "      if (/^bis:WS_CBPOL:/i.test(route.handoff || \"\")",
+          "after": "      if (/^bisfx:[A-Z]{3}:[A-Z]{3}:M$/i.test(route.handoff || \"\")) route.reason = \"Possible proxy or source substitution; equivalence unverified. Historical monthly end-of-period BIS reference-rate ratio. Month-start dates are plot coordinates for the source month, not daily prices or release times. Latest usable observation is shown above the chart and may lag. Different fixing times and redenominations remain unverified; gaps stay missing.\";\n      if (/^bis:WS_CBPOL:/i.test(route.handoff || \"\")",
+          "scope": "reviewed-monthly-fx-reference-585"
+        }
+      ],
+      "after_sha256": "0760b94e6649cd7dc494c0f5fbfede43ba92a25d7cb56b7ee99247d66769873b"
+    },
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-bis-monthly/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "029f3e4c616dce8e7b553c1e585ef09c3528f30bfd198df3f97d54eb2137c0e3",
+      "edits": [
+        {
+          "start": 17126,
+          "end": 18294,
+          "before": "var BIS_REFERENCE_KEYS=new Set([\"bisfx:AUD:XDR:D\",\"bisfx:CAD:XDR:D\",\"bisfx:CHF:PEN:D\",\"bisfx:CHF:XDR:D\",\"bisfx:CLP:HKD:D\",\"bisfx:CLP:SGD:D\",\"bisfx:CNY:XDR:D\",\"bisfx:EUR:XDR:D\",\"bisfx:INR:XDR:D\",\"bisfx:JPY:KWD:D\",\"bisfx:JPY:LKR:D\",\"bisfx:JPY:PEN:D\",\"bisfx:JPY:PHP:D\",\"bisfx:JPY:TRY:D\",\"bisfx:JPY:XDR:D\",\"bisfx:MYR:XDR:D\",\"bisfx:NZD:XDR:D\",\"bisfx:OMR:XDR:D\",\"bisfx:PKR:CHF:D\",\"bisfx:QAR:XDR:D\",\"bisfx:SAR:XDR:D\",\"bisfx:SGD:LKR:D\",\"bisfx:SGD:PHP:D\",\"bisfx:SGD:QAR:D\",\"bisfx:SGD:SAR:D\",\"bisfx:TTD:XDR:D\",\"bisfx:XDR:AED:D\",\"bisfx:XDR:AUD:D\",\"bisfx:XDR:BND:D\",\"bisfx:XDR:BRL:D\",\"bisfx:XDR:CAD:D\",\"bisfx:XDR:CHF:D\",\"bisfx:XDR:CLP:D\",\"bisfx:XDR:CNY:D\",\"bisfx:XDR:DZD:D\",\"bisfx:XDR:EUR:D\",\"bisfx:XDR:GBP:D\",\"bisfx:XDR:ILS:D\",\"bisfx:XDR:INR:D\",\"bisfx:XDR:JPY:D\",\"bisfx:XDR:KRW:D\",\"bisfx:XDR:KWD:D\",\"bisfx:XDR:MUR:D\",\"bisfx:XDR:MXN:D\",\"bisfx:XDR:MYR:D\",\"bisfx:XDR:NOK:D\",\"bisfx:XDR:NZD:D\",\"bisfx:XDR:OMR:D\",\"bisfx:XDR:PEN:D\",\"bisfx:XDR:PHP:D\",\"bisfx:XDR:QAR:D\",\"bisfx:XDR:RUB:D\",\"bisfx:XDR:SAR:D\",\"bisfx:XDR:SGD:D\",\"bisfx:XDR:THB:D\",\"bisfx:XDR:TTD:D\",\"bisfx:XDR:UYU:D\",\"bisfx:XDR:ZAR:D\",\"bisfx:ZAR:XDR:D\"]);",
+          "after": "var BIS_REFERENCE_KEYS=new Set([\"bisfx:AUD:XDR:D\",\"bisfx:CAD:XDR:D\",\"bisfx:CHF:PEN:D\",\"bisfx:CHF:XDR:D\",\"bisfx:CLP:HKD:D\",\"bisfx:CLP:SGD:D\",\"bisfx:CNY:XDR:D\",\"bisfx:EUR:XDR:D\",\"bisfx:INR:XDR:D\",\"bisfx:JPY:EGP:M\",\"bisfx:JPY:ETB:M\",\"bisfx:JPY:KWD:D\",\"bisfx:JPY:LKR:D\",\"bisfx:JPY:PEN:D\",\"bisfx:JPY:PHP:D\",\"bisfx:JPY:TRY:D\",\"bisfx:JPY:VND:M\",\"bisfx:JPY:XDR:D\",\"bisfx:MYR:XDR:D\",\"bisfx:NZD:XDR:D\",\"bisfx:OMR:XDR:D\",\"bisfx:PKR:CHF:D\",\"bisfx:QAR:XDR:D\",\"bisfx:SAR:XDR:D\",\"bisfx:SGD:LKR:D\",\"bisfx:SGD:PHP:D\",\"bisfx:SGD:QAR:D\",\"bisfx:SGD:SAR:D\",\"bisfx:TTD:XDR:D\",\"bisfx:XDR:AED:D\",\"bisfx:XDR:AUD:D\",\"bisfx:XDR:BND:D\",\"bisfx:XDR:BRL:D\",\"bisfx:XDR:BWP:M\",\"bisfx:XDR:CAD:D\",\"bisfx:XDR:CHF:D\",\"bisfx:XDR:CLP:D\",\"bisfx:XDR:CNY:D\",\"bisfx:XDR:DZD:D\",\"bisfx:XDR:EUR:D\",\"bisfx:XDR:GBP:D\",\"bisfx:XDR:ILS:D\",\"bisfx:XDR:INR:D\",\"bisfx:XDR:JPY:D\",\"bisfx:XDR:KRW:D\",\"bisfx:XDR:KWD:D\",\"bisfx:XDR:MUR:D\",\"bisfx:XDR:MXN:D\",\"bisfx:XDR:MYR:D\",\"bisfx:XDR:NOK:D\",\"bisfx:XDR:NZD:D\",\"bisfx:XDR:OMR:D\",\"bisfx:XDR:PEN:D\",\"bisfx:XDR:PHP:D\",\"bisfx:XDR:QAR:D\",\"bisfx:XDR:RUB:D\",\"bisfx:XDR:SAR:D\",\"bisfx:XDR:SGD:D\",\"bisfx:XDR:THB:D\",\"bisfx:XDR:TTD:D\",\"bisfx:XDR:UYU:D\",\"bisfx:XDR:ZAR:D\",\"bisfx:ZAR:XDR:D\"]);",
+          "scope": "reviewed-monthly-fx-reference-585"
+        }
+      ],
+      "after_sha256": "07fc18803fa892c2a07606acadb28b63090f68fd63a799fd51a709ce1ca83aad"
+    },
+    "tests/watchlist-identity.test.js": {
+      "before_path": "tests/fixtures/chart-bis-monthly/tests__watchlist-identity.test.js.before.txt",
+      "before_sha256": "d24f2878b966ede6143f0e9f6729cd8a8048e80fbdb513e2c45bb489d0b903a6",
+      "edits": [
+        {
+          "start": 11323,
+          "end": 11364,
+          "before": "assert.equal(providerEntries.length,757);",
+          "after": "assert.equal(providerEntries.length,761);",
+          "scope": "reviewed-monthly-fx-reference-585"
+        },
+        {
+          "start": 14918,
+          "end": 15224,
+          "before": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-bis-fx-source-review.json\")).alternatives).map(([id,d])=>[id,d.id]))",
+          "after": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-bis-fx-source-review.json\")).alternatives).map(([id,d])=>[id,d.id])),...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-bis-monthly-source-review.json\")).alternatives).map(([id,d])=>[id,d.id]))",
+          "scope": "reviewed-monthly-fx-reference-585"
+        }
+      ],
+      "after_sha256": "5a8b7d10d805140d2b4887d6a54b7f407b83d924e821cb8558ef613d492b828a"
+    },
+    "tests/helpers/chart-bis-fx-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-bis-monthly/tests__helpers__chart-bis-fx-preservation.cjs.before.txt",
+      "before_sha256": "494560315fba84e8928c9da1b54b41d22317695dd26afa857e77b7b3530d4df5",
+      "edits": [
+        {
+          "start": 286,
+          "end": 390,
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-bis-monthly-preservation.cjs\").normalize(raw,file);\n",
+          "scope": "reviewed-monthly-fx-reference-585"
+        }
+      ],
+      "after_sha256": "58cccc9e8e66fb9e9edbeb26c0b02f09dc6246ffb7866918d72ed7acf08fbb69"
+    },
+    "tests/chart-bis-fx.test.js": {
+      "before_path": "tests/fixtures/chart-bis-monthly/tests__chart-bis-fx.test.js.before.txt",
+      "before_sha256": "660a6cafeb0ee305bbd3bce0202961f120794ec1671944f62911e83a3b4ca2e8",
+      "edits": [
+        {
+          "start": 2612,
+          "end": 2751,
+          "before": "const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);",
+          "after": "const raw=require(\"./helpers/chart-bis-monthly-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);",
+          "scope": "reviewed-monthly-fx-reference-585"
+        }
+      ],
+      "after_sha256": "590272edf2490226ee0d6332d4df260147a31b94a9ad5f1db6a283183137d057"
+    }
+  },
+  "ledger": {
+    "path": "tests/fixtures/watchlist-correctness/source-transition.json",
+    "before_path": "tests/fixtures/chart-bis-monthly/watchlist-transition.before.json",
+    "before_sha256": "cfbb504ed4ee243ecd58bc5d808dc1964655ea2d70ca6c1bd6acc7152f4ae5f7",
+    "after_sha256": "64c20ba349c368fe197c6f3143161e75d34e614c22bc7e8c63d0701cdf1c930c"
+  }
+}

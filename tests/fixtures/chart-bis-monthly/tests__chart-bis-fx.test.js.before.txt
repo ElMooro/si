@@ -18,6 +18,6 @@ test('59 reference alternatives preserve the exact request, scalar route, direct
 });
 test('complete preceding code and ledger remain reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-bis-fx-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row]of Object.entries(transition.changes)){const raw=require("./helpers/chart-bis-monthly-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row]of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
  assert.equal(normalize(read(transition.ledger.path),transition.ledger.path),read(transition.ledger.before_path));
 });
