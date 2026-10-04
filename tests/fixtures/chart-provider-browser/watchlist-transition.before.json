@@ -2,7 +2,7 @@
   "jh-chart-engine.js": {
     "before_path": "tests/fixtures/watchlist-correctness/jh-chart-engine.js.txt",
     "before_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
-    "after_sha256": "6edb06b2e6e1d4224fb2d194a533424bd3c1b691af2752cb37ddc98bcff7205a",
+    "after_sha256": "4ece6b9ecfd913d89943d0f617a7acd2f311cae25e4f2fcf7f5fe4aa4e64d8d0",
     "edits": [
       {
         "start": 35883,
@@ -231,20 +231,13 @@
         "end": 414465,
         "before": "",
         "after": "    if(e.target && e.target.closest && e.target.closest(\"#watch\") && [\" \",\"Delete\",\"Backspace\",\"ArrowDown\",\"ArrowUp\"].indexOf(e.key)>=0)return;\n"
-      },
-      {
-        "start": 332169,
-        "end": 332245,
-        "before": "      window.JHChartCatalog.go(s, \"dataset\");",
-        "after": "      window.JHChartCatalog.go(s, \"dataset\", {destination:dest || \"chart\"});",
-        "scope": "chart-provider-browser-580"
       }
     ]
   },
   "chart.html": {
     "before_path": "tests/fixtures/watchlist-correctness/chart.html.txt",
     "before_sha256": "5a850f55574c17e5ed53fd8bfa65b8a3209d436954b7b05cdd096bd5eda15298",
-    "after_sha256": "2da174ca18d2be1c9170a53d98bddb9a0b2e9d5d2d3f38e1209d270e8446c6e9",
+    "after_sha256": "3b31a1d4e351cfab313f6dfa39477b9015f52cfb92459ae6e6b7410889e0f10a",
     "edits": [
       {
         "start": 54003,
@@ -264,13 +257,6 @@
         "before": "  window.fetch=function(input, init){\n",
         "after": "  window.fetch=function(input, init){\n    // Explicit request options, headers and signals must keep native fetch semantics.\n    if(typeof input!==\"string\"||init!==undefined) return orig.apply(this, arguments);\n",
         "scope": "chart-provider-access-579"
-      },
-      {
-        "start": 54664,
-        "end": 54792,
-        "before": "<script src=\"/jh-chart-catalog.js?v=20260922ab-cqind\"></script>",
-        "after": "<script src=\"/jh-chart-provider-browser.js?v=20261004\"></script>\n<script src=\"/jh-chart-catalog.js?v=20260922ab-cqind\"></script>",
-        "scope": "chart-provider-browser-580"
       }
     ]
   },

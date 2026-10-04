@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shlex
 import subprocess
 import sys
 import tarfile
@@ -48,7 +49,9 @@ def sweep(root):
     # Keep the workflow's intermediate lists private to this test repository.
     temp = root / 'retention-lists'
     temp.mkdir()
-    body = body.replace('/tmp/', str(temp) + '/')
+    # Git Bash accepts drive-qualified forward slashes; quote the directory so
+    # a Windows backslash or a workspace space cannot alter the shell program.
+    body = body.replace('/tmp/', shlex.quote(temp.resolve().as_posix()) + '/')
     subprocess.run(['bash', '-c', body], cwd=root, check=True, capture_output=True, text=True)
 
 

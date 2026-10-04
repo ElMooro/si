@@ -1,0 +1,115 @@
+{
+  "source_base": "5169f1d85ac384f11440150ec22863ea9883ecaf",
+  "changes": {
+    "chart.html": {
+      "before_sha256": "3b31a1d4e351cfab313f6dfa39477b9015f52cfb92459ae6e6b7410889e0f10a",
+      "before_path": "tests/fixtures/chart-provider-browser/chart.html.txt",
+      "edits": [
+        {
+          "start": 54664,
+          "end": 54792,
+          "before": "<script src=\"/jh-chart-catalog.js?v=20260922ab-cqind\"></script>",
+          "after": "<script src=\"/jh-chart-provider-browser.js?v=20261004\"></script>\n<script src=\"/jh-chart-catalog.js?v=20260922ab-cqind\"></script>",
+          "scope": "chart-provider-browser-580"
+        }
+      ],
+      "after_sha256": "2da174ca18d2be1c9170a53d98bddb9a0b2e9d5d2d3f38e1209d270e8446c6e9"
+    },
+    "jh-chart-catalog.js": {
+      "before_sha256": "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "before_path": "tests/fixtures/chart-provider-browser/jh-chart-catalog.js.txt",
+      "edits": [
+        {
+          "start": 38803,
+          "end": 38852,
+          "before": "",
+          "after": "    if (/^calc:/i.test(s)) return calcSeries(s);\n",
+          "scope": "concurrent-main-math-8b086c7d2-preserved"
+        },
+        {
+          "start": 38741,
+          "end": 42270,
+          "before": "",
+          "after": "\n  function calcShift(iso, years, months) {\n    var y = +String(iso).slice(0, 4), m = +String(iso).slice(5, 7);\n    var d = String(iso).length >= 10 ? String(iso).slice(8, 10) : \"01\";\n    if (!y || !m) return \"\";\n    y -= years; m -= months;\n    while (m < 1) { m += 12; y -= 1; }\n    return y + \"-\" + (m < 10 ? \"0\" : \"\") + m + \"-\" + d;\n  }\n  function calcMap(obs) {\n    var m = Object.create(null), i, p, v;\n    if (!Array.isArray(obs)) return m;\n    for (i = 0; i < obs.length; i++) {\n      p = obs[i];\n      if (!Array.isArray(p) || typeof p[0] !== \"string\") continue;\n      v = p[1];\n      if (typeof v !== \"number\" || !isFinite(v)) continue;\n      m[p[0]] = v;\n    }\n    return m;\n  }\n  async function calcSeries(id) {\n    var raw = String(id || \"\"), body = raw.slice(5), cut = body.indexOf(\":\"), kind = cut > 0 ? body.slice(0, cut) : \"\", rest = cut > 0 ? body.slice(cut + 1) : \"\";\n    var obs = [], name = \"\", unit = \"Percent\", freq = null;\n    if (!global.JHObservationSeries || typeof global.JHObservationSeries.warehouse !== \"function\" || !global.JHObservationCache) return { d: [], src: \"Observation history unavailable: required module not loaded\" };\n    if (kind === \"minus\") {\n      var parts = rest.split(\"~\");\n      if (parts.length !== 2 || !parts[0] || !parts[1]) return { d: [], src: \"calc identity rejected\" };\n      var ea = await loadWarehouse(parts[0]), eb = await loadWarehouse(parts[1]);\n      var pa = ea && ea.packet, pb = eb && eb.packet;\n      if (!pa || !pb || String(pa.id || \"\").toLowerCase() !== parts[0].toLowerCase() || String(pb.id || \"\").toLowerCase() !== parts[1].toLowerCase()) return { d: [], src: \"calc inputs unavailable\" };\n      if (!/Exports of goods and services/i.test(pa.name || \"\") || !/Imports of goods and services/i.test(pb.name || \"\")) return { d: [], src: \"calc inputs are not exports and imports\" };\n      var mb = calcMap(pb.obs), ma = calcMap(pa.obs);\n      Object.keys(ma).sort().forEach(function (dt) {\n        if (Object.prototype.hasOwnProperty.call(mb, dt)) obs.push([dt, ma[dt] - mb[dt]]);\n      });\n      name = \"Exports minus imports of goods and services\";\n      unit = \"Current US$\";\n      freq = pa.freq || null;\n    } else if (kind === \"yoy\" || kind === \"mom\") {\n      var got = await loadWarehouse(rest), pkt = got && got.packet;\n      if (!pkt || String(pkt.id || \"\").toLowerCase() !== rest.toLowerCase() || !Array.isArray(pkt.obs)) return { d: [], src: \"calc input unavailable\" };\n      if (!/index/i.test(pkt.name || \"\")) return { d: [], src: \"calc input is not an index\" };\n      var base = calcMap(pkt.obs);\n      Object.keys(base).sort().forEach(function (dt) {\n        var prev = kind === \"mom\" ? calcShift(dt, 0, 1) : calcShift(dt, 1, 0);\n        var b = base[prev];\n        if (b === undefined || b === 0) return;\n        obs.push([dt, 100 * (base[dt] / b - 1)]);\n      });\n      name = (kind === \"mom\" ? \"Month-over-month percent of \" : \"Year-over-year percent of \") + (pkt.name || rest);\n      unit = \"Percent\";\n      freq = pkt.freq || null;\n    } else return { d: [], src: \"calc identity rejected\" };\n    if (obs.length < 8) return { d: [], src: \"calc produced fewer than 8 observations\" };\n    var doc = { id: raw, provider: \"calc\", provider_name: \"Calculated\", name: name, unit: unit, freq: freq, source: \"calc\", obs: obs };\n    var parsed = global.JHObservationSeries.warehouse(doc, raw, PROXY + \"/series?id=\" + encodeURIComponent(raw));\n    parsed.src += \" \u00b7 calculated from stored observations of the same instrument\";\n    return parsed;\n  }\n",
+          "scope": "concurrent-main-math-8b086c7d2-preserved"
+        },
+        {
+          "start": 742,
+          "end": 1451,
+          "before": "  var SERIES_PROV = { fred:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, \"ofr-fsi\":1, \"ofr-hfm\":1, \"ofr-bsrm\":1, \"ofr-site\":1, bls:1, census:1, \"census-us\":1, bea:1, treasury:1, boe:1, eia:1, te:1, \"te-mirror\":1, \"te-feed\":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, \"official-yields\":1, tic:1, \"kr-ecos\":1, \"taiwan-moea\":1, \"peru-copper\":1, \"cl-datos\":1, \"hk-data\":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, \"fed-board\":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, \"indicator-bus\":1, \"nyfed-research\":1, \"sec-edgar\":1, \"sec-midas\":1, \"sec-dera\":1, \"sec-bulk\":1 };\n",
+          "after": "  var SERIES_PROV = { fred:1, calc:1, nyfed:1, eurostat:1, ecb:1, oecd:1, bis:1, imf:1, boj:1, statcan:1, worldbank:1, ofr:1, \"ofr-fsi\":1, \"ofr-hfm\":1, \"ofr-bsrm\":1, \"ofr-site\":1, bls:1, census:1, \"census-us\":1, bea:1, treasury:1, boe:1, eia:1, te:1, \"te-mirror\":1, \"te-feed\":1, chicagofed:1, clevelandfed:1, atlantafed:1, cboe:1, cftc:1, dbnomics:1, banxico:1, snb:1, bcb:1, \"official-yields\":1, tic:1, \"kr-ecos\":1, \"taiwan-moea\":1, \"peru-copper\":1, \"cl-datos\":1, \"hk-data\":1, nasa:1, occ:1, dol:1, finra:1, eiopa:1, gleif:1, gdelt:1, \"fed-board\":1, cryptoquant:1, coinmetrics:1, fmp:1, quiver:1, benzinga:1, \"indicator-bus\":1, \"nyfed-research\":1, \"sec-edgar\":1, \"sec-midas\":1, \"sec-dera\":1, \"sec-bulk\":1 };\n",
+          "scope": "concurrent-main-math-8b086c7d2-preserved"
+        },
+        {
+          "start": 744,
+          "end": 781,
+          "before": "var SERIES_PROV = { fred:1,",
+          "after": "var SERIES_PROV = { ustpar:1, fred:1,",
+          "scope": "chart-provider-browser-580"
+        },
+        {
+          "start": 33556,
+          "end": 33860,
+          "before": "  function go(s, dest) {\n    s = String(s || \"\");",
+          "after": "  function go(s, dest, options) {\n    s = String(s || \"\");\n    if (global.JHChartProviderBrowser && (/^(DATA|provider):/i.test(s) || dest === \"dataset\")) {\n      return global.JHChartProviderBrowser.open({id:s,destination:(options && options.destination) || (dest === \"dataset\" ? \"chart\" : dest)});\n    }",
+          "scope": "chart-provider-browser-580"
+        }
+      ],
+      "after_sha256": "90f9ac74d764459587516331f9cba0f3f31eac61300e1aca537032521ad364ba",
+      "concurrent_main": {
+        "commit": "8b086c7d2d2cbb339d8f24f158760251f9b3e658",
+        "sha256": "be6ba64e62f4dab1c9d843e0f90c588bbb28244de83b268bcd6a9034410008dd",
+        "preserved": true,
+        "calculation_source_qualification": false
+      }
+    },
+    "jh-chart-engine.js": {
+      "before_sha256": "4ece6b9ecfd913d89943d0f617a7acd2f311cae25e4f2fcf7f5fe4aa4e64d8d0",
+      "before_path": "tests/fixtures/chart-provider-browser/jh-chart-engine.js.txt",
+      "edits": [
+        {
+          "start": 332169,
+          "end": 332245,
+          "before": "      window.JHChartCatalog.go(s, \"dataset\");",
+          "after": "      window.JHChartCatalog.go(s, \"dataset\", {destination:dest || \"chart\"});",
+          "scope": "chart-provider-browser-580"
+        }
+      ],
+      "after_sha256": "6edb06b2e6e1d4224fb2d194a533424bd3c1b691af2752cb37ddc98bcff7205a"
+    },
+    "tests/helpers/warehouse-observation-preservation.cjs": {
+      "before_sha256": "e2c3abb3427a20b274eb159e424f22ed12ccfa20b5ef2af59e6949a70fea17e3",
+      "before_path": "tests/fixtures/chart-provider-browser/tests__helpers__warehouse-observation-preservation.cjs.before.txt",
+      "after_sha256": "8b6e3e39b053c617f5759e8dbcab92e507636bd453149b27ca0e58b97b4217cf",
+      "edits": [
+        {
+          "start": 950,
+          "end": 1166,
+          "before": "function normalize(raw,file){",
+          "after": "function normalize(raw,file){\n if(file==='jh-chart-catalog.js'){const next=require('./chart-provider-browser-preservation.cjs');if(hash(raw)===next.transition.changes[file].after_sha256)raw=next.normalize(raw,file);}",
+          "scope": "provider-catalogue-preservation-hook-580"
+        }
+      ]
+    },
+    "tests/chart-volume-definition-preservation.test.js": {
+      "before_sha256": "747b5f1d6aeb07a1cf8ada592f57ed23876664577b493db77bf9aa4c8eea1334",
+      "before_path": "tests/fixtures/chart-provider-browser/tests__chart-volume-definition-preservation.test.js.before.txt",
+      "after_sha256": "85a6346d5c70511ed58f836b7b8d4696dfb8f093b2f9dccd2414c1d25019711f",
+      "edits": [
+        {
+          "start": 918,
+          "end": 1063,
+          "before": "assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior.replace",
+          "after": "assert.equal(require('./helpers/chart-provider-browser-preservation.cjs').normalize(fs.readFileSync(path.join(R,file),'utf8'),file),prior.replace",
+          "scope": "provider-catalogue-preservation-hook-580"
+        }
+      ]
+    }
+  },
+  "ledger": {
+    "path": "tests/fixtures/watchlist-correctness/source-transition.json",
+    "before_path": "tests/fixtures/chart-provider-browser/watchlist-transition.before.json",
+    "before_sha256": "ef153495cf359b84085b26340890064bb6fc3febe25c4d3105e7e60d25c7abbc",
+    "after_sha256": "6cf70e3f1a67341c44765cc39a586f351961e93afe896480130671ba23590859"
+  }
+}

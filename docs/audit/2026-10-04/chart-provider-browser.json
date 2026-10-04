@@ -1,0 +1,792 @@
+{
+  "status": "candidate_not_deployed",
+  "at": "2026-10-04T18:46:15.596280+00:00",
+  "base_commit": "8b086c7d2d2cbb339d8f24f158760251f9b3e658",
+  "incoming_reconciliation": {
+    "base": "8872c5345ee1ea9b01f25b2d9089923971195e27",
+    "head": "5169f1d85ac384f11440150ec22863ea9883ecaf",
+    "changed_paths": [
+      "aws/ops/patchers/applied/watchlist_eurostat_same.py",
+      "jh-chart-tvwatch.js",
+      "tests/fixtures/watchlist-correctness/economic-qualifications.json",
+      "tests/fixtures/watchlist-correctness/source-transition.json",
+      "tests/watchlist-identity.test.js"
+    ],
+    "all_original_peer_bytes_preserved_except_reviewed_access_deltas": true
+  },
+  "preserved_prior_access_tests": true,
+  "provider_catalogue": {
+    "entries": 73,
+    "readable_heads": 70,
+    "denied_derived_heads": [
+      "indicator-bus",
+      "equity-research-tickers",
+      "tradingview-vault-live"
+    ],
+    "declared_continuations": 1588,
+    "received_continuations": 1588,
+    "continuation_object_metadata_entries": 788041,
+    "atomic_catalogue_snapshot": false,
+    "measurement_objects_read": 0
+  },
+  "native_directory": {
+    "first_pages_requested": 70,
+    "successful": 66,
+    "unavailable": [
+      {
+        "provider": "eurostat",
+        "reason": "TimeoutError"
+      },
+      {
+        "provider": "gdelt",
+        "reason": "TimeoutError"
+      },
+      {
+        "provider": "imf",
+        "reason": "TimeoutError"
+      },
+      {
+        "provider": "sec-bulk",
+        "reason": "TimeoutError"
+      }
+    ],
+    "all_series_traversed": false
+  },
+  "routing_inventory": {
+    "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
+    "lists": 492,
+    "occurrences": 25846,
+    "unique": 10745,
+    "unrouted": 4567,
+    "namespaces": {
+      "FRED": {
+        "total": 774,
+        "unrouted": 55
+      },
+      "NASDAQ": {
+        "total": 1545,
+        "unrouted": 24
+      },
+      "FX": {
+        "total": 29,
+        "unrouted": 4
+      },
+      "TVC": {
+        "total": 371,
+        "unrouted": 244
+      },
+      "AMEX": {
+        "total": 656,
+        "unrouted": 26
+      },
+      "CBOE": {
+        "total": 172,
+        "unrouted": 61
+      },
+      "OKEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ECONOMICS": {
+        "total": 3317,
+        "unrouted": 1291
+      },
+      "COT3": {
+        "total": 229,
+        "unrouted": 229
+      },
+      "COT": {
+        "total": 111,
+        "unrouted": 111
+      },
+      "DJCFD": {
+        "total": 13,
+        "unrouted": 13
+      },
+      "OMXBALTIC": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "SSE": {
+        "total": 61,
+        "unrouted": 9
+      },
+      "TRADEGATE": {
+        "total": 33,
+        "unrouted": 4
+      },
+      "NEO": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "SWB": {
+        "total": 58,
+        "unrouted": 7
+      },
+      "HAM": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "GLASSNODE": {
+        "total": 62,
+        "unrouted": 62
+      },
+      "USI": {
+        "total": 143,
+        "unrouted": 143
+      },
+      "SAXO": {
+        "total": 4,
+        "unrouted": 0
+      },
+      "LSE": {
+        "total": 66,
+        "unrouted": 4
+      },
+      "NYSE": {
+        "total": 281,
+        "unrouted": 2
+      },
+      "XETR": {
+        "total": 27,
+        "unrouted": 7
+      },
+      "EURONEXT": {
+        "total": 59,
+        "unrouted": 23
+      },
+      "OTC": {
+        "total": 14,
+        "unrouted": 0
+      },
+      "SPARKS": {
+        "total": 12,
+        "unrouted": 12
+      },
+      "ADX": {
+        "total": 13,
+        "unrouted": 13
+      },
+      "INDEX": {
+        "total": 330,
+        "unrouted": 182
+      },
+      "TSX": {
+        "total": 21,
+        "unrouted": 6
+      },
+      "DFM": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "ICE": {
+        "total": 389,
+        "unrouted": 389
+      },
+      "CRYPTOCAP": {
+        "total": 36,
+        "unrouted": 36
+      },
+      "CAPITALCOM": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "BLACKBULL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SPCFD": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "WHSELFINVEST": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "COMEX": {
+        "total": 7,
+        "unrouted": 4
+      },
+      "CME_MINI": {
+        "total": 16,
+        "unrouted": 9
+      },
+      "VANTAGE": {
+        "total": 8,
+        "unrouted": 8
+      },
+      "(1-TVC": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "FOREXCOM": {
+        "total": 4,
+        "unrouted": 1
+      },
+      "CME": {
+        "total": 43,
+        "unrouted": 31
+      },
+      "1/FRED": {
+        "total": 20,
+        "unrouted": 20
+      },
+      "NYMEX": {
+        "total": 11,
+        "unrouted": 6
+      },
+      "EUREX": {
+        "total": 42,
+        "unrouted": 39
+      },
+      "FX_IDC": {
+        "total": 151,
+        "unrouted": 73
+      },
+      "OANDA": {
+        "total": 7,
+        "unrouted": 1
+      },
+      "NSE": {
+        "total": 6,
+        "unrouted": 4
+      },
+      "SP": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "INTOTHEBLOCK": {
+        "total": 150,
+        "unrouted": 150
+      },
+      "CBOT": {
+        "total": 23,
+        "unrouted": 12
+      },
+      "HKEX": {
+        "total": 19,
+        "unrouted": 13
+      },
+      "BMV": {
+        "total": 11,
+        "unrouted": 0
+      },
+      "MULTPL": {
+        "total": 12,
+        "unrouted": 12
+      },
+      "FTSE": {
+        "total": 455,
+        "unrouted": 453
+      },
+      "1-FRED": {
+        "total": 12,
+        "unrouted": 12
+      },
+      "SZSE": {
+        "total": 9,
+        "unrouted": 1
+      },
+      "PEPPERSTONE": {
+        "total": 9,
+        "unrouted": 9
+      },
+      "HSI": {
+        "total": 52,
+        "unrouted": 52
+      },
+      "NZX": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "BCBA": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FWB": {
+        "total": 20,
+        "unrouted": 6
+      },
+      "HOSE": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "ICEEUR": {
+        "total": 50,
+        "unrouted": 47
+      },
+      "TSE": {
+        "total": 12,
+        "unrouted": 2
+      },
+      "GETTEX": {
+        "total": 16,
+        "unrouted": 2
+      },
+      "VIE": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "BER": {
+        "total": 17,
+        "unrouted": 3
+      },
+      "GPW": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "MIL": {
+        "total": 25,
+        "unrouted": 5
+      },
+      "NSENG": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "IDX": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "1/(FRED": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "SET": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "ICEUS": {
+        "total": 13,
+        "unrouted": 11
+      },
+      "MATBAROFEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1-(TVC": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "1/TVC": {
+        "total": 10,
+        "unrouted": 10
+      },
+      "1/ICEUS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SIX": {
+        "total": 39,
+        "unrouted": 26
+      },
+      "1/AMEX": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "1/(TVC": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "KRX": {
+        "total": 8,
+        "unrouted": 4
+      },
+      "BME": {
+        "total": 3,
+        "unrouted": 1
+      },
+      "OMXNORDIC": {
+        "total": 20,
+        "unrouted": 20
+      },
+      "COT2": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "FINRA": {
+        "total": 10,
+        "unrouted": 0
+      },
+      "TWSE": {
+        "total": 8,
+        "unrouted": 1
+      },
+      "OMXHEX": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "BMFBOVESPA": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "TADAWUL": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "EIGHTCAP": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BSE": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "OMXCOP": {
+        "total": 3,
+        "unrouted": 1
+      },
+      "COINBASE": {
+        "total": 3,
+        "unrouted": 0
+      },
+      "BINANCE": {
+        "total": 5,
+        "unrouted": 0
+      },
+      "BITFINEX": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "HNX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "RUS": {
+        "total": 11,
+        "unrouted": 11
+      },
+      "CBOEEU": {
+        "total": 40,
+        "unrouted": 40
+      },
+      "OMXSTO": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "DJ": {
+        "total": 87,
+        "unrouted": 87
+      },
+      "OSE": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "SGX": {
+        "total": 107,
+        "unrouted": 107
+      },
+      "CSELK": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "PSE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "DEFILLAMA": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BVB": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "TPEX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "1-TVC": {
+        "total": 18,
+        "unrouted": 18
+      },
+      "MUN": {
+        "total": 11,
+        "unrouted": 2
+      },
+      "LUXSE": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "DERIBIT": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BITTREX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "RUSSELL": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "QUANDL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "COMEX_MINI": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BNC": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TMX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "MARKETSCOM": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CSEMA": {
+        "total": 30,
+        "unrouted": 30
+      },
+      "ASX24": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "LSIN": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "DUS": {
+        "total": 5,
+        "unrouted": 1
+      },
+      "LME": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BITSTAMP": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "AQUISUK": {
+        "total": 8,
+        "unrouted": 8
+      },
+      "LS": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BOATS": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "CFI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BCS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ISM": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "FRBNY": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "KUCOIN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CMCMARKETS": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "GLOBALPRIME": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FRBP": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BIVA": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "HAN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ATHEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "NASDAQDUBAI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TAIFEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FTSEMYX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "MCX": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "CBOT_MINI": {
+        "total": 6,
+        "unrouted": 4
+      },
+      "NYMEX_MINI": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BET": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ACTIVTRADES": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "SWISSQUOTE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TFEX": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BYBIT": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "MSEI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SPREADEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "PSECZ": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "MSTAR": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "EUROTLX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "JSE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CBOEFTSE": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "1/FX_IDC": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1/ECONOMICS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "AQUISEU": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "AQUIS": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "LSX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TASE": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "1/CBOE": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "1-AMEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "KRAKEN": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "OMXICE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FXOPEN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "OSL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FTX": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "BITMEX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "BINANCEUS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1/CRYPTOCAP": {
+        "total": 1,
+        "unrouted": 1
+      }
+    },
+    "routing_only": true,
+    "provider_or_history_verified": false
+  },
+  "scope": [
+    "Native chart provider \u2192 dataset \u2192 exact series selection, preserving identifier case and chart/add/compare destination",
+    "Country and dimension-code discovery, page controls, explicit partial-scan and 200-result search bounds",
+    "All published per-provider metadata pages are browsable; stored objects never become inferred scalar histories",
+    "Bounded no-store requests, source receipts and original metadata download, stale-response protection, native modal keyboard/mobile behavior",
+    "Existing resolver and request-context repairs included in the same atomic batch"
+  ],
+  "remaining": [
+    "4567 watchlist IDs still lack a chart handoff; other routed IDs do not have complete source/history verification",
+    "346 of 346 COT IDs have official schema matches, but the CFTC history adapter and contract checks are not deployed",
+    "Native series adapters cover only selected provider families; missing adapters, expressions and entitlements remain",
+    "Provider dataset search remains bounded by the native directory; metadata absence is not upstream absence",
+    "Normal live financial packets, user stores, producer invokes and private/account/learning data were not read"
+  ],
+  "source_qualified": false,
+  "institutional_complete": false,
+  "additional_incoming_reconciliation": {
+    "prior_base": "5169f1d85ac384f11440150ec22863ea9883ecaf",
+    "head": "8b086c7d2d2cbb339d8f24f158760251f9b3e658",
+    "paths": [
+      "aws/ops/patchers/applied/watchlist_math_routes.py",
+      "jh-chart-catalog.js",
+      "jh-chart-tvwatch.js",
+      "tests/fixtures/watchlist-correctness/economic-qualifications.json",
+      "tests/fixtures/watchlist-correctness/source-transition.json",
+      "tests/watchlist-identity.test.js"
+    ],
+    "peer_math_source_preserved": true,
+    "math_definitions_not_qualified": true
+  }
+}

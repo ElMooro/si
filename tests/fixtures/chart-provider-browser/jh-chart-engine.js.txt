@@ -5454,7 +5454,7 @@ else if(o.id==="rvol"){
   function goSymbol(s, dest){
     var hit=ssRows.filter(function(r){ return String(r.s)===String(s); })[0];
     if(hit && hit.type==="dataset" && window.JHChartCatalog && window.JHChartCatalog.go){
-      window.JHChartCatalog.go(s, "dataset", {destination:dest || "chart"});
+      window.JHChartCatalog.go(s, "dataset");
       closeSymSearch();
       return;
     }

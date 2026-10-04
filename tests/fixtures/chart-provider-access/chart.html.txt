@@ -49,8 +49,6 @@
   window.__jhFetchGuard=1;
   var orig=window.fetch, inflight=Object.create(null), failed=Object.create(null);
   window.fetch=function(input, init){
-    // Explicit request options, headers and signals must keep native fetch semantics.
-    if(typeof input!=="string"||init!==undefined) return orig.apply(this, arguments);
     var url="", method="GET";
     try{
       url=typeof input==="string"?input:(input&&input.url)||"";
@@ -693,7 +691,6 @@ html[data-theme=dark] #quote .buy,html[data-theme=dark] #tfbar .buy{background:#
 <script src="/jh-observation-series.js?v=20261001"></script>
 <script src="/jh-observation-cache.js?v=20261001"></script>
 <script src="/jh-cq-fuse.js?v=20260922ab-cqind"></script>
-<script src="/jh-chart-provider-browser.js?v=20261004"></script>
 <script src="/jh-chart-catalog.js?v=20260922ab-cqind"></script>
 <script src="/jh-chart-campaign-marks.js?v=20260925-campmark"></script>
 <script src="/jh-chart-distribution.js?v=20260925-dist"></script>

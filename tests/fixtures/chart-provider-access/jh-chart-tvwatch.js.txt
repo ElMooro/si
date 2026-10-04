@@ -1109,7 +1109,7 @@ function chartRouteText(route, evidence, bars) {
   // Keep the Ext column/view; measurements await a verified extended-session contract.
   function wantExt(s){if(quotes[s])quotes[s].extReason="Extended session identity/completion unverified";}
   window.jhWatchlistQuote={resolve:window.JHWatchlistQuotes.resolve,packet:window.JHWatchlistQuotes.packet,get:function(s){var q=quotes[s];return q&&q.last!=null?q:null;}};
-  function loadResolver(){try{resolver=window.JHWatchlistQuotes.rules();refreshQuotes();return Promise.resolve(resolver);}catch(error){resolver=null;refreshQuotes();return Promise.resolve(null);}}
+  function loadResolver(){return window.JHWatchlistQuotes.request("/data/tv-symbol-resolver.json",fetch,10000).then(function(r){if(!r||!r.prefix||!r.exact)throw Error("resolver malformed");resolver=r;refreshQuotes();}).catch(function(){resolver=null;refreshQuotes();});}
   function refreshQuotes(){quoteGeneration++;paint();see();seeAdv();}
   function see() {
     var box = document.getElementById("wlist"); if (!box || !window.IntersectionObserver) return;

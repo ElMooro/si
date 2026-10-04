@@ -4,7 +4,7 @@ test('RVOL repairs preserve every unrelated function and exact predecessor state
 test('warehouse preservation retains every check with only the reviewed RVOL normalization hook',()=>{
  const file='tests/helpers/warehouse-observation-preservation.cjs',prior=fs.readFileSync(path.join(D,'pre503',file+'.txt'),'utf8');
  const hook="\n const later=require('./chart-volume-definition-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);";
- assert.equal(require('./helpers/chart-provider-browser-preservation.cjs').normalize(fs.readFileSync(path.join(R,file),'utf8'),file),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));
+ assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook));
 });
 test('RVOL reviewed and unrelated mutations are both rejected by exact preservation',()=>{
  const file='jh-chart-engine.js',raw=fs.readFileSync(path.join(R,file),'utf8');
