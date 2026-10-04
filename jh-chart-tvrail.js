@@ -3,43 +3,8 @@
 (function () {
   if (window.__jhTvRail) return;
   window.__jhTvRail = true;
-  (function () {
-    var MARK = "jh-chart-pro-imported";
-    function read(k, fb) { try { var v = JSON.parse(localStorage.getItem(k) || ""); return v == null ? fb : v; } catch (e) { return fb; } }
-    function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-    var map = { red: "#f23645", orange: "#ff6d00", yellow: "#fdd835", green: "#089981", blue: "#2962ff", purple: "#ab47bc", "var(--cyan)": "#22d3ee", "var(--green)": "#089981", "var(--amber)": "#fbbf24", "var(--violet)": "#ab47bc", "var(--pink)": "#e91e63", "var(--blue)": "#2962ff" };
-    function hex(c) { if (!c) return ""; c = String(c); if (c.charAt(0) === "#") return c; return map[c] || ""; }
-    try {
-      var seen = read(MARK, { lists: {} }); if (!seen.lists) seen.lists = {};
-      var src = read("jh_custom_watchlists", null);
-      var dst = read("jh-chart-custom-lists", []); if (!Array.isArray(dst)) dst = [];
-      var byName = {}; dst.forEach(function (l) { if (l && l.name) byName[l.name] = l; });
-      if (src && typeof src === "object") {
-        Object.keys(src).forEach(function (id) {
-          var w = src[id]; if (!w || !w.name) return;
-          var tick = (w.tickers || []).filter(Boolean);
-          var rec = seen.lists[id] || [];
-          var have = {}; rec.forEach(function (s) { have[s] = 1; });
-          var L = byName[w.name];
-          if (!L) { L = { id: id, name: w.name, symbols: [], n: 0, custom: 1, color: hex(w.color) || null, from: "chart-pro" }; dst.unshift(L); byName[w.name] = L; }
-          tick.forEach(function (s) { if (have[s]) return; if (L.symbols.indexOf(s) < 0) L.symbols.push(s); have[s] = 1; rec.push(s); });
-          L.n = L.symbols.length; if (!L.color) L.color = hex(w.color) || null;
-          seen.lists[id] = rec;
-        });
-        write("jh-chart-custom-lists", dst);
-      }
-      var pf = read("jh_symbol_flags", {}); var cf = read("jh-chart-flags", {});
-      if (pf && typeof pf === "object") { Object.keys(pf).forEach(function (k) { if (!cf[k] && hex(pf[k])) cf[k] = hex(pf[k]); }); write("jh-chart-flags", cf); }
-      var mine = read("jh-chart-favs", []); if (!Array.isArray(mine)) mine = [];
-      var set = {}; mine.forEach(function (s) { set[s] = 1; });
-      function addFav(k) { if (k && !set[k]) { mine.push(k); set[k] = 1; } }
-      var fav = read("jh_favorites", null);
-      if (fav && typeof fav === "object" && !Array.isArray(fav)) Object.keys(fav).forEach(function (k) { if (fav[k]) addFav(k); });
-      var favA = read("jh_favs", null); if (Array.isArray(favA)) favA.forEach(addFav);
-      write("jh-chart-favs", mine); write(MARK, seen);
-    } catch (e) {}
-  })();
-  if (!document.getElementById("jh-tvwatch-js")) { var sc = document.createElement("script"); sc.id = "jh-tvwatch-js"; sc.src = "/jh-chart-tvwatch.js?v=20261003-tvwl"; document.head.appendChild(sc); }
+  // jh-watchlist-store owns atomic persistence; every legacy namespace stays intact.
+  if (!document.getElementById("jh-tvwatch-js")) { var sc = document.createElement("script"); sc.id = "jh-tvwatch-js"; sc.src = "/jh-chart-tvwatch.js?v=watchlist-integrated-v1"; document.head.appendChild(sc); }
 
   var PIN_KEY = "jh-chart-watch-pin";
   var WKEY = "jh-chart-watch-w";
@@ -163,7 +128,7 @@
     "#tv-zoom{position:absolute!important;left:50%!important;bottom:8px!important;top:auto!important;right:auto!important;transform:translateX(-50%)!important;z-index:12!important;display:flex;flex-direction:row;border:1px solid #2a2e39;border-radius:6px;overflow:hidden;background:#1e222d;box-shadow:0 2px 8px rgba(0,0,0,.28);pointer-events:auto;width:auto!important;height:auto!important}",
     "#tv-zoom button{width:36px;height:26px;border-bottom:0;border-right:1px solid #2a2e39}",
     "#tv-zoom button:last-child{border-right:0}",
-    "@media(max-width:720px){#rrail{display:none!important}}"
+    "@media(max-width:720px){#rrail{display:none!important}#btn-watch{display:inline-flex!important}#watch.is-open{position:fixed!important;right:0;top:100px;bottom:0;width:min(var(--watch-w,320px),100vw)!important;min-width:0!important;z-index:45}}"
   ].join("");
   document.documentElement.appendChild(css);
   document.documentElement.style.setProperty("--watch-w", watchW + "px");
@@ -484,6 +449,38 @@
         ops.appendChild(b);
         return b;
       }
+      var importButton=ensureBtn("w-import", "Review and apply Chart Pro snapshot; original stores are retained", "Review import");
+      importButton.onclick=async function(e){
+        e.stopPropagation();
+        var message=document.getElementById("w-import-status");
+        if(!message){message=document.createElement("div");message.id="w-import-status";message.setAttribute("role","status");w.appendChild(message);}
+        message.replaceChildren();
+        var store=window.jhWatchlistStore;
+        if(!store){message.textContent="Transactional watchlist storage unavailable; originals retained.";return;}
+        await store.ready;
+        var download=document.createElement("button");download.type="button";download.textContent="Download original and current backup";
+        download.onclick=async function(){
+          var backup=await store.backup();
+          if(!backup.complete){var warning=document.createElement("span");warning.textContent=" Backup is incomplete: "+backup.importReadError;message.appendChild(warning);}
+          var blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+          var url=URL.createObjectURL(blob), link=document.createElement("a");link.href=url;link.download="watchlist-preservation.json";link.click();setTimeout(function(){URL.revokeObjectURL(url);},0);
+        };
+        try{
+          var plan=store.prepare();
+          message.textContent=plan.changes+" additions prepared. Apply this reviewed snapshot to Supercharts; original stores remain intact. Navigation favorites are excluded. ";
+          var apply=document.createElement("button");apply.type="button";apply.id="w-import-apply";apply.textContent="Apply reviewed import";
+          apply.disabled=!!(store.status()||plan.destinationConflict);
+          apply.onclick=async function(){
+            apply.disabled=true;
+            try{var result=await store.apply(plan);message.replaceChildren();message.textContent="Reviewed import committed locally. Original stores retained."+(result.legacyDivergence?" "+result.legacyDivergence:"")+(result.sourceDivergence?" Chart Pro changed after the reviewed snapshot; review the newer changes.":"");}
+            catch(error){message.replaceChildren();message.textContent=error.message;}
+            message.appendChild(download);
+          };
+          message.appendChild(apply);
+          if(store.status())message.appendChild(document.createTextNode(" "+store.status()+" "));
+        }catch(error){message.textContent=error.message+" ";}
+        message.appendChild(download);
+      };
       ensureBtn("w-searchbtn", "Search symbol", "⌕");
       ensureBtn("w-chartm", "Chart / company info", "◆");
       ensureBtn("w-pin", "Pin watchlist", "📌");
@@ -553,7 +550,7 @@
           var kind = b.getAttribute("data-rail");
           var w = watch();
           var open = w && w.classList.contains("is-open");
-          if (kind === "watch" && open) {
+          if (kind === "watch" && open && pinned) {
             dismiss();
             return;
           }

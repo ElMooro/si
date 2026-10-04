@@ -1,0 +1,1046 @@
+{
+  "jh-chart-engine.js": {
+    "before_path": "tests/fixtures/watchlist-correctness/jh-chart-engine.js.txt",
+    "before_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
+    "after_sha256": "2816cda627e748227026de91b37b30c608ba3755086dbab862f0ce0b8e863a7c",
+    "edits": [
+      {
+        "start": 35883,
+        "end": 36189,
+        "before": "  function loadJSON(k, fb){ try{ var x=JSON.parse(localStorage.getItem(k)||\"\"); return x||fb; }catch(e){ return fb; } }\n",
+        "after": "  function loadJSON(k, fb){ try{ if(window.jhWatchlistStore && [CUSTOM_KEY,FAV_KEY,FLAG_KEY].indexOf(k)>=0){var saved=window.jhWatchlistStore.read(k);return k===FLAG_KEY?Object.assign(Object.create(null),saved):saved;} var x=JSON.parse(localStorage.getItem(k)||\"\"); return x||fb; }catch(e){ return fb; } }\n"
+      },
+      {
+        "start": 309131,
+        "end": 309437,
+        "before": "    document.getElementById(\"btn-watch\").onclick=function(){ setWatch(!watchOpen); renderTf(); };\n",
+        "after": "    document.getElementById(\"btn-watch\").onclick=function(){ var w=document.getElementById(\"watch\"),open=window.jhWatchSet?!!(w&&w.classList.contains(\"is-open\")):watchOpen;if(open&&window.jhWatchUnpin)window.jhWatchUnpin();if(!open&&window.jhWatchPin)window.jhWatchPin(true);setWatch(!open);renderTf(); };\n"
+      },
+      {
+        "start": 321471,
+        "end": 323845,
+        "before": "",
+        "after": "  function watchlistShape(k,v){\n    if(k===CUSTOM_KEY)return Array.isArray(v)&&new Set(v.map(function(l){return l&&l.id;})).size===v.length&&v.every(function(l){return l&&typeof l.id===\"string\"&&typeof l.name===\"string\"&&Array.isArray(l.symbols)&&l.symbols.every(function(x){return typeof x===\"string\";});});\n    if(k===FAV_KEY)return Array.isArray(v)&&v.every(function(x){return typeof x===\"string\";});\n    return !!v&&typeof v===\"object\"&&!Array.isArray(v);\n  }\n  var watchlistVersion=null, watchlistCatalogLists=[];\n  function watchlistId(){\n    var id=\"custom-\"+(window.crypto&&window.crypto.randomUUID?window.crypto.randomUUID():Date.now()+\"-\"+uid());\n    var saved=loadJSON(CUSTOM_KEY,[]);while(Array.isArray(saved)&&saved.some(function(l){return l.id===id;}))id+=\"~\";\n    return id;\n  }\n  function refreshWatchlistModel(){\n    if(!window.jhWatchlistStore)return;\n    var custom=window.jhWatchlistStore.read(CUSTOM_KEY);\n    flags=window.jhWatchlistStore.read(FLAG_KEY);favs=window.jhWatchlistStore.read(FAV_KEY);\n    var ids=new Set();lists=custom.concat(watchlistCatalogLists).filter(function(l){if(ids.has(l.id))return false;ids.add(l.id);return true;});\n    if(favs.length)lists=[{id:\"favorites\",name:\"Favorites\",symbols:favs.slice(),n:favs.length,custom:1}].concat(lists.filter(function(l){return l.id!==\"favorites\";}));\n    if(!lists.some(function(l){return l.id===listId;}))listId=(lists[0]||{}).id;\n    watchlistVersion=window.jhWatchlistStore.version();\n  }\n  async function saveWatchlist(k,v,revision){\n    try{\n      if(!window.jhWatchlistStore)throw Error(\"Transactional watchlist storage unavailable\");\n      if(!watchlistShape(k,v))throw Error(\"Invalid watchlist edit\");\n      var result=await window.jhWatchlistStore.save(k,v,revision);\n      refreshWatchlistModel();\n      if(result.legacyDivergence)toast(result.legacyDivergence);\n      return true;\n    }catch(error){\n      if(window.jhWatchlistStore){await window.jhWatchlistStore.reload();try{refreshWatchlistModel();renderList();}catch(_){};}\n      toast(String(error.message||error)+\" \u00b7 no success recorded\");return false;\n    }\n  }\n  window.addEventListener(\"jh-watchlists-changed\",function(){\n    if(!watchlistCatalogLists.length)return;\n    try{refreshWatchlistModel();renderList();var status=window.jhWatchlistStore.status();if(status)toast(status);}catch(error){toast(error.message);}\n  });\n"
+      },
+      {
+        "start": 323916,
+        "end": 324425,
+        "before": "    if(n && !n.dataset.bound){ n.onclick=function(){ var name=prompt(\"New watchlist name\",\"My list\"); if(!name) return; var custom=loadJSON(CUSTOM_KEY,[]); var hit={id:\"custom-\"+Date.now(),name:name,symbols:[active],n:1,custom:1}; custom.unshift(hit); saveJSON(CUSTOM_KEY,custom); lists=[hit].concat(lists.filter(function(l){return l.id!==hit.id;})); listId=hit.id; renderList(); toast(\"Created \"+name); }; n.dataset.bound=\"1\"; }\n",
+        "after": "    if(n && !n.dataset.bound){ n.onclick=async function(){ var revision=watchlistVersion, name=prompt(\"New watchlist name\",\"My list\"); if(!name) return; var custom=loadJSON(CUSTOM_KEY,[]); var hit={id:watchlistId(),name:name,symbols:[active],n:1,custom:1}; if(!Array.isArray(custom)){toast(\"Saved watchlist unavailable; original retained\");return;} custom.unshift(hit); if(!await saveWatchlist(CUSTOM_KEY,custom,revision))return; listId=hit.id; renderList(); toast(\"Created \"+name); }; n.dataset.bound=\"1\"; }\n"
+      },
+      {
+        "start": 324470,
+        "end": 324962,
+        "before": "    if(m && !m.dataset.bound){ m.onclick=function(){ openMenu(m, \"<div class=lab>LIST</div><button data-a=ren>Rename</button><button data-a=dup>Duplicate</button><button data-a=add>Add \"+escHtml(active)+\"</button><button data-a=del>Delete list</button>\"); document.querySelectorAll(\"#menu [data-a]\").forEach(function(b){ b.onclick=function(){ closeMenu(); listMenu(b.dataset.a); }; }); }; m.dataset.bound=\"1\"; }\n",
+        "after": "    if(m && !m.dataset.bound){ m.onclick=function(e){ e.stopPropagation(); openMenu(m, \"<div class=lab>LIST</div><button data-a=ren>Rename</button><button data-a=dup>Duplicate</button><button data-a=add>Add \"+escHtml(active)+\"</button><button data-a=del>Delete list</button>\"); document.getElementById(\"menu\").classList.add(\"wl-menu\"); document.querySelectorAll(\"#menu [data-a]\").forEach(function(b){ b.onclick=function(){ closeMenu(); listMenu(b.dataset.a); }; }); }; m.dataset.bound=\"1\"; }\n"
+      },
+      {
+        "start": 325116,
+        "end": 326272,
+        "before": "  function listMenu(a){\n    var L=lists.find(function(x){return x.id===listId;});\n    if(!L) return;\n    if(a===\"ren\"){ var n=prompt(\"Rename list\", L.name); if(!n) return; L.name=n; persistCustom(L); renderList(); }\n    if(a===\"dup\"){ var hit={id:\"custom-\"+Date.now(),name:L.name+\" copy\",symbols:(L.symbols||[]).slice(),n:(L.symbols||[]).length,custom:1}; persistCustom(hit); lists=[hit].concat(lists); listId=hit.id; renderList(); }\n    if(a===\"add\"){ addToList(active); }\n    if(a===\"del\"){ if(!L.custom && L.id!==\"favorites\"){ toast(\"Warehouse lists stay\"); return; } if(!confirm(\"Delete \"+L.name+\"?\")) return; var custom=loadJSON(CUSTOM_KEY,[]).filter(function(x){return x.id!==L.id;}); saveJSON(CUSTOM_KEY,custom); if(L.id===\"favorites\"){ favs=[]; saveJSON(FAV_KEY,favs); } lists=lists.filter(function(x){return x.id!==L.id;}); listId=(lists[0]||{}).id; renderList(); }\n",
+        "after": "  async function listMenu(a){\n    var revision=watchlistVersion, L=lists.find(function(x){return x.id===listId;});\n    if(!L)return;\n    if(a===\"ren\"){\n      if(L.id===\"favorites\"){toast(\"Favorites keeps its automatic name\");return;}\n      var name=prompt(\"Rename list\",L.name);if(!name)return;\n      var renamed=Object.assign({},L,{name:name});if(!await persistCustom(renamed,revision))return;\n      renderList();\n    }\n    if(a===\"dup\"){\n      var hit={id:watchlistId(),name:L.name+\" copy\",symbols:(L.symbols||[]).slice(),n:(L.symbols||[]).length,custom:1};\n      if(!await persistCustom(hit,revision))return;listId=hit.id;renderList();\n    }\n    if(a===\"add\")addToList(active);\n    if(a===\"del\"){\n      if(!L.custom&&L.id!==\"favorites\"){toast(\"Warehouse lists stay\");return;}\n      if(!confirm(\"Delete \"+L.name+\"?\"))return;\n      if(L.id===\"favorites\"){if(!await saveWatchlist(FAV_KEY,[],revision))return;}\n      else{var custom=loadJSON(CUSTOM_KEY,[]);if(!Array.isArray(custom))return;custom=custom.filter(function(x){return x.id!==L.id;});if(!await saveWatchlist(CUSTOM_KEY,custom,revision))return;}\n      listId=(lists[0]||{}).id;renderList();\n    }\n"
+      },
+      {
+        "start": 326276,
+        "end": 326675,
+        "before": "  function persistCustom(L){\n    L.custom=1; L.n=(L.symbols||[]).length;\n    var custom=loadJSON(CUSTOM_KEY,[]); if(!Array.isArray(custom)) custom=[];\n    var i=custom.findIndex(function(x){return x.id===L.id;});\n    if(i>=0) custom[i]=L; else custom.unshift(L);\n    saveJSON(CUSTOM_KEY,custom);\n",
+        "after": "  async function persistCustom(L,revision){\n    var next=Object.assign({},L,{custom:1,n:(L.symbols||[]).length});\n    var custom=loadJSON(CUSTOM_KEY,[]);if(!Array.isArray(custom))return false;\n    var i=custom.findIndex(function(x){return x.id===next.id;});\n    if(i>=0)custom[i]=next;else custom.unshift(next);\n    if(!await saveWatchlist(CUSTOM_KEY,custom,revision))return false;\n    return true;\n"
+      },
+      {
+        "start": 326679,
+        "end": 327288,
+        "before": "  function addToList(s){\n    s=bare(s);\n    var L=lists.find(function(x){return x.id===listId;});\n    if(!L) return;\n    if((L.symbols||[]).indexOf(s)>=0){ toast(s+\" already on list\"); return; }\n    L.symbols=L.symbols||[]; L.symbols.unshift(s); persistCustom(L); renderList(); toast(\"Added \"+s+\" to \"+L.name);\n",
+        "after": "  async function addToList(s){\n    if(window.jhWatchlistRendererAdd)return window.jhWatchlistRendererAdd(s);\n    if(typeof s!==\"string\"||!s.trim())return;s=s.trim();\n    var revision=watchlistVersion, L=lists.find(function(x){return x.id===listId;});if(!L)return;\n    if((L.symbols||[]).indexOf(s)>=0){toast(s+\" already on list\");return;}\n    var next=Object.assign({},L,{symbols:[s].concat(L.symbols||[])});\n    if(L.id===\"favorites\"){if(!await saveWatchlist(FAV_KEY,next.symbols,revision))return;}\n    else if(!await persistCustom(next,revision))return;\n    renderList();toast(\"Added \"+s+\" to \"+next.name);\n"
+      },
+      {
+        "start": 330770,
+        "end": 330805,
+        "before": "  function pinBest(q){\n",
+        "after": "  function pinBest(q, preserveId){\n"
+      },
+      {
+        "start": 330909,
+        "end": 330958,
+        "before": "      var id=chartId(a.s)||a.s;\n",
+        "after": "      var id=preserveId?a.s:(chartId(a.s)||a.s);\n"
+      },
+      {
+        "start": 330998,
+        "end": 331107,
+        "before": "        return String(r.s).toUpperCase()!==String(id).toUpperCase() && bare(r.s)!==bare(id);\n",
+        "after": "        return String(r.s).toUpperCase()!==String(id).toUpperCase() && (preserveId || bare(r.s)!==bare(id));\n"
+      },
+      {
+        "start": 331117,
+        "end": 331242,
+        "before": "      ssRows.unshift({s:id, name:a.name, extra:\"best match\", type:a.type||\"economy\", label:displayTicker(id)});\n",
+        "after": "      ssRows.unshift({s:id, watchId:a.s, name:a.name, extra:\"best match\", type:a.type||\"economy\", label:displayTicker(id)});\n"
+      },
+      {
+        "start": 332164,
+        "end": 332228,
+        "before": "",
+        "after": "    if(dest===\"add\"){ addToList(s); closeSymSearch(); return; }\n"
+      },
+      {
+        "start": 332731,
+        "end": 332731,
+        "before": "    if(dest===\"add\"){ addToList(s); closeSymSearch(); return; }\n",
+        "after": ""
+      },
+      {
+        "start": 341537,
+        "end": 341666,
+        "before": "        : \"<span class=ss-more data-more='\"+escHtml(bare(r.s))+\"' title='More'>\u25be</span>\")+\n",
+        "after": "        : \"<span class=ss-more data-more='\"+escHtml(r.s)+\"' data-watch-id='\"+escHtml(r.watchId||r.s)+\"' title='More'>\u25be</span>\")+\n"
+      },
+      {
+        "start": 342091,
+        "end": 342178,
+        "before": "        var s=b.getAttribute(\"data-more\");\n",
+        "after": "        var s=b.getAttribute(\"data-more\"), watchId=b.getAttribute(\"data-watch-id\")||s;\n"
+      },
+      {
+        "start": 342354,
+        "end": 342595,
+        "before": "        document.querySelectorAll(\"#menu [data-a]\").forEach(function(x){ x.onclick=function(){ closeMenu(); goSymbol(s, x.dataset.a); }; });\n",
+        "after": "        document.getElementById(\"menu\").classList.add(\"ss-watch-menu\");\n        document.querySelectorAll(\"#menu [data-a]\").forEach(function(x){ x.onclick=function(){ closeMenu(); goSymbol(x.dataset.a===\"add\"?watchId:s, x.dataset.a); }; });\n"
+      },
+      {
+        "start": 342907,
+        "end": 342964,
+        "before": "    function push(s, name, extra, type, force){\n",
+        "after": "    function push(s, name, extra, type, force, watchId){\n"
+      },
+      {
+        "start": 342983,
+        "end": 343380,
+        "before": "      var full=(window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s;\n      if(!(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CQSNAP|CQARM|CQDOC|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\\^/.test(full) && full.indexOf(\"=\")<0 && !/^provider:/i.test(full))\n",
+        "after": "      var full=dest===\"add\"?s:((window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s);\n      if(dest!==\"add\" && !(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CQSNAP|CQARM|CQDOC|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\\^/.test(full) && full.indexOf(\"=\")<0 && !/^provider:/i.test(full))\n"
+      },
+      {
+        "start": 343434,
+        "end": 343550,
+        "before": "      if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;\n",
+        "after": "      if(!full||seen[k]||(dest!==\"add\" && seen[bare(full)])) return; seen[k]=1; if(dest!==\"add\")seen[bare(full)]=1;\n"
+      },
+      {
+        "start": 344321,
+        "end": 344416,
+        "before": "      rows.push({s:full, name:name||\"\", extra:extra||\"\", type:type||cls});\n",
+        "after": "      rows.push({s:full, watchId:watchId||s, name:name||\"\", extra:extra||\"\", type:type||cls});\n"
+      },
+      {
+        "start": 345214,
+        "end": 345393,
+        "before": "    if(ssRemoteState && Array.isArray(ssRemoteState.rows)) ssRemoteState.rows.forEach(function(r){push(r.s,r.name,r.extra,r.type,true);});\n",
+        "after": "    if(ssRemoteState && Array.isArray(ssRemoteState.rows)) ssRemoteState.rows.forEach(function(r){push(dest===\"add\"?(r.watchId||r.s):r.s,r.name,r.extra,r.type,true,r.watchId);});\n"
+      },
+      {
+        "start": 345631,
+        "end": 345661,
+        "before": "    pinBest(q);\n",
+        "after": "    pinBest(q, dest===\"add\");\n"
+      },
+      {
+        "start": 353084,
+        "end": 353195,
+        "before": "      var s=chartId(id)||id;\n",
+        "after": "      var wrap=document.getElementById(\"symsearch\"), s=wrap && wrap.dataset.dest===\"add\"?id:(chartId(id)||id);\n"
+      },
+      {
+        "start": 353304,
+        "end": 353434,
+        "before": "        ssRemoteState.rows.push({s:s,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n",
+        "after": "        ssRemoteState.rows.push({s:s,watchId:id,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n"
+      },
+      {
+        "start": 353537,
+        "end": 353653,
+        "before": "      ssRows.push({s:s,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n",
+        "after": "      ssRows.push({s:s,watchId:id,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n"
+      },
+      {
+        "start": 373507,
+        "end": 373548,
+        "before": "      paste.onkeydown=function(e){\n",
+        "after": "      paste.onkeydown=async function(e){\n"
+      },
+      {
+        "start": 373584,
+        "end": 373646,
+        "before": "",
+        "after": "        var revision=watchlistVersion, submitted=paste.value;\n"
+      },
+      {
+        "start": 373968,
+        "end": 374346,
+        "before": "        var hit={id:\"custom-\"+Date.now(),name:name,symbols:syms2,n:syms2.length,custom:1}; custom.push(hit); saveJSON(CUSTOM_KEY,custom);\n        lists=[hit].concat(lists.filter(function(l){ return l.id!==hit.id; })); listId=hit.id; paste.value=\"\"; renderList(); toast(\"List saved \u00b7 warehouse lists kept\");\n",
+        "after": "        var hit={id:watchlistId(),name:name,symbols:syms2,n:syms2.length,custom:1}; if(!Array.isArray(custom)){toast(\"Saved watchlist unavailable; original retained\");return;} custom.push(hit); if(!await saveWatchlist(CUSTOM_KEY,custom,revision))return;\n        listId=hit.id; if(paste.value===submitted)paste.value=\"\"; renderList(); toast(\"List saved \u00b7 warehouse lists kept\");\n"
+      },
+      {
+        "start": 374584,
+        "end": 374825,
+        "before": "    syms.slice(0,24).forEach(function(s){ if(quotes[s]||quotes[bare(s)]) return; lastPx(s).then(function(px){ if(!px) return; quotes[s]=px; quotes[bare(s)]=px; renderList(); renderTabs(); }); });\n",
+        "after": "    if(!window.__jhTvWatch&&!window.__jhTvWatch2)syms.slice(0,24).forEach(function(s){ if(quotes[s]||quotes[bare(s)]) return; lastPx(s).then(function(px){ if(!px) return; quotes[s]=px; quotes[bare(s)]=px; renderList(); renderTabs(); }); });\n"
+      },
+      {
+        "start": 375709,
+        "end": 376219,
+        "before": "",
+        "after": "  window.jhWatchlistActive=function(){return active;};\n  window.jhWatchlistResolve=function(s){\n    var n=normQ(s), economic=classifySym(s)===\"macro\" || SEARCH_ALIASES.some(function(a){return a.type===\"economy\" && a.q.indexOf(n)>=0;});\n    if(economic)return {engine:\"unqualified-economic\",raw:s};\n    return resolveSym(s);\n  };\n  window.jhWatchlistNativeList=function(id){return lists.find(function(l){return String(l.id)===String(id);})||null;};\n  window.jhWatchlistContext=function(x,y,s){openCtx(x,y,s);};\n"
+      },
+      {
+        "start": 376249,
+        "end": 376317,
+        "before": "",
+        "after": "    if(window.jhWatchlistStore)await window.jhWatchlistStore.ready;\n"
+      },
+      {
+        "start": 377026,
+        "end": 377399,
+        "before": "    lists=custom.concat(local, copied);\n",
+        "after": "    watchlistCatalogLists=local.concat(copied);\n    // Read members and their revision together after every network await.\n    if(window.jhWatchlistStore){refreshWatchlistModel();return;}\n    flags=loadJSON(FLAG_KEY,{});\n    var listIds=new Set();\n    lists=custom.concat(local,copied).filter(function(l){if(listIds.has(l.id))return false;listIds.add(l.id);return true;});\n"
+      },
+      {
+        "start": 385229,
+        "end": 385515,
+        "before": "  function toggleFav(s){\n    s=bare(s);\n    var on=favs.indexOf(s)>=0;\n    favs=on?favs.filter(function(x){return x!==s;}):favs.concat([s]);\n    saveJSON(FAV_KEY,favs);\n    lists=lists.filter(function(l){return l.id!==\"favorites\";});\n    if(favs.length) lists=[{id:\"favorites\",name:\"Favorites\",symbols:favs.slice(),n:favs.length,custom:1}].concat(lists);\n",
+        "after": "  async function toggleFav(s){\n    if(typeof s!==\"string\" || !s.trim())return;\n    s=s.trim();\n    var revision=watchlistVersion, on=favs.indexOf(s)>=0;\n    var next=on?favs.filter(function(x){return x!==s;}):favs.concat([s]);\n    if(!await saveWatchlist(FAV_KEY,next,revision))return;\n"
+      },
+      {
+        "start": 396988,
+        "end": 397355,
+        "before": "    el.innerHTML=\"<button data-a=open>Open chart</button><button data-a=fin>Financials</button><button data-a=note>Notes</button><button data-a=add>Add to list</button><button data-a=cmp>Compare</button><button data-a=al>Alert at last</button><button data-a=tab>Add tab</button><button data-a=fav>Favorite</button><button data-a=flag>Cycle flag</button>\";\n",
+        "after": "    el.innerHTML=\"<button data-a=open>Open chart</button><button data-a=fin>Financials</button><button data-a=note>Notes</button><button data-a=add>Add to list</button><button data-a=cmp>Compare</button><button data-a=al>Alert at aggregate close</button><button data-a=tab>Add tab</button><button data-a=fav>Favorite</button><button data-a=flag>Cycle flag</button>\";\n"
+      },
+      {
+        "start": 397410,
+        "end": 397483,
+        "before": "      b.onclick=function(){\n",
+        "after": "      b.onclick=async function(){\n        var revision=watchlistVersion;\n"
+      },
+      {
+        "start": 397805,
+        "end": 398449,
+        "before": "        if(b.dataset.a===\"al\"){ var q=quotes[s]||quotes[bare(s)]; addAlert(bare(s), q?q.last:(lastBars[lastBars.length-1]||{}).close); }\n        if(b.dataset.a===\"flag\"){ var cols=[\"#2962ff\",\"#089981\",\"#f23645\",\"#ff6d00\",\"#ab47bc\",\"\"], cur=flags[s]||\"\"; var ix=cols.indexOf(cur); flags[s]=cols[(ix+1)%cols.length]; saveJSON(FLAG_KEY, flags); renderList(); }\n",
+        "after": "        if(b.dataset.a===\"al\"){ var q=(window.__jhTvWatch||window.__jhTvWatch2)&&window.jhWatchlistQuote?window.jhWatchlistQuote.get(s):quotes[s];if(!q||typeof q.last!==\"number\"||!Number.isFinite(q.last)){toast(\"Matching aggregate close unavailable; no alert created\");return;}addAlert(s,q.last); }\n        if(b.dataset.a===\"flag\"){ var cols=[\"#2962ff\",\"#089981\",\"#f23645\",\"#ff6d00\",\"#ab47bc\",\"\"], cur=flags[s]||\"\"; var ix=cols.indexOf(cur); var nextFlags=Object.assign({},flags);var color=cols[(ix+1)%cols.length];if(color)nextFlags[s]=color;else delete nextFlags[s];if(!await saveWatchlist(FLAG_KEY,nextFlags,revision))return;renderList(); }\n"
+      },
+      {
+        "start": 414203,
+        "end": 414347,
+        "before": "",
+        "after": "    if(e.target && e.target.closest && e.target.closest(\"#watch\") && [\" \",\"Delete\",\"Backspace\",\"ArrowDown\",\"ArrowUp\"].indexOf(e.key)>=0)return;\n"
+      }
+    ]
+  },
+  "chart.html": {
+    "before_path": "tests/fixtures/watchlist-correctness/chart.html.txt",
+    "before_sha256": "5a850f55574c17e5ed53fd8bfa65b8a3209d436954b7b05cdd096bd5eda15298",
+    "after_sha256": "3b473ac7d22bc59687050c8d93cb960cf3f674e6593137711b21326ee467589a",
+    "edits": [
+      {
+        "start": 54003,
+        "end": 54245,
+        "before": "<script src=\"/jh-chart-tvrail.js?v=20261001-snapshot\"></script>\n",
+        "after": "<script src=\"/jh-watchlist-store.js?v=watchlist-integrated-v1\"></script>\n<script src=\"/jh-watchlist-quotes.js?v=watchlist-integrated-v1\"></script>\n<script src=\"/jh-chart-tvrail.js?v=20261001-snapshot&watch=watchlist-transaction-v1\"></script>\n"
+      },
+      {
+        "start": 54693,
+        "end": 54789,
+        "before": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves\"></script>\n",
+        "after": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves&watch=watchlist-transaction-v1\"></script>\n"
+      }
+    ]
+  },
+  "jh-chart-tvwatch.js": {
+    "before_path": "tests/fixtures/watchlist-correctness/jh-chart-tvwatch.js.txt",
+    "before_sha256": "41b1c217e58942d501eda70d07792522f45115cb1a6cad048372683676917e33",
+    "after_sha256": "56019910bcf1c2ff14fdfc2226a4da57bc2f960f80394a27168c99173b9c0f67",
+    "edits": [
+      {
+        "start": 448,
+        "end": 484,
+        "before": "    { id: \"last\", label: \"Last\" },\n",
+        "after": "    { id: \"last\", label: \"Close\" },\n"
+      },
+      {
+        "start": 1433,
+        "end": 1513,
+        "before": "  try { var saved = JSON.parse(localStorage.getItem(UI_KEY) || \"null\"); if (saved && typeof saved === \"object\") { Object.keys(saved).forEach(function (k) { ui[k] = saved[k]; }); } } catch (e) {}\n",
+        "after": "  // Saved preferences are applied only after the store validates their shape.\n\n"
+      },
+      {
+        "start": 2182,
+        "end": 5730,
+        "before": "  function saveUi() { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) {} }\n  function read(k, fb) { try { var v = JSON.parse(localStorage.getItem(k) || \"\"); return v == null ? fb : v; } catch (e) { return fb; } }\n  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }\n",
+        "after": "  var uiDefaults=JSON.parse(JSON.stringify(ui)), actionDraft=null, storageReady=false, saving=0, dragIntent=null;\n  var MODEL_KEYS=[\"jh-chart-custom-lists\",\"jh-chart-flags\",\"jh-chart-favs\",UI_KEY];\n  function clone(v){return JSON.parse(JSON.stringify(v));}\n  function loadUi(value){var next=Object.assign({},clone(uiDefaults),clone(value));if(!next.active&&ui.active)next.active=ui.active;if(next.active&&!findList(next.active))next.active=String((customLists()[0]||{}).id||Object.keys(catalog||{})[0]||\"\");[\"cols\",\"collapsed\",\"alias\",\"order\",\"hide\",\"extra\",\"starred\",\"listColor\",\"widths\"].forEach(function(k){next[k]=Object.assign(Object.create(null),next[k]||{});});Object.keys(next.hide).forEach(function(id){next.hide[id]=Object.assign(Object.create(null),next.hide[id]);});return next;}\n  function captureIntent(){\n    if(!storageReady||!window.jhWatchlistStore)throw Error(\"Watchlist storage is not ready; original retained\");\n    var model={};MODEL_KEYS.forEach(function(k){model[k]=window.jhWatchlistStore.read(k);});\n    return {revision:window.jhWatchlistStore.version(),model:model,ui:loadUi(model[UI_KEY])};\n  }\n  function intent(fn,captured){return function(){var event=arguments[0];return runIntent(fn,this,arguments,captured||(event&&event.type===\"drop\"?dragIntent:null));};}\n  function afterCommit(fn){if(actionDraft)actionDraft.after.push(fn);else fn();}\n  function reloadUi(){ui=loadUi(window.jhWatchlistStore.read(UI_KEY));var box=document.getElementById(\"wlist\");if(box)box.dataset.sig=\"\";}\n  async function runIntent(fn,receiver,args,captured){\n    if(actionDraft&&!captured)return fn.apply(receiver,args);\n    if(saving){toast(\"Watchlist save is still pending; action retained for retry\");return false;}\n    var draft;\n    try{var state=captured||captureIntent();draft={revision:state.revision,model:clone(state.model),patch:{},ui:loadUi(state.ui),messages:[],after:[],dirty:false};}\n    catch(error){toast(String(error.message||error));return false;}\n    ui=draft.ui;actionDraft=draft;\n    try{fn.apply(receiver,args);}catch(error){actionDraft=null;reloadUi();toast(String(error.message||error));paint();return false;}\n    actionDraft=null;\n    if(!draft.dirty){draft.messages.forEach(toast);draft.after.forEach(function(f){f();});return true;}\n    saving++;\n    try{\n      await window.jhWatchlistStore.saveBatch(draft.patch,draft.revision);\n      draft.messages.forEach(toast);draft.after.forEach(function(f){f();});return true;\n    }catch(error){await window.jhWatchlistStore.reload();toast(String(error.message||error)+\" \u00b7 no success recorded\");return false;}\n    finally{saving--;if(!saving){reloadUi();paint();}}\n  }\n  function saveUi(){write(UI_KEY,ui);}\n  function read(k,fb){\n    if(MODEL_KEYS.indexOf(k)>=0){try{return actionDraft?clone(actionDraft.model[k]):window.jhWatchlistStore?window.jhWatchlistStore.read(k):fb;}catch(error){return fb;}}\n    try{var v=JSON.parse(localStorage.getItem(k)||\"\");return v==null?fb:v;}catch(e){return fb;}\n  }\n  function write(k,v){\n    if(MODEL_KEYS.indexOf(k)>=0){\n      if(!actionDraft)throw Error(\"Watchlist mutation requires a captured user action\");\n      actionDraft.model[k]=clone(v);actionDraft.patch[k]=clone(v);actionDraft.dirty=true;return;\n    }\n    try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}\n  }\n  function freshId(){var id=\"custom-\"+(crypto.randomUUID?crypto.randomUUID():Date.now()+\"-\"+Math.random().toString(36).slice(2));while(findCustom(id))id+=\"~\";return id;}\n  window.jhWatchlistRendererAdd=intent(function(s){addSym(findList(ui.active),s);});\n"
+      },
+      {
+        "start": 5731,
+        "end": 5979,
+        "before": "  var catalog = {}, quotes = {}, qSet = {}, eSet = {}, inflight = 0, einflight = 0, wait = [], ewait = [], lock = 0, dragId = \"\";\n",
+        "after": "  var catalog = Object.create(null), quotes = Object.create(null), qSet = Object.create(null), eSet = {}, inflight = 0, einflight = 0, wait = [], ewait = [], lock = 0, dragId = \"\";\n  var resolver=null, TTL=300000, BACKOFF=30000, quoteGeneration=0;\n"
+      },
+      {
+        "start": 6075,
+        "end": 6633,
+        "before": "",
+        "after": "    \"#menu.ss-watch-menu,#menu.wl-menu{z-index:49}\",\n    \"#watch .wtitle{height:auto!important;min-height:32px;overflow:visible;flex:none}#watch .wtitle .wops{position:static!important;display:flex;flex-wrap:wrap;margin-left:auto}#watch .whead{padding:4px 8px!important}#w-import{width:auto!important;min-width:88px;height:auto!important;min-height:26px;white-space:nowrap;font-size:11px}\",\n    \"#cols,#wlist .wrow{grid-template-columns:var(--watch-grid)!important}#cols{overflow:hidden;grid-auto-flow:column}#wlist{overflow-x:auto}#watch{overflow:hidden}\",\n"
+      },
+      {
+        "start": 7478,
+        "end": 7830,
+        "before": "",
+        "after": "    \"#watch .wquote-tools,#w-save-status{font-size:11px;padding:6px 8px;overflow-wrap:anywhere}#watch .wquote-tools button{color:#2962ff}#wlist .qe{grid-column:4 / -1;grid-row:2;color:#9aa1ad;font-size:10px;white-space:normal;overflow-wrap:anywhere}#wlist .wrow{min-height:54px}#wlist .wrow .qe{pointer-events:none}#wlist .wrow>:not(.qe){grid-row:1}\",\n"
+      },
+      {
+        "start": 17879,
+        "end": 17949,
+        "before": "    if (!(n > 0) || !isFinite(n)) return \"\\u2014\";\n",
+        "after": "    if(typeof n!==\"number\"||!Number.isFinite(n)||n<0)return \"\\u2014\";\n"
+      },
+      {
+        "start": 18335,
+        "end": 18708,
+        "before": "  function activeSym() { var el = document.getElementById(\"symin\"); return el ? String(el.value || \"\").trim() : \"\"; }\n  function flags() { return read(\"jh-chart-flags\", {}) || {}; }\n",
+        "after": "  function activeSym() { if(window.jhWatchlistActive)return window.jhWatchlistActive();var el = document.getElementById(\"symin\"); return el ? String(el.value || \"\").trim() : \"\"; }\n  function flags() { return Object.assign(Object.create(null),read(\"jh-chart-flags\", {}) || {}); }\n  function flagOf(s){var f=flags();return Object.prototype.hasOwnProperty.call(f,s)?f[s]:\"\";}\n"
+      },
+      {
+        "start": 19787,
+        "end": 19917,
+        "before": "    if (catalog[id]) return catalog[id];\n    return findCustom(id);\n",
+        "after": "    var saved=findCustom(id);if(saved)return saved;\n    return Object.prototype.hasOwnProperty.call(catalog,id)?catalog[id]:null;\n"
+      },
+      {
+        "start": 19976,
+        "end": 20056,
+        "before": "    var pool = {}, seq = [], used = {}, i, s;\n",
+        "after": "    var pool = Object.create(null), seq = [], used = Object.create(null), i, s;\n"
+      },
+      {
+        "start": 20282,
+        "end": 20407,
+        "before": "      if (pool[x] && !hidden[x] && !used[x]) { seq.push(x); used[x] = 1; }\n",
+        "after": "      if (pool[x] && !(Object.prototype.hasOwnProperty.call(hidden,x)&&hidden[x]) && !used[x]) { seq.push(x); used[x] = 1; }\n"
+      },
+      {
+        "start": 20478,
+        "end": 20592,
+        "before": "      if (!used[x] && !hidden[x]) { seq.push(x); used[x] = 1; }\n",
+        "after": "      if (!used[x] && !(Object.prototype.hasOwnProperty.call(hidden,x)&&hidden[x])) { seq.push(x); used[x] = 1; }\n"
+      },
+      {
+        "start": 20783,
+        "end": 20814,
+        "before": "      var q = quotes[s] || quotes[bare(s)] || {};\n",
+        "after": "      var q = quotes[s] || {};\n"
+      },
+      {
+        "start": 22424,
+        "end": 22543,
+        "before": "    if (ui.flag) seq = seq.filter(function (s) { return String(s).indexOf(\"###\") === 0 || (flags()[s] === ui.flag); });\n",
+        "after": "    if (ui.flag) seq = seq.filter(function (s) { return String(s).indexOf(\"###\") === 0 || (flagOf(s) === ui.flag); });\n"
+      },
+      {
+        "start": 23350,
+        "end": 23992,
+        "before": "  function tickerOf(s) {\n    var t = String(s || \"\").toUpperCase();\n    if (/^[A-Z0-9.\\-]{1,12}$/.test(t)) return t;\n    t = bare(t).toUpperCase();\n    return /^[A-Z0-9.\\-]{1,12}$/.test(t) ? t : \"\";\n",
+        "after": "  function quoteIdentity(s){return window.JHWatchlistQuotes.resolve(s,resolver);}\n  function tickerOf(s){return quoteIdentity(s).ticker||\"\";}\n  function quoteStatus(s){\n    var q=quotes[s]||{},identity=quoteIdentity(s);\n    if(q.last==null)return \"Unavailable \u00b7 \"+(q.reason||identity.reason||\"awaiting aggregate\");\n    return q.date+(q.previousTime?\" vs \"+new Date(q.previousTime*1000).toISOString().slice(0,10):\"\")+\" \u00b7 \"+q.source+\" \u00b7 \"+Math.max(0,Math.floor((Date.now()-q.time*1000)/86400000))+\"d since bar timestamp \u00b7 completion and venue/currency unverified\"+(Date.now()-q.fetched>=TTL?\" \u00b7 cache expired\":\"\")+(q.reason?\" \u00b7 \"+q.reason:\"\");\n"
+      },
+      {
+        "start": 23996,
+        "end": 24233,
+        "before": "",
+        "after": "  function gridMinWidth(){var sum=3+16+16+16+(ui.logo?22:0),count=4+(ui.logo?1:0);if(ui.ticker||ui.desc){sum+=ui.widths.sym||72;count++;}metrics().forEach(function(id){sum+=Number.parseFloat(colW(id));count++;});return sum+6*(count-1);}\n"
+      },
+      {
+        "start": 24607,
+        "end": 24756,
+        "before": "  function cell(k, text, klass) { return \"<span data-k='\" + k + \"' class='\" + (klass || \"\") + \"'>\" + text + \"</span>\"; }\n",
+        "after": "  function cell(k,text,klass,col){return \"<span data-k='\"+k+\"' class='\"+(klass||\"\")+\"'\"+(col?\" style='grid-column:\"+col+\"'\":\"\")+\">\"+text+\"</span>\";}\n"
+      },
+      {
+        "start": 24778,
+        "end": 24977,
+        "before": "    var q = quotes[s] || quotes[bare(s)] || {};\n    var html = \"\";\n    metrics().forEach(function (id) { html += cell(id, fmtCell(id, q), cellClass(id, q)); });\n",
+        "after": "    var q = quotes[s] || {};\n    var html = \"\",column=4+(ui.logo?1:0)+(ui.ticker||ui.desc?1:0);\n    metrics().forEach(function (id) { html += cell(id, fmtCell(id, q), cellClass(id, q),column++); });\n"
+      },
+      {
+        "start": 25026,
+        "end": 25068,
+        "before": "    var b = bare(s), f = flags()[s] || flags()[b] || \"\";\n",
+        "after": "    var b = bare(s), f = flagOf(s) || \"\";\n"
+      },
+      {
+        "start": 25109,
+        "end": 25891,
+        "before": "    return \"<div class='wrow\" + (on ? \" on\" : \"\") + \"' draggable='true' data-s='\" + esc(s) + \"' role='button' tabindex='0' style='grid-template-columns:\" + gridCss() + \"'>\" +\n      \"<i class=wacc></i><button type=button class=grip title='Drag to reorder'>\\u2807</button>\" +\n      \"<button type=button class='tvflag\" + (f ? \" on\" : \"\") + \"' data-flag='1' title='Flag' style='\" + (f ? \"background:\" + esc(f) : \"\") + \"'></button>\" +\n      logoHtml(s) +\n      ((ui.ticker || desc) ? \"<span class=wmain>\" + (ui.ticker ? \"<span class=wsym>\" + esc(b) + \"</span>\" : \"\") + (desc ? \"<span class=wdesc>\" + esc(desc) + \"</span>\" : \"\") + \"</span>\" : \"\") +\n",
+        "after": "    return \"<div class='wrow\" + (on ? \" on\" : \"\") + \"' draggable='true' data-s='\" + esc(s) + \"' role='button' tabindex='0' style='--watch-grid:\" + gridCss() + \";min-width:\"+gridMinWidth()+\"px'>\" +\n      \"<i class=wacc></i><button type=button class=grip style='grid-column:2' title='Drag to reorder'>\\u2807</button>\" +\n      \"<button type=button class='tvflag\" + (f ? \" on\" : \"\") + \"' data-flag='1' title='Flag' style='grid-column:3;\" + (f ? \"background:\" + esc(f) : \"\") + \"'></button>\" +\n      logoHtml(s).replace(\"style='\",\"style='grid-column:4;\") +\n      ((ui.ticker || desc) ? \"<span class=wmain style='grid-column:\"+(ui.logo?5:4)+\"'>\" + (ui.ticker ? \"<span class=wsym>\" + esc(b) + \"</span>\" : \"\") + (desc ? \"<span class=wdesc>\" + esc(desc) + \"</span>\" : \"\") + \"</span>\" : \"\") +\n"
+      },
+      {
+        "start": 25908,
+        "end": 26180,
+        "before": "      \"<button type=button class=wx title='Remove'>\\u00d7</button></div>\";\n",
+        "after": "      \"<small class=qe style='grid-column:\"+(4+(ui.logo?1:0))+\" / -1'>\"+esc(s+\" \u00b7 \"+quoteStatus(s))+\"</small>\" +\n      \"<button type=button class=wx style='grid-column:\"+(4+(ui.logo?1:0)+(ui.ticker||ui.desc?1:0)+metrics().length)+\"' title='Remove'>\\u00d7</button></div>\";\n"
+      },
+      {
+        "start": 26850,
+        "end": 26904,
+        "before": "    cols.style.gridTemplateColumns = gridCss();\n",
+        "after": "    cols.style.setProperty(\"--watch-grid\",gridCss());\n"
+      },
+      {
+        "start": 26995,
+        "end": 27273,
+        "before": "",
+        "after": "      n.tabIndex=0;n.setAttribute(\"role\",\"columnheader\");n.setAttribute(\"aria-sort\",ui.sort===n.dataset.sort?(ui.dir<0?\"descending\":\"ascending\"):\"none\");\n      n.onkeydown=intent(function(e){if(e.key===\"Enter\"||e.key===\" \"){e.preventDefault();e.stopPropagation();n.click();}});\n"
+      },
+      {
+        "start": 27357,
+        "end": 27402,
+        "before": "      rz.onmousedown = function (e) {\n",
+        "after": "      rz.onmousedown = intent(function (e) {\n"
+      },
+      {
+        "start": 27525,
+        "end": 27574,
+        "before": "",
+        "after": "        var resizeIntent=captureIntent(), width;\n"
+      },
+      {
+        "start": 27647,
+        "end": 27769,
+        "before": "        function mv(ev) { ui.widths[id] = Math.max(36, Math.min(200, start + (ev.clientX - startX))); applyWidths(); }\n",
+        "after": "        function mv(ev) { width=Math.max(36,Math.min(200,start+(ev.clientX-startX)));ui.widths[id]=width;applyWidths(); }\n"
+      },
+      {
+        "start": 27793,
+        "end": 27993,
+        "before": "          document.removeEventListener(\"mousemove\", mv); document.removeEventListener(\"mouseup\", up); saveUi();\n",
+        "after": "          document.removeEventListener(\"mousemove\", mv); document.removeEventListener(\"mouseup\", up); runIntent(function(){if(width!==undefined){ui.widths[id]=width;saveUi();}},null,[],resizeIntent);\n"
+      },
+      {
+        "start": 28160,
+        "end": 28209,
+        "before": "      };\n      n.onclick = function () {\n",
+        "after": "      });\n      n.onclick = intent(function () {\n"
+      },
+      {
+        "start": 28475,
+        "end": 28485,
+        "before": "      };\n",
+        "after": "      });\n"
+      },
+      {
+        "start": 28785,
+        "end": 28812,
+        "before": "",
+        "after": "    if(actionDraft)return;\n"
+      },
+      {
+        "start": 29093,
+        "end": 29122,
+        "before": "    var q = quotes[s] || quotes[bare(s)] || {};\n",
+        "after": "    var q = quotes[s] || {};\n"
+      },
+      {
+        "start": 30593,
+        "end": 30765,
+        "before": "      meta + \"<textarea placeholder='Private note \\u2014 saved on this browser'>\" + esc(noteOf(s)) + \"</textarea>\";\n",
+        "after": "      \"<div class=meta>\"+esc(s+\" \u00b7 \"+quoteStatus(s))+\"</div>\"+meta + \"<textarea placeholder='Private note \\u2014 saved on this browser'>\" + esc(noteOf(s)) + \"</textarea>\";\n"
+      },
+      {
+        "start": 30886,
+        "end": 30958,
+        "before": "    ta.onchange = function () { setNote(s, ta.value.trim()); };\n",
+        "after": "    ta.onchange = intent(function () { setNote(s, ta.value.trim()); });\n"
+      },
+      {
+        "start": 30990,
+        "end": 31017,
+        "before": "",
+        "after": "    if(actionDraft)return;\n"
+      },
+      {
+        "start": 31435,
+        "end": 31462,
+        "before": "",
+        "after": "    if(actionDraft)return;\n"
+      },
+      {
+        "start": 31968,
+        "end": 32206,
+        "before": "    var sig = [ui.active, ui.sort, ui.dir, ui.table, ui.logo, ui.ticker, ui.desc, ui.flag, JSON.stringify(ui.widths || {}), view.shown.join(\"|\"), cur].join(\"~\");\n",
+        "after": "    var sig = [JSON.stringify(flags()),JSON.stringify(ui.cols),JSON.stringify(ui.colOrder),ui.active, ui.sort, ui.dir, ui.table, ui.logo, ui.ticker, ui.desc, ui.flag, JSON.stringify(ui.widths || {}), view.shown.join(\"|\"), cur].join(\"~\");\n"
+      },
+      {
+        "start": 32344,
+        "end": 32367,
+        "before": "",
+        "after": "    quoteGeneration++;\n"
+      },
+      {
+        "start": 32878,
+        "end": 32925,
+        "before": "      } else html.push(rowHtml(s, bare(s) === bare(cur) || s === cur));\n",
+        "after": "      } else html.push(rowHtml(s, s === cur));\n"
+      },
+      {
+        "start": 33476,
+        "end": 33516,
+        "before": "      b.onclick = function (e) {\n",
+        "after": "      b.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 33615,
+        "end": 33750,
+        "before": "      };\n",
+        "after": "      });\n      b.onkeydown=intent(function(e){if(e.key===\"Enter\"||e.key===\" \"){e.preventDefault();e.stopPropagation();openSym(s);}});\n"
+      },
+      {
+        "start": 33892,
+        "end": 34006,
+        "before": "      if (flag) flag.onclick = function (e) { e.stopPropagation(); openFlags(e.clientX, e.clientY, s); };\n",
+        "after": "      if (flag) flag.onclick = intent(function (e) { e.stopPropagation(); openFlags(e.clientX, e.clientY, s); });\n"
+      },
+      {
+        "start": 34044,
+        "end": 34261,
+        "before": "      if (x) x.onclick = function (e) { e.stopPropagation(); removeSym(L, s); };\n      b.ondragstart = function (e) { dragId = s; e.dataTransfer.setData(\"text/plain\", s); };\n",
+        "after": "      if (x) x.onclick = intent(function (e) { e.stopPropagation(); removeSym(L, s); });\n      b.ondragstart = intent(function (e) { dragIntent=captureIntent();dragId = s; e.dataTransfer.setData(\"text/plain\", s); });\n"
+      },
+      {
+        "start": 34412,
+        "end": 34451,
+        "before": "      b.ondrop = function (e) {\n",
+        "after": "      b.ondrop = intent(function (e) {\n"
+      },
+      {
+        "start": 34604,
+        "end": 34614,
+        "before": "      };\n",
+        "after": "      });\n"
+      },
+      {
+        "start": 34728,
+        "end": 34769,
+        "before": "      sec.onclick = function () {\n",
+        "after": "      sec.onclick = intent(function () {\n"
+      },
+      {
+        "start": 34875,
+        "end": 34930,
+        "before": "      };\n      sec.ondblclick = function (e) {\n",
+        "after": "      });\n      sec.ondblclick = intent(function (e) {\n"
+      },
+      {
+        "start": 35057,
+        "end": 35067,
+        "before": "      };\n",
+        "after": "      });\n"
+      },
+      {
+        "start": 35095,
+        "end": 35268,
+        "before": "      sec.ondragstart = function (e) { dragId = \"###\" + name; e.dataTransfer.setData(\"text/plain\", \"###\" + name); e.stopPropagation(); };\n",
+        "after": "      sec.ondragstart = intent(function (e) { dragIntent=captureIntent();dragId = \"###\" + name; e.dataTransfer.setData(\"text/plain\", \"###\" + name); e.stopPropagation(); });\n"
+      },
+      {
+        "start": 35329,
+        "end": 35370,
+        "before": "      sec.ondrop = function (e) {\n",
+        "after": "      sec.ondrop = intent(function (e) {\n"
+      },
+      {
+        "start": 35506,
+        "end": 35516,
+        "before": "      };\n",
+        "after": "      });\n"
+      },
+      {
+        "start": 35902,
+        "end": 35929,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 36808,
+        "end": 36972,
+        "before": "    if (L.virtual) { toast(\"This view is read-only. Make a copy to edit it.\"); return; }\n",
+        "after": "    if(L)L=findList(L.id);\n    if (!L) return;\n    if (L.virtual && L.id!==\"favorites\") { toast(\"This view is read-only. Make a copy to edit it.\"); return false; }\n"
+      },
+      {
+        "start": 37004,
+        "end": 37165,
+        "before": "    if (own) {\n",
+        "after": "    if(L.id===\"favorites\"){var favs=read(\"jh-chart-favs\",[]).filter(function(x){return x!==s;});write(\"jh-chart-favs\",favs);L.symbols=favs;}\n    else if (own) {\n"
+      },
+      {
+        "start": 37428,
+        "end": 37488,
+        "before": "      ui.hide[L.id] = ui.hide[L.id] || {};\n",
+        "after": "      ui.hide[L.id] = ui.hide[L.id] || Object.create(null);\n"
+      },
+      {
+        "start": 37522,
+        "end": 37610,
+        "before": "",
+        "after": "    if(ui.extra[L.id])ui.extra[L.id]=ui.extra[L.id].filter(function(x){return x!==s;});\n"
+      },
+      {
+        "start": 37763,
+        "end": 37790,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 37842,
+        "end": 37991,
+        "before": "    if (!s || !L) return;\n    if (L.virtual) { toast(\"This view is read-only. Make a copy to edit it.\"); return; }\n",
+        "after": "    if (!s || !L) return false;\n    if (L.virtual && L.id!==\"favorites\") { toast(\"This view is read-only. Make a copy to edit it.\"); return false; }\n"
+      },
+      {
+        "start": 38023,
+        "end": 38183,
+        "before": "    if (own) {\n",
+        "after": "    if(L.id===\"favorites\"){var favs=read(\"jh-chart-favs\",[]);if(favs.indexOf(s)<0)favs.push(s);write(\"jh-chart-favs\",favs);L.symbols=favs;}\n    else if (own) {\n"
+      },
+      {
+        "start": 38597,
+        "end": 38643,
+        "before": "",
+        "after": "    if(ui.hide[L.id])delete ui.hide[L.id][s];\n"
+      },
+      {
+        "start": 38772,
+        "end": 38789,
+        "before": "",
+        "after": "    return true;\n"
+      },
+      {
+        "start": 38834,
+        "end": 38861,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 39265,
+        "end": 39292,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 39583,
+        "end": 39607,
+        "before": "    var id = \"custom-\" + Date.now();\n",
+        "after": "    var id = freshId();\n"
+      },
+      {
+        "start": 39790,
+        "end": 39852,
+        "before": "    ui.active = id; saveUi(); paint(); closePop();\n",
+        "after": "    ui.active = id; saveUi(); paint(); afterCommit(closePop);\n"
+      },
+      {
+        "start": 39883,
+        "end": 39910,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 40291,
+        "end": 40318,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 40338,
+        "end": 40362,
+        "before": "    var id = \"custom-\" + Date.now();\n",
+        "after": "    var id = freshId();\n"
+      },
+      {
+        "start": 40774,
+        "end": 40801,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 41104,
+        "end": 41147,
+        "before": "      ui.hide[L.id] = {};\n",
+        "after": "      ui.hide[L.id] = Object.create(null);\n"
+      },
+      {
+        "start": 41226,
+        "end": 41269,
+        "before": "    ui.order[L.id] = [];\n",
+        "after": "    ui.extra[L.id]=[];ui.order[L.id] = [];\n"
+      },
+      {
+        "start": 41324,
+        "end": 41351,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 41371,
+        "end": 41412,
+        "before": "    ui.hide[L.id] = {};\n",
+        "after": "    ui.hide[L.id] = Object.create(null);\n"
+      },
+      {
+        "start": 42827,
+        "end": 42951,
+        "before": "      b.onclick = function (e) { e.stopPropagation(); setFlag(s, b.getAttribute(\"data-c\")); closePop(); paint(); };\n",
+        "after": "      b.onclick = intent(function (e) { e.stopPropagation(); setFlag(s, b.getAttribute(\"data-c\")); closePop(); paint(); });\n"
+      },
+      {
+        "start": 45150,
+        "end": 45190,
+        "before": "    box.onclick = function (e) {\n",
+        "after": "    box.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 46236,
+        "end": 46483,
+        "before": "      if (act === \"table\") { ui.table = ui.table ? 0 : 1; if (ui.table) { ui.cols.w1 = ui.cols.m1 = ui.cols.m3 = ui.cols.ytd = ui.cols.y1 = ui.cols.avg = 1; } qSet = {}; saveUi(); }\n      if (act === \"adv\") { ui.adv = ui.adv ? 0 : 1; if (ui.adv) qSet = {}; saveUi(); }\n",
+        "after": "      if (act === \"table\") { ui.table = ui.table ? 0 : 1; if (ui.table) { ui.cols.w1 = ui.cols.m1 = ui.cols.m3 = ui.cols.ytd = ui.cols.y1 = ui.cols.avg = 1; } saveUi(); }\n      if (act === \"adv\") { ui.adv = ui.adv ? 0 : 1; if (ui.adv) saveUi(); }\n"
+      },
+      {
+        "start": 46568,
+        "end": 46576,
+        "before": "    };\n",
+        "after": "    });\n"
+      },
+      {
+        "start": 46729,
+        "end": 46761,
+        "before": "  function boxClearQuotes() { qSet = {}; }\n",
+        "after": "  function boxClearQuotes() { }\n"
+      },
+      {
+        "start": 47076,
+        "end": 47141,
+        "before": "      n.querySelector(\"input\").onkeydown = function (e) {\n",
+        "after": "      n.querySelector(\"input\").onkeydown = intent(function (e) {\n"
+      },
+      {
+        "start": 47242,
+        "end": 47451,
+        "before": "        addSym(findList(ui.active), n.querySelector(\"input\").value);\n        n.querySelector(\"input\").value = \"\";\n      };\n",
+        "after": "        var input=n.querySelector(\"input\"),submitted=input.value;if(addSym(findList(ui.active),submitted)===false)return;\n        afterCommit(function(){if(input.value===submitted)input.value=\"\";});\n      });\n"
+      },
+      {
+        "start": 49232,
+        "end": 49232,
+        "before": "        if (shown >= 60 && q === \"\") break;\n",
+        "after": ""
+      },
+      {
+        "start": 49361,
+        "end": 49457,
+        "before": "    Object.keys(catalog).forEach(function (id) { cats.push(catalog[id]); });\n",
+        "after": "    Object.keys(catalog).forEach(function (id) { if(!findCustom(id))cats.push(catalog[id]); });\n"
+      },
+      {
+        "start": 50280,
+        "end": 50502,
+        "before": "      b.onclick = function (e) { e.stopPropagation(); ui.active = b.getAttribute(\"data-id\"); ui.flag = \"\"; saveUi(); var ld = document.getElementById(\"listdrop\"); if (ld) ld.className = \"\"; closePop(); paint(); };\n",
+        "after": "      b.onclick = intent(function (e) { e.stopPropagation(); ui.active = b.getAttribute(\"data-id\"); ui.flag = \"\"; saveUi(); var ld = document.getElementById(\"listdrop\"); if (ld) ld.className = \"\"; closePop(); paint(); });\n"
+      },
+      {
+        "start": 50573,
+        "end": 50679,
+        "before": "      b.onclick = function (e) { e.stopPropagation(); toggleStar(b.getAttribute(\"data-star\")); };\n",
+        "after": "      b.onclick = intent(function (e) { e.stopPropagation(); toggleStar(b.getAttribute(\"data-star\")); });\n"
+      },
+      {
+        "start": 51367,
+        "end": 51515,
+        "before": "    if (activeSym() === s || bare(activeSym()) === bare(s)) paintCard(s);\n",
+        "after": "    var rowStatus=row&&row.querySelector(\".qe\");if(rowStatus)rowStatus.textContent=s+\" \u00b7 \"+quoteStatus(s);\n    if (activeSym() === s) paintCard(s);\n"
+      },
+      {
+        "start": 51537,
+        "end": 54654,
+        "before": "  function takeBars(s, bars, rich) {\n    if (!bars || bars.length < 2) return;\n    var b = bars[bars.length - 1], a = bars[bars.length - 2];\n    var last = +b.close, p = +a.close;\n    if (!isFinite(last) || !isFinite(p) || !p) return;\n    var prev = quotes[s] && quotes[s].last;\n    var q = quotes[s] || {};\n    q.last = last; q.chg = (last - p) / p; q.chgv = last - p;\n    q.vol = +b.value || q.vol; q.high = +b.high; q.low = +b.low; q.open = +b.open; q.prev = p;\n    q.flag = flags()[s] || q.flag || \"\";\n    q.span = bars.length;\n    var closes = [], vols = [], i, hi = -Infinity, lo = Infinity, n52 = Math.min(bars.length, 252);\n    for (i = bars.length - n52; i < bars.length; i++) {\n      var hiB = +bars[i].high, loB = +bars[i].low;\n      if (isFinite(hiB) && hiB > hi) hi = hiB;\n      if (isFinite(loB) && loB > 0 && loB < lo) lo = loB;\n",
+        "after": "  function takeBars(s,j,days){\n    var next=window.JHWatchlistQuotes.packet(j,tickerOf(s),Date.now());\n    if(next.last==null)throw Error(next.reason);\n    var bars=j.bars,last=bars[bars.length-1],prev=bars[bars.length-2],old=quotes[s];\n    function measured(v){return typeof v===\"number\"&&Number.isFinite(v)?v:null;}\n    [\"open\",\"high\",\"low\"].forEach(function(k){next[k]=measured(last[k]);});\n    next.prev=prev?prev.close:null;next.vol=measured(last.volume);next.span=bars.length;next.requestedDays=days;\n    next.flag=flagOf(s)||\"\";next.extReason=\"Extended session identity/completion unverified\";\n    var closes=bars.map(function(b){return b.close;});\n    function back(n){if(closes.length<=n||closes[closes.length-1-n]===0)return null;var v=next.last/closes[closes.length-1-n]-1;return Number.isFinite(v)&&Number.isFinite(v*100)?v:null;}\n    next.w1=back(5);next.m1=back(21);next.m3=back(63);next.y1=back(252);\n    var year=new Date(last.time*1000).getUTCFullYear(),boundary=Date.UTC(year,0,1)/1000;\n    var priorYear=bars.filter(function(b){return b.time<boundary;}).at(-1);next.ytd=null;\n    if(priorYear&&priorYear.close!==0){var ytd=next.last/priorYear.close-1;if(Number.isFinite(ytd)&&Number.isFinite(ytd*100))next.ytd=ytd;}\n    var recent=bars.slice(-10).map(function(b){return measured(b.volume);});\n    next.avg=recent.length===10&&recent.every(function(v){return v!==null&&v>=0;})?recent.reduce(function(a,b){return a+b;},0)/10:null;\n    next.rsi=closes.length>14?rsi(closes,14):null;next.mom=closes.length>10?measured(next.last-closes[closes.length-11]):null;\n    if(bars[0].time<=last.time-365*86400){var yearBars=bars.filter(function(b){return b.time>=last.time-365*86400;});var highs=yearBars.map(function(b){return measured(b.high);}),lows=yearBars.map(function(b){return measured(b.low);});if(highs.every(function(v){return v!==null;})&&lows.every(function(v){return v!==null;})){next.h52=Math.max.apply(null,highs);next.l52=Math.min.apply(null,lows);}}\n    quotes[s]=next;checkAlerts(s,next);remember(s,old&&old.last);\n  }\n  function quoteVisible(s){return Array.from(document.querySelectorAll(\"#wlist [data-s],#tvadv.on tr[data-s]\")).some(function(n){return n.dataset.s===s&&n.getClientRects().length>0;});}\n  function pump(){\n    while(inflight<3&&wait.length){\n      var item=wait.shift(),s=item.symbol;\n      if(!quoteVisible(s)){if(qSet[s]===item)delete qSet[s];continue;}\n      if(item.generation!==quoteGeneration){item.generation=quoteGeneration;if(ui.table||ui.adv)item.days=420;}\n      inflight++;\n      (function(item){var s=item.symbol;\n        window.JHWatchlistQuotes.request(\"https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=\"+encodeURIComponent(item.ticker)+\"&span=day&mult=1&days=\"+item.days,fetch,10000)\n          .then(function(j){takeBars(s,j,item.days);})\n          .catch(function(error){quotes[s]=Object.assign({},quotes[s]||{},{reason:error.message,retryAt:Date.now()+BACKOFF});})\n          .finally(function(){if(qSet[s]===item)delete qSet[s];inflight--;if(quoteVisible(s)){remember(s);if(item.days<420&&(ui.table||ui.adv))want(s);}pump();});\n      })(item);\n"
+      },
+      {
+        "start": 54660,
+        "end": 54660,
+        "before": "    if (bars.length >= 20 && isFinite(hi) && isFinite(lo)) { q.h52 = hi; q.l52 = lo; }\n    for (i = 0; i < bars.length; i++) {\n      var c = +bars[i].close; if (isFinite(c)) closes.push(c);\n      if (i >= bars.length - 10) { var v = +bars[i].value; if (v > 0) vols.push(v); }\n    }\n    function back(n) { if (closes.length <= n) return null; var x = closes[closes.length - 1 - n]; return x ? last / x - 1 : null; }\n    if (closes.length > 5) q.w1 = back(5);\n    if (closes.length > 21) q.m1 = back(21);\n    if (closes.length > 63) q.m3 = back(63);\n    if (closes.length > 252) q.y1 = back(252);\n    var y = new Date((b.time > 1e12 ? b.time : b.time * 1000)).getUTCFullYear();\n    for (i = 0; i < bars.length; i++) {\n      var ts = bars[i].time > 1e12 ? bars[i].time : bars[i].time * 1000;\n      if (new Date(ts).getUTCFullYear() === y && +bars[i].close) { q.ytd = last / (+bars[i].close) - 1; break; }\n    }\n    if (vols.length) q.avg = vols.reduce(function (x, z) { return x + z; }, 0) / vols.length;\n    if (closes.length > 15) q.rsi = rsi(closes, 14);\n    if (closes.length > 10) q.mom = last - closes[closes.length - 1 - 10];\n    quotes[s] = q;\n    checkAlerts(s, q);\n    remember(s, prev);\n",
+        "after": ""
+      },
+      {
+        "start": 54664,
+        "end": 55105,
+        "before": "  function pump() {\n    if (inflight >= 3 || !wait.length) return;\n    var s = wait.shift(); inflight++;\n    var t = tickerOf(s);\n    var days = (ui.table || ui.adv) ? 420 : 12;\n    if (!t) { inflight--; pump(); return; }\n    fetch(\"https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=\" + encodeURIComponent(t) + \"&span=day&mult=1&days=\" + days)\n      .then(function (r) { return r.ok ? r.json() : null; })\n      .then(function (j) { takeBars(s, j && j.bars, ui.table); })\n      .catch(function () {})\n      .then(function () { inflight--; pump(); });\n    if (ui.cols.ext || ui.adv) wantExt(s);\n",
+        "after": "  function want(s){\n    var identity=quoteIdentity(s);if(!identity.ticker){quotes[s]={reason:identity.reason};remember(s);return;}\n    var days=ui.table||ui.adv?420:12,hit=quotes[s],now=Date.now();\n    if(qSet[s]||hit&&(hit.retryAt&&now<hit.retryAt||hit.last!=null&&now-hit.fetched<TTL&&hit.requestedDays>=days))return;\n    var item={symbol:s,ticker:identity.ticker,days:days,generation:quoteGeneration};qSet[s]=item;wait.push(item);pump();\n"
+      },
+      {
+        "start": 55109,
+        "end": 55818,
+        "before": "  function want(s) {\n    var need = (ui.table || ui.adv) ? 420 : 12;\n    var hit = quotes[s];\n    if (hit && hit.span >= need) { if (ui.cols.ext || ui.adv) wantExt(s); return; }\n    var key = s + \"@\" + need;\n    if (qSet[key] || !tickerOf(s)) return;\n    qSet[key] = 1; wait.push(s); pump();\n  }\n  function nyMins(ts) {\n    var ms = ts > 1e12 ? ts : ts * 1000;\n    var parts = new Intl.DateTimeFormat(\"en-US\", { timeZone: \"America/New_York\", hour: \"2-digit\", minute: \"2-digit\", hourCycle: \"h23\" }).formatToParts(new Date(ms));\n    var h = 0, m = 0;\n    parts.forEach(function (p) { if (p.type === \"hour\") h = +p.value; if (p.type === \"minute\") m = +p.value; });\n    return h * 60 + m;\n  }\n  function inRegular(ts) { var m = nyMins(ts); return m >= 9 * 60 + 30 && m < 16 * 60; }\n  function takeExt(s, bars) {\n    if (!bars || bars.length < 2) return;\n    var i, lastReg = null, last = bars[bars.length - 1];\n    for (i = bars.length - 1; i >= 0; i--) if (inRegular(bars[i].time)) { lastReg = bars[i]; break; }\n    if (!lastReg || inRegular(last.time)) return;\n    var base = +lastReg.close, ext = +last.close;\n    if (!base || !isFinite(ext)) return;\n    if (!quotes[s]) quotes[s] = {};\n    var prev = quotes[s].ext;\n    quotes[s].extTag = nyMins(last.time) < 9 * 60 + 30 ? \"Pre\" : \"Post\";\n    quotes[s].ext = ext / base - 1;\n    if (prev !== quotes[s].ext) remember(s, quotes[s].last);\n  }\n  function pumpExt() {\n    if (einflight >= 2 || !ewait.length) return;\n    var s = ewait.shift(); einflight++;\n    var t = tickerOf(s);\n    if (!t) { einflight--; pumpExt(); return; }\n    fetch(\"https://justhodl-data-proxy.raafouis.workers.dev/ohlc?ticker=\" + encodeURIComponent(t) + \"&span=minute&mult=5&days=2\")\n      .then(function (r) { return r.ok ? r.json() : null; })\n      .then(function (j) { takeExt(s, j && j.bars); })\n      .catch(function () {})\n      .then(function () { einflight--; pumpExt(); });\n  }\n  function wantExt(s) { if (eSet[s] || !tickerOf(s)) return; eSet[s] = 1; ewait.push(s); pumpExt(); }\n",
+        "after": "  // Keep the Ext column/view; measurements await a verified extended-session contract.\n  function wantExt(s){if(quotes[s])quotes[s].extReason=\"Extended session identity/completion unverified\";}\n  window.jhWatchlistQuote={resolve:window.JHWatchlistQuotes.resolve,packet:window.JHWatchlistQuotes.packet,get:function(s){var q=quotes[s];return q&&q.last!=null?q:null;}};\n  function loadResolver(){return window.JHWatchlistQuotes.request(\"/data/tv-symbol-resolver.json\",fetch,10000).then(function(r){if(!r||!r.prefix||!r.exact)throw Error(\"resolver malformed\");resolver=r;refreshQuotes();}).catch(function(){resolver=null;refreshQuotes();});}\n  function refreshQuotes(){quoteGeneration++;paint();see();seeAdv();}\n"
+      },
+      {
+        "start": 57479,
+        "end": 57680,
+        "before": "    if (cols) cols.style.gridTemplateColumns = g;\n    document.querySelectorAll(\"#wlist .wrow\").forEach(function (r) { r.style.gridTemplateColumns = g; });\n",
+        "after": "    if (cols) cols.style.setProperty(\"--watch-grid\",g);\n    document.querySelectorAll(\"#wlist .wrow\").forEach(function(r){r.style.setProperty(\"--watch-grid\",g);r.style.minWidth=gridMinWidth()+\"px\";});\n"
+      },
+      {
+        "start": 59850,
+        "end": 59910,
+        "before": "",
+        "after": "    if(actionDraft){actionDraft.messages.push(msg);return;}\n"
+      },
+      {
+        "start": 62375,
+        "end": 62471,
+        "before": "    if (k === \"chg\") return q.last == null ? \"\\u2014\" : (q.chgv >= 0 ? \"+\" : \"\") + num(q.chgv);\n",
+        "after": "    if (k === \"chg\") return q.chgv == null ? \"\\u2014\" : (q.chgv >= 0 ? \"+\" : \"\") + num(q.chgv);\n"
+      },
+      {
+        "start": 63820,
+        "end": 63847,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 64063,
+        "end": 64090,
+        "before": "",
+        "after": "    if(L)L=findList(L.id);\n"
+      },
+      {
+        "start": 65554,
+        "end": 65582,
+        "before": "",
+        "after": "    var order = baseSeq(L);\n"
+      },
+      {
+        "start": 66243,
+        "end": 66243,
+        "before": "    var order = baseSeq(L);\n",
+        "after": ""
+      },
+      {
+        "start": 67024,
+        "end": 67064,
+        "before": "    box.onclick = function (e) {\n",
+        "after": "    box.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 67255,
+        "end": 67295,
+        "before": "",
+        "after": "        var fileIntent=captureIntent();\n"
+      },
+      {
+        "start": 67397,
+        "end": 67441,
+        "before": "        inp.onchange = function () {\n",
+        "after": "        inp.onchange = intent(function () {\n"
+      },
+      {
+        "start": 67539,
+        "end": 67699,
+        "before": "          rd.onload = function () { applyImport(parseImport(String(rd.result || \"\")), false); box.className = \"\"; };\n",
+        "after": "          rd.onload = intent(function () { applyImport(parseImport(String(rd.result || \"\")), false); afterCommit(function(){box.className=\"\";}); },fileIntent);\n"
+      },
+      {
+        "start": 67727,
+        "end": 67739,
+        "before": "        };\n",
+        "after": "        });\n"
+      },
+      {
+        "start": 67861,
+        "end": 67919,
+        "before": "      box.className = \"\";\n    };\n",
+        "after": "      afterCommit(function(){box.className=\"\";});\n    });\n"
+      },
+      {
+        "start": 68294,
+        "end": 68334,
+        "before": "    box.onclick = function (e) {\n",
+        "after": "    box.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 68705,
+        "end": 68713,
+        "before": "    };\n",
+        "after": "    });\n"
+      },
+      {
+        "start": 69548,
+        "end": 69586,
+        "before": "    f.onclick = function (e) {\n",
+        "after": "    f.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 70558,
+        "end": 70566,
+        "before": "    };\n",
+        "after": "    });\n"
+      },
+      {
+        "start": 71002,
+        "end": 71171,
+        "before": "    box.querySelectorAll(\"button\").forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); cb(b.getAttribute(\"data-c\") || \"\"); closePop(); }; });\n",
+        "after": "    box.querySelectorAll(\"button\").forEach(function (b) { b.onclick = intent(function (e) { e.stopPropagation(); cb(b.getAttribute(\"data-c\") || \"\"); closePop(); }); });\n"
+      },
+      {
+        "start": 71204,
+        "end": 72150,
+        "before": "",
+        "after": "    if(!document.getElementById(\"w-quote-refresh\")){\n      var tools=document.createElement(\"div\");tools.className=\"wquote-tools\";tools.innerHTML=\"<span>Daily aggregate \u00b7 dates/source/completion below each row \u00b7 1W/1M/3M/1Y use 5/21/63/252 bars \u00b7 Ext unavailable until session verified</span><button type=button id=w-quote-refresh>Refresh</button>\";\n      var list=document.getElementById(\"w-list\");if(list)list.prepend(tools);\n      document.getElementById(\"w-quote-refresh\").onclick=function(){if(!resolver)loadResolver();refreshQuotes();};\n    }\n    var warning=document.getElementById(\"w-save-status\");if(!warning){warning=document.createElement(\"div\");warning.id=\"w-save-status\";document.getElementById(\"w-list\").prepend(warning);}\n    warning.textContent=window.jhWatchlistStore.status()||(window.jhWatchlistStore.sourceChanged()?\"Chart Pro has newer changes; review import. Saved lists retained.\":\"\");warning.hidden=!warning.textContent;\n\n"
+      },
+      {
+        "start": 72392,
+        "end": 72434,
+        "before": "      bar.onclick = function (e) {\n",
+        "after": "      bar.onclick = intent(function (e) {\n"
+      },
+      {
+        "start": 72591,
+        "end": 72601,
+        "before": "      };\n",
+        "after": "      });\n"
+      },
+      {
+        "start": 73388,
+        "end": 73531,
+        "before": "      pie.onclick = function (e) { e.preventDefault(); e.stopPropagation(); ui.adv = ui.adv ? 0 : 1; if (ui.adv) qSet = {}; saveUi(); paint(); };\n",
+        "after": "      pie.onclick = intent(function (e) { e.preventDefault(); e.stopPropagation(); ui.adv = ui.adv ? 0 : 1; if (ui.adv) saveUi(); paint(); });\n"
+      },
+      {
+        "start": 75210,
+        "end": 75237,
+        "before": "",
+        "after": "    if(actionDraft)return;\n"
+      },
+      {
+        "start": 80183,
+        "end": 80904,
+        "before": "    host.querySelector(\"#tvadv-x\").onclick = function () { ui.adv = 0; saveUi(); paint(); };\n    host.querySelectorAll(\"[data-tab]\").forEach(function (b) { b.onclick = function () { ui.advTab = b.getAttribute(\"data-tab\"); saveUi(); renderAdv(); seeAdv(); }; });\n    if (sel) sel.onchange = function () { ui.group = sel.value; saveUi(); renderAdv(); };\n    if (sum) sum.onchange = function () { ui.summary = sum.checked ? 1 : 0; saveUi(); renderAdv(); };\n    host.querySelector(\"#tvadv-exp\").onclick = function () { exportList(L); };\n    host.querySelectorAll(\"tbody tr[data-s]\").forEach(function (tr) { tr.onclick = function () { openSym(tr.getAttribute(\"data-s\")); }; });\n",
+        "after": "    host.querySelector(\"#tvadv-x\").onclick = intent(function () { ui.adv = 0; saveUi(); paint(); });\n    host.querySelectorAll(\"[data-tab]\").forEach(function (b) { b.onclick = intent(function () { ui.advTab = b.getAttribute(\"data-tab\"); saveUi(); renderAdv(); seeAdv(); }); });\n    if (sel) sel.onchange = intent(function () { ui.group = sel.value; saveUi(); renderAdv(); });\n    if (sum) sum.onchange = intent(function () { ui.summary = sum.checked ? 1 : 0; saveUi(); renderAdv(); });\n    host.querySelector(\"#tvadv-exp\").onclick = intent(function () { exportList(L); });\n    host.querySelectorAll(\"tbody tr[data-s]\").forEach(function (tr) { tr.onclick = intent(function () { openSym(tr.getAttribute(\"data-s\")); }); });\n"
+      },
+      {
+        "start": 82390,
+        "end": 82390,
+        "before": "        saveUi();\n",
+        "after": ""
+      },
+      {
+        "start": 82477,
+        "end": 82512,
+        "before": "",
+        "after": "    if(!storageReady)return false;\n"
+      },
+      {
+        "start": 82705,
+        "end": 82960,
+        "before": "",
+        "after": "      btn.dataset.bound=\"1\";\n      var listQuery=document.getElementById(\"listq\");if(listQuery)listQuery.dataset.bound=\"1\";\n      box.addEventListener(\"scroll\",function(){var head=document.getElementById(\"cols\");if(head)head.scrollLeft=box.scrollLeft;});\n"
+      },
+      {
+        "start": 83059,
+        "end": 83270,
+        "before": "      btn.onclick = function (e) { e.preventDefault(); e.stopPropagation(); var d = document.getElementById(\"listdrop\"); if (d && d.classList.contains(\"on\")) { d.className = \"\"; return; } fillDrop(); };\n",
+        "after": "      btn.onclick = intent(function (e) { e.preventDefault(); e.stopPropagation(); var d = document.getElementById(\"listdrop\"); if (d && d.classList.contains(\"on\")) { d.className = \"\"; return; } fillDrop(); });\n"
+      },
+      {
+        "start": 83322,
+        "end": 83519,
+        "before": "      if (menu) menu.onclick = function (e) { e.preventDefault(); e.stopPropagation(); var r = menu.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, \"\"); };\n",
+        "after": "      if (menu) {menu.dataset.bound=\"1\";menu.onclick = intent(function (e) { e.preventDefault(); e.stopPropagation(); var r = menu.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, \"\"); });}\n"
+      },
+      {
+        "start": 83570,
+        "end": 83693,
+        "before": "      if (add) add.onclick = function (e) { e.preventDefault(); e.stopPropagation(); showAdd(); };\n",
+        "after": "      if (add) {add.dataset.bound=\"1\";add.onclick = function (e) { e.preventDefault(); e.stopPropagation(); showAdd(); };}\n"
+      },
+      {
+        "start": 83743,
+        "end": 83940,
+        "before": "      if (neu) { neu.title = \"Add symbol\"; neu.setAttribute(\"aria-label\", \"Add symbol\"); neu.onclick = function (e) { e.preventDefault(); e.stopPropagation(); showAdd(); }; }\n",
+        "after": "      if (neu) { neu.dataset.bound=\"1\";neu.title = \"Add symbol\"; neu.setAttribute(\"aria-label\", \"Add symbol\"); neu.onclick = function (e) { e.preventDefault(); e.stopPropagation(); showAdd(); }; }\n"
+      },
+      {
+        "start": 84282,
+        "end": 84343,
+        "before": "  document.addEventListener(\"keydown\", function (e) {\n",
+        "after": "  document.addEventListener(\"keydown\", intent(function (e) {\n"
+      },
+      {
+        "start": 84812,
+        "end": 84880,
+        "before": "",
+        "after": "    if(!e.target.closest||!e.target.closest(\"#wlist .wrow\"))return;\n"
+      },
+      {
+        "start": 85085,
+        "end": 85157,
+        "before": "    var i = 0, k; for (k = 0; k < rows.length; k++) if (rows[k].classList.contains(\"on\")) i = k;\n",
+        "after": "    var i=rows.indexOf(e.target.closest(\"#wlist .wrow\"));if(i<0)return;\n"
+      },
+      {
+        "start": 85878,
+        "end": 85964,
+        "before": "    rows[i].scrollIntoView({ block: \"nearest\" });\n",
+        "after": "    rows[i].focus({preventScroll:true});rows[i].scrollIntoView({ block: \"nearest\" });\n"
+      },
+      {
+        "start": 86009,
+        "end": 86488,
+        "before": "  });\n  loadCat();\n",
+        "after": "  }));\n  document.addEventListener(\"visibilitychange\",function(){if(!document.hidden&&storageReady)refreshQuotes();});\n  loadResolver();\n  window.jhWatchlistStore.ready.then(function(){storageReady=true;try{reloadUi();}catch(error){toast(String(error.message||error)+\" \u00b7 originals retained\");}loadCat();hook();});\n  window.addEventListener(\"jh-watchlists-changed\",function(){if(storageReady&&!saving&&!actionDraft){try{reloadUi();}catch(error){toast(error.message);}paint();}});\n"
+      }
+    ]
+  },
+  "tests/helpers/chart-external-pane-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__chart-external-pane-preservation.cjs.txt",
+    "before_sha256": "4723f4464dd648b85c5a74e5e4ad628ad33d2a7a32ba6a065abeca8265d1cb8c",
+    "after_sha256": "e3302210863b08544bf2e5e4cad9444f8054da5ca409e46e51a1cb549fc1e4b2",
+    "edits": [
+      {
+        "start": 314,
+        "end": 847,
+        "before": "function normalizeSource(raw,file='jh-chart-engine.js'){if(file==='jh-chart-buyback.js')raw=require('./buyback-evidence-preservation.cjs').normalize(raw,file);const e=t.edits[file];assert.ok(e,file);assert.equal(hash(raw),e.after_sha256);assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,e.before);assert.equal(hash(raw),e.before_sha256);assert.equal(raw,fs.readFileSync(path.join(R,e.before_path),'utf8'));return raw;}\n",
+        "after": "function normalizeSource(raw,file='jh-chart-engine.js'){if(file==='jh-chart-engine.js')raw=require('./watchlist-source-preservation.cjs').normalize(raw);if(file==='jh-chart-buyback.js')raw=require('./buyback-evidence-preservation.cjs').normalize(raw,file);const e=t.edits[file];assert.ok(e,file);assert.equal(hash(raw),e.after_sha256);assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,e.before);assert.equal(hash(raw),e.before_sha256);assert.equal(raw,fs.readFileSync(path.join(R,e.before_path),'utf8'));return raw;}\n"
+      }
+    ]
+  },
+  "tests/helpers/chart-signed-volume-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__chart-signed-volume-preservation.cjs.txt",
+    "before_sha256": "7e92a413ca011c5f315ace32be3c340bff09a00cff361e10d2107bd98f597c98",
+    "after_sha256": "eadca991069678f4fc729cbd758fa23a6aefc13f0721a2afaee227430f8ad28b",
+    "edits": [
+      {
+        "start": 1005,
+        "end": 1104,
+        "before": "",
+        "after": " if(file==='jh-chart-engine.js')raw=require('./watchlist-source-preservation.cjs').normalize(raw);\n"
+      }
+    ]
+  },
+  "tests/helpers/buyback-evidence-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__buyback-evidence-preservation.cjs.txt",
+    "before_sha256": "8181c8d171a0d48d3ee6385a9fe93cff006a1aeca8eaace205d2804b13fb5515",
+    "after_sha256": "8eb9c23144c39a174d7095c05eb0c1438381f42838de375970412dbc8f5400ab",
+    "edits": [
+      {
+        "start": 579,
+        "end": 869,
+        "before": "function normalize(raw,file){return reverse(raw,t.changes[file]);}\nfunction normalizeHelper(raw,file){return reverse(raw,t.hooks[file]);}\n",
+        "after": "function normalize(raw,file){raw=require('./watchlist-source-preservation.cjs').normalizeFile(raw,file);return reverse(raw,t.changes[file]);}\nfunction normalizeHelper(raw,file){raw=require('./watchlist-source-preservation.cjs').normalizeHelper(raw,file);return reverse(raw,t.hooks[file]);}\n"
+      }
+    ]
+  }
+}

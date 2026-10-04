@@ -1,0 +1,240 @@
+/* jh-reskin-skip */
+/* Watchlist authority: one local IndexedDB transaction; legacy stores are read-only inputs. */
+(function(root){
+  "use strict";
+    var MARK = "jh-chart-pro-imported";
+    var keys = ["jh_custom_watchlists", "jh_symbol_flags", "jh_favorites", "jh_favs", "jh-chart-custom-lists", "jh-chart-flags", "jh-chart-favs", MARK];
+    var colors = {red:"#f23645",orange:"#ff6d00",yellow:"#fdd835",green:"#089981",blue:"#2962ff",purple:"#ab47bc","var(--cyan)":"#22d3ee","var(--green)":"#089981","var(--amber)":"#fbbf24","var(--violet)":"#ab47bc","var(--pink)":"#e91e63","var(--blue)":"#2962ff"};
+    function object(v) { return v && typeof v === "object" && !Array.isArray(v); }
+    function strings(v) { return Array.isArray(v) && v.every(function(s){return typeof s === "string" && s.trim().length > 0;}); }
+    function hex(c) { return typeof c === "string" ? (/^#[0-9a-f]{6}$/i.test(c) ? c : Object.prototype.hasOwnProperty.call(colors,c) ? colors[c] : "") : ""; }
+    function parse(raw, fallback, valid) {
+      var v = raw === null ? fallback : JSON.parse(raw);
+      if (!valid(v)) throw Error("Malformed watchlist storage; original retained");
+      return v;
+    }
+    function snapshot(store) { var raw = {}; keys.forEach(function(k){raw[k]=store.getItem(k);}); return raw; }
+    function proposal(store) {
+      var raw=snapshot(store), src=parse(raw[keys[0]],{},object), flags=parse(raw[keys[1]],{},object);
+      var fav=parse(raw[keys[2]],{},object), unusedNavigationFavorites=raw[keys[3]];
+      Object.keys(flags).forEach(function(k){if(!k.trim()||!hex(flags[k]))throw Error("Unsupported Chart Pro flag; original retained for correction");});
+      Object.keys(fav).forEach(function(k){if(!k.trim()||typeof fav[k]!=="boolean")throw Error("Malformed Chart Pro favorite; original retained for correction");});
+      var dst=parse(raw[keys[4]],[],function(v){return Array.isArray(v) && v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);});});
+      var cf=parse(raw[keys[5]],{},object), mine=parse(raw[keys[6]],[],strings);
+      var old=parse(raw[MARK],{lists:{}},function(v){return object(v)&&object(v.lists);});
+      var legacy=raw[MARK]!==null && old.version!==2;
+      if (old.version!=null && old.version!==2) throw Error("Unknown import ledger version");
+      var ledger=old.version===2 ? old : {version:2,lists:Object.create(null),favorites:[],flags:[]};
+      if (!strings(ledger.favorites)||!strings(ledger.flags)) throw Error("Malformed import ledger");
+      var ids=new Set(); dst.forEach(function(l){if(ids.has(l.id))throw Error("Duplicate destination list identity");ids.add(l.id);});
+      var mappedIds=new Set();
+      Object.keys(ledger.lists).forEach(function(id){var r=ledger.lists[id];if(!object(r)||typeof r.id!=="string"||!strings(r.members)||typeof r.deleted!=="boolean"||mappedIds.has(r.id))throw Error("Malformed or conflicting source mapping");mappedIds.add(r.id);});
+      var changes=0;
+      Object.keys(src).forEach(function(id){
+        var w=src[id];
+        if (!object(w)||typeof w.name!=="string"||!w.name.trim()||!strings(w.tickers)) throw Error("Malformed Chart Pro list; original retained");
+        var rec=Object.prototype.hasOwnProperty.call(ledger.lists,id)?ledger.lists[id]:null, L=null;
+        if (rec && (!object(rec)||typeof rec.id!=="string"||!strings(rec.members)||typeof rec.deleted!=="boolean")) throw Error("Malformed list import mapping");
+        if (!rec && legacy && Object.prototype.hasOwnProperty.call(old.lists,id)) {
+          if(!strings(old.lists[id])) throw Error("Malformed legacy ledger");
+          L=dst.find(function(l){return l.id===id && l.from==="chart-pro";});
+          // Name-based legacy merges cannot be unambiguously recovered. Never guess.
+          if(!L) throw Error("Legacy source ID has no unique destination; original retained for review");
+          rec={id:L.id,members:old.lists[id].slice(),deleted:false};
+        }
+        if (rec) {
+          L=dst.find(function(l){return l.id===rec.id;});
+          if (!L) rec.deleted=true;
+          if(L&&(L.from!=="chart-pro"||(L.sourceId!==id&&L.id!==id)))throw Error("Source mapping conflicts with a saved list identity");
+        } else {
+          var mapped="chart-pro:"+encodeURIComponent(id);
+          while(ids.has(mapped)) mapped+="~";
+          ids.add(mapped);
+          L={id:mapped,name:w.name,symbols:[],n:0,custom:1,color:hex(w.color)||null,from:"chart-pro",sourceId:id};
+          dst.push(L); rec={id:mapped,members:[],deleted:false}; changes++;
+        }
+        // Never replace a destination rename, membership removal, order or color.
+        w.tickers.forEach(function(symbol){
+          if(rec.members.indexOf(symbol)>=0)return;
+          rec.members.push(symbol);
+          if(!rec.deleted && L.symbols.indexOf(symbol)<0){L.symbols.push(symbol);changes++;}
+        });
+        if(L && !rec.deleted)L.n=L.symbols.length;
+        ledger.lists[id]=rec;
+      });
+      var sourceFav=[];
+      Object.keys(fav).forEach(function(k){if(fav[k]===true && sourceFav.indexOf(k)<0)sourceFav.push(k);});
+      sourceFav.forEach(function(k){
+        if(ledger.favorites.indexOf(k)>=0)return;
+        ledger.favorites.push(k);
+        // The old migrator reimported removed flags/favorites on every load.
+        // A legacy ledger cannot distinguish a removal: preserve the destination.
+        if(!legacy && mine.indexOf(k)<0){mine.push(k);changes++;}
+      });
+      Object.keys(flags).forEach(function(k){
+        if(ledger.flags.indexOf(k)>=0)return;
+        ledger.flags.push(k);
+        if(!legacy && !Object.prototype.hasOwnProperty.call(cf,k) && hex(flags[k])){cf[k]=hex(flags[k]);changes++;}
+      });
+      var after={}; after[keys[4]]=JSON.stringify(dst);after[keys[5]]=JSON.stringify(cf);after[keys[6]]=JSON.stringify(mine);after[MARK]=JSON.stringify(ledger);
+      if(!keys.every(function(k){return store.getItem(k)===raw[k];}))throw Error("Concurrent edit during preview; original retained");
+      return {before:raw,after:after,changes:changes};
+    }
+  var DEST=["jh-chart-custom-lists","jh-chart-flags","jh-chart-favs",MARK];
+  var SOURCE=["jh_custom_watchlists","jh_symbol_flags","jh_favorites"];
+  var DB_NAME="jh-watchlist-authority-v1", ACTIVE="active", TIMEOUT=10000;
+  function copy(v){return JSON.parse(JSON.stringify(v));}
+  function same(a,b,list){return list.every(function(k){return a[k]===b[k];});}
+  function shape(k,v){
+    if(k===DEST[0])return Array.isArray(v)&&v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);})&&new Set(v.map(function(l){return l.id;})).size===v.length;
+    if(k===DEST[2])return strings(v);
+    if(k===DEST[1])return object(v)&&Object.keys(v).every(function(k){return typeof v[k]==="string";});
+    return false;
+  }
+  function model(raw){var v={};DEST.slice(0,3).forEach(function(k){v[k]=JSON.stringify(parse(raw[k],k===DEST[1]?{}:[],function(x){return shape(k,x);}));});return v;}
+  function validLedger(raw){
+    if(raw===null)return;
+    var l=JSON.parse(raw), ids=new Set();
+    if(!object(l)||l.version!==2||!object(l.lists)||!strings(l.favorites)||!strings(l.flags))throw Error("Malformed canonical import ledger; retained");
+    Object.keys(l.lists).forEach(function(k){var r=l.lists[k];if(!object(r)||typeof r.id!=="string"||!strings(r.members)||typeof r.deleted!=="boolean"||ids.has(r.id))throw Error("Malformed canonical source mapping; retained");ids.add(r.id);});
+  }
+  function validate(r){
+    if(!object(r)||r.schema!==1||!Number.isSafeInteger(r.revision)||r.revision<1||!object(r.model)||!object(r.originals)||!object(r.baseline)||!object(r.importedSource))throw Error("Malformed canonical watchlists; retained");
+    keys.forEach(function(k){if(r.originals[k]!==null&&typeof r.originals[k]!=="string")throw Error("Malformed original backup; retained");});
+    DEST.forEach(function(k){if(r.baseline[k]!==null&&typeof r.baseline[k]!=="string")throw Error("Malformed legacy baseline; retained");});
+    SOURCE.forEach(function(k){if(r.importedSource[k]!==null&&typeof r.importedSource[k]!=="string")throw Error("Malformed source snapshot; retained");});
+    DEST.slice(0,3).forEach(function(k){if(typeof r.model[k]!=="string"||!shape(k,JSON.parse(r.model[k])))throw Error("Malformed canonical watchlists; retained");});
+    validLedger(r.ledger);return r;
+  }
+  function seed(raw){return {schema:1,revision:0,model:model(raw),ledger:null,originals:copy(raw),baseline:Object.fromEntries(DEST.map(function(k){return [k,raw[k]];})),importedSource:Object.fromEntries(SOURCE.map(function(k){return [k,null];}))};}
+  function token(record,fallback){return record?"revision:"+record.revision:"legacy:"+JSON.stringify(DEST.map(function(k){return fallback[k];}));}
+  function create(options){
+    var storage=options.storage, idb=options.indexedDB, cache=null, fallback=null, db=null, failed="", badRecord=null, opening=null;
+    var onChange=options.onChange||function(){}, emit=options.emit||function(){};
+    function warn(error){failed=String(error&&error.message||error);onChange();}
+    function getSnapshot(){return snapshot(storage);}
+    function adopt(record){
+      if(record)validate(record);
+      if(cache&&(!record||record.revision<cache.revision))return;
+      cache=record?copy(record):null;
+      if(!cache){fallback=getSnapshot();model(fallback);}
+      failed="";onChange();
+    }
+    function open(){
+      if(db)return Promise.resolve(db);
+      if(opening)return opening;
+      opening=new Promise(function(resolve,reject){
+        if(!idb){reject(Error("Local transactional storage unavailable; originals retained"));return;}
+        var done=false, request, timer=setTimeout(function(){finish(Error("Watchlist storage open timeout; originals retained"));},TIMEOUT);
+        function finish(error,value){if(done){if(value)value.close();return;}done=true;clearTimeout(timer);error?reject(error):resolve(value);}
+        try{request=idb.open(options.databaseName||DB_NAME,1);}catch(error){finish(error);return;}
+        request.onupgradeneeded=function(){var d=request.result;if(!d.objectStoreNames.contains("records"))d.createObjectStore("records");if(!d.objectStoreNames.contains("imports"))d.createObjectStore("imports");};
+        request.onblocked=function(){finish(Error("Watchlist storage upgrade blocked by another tab; originals retained"));};
+        request.onerror=function(){finish(request.error||Error("Watchlist storage unavailable"));};
+        request.onsuccess=function(){var d=request.result;if(done){d.close();return;}db=d;d.onversionchange=function(){d.close();db=null;opening=null;warn(Error("Watchlist storage version changed; reload before editing"));};finish(null,d);};
+      }).catch(function(error){opening=null;throw error;});
+      return opening;
+    }
+    async function readTransaction(store,key,all){
+      var d=await open();
+      return new Promise(function(resolve,reject){
+        var tx=d.transaction(store,"readonly"), request=all?tx.objectStore(store).getAll():tx.objectStore(store).get(key), value=null, done=false;
+        var timer=setTimeout(function(){finish(Error("Watchlist read timeout; originals retained"));try{tx.abort();}catch(_){};},TIMEOUT);
+        function finish(error){if(done)return;done=true;clearTimeout(timer);error?reject(error):resolve(value);}
+        request.onsuccess=function(){value=request.result===undefined?null:request.result;};
+        tx.oncomplete=function(){finish();};
+        tx.onabort=tx.onerror=function(){finish(tx.error||Error("Watchlist read aborted; originals retained"));};
+      });
+    }
+    async function reload(){
+      var record=await readTransaction("records",ACTIVE,false);
+      try{if(record)validate(record);badRecord=null;adopt(record);return true;}catch(error){badRecord=record;warn(error);throw error;}
+    }
+    function currentToken(){if(!fallback)fallback=getSnapshot();return token(cache,fallback);}
+    function divergence(raw){
+      raw=raw||getSnapshot();
+      var baseline=cache?cache.baseline:fallback;
+      return baseline&&!same(raw,baseline,DEST)?"Legacy destination changed in another tab; both versions retained. Review backup before further edits.":"";
+    }
+    function sourceChanged(){return !!(cache&&cache.ledger!==null&&!same(getSnapshot(),cache.importedSource,SOURCE));}
+    function read(k){
+      if(DEST.slice(0,3).indexOf(k)<0)throw Error("Not a watchlist model key");
+      var raw=cache?cache.model[k]:(fallback||getSnapshot())[k];
+      return parse(raw,k===DEST[1]?{}:[],function(v){return shape(k,v);});
+    }
+    function inspect(){
+      var raw=getSnapshot(), base=cache?copy(cache):null;
+      var virtual={getItem:function(k){if(base&&Object.prototype.hasOwnProperty.call(base.model,k))return base.model[k];if(base&&k===MARK&&base.ledger!==null)return base.ledger;return raw[k];}};
+      var plan=proposal(virtual);plan.before=raw;plan.revision=currentToken();plan.destinationConflict=divergence(raw);
+      if(!same(raw,getSnapshot(),DEST.concat(SOURCE)))throw Error("Concurrent edit during preview; originals retained");
+      return plan;
+    }
+    async function transact(expected, operation, plan){
+      await api.ready;if(failed)throw Error(failed);
+      var d=await open();
+      return new Promise(function(resolve,reject){
+        var tx=d.transaction(["records","imports"],"readwrite"), records=tx.objectStore("records"), request=records.get(ACTIVE), next=null, error=null, noChange=false, written=false, receipted=!plan;
+        var timer=setTimeout(function(){error=Error("Watchlist transaction timeout; no save confirmed");try{tx.abort();}catch(_){error=null;}},TIMEOUT);
+        function stop(e){error=e;try{tx.abort();}catch(_){};}
+        request.onsuccess=function(){
+          try{
+            var existing=request.result||null;if(existing)validate(existing);
+            var raw=getSnapshot(), expectedFallback=fallback||raw;
+            if(token(existing,expectedFallback)!==expected)throw Error("Watchlists changed in another tab; edit not saved. Reload the latest list and try again.");
+            var baseline=existing?existing.baseline:expectedFallback;
+            if(!same(raw,baseline,DEST))throw Error("Legacy destination changed; both versions retained; no save confirmed.");
+            if(plan&&!same(raw,plan.before,DEST.concat(SOURCE)))throw Error("Import sources changed since review; review again. No import saved.");
+            next=existing?copy(existing):seed(raw);
+            operation(next,raw);
+            if(existing&&JSON.stringify(next)===JSON.stringify(existing)){noChange=true;return;}
+            next.revision=(existing?existing.revision:0)+1;validate(next);
+            // This is a last comparison, not a cross-store CAS. Later legacy edits remain intact and are reported.
+            if(!same(raw,getSnapshot(),DEST.concat(plan?SOURCE:[])))throw Error("Concurrent legacy edit before commit; no save confirmed.");
+            var write=records.put(next,ACTIVE);write.onsuccess=function(){written=true;};
+            if(plan){var receipt=tx.objectStore("imports").put({revision:next.revision,reviewedOriginals:copy(plan.before),ledger:next.ledger,model:copy(next.model)},next.revision);receipt.onsuccess=function(){receipted=true;};}
+          }catch(e){stop(e);}
+        };
+        tx.oncomplete=function(){clearTimeout(timer);if(!next||(!noChange&&(!written||!receipted))){reject(error||Error("Transaction completed without a verified watchlist write; no success recorded"));return;}adopt(next);emit();resolve({revision:next?next.revision:null,legacyDivergence:divergence(),sourceDivergence:sourceChanged(),changed:!noChange});};
+        tx.onabort=function(){clearTimeout(timer);reject(error||tx.error||Error("Watchlist transaction aborted; no save confirmed"));};
+        tx.onerror=function(){error=error||tx.error||Error("Watchlist transaction failed; no save confirmed");};
+      });
+    }
+    var api={
+      ready:null,read:read,version:currentToken,prepare:function(store){return store&&store!==storage?proposal(store):inspect();},
+      async reload(){try{return await reload();}catch(error){warn(error);return false;}},
+      status:function(){return failed||divergence();},sourceChanged:sourceChanged,
+      async save(k,value,expected){
+        if(!shape(k,value))throw Error("Invalid watchlist edit; no save confirmed");
+        return transact(expected,function(record){record.model[k]=JSON.stringify(value);if(k===DEST[0]&&record.ledger!==null){var ledger=JSON.parse(record.ledger), ids=new Set(value.map(function(l){return l.id;}));Object.keys(ledger.lists).forEach(function(id){if(!ids.has(ledger.lists[id].id))ledger.lists[id].deleted=true;});record.ledger=JSON.stringify(ledger);}});
+      },
+      async apply(plan){
+        if(!plan||typeof plan.revision!=="string")throw Error("Review import before applying");
+        return transact(plan.revision,function(record,raw){
+          var virtual={getItem:function(k){if(Object.prototype.hasOwnProperty.call(record.model,k))return record.model[k];if(k===MARK&&record.ledger!==null)return record.ledger;return raw[k];}};
+          var checked=proposal(virtual);
+          if(JSON.stringify(checked.after)!==JSON.stringify(plan.after))throw Error("Reviewed import no longer matches; review again");
+          DEST.slice(0,3).forEach(function(k){record.model[k]=checked.after[k];});record.ledger=checked.after[MARK];
+          record.importedSource=Object.fromEntries(SOURCE.map(function(k){return [k,raw[k]];}));
+        },plan);
+      },
+      async backup(){
+        var imports=[], importReadError="";try{imports=await readTransaction("imports",null,true);}catch(error){importReadError=String(error.message||error);}
+        return {schema:"jh-watchlist-preservation-v1",canonical:cache?copy(cache):badRecord,malformedCanonical:badRecord,currentLegacy:getSnapshot(),reviewedImports:imports,complete:!importReadError,importReadError:importReadError,status:api.status()};
+      },
+      close:function(){if(db)db.close();db=null;opening=null;}
+    };
+    api.ready=reload().catch(function(error){warn(error);return false;});
+    return api;
+  }
+  root.JHWatchlistPersistence={create:create,prepare:proposal,keys:keys,sourceKeys:SOURCE,destinationKeys:DEST,databaseName:DB_NAME};
+  if(root.document){
+    var channel=null;
+    try{if(root.BroadcastChannel)channel=new root.BroadcastChannel("jh-watchlist-authority-v1");}catch(_){}
+    var notifying=false;
+    function changed(){if(!notifying){notifying=true;queueMicrotask(function(){notifying=false;root.dispatchEvent(new CustomEvent("jh-watchlists-changed"));});}}
+    root.jhWatchlistStore=create({storage:root.localStorage,indexedDB:root.indexedDB,onChange:changed,emit:function(){if(channel)channel.postMessage("changed");}});
+    if(channel)channel.onmessage=function(){root.jhWatchlistStore.reload();};
+    root.addEventListener("storage",function(e){if(DEST.indexOf(e.key)>=0)root.jhWatchlistStore.reload();else if(SOURCE.indexOf(e.key)>=0)changed();});
+    root.document.addEventListener("visibilitychange",function(){if(!root.document.hidden)root.jhWatchlistStore.reload();});
+  }
+})(typeof window!=="undefined"?window:globalThis);
