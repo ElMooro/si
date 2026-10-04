@@ -5283,7 +5283,7 @@ else if(o.id==="rvol"){
     renderNotes();
   }
   function watchlistShape(k,v){
-    if(k===CUSTOM_KEY)return Array.isArray(v)&&new Set(v.map(function(l){return l&&l.id;})).size===v.length&&v.every(function(l){return l&&typeof l.id==="string"&&typeof l.name==="string"&&Array.isArray(l.symbols)&&l.symbols.every(function(x){return typeof x==="string";});});
+    if(k===CUSTOM_KEY)return Array.isArray(v)&&new Set(v.map(function(l){return l&&l.id;})).size===v.length&&v.every(function(l){return l&&typeof l.id==="string"&&l.id.trim()&&l.id!=="favorites"&&l.id.indexOf("flag:")!==0&&typeof l.name==="string"&&Array.isArray(l.symbols)&&l.symbols.every(function(x){return typeof x==="string";});});
     if(k===FAV_KEY)return Array.isArray(v)&&v.every(function(x){return typeof x==="string";});
     return !!v&&typeof v==="object"&&!Array.isArray(v);
   }
@@ -5296,7 +5296,7 @@ else if(o.id==="rvol"){
   function refreshWatchlistModel(){
     if(!window.jhWatchlistStore)return;
     var custom=window.jhWatchlistStore.read(CUSTOM_KEY);
-    flags=window.jhWatchlistStore.read(FLAG_KEY);favs=window.jhWatchlistStore.read(FAV_KEY);
+    flags=Object.assign(Object.create(null),window.jhWatchlistStore.read(FLAG_KEY));favs=window.jhWatchlistStore.read(FAV_KEY);
     var ids=new Set();lists=custom.concat(watchlistCatalogLists).filter(function(l){if(ids.has(l.id))return false;ids.add(l.id);return true;});
     if(favs.length)lists=[{id:"favorites",name:"Favorites",symbols:favs.slice(),n:favs.length,custom:1}].concat(lists.filter(function(l){return l.id!=="favorites";}));
     if(!lists.some(function(l){return l.id===listId;}))listId=(lists[0]||{}).id;
@@ -5654,7 +5654,7 @@ else if(o.id==="rvol"){
       "<span class=ss-ex>"+escHtml(ex||kind)+(flag?" "+flag:"")+"</span>"+
       (dest==="compare"
         ? "<span class='ss-check"+(on?" on":"")+"'>"+(on?"✓":"")+"</span>"
-        : "<span class=ss-more data-more='"+escHtml(r.s)+"' data-watch-id='"+escHtml(r.watchId||r.s)+"' title='More'>▾</span>")+
+        : "<span class=ss-more data-more='"+escHtml(bare(r.s))+"' data-watch-id='"+escHtml(r.watchId||r.s)+"' title='More'>▾</span>")+
       "</button>";
   }
   function bindSsRows(dest){
@@ -6489,7 +6489,7 @@ else if(o.id==="rvol"){
         if(b.dataset.a==="add") addToList(s);
         if(b.dataset.a==="cmp"){ addCompareSym(bare(s)); if(lastBars.length) paint(lastBars); }
         if(b.dataset.a==="al"){ var q=(window.__jhTvWatch||window.__jhTvWatch2)&&window.jhWatchlistQuote?window.jhWatchlistQuote.get(s):quotes[s];if(!q||typeof q.last!=="number"||!Number.isFinite(q.last)){toast("Matching aggregate close unavailable; no alert created");return;}addAlert(s,q.last); }
-        if(b.dataset.a==="flag"){ var cols=["#2962ff","#089981","#f23645","#ff6d00","#ab47bc",""], cur=flags[s]||""; var ix=cols.indexOf(cur); var nextFlags=Object.assign({},flags);var color=cols[(ix+1)%cols.length];if(color)nextFlags[s]=color;else delete nextFlags[s];if(!await saveWatchlist(FLAG_KEY,nextFlags,revision))return;renderList(); }
+        if(b.dataset.a==="flag"){ var cols=["#2962ff","#089981","#f23645","#ff6d00","#ab47bc",""], cur=flags[s]||""; var ix=cols.indexOf(cur); var nextFlags=Object.assign(Object.create(null),flags);var color=cols[(ix+1)%cols.length];if(color)nextFlags[s]=color;else delete nextFlags[s];if(!await saveWatchlist(FLAG_KEY,nextFlags,revision))return;renderList(); }
         if(b.dataset.a==="fav"){ toggleFav(s); }
         el.style.display="none";
       };

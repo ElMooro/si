@@ -200,6 +200,7 @@
     "#tvadv th:first-child,#tvadv td:first-child{text-align:left;position:sticky;left:0;background:#131722}",
     "#tvadv tr.gh td{background:#1e222d;color:#787b86;font-size:11px;letter-spacing:.04em;text-align:left}",
     "#tvadv tbody tr[data-s]:hover td{background:#2a2e39}",
+    "#tvadv .aq{display:block;max-width:280px;white-space:normal;overflow-wrap:anywhere;color:#9aa1ad;font-size:10px}",
     "#tvadv .pies{display:flex;gap:16px;padding:8px 12px;border-top:1px solid #2a2e39;flex:none}",
     "#tvadv .pie{width:64px;height:64px;border-radius:50%}",
     "#tvadv .plab{font-size:11px;color:#787b86;max-width:180px}",
@@ -460,13 +461,13 @@
     if (has) meta = "<div class=meta><span>O " + num(q.open) + "</span><span>Prev " + num(q.prev) + "</span>" + (q.h52 != null ? "<span>52w " + num(q.l52) + " \u2013 " + num(q.h52) + "</span>" : "") + "</div>";
     host.innerHTML = "<div class=row1>" + logoHtml(s) + "<div class=wmain><b>" + esc(bare(s) || "\u2014") + "</b><span class=wdesc>" + esc(descOf(s)) + "</span></div></div>" +
       "<div class='px " + cls(q.chg) + "'>" + (has ? num(q.last) : "\u2014") + "</div>" +
-      "<div class='" + cls(q.chg) + "'>" + (has ? ((q.chgv >= 0 ? "+" : "") + num(q.chgv) + "   " + pct(q.chg)) : "") + (q.ext == null ? "" : "   <span class='ext " + cls(q.ext) + "'>" + esc(q.extTag || "Ext") + " " + pct(q.ext) + "</span>") + "</div>" +
-      range + (q.vol ? "<div class=rlab><span>Volume " + vol(q.vol) + "</span><span>" + (q.avg ? "Avg " + vol(q.avg) : "") + "</span></div>" : "") +
+      "<div class='" + cls(q.chg) + "'>" + (has ? ((typeof q.chgv==="number"&&Number.isFinite(q.chgv)&&q.chgv>=0 ? "+" : "") + num(q.chgv) + "   " + pct(q.chg)) : "") + (q.ext == null ? "" : "   <span class='ext " + cls(q.ext) + "'>" + esc(q.extTag || "Ext") + " " + pct(q.ext) + "</span>") + "</div>" +
+      range + (typeof q.vol==="number"&&Number.isFinite(q.vol)&&q.vol>=0 ? "<div class=rlab><span>Volume " + vol(q.vol) + "</span><span>" + (typeof q.avg==="number"&&Number.isFinite(q.avg)&&q.avg>=0 ? "Avg " + vol(q.avg) : "") + "</span></div>" : "") +
       "<div class=meta>"+esc(s+" · "+quoteStatus(s))+"</div>"+meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
     var ta = host.querySelector("textarea");
     if (!ta) return;
     if (keep != null) { ta.value = keep; ta.focus(); }
-    ta.onchange = intent(function () { setNote(s, ta.value.trim()); });
+    ta.onchange = function () { setNote(s, ta.value.trim()); };
   }
   function paintButton(L) {
     if(actionDraft)return;
@@ -488,7 +489,7 @@
         if (c0) { ui.active = String(c0.id); L = c0; }
       }
     }
-    if (!L) return;
+    if (!L) {ensureChrome();paintCard(activeSym());return;}
     var view = viewOf(L);
     var cur = activeSym();
     paintButton._n = symCount(view.full);
@@ -522,11 +523,11 @@
   function bindRows(box, L) {
     box.querySelectorAll(".wrow").forEach(function (b) {
       var s = b.getAttribute("data-s");
-      b.onclick = intent(function (e) {
+      b.onclick = function (e) {
         if (e.target.closest && e.target.closest(".grip,.tvflag,.wx")) return;
         openSym(s);
-      });
-      b.onkeydown=intent(function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();openSym(s);}});
+      };
+      b.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();openSym(s);}};
       b.oncontextmenu = function (e) { e.preventDefault(); openMenu(e.clientX, e.clientY, s); };
       var flag = b.querySelector(".tvflag");
       if (flag) flag.onclick = intent(function (e) { e.stopPropagation(); openFlags(e.clientX, e.clientY, s); });
@@ -749,7 +750,7 @@
       if (act === "fav" && sym) toggleFav(sym);
       if (act === "alert") askAlert(sym || "", L.id);
       if (act === "table") { ui.table = ui.table ? 0 : 1; if (ui.table) { ui.cols.w1 = ui.cols.m1 = ui.cols.m3 = ui.cols.ytd = ui.cols.y1 = ui.cols.avg = 1; } saveUi(); }
-      if (act === "adv") { ui.adv = ui.adv ? 0 : 1; if (ui.adv) saveUi(); }
+      if (act === "adv") { ui.adv = ui.adv ? 0 : 1; saveUi(); }
       if (act === "widths") { ui.widths = {}; saveUi(); }
       closePop(); paint();
     });
@@ -1242,7 +1243,7 @@
     if (ops && !document.getElementById("tv-pie")) {
       var pie = document.createElement("button");
       pie.id = "tv-pie"; pie.type = "button"; pie.title = "Advanced view"; pie.setAttribute("aria-label", "Advanced view"); pie.textContent = "\u25CE";
-      pie.onclick = intent(function (e) { e.preventDefault(); e.stopPropagation(); ui.adv = ui.adv ? 0 : 1; if (ui.adv) saveUi(); paint(); });
+      pie.onclick = intent(function (e) { e.preventDefault(); e.stopPropagation(); ui.adv = ui.adv ? 0 : 1; saveUi(); paint(); });
       var menu = document.getElementById("w-menu");
       if (menu) ops.insertBefore(pie, menu); else ops.appendChild(pie);
     }
@@ -1306,7 +1307,7 @@
       g[1].forEach(function (s) {
         if (String(s).indexOf("###") === 0) return;
         var q = quotes[s] || {};
-        body += "<tr data-s='" + esc(s) + "'><td>" + (ui.logo ? logoHtml(s) : "") + " " + esc(bare(s)) + "</td>" + keys.map(function (k) { return "<td data-k='" + k + "' class='" + cellClass(k, q) + "'>" + fmtCell(k, q) + "</td>"; }).join("") + "</tr>";
+        body += "<tr data-s='" + esc(s) + "'><td>" + (ui.logo ? logoHtml(s) : "") + " " + esc(bare(s)) + "<small class=aq>"+esc(s+" · "+quoteStatus(s))+"</small></td>" + keys.map(function (k) { return "<td data-k='" + k + "' class='" + cellClass(k, q) + "'>" + fmtCell(k, q) + "</td>"; }).join("") + "</tr>";
       });
     });
     if (ui.summary) {
@@ -1341,7 +1342,7 @@
       "<div class=tool><label>Group <select id=tvadv-g><option value=none>No group</option><option value=section>Sections</option><option value=exch>Exchange</option><option value=type>Symbol type</option></select></label><label><input id=tvadv-sum type=checkbox> Summary</label><button type=button id=tvadv-exp>Export</button></div>" +
       "<div class=advsc><table><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table></div>" +
       "<div class=pies><div><div class=pie style='" + pieStyle(tp) + "'></div><div class=plab>Type \u00b7 " + esc(legendT) + "</div></div><div><div class=pie style='" + pieStyle(ep) + "'></div><div class=plab>Exchange \u00b7 " + esc(legendE) + "</div></div></div>" +
-      "<div class=note>Built from the daily tape on this chart. EPS, dividends, market cap, and earnings dates are not on this tape, so they are not shown.</div>";
+      "<div class=note>Daily aggregates; each symbol shows dates, source, age and unverified completion/identity. 1W/1M/3M/1Y use 5/21/63/252 bars. Extended-session measurements are unavailable until verified. EPS, dividends, market cap, and earnings dates are unavailable.</div>";
     host.dataset.sig = sig;
     host.querySelectorAll(".tabs button").forEach(function (b) { if (b.getAttribute("data-tab") === ui.advTab) b.classList.add("on"); });
     var sel = host.querySelector("#tvadv-g"); if (sel) sel.value = ui.group || "none";
@@ -1352,7 +1353,7 @@
     if (sel) sel.onchange = intent(function () { ui.group = sel.value; saveUi(); renderAdv(); });
     if (sum) sum.onchange = intent(function () { ui.summary = sum.checked ? 1 : 0; saveUi(); renderAdv(); });
     host.querySelector("#tvadv-exp").onclick = intent(function () { exportList(L); });
-    host.querySelectorAll("tbody tr[data-s]").forEach(function (tr) { tr.onclick = intent(function () { openSym(tr.getAttribute("data-s")); }); });
+    host.querySelectorAll("tbody tr[data-s]").forEach(function (tr) { tr.onclick = function () { openSym(tr.getAttribute("data-s")); }; });
     seeAdv();
   }
 
@@ -1361,6 +1362,7 @@
     var sel = (window.CSS && CSS.escape) ? CSS.escape(s) : s;
     var row = host.querySelector("tr[data-s='" + sel + "']"); if (!row) return;
     var q = quotes[s] || {};
+    var qualifier=row.querySelector(".aq");if(qualifier)qualifier.textContent=s+" · "+quoteStatus(s);
     row.querySelectorAll("[data-k]").forEach(function (el) {
       var k = el.getAttribute("data-k");
       el.textContent = fmtCell(k, q);
@@ -1416,7 +1418,7 @@
     paint();
     return true;
   }
-  document.addEventListener("keydown", intent(function (e) {
+  var watchlistKeyAction=intent(function (e) {
     var tag = (e.target && e.target.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if (e.key === "Escape") {
@@ -1450,7 +1452,8 @@
     e.preventDefault();
     rows[i].focus({preventScroll:true});rows[i].scrollIntoView({ block: "nearest" });
     openSym(rows[i].getAttribute("data-s"));
-  }));
+  });
+  document.addEventListener("keydown",function(e){var tag=e.target&&e.target.tagName;if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;if(e.key==="Escape"){if(!ui.adv&&!document.querySelector("#tvmenu.on,#tvflags.on,#listdrop.on,#tvimp.on"))return;}else if(["ArrowDown","ArrowUp","Delete","Backspace"].indexOf(e.key)<0||!e.target.closest||!e.target.closest("#wlist .wrow"))return;return watchlistKeyAction(e);});
   document.addEventListener("visibilitychange",function(){if(!document.hidden&&storageReady)refreshQuotes();});
   loadResolver();
   window.jhWatchlistStore.ready.then(function(){storageReady=true;try{reloadUi();}catch(error){toast(String(error.message||error)+" · originals retained");}loadCat();hook();});

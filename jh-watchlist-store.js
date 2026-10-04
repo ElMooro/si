@@ -8,6 +8,7 @@
     var colors = {red:"#f23645",orange:"#ff6d00",yellow:"#fdd835",green:"#089981",blue:"#2962ff",purple:"#ab47bc","var(--cyan)":"#22d3ee","var(--green)":"#089981","var(--amber)":"#fbbf24","var(--violet)":"#ab47bc","var(--pink)":"#e91e63","var(--blue)":"#2962ff"};
     function object(v) { return v && typeof v === "object" && !Array.isArray(v); }
     function strings(v) { return Array.isArray(v) && v.every(function(s){return typeof s === "string" && s.trim().length > 0;}); }
+    function listIdentity(id){return typeof id==="string"&&id.trim().length>0&&id!=="favorites"&&id.indexOf("flag:")!==0;}
     function hex(c) { return typeof c === "string" ? (/^#[0-9a-f]{6}$/i.test(c) ? c : Object.prototype.hasOwnProperty.call(colors,c) ? colors[c] : "") : ""; }
     function parse(raw, fallback, valid) {
       var v = raw === null ? fallback : JSON.parse(raw);
@@ -21,6 +22,7 @@
       Object.keys(flags).forEach(function(k){if(!k.trim()||!hex(flags[k]))throw Error("Unsupported Chart Pro flag; original retained for correction");});
       Object.keys(fav).forEach(function(k){if(!k.trim()||typeof fav[k]!=="boolean")throw Error("Malformed Chart Pro favorite; original retained for correction");});
       var dst=parse(raw[keys[4]],[],function(v){return Array.isArray(v) && v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);});});
+      if(!dst.every(function(l){return listIdentity(l.id);}))throw Error("Saved list identity is empty or conflicts with a reserved view; original retained");
       var cf=Object.assign(Object.create(null),parse(raw[keys[5]],{},object)), mine=parse(raw[keys[6]],[],strings);
       var old=parse(raw[MARK],{lists:{}},function(v){return object(v)&&object(v.lists);});
       var legacy=raw[MARK]!==null && old.version!==2;
@@ -103,7 +105,7 @@
   }
   function shape(k,v){
     if(k===UI_KEY)return validUI(v);
-    if(k===DEST[0])return Array.isArray(v)&&v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);})&&new Set(v.map(function(l){return l.id;})).size===v.length;
+    if(k===DEST[0]){if(Array.isArray(v)&&v.some(function(l){return object(l)&&!listIdentity(l.id);}))throw Error("Saved list identity is empty or conflicts with a reserved view; original retained");return Array.isArray(v)&&v.every(function(l){return object(l)&&typeof l.id==="string"&&typeof l.name==="string"&&strings(l.symbols);})&&new Set(v.map(function(l){return l.id;})).size===v.length;}
     if(k===DEST[2])return strings(v);
     if(k===DEST[1])return object(v)&&Object.keys(v).every(function(k){return typeof v[k]==="string";});
     return false;

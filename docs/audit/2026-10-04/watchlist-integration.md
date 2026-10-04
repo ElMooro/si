@@ -45,7 +45,7 @@ controls. Saved lists override catalog lists by ID in both lookup and dropdown;
 different IDs with the same name remain separate. Equal-count member replacements
 and order changes repaint. Dropdowns retain all lists instead of truncating at60.
 Own-key and null-prototype maps preserve constructor/toString/__proto__ list IDs,
-raw members, flags and migration source IDs. No catalog bytes or source members
+raw members, flags and migration source IDs. Empty or reserved custom IDs (favorites/flag:*) produce an explicit read-only conflict, preserve originals and entered Add text, and reject adoption rather than silently rename or alias them. No catalog bytes or source members
 are rewritten. Focused row controls Delete/reorder; chart focus cannot delete a
 watchlist row. Inherited rail grid/menu styles are corrected only inside watchlist
 controls; horizontal columns and mobile scrolling remain available.
@@ -75,7 +75,7 @@ transaction revision checks establish the concurrency boundary.
 ## Honest aggregate quotes and request impact
 
 Rows and the card label daily aggregate Close with both bar dates, source,
-retrieval age, and unverified completion/venue/currency. They do not claim live or
+bar age and cache-expiry state, and unverified completion/venue/currency. They do not claim live or
 EOD. Existing resolver identity must agree with the exact bare equity endpoint
 contract. Qualified venues, economic series, currency/futures/crypto identities
 and native aliases remain visible with an unavailable reason. Namespace stripping
@@ -100,7 +100,7 @@ This estimates requests, not an unmeasured provider bill.
 
 Daily-derived1W/1M/3M/1Y use5/21/63/252 preceding bars and are explained in the UI.
 YTD needs a prior-year bar, average volume needs10 measured bars, and a52-week
-range needs365-day coverage. Private note/alert controls remain. No TradingView
+range needs365-day coverage. Advanced rows also carry their own raw identity/date/source/bar-age/cache-expiry/uncertainty qualifier. Both advanced toggles persist closing. Private notes retain their original independent onchange save during pending/failed watchlist edits; chart/compare/financial More routing retains its baseline payload, with raw Add-only identity carried separately. Private note/alert controls remain. No TradingView
 feature or market-data parity is claimed; backend identity/session/freshness
 verification and access acceptance remain separate from UI features.
 

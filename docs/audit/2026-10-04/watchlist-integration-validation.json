@@ -3,13 +3,13 @@
   "scope": "Current main renderer, invented synthetic fixture storage, all browser requests intercepted; no user/provider data or external requests.",
   "tests": {
     "node": {
-      "passed": 3130,
+      "passed": 3133,
       "failed": 0,
       "cancelled": 0,
       "concurrency": 4
     },
     "targeted": {
-      "passed": 85,
+      "passed": 88,
       "failed": 0
     },
     "browser": {
@@ -20,11 +20,11 @@
       "passed": true
     },
     "failure_browser": {
-      "cases": 9,
+      "cases": 10,
       "passed": true
     },
     "transaction_browser": {
-      "cases": 18,
+      "cases": 19,
       "passed": true
     },
     "syntax": {
@@ -44,35 +44,35 @@
   },
   "evidence": {
     "node": {
-      "path": "/tmp/watchlist-integrated-node-qualified.txt",
-      "sha256": "2a3624ab9dfc1cd5956bc057f68192249529f151335843f6ef5c52aa8b82b5a1"
+      "path": "/tmp/watchlist-integrated-node-frozen.txt",
+      "sha256": "1118a25d9b4c68078d30c0ab9de38cfa25a2cad0675f1a9b7c5a8d09d4957a83"
     },
     "targeted": {
-      "path": "/tmp/watchlist-integrated-targeted-final.txt",
-      "sha256": "6f2d4ae5e4cf6a703d2de612370a2364e9d3418c1ece1c7a458dd33b11d08fc5"
+      "path": "/tmp/watchlist-integrated-targeted-frozen.txt",
+      "sha256": "6f7505857c8f7d637f053fdee96070367a8e011eb8e9d350aa04f610aa44201b"
     },
     "browser": {
-      "path": "/tmp/watchlist-integrated-browser-final/browser-qa.json",
-      "sha256": "9fe68664a5a0279609a96e43c1a9c7a9aea5767ff4b8551cc61d5c741858bd50"
+      "path": "/tmp/watchlist-integrated-browser-frozen/browser-qa.json",
+      "sha256": "15f86d93a2af097d1990a928b6980d487073548567d40cb67e1ce00a8b0d20a1"
     },
     "failure_browser": {
-      "path": "/tmp/watchlist-renderer-failures-final/failure-qa.json",
-      "sha256": "33e92973d377fd8821387314a59ce2da42c1f6767b99eb29e3c254481ec47992"
+      "path": "/tmp/watchlist-renderer-failures-frozen/failure-qa.json",
+      "sha256": "75ee1f76e942f18d741871d479ac1b137bc82e632b1c9fdf5b14bd4c259756b2"
     },
     "transaction_browser": {
-      "path": "/tmp/watchlist-integrated-transaction-final/transaction-qa.json",
-      "sha256": "2fbbf652bac5541ce906722c50f853c531d1098e21d5ccfaa3e52904a7be4f1e"
+      "path": "/tmp/watchlist-integrated-transaction-r3/transaction-qa.json",
+      "sha256": "735f9d155aa325a7fffbf4365e99288ddfd320e604f4a828b6c38d61a56b7c42"
     },
     "syntax": {
-      "path": "/tmp/watchlist-integrated-syntax-final.txt",
+      "path": "/tmp/watchlist-integrated-syntax-frozen.txt",
       "sha256": "5adcff161f95bf7118ac335935e5ba76060cd5553dcc1df29371cd40c33f5790"
     },
     "wiring": {
-      "path": "/tmp/watchlist-integrated-wiring.txt",
+      "path": "/tmp/watchlist-integrated-wiring-frozen.txt",
       "sha256": "e1891d695c8baf641e68ee280a6d0b4d46100468d0c4c4d799bf661fc5ae148c"
     },
     "preflight": {
-      "path": "/tmp/watchlist-integrated-preflight-final.txt",
+      "path": "/tmp/watchlist-integrated-preflight-frozen.txt",
       "sha256": "d49709f0204f1ce67a0f23eb62c5c49643827938d5bb2bb4e2f31d6e5c809f7e"
     }
   },
@@ -82,5 +82,11 @@
     "retried_denial": false,
     "merge_deploy_hold": "Parent release conditions must be reconciled; no alternate access."
   },
-  "independent_exact_head_review": "Required before promotion; review record is commit-specific outside this immutable tree."
+  "independent_exact_head_review": "Required before promotion; review record is commit-specific outside this immutable tree.",
+  "prior_exact_review": {
+    "head": "d3926f7bf6c541b87e858ff5c2e02aa1c06965ed",
+    "verdict": "HOLD",
+    "report": "/tmp/watchlist-review-d3926.json",
+    "resolution": "Native flag key safety, both advanced close saves and row qualifiers, Add-only raw More identity, explicit reserved-ID read-only status, independent private-note save, and keyboard scoping addressed in this follow-up; fresh exact-head review required."
+  }
 }
