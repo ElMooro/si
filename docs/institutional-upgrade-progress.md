@@ -8165,3 +8165,8 @@ Commit `75d6af7f11b86212a809958d762850801d45ad2e` replaces lossy buyback JSON ac
 ### Stage 577 AI advisory policy candidate
 
 The actual policy gate treats the string `false`, a numeric one and a nonempty container as permission to ledger advisory research calls. A one-line change requires the actual boolean true when an override is present. Environment defaults and all other source bytes are preserved against a complete retained predecessor. No actual policy/ledger data was read. Native acceptance remains pending; review experiments do not acquire investment authority.
+
+
+### Stage 577 exact AI advisory gate accepted
+
+Commit `a6df26d0db2e46daae83e6265a7e281db0e451b7` requires boolean true for an explicit advisory logging override. The whole predecessor and all other handler bytes are preserved. Eight policy regressions, 81 combined market-read checks, 25 engine control-plane tests, 17 owned-read cases and 1,080 deployment plus 15 shell checks passed. Read-only operation 6473 verifies all 50 packaged source files, exact commit receipt, runtime controls and schedule identities before and after inspection. It did not invoke a producer/provider, read application/private/account/ledger packets or write native resources. Normal publication and investment qualification remain unverified. The two October 2 metric regressions were reproduced again against the October 4 visible path (paint calls reported); restoring the tested observations helper did not fix this path. The current chart is not covered by prior static acceptance. The level display and capital research fallback will be retained with provenance and honest period semantics during repair. All ten workstreams remain OPEN.
