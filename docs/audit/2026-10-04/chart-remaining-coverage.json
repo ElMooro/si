@@ -2,8 +2,8 @@
   "status": "remaining_work_not_complete",
   "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
   "unique_ids": 10745,
-  "route_count": 6788,
-  "unrouted": 3957,
+  "route_count": 6792,
+  "unrouted": 3953,
   "namespaces": [
     {
       "namespace": "ECONOMICS",
@@ -136,11 +136,6 @@
       "unrouted": 14
     },
     {
-      "namespace": "FX_IDC",
-      "total": 151,
-      "unrouted": 14
-    },
-    {
       "namespace": "DJCFD",
       "total": 13,
       "unrouted": 13
@@ -184,6 +179,11 @@
       "namespace": "RUS",
       "total": 11,
       "unrouted": 11
+    },
+    {
+      "namespace": "FX_IDC",
+      "total": 151,
+      "unrouted": 10
     },
     {
       "namespace": "SSE",
@@ -4317,11 +4317,8 @@
     "ECONOMICS:JPTCPIEFA",
     "ECONOMICS:JPTCCPI",
     "PEPPERSTONE:JPYX",
-    "FX_IDC:JPYVND",
     "FX_IDC:JPYWCU",
     "FX_IDC:JPYTHX",
-    "FX_IDC:JPYEGP",
-    "FX_IDC:JPYETB",
     "AMEX:HYG/NASDAQ:IEI",
     "ECONOMICS:USDFMNORDI",
     "ECONOMICS:TWLEI",
@@ -4983,7 +4980,6 @@
     "OMXNORDIC:NOMXSCSEGI",
     "FX_IDC:XDRDKX",
     "FX_IDC:XDRNOX",
-    "FX_IDC:XDRBWP",
     "FX_IDC:XDRWCU",
     "FX_IDC:XDRBRX",
     "FX_IDC:WCUXDR",
@@ -5406,6 +5402,22 @@
     "same_time_fix_verified": false,
     "vendor_equivalence_verified": false,
     "full_upstream_history_verified": false,
+    "route_is_not_history_proof": true
+  },
+  "bis_monthly_expansion": {
+    "frontend_source_commit": "1ea240c5b6dcabd2b3554287fb53c4a8a5881ca4",
+    "backend_source_commit": "75a0ecfa11d0784e0e6181d1381ac70b6757162d",
+    "qualified_routes_added": 4,
+    "public_histories_independently_replayed": 4,
+    "history_audit": "chart-bis-monthly-public-history-audit.json",
+    "vendor_equivalence_verified": false,
+    "full_upstream_history_verified": false,
+    "latest_valid_observations": {
+      "JPYVND": "2026-07-01",
+      "JPYEGP": "2026-07-01",
+      "JPYETB": "2025-09-01",
+      "XDRBWP": "2026-08-01"
+    },
     "route_is_not_history_proof": true
   }
 }
