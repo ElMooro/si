@@ -1,5 +1,5 @@
 {
-  "stage": "candidate_not_deployed",
+  "stage": "deployed_and_checked",
   "alternatives": {
     "ECONOMICS:JPMPRYY": {
       "alternative": "oecd:OECD.SDD.STES,DSD_STES@DF_INDSERV,4.3:JPN.M.PRVM.IX.C.N._Z._Z.N:GY",
@@ -2020,7 +2020,7 @@
       "alternative": "oecd:OECD.SDD.STES,DSD_STES@DF_INDSERV,4.3:TUR.M.PRVM.IX.BTE.Y._Z._Z.N:G1",
       "definition": {
         "key": "TUR.M.PRVM.IX.BTE.Y._Z._Z.N",
-        "name": "Türkiye / Production volume / Industry (except construction) / Calendar and seasonally adjusted",
+        "name": "T\u00fcrkiye / Production volume / Industry (except construction) / Calendar and seasonally adjusted",
         "freq": "M",
         "geo": "TUR",
         "unit": "Index (2015 = 100)",
@@ -2039,7 +2039,7 @@
           "METHODOLOGY": "N"
         },
         "labels": {
-          "REF_AREA": "Türkiye",
+          "REF_AREA": "T\u00fcrkiye",
           "FREQ": "Monthly",
           "MEASURE": "Production volume",
           "UNIT_MEASURE": "Index",
@@ -2482,7 +2482,7 @@
       "alternative": "oecd:OECD.SDD.STES,DSD_STES@DF_INDSERV,4.3:TUR.M.PRVM.IX.C.N._Z._Z.N:GY",
       "definition": {
         "key": "TUR.M.PRVM.IX.C.N._Z._Z.N",
-        "name": "Türkiye / Production volume / Manufacturing / Neither seasonally adjusted nor calendar adjusted",
+        "name": "T\u00fcrkiye / Production volume / Manufacturing / Neither seasonally adjusted nor calendar adjusted",
         "freq": "M",
         "geo": "TUR",
         "unit": "Index (2015 = 100)",
@@ -2501,7 +2501,7 @@
           "METHODOLOGY": "N"
         },
         "labels": {
-          "REF_AREA": "Türkiye",
+          "REF_AREA": "T\u00fcrkiye",
           "FREQ": "Monthly",
           "MEASURE": "Production volume",
           "UNIT_MEASURE": "Index",
@@ -3652,5 +3652,8 @@
   "vendor_equivalence_verified": false,
   "historical_vintages_verified": false,
   "calls_eligible": false,
-  "sizing_eligible": false
+  "sizing_eligible": false,
+  "source_commit": "8bc8aaf98f1b2b60455d46a66455c41b3065fbde",
+  "history_acceptance": "chart-oecd-public-history-audit.json",
+  "native_acceptance": "chart-oecd-native-acceptance.json"
 }

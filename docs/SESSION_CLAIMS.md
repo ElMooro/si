@@ -212,4 +212,4 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 
 - ChatGPT stage584 accepted: source 75a0ecfa11d0784e0e6181d1381ac70b6757162d; ops 6479 exact native code/control acceptance passed, whole served chart and desktop/mobile checks passed. Added 1234 exact BIS FX definitions and 59 explicitly unqualified reference routes; routes 6788/10745, unresolved 3957. Full upstream history, common FX fixing time, vendor equivalence and historical vintages remain unverified.
 
-- 2026-10-04 ChatGPT: reserve ops 6480 for read-only exact OECD chart release acceptance (source ZIP, receipt and unchanged symdir controls). No invocation, IAM, schedule or private-data work. Stage586 checks pending.
+- 2026-10-04 ChatGPT: ops 6480 accepted source 8bc8aaf98f1b2b60455d46a66455c41b3065fbde through exact ZIP/receipt and unchanged symdir controls. All 1,589 public OECD histories independently replayed; served chart, 49 assets and desktop/mobile plotting checked. No manual producer invocation, IAM, schedule or private-data work. See chart-oecd-* acceptance evidence.
