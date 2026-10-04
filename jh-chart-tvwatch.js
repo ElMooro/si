@@ -453,6 +453,14 @@
     if (hit && hit.source === "MARKET" && hit.id && /^[A-Z0-9.^=-]{1,24}$/.test(String(hit.id).toUpperCase())) return String(hit.id).toUpperCase();
     if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + hit.id;
     if (hit && hit.source === "COINGECKO" && /^[a-z]{2,6}$/.test(hit.id || "")) return String(hit.id).toUpperCase() + "-USD";
+    if (hit && hit.source === "WORLDBANK") {
+      var wb = String(hit.id || "").toUpperCase().split("|");
+      if (wb.length === 2 && /^[A-Z0-9]{2,3}$/.test(wb[0]) && /^[A-Z0-9.]+$/.test(wb[1])) {
+        var wbs = "worldbank:" + wb[1] + ":" + wb[0];
+        if (wbs.length <= 40) return wbs;
+      }
+      return "";
+    }
     if (hit) return "";
     var venue = "", bare = u, cut = u.indexOf(":");
     if (cut > 0) { venue = u.slice(0, cut); bare = u.slice(cut + 1); }
