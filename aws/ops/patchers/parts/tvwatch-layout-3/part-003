@@ -1,0 +1,159 @@
+@@PART 3/9@@
+    if (ui.flag) seq = seq.filter(function (s) { return String(s).indexOf("###") === 0 || (flags()[s] === ui.flag); });
+    seq = sortSeq(seq, ui.sort, ui.dir || 1);
+    return { full: seq, shown: applyCollapse(seq, L.id), counts: sectionCounts(seq) };
+  }
+  window.__jhTvAPI = { mergeOrder: mergeOrder, sortSeq: sortSeq, sectionCounts: sectionCounts, parseImport: parseImport, rsi: rsi, kindOf: kindOf };
+
+  function metrics() {
+    return ui.colOrder.filter(function (id) {
+      var m = MET.filter(function (x) { return x.id === id; })[0];
+      if (!m) return false;
+      if (m.table && !ui.table) return false;
+      return !!ui.cols[id];
+    });
+  }
+  function gridCss() {
+    var cols = ["3px", "16px", "16px"];
+    if (ui.logo) cols.push("22px");
+    if (ui.ticker || ui.desc) cols.push(colW("sym"));
+    metrics().forEach(function (id) { cols.push(colW(id)); });
+    cols.push("16px");
+    return cols.join(" ");
+  }
+  function tickerOf(s) {
+    var t = String(s || "").toUpperCase();
+    if (/^[A-Z0-9.\-]{1,12}$/.test(t)) return t;
+    t = bare(t).toUpperCase();
+    return /^[A-Z0-9.\-]{1,12}$/.test(t) ? t : "";
+  }
+  function logoHtml(s) {
+    if (!ui.logo) return "";
+    var b = bare(s), letter = esc((b || "?").slice(0, 1));
+    var img = /^[A-Z]{1,5}$/.test(b) ? "<img alt='' src='https://financialmodelingprep.com/image-stock/" + esc(b) + ".png' onerror='this.remove()'>" : "";
+    return "<i class=tvlogo style='background:hsl(" + hue(s) + ",42%,42%)'>" + img + letter + "</i>";
+  }
+  function cell(k, text, klass) { return "<span data-k='" + k + "' class='" + (klass || "") + "'>" + text + "</span>"; }
+  function cells(s) {
+    var q = quotes[s] || quotes[bare(s)] || {};
+    var html = "";
+    metrics().forEach(function (id) { html += cell(id, fmtCell(id, q), cellClass(id, q)); });
+    return html;
+  }
+  function rowHtml(s, on) {
+    var b = bare(s), f = flags()[s] || flags()[b] || "";
+    var desc = ui.desc ? descOf(s) : "";
+    return "<div class='wrow" + (on ? " on" : "") + "' draggable='true' data-s='" + esc(s) + "' role='button' tabindex='0' style='grid-template-columns:" + gridCss() + "'>" +
+      "<i class=wacc></i><button type=button class=grip title='Drag to reorder'>\u2807</button>" +
+      "<button type=button class='tvflag" + (f ? " on" : "") + "' data-flag='1' title='Flag' style='" + (f ? "background:" + esc(f) : "") + "'></button>" +
+      logoHtml(s) +
+      ((ui.ticker || desc) ? "<span class=wmain>" + (ui.ticker ? "<span class=wsym>" + esc(b) + "</span>" : "") + (desc ? "<span class=wdesc>" + esc(desc) + "</span>" : "") + "</span>" : "") +
+      cells(s) +
+      "<button type=button class=wx title='Remove'>\u00d7</button></div>";
+  }
+  function paintHeader() {
+    var cols = document.getElementById("cols"); if (!cols) return;
+    var html = "<span></span><span></span><span></span>" + (ui.logo ? "<span></span>" : "") +
+      ((ui.ticker || ui.desc) ? "<span class='symh' data-sort='sym'>Symbol" + (ui.sort === "sym" ? (ui.dir < 0 ? " \u25bc" : " \u25b2") : "") + "</span>" : "");
+    metrics().forEach(function (id) {
+      var m = MET.filter(function (x) { return x.id === id; })[0];
+      html += "<span data-sort='" + id + "'" + (ui.sort === id ? " class=on" : "") + ">" + m.label + (ui.sort === id ? (ui.dir < 0 ? " \u25bc" : " \u25b2") : "") + "</span>";
+    });
+    html += "<span></span>";
+    cols.style.gridTemplateColumns = gridCss();
+    cols.innerHTML = html;
+    cols.querySelectorAll("[data-sort]").forEach(function (n) {
+      var rz = document.createElement("i"); rz.className = "rz"; n.appendChild(rz);
+      rz.onmousedown = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        n.dataset.rz = "1";
+        var id = n.getAttribute("data-sort");
+        var startX = e.clientX, start = n.getBoundingClientRect().width;
+        function mv(ev) { ui.widths[id] = Math.max(36, Math.min(200, start + (ev.clientX - startX))); applyWidths(); }
+        function up() {
+          document.removeEventListener("mousemove", mv); document.removeEventListener("mouseup", up); saveUi();
+          setTimeout(function () { delete n.dataset.rz; }, 0);
+        }
+        document.addEventListener("mousemove", mv); document.addEventListener("mouseup", up);
+      };
+      n.onclick = function () {
+        if (n.dataset.rz) return;
+        var k = n.getAttribute("data-sort");
+        if (ui.sort !== k) { ui.sort = k; ui.dir = k === "sym" ? 1 : -1; }
+        else if (ui.dir < 0) ui.dir = 1;
+        else { ui.sort = ""; ui.dir = -1; }
+        saveUi(); paint();
+      };
+    });
+  }
+  function openSym(s) {
+    var q = document.getElementById("q");
+    if (!q) { if (window.jhOpenSymbol) window.jhOpenSymbol(s); return; }
+    q.value = s;
+    q.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    paintCard(s);
+  }
+  function paintCard(s) {
+    var host = document.getElementById("tvcard");
+    var stack = document.getElementById("w-stack");
+    if (!host && stack) { host = document.createElement("div"); host.id = "tvcard"; stack.insertBefore(host, stack.firstChild); }
+    if (!host) return;
+    s = s || activeSym();
+    var q = quotes[s] || quotes[bare(s)] || {};
+    var has = q.last != null && isFinite(q.last);
+    var range = "";
+    if (has && q.low != null && q.high != null && q.high > q.low) {
+      var p = Math.max(0, Math.min(1, (q.last - q.low) / (q.high - q.low))) * 100;
+      range = "<div class=rng><i style='left:calc(" + p.toFixed(1) + "% - 4px)'></i></div><div class=rlab><span>" + num(q.low) + "</span><span>Day range</span><span>" + num(q.high) + "</span></div>";
+    }
+    var keep = null, prevNote = host.querySelector("textarea");
+    if (prevNote && document.activeElement === prevNote) keep = prevNote.value;
+    var meta = "";
+    if (has) meta = "<div class=meta><span>O " + num(q.open) + "</span><span>Prev " + num(q.prev) + "</span>" + (q.h52 != null ? "<span>52w " + num(q.l52) + " \u2013 " + num(q.h52) + "</span>" : "") + "</div>";
+    host.innerHTML = "<div class=row1>" + logoHtml(s) + "<div class=wmain><b>" + esc(bare(s) || "\u2014") + "</b><span class=wdesc>" + esc(descOf(s)) + "</span></div></div>" +
+      "<div class='px " + cls(q.chg) + "'>" + (has ? num(q.last) : "\u2014") + "</div>" +
+      "<div class='" + cls(q.chg) + "'>" + (has ? ((q.chgv >= 0 ? "+" : "") + num(q.chgv) + "   " + pct(q.chg)) : "") + (q.ext == null ? "" : "   <span class='ext " + cls(q.ext) + "'>" + esc(q.extTag || "Ext") + " " + pct(q.ext) + "</span>") + "</div>" +
+      range + (q.vol ? "<div class=rlab><span>Volume " + vol(q.vol) + "</span><span>" + (q.avg ? "Avg " + vol(q.avg) : "") + "</span></div>" : "") +
+      meta + "<textarea placeholder='Private note \u2014 saved on this browser'>" + esc(noteOf(s)) + "</textarea>";
+    var ta = host.querySelector("textarea");
+    if (!ta) return;
+    if (keep != null) { ta.value = keep; ta.focus(); }
+    ta.onchange = function () { setNote(s, ta.value.trim()); };
+  }
+  function paintButton(L) {
+    var btn = document.getElementById("listbtn"); if (!btn || !L) return;
+    var name = (ui.alias && ui.alias[L.id]) || L.name || "Watchlist";
+    if (ui.starred && ui.starred[L.id]) name = "\u2605 " + name;
+    btn.innerHTML = "<i class=tvflag style='background:" + esc(listColorOf(L)) + "'></i><span>" + esc(name) + "</span><em>" + (paintButton._n != null ? paintButton._n : "") + "</em>";
+  }
+  function paint() {
+    if (lock) return;
+    var box = document.getElementById("wlist"); if (!box) return;
+    var L = findList(ui.active);
+    if (!L) {
+      var sel = document.getElementById("list");
+      if (sel && findList(sel.value)) { ui.active = sel.value; L = findList(ui.active); }
+      else {
+        var c0 = customLists()[0];
+        if (c0) { ui.active = String(c0.id); L = c0; }
+      }
+    }
+    if (!L) return;
+    var view = viewOf(L);
+    var cur = activeSym();
+    paintButton._n = symCount(view.full);
+    var sig = [ui.active, ui.sort, ui.dir, ui.table, ui.logo, ui.ticker, ui.desc, ui.flag, JSON.stringify(ui.widths || {}), view.shown.join("|"), cur].join("~");
+    if (box.dataset.sig === sig && box.querySelector(".tvmark")) { ensureChrome(); paintButton(L); paintCard(cur); renderAdv(); return; }
+    lock = 1;
+    var sc = box.scrollTop;
+    var html = ["<div class=tvmark hidden></div>"];
+    view.shown.forEach(function (s) {
+      if (String(s).indexOf("###") === 0) {
+        var name = String(s).replace(/^#+/, "");
+        var open = !ui.collapsed[L.id + "|" + name];
+        html.push("<div class=wsec data-sec='" + esc(name) + "' draggable='true'><span>" + (open ? "\u25be" : "\u25b8") + "</span><span class=sn>" + esc(name) + "</span><span class=sc>" + (view.counts[name] || 0) + "</span></div>");
+      } else html.push(rowHtml(s, bare(s) === bare(cur) || s === cur));
+    });
+    if (view.shown.length === 0) html.push("<div style='padding:16px;color:#787b86'>This list is empty. Use + to add a symbol.</div>");
+    box.dataset.sig = sig;
+@@END 3@@
