@@ -1,0 +1,265 @@
+{
+  "jh-chart-engine.js": {
+    "before_path": "tests/fixtures/watchlist-correctness/jh-chart-engine.js.txt",
+    "before_sha256": "bc9ee70a38946fa8e057cd9923282c706d9878ae70bd92a4b17e111760fede98",
+    "after_sha256": "6d36ec92e7f7f81d43def11f19fe6823691fac889e800525694b09d2672d73e0",
+    "edits": [
+      {
+        "start": 308945,
+        "end": 309251,
+        "before": "    document.getElementById(\"btn-watch\").onclick=function(){ setWatch(!watchOpen); renderTf(); };\n",
+        "after": "    document.getElementById(\"btn-watch\").onclick=function(){ var w=document.getElementById(\"watch\"),open=window.jhWatchSet?!!(w&&w.classList.contains(\"is-open\")):watchOpen;if(open&&window.jhWatchUnpin)window.jhWatchUnpin();if(!open&&window.jhWatchPin)window.jhWatchPin(true);setWatch(!open);renderTf(); };\n"
+      },
+      {
+        "start": 321285,
+        "end": 322315,
+        "before": "",
+        "after": "  function watchlistShape(k,v){\n    if(k===CUSTOM_KEY)return Array.isArray(v)&&new Set(v.map(function(l){return l&&l.id;})).size===v.length&&v.every(function(l){return l&&typeof l.id===\"string\"&&typeof l.name===\"string\"&&Array.isArray(l.symbols)&&l.symbols.every(function(x){return typeof x===\"string\";});});\n    if(k===FAV_KEY)return Array.isArray(v)&&v.every(function(x){return typeof x===\"string\";});\n    return !!v&&typeof v===\"object\"&&!Array.isArray(v);\n  }\n  function saveWatchlist(k,v){\n    try{\n      var raw=localStorage.getItem(k);\n      if(raw!==null&&!watchlistShape(k,JSON.parse(raw)))throw Error(\"Malformed saved watchlist\");\n      if(!watchlistShape(k,v))throw Error(\"Invalid watchlist edit\");\n      var serialized=JSON.stringify(v);localStorage.setItem(k,serialized);\n      if(localStorage.getItem(k)!==serialized)throw Error(\"Watchlist write not verified\");\n      return true;\n    }catch(error){toast(\"Watchlist save could not be verified. Check storage or another tab; no success recorded.\");return false;}\n  }\n"
+      },
+      {
+        "start": 322386,
+        "end": 322924,
+        "before": "    if(n && !n.dataset.bound){ n.onclick=function(){ var name=prompt(\"New watchlist name\",\"My list\"); if(!name) return; var custom=loadJSON(CUSTOM_KEY,[]); var hit={id:\"custom-\"+Date.now(),name:name,symbols:[active],n:1,custom:1}; custom.unshift(hit); saveJSON(CUSTOM_KEY,custom); lists=[hit].concat(lists.filter(function(l){return l.id!==hit.id;})); listId=hit.id; renderList(); toast(\"Created \"+name); }; n.dataset.bound=\"1\"; }\n",
+        "after": "    if(n && !n.dataset.bound){ n.onclick=function(){ var name=prompt(\"New watchlist name\",\"My list\"); if(!name) return; var custom=loadJSON(CUSTOM_KEY,[]); var hit={id:\"custom-\"+Date.now(),name:name,symbols:[active],n:1,custom:1}; if(!Array.isArray(custom)){toast(\"Saved watchlist unavailable; original retained\");return;} custom.unshift(hit); if(!saveWatchlist(CUSTOM_KEY,custom))return; lists=[hit].concat(lists.filter(function(l){return l.id!==hit.id;})); listId=hit.id; renderList(); toast(\"Created \"+name); }; n.dataset.bound=\"1\"; }\n"
+      },
+      {
+        "start": 323617,
+        "end": 324670,
+        "before": "    if(!L) return;\n    if(a===\"ren\"){ var n=prompt(\"Rename list\", L.name); if(!n) return; L.name=n; persistCustom(L); renderList(); }\n    if(a===\"dup\"){ var hit={id:\"custom-\"+Date.now(),name:L.name+\" copy\",symbols:(L.symbols||[]).slice(),n:(L.symbols||[]).length,custom:1}; persistCustom(hit); lists=[hit].concat(lists); listId=hit.id; renderList(); }\n    if(a===\"add\"){ addToList(active); }\n    if(a===\"del\"){ if(!L.custom && L.id!==\"favorites\"){ toast(\"Warehouse lists stay\"); return; } if(!confirm(\"Delete \"+L.name+\"?\")) return; var custom=loadJSON(CUSTOM_KEY,[]).filter(function(x){return x.id!==L.id;}); saveJSON(CUSTOM_KEY,custom); if(L.id===\"favorites\"){ favs=[]; saveJSON(FAV_KEY,favs); } lists=lists.filter(function(x){return x.id!==L.id;}); listId=(lists[0]||{}).id; renderList(); }\n",
+        "after": "    if(!L)return;\n    if(a===\"ren\"){\n      var name=prompt(\"Rename list\",L.name);if(!name)return;\n      var renamed=Object.assign({},L,{name:name});if(!persistCustom(renamed))return;\n      lists=lists.map(function(l){return l.id===L.id?renamed:l;});renderList();\n    }\n    if(a===\"dup\"){\n      var hit={id:\"custom-\"+Date.now(),name:L.name+\" copy\",symbols:(L.symbols||[]).slice(),n:(L.symbols||[]).length,custom:1};\n      if(!persistCustom(hit))return;lists=[hit].concat(lists);listId=hit.id;renderList();\n    }\n    if(a===\"add\")addToList(active);\n    if(a===\"del\"){\n      if(!L.custom&&L.id!==\"favorites\"){toast(\"Warehouse lists stay\");return;}\n      if(!confirm(\"Delete \"+L.name+\"?\"))return;\n      if(L.id===\"favorites\"){if(!saveWatchlist(FAV_KEY,[]))return;favs=[];}\n      else{var custom=loadJSON(CUSTOM_KEY,[]);if(!Array.isArray(custom))return;custom=custom.filter(function(x){return x.id!==L.id;});if(!saveWatchlist(CUSTOM_KEY,custom))return;}\n      lists=lists.filter(function(x){return x.id!==L.id;});listId=(lists[0]||{}).id;renderList();\n    }\n"
+      },
+      {
+        "start": 324703,
+        "end": 325075,
+        "before": "    L.custom=1; L.n=(L.symbols||[]).length;\n    var custom=loadJSON(CUSTOM_KEY,[]); if(!Array.isArray(custom)) custom=[];\n    var i=custom.findIndex(function(x){return x.id===L.id;});\n    if(i>=0) custom[i]=L; else custom.unshift(L);\n    saveJSON(CUSTOM_KEY,custom);\n",
+        "after": "    var next=Object.assign({},L,{custom:1,n:(L.symbols||[]).length});\n    var custom=loadJSON(CUSTOM_KEY,[]);if(!Array.isArray(custom))return false;\n    var i=custom.findIndex(function(x){return x.id===next.id;});\n    if(i>=0)custom[i]=next;else custom.unshift(next);\n    if(!saveWatchlist(CUSTOM_KEY,custom))return false;\n    L.custom=next.custom;L.n=next.n;return true;\n"
+      },
+      {
+        "start": 325104,
+        "end": 325523,
+        "before": "    s=bare(s);\n    var L=lists.find(function(x){return x.id===listId;});\n    if(!L) return;\n    if((L.symbols||[]).indexOf(s)>=0){ toast(s+\" already on list\"); return; }\n    L.symbols=L.symbols||[]; L.symbols.unshift(s); persistCustom(L); renderList(); toast(\"Added \"+s+\" to \"+L.name);\n",
+        "after": "    if(typeof s!==\"string\"||!s.trim())return;s=s.trim();\n    var L=lists.find(function(x){return x.id===listId;});if(!L)return;\n    if((L.symbols||[]).indexOf(s)>=0){toast(s+\" already on list\");return;}\n    var next=Object.assign({},L,{symbols:[s].concat(L.symbols||[])});\n    if(!persistCustom(next))return;\n    lists=lists.map(function(l){return l.id===L.id?next:l;});renderList();toast(\"Added \"+s+\" to \"+next.name);\n"
+      },
+      {
+        "start": 329005,
+        "end": 329040,
+        "before": "  function pinBest(q){\n",
+        "after": "  function pinBest(q, preserveId){\n"
+      },
+      {
+        "start": 329144,
+        "end": 329193,
+        "before": "      var id=chartId(a.s)||a.s;\n",
+        "after": "      var id=preserveId?a.s:(chartId(a.s)||a.s);\n"
+      },
+      {
+        "start": 329233,
+        "end": 329342,
+        "before": "        return String(r.s).toUpperCase()!==String(id).toUpperCase() && bare(r.s)!==bare(id);\n",
+        "after": "        return String(r.s).toUpperCase()!==String(id).toUpperCase() && (preserveId || bare(r.s)!==bare(id));\n"
+      },
+      {
+        "start": 329352,
+        "end": 329477,
+        "before": "      ssRows.unshift({s:id, name:a.name, extra:\"best match\", type:a.type||\"economy\", label:displayTicker(id)});\n",
+        "after": "      ssRows.unshift({s:id, watchId:a.s, name:a.name, extra:\"best match\", type:a.type||\"economy\", label:displayTicker(id)});\n"
+      },
+      {
+        "start": 330399,
+        "end": 330463,
+        "before": "",
+        "after": "    if(dest===\"add\"){ addToList(s); closeSymSearch(); return; }\n"
+      },
+      {
+        "start": 330966,
+        "end": 330966,
+        "before": "    if(dest===\"add\"){ addToList(s); closeSymSearch(); return; }\n",
+        "after": ""
+      },
+      {
+        "start": 339772,
+        "end": 339901,
+        "before": "        : \"<span class=ss-more data-more='\"+escHtml(bare(r.s))+\"' title='More'>\u25be</span>\")+\n",
+        "after": "        : \"<span class=ss-more data-more='\"+escHtml(r.s)+\"' data-watch-id='\"+escHtml(r.watchId||r.s)+\"' title='More'>\u25be</span>\")+\n"
+      },
+      {
+        "start": 340326,
+        "end": 340413,
+        "before": "        var s=b.getAttribute(\"data-more\");\n",
+        "after": "        var s=b.getAttribute(\"data-more\"), watchId=b.getAttribute(\"data-watch-id\")||s;\n"
+      },
+      {
+        "start": 340589,
+        "end": 340830,
+        "before": "        document.querySelectorAll(\"#menu [data-a]\").forEach(function(x){ x.onclick=function(){ closeMenu(); goSymbol(s, x.dataset.a); }; });\n",
+        "after": "        document.getElementById(\"menu\").classList.add(\"ss-watch-menu\");\n        document.querySelectorAll(\"#menu [data-a]\").forEach(function(x){ x.onclick=function(){ closeMenu(); goSymbol(x.dataset.a===\"add\"?watchId:s, x.dataset.a); }; });\n"
+      },
+      {
+        "start": 341142,
+        "end": 341199,
+        "before": "    function push(s, name, extra, type, force){\n",
+        "after": "    function push(s, name, extra, type, force, watchId){\n"
+      },
+      {
+        "start": 341218,
+        "end": 341615,
+        "before": "      var full=(window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s;\n      if(!(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CQSNAP|CQARM|CQDOC|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\\^/.test(full) && full.indexOf(\"=\")<0 && !/^provider:/i.test(full))\n",
+        "after": "      var full=dest===\"add\"?s:((window.JHChartCatalog && window.JHChartCatalog.keepId)?window.JHChartCatalog.keepId(s):s);\n      if(dest!==\"add\" && !(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(full)) && !/^(FRED|CQ|CQSNAP|CQARM|CQDOC|CISS|DESK|DATA|NYFED):/i.test(full) && !/^\\^/.test(full) && full.indexOf(\"=\")<0 && !/^provider:/i.test(full))\n"
+      },
+      {
+        "start": 341669,
+        "end": 341785,
+        "before": "      if(!full||seen[k]||seen[bare(full)]) return; seen[k]=1; seen[bare(full)]=1;\n",
+        "after": "      if(!full||seen[k]||(dest!==\"add\" && seen[bare(full)])) return; seen[k]=1; if(dest!==\"add\")seen[bare(full)]=1;\n"
+      },
+      {
+        "start": 342556,
+        "end": 342651,
+        "before": "      rows.push({s:full, name:name||\"\", extra:extra||\"\", type:type||cls});\n",
+        "after": "      rows.push({s:full, watchId:watchId||s, name:name||\"\", extra:extra||\"\", type:type||cls});\n"
+      },
+      {
+        "start": 343449,
+        "end": 343628,
+        "before": "    if(ssRemoteState && Array.isArray(ssRemoteState.rows)) ssRemoteState.rows.forEach(function(r){push(r.s,r.name,r.extra,r.type,true);});\n",
+        "after": "    if(ssRemoteState && Array.isArray(ssRemoteState.rows)) ssRemoteState.rows.forEach(function(r){push(dest===\"add\"?(r.watchId||r.s):r.s,r.name,r.extra,r.type,true,r.watchId);});\n"
+      },
+      {
+        "start": 343866,
+        "end": 343896,
+        "before": "    pinBest(q);\n",
+        "after": "    pinBest(q, dest===\"add\");\n"
+      },
+      {
+        "start": 351319,
+        "end": 351430,
+        "before": "      var s=chartId(id)||id;\n",
+        "after": "      var wrap=document.getElementById(\"symsearch\"), s=wrap && wrap.dataset.dest===\"add\"?id:(chartId(id)||id);\n"
+      },
+      {
+        "start": 351539,
+        "end": 351669,
+        "before": "        ssRemoteState.rows.push({s:s,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n",
+        "after": "        ssRemoteState.rows.push({s:s,watchId:id,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n"
+      },
+      {
+        "start": 351772,
+        "end": 351888,
+        "before": "      ssRows.push({s:s,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n",
+        "after": "      ssRows.push({s:s,watchId:id,name:name||\"\",extra:extra||\"\",type:type||classifySym(s),label:displayTicker(s)});\n"
+      },
+      {
+        "start": 372135,
+        "end": 372381,
+        "before": "        var hit={id:\"custom-\"+Date.now(),name:name,symbols:syms2,n:syms2.length,custom:1}; custom.push(hit); saveJSON(CUSTOM_KEY,custom);\n",
+        "after": "        var hit={id:\"custom-\"+Date.now(),name:name,symbols:syms2,n:syms2.length,custom:1}; if(!Array.isArray(custom)){toast(\"Saved watchlist unavailable; original retained\");return;} custom.push(hit); if(!saveWatchlist(CUSTOM_KEY,custom))return;\n"
+      },
+      {
+        "start": 372788,
+        "end": 373007,
+        "before": "    syms.slice(0,24).forEach(function(s){ if(quotes[s]||quotes[bare(s)]) return; lastPx(s).then(function(px){ if(!px) return; quotes[s]=px; quotes[bare(s)]=px; renderList(); renderTabs(); }); });\n",
+        "after": "    if(!window.__jhTvWatch)syms.slice(0,24).forEach(function(s){ if(quotes[s]||quotes[bare(s)]) return; lastPx(s).then(function(px){ if(!px) return; quotes[s]=px; quotes[bare(s)]=px; renderList(); renderTabs(); }); });\n"
+      },
+      {
+        "start": 373891,
+        "end": 374401,
+        "before": "",
+        "after": "  window.jhWatchlistActive=function(){return active;};\n  window.jhWatchlistResolve=function(s){\n    var n=normQ(s), economic=classifySym(s)===\"macro\" || SEARCH_ALIASES.some(function(a){return a.type===\"economy\" && a.q.indexOf(n)>=0;});\n    if(economic)return {engine:\"unqualified-economic\",raw:s};\n    return resolveSym(s);\n  };\n  window.jhWatchlistNativeList=function(id){return lists.find(function(l){return String(l.id)===String(id);})||null;};\n  window.jhWatchlistContext=function(x,y,s){openCtx(x,y,s);};\n"
+      },
+      {
+        "start": 375140,
+        "end": 375292,
+        "before": "    lists=custom.concat(local, copied);\n",
+        "after": "    var listIds=new Set();\n    lists=custom.concat(local,copied).filter(function(l){if(listIds.has(l.id))return false;listIds.add(l.id);return true;});\n"
+      },
+      {
+        "start": 383147,
+        "end": 383211,
+        "before": "    s=bare(s);\n",
+        "after": "    if(typeof s!==\"string\" || !s.trim())return;\n    s=s.trim();\n"
+      },
+      {
+        "start": 383242,
+        "end": 383375,
+        "before": "    favs=on?favs.filter(function(x){return x!==s;}):favs.concat([s]);\n    saveJSON(FAV_KEY,favs);\n",
+        "after": "    var next=on?favs.filter(function(x){return x!==s;}):favs.concat([s]);\n    if(!saveWatchlist(FAV_KEY,next))return;\n    favs=next;\n"
+      },
+      {
+        "start": 395034,
+        "end": 395401,
+        "before": "    el.innerHTML=\"<button data-a=open>Open chart</button><button data-a=fin>Financials</button><button data-a=note>Notes</button><button data-a=add>Add to list</button><button data-a=cmp>Compare</button><button data-a=al>Alert at last</button><button data-a=tab>Add tab</button><button data-a=fav>Favorite</button><button data-a=flag>Cycle flag</button>\";\n",
+        "after": "    el.innerHTML=\"<button data-a=open>Open chart</button><button data-a=fin>Financials</button><button data-a=note>Notes</button><button data-a=add>Add to list</button><button data-a=cmp>Compare</button><button data-a=al>Alert at aggregate close</button><button data-a=tab>Add tab</button><button data-a=fav>Favorite</button><button data-a=flag>Cycle flag</button>\";\n"
+      },
+      {
+        "start": 395806,
+        "end": 396428,
+        "before": "        if(b.dataset.a===\"al\"){ var q=quotes[s]||quotes[bare(s)]; addAlert(bare(s), q?q.last:(lastBars[lastBars.length-1]||{}).close); }\n        if(b.dataset.a===\"flag\"){ var cols=[\"#2962ff\",\"#089981\",\"#f23645\",\"#ff6d00\",\"#ab47bc\",\"\"], cur=flags[s]||\"\"; var ix=cols.indexOf(cur); flags[s]=cols[(ix+1)%cols.length]; saveJSON(FLAG_KEY, flags); renderList(); }\n",
+        "after": "        if(b.dataset.a===\"al\"){ var q=window.__jhTvWatch&&window.jhWatchlistQuote?window.jhWatchlistQuote.get(s):quotes[s];if(!q||typeof q.last!==\"number\"||!Number.isFinite(q.last)){toast(\"Matching aggregate close unavailable; no alert created\");return;}addAlert(s,q.last); }\n        if(b.dataset.a===\"flag\"){ var cols=[\"#2962ff\",\"#089981\",\"#f23645\",\"#ff6d00\",\"#ab47bc\",\"\"], cur=flags[s]||\"\"; var ix=cols.indexOf(cur); var nextFlags=Object.assign({},flags);var color=cols[(ix+1)%cols.length];if(color)nextFlags[s]=color;else delete nextFlags[s];if(!saveWatchlist(FLAG_KEY,nextFlags))return;flags=nextFlags;renderList(); }\n"
+      },
+      {
+        "start": 412182,
+        "end": 412326,
+        "before": "",
+        "after": "    if(e.target && e.target.closest && e.target.closest(\"#watch\") && [\" \",\"Delete\",\"Backspace\",\"ArrowDown\",\"ArrowUp\"].indexOf(e.key)>=0)return;\n"
+      }
+    ]
+  },
+  "chart.html": {
+    "before_path": "tests/fixtures/watchlist-correctness/chart.html.txt",
+    "before_sha256": "5a850f55574c17e5ed53fd8bfa65b8a3209d436954b7b05cdd096bd5eda15298",
+    "after_sha256": "e8e19cabb98da03f601054e72610f60add58d8f97cf4b8087bfd3b826cd6b899",
+    "edits": [
+      {
+        "start": 54003,
+        "end": 54098,
+        "before": "<script src=\"/jh-chart-tvrail.js?v=20261001-snapshot\"></script>\n",
+        "after": "<script src=\"/jh-chart-tvrail.js?v=20261001-snapshot&watch=watchlist-correctness-v2\"></script>\n"
+      },
+      {
+        "start": 54546,
+        "end": 54642,
+        "before": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves\"></script>\n",
+        "after": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves&watch=watchlist-correctness-v2\"></script>\n"
+      }
+    ]
+  },
+  "tests/helpers/chart-external-pane-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__chart-external-pane-preservation.cjs.txt",
+    "before_sha256": "4723f4464dd648b85c5a74e5e4ad628ad33d2a7a32ba6a065abeca8265d1cb8c",
+    "after_sha256": "e3302210863b08544bf2e5e4cad9444f8054da5ca409e46e51a1cb549fc1e4b2",
+    "edits": [
+      {
+        "start": 314,
+        "end": 847,
+        "before": "function normalizeSource(raw,file='jh-chart-engine.js'){if(file==='jh-chart-buyback.js')raw=require('./buyback-evidence-preservation.cjs').normalize(raw,file);const e=t.edits[file];assert.ok(e,file);assert.equal(hash(raw),e.after_sha256);assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,e.before);assert.equal(hash(raw),e.before_sha256);assert.equal(raw,fs.readFileSync(path.join(R,e.before_path),'utf8'));return raw;}\n",
+        "after": "function normalizeSource(raw,file='jh-chart-engine.js'){if(file==='jh-chart-engine.js')raw=require('./watchlist-source-preservation.cjs').normalize(raw);if(file==='jh-chart-buyback.js')raw=require('./buyback-evidence-preservation.cjs').normalize(raw,file);const e=t.edits[file];assert.ok(e,file);assert.equal(hash(raw),e.after_sha256);assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,e.before);assert.equal(hash(raw),e.before_sha256);assert.equal(raw,fs.readFileSync(path.join(R,e.before_path),'utf8'));return raw;}\n"
+      }
+    ]
+  },
+  "tests/helpers/chart-signed-volume-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__chart-signed-volume-preservation.cjs.txt",
+    "before_sha256": "7e92a413ca011c5f315ace32be3c340bff09a00cff361e10d2107bd98f597c98",
+    "after_sha256": "eadca991069678f4fc729cbd758fa23a6aefc13f0721a2afaee227430f8ad28b",
+    "edits": [
+      {
+        "start": 1005,
+        "end": 1104,
+        "before": "",
+        "after": " if(file==='jh-chart-engine.js')raw=require('./watchlist-source-preservation.cjs').normalize(raw);\n"
+      }
+    ]
+  },
+  "tests/helpers/buyback-evidence-preservation.cjs": {
+    "before_path": "tests/fixtures/watchlist-correctness/tests__helpers__buyback-evidence-preservation.cjs.txt",
+    "before_sha256": "8181c8d171a0d48d3ee6385a9fe93cff006a1aeca8eaace205d2804b13fb5515",
+    "after_sha256": "8eb9c23144c39a174d7095c05eb0c1438381f42838de375970412dbc8f5400ab",
+    "edits": [
+      {
+        "start": 579,
+        "end": 869,
+        "before": "function normalize(raw,file){return reverse(raw,t.changes[file]);}\nfunction normalizeHelper(raw,file){return reverse(raw,t.hooks[file]);}\n",
+        "after": "function normalize(raw,file){raw=require('./watchlist-source-preservation.cjs').normalizeFile(raw,file);return reverse(raw,t.changes[file]);}\nfunction normalizeHelper(raw,file){raw=require('./watchlist-source-preservation.cjs').normalizeHelper(raw,file);return reverse(raw,t.hooks[file]);}\n"
+      }
+    ]
+  }
+}
