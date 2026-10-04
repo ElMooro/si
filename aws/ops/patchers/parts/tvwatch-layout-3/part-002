@@ -1,0 +1,174 @@
+@@PART 2/9@@
+    "#listdrop .ld-row>button[data-id]{flex:1;display:flex;align-items:center;gap:8px;background:transparent;color:#d1d4dc;padding:6px 10px;text-align:left;min-width:0}",
+    "#listdrop .ld-row.on,#listdrop .ld-row:hover{background:#2a2e39}",
+    "#listdrop .ld-row b{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+    "#listdrop .ld-row span{color:#787b86;font-size:12px}",
+    "#listdrop .ld-star{color:#787b86;background:transparent;border:0;padding:0 8px}",
+    "#listdrop .ld-star.on{color:#fdd835}",
+    "#ld-foot{border-top:1px solid #2a2e39;display:flex;flex-wrap:wrap;padding:4px;background:#131722;flex:none}",
+    "#ld-foot button{flex:1 1 45%;text-align:left;padding:6px 8px;color:#d1d4dc;background:transparent;font-size:12px}",
+    "#ld-foot button:hover{background:#2a2e39}",
+    "#listres{overflow:auto;max-height:42vh}",
+    "#tvimp{display:none;position:fixed;z-index:97;width:min(420px,92vw);background:#1e222d;border:1px solid #2a2e39;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,.5);padding:12px;color:#d1d4dc}",
+    "#tvimp.on{display:block}",
+    "#tvimp textarea{width:100%;height:140px;margin:8px 0;background:#131722;color:#d1d4dc;border:1px solid #2a2e39;border-radius:4px;padding:8px;font-size:12px}",
+    "#tvimp .row{display:flex;gap:8px;flex-wrap:wrap}",
+    "#tvimp button{padding:6px 10px;background:#2a2e39;color:#d1d4dc;border-radius:4px}",
+    "#tvtoast{display:none;position:fixed;z-index:120;right:16px;bottom:48px;background:#1e222d;color:#d1d4dc;border:1px solid #2962ff;border-radius:6px;padding:10px 12px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.4)}",
+    "#tvtoast.on{display:block}",
+    "#tvcard textarea{width:100%;margin-top:8px;height:48px;background:#131722;color:#d1d4dc;border:1px solid #2a2e39;border-radius:4px;padding:6px;font-size:12px;resize:vertical}",
+    "#tvcard .meta{display:flex;justify-content:space-between;gap:8px;color:#787b86;font-size:11px;margin-top:4px}",
+    "#tvadv{display:none;position:absolute;inset:0;z-index:40;background:#131722;color:#d1d4dc;flex-direction:column}",
+    "#tvadv.on{display:flex}",
+    "#tvadv .ah{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #2a2e39;flex:none}",
+    "#tvadv .ah b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+    "#tvadv .tabs{display:flex;gap:4px;padding:6px 10px;flex:none}",
+    "#tvadv .tabs button,#tvadv .ah button,#tvadv .tool button,#tvadv .tool select{background:#1e222d;color:#d1d4dc;border:1px solid #2a2e39;border-radius:4px;padding:4px 8px;font-size:12px}",
+    "#tvadv .tabs button.on{border-color:#2962ff;color:#fff}",
+    "#tvadv .tool{display:flex;gap:8px;align-items:center;padding:0 10px 6px;color:#787b86;font-size:12px;flex:none;flex-wrap:wrap}",
+    "#tvadv .advsc{overflow:auto;flex:1}",
+    "#tvadv table{border-collapse:collapse;font-size:12px;min-width:100%}",
+    "#tvadv th,#tvadv td{padding:4px 8px;border-bottom:1px solid #2a2e39;white-space:nowrap;text-align:right}",
+    "#tvadv th:first-child,#tvadv td:first-child{text-align:left;position:sticky;left:0;background:#131722}",
+    "#tvadv tr.gh td{background:#1e222d;color:#787b86;font-size:11px;letter-spacing:.04em;text-align:left}",
+    "#tvadv tbody tr[data-s]:hover td{background:#2a2e39}",
+    "#tvadv .pies{display:flex;gap:16px;padding:8px 12px;border-top:1px solid #2a2e39;flex:none}",
+    "#tvadv .pie{width:64px;height:64px;border-radius:50%}",
+    "#tvadv .plab{font-size:11px;color:#787b86;max-width:180px}",
+    "#tvadv .note{padding:0 12px 8px;color:#787b86;font-size:11px;flex:none}",
+    "#wlist .tvflag{font-size:0;border:1px solid #787b86;background:transparent;border-radius:2px;width:10px;height:10px}",
+    "#wlist .tvflag.on{border-color:transparent}"
+  ].join("");
+  document.documentElement.appendChild(css);
+
+  function bare(s) { s = String(s || ""); var i = s.lastIndexOf(":"); return i >= 0 ? s.slice(i + 1) : s; }
+  function exch(s) { s = String(s || ""); var i = s.indexOf(":"); return i > 0 ? s.slice(0, i) : ""; }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      if (c === "&") return "&" + "amp;";
+      if (c === "<") return "&" + "lt;";
+      if (c === ">") return "&" + "gt;";
+      if (c === "\"") return "&" + "quot;";
+      return "&" + "#39;";
+    });
+  }
+  function hue(s) { var h = 0, i; s = bare(s); for (i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0; return h % 360; }
+  function num(n) {
+    if (typeof n !== "number" || !isFinite(n)) return "\u2014";
+    var a = Math.abs(n), d = a >= 100 ? 2 : a >= 1 ? 2 : a >= 0.01 ? 4 : 6;
+    return n.toLocaleString("en-US", { minimumFractionDigits: Math.min(2, d), maximumFractionDigits: d });
+  }
+  function vol(n) {
+    if (!(n > 0) || !isFinite(n)) return "\u2014";
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return (n / 1e3).toFixed(2) + "K";
+    return String(Math.round(n));
+  }
+  function pct(n) { if (typeof n !== "number" || !isFinite(n)) return "\u2014"; return (n >= 0 ? "+" : "") + (n * 100).toFixed(2) + "%"; }
+  function cls(n) { return n < 0 ? "dn" : "up"; }
+  function activeSym() { var el = document.getElementById("symin"); return el ? String(el.value || "").trim() : ""; }
+  function flags() { return read("jh-chart-flags", {}) || {}; }
+  function setFlag(s, color) {
+    var f = flags();
+    if (color) f[s] = color; else delete f[s];
+    write("jh-chart-flags", f);
+    if (!quotes[s]) quotes[s] = {};
+    quotes[s].flag = color || "";
+  }
+  function customLists() {
+    var dst = read("jh-chart-custom-lists", []);
+    return Array.isArray(dst) ? dst : [];
+  }
+  function saveCustom(arr) { write("jh-chart-custom-lists", arr); }
+  function findCustom(id) {
+    var arr = customLists(), i;
+    for (i = 0; i < arr.length; i++) if (String(arr[i].id) === String(id)) return arr[i];
+    return null;
+  }
+  function findList(id) {
+    if (!id) return null;
+    if (String(id).indexOf("flag:") === 0) {
+      var c = id.slice(5), f = flags(), syms = [];
+      Object.keys(f).forEach(function (k) { if (f[k] === c) syms.push(k); });
+      return { id: id, name: "Flagged", symbols: syms, color: c, virtual: 1 };
+    }
+    if (id === "favorites") {
+      var fav = read("jh-chart-favs", []);
+      return { id: "favorites", name: "Favorites", symbols: Array.isArray(fav) ? fav : [], color: "#fdd835", virtual: 1 };
+    }
+    if (catalog[id]) return catalog[id];
+    return findCustom(id);
+  }
+  function mergeOrder(source, extras, order, hidden) {
+    var pool = {}, seq = [], used = {}, i, s;
+    (source || []).forEach(function (x) { pool[x] = 1; });
+    (extras || []).forEach(function (x) { pool[x] = 1; });
+    (order || []).forEach(function (x) {
+      if (String(x).indexOf("###") === 0) { seq.push(x); return; }
+      if (pool[x] && !hidden[x] && !used[x]) { seq.push(x); used[x] = 1; }
+    });
+    (source || []).concat(extras || []).forEach(function (x) {
+      if (!used[x] && !hidden[x]) { seq.push(x); used[x] = 1; }
+    });
+    return seq;
+  }
+  function sortSeq(seq, key, dir) {
+    if (!key) return seq.slice();
+    var out = [], block = [];
+    function val(s) {
+      if (key === "sym") return bare(s);
+      var q = quotes[s] || quotes[bare(s)] || {};
+      if (key === "last") return q.last;
+      if (key === "chg") return q.chgv;
+      if (key === "chgp") return q.chg;
+      if (key === "vol") return q.vol;
+      if (key === "ext") return q.ext;
+      return q[key];
+    }
+    function flush() {
+      block.sort(function (a, b) {
+        var va = val(a), vb = val(b);
+        var sa = key === "sym";
+        if (va == null || va !== va) return 1;
+        if (vb == null || vb !== vb) return -1;
+        if (va < vb) return -dir;
+        if (va > vb) return dir;
+        return sa ? 0 : 0;
+      });
+      out = out.concat(block);
+      block = [];
+    }
+    seq.forEach(function (s) {
+      if (String(s).indexOf("###") === 0) { flush(); out.push(s); }
+      else block.push(s);
+    });
+    flush();
+    return out;
+  }
+  function sectionCounts(seq) {
+    var map = {}, name = "", n = 0, i;
+    function close() { if (name) map[name] = n; }
+    for (i = 0; i < seq.length; i++) {
+      if (String(seq[i]).indexOf("###") === 0) { close(); name = String(seq[i]).replace(/^#+/, ""); n = 0; }
+      else n++;
+    }
+    close();
+    return map;
+  }
+  function applyCollapse(seq, id) {
+    var out = [], hide = false, name = "";
+    seq.forEach(function (s) {
+      if (String(s).indexOf("###") === 0) {
+        name = String(s).replace(/^#+/, "");
+        hide = !!ui.collapsed[id + "|" + name];
+        out.push(s);
+      } else if (!hide) out.push(s);
+    });
+    return out;
+  }
+  function viewOf(L) {
+    if (!L) return [];
+    var hidden = ui.hide[L.id] || {};
+    var seq = mergeOrder(L.symbols || [], ui.extra[L.id] || [], ui.order[L.id] || [], hidden);
+@@END 2@@
