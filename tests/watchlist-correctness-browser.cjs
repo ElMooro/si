@@ -51,10 +51,10 @@ try{for(const width of [1440,390]){
  await page.waitForFunction(()=>document.querySelector('#wlist [data-s=ERR429] .qe').textContent.includes('HTTP 429'));
  assert.ok((await page.locator('#wlist [data-s=ERR500]').innerText()).includes('HTTP 500'));
  assert.ok((await page.locator('#wlist [data-s=MALFORMED]').innerText()).includes('invalid aggregate close'));
- await page.locator('#wlist [data-s=ONE]').scrollIntoViewIfNeeded();
+ await page.evaluate(()=>document.querySelector('#wlist [data-s=ONE]').scrollIntoView({block:'nearest'}));
  await page.waitForFunction(()=>document.querySelector('#wlist [data-s=ONE] .px').textContent!=='—');
  assert.equal(await page.locator('#wlist [data-s=ONE] .chg').first().innerText(),'—');
- await page.locator('#wlist [data-s="NASDAQ:AAPL"]').scrollIntoViewIfNeeded();
+ await page.evaluate(()=>document.querySelector('#wlist [data-s="NASDAQ:AAPL"]').scrollIntoView({block:'nearest'}));
  assert.ok((await page.locator('#wlist [data-s="NASDAQ:AAPL"]').innerText()).includes('endpoint cannot verify'));
  assert.equal(await page.locator('#wlist [data-s="NASDAQ:AAPL"] .wsym').innerText(),"AAPL");
  assert.ok((await page.locator('#wlist [data-s="NASDAQ:AAPL"] .qe').innerText()).startsWith("NASDAQ:AAPL · "));
@@ -80,7 +80,7 @@ try{for(const width of [1440,390]){
  await page.locator('#cols [data-s=sym]').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('#cols [data-s=sym]').getAttribute('aria-sort'),'ascending');
  await page.locator('#cols [data-s=sym]').focus();await page.keyboard.press('Space');assert.equal(await page.locator('#cols [data-s=sym]').getAttribute('aria-sort'),'descending');assert.equal(await page.evaluate(()=>localStorage.getItem('jh-chart-custom-lists')),saved);
  // Full saved tail is reachable, including scrolling on touch viewport.
- await page.locator('#wlist .wrow').last().scrollIntoViewIfNeeded();assert.ok(await page.locator('#wlist').evaluate(e=>e.scrollHeight>e.clientHeight));
+ await page.evaluate(()=>Array.from(document.querySelectorAll('#wlist .wrow')).at(-1).scrollIntoView({block:'nearest'}));assert.ok(await page.locator('#wlist').evaluate(e=>e.scrollHeight>e.clientHeight));
  // Same count replacement/reorder and removal of flag are repainted from saved state.
  await page.evaluate(()=>{const lists=JSON.parse(localStorage.getItem('jh-chart-custom-lists'));lists[1].symbols=['FRED:SOFR','NYSE:IBM','NASDAQ:IBM'];localStorage.setItem('jh-chart-custom-lists',JSON.stringify(lists));window.dispatchEvent(new StorageEvent('storage',{key:'jh-chart-custom-lists'}));const s=document.getElementById('list');s.value='small';s.dispatchEvent(new Event('change'));});
  await page.waitForFunction(()=>document.querySelector('#wlist [data-s="NYSE:IBM"]'));
