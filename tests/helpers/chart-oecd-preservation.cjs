@@ -1,11 +1,10 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
-const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-bis-monthly/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-oecd/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 function normalize(raw,file){
- raw=require("./chart-oecd-preservation.cjs").normalize(raw,file);
  const row=file===transition.ledger.path?transition.ledger:transition.changes[file];if(!row)return raw;
  const digest=hash(raw);
  if(digest===row.before_sha256){assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;}
- for(const name of ['chart-bis-fx','chart-market-repair','chart-bis','chart-cftc','chart-provider-browser']){
+ for(const name of ['chart-bis-monthly','chart-bis-fx','chart-market-repair','chart-bis','chart-cftc','chart-provider-browser']){
   const older=require('../fixtures/'+name+'/transition.json'),previous=file===older.ledger.path?older.ledger:older.changes[file];
   if(previous&&digest===previous.before_sha256){assert.equal(raw,fs.readFileSync(path.join(R,previous.before_path),'utf8'));return raw;}
  }
