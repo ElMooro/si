@@ -56,6 +56,8 @@ try{for(const width of [1440,390]){
  assert.equal(await page.locator('#wlist [data-s=ONE] .chg').first().innerText(),'—');
  await page.locator('#wlist [data-s="NASDAQ:AAPL"]').scrollIntoViewIfNeeded();
  assert.ok((await page.locator('#wlist [data-s="NASDAQ:AAPL"]').innerText()).includes('endpoint cannot verify'));
+ assert.equal(await page.locator('#wlist [data-s="NASDAQ:AAPL"] .wsym').innerText(),"AAPL");
+ assert.ok((await page.locator('#wlist [data-s="NASDAQ:AAPL"] .qe').innerText()).startsWith("NASDAQ:AAPL · "));
  await page.locator('#wlist [data-s="NASDAQ:AAPL"]').waitFor({state:"visible"});
  const geometry=await page.evaluate(()=>{const row=document.querySelector('#wlist [data-s="NASDAQ:AAPL"]');const assertConnected=!!row&&row.isConnected;const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};};return {connected:assertConnected,grid:getComputedStyle(row).gridTemplateColumns.split(' ').length,symbol:rect(row.querySelector('.wsym')),close:rect(row.querySelector('.px')),delta:rect(row.querySelectorAll('.chg')[0]),percent:rect(row.querySelectorAll('.chg')[1]),headers:Array.from(document.querySelectorAll('#cols [data-s]'),rect)};});
  const grid=geometry.grid;assert.equal(geometry.connected,true);assert.equal(grid,7);

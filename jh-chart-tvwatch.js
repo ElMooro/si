@@ -104,10 +104,10 @@
     return "<button type=button class='wrow tv"+(on?" on":"")+"' data-s='"+esc(s)+"' title='"+esc(s+" · "+label)+"'>"+
       "<i class=wacc></i><i class=tvflag"+(flag?" style='background:"+esc(flag)+"'":"")+"></i>"+
       "<i class=tvlogo style='background:hsl("+hue(s)+",42%,42%)'>"+esc((b||"?").slice(0,1))+"</i>"+
-      "<span class=wsym>"+esc(s)+"</span><span class='px "+cls+"'>"+num(q&&q.last)+"</span>"+
+      "<span class=wsym>"+esc(b)+"</span><span class='px "+cls+"'>"+num(q&&q.last)+"</span>"+
       "<span class='chg "+cls+"'>"+(change?(q.chgv>=0?"+":"")+num(q.chgv):"—")+"</span>"+
       "<span class='chg "+cls+"'>"+(change?(q.chg>=0?"+":"")+(q.chg*100).toFixed(2)+"%":"—")+"</span>"+
-      "<small class=qe>"+esc(label)+"</small></button>";
+      "<small class=qe>"+esc(s+" · "+label)+"</small></button>";
   }
   function resolve(s, rules) {
     if(typeof s!=="string" || !s.trim())return {reason:"invalid instrument identity"};
