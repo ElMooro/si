@@ -1,0 +1,44 @@
+{
+  "base": "95cd9909030cce9cdd93b2db60d50d9336f7ac2c",
+  "hashes": {
+    "cloudflare/workers/justhodl-data-proxy/src/account_state.js": "134c546766a359af459bf9bb01d1d34f1e6d1bab8e663c5b761fde8bf423951c",
+    "cloudflare/workers/justhodl-data-proxy/src/ask_desk_api.js": "42403a8f98a8843220e33e2625c7868d690fb789d8f35d7b86c5e04cd1787c6d",
+    "cloudflare/workers/justhodl-data-proxy/src/factory-gateway.js": "a14ae303cd6982f8adf2b019ad0ddcd6b71620af03ca0d3489eff77efe35af35",
+    "cloudflare/workers/justhodl-data-proxy/src/fusion_api.js": "5abc09c419d3f614b89790aa3c61c5ab6d170980fc9bc97cb04a8a81aa6a3cf4",
+    "cloudflare/workers/justhodl-data-proxy/src/index.js": "776a546c1bb0b3d5fa2d525349cc34ebbb6bdf14c3d0f4dcb504efa905ac53b0",
+    "cloudflare/workers/justhodl-data-proxy/src/portfolio-publication.js": "fc39ea1d61ed09fb57ac43bf9fed6e942b5bf882f578523ca3b2414b4b382419",
+    "cloudflare/workers/justhodl-data-proxy/src/portfolio-snapshot.js": "c44db67b36be8e43ecce8381a3dde841ec8dedd7412d35f66480ffb127f4e6de",
+    "cloudflare/workers/justhodl-data-proxy/src/public-object-path.mjs": "2c584bfe3522578145505a00e1dd48a2c2ba8f1e9fb5ef21a3fa55657a0e62d7",
+    "cloudflare/workers/justhodl-data-proxy/src/reviewed-artifacts.js": "deb59eed4b99f1dcfa4de10e3da3622976f0f5a452d877d944e45e424e30d752",
+    "cloudflare/workers/justhodl-data-proxy/src/snapshot-publication.js": "bf1d50b9a8a00e89fba24c620335b288eb189ef45e45713217fabd44b982696d",
+    "cloudflare/workers/justhodl-data-proxy/src/symsearch-cache.js": "5f35c08f6fa5b7ba42fa986ba14e885b7d86bee8fe0804f1c5e66366d412c75f",
+    "cloudflare/workers/justhodl-data-proxy/src/warehouse-ohlc.js": "a3320f85c7827938a592f1396c74a419b8065d5516c694bbd9282f0920e72f66",
+    "docs/audit/2026-10-04/chart-oecd-object-path-census.json": "7299e73a16c934d3ba638db5904c13feb496b77f751d834d13fff5bed3ebb409",
+    "tests/deployment/crypto_source_preservation.py": "4a830910a12eb07d92f152013fe260522e3d5b483f65d8a7f52ef262cc436468",
+    "tests/deployment/worker_oecd_path_preservation.py": "95d0cff3cc151bbb114da43e78c9cb36df4fa16e021b7ddc60c9fa1b9a8e183a",
+    "tests/fixtures/worker-oecd-path/cloudflare__workers__justhodl-data-proxy__src__index.js.before.txt": "5a04e13f6da1c2a0dc9065f8848745c61f65318a9027bfc83338926d6ddc77d5",
+    "tests/fixtures/worker-oecd-path/tests__deployment__crypto_source_preservation.py.before.txt": "adaa2e7e0fdb736577809543e449a58d3b31dfc22297c1b06c7bc33e6332a500",
+    "tests/fixtures/worker-oecd-path/tests__helpers__worker-crypto-source-preservation.cjs.before.txt": "2e0980d3788e885012df18bf222e866454c87d93eb42de7aee32687de9519872",
+    "tests/fixtures/worker-oecd-path/tests__worker-crypto-source.test.js.before.txt": "84d71c87f3d858cb553c5a323f5755b5b4ffa2e5cdab42ee3845de1f0a4da254",
+    "tests/fixtures/worker-oecd-path/transition.json": "057e303cfe002cc712619cfe7b0a23817d28a980dc9664dd410208322680398c",
+    "tests/helpers/worker-crypto-source-preservation.cjs": "e860c9cab66f2e8b54a462f7e0d29b198569acdb1a124f5e11014e675bf52b0c",
+    "tests/helpers/worker-oecd-path-preservation.cjs": "01047088d46c0d1feedb04a437168c4c65c4a41ada6e8c97eeb4152741b568c6",
+    "tests/worker-crypto-source.test.js": "fa6deb2838754b4a75d38d72f6682f02e4556adbf242c27083c2453f2a8947ab",
+    "tests/worker-oecd-path.test.js": "f50f763f8ae8dede26eb344fe377c90d4bb68e770bd740076377cb2d4a7eed17"
+  },
+  "checks": [
+    {
+      "suite": "worker",
+      "exit": 0
+    },
+    {
+      "suite": "brain-boundaries",
+      "exit": 0
+    },
+    {
+      "suite": "deployment",
+      "exit": 0
+    }
+  ],
+  "all_passed": true
+}
