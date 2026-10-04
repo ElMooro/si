@@ -193,7 +193,6 @@
 
   function isWarehouse(s) {
     s = String(s || "");
-    if (/^COT[23]?:/i.test(s)) return true;
     if (/^(FRED|CQ|CISS|DESK|DATA|NYFED):/i.test(s)) return true;
     var p = s.split(":")[0];
     if (!p || s.indexOf(":") < 0) return false;
@@ -540,7 +539,6 @@
     var s = String(raw || "").trim();
     if (!s) return "";
     var low = s.toLowerCase();
-    if (/^(COT[23]?|cftc):/i.test(s)) { var cot = global.JHChartCFTC && global.JHChartCFTC.resolve(s); return cot ? cot.id : ""; }
     if (/^desk:/i.test(s)) return "DESK:" + s.split(":")[1];
     if (/^data:/i.test(s)) return "DATA:" + s.split(":")[1];
     if (/^provider:/i.test(s)) return "provider:" + s.split(":")[1];

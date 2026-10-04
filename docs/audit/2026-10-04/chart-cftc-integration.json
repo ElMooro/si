@@ -1,0 +1,801 @@
+{
+  "status": "candidate_not_deployed",
+  "base": "5a3961e4e72e8fd602fa99d87fbcfdfc7f993187",
+  "schema": "chart-cftc-integration.v1",
+  "watchlist_aliases": 346,
+  "official_reports": 6,
+  "catalogue_sha256": "5af4de91d873f415b76e50c06ec9c2d0428498394313fd87cee56020796d5294",
+  "catalogue_bytes": 100593,
+  "official_schema_receipts": [
+    {
+      "id": "gpe5-46if",
+      "url": "https://publicreporting.cftc.gov/api/views/gpe5-46if.json",
+      "at": "2026-10-04T18:31:08.276130+00:00",
+      "http_status": 200,
+      "bytes": 152769,
+      "sha256": "bf900ad41416eb70f7b5e38c083cf7a42656b2cc1d3238545a1e1ac692270435",
+      "name": "TFF - Futures Only"
+    },
+    {
+      "id": "72hh-3qpy",
+      "url": "https://publicreporting.cftc.gov/api/views/72hh-3qpy.json",
+      "at": "2026-10-04T18:31:08.278197+00:00",
+      "http_status": 200,
+      "bytes": 329581,
+      "sha256": "48b70771e0df32c577e0018f9281733ec951eda5aa8611f86aea62448f2521ef",
+      "name": "Disaggregated - Futures Only"
+    },
+    {
+      "id": "6dca-aqww",
+      "url": "https://publicreporting.cftc.gov/api/views/6dca-aqww.json",
+      "at": "2026-10-04T18:31:08.279241+00:00",
+      "http_status": 200,
+      "bytes": 227046,
+      "sha256": "f28fd61715c916d142f237930c74a98fe9f3d4d430c7279530eece5996ec5999",
+      "name": "Legacy - Futures Only"
+    },
+    {
+      "id": "yw9f-hn96",
+      "url": "https://publicreporting.cftc.gov/api/views/yw9f-hn96.json",
+      "at": "2026-10-04T18:31:08.955183+00:00",
+      "http_status": 200,
+      "bytes": 152718,
+      "sha256": "68379aba9088af5b106f6b1e9a8130f3ef4043d742d021c2ec108f1563e570b3",
+      "name": "TFF - Combined"
+    },
+    {
+      "id": "kh3c-gbw2",
+      "url": "https://publicreporting.cftc.gov/api/views/kh3c-gbw2.json",
+      "at": "2026-10-04T18:31:08.981290+00:00",
+      "http_status": 200,
+      "bytes": 329685,
+      "sha256": "0a2a198d5b23324c5be301ea8db39e84c87cc19929009466114cb7022fb35372",
+      "name": "Disaggregated - Combined"
+    },
+    {
+      "id": "jun7-fc8e",
+      "url": "https://publicreporting.cftc.gov/api/views/jun7-fc8e.json",
+      "at": "2026-10-04T18:31:09.059655+00:00",
+      "http_status": 200,
+      "bytes": 226849,
+      "sha256": "8852ef3bf7f644320df591774d235c38976754824fe3ea66e0c720b0520c2abc",
+      "name": "Legacy - Combined"
+    }
+  ],
+  "routing_inventory": {
+    "source_commit": "5a3961e4e72e8fd602fa99d87fbcfdfc7f993187",
+    "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
+    "lists": 492,
+    "occurrences": 25846,
+    "unique": 10745,
+    "unrouted": 4029,
+    "namespaces": {
+      "FRED": {
+        "total": 774,
+        "unrouted": 0
+      },
+      "NASDAQ": {
+        "total": 1545,
+        "unrouted": 24
+      },
+      "FX": {
+        "total": 29,
+        "unrouted": 4
+      },
+      "TVC": {
+        "total": 371,
+        "unrouted": 200
+      },
+      "AMEX": {
+        "total": 656,
+        "unrouted": 26
+      },
+      "CBOE": {
+        "total": 172,
+        "unrouted": 61
+      },
+      "OKEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ECONOMICS": {
+        "total": 3317,
+        "unrouted": 1246
+      },
+      "COT3": {
+        "total": 229,
+        "unrouted": 0
+      },
+      "COT": {
+        "total": 111,
+        "unrouted": 0
+      },
+      "DJCFD": {
+        "total": 13,
+        "unrouted": 13
+      },
+      "OMXBALTIC": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "SSE": {
+        "total": 61,
+        "unrouted": 9
+      },
+      "TRADEGATE": {
+        "total": 33,
+        "unrouted": 4
+      },
+      "NEO": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "SWB": {
+        "total": 58,
+        "unrouted": 7
+      },
+      "HAM": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "GLASSNODE": {
+        "total": 62,
+        "unrouted": 62
+      },
+      "USI": {
+        "total": 143,
+        "unrouted": 143
+      },
+      "SAXO": {
+        "total": 4,
+        "unrouted": 0
+      },
+      "LSE": {
+        "total": 66,
+        "unrouted": 4
+      },
+      "NYSE": {
+        "total": 281,
+        "unrouted": 2
+      },
+      "XETR": {
+        "total": 27,
+        "unrouted": 7
+      },
+      "EURONEXT": {
+        "total": 59,
+        "unrouted": 23
+      },
+      "OTC": {
+        "total": 14,
+        "unrouted": 0
+      },
+      "SPARKS": {
+        "total": 12,
+        "unrouted": 12
+      },
+      "ADX": {
+        "total": 13,
+        "unrouted": 13
+      },
+      "INDEX": {
+        "total": 330,
+        "unrouted": 182
+      },
+      "TSX": {
+        "total": 21,
+        "unrouted": 6
+      },
+      "DFM": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "ICE": {
+        "total": 389,
+        "unrouted": 389
+      },
+      "CRYPTOCAP": {
+        "total": 36,
+        "unrouted": 36
+      },
+      "CAPITALCOM": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "BLACKBULL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SPCFD": {
+        "total": 14,
+        "unrouted": 14
+      },
+      "WHSELFINVEST": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "COMEX": {
+        "total": 7,
+        "unrouted": 4
+      },
+      "CME_MINI": {
+        "total": 16,
+        "unrouted": 9
+      },
+      "VANTAGE": {
+        "total": 8,
+        "unrouted": 8
+      },
+      "(1-TVC": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "FOREXCOM": {
+        "total": 4,
+        "unrouted": 1
+      },
+      "CME": {
+        "total": 43,
+        "unrouted": 31
+      },
+      "1/FRED": {
+        "total": 20,
+        "unrouted": 0
+      },
+      "NYMEX": {
+        "total": 11,
+        "unrouted": 6
+      },
+      "EUREX": {
+        "total": 42,
+        "unrouted": 39
+      },
+      "FX_IDC": {
+        "total": 151,
+        "unrouted": 73
+      },
+      "OANDA": {
+        "total": 7,
+        "unrouted": 1
+      },
+      "NSE": {
+        "total": 6,
+        "unrouted": 4
+      },
+      "SP": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "INTOTHEBLOCK": {
+        "total": 150,
+        "unrouted": 150
+      },
+      "CBOT": {
+        "total": 23,
+        "unrouted": 12
+      },
+      "HKEX": {
+        "total": 19,
+        "unrouted": 13
+      },
+      "BMV": {
+        "total": 11,
+        "unrouted": 0
+      },
+      "MULTPL": {
+        "total": 12,
+        "unrouted": 12
+      },
+      "FTSE": {
+        "total": 455,
+        "unrouted": 453
+      },
+      "1-FRED": {
+        "total": 12,
+        "unrouted": 1
+      },
+      "SZSE": {
+        "total": 9,
+        "unrouted": 1
+      },
+      "PEPPERSTONE": {
+        "total": 9,
+        "unrouted": 9
+      },
+      "HSI": {
+        "total": 52,
+        "unrouted": 52
+      },
+      "NZX": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "BCBA": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FWB": {
+        "total": 20,
+        "unrouted": 6
+      },
+      "HOSE": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "ICEEUR": {
+        "total": 50,
+        "unrouted": 47
+      },
+      "TSE": {
+        "total": 12,
+        "unrouted": 2
+      },
+      "GETTEX": {
+        "total": 16,
+        "unrouted": 2
+      },
+      "VIE": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "BER": {
+        "total": 17,
+        "unrouted": 3
+      },
+      "GPW": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "MIL": {
+        "total": 25,
+        "unrouted": 5
+      },
+      "NSENG": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "IDX": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "1/(FRED": {
+        "total": 6,
+        "unrouted": 2
+      },
+      "SET": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "ICEUS": {
+        "total": 13,
+        "unrouted": 11
+      },
+      "MATBAROFEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1-(TVC": {
+        "total": 3,
+        "unrouted": 0
+      },
+      "1/TVC": {
+        "total": 10,
+        "unrouted": 8
+      },
+      "1/ICEUS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SIX": {
+        "total": 39,
+        "unrouted": 26
+      },
+      "1/AMEX": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "1/(TVC": {
+        "total": 5,
+        "unrouted": 4
+      },
+      "KRX": {
+        "total": 8,
+        "unrouted": 4
+      },
+      "BME": {
+        "total": 3,
+        "unrouted": 1
+      },
+      "OMXNORDIC": {
+        "total": 20,
+        "unrouted": 20
+      },
+      "COT2": {
+        "total": 6,
+        "unrouted": 0
+      },
+      "FINRA": {
+        "total": 10,
+        "unrouted": 0
+      },
+      "TWSE": {
+        "total": 8,
+        "unrouted": 1
+      },
+      "OMXHEX": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "BMFBOVESPA": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "TADAWUL": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "EIGHTCAP": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BSE": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "OMXCOP": {
+        "total": 3,
+        "unrouted": 1
+      },
+      "COINBASE": {
+        "total": 3,
+        "unrouted": 0
+      },
+      "BINANCE": {
+        "total": 5,
+        "unrouted": 0
+      },
+      "BITFINEX": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "HNX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "RUS": {
+        "total": 11,
+        "unrouted": 11
+      },
+      "CBOEEU": {
+        "total": 40,
+        "unrouted": 40
+      },
+      "OMXSTO": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "DJ": {
+        "total": 87,
+        "unrouted": 87
+      },
+      "OSE": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "SGX": {
+        "total": 107,
+        "unrouted": 107
+      },
+      "CSELK": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "PSE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "DEFILLAMA": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BVB": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "TPEX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "1-TVC": {
+        "total": 18,
+        "unrouted": 12
+      },
+      "MUN": {
+        "total": 11,
+        "unrouted": 2
+      },
+      "LUXSE": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "DERIBIT": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BITTREX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "RUSSELL": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "QUANDL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "COMEX_MINI": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BNC": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TMX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "MARKETSCOM": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CSEMA": {
+        "total": 30,
+        "unrouted": 30
+      },
+      "ASX24": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "LSIN": {
+        "total": 2,
+        "unrouted": 0
+      },
+      "DUS": {
+        "total": 5,
+        "unrouted": 1
+      },
+      "LME": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BITSTAMP": {
+        "total": 2,
+        "unrouted": 1
+      },
+      "AQUISUK": {
+        "total": 8,
+        "unrouted": 8
+      },
+      "LS": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BOATS": {
+        "total": 4,
+        "unrouted": 4
+      },
+      "CFI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BCS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ISM": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "FRBNY": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "KUCOIN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CMCMARKETS": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "GLOBALPRIME": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FRBP": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "BIVA": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "HAN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ATHEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "NASDAQDUBAI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TAIFEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FTSEMYX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "MCX": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "CBOT_MINI": {
+        "total": 6,
+        "unrouted": 4
+      },
+      "NYMEX_MINI": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BET": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "ACTIVTRADES": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "SWISSQUOTE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TFEX": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "BYBIT": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "MSEI": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "SPREADEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "PSECZ": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "MSTAR": {
+        "total": 7,
+        "unrouted": 7
+      },
+      "EUROTLX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "JSE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "CBOEFTSE": {
+        "total": 5,
+        "unrouted": 5
+      },
+      "1/FX_IDC": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1/ECONOMICS": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "AQUISEU": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "AQUIS": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "LSX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "TASE": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "1/CBOE": {
+        "total": 2,
+        "unrouted": 2
+      },
+      "1-AMEX": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "KRAKEN": {
+        "total": 1,
+        "unrouted": 0
+      },
+      "OMXICE": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FXOPEN": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "OSL": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "FTX": {
+        "total": 6,
+        "unrouted": 6
+      },
+      "BITMEX": {
+        "total": 3,
+        "unrouted": 3
+      },
+      "BINANCEUS": {
+        "total": 1,
+        "unrouted": 1
+      },
+      "1/CRYPTOCAP": {
+        "total": 1,
+        "unrouted": 1
+      }
+    },
+    "routing_only": true,
+    "provider_or_history_verified": false,
+    "all_current_route_helpers_loaded": true
+  },
+  "native_source_hashes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": "c1142004129350c7dded1316e6ec7b293821f132ca4966db58e9d9e17b8d4e75",
+    "aws/lambdas/justhodl-symdir/source/warehouse_routing.py": "64c20bbf47726dad25ad83ccacad0ad3f50b683a8f03676fdc21728d09e532b1",
+    "aws/shared/treasury_fiscal_model.py": "aa7627c565fe088662bef508dde9cf993f59e3acdd8e855a8e75b2b42af25fa3",
+    "aws/lambdas/justhodl-symdir/source/directory_identity.py": "2022ec3d4067ac603e7e1eac5db0e8941c3f3af4beb47d973b4ebbfa9b87df51",
+    "aws/lambdas/justhodl-symdir/source/directory_index.py": "a16ff08a9bf9c67a33498b6db4cb3547dafb1ef307b5c948d0fc9091d63198bb",
+    "aws/lambdas/justhodl-symdir/source/warehouse_cache.py": "1f5f733ccd5145296c3f9488eabd2e68f133f023d66b88a1f638b4830903e461",
+    "aws/lambdas/justhodl-symdir/source/directory_publication.py": "dcde7e1810e01c76daa24ebcf14b7345a8196f16a9c60e1dc28f93b46a5940a6",
+    "aws/lambdas/justhodl-symdir/source/directory_resident.py": "86b6ebbe5d956066b518277b72564143131be749f881ba26acb2b612cb5b5e0b",
+    "aws/lambdas/justhodl-symdir/source/cftc_series.py": "ce8435383b72aaea7ad14fe57ceb47f831272fa12362d6cc9cb54f959a475389",
+    "aws/lambdas/justhodl-symdir/source/cftc-series.json": "5af4de91d873f415b76e50c06ec9c2d0428498394313fd87cee56020796d5294"
+  },
+  "read_only_acceptance_operation": 6475,
+  "live_history_read": false,
+  "contract_existence_verified": false,
+  "full_upstream_history_verified": false,
+  "point_in_time_vintages_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "production_invocations": 0,
+  "schedule_changes": 0,
+  "remaining": [
+    "The complete watchlist and provider universe remains unqualified; routing is not history or economic-equivalence proof.",
+    "CFTC contract availability, current histories and source release vintages remain unverified.",
+    "The concurrent formula source on main is preserved, not independently qualified by this CFTC work.",
+    "Original provider catalogue has no atomic generation identifier; denied endpoints remain stopped."
+  ]
+}

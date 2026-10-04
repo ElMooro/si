@@ -47,7 +47,6 @@ and the raw file is a multi-hundred-MB scan); never fabricate a name -- a
 series without a title shows its code.
 """
 import bisect
-import cftc_series
 from directory_resident import load as resident_load, evidence as resident_evidence
 import csv
 import gzip
@@ -1611,11 +1610,6 @@ def doc_row(d, score=None):
 
 
 def search(q, limit=40, prov=None, kind=None):
-    if prov == "cftc" or (not prov and re.match(r"^(?:COT[23]?|cftc):", str(q or ""), re.I)):
-        found = cftc_series.directory(q or "", max(1, min(int(limit), 200)))
-        if kind and kind != "series":
-            found.update(rows=[], total=0)
-        return dict(found, q=q)
     ix = load_index()
     docs, index, toklist, pop = ix["docs"], ix["index"], ix["toklist"], ix["pop"]
     q = (q or "").strip()
@@ -2075,17 +2069,12 @@ def _cache_key(sid):
 
 
 def _cache_get(sid, max_age_s):
-    # Never reuse a legacy COT alias cache created by an ambiguous symbol-map route.
-    if sid.upper().startswith(("COT:", "COT2:", "COT3:")):
-        return None, None
     try:
         o = s3.get_object(Bucket=BUCKET, Key=_cache_key(sid))
         age = (_now() - o["LastModified"]).total_seconds()
         if age > max_age_s:
             return None, age
         cached = json.loads(o["Body"].read())
-        if sid.startswith("cftc:") and not cftc_series.cache_valid(cached, sid):
-            return None, age
         if sid.lower().startswith("treasury:") and cached.get("dimension_contract") != "treasury-fiscal-warehouse.v2":
             return None, age
         return cached, age
@@ -2909,10 +2898,10 @@ def r_official_yield(sid, rest, d):
     return _result(sid, "official-yields", obs, name=j.get("name") or j.get("title") or rest, unit="Percent", freq="D", source="warehouse:official-yields (%s)" % (j.get("source") or rest))
 
 
-RESOLVERS = {"cftc": lambda s, r, d: cftc_series.fetch(s), "ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr, "ofr-fsi": r_ofr_fsi,
+RESOLVERS = {"ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr, "ofr-fsi": r_ofr_fsi,
              "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
-CACHE_TTL = {"cftc": 900, "ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "ofr-fsi": 6 * 3600, "boj": 86400, "statcan": 86400,
+CACHE_TTL = {"ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "ofr-fsi": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
 
 
@@ -2968,7 +2957,7 @@ def fetch_series(sid, nocache=False, _depth=0):
     try:
         return _fetch_series(sid, nocache=nocache)
     except Exception as e:  # noqa: BLE001
-        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith(("treasury:", "cftc:", "cot:", "cot2:", "cot3:")):
+        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith("treasury:"):
             raise
         cands = closest_ids(sid)
         # a typed id that is the prefix of a clearly better-known real id resolves to it (TVC:US10 -> TVC:US10Y)
@@ -2988,8 +2977,6 @@ def fetch_series(sid, nocache=False, _depth=0):
 
 def _fetch_series(sid, nocache=False):
     sid = (sid or "").strip()
-    if re.match(r"^(?:COT[23]?|cftc):", sid, re.I):
-        sid = cftc_series.definition(sid)["id"]
     if sid.upper().startswith("FRED:"):
         sid = "fred:" + sid[5:]
     prov, _, rest = sid.partition(":")
@@ -3018,7 +3005,7 @@ def _fetch_series(sid, nocache=False):
             c["cached"] = True
             c["cache_age_s"] = int(age)
             return c
-    d = None if prov == "cftc" else _doc_lookup(sid)
+    d = _doc_lookup(sid)
     if prov == "tv":
         out = r_tvsym(sid, rest, d)
     elif prov == "equity":
@@ -3088,8 +3075,6 @@ def explorer(qs):
     q = (qs.get("q") or "").strip().lower()
     kind = (qs.get("kind") or "").strip()
     offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
-    if prov == "cftc":
-        return cftc_series.directory(q, limit, offset)
     if prov and q:
         # Provider drill-down uses the same universal contract as the top search.
         # This keeps a selected stored-file row (including its exact S3 key)

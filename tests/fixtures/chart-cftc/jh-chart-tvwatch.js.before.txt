@@ -613,16 +613,7 @@
     var route = { requested: requested, candidate: null, handoff: null, resolved: null, primary: null, fallback: null, relation: "unavailable", reason: "No supported chart route; chart unchanged", frame: null };
     route.requestHints = routeHints(requested);
     if (!requested || /^###/.test(requested) || /[\s\x00-\x1f\x7f]/.test(requested)) { route.reason = "Invalid instrument identifier; chart unchanged"; return route; }
-    if (/^(COT[23]?|cftc):/i.test(requested)) {
-        var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(requested);
-        if (!cot) { route.reason = "CFTC report/contract/field definition unavailable; chart unchanged"; return route; }
-        route.handoff = cot.id; route.resolved = cot.id; route.primary = cot.id;
-        route.relation = cot.id === requested ? "exact" : "schema-defined";
-        route.definition = cot; route.handoffHints = routeHints(cot.id);
-        route.reason = "CFTC " + cot.report_name + " / " + cot.contract_market_code + " / " + cot.label + " / " + cot.unit + " (" + cot.unit_basis + "); history and contract availability still require the provider response";
-        return route;
-      }
-      if (/^(DATA|DESK):/.test(u)) { route.reason = "Catalog browse item has no scalar chart contract; chart unchanged"; return route; }
+    if (/^(DATA|DESK):/.test(u)) { route.reason = "Catalog browse item has no scalar chart contract; chart unchanged"; return route; }
     if (!/[+\-*/()]/.test(u) && ((/^FRED:/.test(u) && !/^FRED:[A-Z0-9]+$/.test(u)) || (/^WORLDBANK:/.test(u) && !/^WORLDBANK:[A-Z0-9.]+:[A-Z0-9]{2,3}$/.test(u)))) { route.reason = "Invalid canonical identifier; chart unchanged"; return route; }
     var cat = window.JHChartCatalog, native = window.jhWatchlistResolve, catalogId = "", proposal = "", original = null;
     try {
@@ -730,12 +721,7 @@ function chartRouteText(route, evidence, bars) {
     // A map completion never replays a click after another selection/list owns the frame.
     var route = chartRoute(s), q = document.getElementById("q");
     chartSelection = route; route.frame = route.handoff ? route.handoff.toUpperCase() : activeSym();
-    if (route.handoff && /^cftc:/.test(route.handoff)) {
-      route.frame = route.handoff;
-      if (q && typeof q.onkeydown === "function") { q.value=route.handoff; q.onkeydown({key:"Enter",preventDefault:function(){},stopPropagation:function(){}}); }
-      else { route.handoff = null; route.frame = activeSym(); route.reason = "Native chart handler unavailable; chart unchanged"; }
-    }
-    else if (route.handoff && q && typeof q.onkeydown === "function") { q.value = route.handoff; q.onkeydown({ key: "Enter", preventDefault: function () {}, stopPropagation: function () {} }); }
+    if (route.handoff && q && typeof q.onkeydown === "function") { q.value = route.handoff; q.onkeydown({ key: "Enter", preventDefault: function () {}, stopPropagation: function () {} }); }
     else if (route.handoff) { route.handoff = null; route.frame = activeSym(); route.reason = "Native chart handler unavailable; chart unchanged"; }
     if (!chartRouteObserver && typeof MutationObserver !== "undefined") {
       chartRouteObserver = new MutationObserver(paintChartRoute);

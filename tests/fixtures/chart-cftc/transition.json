@@ -1,0 +1,305 @@
+{
+  "base": "3562f7c03e15e7a417d44359a82033539942a799",
+  "changes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+      "before_path": "tests/fixtures/chart-cftc/aws__lambdas__justhodl-symdir__source__lambda_function.py.before.txt",
+      "before_sha256": "b562d056403d69ff7a469e0e20867f553d22f36ead7fa559fdfa0030706bb7e7",
+      "edits": [
+        {
+          "start": 2975,
+          "end": 3008,
+          "before": "import bisect\n",
+          "after": "import bisect\nimport cftc_series\n",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 84117,
+          "end": 84469,
+          "before": "def search(q, limit=40, prov=None, kind=None):\n    ix = load_index()",
+          "after": "def search(q, limit=40, prov=None, kind=None):\n    if prov == \"cftc\" or (not prov and re.match(r\"^(?:COT[23]?|cftc):\", str(q or \"\"), re.I)):\n        found = cftc_series.directory(q or \"\", max(1, min(int(limit), 200)))\n        if kind and kind != \"series\":\n            found.update(rows=[], total=0)\n        return dict(found, q=q)\n    ix = load_index()",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 106384,
+          "end": 106540,
+          "before": "        cached = json.loads(o[\"Body\"].read())\n",
+          "after": "        cached = json.loads(o[\"Body\"].read())\n        if sid.startswith(\"cftc:\") and not cftc_series.cache_valid(cached, sid):\n            return None, age\n",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 151273,
+          "end": 151341,
+          "before": "RESOLVERS = {\"ustpar\":",
+          "after": "RESOLVERS = {\"cftc\": lambda s, r, d: cftc_series.fetch(s), \"ustpar\":",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 151779,
+          "end": 151814,
+          "before": "CACHE_TTL = {\"ustpar\":",
+          "after": "CACHE_TTL = {\"cftc\": 900, \"ustpar\":",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 154201,
+          "end": 154274,
+          "before": "sid.lower().startswith(\"treasury:\"):",
+          "after": "sid.lower().startswith((\"treasury:\", \"cftc:\", \"cot:\", \"cot2:\", \"cot3:\")):",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 155184,
+          "end": 155352,
+          "before": "def _fetch_series(sid, nocache=False):\n    sid = (sid or \"\").strip()",
+          "after": "def _fetch_series(sid, nocache=False):\n    sid = (sid or \"\").strip()\n    if re.match(r\"^(?:COT[23]?|cftc):\", sid, re.I):\n        sid = cftc_series.definition(sid)[\"id\"]",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 156684,
+          "end": 156737,
+          "before": "    d = _doc_lookup(sid)\n",
+          "after": "    d = None if prov == \"cftc\" else _doc_lookup(sid)\n",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 159846,
+          "end": 159972,
+          "before": "    if prov and q:\n        # Provider drill-down",
+          "after": "    if prov == \"cftc\":\n        return cftc_series.directory(q, limit, offset)\n    if prov and q:\n        # Provider drill-down",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 106165,
+          "end": 106376,
+          "before": "def _cache_get(sid, max_age_s):\n    try:\n",
+          "after": "def _cache_get(sid, max_age_s):\n    # Never reuse a legacy COT alias cache created by an ambiguous symbol-map route.\n    if sid.upper().startswith((\"COT:\", \"COT2:\", \"COT3:\")):\n        return None, None\n    try:\n",
+          "scope": "reject-legacy-COT-alias-cache"
+        }
+      ],
+      "after_sha256": "c1142004129350c7dded1316e6ec7b293821f132ca4966db58e9d9e17b8d4e75"
+    },
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": {
+      "before_path": "tests/fixtures/chart-cftc/aws__lambdas__justhodl-symdir__tests__run_tests.py.before.txt",
+      "before_sha256": "7c129ebac6a9bfbf3b130798bc88e69a9e7e0746ccaaafe36cddb9b32c3bedd5",
+      "edits": [
+        {
+          "start": 366,
+          "end": 443,
+          "before": "import test_universal_provider_search,",
+          "after": "import test_cftc_series,test_cftc_integration,test_universal_provider_search,",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 715,
+          "end": 800,
+          "before": "for module in (test_universal_provider_search,",
+          "after": "for module in (test_cftc_series,test_cftc_integration,test_universal_provider_search,",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "ac16dbf151f3582c032657c3ca56e326f50b2edb7608665d356696e1a371c95b"
+    },
+    "chart.html": {
+      "before_path": "tests/fixtures/chart-cftc/chart.html.before.txt",
+      "before_sha256": "2da174ca18d2be1c9170a53d98bddb9a0b2e9d5d2d3f38e1209d270e8446c6e9",
+      "edits": [
+        {
+          "start": 54664,
+          "end": 54759,
+          "before": "<script src=\"/jh-chart-provider-browser.js",
+          "after": "<script src=\"/jh-chart-cftc.js?v=20261004\"></script>\n<script src=\"/jh-chart-provider-browser.js",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "9880bcc36d414e46bac05e1b95289d02846c7f889bd4acdd61eae88f1f21df13"
+    },
+    "jh-chart-catalog.js": {
+      "before_path": "tests/fixtures/chart-cftc/jh-chart-catalog.js.before.txt",
+      "before_sha256": "6d75d7f1356c15b3f0fdce1c1eecc55435fba9103877fe99560806f98f3f8c4b",
+      "edits": [
+        {
+          "start": 13887,
+          "end": 13983,
+          "before": "  function isWarehouse(s) {\n    s = String(s || \"\");",
+          "after": "  function isWarehouse(s) {\n    s = String(s || \"\");\n    if (/^COT[23]?:/i.test(s)) return true;",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 30509,
+          "end": 30697,
+          "before": "    var low = s.toLowerCase();\n    if (/^desk:/i.test(s))",
+          "after": "    var low = s.toLowerCase();\n    if (/^(COT[23]?|cftc):/i.test(s)) { var cot = global.JHChartCFTC && global.JHChartCFTC.resolve(s); return cot ? cot.id : \"\"; }\n    if (/^desk:/i.test(s))",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "903408cd617b40da991ffa36c164d110060863ec59555b3b67fba979a7d8dc2e"
+    },
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-cftc/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "5616c1fe7d1a098e1aa70dbafd274c314c21cf5181af9be1384178f71dc67e91",
+      "edits": [
+        {
+          "start": 56775,
+          "end": 57644,
+          "before": "    if (/^(DATA|DESK):/.test(u)) { route.reason = \"Catalog browse item has no scalar chart contract; chart unchanged\"; return route; }",
+          "after": "    if (/^(COT[23]?|cftc):/i.test(requested)) {\n        var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(requested);\n        if (!cot) { route.reason = \"CFTC report/contract/field definition unavailable; chart unchanged\"; return route; }\n        route.handoff = cot.id; route.resolved = cot.id; route.primary = cot.id;\n        route.relation = cot.id === requested ? \"exact\" : \"schema-defined\";\n        route.definition = cot; route.handoffHints = routeHints(cot.id);\n        route.reason = \"CFTC \" + cot.report_name + \" / \" + cot.contract_market_code + \" / \" + cot.label + \" / \" + cot.unit + \" (\" + cot.unit_basis + \"); history and contract availability still require the provider response\";\n        return route;\n      }\n      if (/^(DATA|DESK):/.test(u)) { route.reason = \"Catalog browse item has no scalar chart contract; chart unchanged\"; return route; }",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 87382,
+          "end": 87845,
+          "before": "    if (route.handoff && q && typeof q.onkeydown === \"function\") {",
+          "after": "    if (route.handoff && /^cftc:/.test(route.handoff)) {\n      route.frame = route.handoff;\n      if (q && typeof q.onkeydown === \"function\") { q.value=route.handoff; q.onkeydown({key:\"Enter\",preventDefault:function(){},stopPropagation:function(){}}); }\n      else { route.handoff = null; route.frame = activeSym(); route.reason = \"Native chart handler unavailable; chart unchanged\"; }\n    }\n    else if (route.handoff && q && typeof q.onkeydown === \"function\") {",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "12c5d02bff5d62ff42f9a0ae51da7f8aa64250a99635fa8177a6068a1ab8cf16"
+    },
+    "jh-chart-engine.js": {
+      "before_path": "tests/fixtures/chart-cftc/jh-chart-engine.js.before.txt",
+      "before_sha256": "6edb06b2e6e1d4224fb2d194a533424bd3c1b691af2752cb37ddc98bcff7205a",
+      "edits": [
+        {
+          "start": 373301,
+          "end": 373866,
+          "before": "q.onkeydown=function(e){ if(e.key===\"Enter\"&&q.value.trim()){ var s=q.value.trim().toUpperCase();",
+          "after": "q.onkeydown=function(e){ if(e.key===\"Enter\"&&q.value.trim()){\n        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {\n          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());\n          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=\"\"; filter=\"\"; loadDraw(); renderTabs(); renderList(); load(); }\n          else document.getElementById(\"st\").textContent=\"CFTC definition unavailable; select a reviewed report, contract and field\";\n          return;\n        }\n        var s=q.value.trim().toUpperCase();",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 331971,
+          "end": 332216,
+          "before": "  function goSymbol(s, dest){\n",
+          "after": "  function goSymbol(s, dest){\n    if (/^(COT[23]?|cftc):/i.test(String(s||\"\")) && (!window.JHChartCFTC || !window.JHChartCFTC.resolve(s))) {\n      toast(\"CFTC definition unavailable; select a reviewed report, contract and field\"); return;\n    }\n",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "83633ae0974271eac795622a1b56842968ce6b13d3b548f99efff842398b0c2f"
+    },
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-cftc/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "cfad22c30909fbef0abac8ebfa0ee8d2735cab6e44e90f2295588049dd92e95a",
+      "edits": [
+        {
+          "start": 334,
+          "end": 369,
+          "before": "var SCALAR=new Set([\"ustpar\"",
+          "after": "var SCALAR=new Set([\"cftc\",\"ustpar\"",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 1859,
+          "end": 2020,
+          "before": "    if(kind===\"series\"&&row.chartable===true&&id.includes(\":\")",
+          "after": "    if(provider===\"cftc\"&&(!global.JHChartCFTC||!global.JHChartCFTC.resolve(id)))return \"inspect\";\n    if(kind===\"series\"&&row.chartable===true&&id.includes(\":\")",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "73549ee02b88237c047d9bb2b11f2936eacc22198118a1757aa1bff8c03c428f"
+    },
+    "tests/helpers/chart-provider-browser-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cftc/tests__helpers__chart-provider-browser-preservation.cjs.before.txt",
+      "before_sha256": "c0c8e80e7b79d2d8933f4548a2da3d7cce675feb0c8f420275b421a5f9a6f412",
+      "edits": [
+        {
+          "start": 296,
+          "end": 393,
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cftc-preservation.cjs\").normalize(raw,file);\n",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "c1b4a8c5f6bf0f308659c463a6192c8637320282c5d077ebc7482462208be665"
+    },
+    "tests/chart-provider-browser.test.js": {
+      "before_path": "tests/fixtures/chart-cftc/tests__chart-provider-browser.test.js.before.txt",
+      "before_sha256": "ca10a95e3c4ca27e5585659cc771f5aee4e9ec0479583ed93ac2cd5c42420e5c",
+      "edits": [
+        {
+          "start": 500,
+          "end": 655,
+          "before": "vm.runInNewContext(SOURCE,scope);return window.JHChartProviderBrowser;",
+          "after": "vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-cftc.js'),'utf8'),scope);vm.runInNewContext(SOURCE,scope);return window.JHChartProviderBrowser;",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 4247,
+          "end": 4280,
+          "before": "assert.equal(prefixes.length,18);",
+          "after": "assert.equal(prefixes.length,19);",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 4282,
+          "end": 4485,
+          "before": "const window={};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-catalog.js'),'utf8'),{window,Set,Map});",
+          "after": "const window={};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-cftc.js'),'utf8'),{window});vm.runInNewContext(fs.readFileSync(path.join(ROOT,'jh-chart-catalog.js'),'utf8'),{window,Set,Map});",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 4519,
+          "end": 4622,
+          "before": "const id=provider+':Exact.MiXeD';",
+          "after": "const id=provider==='cftc'?'cftc:yw9f-hn96|132741|traders_asset_mgr_short_all':provider+':Exact.MiXeD';",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 5821,
+          "end": 5971,
+          "before": "const current=fs.readFileSync(path.join(ROOT,file),'utf8');assert.equal(hash(current)",
+          "after": "const current=require('./helpers/chart-cftc-preservation.cjs').normalize(fs.readFileSync(path.join(ROOT,file),'utf8'),file);assert.equal(hash(current)",
+          "scope": "exact-cftc-history-581"
+        },
+        {
+          "start": 6175,
+          "end": 6336,
+          "before": "now=JSON.parse(fs.readFileSync(path.join(ROOT,transition.ledger.path),'utf8'))",
+          "after": "now=JSON.parse(require('./helpers/chart-cftc-preservation.cjs').normalize(fs.readFileSync(path.join(ROOT,transition.ledger.path),'utf8'),transition.ledger.path))",
+          "scope": "exact-cftc-history-581"
+        }
+      ],
+      "after_sha256": "6365d9db4ac7a7f6a3d84536988495353f8b78d26b63f94e3df04272ec5b1cc2"
+    },
+    "tests/helpers/warehouse-observation-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cftc/tests__helpers__warehouse-observation-preservation.cjs.before.txt",
+      "before_sha256": "8b6e3e39b053c617f5759e8dbcab92e507636bd453149b27ca0e58b97b4217cf",
+      "after_sha256": "767a18119d8502237750c354f2814e6932bee2aeaa2927f939d5de712b43f772",
+      "edits": [
+        {
+          "start": 950,
+          "end": 1047,
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cftc-preservation.cjs\").normalize(raw,file);\n",
+          "scope": "exact-cftc-preservation-hook-581"
+        },
+        {
+          "start": 980,
+          "end": 1078,
+          "before": " raw=require(\"./chart-cftc-preservation.cjs\").normalize(raw,file);",
+          "after": " if(file===\"jh-chart-catalog.js\")raw=require(\"./chart-cftc-preservation.cjs\").normalize(raw,file);",
+          "scope": "exact-cftc-history-581"
+        }
+      ]
+    },
+    "tests/test_directory_resident.py": {
+      "before_path": "tests/fixtures/chart-cftc/tests__test_directory_resident.py.before.txt",
+      "before_sha256": "b62d3b5479508d6a6b2e3699744c068d295f5e723cc8540a55ec8233994289a9",
+      "after_sha256": "b3a439cb9a23c8d1285be1b66ebe5731222eed6962e833f4ea4e1f6763782a95",
+      "edits": [
+        {
+          "start": 10597,
+          "end": 10817,
+          "before": "        new=ast.parse((ROOT/'aws/lambdas/justhodl-symdir/source/lambda_function.py').read_bytes())",
+          "after": "        from chart_cftc_preservation import normalize\n        new=ast.parse(normalize('aws/lambdas/justhodl-symdir/source/lambda_function.py', (ROOT/'aws/lambdas/justhodl-symdir/source/lambda_function.py').read_bytes()))",
+          "scope": "exact-cftc-preservation-hook-581"
+        }
+      ]
+    }
+  },
+  "ledger": {
+    "path": "tests/fixtures/watchlist-correctness/source-transition.json",
+    "before_path": "tests/fixtures/chart-cftc/watchlist-transition.before.json",
+    "before_sha256": "148c8e4954c5ed2dfc6fa8abc044286167b865463e70727d6764843bf5a7e41a",
+    "after_sha256": "f1a23a4358e0d330a8c54ac9b606f67db1eaac64db9a90f7c0dd63bc1dfdfb57"
+  }
+}

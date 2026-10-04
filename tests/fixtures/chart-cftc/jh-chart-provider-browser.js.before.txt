@@ -3,7 +3,7 @@
   "use strict";
   var PROXY="https://justhodl-data-proxy.raafouis.workers.dev", PAGE=50, MAX_BYTES=4000000;
   // Exact adapters implemented by justhodl-symdir. Unknown prefixes must not fall through to a market symbol.
-  var SCALAR=new Set(["cftc","ustpar","official-yields","fred","te","eurostat","ecb","nyfed","ofr","ofr-fsi","ofr-hfm","ofr-bsrm","boj","statcan","worldbank","treasury","boe","census","bls"]);
+  var SCALAR=new Set(["ustpar","official-yields","fred","te","eurostat","ecb","nyfed","ofr","ofr-fsi","ofr-hfm","ofr-bsrm","boj","statcan","worldbank","treasury","boe","census","bls"]);
   var model={provider:"",dataset:"",query:"",offset:0,destination:"chart",view:"directory",filePage:-1,filePages:0}, generation=0, controller=null, opener=null, dialog=null, response=null;
   function text(value){return typeof value==="string"?value:"";}
   function providerId(value){return typeof value==="string"&&/^[a-z0-9][a-z0-9-]*$/.test(value)?value:"";}
@@ -20,7 +20,6 @@
     var id=text(row.id),kind=text(row.kind),provider=providerId(text(row.provider))||id.split(":")[0].toLowerCase();
     if(/^provider:[a-z0-9-]+$/.test(id))return "provider";
     if((kind==="dataset"||kind==="indicator_ref")&&id.includes(":")&&!/^asset:/.test(id))return "dataset";
-    if(provider==="cftc"&&(!global.JHChartCFTC||!global.JHChartCFTC.resolve(id)))return "inspect";
     if(kind==="series"&&row.chartable===true&&id.includes(":")&&SCALAR.has(provider)&&id.split(":")[0].toLowerCase()===provider)return "chart";
     return "inspect";
   }

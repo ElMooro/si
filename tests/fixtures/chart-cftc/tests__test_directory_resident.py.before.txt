@@ -148,8 +148,7 @@ class NativeTests(unittest.TestCase):
 class Preservation(unittest.TestCase):
     def test_whole_predecessor_preserves_build_sources_series_and_nonsearch_handler_branches(self):
         old=ast.parse((ROOT/'tests/fixtures/symbol-directory/pre-resident-lambda.py.txt').read_bytes())
-        from chart_cftc_preservation import normalize
-        new=ast.parse(normalize('aws/lambdas/justhodl-symdir/source/lambda_function.py', (ROOT/'aws/lambdas/justhodl-symdir/source/lambda_function.py').read_bytes()))
+        new=ast.parse((ROOT/'aws/lambdas/justhodl-symdir/source/lambda_function.py').read_bytes())
         def functions(tree):return {n.name:n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
         def dump(node):return ast.dump(node,include_attributes=False)
         before,after=functions(old),functions(new)

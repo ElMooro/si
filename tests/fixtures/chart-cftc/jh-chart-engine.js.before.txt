@@ -5452,9 +5452,6 @@ else if(o.id==="rvol"){
     return bare(rs.ticker||s);
   }
   function goSymbol(s, dest){
-    if (/^(COT[23]?|cftc):/i.test(String(s||"")) && (!window.JHChartCFTC || !window.JHChartCFTC.resolve(s))) {
-      toast("CFTC definition unavailable; select a reviewed report, contract and field"); return;
-    }
     var hit=ssRows.filter(function(r){ return String(r.s)===String(s); })[0];
     if(hit && hit.type==="dataset" && window.JHChartCatalog && window.JHChartCatalog.go){
       window.JHChartCatalog.go(s, "dataset", {destination:dest || "chart"});
@@ -6144,14 +6141,7 @@ else if(o.id==="rvol"){
     var q=document.getElementById("q");
     if(q&&!q.dataset.bound){
       q.oninput=function(){ filter=q.value; renderHits(); renderList(); };
-      q.onkeydown=function(e){ if(e.key==="Enter"&&q.value.trim()){
-        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {
-          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());
-          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); }
-          else document.getElementById("st").textContent="CFTC definition unavailable; select a reviewed report, contract and field";
-          return;
-        }
-        var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); } };
+      q.onkeydown=function(e){ if(e.key==="Enter"&&q.value.trim()){ var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); } };
       q.dataset.bound="1";
     }
     var paste=document.getElementById("paste");
