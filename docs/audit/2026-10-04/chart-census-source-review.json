@@ -70,7 +70,7 @@
   ],
   "definition_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
   "adapter_sha256": "cd3c1f56b6875c1423b4af7a0430a28482f75acc87e44ebe6d995ba140237dfb",
-  "stage": "source_reviewed_offline_not_live",
+  "stage": "deployed_and_checked",
   "source_url": "https://www.census.gov/econ_datasets/",
   "definition_count": 3402,
   "qualified_watchlist_routes_added": 0,
@@ -80,5 +80,8 @@
   "peer_repair": "Concurrent main ba7bbed4e restored the exact qualified-market and source-preserving scalar paths. Its complete engine and prior transition ledger are retained unchanged. This batch adds regression coverage without reinstating the permissive fallback.",
   "full_upstream_history_verified": false,
   "point_in_time_vintages_verified": false,
-  "mobile_repair": "Outside mousedown dismissal excludes the List and floating List controls, preventing close-then-reopen on the same pointer action. Bounded desktop/mobile browser acceptance reproduces the predecessor failure and checks the repaired toggle."
+  "mobile_repair": "Outside mousedown dismissal excludes the List and floating List controls, preventing close-then-reopen on the same pointer action. Bounded desktop/mobile browser acceptance reproduces the predecessor failure and checks the repaired toggle.",
+  "source_commit": "04025f0ef645aef92f9d1106ea518288ca0cd660",
+  "history_acceptance": "chart-census-public-history-audit.json",
+  "native_acceptance": "chart-census-native-acceptance.json"
 }
