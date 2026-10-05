@@ -1,0 +1,187 @@
+{
+  "frontend_source_commit": "7558e9f9af274a489436fc94b22a6a48bc1b984f",
+  "native_source_commit": "04025f0ef645aef92f9d1106ea518288ca0cd660",
+  "backend_changes_in_frontend_release": false,
+  "backend_release_receipt_sha256": "98071e5668e332a38c1c588cea39af760b837d50ba93b6a12d85be8e48b93727",
+  "backend_release_rechecked_at": "2026-10-05T02:08:11.797622+00:00",
+  "histories": [
+    {
+      "requested": "ECONOMICS:USRSMM",
+      "alternative": "census:marts:MPCSM:44X72:yes:US",
+      "receipt": {
+        "id": "census:marts:MPCSM:44X72:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Amarts%3AMPCSM%3A44X72%3Ayes%3AUS",
+        "at": "2026-10-05T01:28:53.998645+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 34421,
+        "packet_sha256": "022176ec223205d81820d7b7af339405ab6af160d96d0479cfa4b385d2ae86b8",
+        "status": "public_history_independently_replayed",
+        "n": 415,
+        "periods": 415,
+        "first": "1992-02-01",
+        "last": "2026-08-01",
+        "last_valid": "2026-08-01",
+        "unit": "Percent",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 415,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "3a746567b16004c46f95276790236e3824e02ed6285d321ea671f5df133466a9"
+        ]
+      }
+    },
+    {
+      "requested": "ECONOMICS:USRSEA",
+      "alternative": "census:marts:MPCSM:44Y72:yes:US",
+      "receipt": {
+        "id": "census:marts:MPCSM:44Y72:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Amarts%3AMPCSM%3A44Y72%3Ayes%3AUS",
+        "at": "2026-10-05T01:28:54.656815+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 34330,
+        "packet_sha256": "6b4f75978c6d6eb08e16d6b0a2d09b7c00d994ffc4e55f492c1520371989de91",
+        "status": "public_history_independently_replayed",
+        "n": 415,
+        "periods": 415,
+        "first": "1992-02-01",
+        "last": "2026-08-01",
+        "last_valid": "2026-08-01",
+        "unit": "Percent",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 415,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "3a746567b16004c46f95276790236e3824e02ed6285d321ea671f5df133466a9"
+        ]
+      }
+    },
+    {
+      "requested": "ECONOMICS:USCONSTS",
+      "alternative": "census:vip:MPCT:XXXX:yes:US",
+      "receipt": {
+        "id": "census:vip:MPCT:XXXX:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Avip%3AMPCT%3AXXXX%3Ayes%3AUS",
+        "at": "2026-10-05T01:28:55.376643+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 25333,
+        "packet_sha256": "6fb432df37b8782b129c3b6a5ccf73861c2feb84b04de0729a144089b25a5bf8",
+        "status": "public_history_independently_replayed",
+        "n": 295,
+        "periods": 295,
+        "first": "2002-02-01",
+        "last": "2026-08-01",
+        "last_valid": "2026-08-01",
+        "unit": "Percent",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 295,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "1bb480764e528b4c7cb33bcc8a0ed49107b5494af51a59f8346a5ca0890fe377"
+        ]
+      }
+    },
+    {
+      "requested": "ECONOMICS:USHST",
+      "alternative": "census:resconst:TOTAL:ASTARTS:yes:US",
+      "receipt": {
+        "id": "census:resconst:TOTAL:ASTARTS:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Aresconst%3ATOTAL%3AASTARTS%3Ayes%3AUS",
+        "at": "2026-10-05T01:28:57.708538+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 67966,
+        "packet_sha256": "38db6ce152c7a3d7d897d562e20fc9ec66f5b64830fd8adc6af8d8cdae175de4",
+        "status": "public_history_independently_replayed",
+        "n": 812,
+        "periods": 812,
+        "first": "1959-01-01",
+        "last": "2026-08-01",
+        "last_valid": "2026-08-01",
+        "unit": "Thousands of units (seasonally adjusted annual rate)",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 812,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "85fdb4c9d3783cf9cbd17773ffe92579f9ccbfeff948fa2779c3a4f9e37d49c2"
+        ]
+      }
+    },
+    {
+      "requested": "ECONOMICS:USNHS",
+      "alternative": "census:ressales:TOTAL:ASOLD:yes:US",
+      "receipt": {
+        "id": "census:ressales:TOTAL:ASOLD:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Aressales%3ATOTAL%3AASOLD%3Ayes%3AUS",
+        "at": "2026-10-05T01:28:59.233965+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 61831,
+        "packet_sha256": "0f2ce75ff1a7b0dbee27db17d15705c6e904ea6e2dc6ae996133ebf5e3c1d015",
+        "status": "public_history_independently_replayed",
+        "n": 764,
+        "periods": 764,
+        "first": "1963-01-01",
+        "last": "2026-08-01",
+        "last_valid": "2026-08-01",
+        "unit": "Thousands of units (seasonally adjusted annual rate)",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 764,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "baa0df38a33c0c4b11dd7910a9fcb1cb18ba49d1a451c59f3f37aaff52633bbc"
+        ]
+      }
+    },
+    {
+      "requested": "ECONOMICS:USRIEA",
+      "alternative": "census:mrts:MPCIM:4400A:yes:US",
+      "receipt": {
+        "id": "census:mrts:MPCIM:4400A:yes:US",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Amrts%3AMPCIM%3A4400A%3Ayes%3AUS",
+        "at": "2026-10-05T01:29:00.250844+00:00",
+        "catalogue_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+        "http_status": 200,
+        "packet_bytes": 34706,
+        "packet_sha256": "356f8774d569cb5d308ecfa59f03b249ea6803d8205e37a761b13651b06329e0",
+        "status": "public_history_independently_replayed",
+        "n": 414,
+        "periods": 414,
+        "first": "1992-02-01",
+        "last": "2026-07-01",
+        "last_valid": "2026-07-01",
+        "unit": "Percent",
+        "quality": {
+          "status": "observations",
+          "error": null,
+          "received_rows": 414,
+          "rejected_rows": 0
+        },
+        "source_sha256": [
+          "147c871d84e3ae3aaffba6dffedbabcbd0a6a68d9e1daf415b255502119ea937"
+        ]
+      }
+    }
+  ],
+  "history_count": 6,
+  "vendor_equivalence_verified": false,
+  "full_upstream_history_verified": false,
+  "point_in_time_vintages_verified": false
+}
