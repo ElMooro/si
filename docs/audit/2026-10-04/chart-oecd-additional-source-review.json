@@ -1,5 +1,5 @@
 {
-  "stage": "candidate_not_deployed",
+  "stage": "deployed_and_checked",
   "catalogue_sha256": "907f3d7d644f43461f2a3a78cd97b7eea7310d23d8936eab793a4604fbc926c6",
   "additional_series": 2338,
   "flows": [
@@ -121,5 +121,8 @@
   "watchlist_aliases_added": 0,
   "scope": "Exact source series only; no substitution of business-survey balances, normalized confidence indexes or general interest-rate series for vendor-specific indicators.",
   "vendor_equivalence_verified": false,
-  "point_in_time_vintages_verified": false
+  "point_in_time_vintages_verified": false,
+  "source_commit": "783645f94e6892f171af055169336f83455c0997",
+  "history_acceptance": "chart-oecd-additional-public-history-audit.json",
+  "native_acceptance": "chart-oecd-additional-native-acceptance.json"
 }
