@@ -1,0 +1,7 @@
+# IMF public production-index continuation
+
+Numeric histories are now independently replayed for 10,082 of 10,113 reviewed definitions. Another 13 complete public source responses have no accepted numeric observations; they do not count as chartable histories. 18 definitions remain without verified history. The prior 8,670 numeric histories and 13 empty source replays are preserved unchanged.
+
+The continuation individually reviewed 1,412 previously unrequested production-index definitions outside the held India industrial family. Public access and classification labels, units, bases and methodology matched their pinned definitions. Accepted packets were replayed against complete retained public responses, including original numbers, dates, source statuses and dimensions. No mixed-access discovery archive or excluded observation is published.
+
+The original failed India industrial definition and its 17 related unrequested definitions were not retried. Its acquisition failure cause remains unresolved. Any new refusal or failed verification stops further requests. The IMF parser and catalogue match the deployed source verified by the regional survey native release check. These are source history checks, not proprietary-vendor equivalence, full upstream completeness, independently observed publication-time vintages or portfolio-sizing authority. Watchlist route counts are unchanged.
