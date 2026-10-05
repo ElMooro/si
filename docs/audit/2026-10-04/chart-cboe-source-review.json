@@ -1,0 +1,4462 @@
+{
+  "stage": "candidate_not_live",
+  "exact_definitions": 77,
+  "catalogue_sha256": "750d0e55ce141ca8ff12d068c134c66ebc16efedfa3b3493cfd1e6893a6bbafc",
+  "adapter_sha256": "c60af77e59ad7eec1a671bd35263430a9762f28a21d7f7dc14ca065e881c0ccc",
+  "source_numeric_review": [
+    {
+      "symbol": "AVT5SMID",
+      "rows": 5934,
+      "first": "2002-12-31",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "BXN",
+      "rows": 4283,
+      "first": "2009-09-18",
+      "last": "2026-10-02",
+      "issues": {
+        "ohlc_order": 1
+      },
+      "csv_crosscheck": {
+        "rows": 4283,
+        "common": 4283,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "BXNTU",
+      "rows": 5293,
+      "first": "2005-09-19",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "BXRC",
+      "rows": 5701,
+      "first": "2004-01-30",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": {
+        "rows": 5701,
+        "common": 5701,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "BXTW",
+      "rows": 3812,
+      "first": "2011-08-05",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "CLL1M",
+      "rows": 5670,
+      "first": "2004-03-19",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "CLLZ",
+      "rows": 10144,
+      "first": "1986-06-20",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": {
+        "rows": 10144,
+        "common": 10144,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "DJS",
+      "rows": 3871,
+      "first": "2011-05-05",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "ESGST",
+      "rows": 1543,
+      "first": "2020-08-11",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "IDB50N",
+      "rows": 3279,
+      "first": "2013-12-20",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "OET",
+      "rows": 6930,
+      "first": "1998-07-09",
+      "last": "2026-10-02",
+      "issues": {
+        "ohlc_order": 178
+      },
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "PPUT3M",
+      "rows": 5670,
+      "first": "2004-03-19",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "PTLT",
+      "rows": 5459,
+      "first": "2005-01-21",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SET",
+      "rows": 6943,
+      "first": "1998-07-09",
+      "last": "2026-10-02",
+      "issues": {
+        "ohlc_order": 182
+      },
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISB",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISE",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISM",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISR",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISRE",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SIST",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISUT",
+      "rows": 1468,
+      "first": "2020-11-27",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SISV",
+      "rows": 1468,
+      "first": "2020-11-27",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SIXI",
+      "rows": 4459,
+      "first": "2009-01-02",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SIXU",
+      "rows": 4459,
+      "first": "2009-01-02",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "SVRPO",
+      "rows": 5220,
+      "first": "2005-12-30",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": {
+        "rows": 5220,
+        "common": 5220,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "VIX6M",
+      "rows": 4718,
+      "first": "2008-01-02",
+      "last": "2026-10-02",
+      "issues": {
+        "ohlc_order": 1
+      },
+      "csv_crosscheck": {
+        "rows": 4718,
+        "common": 4718,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "VRO",
+      "rows": 1272,
+      "first": "2008-07-16",
+      "last": "2026-09-30",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "VXD",
+      "rows": 4286,
+      "first": "2009-09-18",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": {
+        "rows": 4286,
+        "common": 4286,
+        "mismatched_values": 0,
+        "dates": []
+      }
+    },
+    {
+      "symbol": "VXTLT",
+      "rows": 5712,
+      "first": "2004-01-02",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    },
+    {
+      "symbol": "XSR",
+      "rows": 3682,
+      "first": "2011-05-05",
+      "last": "2026-10-02",
+      "issues": {},
+      "csv_crosscheck": null
+    }
+  ],
+  "source_history_preflight": [
+    {
+      "symbol": "AVT5SMID",
+      "rows": 5934,
+      "first": "2002-12-31",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:00",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Alpha Vee Risk Managed SMID Top 5 Sector US Equity Index uses a systematic rules-based institutional caliber methodology that seeks to capture long term equity performance while minimizing market volatility. ",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "AVT5SMID",
+        "mkt_data_delay": 15,
+        "name": "Alpha Vee Risk Managed SMID Top 5 Sector Equities",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2002-12-31",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "5257.070000",
+          "high": "5257.070000",
+          "low": "5257.070000",
+          "close": "5257.070000"
+        }
+      ]
+    },
+    {
+      "symbol": "BXN",
+      "rows": 4283,
+      "first": "2009-09-18",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:04",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Tracks the value of a hypothetical portfolio that overlays a short at-the-money NDX call on the Nasdaq 100 Stock  Index. ",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "BXN",
+        "mkt_data_delay": 15,
+        "name": "Cboe NASDAQ-100 BuyWrite Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2009-09-18",
+          "volume": "0.0",
+          "open": "298.740000",
+          "high": "298.790000",
+          "low": "298.030000",
+          "close": "298.140000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1244.720000",
+          "high": "1246.500000",
+          "low": "1243.420000",
+          "close": "1244.970000"
+        }
+      ]
+    },
+    {
+      "symbol": "BXNTU",
+      "rows": 5293,
+      "first": "2005-09-19",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:04",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe NASDAQ-100 BuyWrite V2 UCITS Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "BXNTU",
+        "mkt_data_delay": 15,
+        "name": "Cboe NASDAQ-100 BuyWrite V2 UCITS Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2005-09-19",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "397.740000",
+          "high": "398.300000",
+          "low": "397.320000",
+          "close": "397.810000"
+        }
+      ]
+    },
+    {
+      "symbol": "BXRC",
+      "rows": 5701,
+      "first": "2004-01-30",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:05",
+      "definition": {
+        "calc_end_time": "17:00:00",
+        "calc_start_time": "07:00:00",
+        "currency": "USD",
+        "description": "Tracks the value of a hypothetical portfolio that overlays one (if RVIX-style >=20) or one-half (if RVIX-style<20)  short  at-the-money RUT call  on the Russell 2000 Stock Index. ",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "BXRC",
+        "mkt_data_delay": 15,
+        "name": "Cboe Russell 2000 Conditional Buywrite Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2004-01-30",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "325.060000",
+          "high": "326.310000",
+          "low": "324.350000",
+          "close": "324.660000"
+        }
+      ]
+    },
+    {
+      "symbol": "BXTW",
+      "rows": 3812,
+      "first": "2011-08-05",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:05",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe 20+ Year Treasury Bond One-Week BuyWrite Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "BXTW",
+        "mkt_data_delay": 15,
+        "name": "Cboe 20+ Year Treasury Bond One-Week BuyWrite Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2011-08-05",
+          "volume": "0.0",
+          "open": "1000.000000",
+          "high": "1000.000000",
+          "low": "1000.000000",
+          "close": "1000.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1034.480000",
+          "high": "1039.300000",
+          "low": "1025.630000",
+          "close": "1028.150000"
+        }
+      ]
+    },
+    {
+      "symbol": "CLL1M",
+      "rows": 5670,
+      "first": "2004-03-19",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:06",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe S&P 500 Risk Managed Income Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "CLL1M",
+        "mkt_data_delay": 15,
+        "name": "Cboe S&P 500 Risk Managed Income Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2004-03-19",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "214.850000",
+          "high": "215.030000",
+          "low": "214.630000",
+          "close": "214.860000"
+        }
+      ]
+    },
+    {
+      "symbol": "CLLZ",
+      "rows": 10144,
+      "first": "1986-06-20",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:06",
+      "definition": {
+        "calc_end_time": "17:30:00",
+        "calc_start_time": "07:00:00",
+        "currency": "USD",
+        "description": "Tracks the value of a hypothetical portfolio that overlays a long 2.5%-5% SPX put spread  and short an SPX call on the S&P 500 Stock Index. The net option premium is zero. ",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "CLLZ",
+        "mkt_data_delay": 15,
+        "name": "Cboe S&P 500 Zero-Cost Put Spread Collar Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "1986-06-20",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "2323.660000",
+          "high": "2328.290000",
+          "low": "2317.180000",
+          "close": "2322.150000"
+        }
+      ]
+    },
+    {
+      "symbol": "DJS",
+      "rows": 3871,
+      "first": "2011-05-05",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:08",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Settlement value of options on DJIA Index ",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "DJS",
+        "mkt_data_delay": 15,
+        "name": "Dow Jones",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2011-05-05",
+          "volume": "0.0",
+          "open": "126.700000",
+          "high": "126.700000",
+          "low": "126.700000",
+          "close": "126.700000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "512.770000",
+          "high": "512.770000",
+          "low": "512.770000",
+          "close": "512.770000"
+        }
+      ]
+    },
+    {
+      "symbol": "ESGST",
+      "rows": 1543,
+      "first": "2020-08-11",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:09",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe Scored & Screened Options Settlement Symbol",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "ESGST",
+        "mkt_data_delay": 15,
+        "name": "Cboe Scored & Screened Options Settlement Symbol",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2020-08-11",
+          "volume": "0.0",
+          "open": "288.850000",
+          "high": "288.850000",
+          "low": "288.850000",
+          "close": "288.850000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "685.630000",
+          "high": "685.630000",
+          "low": "685.630000",
+          "close": "685.630000"
+        }
+      ]
+    },
+    {
+      "symbol": "IDB50N",
+      "rows": 3279,
+      "first": "2013-12-20",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:11",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "IDB IndexAmericas 50 Net Total Return Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "IDB50N",
+        "mkt_data_delay": 15,
+        "name": "IDB IndexAmericas 50 Net Total Return Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2013-12-20",
+          "volume": "0.0",
+          "open": "1000.000000",
+          "high": "1000.000000",
+          "low": "1000.000000",
+          "close": "1000.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "3917.110000",
+          "high": "3917.110000",
+          "low": "3917.110000",
+          "close": "3917.110000"
+        }
+      ]
+    },
+    {
+      "symbol": "OET",
+      "rows": 6930,
+      "first": "1998-07-09",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:21",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "S&P 100 Flex Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "OET",
+        "mkt_data_delay": 15,
+        "name": "S&P 100 Flex Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "1998-07-09",
+          "volume": "0.0",
+          "open": "0.000000",
+          "high": "567.070000",
+          "low": "567.070000",
+          "close": "567.070000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "3863.270000",
+          "high": "3863.270000",
+          "low": "3863.270000",
+          "close": "3863.270000"
+        }
+      ]
+    },
+    {
+      "symbol": "PPUT3M",
+      "rows": 5670,
+      "first": "2004-03-19",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:21",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe S&P 500 Tail Risk Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "PPUT3M",
+        "mkt_data_delay": 15,
+        "name": "Cboe S&P 500 Tail Risk Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "SunToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2004-03-19",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "647.290000",
+          "high": "649.140000",
+          "low": "645.080000",
+          "close": "646.580000"
+        }
+      ]
+    },
+    {
+      "symbol": "PTLT",
+      "rows": 5459,
+      "first": "2005-01-21",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:22",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Cboe 20+ Year Treasury Bond PutWrite Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "PTLT",
+        "mkt_data_delay": 15,
+        "name": "Cboe 20+ Year Treasury Bond PutWrite Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2005-01-21",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "228.900000",
+          "high": "230.000000",
+          "low": "227.240000",
+          "close": "227.670000"
+        }
+      ]
+    },
+    {
+      "symbol": "SET",
+      "rows": 6943,
+      "first": "1998-07-09",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "S&P 500 Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SET",
+        "mkt_data_delay": 15,
+        "name": "S&P 500 Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "1998-07-09",
+          "volume": "0.0",
+          "open": "0.000000",
+          "high": "1162.440000",
+          "low": "1162.440000",
+          "close": "1162.440000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "7735.750000",
+          "high": "7735.750000",
+          "low": "7735.750000",
+          "close": "7735.750000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISB",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Materials Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISB",
+        "mkt_data_delay": 15,
+        "name": "Materials Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "565.370000",
+          "high": "565.370000",
+          "low": "565.370000",
+          "close": "565.370000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1039.530000",
+          "high": "1039.530000",
+          "low": "1039.530000",
+          "close": "1039.530000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISE",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Energy Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISE",
+        "mkt_data_delay": 15,
+        "name": "Energy Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "651.240000",
+          "high": "651.240000",
+          "low": "651.240000",
+          "close": "651.240000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1306.220000",
+          "high": "1306.220000",
+          "low": "1306.220000",
+          "close": "1306.220000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISM",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Financial Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISM",
+        "mkt_data_delay": 15,
+        "name": "Financial Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "320.250000",
+          "high": "320.250000",
+          "low": "320.250000",
+          "close": "320.250000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "660.960000",
+          "high": "660.960000",
+          "low": "660.960000",
+          "close": "660.960000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISR",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Consumer Staples Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISR",
+        "mkt_data_delay": 15,
+        "name": "Consumer Staples Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "536.010000",
+          "high": "536.010000",
+          "low": "536.010000",
+          "close": "536.010000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "814.370000",
+          "high": "814.370000",
+          "low": "814.370000",
+          "close": "814.370000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISRE",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Real Estate Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISRE",
+        "mkt_data_delay": 15,
+        "name": "Real Estate Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "165.060000",
+          "high": "165.060000",
+          "low": "165.060000",
+          "close": "165.060000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "201.160000",
+          "high": "201.160000",
+          "low": "201.160000",
+          "close": "201.160000"
+        }
+      ]
+    },
+    {
+      "symbol": "SIST",
+      "rows": 1927,
+      "first": "2019-02-04",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Technology Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SIST",
+        "mkt_data_delay": 15,
+        "name": "Technology Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2019-02-04",
+          "volume": "0.0",
+          "open": "670.900000",
+          "high": "670.900000",
+          "low": "670.900000",
+          "close": "670.900000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "4044.110000",
+          "high": "4044.110000",
+          "low": "4044.110000",
+          "close": "4044.110000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISUT",
+      "rows": 1468,
+      "first": "2020-11-27",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Utilities Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISUT",
+        "mkt_data_delay": 15,
+        "name": "Utilities Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2020-11-27",
+          "volume": "0.0",
+          "open": "649.050000",
+          "high": "649.050000",
+          "low": "649.050000",
+          "close": "649.050000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "808.450000",
+          "high": "808.450000",
+          "low": "808.450000",
+          "close": "808.450000"
+        }
+      ]
+    },
+    {
+      "symbol": "SISV",
+      "rows": 1468,
+      "first": "2020-11-27",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "Health Care Select Sector Settlement Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SISV",
+        "mkt_data_delay": 15,
+        "name": "Health Care Select Sector Settlement Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2020-11-27",
+          "volume": "0.0",
+          "open": "1098.300000",
+          "high": "1098.300000",
+          "low": "1098.300000",
+          "close": "1098.300000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1684.020000",
+          "high": "1684.020000",
+          "low": "1684.020000",
+          "close": "1684.020000"
+        }
+      ]
+    },
+    {
+      "symbol": "SIXI",
+      "rows": 4459,
+      "first": "2009-01-02",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Industrials Select Sector Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SIXI",
+        "mkt_data_delay": 15,
+        "name": "Industrials Select Sector Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2009-01-02",
+          "volume": "0.0",
+          "open": "243.430000",
+          "high": "243.430000",
+          "low": "243.430000",
+          "close": "243.430000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1709.440000",
+          "high": "1724.940000",
+          "low": "1703.480000",
+          "close": "1714.340000"
+        }
+      ]
+    },
+    {
+      "symbol": "SIXU",
+      "rows": 4459,
+      "first": "2009-01-02",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:25",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Utilities Select Sector Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SIXU",
+        "mkt_data_delay": 15,
+        "name": "Utilities Select Sector Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2009-01-02",
+          "volume": "0.0",
+          "open": "301.760000",
+          "high": "301.760000",
+          "low": "301.760000",
+          "close": "301.760000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "805.290000",
+          "high": "813.770000",
+          "low": "804.020000",
+          "close": "806.700000"
+        }
+      ]
+    },
+    {
+      "symbol": "SVRPO",
+      "rows": 5220,
+      "first": "2005-12-30",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:34",
+      "definition": {
+        "calc_end_time": "17:30:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "The Index is designed to provide a variable level of monthly premium income that captures the ?volatility risk premium? in standardized options on the S&P 500 Index.",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "SVRPO",
+        "mkt_data_delay": 15,
+        "name": "Cboe S&P 500 Market-Neutral Volatility Risk Premia Optimized Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2005-12-30",
+          "volume": "0.0",
+          "open": "100.000000",
+          "high": "100.000000",
+          "low": "100.000000",
+          "close": "100.000000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "959.170000",
+          "high": "959.170000",
+          "low": "959.170000",
+          "close": "959.170000"
+        }
+      ]
+    },
+    {
+      "symbol": "VIX6M",
+      "rows": 4718,
+      "first": "2008-01-02",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:38",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "VIX-style value of the expected volatility of 6-month S&P 500 Stock Index returns",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "VIX6M",
+        "mkt_data_delay": 15,
+        "name": "Cboe S&P 500 6-Month Volatility Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2008-01-02",
+          "volume": "0.0",
+          "open": "24.360000",
+          "high": "24.360000",
+          "low": "24.360000",
+          "close": "24.360000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "20.260000",
+          "high": "20.480000",
+          "low": "20.150000",
+          "close": "20.150000"
+        }
+      ]
+    },
+    {
+      "symbol": "VRO",
+      "rows": 1272,
+      "first": "2008-07-16",
+      "last": "2026-09-30",
+      "timestamp": "2026-10-05 02:01:40",
+      "definition": {
+        "calc_end_time": "15:15:00",
+        "calc_start_time": "00:00:00",
+        "currency": "USD",
+        "description": "Cboe Volatility Index Settlement Value",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "VRO",
+        "mkt_data_delay": 15,
+        "name": "Cboe Volatility Index Settlement Value",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2008-07-16",
+          "volume": "0.0",
+          "open": "28.200000",
+          "high": "28.400000",
+          "low": "28.200000",
+          "close": "28.400000"
+        },
+        {
+          "date": "2026-09-30",
+          "volume": "0.0",
+          "open": "16.090000",
+          "high": "16.090000",
+          "low": "16.090000",
+          "close": "16.090000"
+        }
+      ]
+    },
+    {
+      "symbol": "VXD",
+      "rows": 4286,
+      "first": "2009-09-18",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:41",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "VIX-style value of the expected volatility of DJIA stock index returns",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "VXD",
+        "mkt_data_delay": 15,
+        "name": "Cboe DJIA Volatility Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2009-09-18",
+          "volume": "0.0",
+          "open": "21.150000",
+          "high": "21.620000",
+          "low": "20.840000",
+          "close": "21.220000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "15.360000",
+          "high": "16.160000",
+          "low": "15.300000",
+          "close": "15.420000"
+        }
+      ]
+    },
+    {
+      "symbol": "VXTLT",
+      "rows": 5712,
+      "first": "2004-01-02",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:42",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "VIX-style value of the expected volatility of iShares TLT ETF returns. TLT is based on 20-year Treasury bonds",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "VXTLT",
+        "mkt_data_delay": 15,
+        "name": "Cboe 20+ Year Treasury Bond ETF TLT VIX Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2004-01-02",
+          "volume": "0.0",
+          "open": "12.370000",
+          "high": "12.370000",
+          "low": "12.370000",
+          "close": "12.370000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "17.540000",
+          "high": "17.600000",
+          "low": "16.910000",
+          "close": "17.000000"
+        }
+      ]
+    },
+    {
+      "symbol": "XSR",
+      "rows": 3682,
+      "first": "2011-05-05",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:43",
+      "definition": {
+        "calc_end_time": "09:00:00",
+        "calc_start_time": "05:00:00",
+        "currency": "USD",
+        "description": "S&P 500 Settlement Reduced",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "XSR",
+        "mkt_data_delay": 15,
+        "name": "S&P 500 Settlement Reduced",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "sample": [
+        {
+          "date": "2011-05-05",
+          "volume": "0.0",
+          "open": "133.990000",
+          "high": "133.990000",
+          "low": "133.990000",
+          "close": "133.990000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "773.580000",
+          "high": "773.580000",
+          "low": "773.580000",
+          "close": "773.580000"
+        }
+      ]
+    }
+  ],
+  "qualifications": {
+    "live_deployment_verified": false,
+    "full_upstream_history_verified": false,
+    "point_in_time_vintages_verified": false,
+    "watchlist_vendor_equivalence_verified": false,
+    "calls_eligible": false,
+    "sizing_eligible": false
+  },
+  "semantics": {
+    "values": "Published index and settlement closes; not traded-security prices, continuous futures, executable quotes or manufactured OHLC.",
+    "units": "Volatility index points are distinct from general index points. Metadata currency is not the numeric unit.",
+    "source_time": "Original source timestamp retained without inventing its unspecified timezone. Observation dates are calendar labels, not release timestamps.",
+    "source_inconsistencies": "Source OHLC contradictions are flagged; valid source closes remain plotable and all original fields remain inspectable.",
+    "volume": "The public index histories contain zero volume placeholders; these are not traded volume.",
+    "methodology": "Historical methodology versions and backtested/live boundaries remain unverified."
+  },
+  "additional_distributed_source_preflight": [
+    {
+      "requested": "CBOEEU:BDES50P",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Germany Small Cap 50",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BDES50P",
+        "mkt_data_delay": 15,
+        "name": "Cboe Germany Small Cap 50",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BDES50P",
+        "Description": "Cboe Germany Small Cap 50",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "27231.402300",
+          "high": "27231.402300",
+          "low": "27231.402300",
+          "close": "27231.402300"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "33914.138300",
+          "high": "34348.141500",
+          "low": "33909.903900",
+          "close": "33998.348600"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPCONC",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Consumer Cyclicals Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPCONC",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Consumer Cyclicals Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPCONC",
+        "Description": "Cboe Europe Consumer Cyclicals Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "25286.924200",
+          "high": "25286.924200",
+          "low": "25286.924200",
+          "close": "25286.924200"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "20122.784100",
+          "high": "20365.434400",
+          "low": "20025.390200",
+          "close": "20051.047400"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPXUKN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe All Companies ex UK",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPXUKN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe All Companies ex UK",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPXUKN",
+        "Description": "Cboe Europe All Companies ex UK",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "23752.387900",
+          "high": "23752.387900",
+          "low": "23752.387900",
+          "close": "23752.387900"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "35765.218700",
+          "high": "36150.973600",
+          "low": "35764.384900",
+          "close": "36001.516200"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEZACN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Eurozone All Companies",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEZACN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Eurozone All Companies",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEZACN",
+        "Description": "Cboe Eurozone All Companies",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "21909.069600",
+          "high": "21909.069600",
+          "low": "21909.069600",
+          "close": "21909.069600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "35242.801800",
+          "high": "35626.650100",
+          "low": "35237.262400",
+          "close": "35484.205700"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BFI25N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Finland 25",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BFI25N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Finland 25",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BFI25N",
+        "Description": "Cboe Finland 25",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "22155.308200",
+          "high": "22155.308200",
+          "low": "22155.308200",
+          "close": "22155.308200"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "31396.922100",
+          "high": "31774.904800",
+          "low": "31396.922100",
+          "close": "31590.718200"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BFI25P",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Finland 25",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BFI25P",
+        "mkt_data_delay": 15,
+        "name": "Cboe Finland 25",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BFI25P",
+        "Description": "Cboe Finland 25",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "15925.031500",
+          "high": "15925.031500",
+          "low": "15925.031500",
+          "close": "15925.031500"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "20070.642500",
+          "high": "20312.269900",
+          "low": "20070.642500",
+          "close": "20194.527700"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BIT40N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Italy 40",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BIT40N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Italy 40",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BIT40N",
+        "Description": "Cboe Italy 40",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "4362.239900",
+          "high": "4362.239900",
+          "low": "4362.239900",
+          "close": "4362.239900"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "10095.997900",
+          "high": "10145.739300",
+          "low": "9993.507800",
+          "close": "10064.594700"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BES35N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Spain 35",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BES35N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Spain 35",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BES35N",
+        "Description": "Cboe Spain 35",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "2465.511500",
+          "high": "2465.511500",
+          "low": "2465.511500",
+          "close": "2465.511500"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "5698.494200",
+          "high": "5750.290400",
+          "low": "5677.083100",
+          "close": "5704.666000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BFR40N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe France 40",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BFR40N",
+        "mkt_data_delay": 15,
+        "name": "Cboe France 40",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BFR40N",
+        "Description": "Cboe France 40",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "1574.150800",
+          "high": "1574.150800",
+          "low": "1574.150800",
+          "close": "1574.150800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1896.418900",
+          "high": "1915.973700",
+          "low": "1893.257000",
+          "close": "1906.368400"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BDE40N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Germany 40",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BDE40N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Germany 40",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BDE40N",
+        "Description": "Cboe Germany 40",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "131.764000",
+          "high": "131.764000",
+          "low": "131.764000",
+          "close": "131.764000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "206.025300",
+          "high": "208.468200",
+          "low": "205.921400",
+          "close": "207.819400"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BCH20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "CHF",
+        "description": "Cboe Switzerland 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BCH20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Switzerland 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BCH20N",
+        "Description": "Cboe Switzerland 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "42.146500",
+          "high": "42.146500",
+          "low": "42.146500",
+          "close": "42.146500"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "58.566000",
+          "high": "59.162400",
+          "low": "58.383900",
+          "close": "58.816500"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BDES50N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Germany Small Cap 50",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BDES50N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Germany Small Cap 50",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BDES50N",
+        "Description": "Cboe Germany Small Cap 50",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "32089.525400",
+          "high": "32089.525400",
+          "low": "32089.525400",
+          "close": "32089.525400"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "42531.934400",
+          "high": "43076.220700",
+          "low": "42526.624100",
+          "close": "42637.543200"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPINDN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Industrials Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPINDN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Industrials Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPINDN",
+        "Description": "Cboe Europe Industrials Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "27710.907300",
+          "high": "27710.907300",
+          "low": "27710.907300",
+          "close": "27710.907300"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "51921.220200",
+          "high": "53014.974300",
+          "low": "51921.220200",
+          "close": "52690.702100"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPUTLN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Utilities Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPUTLN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Utilities Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPUTLN",
+        "Description": "Cboe Europe Utilities Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "18203.469600",
+          "high": "18203.469600",
+          "low": "18203.469600",
+          "close": "18203.469600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "30526.212300",
+          "high": "31009.098900",
+          "low": "30467.997400",
+          "close": "30820.742700"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPFINN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Finance Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPFINN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Finance Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPFINN",
+        "Description": "Cboe Europe Finance Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "17103.793400",
+          "high": "17103.793400",
+          "low": "17103.793400",
+          "close": "17103.793400"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "38363.709200",
+          "high": "38540.098400",
+          "low": "37967.988100",
+          "close": "38360.411500"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPTECN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Technology Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPTECN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Technology Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPTECN",
+        "Description": "Cboe Europe Technology Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "44727.254300",
+          "high": "44727.254300",
+          "low": "44727.254300",
+          "close": "44727.254300"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "82394.714700",
+          "high": "84865.146200",
+          "low": "82394.714700",
+          "close": "84482.173100"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPCONCN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Consumer Cyclicals Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPCONCN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Consumer Cyclicals Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPCONCN",
+        "Description": "Cboe Europe Consumer Cyclicals Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "31434.564600",
+          "high": "31434.564600",
+          "low": "31434.564600",
+          "close": "31434.564600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "27276.805400",
+          "high": "27605.722400",
+          "low": "27144.786200",
+          "close": "27179.565000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPBUSN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Business Services Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPBUSN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Business Services Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPBUSN",
+        "Description": "Cboe Europe Business Services Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "22108.913800",
+          "high": "22108.913800",
+          "low": "22108.913800",
+          "close": "22108.913800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "21859.651200",
+          "high": "21980.346500",
+          "low": "21819.524200",
+          "close": "21853.823000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPCONSN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Consumer Services Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPCONSN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Consumer Services Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPCONSN",
+        "Description": "Cboe Europe Consumer Services Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "17581.693000",
+          "high": "17581.693000",
+          "low": "17581.693000",
+          "close": "17581.693000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "15149.293800",
+          "high": "15411.733400",
+          "low": "15149.293800",
+          "close": "15285.348900"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEP50N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe 50",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEP50N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe 50",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEP50N",
+        "Description": "Cboe Europe 50",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "22646.390400",
+          "high": "22646.390400",
+          "low": "22646.390400",
+          "close": "22646.390400"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "33387.387100",
+          "high": "33726.356900",
+          "low": "33360.643100",
+          "close": "33569.656100"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEZ50N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Eurozone 50",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEZ50N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Eurozone 50",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEZ50N",
+        "Description": "Cboe Eurozone 50",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "970.485000",
+          "high": "970.485000",
+          "low": "970.485000",
+          "close": "970.485000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "1575.870600",
+          "high": "1594.327600",
+          "low": "1575.040700",
+          "close": "1587.775400"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPACN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe All Companies",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPACN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe All Companies",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPACN",
+        "Description": "Cboe Europe All Companies",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "107.773900",
+          "high": "107.773900",
+          "low": "107.773900",
+          "close": "107.773900"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "163.248100",
+          "high": "164.858300",
+          "low": "163.248100",
+          "close": "164.178200"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BSE30N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "SEK",
+        "description": "Cboe Sweden 30",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BSE30N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Sweden 30",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BSE30N",
+        "Description": "Cboe Sweden 30",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "26.681400",
+          "high": "26.681400",
+          "low": "26.681400",
+          "close": "26.681400"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "39.172800",
+          "high": "39.766000",
+          "low": "39.172800",
+          "close": "39.517300"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BNO25N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "NOK",
+        "description": "Cboe Norway 25",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BNO25N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Norway 25",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BNO25N",
+        "Description": "Cboe Norway 25",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "73.848800",
+          "high": "73.848800",
+          "low": "73.848800",
+          "close": "73.848800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "114.901800",
+          "high": "115.492700",
+          "low": "114.871600",
+          "close": "115.076200"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BDK25N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "DKK",
+        "description": "Cboe Denmark 25",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BDK25N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Denmark 25",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BDK25N",
+        "Description": "Cboe Denmark 25",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "51315.015900",
+          "high": "51315.015900",
+          "low": "51315.015900",
+          "close": "51315.015900"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "64670.613900",
+          "high": "65545.089800",
+          "low": "64400.472000",
+          "close": "65484.363300"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BPT20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Portugal 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BPT20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Portugal 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BPT20N",
+        "Description": "Cboe Portugal 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "10990.736900",
+          "high": "10990.736900",
+          "low": "10990.736900",
+          "close": "10990.736900"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "16895.054300",
+          "high": "16966.656700",
+          "low": "16775.849200",
+          "close": "16785.662300"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BAT20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Austria 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BAT20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Austria 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BAT20N",
+        "Description": "Cboe Austria 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "15305.945600",
+          "high": "15305.945600",
+          "low": "15305.945600",
+          "close": "15305.945600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "33648.708700",
+          "high": "33842.057300",
+          "low": "33181.076200",
+          "close": "33465.890400"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BBE20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Belgium 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BBE20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Belgium 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BBE20N",
+        "Description": "Cboe Belgium 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "20265.199600",
+          "high": "20265.199600",
+          "low": "20265.199600",
+          "close": "20265.199600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "31741.782500",
+          "high": "31928.462900",
+          "low": "31518.378300",
+          "close": "31551.189000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BIE20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Ireland 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BIE20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Ireland 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BIE20N",
+        "Description": "Cboe Ireland 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "37975.023600",
+          "high": "37975.023600",
+          "low": "37975.023600",
+          "close": "37975.023600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "71272.293100",
+          "high": "72685.005500",
+          "low": "71231.347200",
+          "close": "72206.246100"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BFRM20N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe France Mid Cap 20",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BFRM20N",
+        "mkt_data_delay": 15,
+        "name": "Cboe France Mid Cap 20",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BFRM20N",
+        "Description": "Cboe France Mid Cap 20",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "23582.855100",
+          "high": "23582.855100",
+          "low": "23582.855100",
+          "close": "23582.855100"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "23348.383600",
+          "high": "23485.471000",
+          "low": "23250.611300",
+          "close": "23408.154000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BDEM50N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Germany Mid Cap 50",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BDEM50N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Germany Mid Cap 50",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BDEM50N",
+        "Description": "Cboe Germany Mid Cap 50",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "25367.309000",
+          "high": "25367.309000",
+          "low": "25367.309000",
+          "close": "25367.309000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "26046.472800",
+          "high": "26348.405100",
+          "low": "26046.472800",
+          "close": "26245.546500"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPENGYN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Energy Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPENGYN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Energy Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPENGYN",
+        "Description": "Cboe Europe Energy Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "19790.172500",
+          "high": "19790.172500",
+          "low": "19790.172500",
+          "close": "19790.172500"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "30364.263600",
+          "high": "30626.139600",
+          "low": "30103.355600",
+          "close": "30363.916800"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPHLTHN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Healthcare Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPHLTHN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Healthcare Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPHLTHN",
+        "Description": "Cboe Europe Healthcare Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "32683.206000",
+          "high": "32683.206000",
+          "low": "32683.206000",
+          "close": "32683.206000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "37325.556000",
+          "high": "37471.386500",
+          "low": "36870.939100",
+          "close": "36966.168500"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BCHM30N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "CHF",
+        "description": "Cboe Switzerland Mid Cap 30",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BCHM30N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Switzerland Mid Cap 30",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BCHM30N",
+        "Description": "Cboe Switzerland Mid Cap 30",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "21982.581200",
+          "high": "21982.581200",
+          "low": "21982.581200",
+          "close": "21982.581200"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "25824.308900",
+          "high": "26014.288900",
+          "low": "25823.531800",
+          "close": "25935.989800"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BNLM25N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Netherlands Mid Cap 25",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BNLM25N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Netherlands Mid Cap 25",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BNLM25N",
+        "Description": "Cboe Netherlands Mid Cap 25",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "24609.925800",
+          "high": "24609.925800",
+          "low": "24609.925800",
+          "close": "24609.925800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "27321.129600",
+          "high": "27527.876400",
+          "low": "27260.481700",
+          "close": "27329.522800"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPCNCN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Consumer Non-Cyclicals Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPCNCN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Consumer Non-Cyclicals Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPCNCN",
+        "Description": "Cboe Europe Consumer Non-Cyclicals Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "25187.598700",
+          "high": "25187.598700",
+          "low": "25187.598700",
+          "close": "25187.598700"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "25891.141300",
+          "high": "26156.807300",
+          "low": "25870.620300",
+          "close": "25932.290700"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPNEMN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Non-Energy Materials Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPNEMN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Non-Energy Materials Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPNEMN",
+        "Description": "Cboe Europe Non-Energy Materials Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "20668.476800",
+          "high": "20668.476800",
+          "low": "20668.476800",
+          "close": "20668.476800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "28248.188600",
+          "high": "28822.025000",
+          "low": "28248.188600",
+          "close": "28651.114300"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BEPTELN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Europe Telecommunications Sector",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BEPTELN",
+        "mkt_data_delay": 15,
+        "name": "Cboe Europe Telecommunications Sector",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BEPTELN",
+        "Description": "Cboe Europe Telecommunications Sector",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:01",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "12478.426600",
+          "high": "12478.426600",
+          "low": "12478.426600",
+          "close": "12478.426600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "16868.015900",
+          "high": "17233.786700",
+          "low": "16868.015900",
+          "close": "17139.986500"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEEU:BNORD40N",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "EUR",
+        "description": "Cboe Nordic 40",
+        "display": true,
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "BNORD40N",
+        "mkt_data_delay": 15,
+        "name": "Cboe Nordic 40",
+        "source": "eu_proprietary_index",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "Europe/London"
+      },
+      "csv_definition": {
+        "Symbol": "BNORD40N",
+        "Description": "Cboe Nordic 40",
+        "Agent Classification": "CO",
+        "Channel": "CGI",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 932,
+      "first": "2023-02-13",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:02",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-02-13",
+          "volume": "0.0",
+          "open": "27344.169800",
+          "high": "27344.169800",
+          "low": "27344.169800",
+          "close": "27344.169800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "30912.412100",
+          "high": "31307.219000",
+          "low": "30912.412100",
+          "close": "31188.644500"
+        }
+      ]
+    },
+    {
+      "requested": "MSTAR:XBITQN",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "dollar",
+        "description": "Bitwise Crypto Innovators 30 Net Total Return Index",
+        "display": "true",
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "XBITQN",
+        "mkt_data_delay": 15,
+        "name": "Bitwise Crypto Innovators 30 Net Total Return Index",
+        "source": "morningstar",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "XBITQN",
+        "Description": "Bitwise Crypto Innovators 30 Net Total Return Index",
+        "Agent Classification": "MC",
+        "Channel": "MSTAR",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 830,
+      "first": "2023-06-05",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:43",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-06-05",
+          "volume": "0.0",
+          "open": "978.002400",
+          "high": "978.002400",
+          "low": "978.002400",
+          "close": "978.002400"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "3734.433400",
+          "high": "3734.433400",
+          "low": "3734.433400",
+          "close": "3734.433400"
+        }
+      ]
+    },
+    {
+      "requested": "MSTAR:RISXNTR",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "dollar",
+        "description": "ICMR (Re)Insurance Specialty Net Total Return Index",
+        "display": "true",
+        "featured": "false",
+        "featured_order": 0,
+        "index_symbol": "RISXNTR",
+        "mkt_data_delay": 15,
+        "name": "ICMR (Re)Insurance Specialty Net Total Return Index",
+        "source": "morningstar",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RISXNTR",
+        "Description": "ICMR ReInsurance Specialty Net Total Return Index",
+        "Agent Classification": "MC",
+        "Channel": "MSTAR",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 828,
+      "first": "2023-06-05",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:23",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2023-06-05",
+          "volume": "0.0",
+          "open": "5401.386600",
+          "high": "5401.386600",
+          "low": "5401.386600",
+          "close": "5401.386600"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "10424.366100",
+          "high": "10424.366100",
+          "low": "10424.366100",
+          "close": "10424.366100"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEFTSE:RLR",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "Russell 1000 Growth Index Option Settlement",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "RLR",
+        "mkt_data_delay": 15,
+        "name": "Russell 1000 Growth Index Option Settlement",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RLR",
+        "Description": "Russell 1000 Growth Index Settlement Value",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 2742,
+      "first": "2015-10-21",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:23",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2015-10-21",
+          "volume": "0.0",
+          "open": "989.430000",
+          "high": "989.430000",
+          "low": "989.430000",
+          "close": "989.430000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "5123.580000",
+          "high": "5123.580000",
+          "low": "5123.580000",
+          "close": "5123.580000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEFTSE:RVS",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "Russell 1000 Value Index Option Settlement",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "RVS",
+        "mkt_data_delay": 15,
+        "name": "Russell 1000 Value Index Option Settlement",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RVS",
+        "Description": "Russell 1000 Value Index Settlement Value",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 2742,
+      "first": "2015-10-21",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:24",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2015-10-21",
+          "volume": "0.0",
+          "open": "977.500000",
+          "high": "977.500000",
+          "low": "977.500000",
+          "close": "977.500000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "2454.870000",
+          "high": "2454.870000",
+          "low": "2454.870000",
+          "close": "2454.870000"
+        }
+      ]
+    },
+    {
+      "requested": "RUSSELL:RUT",
+      "definition": {
+        "calc_end_time": "19:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Russell 2000 Index",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": "2024-09-08",
+        "index_symbol": "RUT",
+        "mkt_data_delay": 15,
+        "name": "Russell 2000 Index",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "C",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RUT",
+        "Description": "Russell 2000 Index",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 1468,
+      "first": "2020-11-27",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:24",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2020-11-27",
+          "volume": "0.0",
+          "open": "1846.256500",
+          "high": "1855.271900",
+          "low": "1845.501300",
+          "close": "1855.269800"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "2825.228800",
+          "high": "2852.502200",
+          "low": "2825.228800",
+          "close": "2832.894800"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEFTSE:RLS",
+      "definition": {
+        "calc_end_time": "17:00:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "Russell 2000 Index Settlement Value",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "RLS",
+        "mkt_data_delay": 15,
+        "name": "Russell 2000 Index Settlement Value",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RLS",
+        "Description": "Russell 2000 Index Settlement Value",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 4714,
+      "first": "2007-06-22",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:23",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2007-06-22",
+          "volume": "0.0",
+          "open": "834.090000",
+          "high": "834.090000",
+          "low": "834.090000",
+          "close": "834.090000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "2839.290000",
+          "high": "2839.290000",
+          "low": "2839.290000",
+          "close": "2839.290000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEFTSE:RIR",
+      "definition": {
+        "calc_end_time": "17:00:00",
+        "calc_start_time": "15:00:00",
+        "currency": "USD",
+        "description": "Russell 1000 Index Settlement Value",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "RIR",
+        "mkt_data_delay": 15,
+        "name": "Russell 1000 Index Settlement Value",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "RIR",
+        "Description": "Russell 1000 Index Settlement Value",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 4166,
+      "first": "2003-12-03",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:23",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2003-12-03",
+          "volume": "0.0",
+          "open": "556.670000",
+          "high": "556.670000",
+          "low": "556.670000",
+          "close": "556.670000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "4204.750000",
+          "high": "4204.750000",
+          "low": "4204.750000",
+          "close": "4204.750000"
+        }
+      ]
+    },
+    {
+      "requested": "CBOEFTSE:MRLS",
+      "definition": {
+        "calc_end_time": "16:00:00",
+        "calc_start_time": "08:00:00",
+        "currency": "USD",
+        "description": "Mini-Russell 2000 Index (AM Settlement)",
+        "display": true,
+        "display_override_auto_hide": false,
+        "featured": false,
+        "featured_order": 0,
+        "index_family": null,
+        "index_family_relationship": null,
+        "index_launch_date": null,
+        "index_symbol": "MRLS",
+        "mkt_data_delay": 15,
+        "name": "Mini-Russell 2000 Index (AM Settlement)",
+        "show_intraday_chart": true,
+        "source": "index_definition",
+        "tick_days": "MonToFri",
+        "tick_frequency": "D",
+        "tick_interval_seconds": null,
+        "tick_period": "Regular",
+        "time_zone": "America/Chicago"
+      },
+      "csv_definition": {
+        "Symbol": "MRLS",
+        "Description": "Mini Russell 2000 Index Settlement Value",
+        "Agent Classification": "TP",
+        "Channel": "FTSE",
+        "Time and Date of Capture": "2026-10-02 15:38:04 CDT"
+      },
+      "source_rows": 1415,
+      "first": "2021-02-16",
+      "last": "2026-10-02",
+      "timestamp": "2026-10-05 02:01:15",
+      "source_fields": [
+        "date",
+        "volume",
+        "open",
+        "high",
+        "low",
+        "close"
+      ],
+      "sample": [
+        {
+          "date": "2021-02-16",
+          "volume": "0.0",
+          "open": "230.980000",
+          "high": "230.980000",
+          "low": "230.980000",
+          "close": "230.980000"
+        },
+        {
+          "date": "2026-10-02",
+          "volume": "0.0",
+          "open": "283.930000",
+          "high": "283.930000",
+          "low": "283.930000",
+          "close": "283.930000"
+        }
+      ]
+    }
+  ],
+  "catalogue_migration": "Legacy receipts accepted only for an exact unchanged reviewed definition. New receipts add a per-series definition hash so unrelated catalogue additions do not invalidate retained sources."
+}

@@ -1,0 +1,208 @@
+"""Exact Cboe public index histories, plotted as close-only source observations."""
+import base64
+from collections import Counter
+from datetime import date,datetime,timezone
+from decimal import Decimal,InvalidOperation
+import gzip,hashlib,json,math,re
+from pathlib import Path
+import urllib.request,urllib.error
+
+CONTRACT='cboe-reviewed-index-series.v1'
+_catalogue_raw=Path(__file__).with_name('cboe-indices.json').read_bytes()
+CATALOGUE_HASH=hashlib.sha256(_catalogue_raw).hexdigest()
+CATALOGUE=json.loads(_catalogue_raw)
+assert CATALOGUE['contract']=='cboe-reviewed-index-catalogue.v1'
+MAX_WIRE=4000000
+MAX_ROWS=20000
+MAX_AGE=86400
+ROOT='data/series-cache/cboe-index-source/'
+class SourceUnavailable(ValueError):pass
+
+def definition(sid):
+    if not isinstance(sid,str) or len(sid)>100 or sid.split(':',1)[0].lower()!='cboeindex':
+        raise ValueError('Select an exact reviewed Cboe index identifier')
+    symbol=sid.partition(':')[2].upper()
+    if symbol not in CATALOGUE['series']:
+        raise ValueError('Cboe index definition is unreviewed; no market or futures substitution')
+    return dict(CATALOGUE['series'][symbol],id='cboeindex:'+symbol)
+
+def directory(q='',limit=50,offset=0):
+    if type(limit) is not int or not 1<=limit<=500 or type(offset) is not int or offset<0:raise ValueError('Invalid Cboe directory page')
+    terms=str(q).casefold().split();rows=[]
+    for symbol in CATALOGUE['series']:
+        d=definition('cboeindex:'+symbol)
+        if not all(t in (d['id']+' '+d['name']+' '+d['unit']).casefold() for t in terms):continue
+        rows.append(dict(id=d['id'],symbol=symbol,provider='cboeindex',provider_name='Cboe',kind='series',chartable=True,name=d['name'],unit=d['unit'],currency=d['currency'],freq=d['freq'],first=d['first'],last=d['last'],n=None,live_history_verified=False,contract=CONTRACT,definition_sha256=CATALOGUE_HASH,measurement_kind=d['measurement_kind']))
+    return dict(provider='cboe',rows=rows[offset:offset+limit],total=len(rows),offset=offset,limit=limit,contract=CONTRACT,catalogue_scope='Reviewed source definitions only; membership does not certify current history, intraday quotes or vendor equivalence')
+
+def measured(text):
+    if not isinstance(text,str) or len(text)>80 or not re.fullmatch(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?',text):return None
+    try:
+        dec=Decimal(text);value=float(dec)
+        return value if dec.is_finite() and math.isfinite(value) and (value!=0 or dec==0) else None
+    except (InvalidOperation,ValueError,OverflowError):return None
+
+def parsed(raw,d):
+    if not isinstance(raw,bytes) or len(raw)>MAX_WIRE:raise ValueError('Cboe response exceeds bounds')
+    def object_pairs(pairs):
+        out={}
+        for key,value in pairs:
+            if key in out:raise ValueError('Duplicate JSON member in Cboe response')
+            out[key]=value
+        return out
+    packet=json.loads(raw.decode('utf-8'),object_pairs_hook=object_pairs,parse_constant=lambda _:(_ for _ in ()).throw(ValueError('Nonfinite JSON constant')))
+    if not isinstance(packet,dict) or set(packet)!={'timestamp','symbol','data'} or packet['symbol']!='_'+d['symbol']:
+        raise ValueError('Cboe response identity or schema mismatch')
+    if not isinstance(packet['timestamp'],str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}',packet['timestamp']):raise ValueError('Cboe source timestamp needs review')
+    datetime.strptime(packet['timestamp'],'%Y-%m-%d %H:%M:%S')
+    if not isinstance(packet['data'],list) or len(packet['data'])>MAX_ROWS:raise ValueError('Cboe history row count invalid')
+    records=[];counts=Counter()
+    for ordinal,row in enumerate(packet['data']):
+        if not isinstance(row,dict) or set(row)!={'date','open','high','low','close','volume'}:raise ValueError('Cboe historical row schema changed')
+        anchor=None;reason=None;flags=[];value=measured(row['close'])
+        try:
+            if isinstance(row['date'],str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',row['date']):anchor=date.fromisoformat(row['date']).isoformat()
+        except ValueError:pass
+        if anchor is None:reason='invalid_reference_date'
+        elif value is None:reason='source_close_unavailable_or_unrepresentable'
+        if anchor:counts[anchor]+=1
+        o,h,l,c=[measured(row[k]) for k in ['open','high','low','close']]
+        if any(v is None for v in [o,h,l,c]):flags.append('source_ohlc_incomplete')
+        elif not l<=min(o,c)<=max(o,c)<=h:flags.append('source_ohlc_inconsistent')
+        if measured(row['volume']) not in (0,None):flags.append('source_volume_unqualified')
+        rounded=value is not None and Decimal(str(value))!=Decimal(row['close'])
+        records.append(dict(ordinal=ordinal,original=dict(row),anchor=anchor,value=value if reason is None else None,rejection=reason,flags=flags,binary64_rounding=rounded))
+    obs={}
+    for r in records:
+        if r['anchor']:
+            if counts[r['anchor']]>1:r.update(value=None,rejection='duplicate_reference_date')
+            obs[r['anchor']]=r['value']
+    return sorted([k,v] for k,v in obs.items()),records,packet['timestamp']
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,req,fp,code,msg,headers,newurl):raise urllib.error.HTTPError(req.full_url,code,'Cboe redirect not followed',headers,fp)
+def read_http(url):
+    if not isinstance(url,str) or url not in {d['source_url'] for d in CATALOGUE['series'].values()}:raise ValueError('Unreviewed Cboe source URL')
+    with urllib.request.build_opener(NoRedirect()).open(urllib.request.Request(url,headers={'User-Agent':'JustHodl-Cboe-Index/1.0 (+https://justhodl.ai)'}),timeout=55) as response:
+        raw=response.read(MAX_WIRE+1)
+        if response.status!=200 or len(raw)>MAX_WIRE:raise ValueError('Cboe response status or length invalid')
+        return raw,dict(response.headers)
+
+
+def prefix(d):
+    return ROOT + hashlib.sha256(d['id'].encode()).hexdigest() + '/'
+
+
+def _get(store, bucket, key, bound):
+    try:
+        response = store.get_object(Bucket=bucket, Key=key)
+    except Exception as exc:
+        if getattr(exc, 'response', {}).get('Error', {}).get('Code') in ('NoSuchKey', '404', 'NotFound'):
+            return None
+        raise SourceUnavailable('Cboe shared cache unavailable; no source request') from exc
+    body = response['Body']
+    try:
+        raw = body.read(bound + 1)
+    finally:
+        body.close()
+    if len(raw) > bound:
+        raise SourceUnavailable('Cboe retained object exceeds bound')
+    return raw
+
+
+def _put(store, bucket, key, raw, **kw):
+    try:
+        store.put_object(Bucket=bucket, Key=key, Body=raw, **kw)
+    except Exception as exc:
+        raise SourceUnavailable('Cboe source retention failed; no unretained chart') from exc
+
+
+def validate_receipt(receipt, d, raw):
+    digest = hashlib.sha256(raw).hexdigest()
+    key = prefix(d) + 'responses/' + digest + '.json'
+    if (not isinstance(receipt, dict) or receipt.get('contract') != CONTRACT or receipt.get('id') != d['id']
+        or receipt.get('definition_sha256') != CATALOGUE_HASH or receipt.get('url') != d['source_url']
+        or receipt.get('http_status') != 200 or receipt.get('sha256') != digest or receipt.get('bytes') != len(raw)
+        or receipt.get('retained_key') != key or receipt.get('retained_url') != 'https://justhodl.ai/' + key
+        or receipt.get('complete_response_retained') is not True):
+        raise ValueError('Cboe source receipt failed integrity checks')
+    clock = datetime.fromisoformat(receipt['received_at'])
+    if clock.tzinfo is None:
+        raise ValueError('Cboe receipt timezone required')
+
+
+def snapshot(d, store, bucket, reader=None, now=None):
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        raise ValueError('Cboe acquisition timezone required')
+    namespace = prefix(d)
+    if _get(store, bucket, ROOT + 'blocked.json', 32000) is not None or _get(store, bucket, namespace + 'blocked.json', 32000) is not None:
+        raise SourceUnavailable('Cboe source stopped after HTTP refusal; access review required')
+    current = _get(store, bucket, namespace + 'current.json', 32000)
+    if current is not None:
+        receipt = json.loads(current)
+        digest = receipt.get('sha256', '')
+        if not re.fullmatch('[0-9a-f]{64}', digest):
+            raise SourceUnavailable('Cboe retained identity invalid')
+        raw = _get(store, bucket, namespace + 'responses/' + digest + '.json', MAX_WIRE)
+        if raw is None:
+            raise SourceUnavailable('Cboe retained response absent')
+        validate_receipt(receipt, d, raw)
+        age = (now - datetime.fromisoformat(receipt['received_at'])).total_seconds()
+        if age < 0:
+            raise SourceUnavailable('Cboe receipt is in the future')
+        if age < MAX_AGE:
+            return raw, dict(receipt, snapshot_age_s=int(age))
+    claim = namespace + 'request-claims/' + now.date().isoformat() + '.json'
+    try:
+        store.put_object(Bucket=bucket, Key=claim, Body=json.dumps({'contract': CONTRACT, 'id': d['id'], 'requested_at': now.isoformat()}).encode(), ContentType='application/json', IfNoneMatch='*')
+    except Exception as exc:
+        if getattr(exc, 'response', {}).get('Error', {}).get('Code') in ('PreconditionFailed', '412', 'ConditionalRequestConflict', '409'):
+            raise SourceUnavailable('Cboe request already claimed today; no repeat request or stale substitution') from exc
+        raise SourceUnavailable('Cboe shared request gate unavailable; no source request') from exc
+    try:
+        raw, headers = (reader or read_http)(d['source_url'])
+        parsed(raw, d)  # Verify identity, access labels and units before retaining.
+        digest = hashlib.sha256(raw).hexdigest()
+        key = namespace + 'responses/' + digest + '.json'
+        receipt = dict(contract=CONTRACT, id=d['id'], definition_sha256=CATALOGUE_HASH, url=d['source_url'],
+            http_status=200, received_at=now.isoformat(), sha256=digest, bytes=len(raw), retained_key=key,
+            retained_url='https://justhodl.ai/' + key, complete_response_retained=True,
+            headers={k: v for k, v in headers.items() if k.lower() in ('content-type', 'etag', 'last-modified')})
+        _put(store, bucket, key, raw, ContentType='application/json', CacheControl='public, max-age=31536000, immutable')
+        _put(store, bucket, namespace + 'current.json', json.dumps(receipt).encode(), ContentType='application/json', CacheControl='no-cache')
+        return raw, dict(receipt, snapshot_age_s=0)
+    except urllib.error.HTTPError as exc:
+        blocked = ROOT if exc.code in (401, 403, 429) else namespace
+        _put(store, bucket, blocked + 'blocked.json', json.dumps({'contract': CONTRACT, 'id': d['id'], 'http_status': exc.code, 'received_at': now.isoformat(), 'retry_allowed': False}).encode(), ContentType='application/json', CacheControl='no-cache')
+        raise SourceUnavailable('Cboe HTTP ' + str(exc.code) + '; no fallback or retry') from exc
+    except (ValueError, OSError) as exc:
+        raise SourceUnavailable('Cboe acquisition failed; shared daily claim retained') from exc
+
+
+def packet(sid,raw,receipt):
+    d=definition(sid);validate_receipt(receipt,d,raw);obs,records,source_timestamp=parsed(raw,d)
+    n=sum(v is not None for _,v in obs);rejected=sum(r['rejection'] is not None for r in records);flags=Counter(flag for r in records for flag in r['flags'])
+    extract=json.dumps([r['original'] for r in records],separators=(',',':'),ensure_ascii=False).encode()
+    return dict(contract=CONTRACT,id=d['id'],requested_id=sid,provider='cboe',provider_name='Cboe',name=d['name'],unit=d['unit'],currency=d['currency'],freq=d['freq'],definition=d,definition_sha256=CATALOGUE_HASH,
+        source=d['source_url'],source_receipts=[receipt],definition_source_receipt=d['definition_receipt'],acquired_at=receipt['received_at'],source_generated_at_raw=source_timestamp,source_generated_timezone=None,
+        obs=obs,n=n,first=obs[0][0] if obs else None,last=obs[-1][0] if obs else None,last_valid=next((t for t,v in reversed(obs) if v is not None),None),
+        source_extract={'scope':'Every original dated record including published OHLC and volume fields; close alone is used for the scalar chart','sha256':hashlib.sha256(extract).hexdigest(),'bytes':len(extract),'body_encoding':'gzip+base64','body_base64':base64.b64encode(gzip.compress(extract,mtime=0)).decode()},
+        measurement_evidence={'columns':['source_row','source_date','chart_anchor','close_value','original_close','rejection','source_flags','binary64_rounding'],'rows':[[r['ordinal'],r['original']['date'],r['anchor'],r['value'],r['original']['close'],r['rejection'],r['flags'],r['binary64_rounding']] for r in records]},
+        quality={'status':'unavailable' if not n else 'partial' if rejected or flags else 'observations','error':None,'received_rows':len(records),'rejected_rows':rejected,'source_flag_counts':dict(flags),'plot_rounding_rows':sum(r['binary64_rounding'] for r in records)},
+        history={'response_complete':True,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'latest_reference_date_verified':False,'missing_dates_filled':False,'release_clock_verified':False,'backtested_live_boundary_verified':False,'source_field':'close','market_ohlc_qualified':False,'traded_volume_qualified':False,'intraday_quote':False,'measurement_kind':d['measurement_kind'],'observation_clock':'Published calendar reference date; source timestamp timezone unverified. Settlement histories may be irregular.','numeric_representation':'Original decimal strings retained; scalar chart uses finite binary64 with rounding disclosed.'},
+        equivalence_to_watchlist_provider_verified=False,calls_eligible=False,sizing_eligible=False)
+
+def fetch(sid,store,bucket,reader=None,now=None):
+    d=definition(sid)
+    try:
+        raw,receipt=snapshot(d,store,bucket,reader,now);out=packet(sid,raw,receipt)
+    except (SourceUnavailable,ValueError,KeyError,TypeError,UnicodeError) as exc:
+        out=dict(contract=CONTRACT,id=d['id'],requested_id=sid,provider='cboe',provider_name='Cboe',name=d['name'],unit=d['unit'],currency=d['currency'],freq=d['freq'],definition=d,definition_sha256=CATALOGUE_HASH,source=d['source_url'],source_receipts=[],obs=[],n=0,first=None,last=None,last_valid=None,acquired_at=None,quality={'status':'unavailable','error':str(exc)[:200],'received_rows':0,'rejected_rows':0},history={'response_complete':False,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'intraday_quote':False,'market_ohlc_qualified':False,'traded_volume_qualified':False},equivalence_to_watchlist_provider_verified=False,calls_eligible=False,sizing_eligible=False)
+    if len(json.dumps(out).encode())>3900000:raise ValueError('Cboe evidence exceeds response budget; no truncated history returned')
+    return out
+
+def cache_valid(value,sid):
+    try:d=definition(sid)
+    except ValueError:return False
+    return isinstance(value,dict) and value.get('contract')==CONTRACT and value.get('id')==d['id'] and value.get('definition_sha256')==CATALOGUE_HASH and value.get('definition')==d and value.get('history',{}).get('response_complete') is True and not value.get('quality',{}).get('error')

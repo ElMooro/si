@@ -1,0 +1,11 @@
+# Exact public Cboe index histories
+
+Seventy-seven previously unresolved watchlist identifiers have reviewed public Cboe index or settlement histories. The official products definitions, individual dashboards and public dashboard client identify the original history URLs. No continuous-futures replacement, expired symbol substitution or guessed successor is introduced.
+
+The adapter pins each definition, retains the original source response and receipt, and plots only the published close. Index points, volatility index points and settlement values retain their own meanings. Zero volume placeholders are not trading volume. Contradictory source open/high/low fields remain recorded and flagged without creating candle ranges. A source timestamp without an explicit timezone is not asserted to be UTC.
+
+Original decimals, dates, observation flags and all raw fields remain inspectable. Duplicate periods, missing observations, unrecognized fields or identities and non-finite numbers fail or remain missing according to the contract. Shared retained-source caching avoids duplicate downloads. A refusal stops acquisition without a proxy or symbol fallback. Backtested/live boundaries, historical methodology vintages, complete upstream history and vendor equivalence remain unverified.
+
+The chart provider picker groups these series under Cboe but uses the exact cboeindex namespace to avoid conflating chartable scalar series with exchange-qualified market symbols. Requested watchlist identities and the explicitly qualified resolved series remain visible. Routing and isolated preview tests are not live history proof; deployment acceptance checks the exact native and served source plus independently replayed public histories.
+
+The release includes 39 European variants, five Russell settlements, one Russell cash index and two explicitly named Morningstar-distributed net-return indices. Exact product-list labels distinguish net variants even where the generic definition name omits them. Currency labels remain verbatim. A per-definition receipt hash prevents unrelated catalogue additions from invalidating an unchanged retained history; legacy compatibility requires an exact reviewed definition.

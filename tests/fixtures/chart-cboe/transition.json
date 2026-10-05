@@ -1,0 +1,199 @@
+{
+  "base_scope": "Exact checked IMF candidate predecessor; source commit must be bound before integration",
+  "changes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+      "before_path": "tests/fixtures/chart-cboe/aws__lambdas__justhodl-symdir__source__lambda_function.py.before.txt",
+      "before_sha256": "1b96ed5af164ad1b152fe8400759cda89cfea13abf7c735a96559dd6c2702f84",
+      "replacements": [
+        {
+          "before": "import imf_series\n",
+          "after": "import imf_series\nimport cboe_index\n"
+        },
+        {
+          "before": "def search(q, limit=40, prov=None, kind=None):\n",
+          "after": "def search(q, limit=40, prov=None, kind=None):\n    if (prov in (None,\"cboe\",\"cboeindex\") and str(q or \"\").lower().startswith(\"cboeindex:\")) or (prov in (\"cboe\",\"cboeindex\") and kind==\"series\"):\n        return dict(cboe_index.directory(q or \"\",max(1,min(int(limit),200))),q=q)\n"
+        },
+        {
+          "before": "    if score is not None:\n        row[\"score\"] = round(score, 2)",
+          "after": "    if d[D_ID]==\"cboe:reviewed-index-history\" and kind==\"dataset\":\n        row.update(browse=True,chartable=False,reviewed_series=len(cboe_index.CATALOGUE[\"series\"]))\n    if d[D_ID].lower().startswith(\"cboeindex:\") and kind==\"series\":\n        try:\n            checked=cboe_index.definition(d[D_ID]);row.update(provider=\"cboeindex\",name=checked[\"name\"],unit=checked[\"unit\"],freq=checked[\"freq\"],currency=checked[\"currency\"],live_history_verified=False)\n        except ValueError:\n            row.update(chartable=False,definition_review_required=True)\n    if score is not None:\n        row[\"score\"] = round(score, 2)"
+        },
+        {
+          "before": "    if prov == \"imf\":\n        return dict(imf_series.directory(q,limit,offset,flow=rest),ds=ds)",
+          "after": "    if prov==\"cboe\" and rest==\"reviewed-index-history\":\n        return dict(cboe_index.directory(q,limit,offset),ds=ds)\n    if prov==\"cboeindex\":\n        raise ValueError(\"Choose the reviewed Cboe dataset or an exact series identifier\")\n    if prov == \"imf\":\n        return dict(imf_series.directory(q,limit,offset,flow=rest),ds=ds)"
+        },
+        {
+          "before": "        if sid.lower().startswith(\"imf:\") and not imf_series.cache_valid(cached,sid):",
+          "after": "        if sid.lower().startswith(\"cboeindex:\") and not cboe_index.cache_valid(cached,sid):\n            return None,age\n        if sid.lower().startswith(\"imf:\") and not imf_series.cache_valid(cached,sid):"
+        },
+        {
+          "before": "RESOLVERS = {",
+          "after": "RESOLVERS = {\"cboeindex\":lambda s,r,d:cboe_index.fetch(s,s3,BUCKET), "
+        },
+        {
+          "before": "CACHE_TTL = {",
+          "after": "CACHE_TTL = {\"cboeindex\":1800, "
+        },
+        {
+          "before": "\"census:\", \"imf:\", \"cftc:\",",
+          "after": "\"census:\", \"imf:\", \"cboeindex:\", \"cftc:\","
+        },
+        {
+          "before": "    if sid.lower().startswith(\"imf:\"):\n",
+          "after": "    if sid.lower().startswith(\"cboeindex:\"):\n        sid=cboe_index.definition(sid)[\"id\"]\n    if sid.lower().startswith(\"imf:\"):\n"
+        },
+        {
+          "before": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\")",
+          "after": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\", \"cboeindex\")"
+        },
+        {
+          "before": "    if prov == \"imf\" and kind == \"series\":\n",
+          "after": "    if prov in (\"cboe\",\"cboeindex\") and kind==\"series\":\n        return cboe_index.directory(q,limit,offset)\n    if prov == \"imf\" and kind == \"series\":\n"
+        },
+        {
+          "before": "    docs = ix[\"docs\"]\n    if prov == \"imf\":",
+          "after": "    docs = ix[\"docs\"]\n    if prov==\"cboe\":\n        docs=[doc(\"cboe:reviewed-index-history\",\"cboe\",\"Reviewed public Cboe index and settlement histories\",\"dataset\",0.5)]+[d for d in docs if d[D_ID]!=\"cboe:reviewed-index-history\"]\n    if prov == \"imf\":"
+        }
+      ],
+      "after_sha256": "86ad79da7432e0b5a0d147077a9e5cb76da03cbd3a246eb071f5109477bb6992"
+    },
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": {
+      "before_path": "tests/fixtures/chart-cboe/aws__lambdas__justhodl-symdir__tests__run_tests.py.before.txt",
+      "before_sha256": "10661611b00a3bde9db41b532e9bfddf8dc734180c4f8e6eba84de2ac95a03f5",
+      "replacements": [
+        {
+          "before": "import test_imf_series,",
+          "after": "import test_cboe_migration,test_cboe_index,test_cboe_integration,test_imf_series,"
+        },
+        {
+          "before": "for module in (test_imf_series,",
+          "after": "for module in (test_cboe_migration,test_cboe_index,test_cboe_integration,test_imf_series,"
+        }
+      ],
+      "after_sha256": "2338d992ded83ec018e08d979d9c9e9906b3cc5763cb8e88703dde3d4f169da5"
+    },
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-cboe/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "d32c362fb77f5a8e74e88f953c89d970b0afa96c81582e9c6979acf24e6e4685",
+      "replacements": [
+        {
+          "before": "  var SCALAR=new Set([",
+          "after": "  var CBOE_INDEX_KEYS=new Set([\"cboeindex:AVT5SMID\",\"cboeindex:BAT20N\",\"cboeindex:BBE20N\",\"cboeindex:BCH20N\",\"cboeindex:BCHM30N\",\"cboeindex:BDE40N\",\"cboeindex:BDEM50N\",\"cboeindex:BDES50N\",\"cboeindex:BDES50P\",\"cboeindex:BDK25N\",\"cboeindex:BEP50N\",\"cboeindex:BEPACN\",\"cboeindex:BEPBUSN\",\"cboeindex:BEPCNCN\",\"cboeindex:BEPCONC\",\"cboeindex:BEPCONCN\",\"cboeindex:BEPCONSN\",\"cboeindex:BEPENGYN\",\"cboeindex:BEPFINN\",\"cboeindex:BEPHLTHN\",\"cboeindex:BEPINDN\",\"cboeindex:BEPNEMN\",\"cboeindex:BEPTECN\",\"cboeindex:BEPTELN\",\"cboeindex:BEPUTLN\",\"cboeindex:BEPXUKN\",\"cboeindex:BES35N\",\"cboeindex:BEZ50N\",\"cboeindex:BEZACN\",\"cboeindex:BFI25N\",\"cboeindex:BFI25P\",\"cboeindex:BFR40N\",\"cboeindex:BFRM20N\",\"cboeindex:BIE20N\",\"cboeindex:BIT40N\",\"cboeindex:BNLM25N\",\"cboeindex:BNO25N\",\"cboeindex:BNORD40N\",\"cboeindex:BPT20N\",\"cboeindex:BSE30N\",\"cboeindex:BXN\",\"cboeindex:BXNTU\",\"cboeindex:BXRC\",\"cboeindex:BXTW\",\"cboeindex:CLL1M\",\"cboeindex:CLLZ\",\"cboeindex:DJS\",\"cboeindex:ESGST\",\"cboeindex:IDB50N\",\"cboeindex:MRLS\",\"cboeindex:OET\",\"cboeindex:PPUT3M\",\"cboeindex:PTLT\",\"cboeindex:RIR\",\"cboeindex:RISXNTR\",\"cboeindex:RLR\",\"cboeindex:RLS\",\"cboeindex:RUT\",\"cboeindex:RVS\",\"cboeindex:SET\",\"cboeindex:SISB\",\"cboeindex:SISE\",\"cboeindex:SISM\",\"cboeindex:SISR\",\"cboeindex:SISRE\",\"cboeindex:SIST\",\"cboeindex:SISUT\",\"cboeindex:SISV\",\"cboeindex:SIXI\",\"cboeindex:SIXU\",\"cboeindex:SVRPO\",\"cboeindex:VIX6M\",\"cboeindex:VRO\",\"cboeindex:VXD\",\"cboeindex:VXTLT\",\"cboeindex:XBITQN\",\"cboeindex:XSR\"]);\n  var SCALAR=new Set([\"cboeindex\","
+        },
+        {
+          "before": "    if(provider===\"imf\"&&!IMF_KEYS.has(id))",
+          "after": "    if(provider===\"cboeindex\"&&!CBOE_INDEX_KEYS.has(id))return \"inspect\";\n    if(provider===\"imf\"&&!IMF_KEYS.has(id))"
+        },
+        {
+          "before": "        if(kind!==\"provider\"&&id.split(\":\")[0].toLowerCase()!==state.provider)kind=\"inspect\";",
+          "after": "        var reviewedCboe=state.provider===\"cboe\"&&kind===\"chart\"&&id.split(\":\")[0]===\"cboeindex\";\n        if(kind!==\"provider\"&&id.split(\":\")[0].toLowerCase()!==state.provider&&!reviewedCboe)kind=\"inspect\";"
+        }
+      ],
+      "after_sha256": "c40d1b0fc53b27f89b386525f1c6605db86bdfb428b4cab02ba4e231ef5c4f33"
+    },
+    "jh-chart-catalog.js": {
+      "before_path": "tests/fixtures/chart-cboe/jh-chart-catalog.js.before.txt",
+      "before_sha256": "9c3a37688753a9b84a510909c48a7a6bda4fb4a6f880b941251af68948f00ff0",
+      "replacements": [
+        {
+          "before": "imf:1, boj:1",
+          "after": "imf:1, cboeindex:1, boj:1"
+        }
+      ],
+      "after_sha256": "8701e012f022f8396c42a51e8997a3b3764970f854f39fecb6898ab27d2f2621"
+    },
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-cboe/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "72d633afc6c75b436101af714596347b1b493ca0a14cab6f440baf8e6d9fb5de",
+      "replacements": [
+        {
+          "before": "ECONOMICS:UZIPYY|imf:PI:UZB.IND.YOY_PCH_PT.M",
+          "after": "ECONOMICS:UZIPYY|imf:PI:UZB.IND.YOY_PCH_PT.M\\nCBOE:AVT5SMID|cboeindex:AVT5SMID\\nCBOE:BXN|cboeindex:BXN\\nCBOE:BXNTU|cboeindex:BXNTU\\nCBOE:BXRC|cboeindex:BXRC\\nCBOE:BXTW|cboeindex:BXTW\\nCBOE:CLL1M|cboeindex:CLL1M\\nCBOE:CLLZ|cboeindex:CLLZ\\nCBOE:DJS|cboeindex:DJS\\nCBOE:ESGST|cboeindex:ESGST\\nCBOE:IDB50N|cboeindex:IDB50N\\nCBOE:OET|cboeindex:OET\\nCBOE:PPUT3M|cboeindex:PPUT3M\\nCBOE:PTLT|cboeindex:PTLT\\nCBOE:SET|cboeindex:SET\\nCBOE:SISB|cboeindex:SISB\\nCBOE:SISE|cboeindex:SISE\\nCBOE:SISM|cboeindex:SISM\\nCBOE:SISR|cboeindex:SISR\\nCBOE:SISRE|cboeindex:SISRE\\nCBOE:SIST|cboeindex:SIST\\nCBOE:SISUT|cboeindex:SISUT\\nCBOE:SISV|cboeindex:SISV\\nCBOE:SIXI|cboeindex:SIXI\\nCBOE:SIXU|cboeindex:SIXU\\nCBOE:SVRPO|cboeindex:SVRPO\\nCBOE:VIX6M|cboeindex:VIX6M\\nCBOE:VRO|cboeindex:VRO\\nCBOE:VXD|cboeindex:VXD\\nCBOE:VXTLT|cboeindex:VXTLT\\nCBOE:XSR|cboeindex:XSR\\nCBOEEU:BAT20N|cboeindex:BAT20N\\nCBOEEU:BBE20N|cboeindex:BBE20N\\nCBOEEU:BCH20N|cboeindex:BCH20N\\nCBOEEU:BCHM30N|cboeindex:BCHM30N\\nCBOEEU:BDE40N|cboeindex:BDE40N\\nCBOEEU:BDEM50N|cboeindex:BDEM50N\\nCBOEEU:BDES50N|cboeindex:BDES50N\\nCBOEEU:BDES50P|cboeindex:BDES50P\\nCBOEEU:BDK25N|cboeindex:BDK25N\\nCBOEEU:BEP50N|cboeindex:BEP50N\\nCBOEEU:BEPACN|cboeindex:BEPACN\\nCBOEEU:BEPBUSN|cboeindex:BEPBUSN\\nCBOEEU:BEPCNCN|cboeindex:BEPCNCN\\nCBOEEU:BEPCONC|cboeindex:BEPCONC\\nCBOEEU:BEPCONCN|cboeindex:BEPCONCN\\nCBOEEU:BEPCONSN|cboeindex:BEPCONSN\\nCBOEEU:BEPENGYN|cboeindex:BEPENGYN\\nCBOEEU:BEPFINN|cboeindex:BEPFINN\\nCBOEEU:BEPHLTHN|cboeindex:BEPHLTHN\\nCBOEEU:BEPINDN|cboeindex:BEPINDN\\nCBOEEU:BEPNEMN|cboeindex:BEPNEMN\\nCBOEEU:BEPTECN|cboeindex:BEPTECN\\nCBOEEU:BEPTELN|cboeindex:BEPTELN\\nCBOEEU:BEPUTLN|cboeindex:BEPUTLN\\nCBOEEU:BEPXUKN|cboeindex:BEPXUKN\\nCBOEEU:BES35N|cboeindex:BES35N\\nCBOEEU:BEZ50N|cboeindex:BEZ50N\\nCBOEEU:BEZACN|cboeindex:BEZACN\\nCBOEEU:BFI25N|cboeindex:BFI25N\\nCBOEEU:BFI25P|cboeindex:BFI25P\\nCBOEEU:BFR40N|cboeindex:BFR40N\\nCBOEEU:BFRM20N|cboeindex:BFRM20N\\nCBOEEU:BIE20N|cboeindex:BIE20N\\nCBOEEU:BIT40N|cboeindex:BIT40N\\nCBOEEU:BNLM25N|cboeindex:BNLM25N\\nCBOEEU:BNO25N|cboeindex:BNO25N\\nCBOEEU:BNORD40N|cboeindex:BNORD40N\\nCBOEEU:BPT20N|cboeindex:BPT20N\\nCBOEEU:BSE30N|cboeindex:BSE30N\\nCBOEFTSE:MRLS|cboeindex:MRLS\\nCBOEFTSE:RIR|cboeindex:RIR\\nCBOEFTSE:RLR|cboeindex:RLR\\nCBOEFTSE:RLS|cboeindex:RLS\\nCBOEFTSE:RVS|cboeindex:RVS\\nMSTAR:RISXNTR|cboeindex:RISXNTR\\nMSTAR:XBITQN|cboeindex:XBITQN\\nRUSSELL:RUT|cboeindex:RUT"
+        },
+        {
+          "before": "      if (/^imf:/i.test(route.handoff || \"\")) route.reason =",
+          "after": "      if (/^cboeindex:/i.test(route.handoff || \"\")) route.reason = \"Cboe published index or settlement close; source equivalence unverified. Original requested symbol retained. Index values are not tradable-security prices or futures. Close-only observations; market OHLC and traded volume unqualified. Historical methodology and backtested/live boundaries remain unverified.\";\n      if (/^imf:/i.test(route.handoff || \"\")) route.reason ="
+        },
+        {
+          "before": "OECD|CENSUS|IMF|CFTC",
+          "after": "OECD|CENSUS|IMF|CBOEINDEX|CFTC"
+        },
+        {
+          "before": "if(/^imf:/i.test(reference))return",
+          "after": "if(/^cboeindex:/i.test(reference))return \"Quote unavailable \u00b7 Cboe index/settlement observations\";if(/^imf:/i.test(reference))return"
+        },
+        {
+          "before": "if (e === \"OECD\" || e === \"CENSUS\" || e === \"IMF\")",
+          "after": "if (e === \"OECD\" || e === \"CENSUS\" || e === \"IMF\" || e === \"CBOEINDEX\")"
+        }
+      ],
+      "after_sha256": "aa79998c5a653d2c509802cb218fac8ed84b70089189f2809442949775a341c0"
+    },
+    "tests/watchlist-identity.test.js": {
+      "before_path": "tests/fixtures/chart-cboe/tests__watchlist-identity.test.js.before.txt",
+      "before_sha256": "8620854bc18e5065fd95278b9e583b0a084deaa7f9ad1189a23a1133d308e436",
+      "replacements": [
+        {
+          "before": "assert.equal(providerEntries.length,920);",
+          "after": "assert.equal(providerEntries.length,997);"
+        },
+        {
+          "before": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-imf-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))",
+          "after": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-imf-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative])),...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-cboe-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))"
+        },
+        {
+          "before": "assert.match(text,/Possible proxy or source substitution; equivalence unverified/);assert.equal(c.chartSelection.requestHints.namespace,requested.split(':')[0]);",
+          "after": "if(target.startsWith('cboeindex:')){assert.match(text,/Cboe published index or settlement close; source equivalence unverified/);assert.match(text,/market OHLC and traded volume unqualified/);}else assert.match(text,/Possible proxy or source substitution; equivalence unverified/);assert.equal(c.chartSelection.requestHints.namespace,requested.split(':')[0]);"
+        }
+      ],
+      "after_sha256": "7367f640795800e71112e8bf7fb3651b3686346c5fbb90e29dab20419f1494ca"
+    },
+    "tests/chart-provider-browser.test.js": {
+      "before_path": "tests/fixtures/chart-cboe/tests__chart-provider-browser.test.js.before.txt",
+      "before_sha256": "83c27f55e736d2084ca58a9d6694922261acc822d0ed1bc548631a0658bb3dbf",
+      "replacements": [
+        {
+          "before": "assert.equal(nativePrefixes.length,23);const prefixes=nativePrefixes.filter(p=>p!==\"oecd\"&&p!==\"imf\");",
+          "after": "assert.equal(nativePrefixes.length,24);const prefixes=nativePrefixes.filter(p=>p!==\"oecd\"&&p!==\"imf\"&&p!==\"cboeindex\");"
+        },
+        {
+          "before": "const id=provider==='imf'?",
+          "after": "const id=provider==='cboeindex'?'cboeindex:VIX6M':provider==='imf'?"
+        }
+      ],
+      "after_sha256": "ee695963d09057aaa1e70ea7f327627f8fd76be0b4ce00f3f581d16b4ada8f26"
+    },
+    "tests/helpers/chart-imf-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cboe/tests__helpers__chart-imf-preservation.cjs.before.txt",
+      "before_sha256": "3c26d8e93e8f83d304c1d672010ea9049168292329e6294ed2b0e22e440e4009",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-cboe-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "48fc22065e77ffc42f0a9b12ad662985968853c72d39eec25010f2f39557560b"
+    },
+    "tests/chart_imf_preservation.py": {
+      "before_path": "tests/fixtures/chart-cboe/tests__chart_imf_preservation.py.before.txt",
+      "before_sha256": "0f210eb71abcaceb6651c5639a10818bd99cbbd819b86eeb39059156e59dfcf5",
+      "replacements": [
+        {
+          "before": "def normalize(file,raw):\n",
+          "after": "def normalize(file,raw):\n    from chart_cboe_preservation import normalize as newer\n    raw=newer(file,raw)\n"
+        }
+      ],
+      "after_sha256": "dc4c0e81b68714cddda44b531b27f2ecfaf38936d5ff97b8468343625ace54d3"
+    },
+    "tests/chart-imf.test.js": {
+      "before_path": "tests/fixtures/chart-cboe/tests__chart-imf.test.js.before.txt",
+      "before_sha256": "f0b9b05a507fa2d6bde6100e724b2d05054bdf8366bd7e2589e1898f4334d8dc",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),",
+          "after": "const raw=require(\"./helpers/chart-cboe-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),"
+        }
+      ],
+      "after_sha256": "71e3884cf1ca97ffc859309611904283b7af49b0364a3a64cf5d2e539144b14b"
+    }
+  }
+}
