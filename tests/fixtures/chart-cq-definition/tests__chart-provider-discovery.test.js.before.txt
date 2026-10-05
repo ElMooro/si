@@ -24,5 +24,5 @@ test('Census chart discovery and stored-file pages use distinct exact identities
 });
 test('whole predecessor sources and all pre-existing test assertions are reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-provider-discovery-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-cq-definition-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
 });

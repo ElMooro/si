@@ -2,7 +2,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.join(__dirname,'../..');
 function normalize(raw,file){
- raw=require("./chart-cq-definition-preservation.cjs").normalize(raw,file);
  if(!['jh-chart-tvsearch.js','tests/warehouse-observation-preservation.test.js'].includes(file))return raw;
  const item=require('../fixtures/squeeze-research/preservation.json').files[file];
  const old=fs.readFileSync(path.join(R,item.predecessor),'utf8');

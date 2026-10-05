@@ -87,19 +87,6 @@
       ' · ' + (e.source_frequency || 'frequency unverified') + ' · ' + e.rejected_records + ' excluded records · observation dates, not release times';
     return result;
   }
-  function cqDefinition(sym) {
-    if (String(sym || '').replace(/^CQ:/i, '').toLowerCase() !== 'btc_fees_total') return null;
-    return {
-      status: 'definition_conflict', display_name: 'BTC fees · definition conflict',
-      reason: 'Legacy total-fee identifier is configured to fees_block_mean. Historical field lineage is unverified; do not interpret these values as total fees.',
-      reviewed_at: '2026-10-05', configured_path: '/btc/network-data/fees',
-      configured_field: 'fees_block_mean', conflicting_label: 'Total Fees', conflicting_unit: 'BTC/d',
-      reviewed_spec_sha256: '058b56994f1b8ee13c4219273e355afeed43489ceefd38d1c1816d6df7275aa9',
-      field_documentation: 'https://userguide.cryptoquant.com/api/btc-network-data',
-      historical_field_verified: false, total_fees_qualified: false,
-      resolution: 'Requires retained original responses and independently checked field lineage; a label or config edit alone cannot repair historical measurements.'
-    };
-  }
   function cq(doc, sym) {
     var path = '/data/cryptoquant-series.json', want = String(sym || '').replace(/^CQ:/i, '');
     var keys = exactKeys(doc && doc.series, want);
@@ -107,14 +94,6 @@
     var key = keys[0], row = doc.series[key];
     if (!object(row)) return unavailable(doc, sym, path, 'malformed_series', keys);
     var result = compile(doc, sym, path, key, row, 'dv', 'series[' + JSON.stringify(key) + ']');
-    var review = cqDefinition(key);
-    if (review) {
-      result.evidence.definition_review = review;
-      result.evidence.reported_unit = result.evidence.unit;
-      result.evidence.unit = null;
-      result.evidence.measurement_definition_verified = false;
-      result.src = review.display_name + ' · ' + review.reason + ' · ' + result.d.length + ' received scalar observations · unit unverified';
-    }
     var twins = exactKeys(doc.twins, key);
     result.evidence.proxy_histories = twins.map(function (id) { return { id: id, source_path: 'twins[' + JSON.stringify(id) + ']',
       whole_series: doc.twins[id], joined: false, reason: 'Cross-provider definition, unit and methodology equivalence are unverified' }; });
@@ -149,5 +128,5 @@
     e.transformations.push('Validate received normalized calendar dates without interpreting packet as_of as observation acquisition or first publication');
     return result;
   }
-  return { contract: VERSION, numeric: numeric, period: period, cq: cq, cqDefinition: cqDefinition, ciss: ciss, warehouse: warehouse };
+  return { contract: VERSION, numeric: numeric, period: period, cq: cq, ciss: ciss, warehouse: warehouse };
 });

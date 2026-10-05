@@ -1,0 +1,225 @@
+{
+  "base_commit": "86d95dae568d0993837614bba0f3505d2e187e99",
+  "changes": {
+    "jh-observation-series.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/jh-observation-series.js.before.txt",
+      "before_sha256": "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681",
+      "replacements": [
+        {
+          "before": "  function cq(doc, sym) {",
+          "after": "  function cqDefinition(sym) {\n    if (String(sym || '').replace(/^CQ:/i, '').toLowerCase() !== 'btc_fees_total') return null;\n    return {\n      status: 'definition_conflict', display_name: 'BTC fees \u00b7 definition conflict',\n      reason: 'Legacy total-fee identifier is configured to fees_block_mean. Historical field lineage is unverified; do not interpret these values as total fees.',\n      reviewed_at: '2026-10-05', configured_path: '/btc/network-data/fees',\n      configured_field: 'fees_block_mean', conflicting_label: 'Total Fees', conflicting_unit: 'BTC/d',\n      reviewed_spec_sha256: '058b56994f1b8ee13c4219273e355afeed43489ceefd38d1c1816d6df7275aa9',\n      field_documentation: 'https://userguide.cryptoquant.com/api/btc-network-data',\n      historical_field_verified: false, total_fees_qualified: false,\n      resolution: 'Requires retained original responses and independently checked field lineage; a label or config edit alone cannot repair historical measurements.'\n    };\n  }\n  function cq(doc, sym) {"
+        },
+        {
+          "before": "    var twins = exactKeys(doc.twins, key);",
+          "after": "    var review = cqDefinition(key);\n    if (review) {\n      result.evidence.definition_review = review;\n      result.evidence.reported_unit = result.evidence.unit;\n      result.evidence.unit = null;\n      result.evidence.measurement_definition_verified = false;\n      result.src = review.display_name + ' \u00b7 ' + review.reason + ' \u00b7 ' + result.d.length + ' received scalar observations \u00b7 unit unverified';\n    }\n    var twins = exactKeys(doc.twins, key);"
+        },
+        {
+          "before": "cq: cq, ciss: ciss",
+          "after": "cq: cq, cqDefinition: cqDefinition, ciss: ciss"
+        }
+      ],
+      "after_sha256": "c7d1e456b9fab8a11bd7e36fd7cc384dff62fc87b48ca92325062596599beb57"
+    },
+    "jh-cq-fuse.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/jh-cq-fuse.js.before.txt",
+      "before_sha256": "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "replacements": [
+        {
+          "before": "    var bars = parsed ? parsed.d : [], records = parsed ?",
+          "after": "    var definition = parsed && parsed.evidence.definition_review;\n    if (definition) label = definition.display_name;\n    var bars = parsed ? parsed.d : [], records = parsed ?"
+        },
+        {
+          "before": "    return { id:id, s:\"CQ:\"+id, name:label, category:cat, unit:unit, n:bars.length,",
+          "after": "    return { id:id, s:\"CQ:\"+id, name:label, category:cat, unit:unit, n:bars.length, definition_review:definition||null,"
+        },
+        {
+          "before": "        if(percentile !== null && (percentile < 0 || percentile > 100)) percentile = null;",
+          "after": "        if(percentile !== null && (percentile < 0 || percentile > 100)) percentile = null;\n        if(row.definition_review){z=null;percentile=null;}"
+        },
+        {
+          "before": "        if (mm.hist_read) h +=",
+          "after": "        if (mm.hist_read && !row.definition_review) h +="
+        }
+      ],
+      "after_sha256": "bd9f1490811037665c1f4ecd5b22fffe5e0a8e882d2e065a7ee208c19e9b14ee"
+    },
+    "jh-chart-catalog.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/jh-chart-catalog.js.before.txt",
+      "before_sha256": "8701e012f022f8396c42a51e8997a3b3764970f854f39fecb6898ab27d2f2621",
+      "replacements": [
+        {
+          "before": "[\"btc_fees_total\", \"BTC fees total\", [\"fees total\", \"btc fees\"]]",
+          "after": "[\"btc_fees_total\", \"BTC fees \u00b7 definition conflict\", [\"fees total\", \"btc fees\", \"fees block mean\", \"definition conflict\"]]"
+        }
+      ],
+      "after_sha256": "a7eece23c0acb4577400979eff5841954e96f44a35e7bcbfc838fc9b4bc14a33"
+    },
+    "tests/helpers/chart-provider-discovery-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__helpers__chart-provider-discovery-preservation.cjs.before.txt",
+      "before_sha256": "5d2599385ca2e54a159652503551dcd47e0800ddaab6708e534f44798452afeb",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-cq-definition-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "f80b12f69b4bb344afa8b24c045cb43b03ab8b0d12828258651d40c2d6d5dbf5"
+    },
+    "tests/helpers/observation-cache-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__helpers__observation-cache-preservation.cjs.before.txt",
+      "before_sha256": "03dd497af13d2b29c6e7e329168b7acb8a264af095ec8a652af2194aad922742",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cq-definition-preservation.cjs\").normalize(raw,file);\n"
+        }
+      ],
+      "after_sha256": "8b62c6012a64001784e54ba4ce0fd616dd10a8dae8f8c10c638233acdafa6860"
+    },
+    "tests/chart-provider-discovery.test.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__chart-provider-discovery.test.js.before.txt",
+      "before_sha256": "fe111f451148df81679dc7cfe38b2afcfac0d59e2bf05088c0fc4e973eab502b",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),",
+          "after": "const raw=require(\"./helpers/chart-cq-definition-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),"
+        }
+      ],
+      "after_sha256": "f6d145aa892105f71d57b23a609332bd2e2ed0616da3638ac1505ed071a171ed"
+    },
+    "jh-chart-stock-desk.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/jh-chart-stock-desk.js.before.txt",
+      "before_sha256": "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc",
+      "replacements": [
+        {
+          "before": "  const alias=e.chart_alias?",
+          "after": "  const definition=e.definition_review?'<p data-stock-definition-conflict><strong>Definition conflict</strong>: '+esc(e.definition_review.reason)+' '+esc(e.definition_review.resolution)+'</p>':'';\n  const alias=e.chart_alias?"
+        },
+        {
+          "before": "   cache+warehouse+alias+'<p>Scope: '",
+          "after": "   cache+warehouse+alias+definition+'<p>Scope: '"
+        },
+        {
+          "before": "+'</p>'+diagnostics+",
+          "after": "+'</p>'+diagnostics+definition+"
+        },
+        {
+          "before": "   cache+warehouse+alias+definition+'<p>Scope: '",
+          "after": "   cache+warehouse+alias+'<p>Scope: '"
+        }
+      ],
+      "after_sha256": "f2615bd271f421df297bc7b0392017144eb1b505eb1e6b3f1173979a1d74f05e"
+    },
+    "tests/helpers/warehouse-observation-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__helpers__warehouse-observation-preservation.cjs.before.txt",
+      "before_sha256": "767a18119d8502237750c354f2814e6932bee2aeaa2927f939d5de712b43f772",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cq-definition-preservation.cjs\").normalize(raw,file);\n"
+        }
+      ],
+      "after_sha256": "fd8d6e3fa77c2f5153be16a09dc36b0c37e192003fb14efcbc2fdd4dd9bbc819"
+    },
+    "tests/helpers/observation-diagnostics-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__helpers__observation-diagnostics-preservation.cjs.before.txt",
+      "before_sha256": "6712c7f3fb20b463420fd7d1eb360b4ad391968150f395a4cdc091f3e59b1d1c",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cq-definition-preservation.cjs\").normalize(raw,file);\n"
+        }
+      ],
+      "after_sha256": "6aba1639099dd1da2369fb7f817610a3e1fbb66cb66ac0f1b28d9974f155ab35"
+    },
+    "tests/warehouse-observation-preservation.test.js": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__warehouse-observation-preservation.test.js.before.txt",
+      "before_sha256": "25b82c79f68bb272a0f3b9bebb5dd47701b2ea7d6eaeb3c488fb9106bfca3107",
+      "replacements": [
+        {
+          "before": "current=fs.readFileSync(path.join(R,p),'utf8');",
+          "after": "current=require('./helpers/chart-cq-definition-preservation.cjs').normalize(fs.readFileSync(path.join(R,p),'utf8'),p);"
+        }
+      ],
+      "after_sha256": "de50ba79bfcf861d3f2b35647ab5864adbcfff05c80515d7779b3779e8fb9780"
+    },
+    "tests/chart-cq-definition-browser.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__chart-cq-definition-browser.cjs.before.txt",
+      "before_sha256": "b8a099e0cada726f3599d2ddb6abad48fd6daf5621289f8154f7bc34450928cc",
+      "replacements": [
+        {
+          "before": "assert.ok(box.width>0&&box.width<=width);",
+          "after": "assert.ok(box.width>0&&box.width<=width);assert.ok(box.y>=0&&box.y+box.height<=1000,'definition warning must be visible without scrolling');"
+        }
+      ],
+      "after_sha256": "410085a1c036ed1c1bd8cb65557265f229e7f20ae1abc1a7fec3f69c0834d947",
+      "new_in_this_batch": true
+    },
+    "tests/helpers/squeeze-research-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-cq-definition/tests__helpers__squeeze-research-preservation.cjs.before.txt",
+      "before_sha256": "aacc4760b87126eeeae7af7bfcb275f33e06dec4ea9563e847f8f58042c1ed19",
+      "after_sha256": "c4223f19ae85a0e216762b5eefd4926fbf7fb79d05d831899ed9aa7b880f770d",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){\n",
+          "after": "function normalize(raw,file){\n raw=require(\"./chart-cq-definition-preservation.cjs\").normalize(raw,file);\n"
+        }
+      ]
+    }
+  },
+  "predecessor_hashes": {
+    "jh-observation-series.js": [
+      "8684fc867320911ceeeb9cdec6813defebf78a57821f3322239d7fdbfb3833f0",
+      "d19ee114a02cf7d0facf542a4c8c2e055fa252e846ea4664cf9df496e78ba681"
+    ],
+    "jh-cq-fuse.js": [
+      "b96b7d011d5bae670b216547f65096b1ba65079a39a172c8daa28d2d14324389",
+      "c9fbfdfafce3bf2ed0c85e2a08c6298db6977f2d30daa698e1766922bfe36b01",
+      "c9fd0ae32e89f6f3c55746dd0f7eb01679dfcc4cf6df682d26fd7199835e7723",
+      "de7b578f218b8234e737aac5ff49b2bdb008b4a3a8b8182680b0a1bb169b77eb"
+    ],
+    "jh-chart-catalog.js": [
+      "1d2ef8aac3f04665bf79e5e75137ab029dfe513d749ad913c83a69735d543ff6",
+      "295504a9d0483054b0dbf51d39eb2839f390fe62296dd79fdccbd906a0f1580b",
+      "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "6d75d7f1356c15b3f0fdce1c1eecc55435fba9103877fe99560806f98f3f8c4b",
+      "8701e012f022f8396c42a51e8997a3b3764970f854f39fecb6898ab27d2f2621",
+      "903408cd617b40da991ffa36c164d110060863ec59555b3b67fba979a7d8dc2e",
+      "9c3a37688753a9b84a510909c48a7a6bda4fb4a6f880b941251af68948f00ff0",
+      "fa97c3aa84998b3dd281c4da8f8836abf90d3b3a99b16775376a771753f6a2d2"
+    ],
+    "tests/helpers/chart-provider-discovery-preservation.cjs": [
+      "5d2599385ca2e54a159652503551dcd47e0800ddaab6708e534f44798452afeb"
+    ],
+    "tests/helpers/observation-cache-preservation.cjs": [
+      "03dd497af13d2b29c6e7e329168b7acb8a264af095ec8a652af2194aad922742"
+    ],
+    "tests/chart-provider-discovery.test.js": [
+      "fe111f451148df81679dc7cfe38b2afcfac0d59e2bf05088c0fc4e973eab502b"
+    ],
+    "jh-chart-stock-desk.js": [
+      "3e998bd7ceccbdcd1a09f08b18c2dd8d652db86d52350120d4f9232e9a790502",
+      "6f4cbc0e23f1d62ad299932ba652e27bd96b151c301871bbbf56c0b9ca5fcc06",
+      "bd34dad4ec7bb7325473fa80db2f97708cb6a937e561b2886f7f6d179cf0bfcd",
+      "c1ab4c6f7fcf28afb22b0190590755d5f6cc825bfb6b4d81cc78b3a21779df5c",
+      "e0ce6d93b63232f3af1557cbdbb773da07bf9ad57f815059e4547d25ed12c8dc"
+    ],
+    "tests/helpers/warehouse-observation-preservation.cjs": [
+      "767a18119d8502237750c354f2814e6932bee2aeaa2927f939d5de712b43f772",
+      "8b6e3e39b053c617f5759e8dbcab92e507636bd453149b27ca0e58b97b4217cf",
+      "e2c3abb3427a20b274eb159e424f22ed12ccfa20b5ef2af59e6949a70fea17e3"
+    ],
+    "tests/helpers/observation-diagnostics-preservation.cjs": [
+      "6712c7f3fb20b463420fd7d1eb360b4ad391968150f395a4cdc091f3e59b1d1c"
+    ],
+    "tests/warehouse-observation-preservation.test.js": [
+      "25b82c79f68bb272a0f3b9bebb5dd47701b2ea7d6eaeb3c488fb9106bfca3107"
+    ],
+    "tests/chart-cq-definition-browser.cjs": [
+      "b8a099e0cada726f3599d2ddb6abad48fd6daf5621289f8154f7bc34450928cc"
+    ],
+    "tests/helpers/squeeze-research-preservation.cjs": [
+      "aacc4760b87126eeeae7af7bfcb275f33e06dec4ea9563e847f8f58042c1ed19"
+    ]
+  }
+}

@@ -140,12 +140,10 @@
     var cat = typeof reportedCategory === "string" && reportedCategory.trim() ? reportedCategory : "other";
     var doc = sourceDoc;
     var parsed = global.JHObservationSeries ? global.JHObservationSeries.cq(doc, "CQ:" + id) : null;
-    var definition = parsed && parsed.evidence.definition_review;
-    if (definition) label = definition.display_name;
     var bars = parsed ? parsed.d : [], records = parsed ? parsed.evidence.records.filter(function(r){return r.accepted;}) : [];
     var dates = records.map(function(r){return r.coordinate.original_period;}).sort();
     var unit = parsed && parsed.evidence.unit || "";
-    return { id:id, s:"CQ:"+id, name:label, category:cat, unit:unit, n:bars.length, definition_review:definition||null,
+    return { id:id, s:"CQ:"+id, name:label, category:cat, unit:unit, n:bars.length,
       first:dates[0]||"", last:dates[dates.length-1]||"", twin:!!twin,
       extra:parsed ? parsed.src : "Observation parser unavailable", chartable:bars.length>0,
       type:"onchain", cat:"chain", blob:blobOf(id,id.replace(/_/g," "),label,cat,unit,"cryptoquant onchain cq") };
@@ -474,12 +472,11 @@
         var numeric = global.JHObservationSeries && global.JHObservationSeries.numeric;
         var z = numeric ? numeric(mm.z365) : null, percentile = numeric ? numeric(mm.pctl_1y) : null;
         if(percentile !== null && (percentile < 0 || percentile > 100)) percentile = null;
-        if(row.definition_review){z=null;percentile=null;}
         h += "<div class='card' data-cqhit='" + esc((row.blob || "").replace(/'/g, "")) + "'>";
         h += "<div class='card-title'>" + esc(row.name) + (row.twin ? " · separate proxy" : "") + "</div>";
         h += "<div class='stat-big mono'>" + fmt(mm.value != null ? mm.value : (P.series[row.id] && P.series[row.id].v && P.series[row.id].v[P.series[row.id].v.length - 1])) + "</div>";
         h += "<div class='stat-sm " + zcol(z) + "'>z " + (z !== null ? ((z > 0 ? "+" : "") + fmt(z)) : "—") + (percentile !== null ? " · " + esc(fmt(percentile)) + "th pctl (reported)" : "") + "</div>";
-        if (mm.hist_read && !row.definition_review) h += "<div class='stat-sm' style='margin-top:6px'>" + esc(String(mm.hist_read).slice(0, 220)) + "</div>";
+        if (mm.hist_read) h += "<div class='stat-sm' style='margin-top:6px'>" + esc(String(mm.hist_read).slice(0, 220)) + "</div>";
         h += "<div style='margin-top:8px'><a class='cq-chart' href='/chart.html?s=CQ:" + esc(row.id) + "'>Chart CQ:" + esc(row.id) + "</a></div>";
         h += "<div class='stat-sm' style='margin-top:4px'>" + esc(row.extra) + "</div></div>";
       });

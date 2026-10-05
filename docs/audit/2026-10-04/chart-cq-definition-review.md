@@ -1,0 +1,9 @@
+# CryptoQuant fee definition conflict
+
+The public series and onchain packets contain 344 exact metric identifiers. Every received date/value pair was structurally checked; those checks do not establish the upstream field, unit or original precision. The producer rounds histories to six decimal places and retains at most 730 observations per public series. Its original provider responses are not available in these packets. 290 onchain unit labels are blank.
+
+The bundled and publicly published spec both bind `btc_fees_total` to `fees_block_mean` at `/btc/network-data/fees`, while labelling it Total Fees with BTC/d. CryptoQuant's official field documentation distinguishes mean fees per block from total fees: https://userguide.cryptoquant.com/api/btc-network-data . Current configuration is evidence of a conflict, not proof of the field used for every historic value.
+
+The chart therefore labels this exact legacy identifier as a definition conflict. Every source observation and proxy packet stays intact. The chart does not convert or backfill values, grant a total-fee definition, or borrow a unit from current metadata. The raw source is still inspectable. The CryptoQuant pane withholds the affected z-score, percentile and narrative from display while preserving the complete downloaded packet. Exact field-review evidence travels with chart exports. Other 343 series, providers and existing watchlist routes remain unchanged.
+
+Repair requires retained original upstream responses and a reviewed canonical field binding with historical lineage. Changing the producer's current field in place would silently splice incompatible histories and is not performed here. No new total-fee watchlist mapping is added. This frontend qualification does not repair or qualify downstream engine calculations. A future upstream repair must separately resolve this retained historical conflict.

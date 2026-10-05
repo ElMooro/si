@@ -1,15 +1,14 @@
 // Normalize only hash-bound, reviewed changes to the complete preceding modules.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
-const R=path.join(__dirname,'../..'),manifest=require('../fixtures/warehouse-observations/source-delta.json');
+const R=path.join(__dirname,'../..'),manifest=require('../fixtures/observation-cache/source-delta.json');
 const parser={exports:{}};Function('exports','module',process.binding('natives')['internal/deps/acorn/acorn/dist/acorn'])(parser.exports,parser);
 const parse=raw=>parser.exports.parse(raw,{ecmaVersion:'latest'}),hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const clean=tree=>JSON.parse(JSON.stringify(tree,(k,v)=>['start','end'].includes(k)?undefined:v));
-function body(raw,file){const call=parse(raw).body.find(n=>n.expression?.type==='CallExpression').expression;return ['jh-chart-stock-desk.js','jh-observation-series.js','jh-observation-cache.js'].includes(file)?call.arguments[1].body.body:call.callee.body.body;}
+function body(raw,file){const call=parse(raw).body.find(n=>n.expression?.type==='CallExpression').expression;return file==='jh-chart-stock-desk.js'?call.arguments[1].body.body:call.callee.body.body;}
 function normalize(raw,file){
- raw=require("./chart-cq-definition-preservation.cjs").normalize(raw,file);
- if(file==="jh-chart-catalog.js")raw=require("./chart-cftc-preservation.cjs").normalize(raw,file);
- if(file==='jh-chart-catalog.js'){const next=require('./chart-provider-browser-preservation.cjs');if(hash(raw)===next.transition.changes[file].after_sha256)raw=next.normalize(raw,file);}
- const later=require('./chart-volume-definition-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);
+ raw=require('./squeeze-research-preservation.cjs').normalize(raw,file);
+ const later=require('./warehouse-observation-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);
+ const next=require('./observation-diagnostics-preservation.cjs');if(next.manifest.entries[file])raw=next.normalize(raw,file);
  const record=manifest.entries[file];assert.ok(record,file);const old=fs.readFileSync(path.join(R,record.prior.path),'utf8');assert.equal(hash(old),record.prior.sha256);
  const a=body(old,file),b=body(raw,file),oldFns=new Map(a.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,n]));
  const newFns=new Map(b.filter(n=>n.type==='FunctionDeclaration').map(n=>[n.id.name,n])),edits=[];
