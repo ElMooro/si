@@ -1,0 +1,156 @@
+{
+  "source_commit": "86d95dae568d0993837614bba0f3505d2e187e99",
+  "native_source_commit": "9253a12e74e5fb76bb4c0af59a4669e0fb9eaddf",
+  "native_release_receipt_sha256": "7b9bf7d156803bd7615f4666f9dad25e5d57d0c0d41533093faf4523b79aaa66",
+  "metadata": {
+    "requests": [
+      {
+        "name": "catalogue",
+        "url": "https://justhodl.ai/data/provider-catalog.json",
+        "http_status": 200,
+        "bytes": 32746,
+        "sha256": "aacb7c618012c8081271add6d3cd9c5c13313856fcd189499381bbbf24ba056c",
+        "at": "2026-10-05T04:26:59.018841+00:00"
+      },
+      {
+        "name": "files",
+        "url": "https://justhodl.ai/data/providers/census-us.json",
+        "http_status": 200,
+        "bytes": 12531,
+        "sha256": "d70785ab2b848a47a4d7029b1d73fc483b98e582d0fa50e171fb3d55f5a1b4b8",
+        "at": "2026-10-05T04:26:59.241885+00:00"
+      },
+      {
+        "name": "files-page",
+        "url": "https://justhodl.ai/data/providers/census-us/page-000.json",
+        "http_status": 200,
+        "bytes": 31365,
+        "sha256": "dc983db8529de2c7f23e2046f943dbd82a436822b6102254550dc2ad5b7baa2c",
+        "at": "2026-10-05T04:26:59.477075+00:00"
+      },
+      {
+        "name": "census-directory",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/explorer?provider=census&limit=50&offset=0&q=",
+        "http_status": 200,
+        "bytes": 18073,
+        "sha256": "6c3e61403d8cf516ecc08ecc33f7790cff53c0428a5747f45c86d21415a01d71",
+        "at": "2026-10-05T04:27:00.419427+00:00"
+      },
+      {
+        "name": "census-us-directory",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/explorer?provider=census-us&limit=50&offset=0&q=",
+        "http_status": 200,
+        "bytes": 859,
+        "sha256": "e790f8de0baf1a57dc5aff4006768db01df3c1fa44e0d72a7b71c7a9c146bf89",
+        "at": "2026-10-05T04:27:00.848221+00:00"
+      },
+      {
+        "name": "series-0",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Amrts&limit=50&offset=0&q=census%3Amrts%3AIM%3A44000%3Ano%3AUS",
+        "http_status": 200,
+        "bytes": 847,
+        "sha256": "47274ca58d88e5f9a528e0e2b93b8e61a8ca67a5f31cc091c3272922f7c3df1c",
+        "at": "2026-10-05T04:27:00.998174+00:00"
+      },
+      {
+        "name": "series-1",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aresconst&limit=50&offset=0&q=census%3Aresconst%3AMULTI%3AACOMPLETIONS%3Ayes%3AUS",
+        "http_status": 200,
+        "bytes": 941,
+        "sha256": "0ddd82a8956cf850b7ffef0d1e3dfd87855e93aacb827c87fe498aaac3087b92",
+        "at": "2026-10-05T04:27:01.167365+00:00"
+      },
+      {
+        "name": "series-2",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aqss&limit=50&offset=0&q=census%3Aqss%3AADM%3A7111T%3Ano%3AUS",
+        "http_status": 200,
+        "bytes": 858,
+        "sha256": "9fef2284b6043cdceb15d38e9f8902f3615792b39dfeb89eeebed9521df809b3",
+        "at": "2026-10-05T04:27:01.297541+00:00"
+      },
+      {
+        "name": "dataset-0",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Amrts&limit=50&offset=0&q=",
+        "http_status": 200,
+        "bytes": 30556,
+        "sha256": "4d54f67bff1397aff96be2e4f9029195929794b75b59a2aa8f7b487b37a3a9dc",
+        "at": "2026-10-05T04:27:01.693413+00:00"
+      },
+      {
+        "name": "dataset-1",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aresconst&limit=50&offset=0&q=",
+        "http_status": 200,
+        "bytes": 31853,
+        "sha256": "5850ef8b7d6b9e0c7e05baba2ea06a18f35c06cfca7017cb573468de54cac59a",
+        "at": "2026-10-05T04:27:01.864583+00:00"
+      },
+      {
+        "name": "dataset-2",
+        "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aqss&limit=50&offset=0&q=",
+        "http_status": 200,
+        "bytes": 30358,
+        "sha256": "03a7f45ba9d851ec747b9ad5411efc9d1ada0a8e2d053a9f1ff868496a37602c",
+        "at": "2026-10-05T04:27:02.015771+00:00"
+      }
+    ],
+    "series_ids": [
+      "census:mrts:IM:44000:no:US",
+      "census:resconst:MULTI:ACOMPLETIONS:yes:US",
+      "census:qss:ADM:7111T:no:US"
+    ],
+    "actual_public_metadata": true,
+    "history_claim": false
+  },
+  "histories": [
+    {
+      "id": "census:mrts:IM:44000:no:US",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Amrts%3AIM%3A44000%3Ano%3AUS",
+      "http_status": 200,
+      "received_at": "2026-10-05T04:27:03.480547+00:00",
+      "sha256": "4c898044b4c38001b500b5fe7f840618ba0f34032c361813c9a1219e7913d096",
+      "bytes": 41485,
+      "periods": 415,
+      "n": 415,
+      "last_valid": "2026-07-01",
+      "unit": "Millions of US dollars",
+      "source_sha256": [
+        "147c871d84e3ae3aaffba6dffedbabcbd0a6a68d9e1daf415b255502119ea937"
+      ],
+      "independently_replayed": true
+    },
+    {
+      "id": "census:resconst:MULTI:ACOMPLETIONS:yes:US",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Aresconst%3AMULTI%3AACOMPLETIONS%3Ayes%3AUS",
+      "http_status": 200,
+      "received_at": "2026-10-05T04:27:04.264238+00:00",
+      "sha256": "e8884a0eab6e6feb690f668a71b34018859fabd4e98a0a07a0a890a0337d6257",
+      "bytes": 57568,
+      "periods": 704,
+      "n": 704,
+      "last_valid": "2026-08-01",
+      "unit": "Thousands of units (seasonally adjusted annual rate)",
+      "source_sha256": [
+        "85fdb4c9d3783cf9cbd17773ffe92579f9ccbfeff948fa2779c3a4f9e37d49c2"
+      ],
+      "independently_replayed": true
+    },
+    {
+      "id": "census:qss:ADM:7111T:no:US",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=census%3Aqss%3AADM%3A7111T%3Ano%3AUS",
+      "http_status": 200,
+      "received_at": "2026-10-05T04:27:05.385103+00:00",
+      "sha256": "3aea36e0d82ee0af4bb7c1c38397a82dbaef0dd76ac2b50468692ab16acf2cdc",
+      "bytes": 10487,
+      "periods": 70,
+      "n": 62,
+      "last_valid": "2026-04-01",
+      "unit": "Millions of US dollars",
+      "source_sha256": [
+        "1c3b1bb93c8de3f388b290fdfd6108559c29a672b07e8a2ed28770f39a5fb97b"
+      ],
+      "independently_replayed": true
+    }
+  ],
+  "all_checked": true,
+  "scope": "Three post-page-release public Census histories independently reconstructed from complete source ZIPs; other provider histories not requalified by this discovery repair."
+}
