@@ -18,7 +18,7 @@ test('seven additional watchlist alternatives preserve identity, source scope an
 });
 test('whole predecessor and all existing Census definitions remain exactly reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-census-additional-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-imf-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
  const old=JSON.parse(read('tests/fixtures/chart-census-additional/census-series.before.json'));assert.equal(Object.keys(old.series).length,3402);
  for(const [k,v] of Object.entries(old.series))assert.deepEqual(cat.series[k],v);
  assert.equal(read('aws/lambdas/justhodl-symdir/source/census-series.json'),read('aws/lambdas/justhodl-symdir/config/census-series.json'));

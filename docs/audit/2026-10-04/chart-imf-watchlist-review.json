@@ -1,0 +1,4436 @@
+{
+  "stage": "candidate_definitions_not_live",
+  "alternatives": {
+    "ECONOMICS:JPPPIYY": {
+      "alternative": "imf:PPI:JPN.PPI.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PPI",
+        "key": "JPN.PPI.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "PPI"
+        },
+        "snapshot_first": "1961-M01",
+        "snapshot_last": "2018-M12",
+        "snapshot_rows": 696,
+        "id": "imf:PPI:JPN.PPI.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Japan",
+          "INDICATOR": "Producer price index (PPI)",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Japan / Producer price index (PPI) / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "3.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PPI,3.0.0/JPN.PPI.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "JPN",
+        "iso2Code": "JP",
+        "name": "Japan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "87715411",
+          "name": "Bitcoin : Nikkei TOP and Bottom in USD ALWAYS MARKED Bitcoin and Crypto Top and Bottom."
+        },
+        {
+          "id": "86685840",
+          "name": "Bottom Indicators"
+        },
+        {
+          "id": "112440686",
+          "name": "Global Liquidity - Predict Future"
+        },
+        {
+          "id": "140312407",
+          "name": "Japan Inflation: Spike Marks End of Crypto Rally"
+        },
+        {
+          "id": "20077791",
+          "name": "Red list"
+        },
+        {
+          "id": "85832580",
+          "name": "Signs a Rally is about to start"
+        },
+        {
+          "id": "108355555",
+          "name": "Start of Bull Run"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:QAINTR": {
+      "alternative": "imf:MFS_IR:QAT.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "QAT.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "QAT",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2002-M06",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 288,
+        "id": "imf:MFS_IR:QAT.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "QAT",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Qatar",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Qatar / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/QAT.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "QAT",
+        "iso2Code": "QA",
+        "name": "Qatar"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "123263077",
+          "name": "Central Banks Interest Rates - To Spot Carry Trades"
+        },
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:EGINTR": {
+      "alternative": "imf:MFS_IR:EGY.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "EGY.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "EGY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2011-M11",
+        "snapshot_last": "2025-M08",
+        "snapshot_rows": 125,
+        "id": "imf:MFS_IR:EGY.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "EGY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Egypt, Arab Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Egypt, Arab Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/EGY.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "EGY",
+        "iso2Code": "EG",
+        "name": "Egypt, Arab Rep."
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "123263077",
+          "name": "Central Banks Interest Rates - To Spot Carry Trades"
+        },
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MUINTR": {
+      "alternative": "imf:MFS_IR:MUS.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "MUS.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MUS",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2006-M12",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 235,
+        "id": "imf:MFS_IR:MUS.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "MUS",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Mauritius",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Mauritius / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/MUS.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "MUS",
+        "iso2Code": "MU",
+        "name": "Mauritius"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032757",
+          "name": "Deposit Interest Rate"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:USBLR": {
+      "alternative": "imf:MFS_IR:USA.MFS162_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "USA.MFS162_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "USA",
+          "INDICATOR": "MFS162_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1950-M01",
+        "snapshot_last": "2021-M08",
+        "snapshot_rows": 860,
+        "id": "imf:MFS_IR:USA.MFS162_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "USA",
+          "INDICATOR": "MFS162_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "United States",
+          "INDICATOR": "Lending Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "United States / Lending Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/USA.MFS162_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "USA",
+        "iso2Code": "US",
+        "name": "United States"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "87099241",
+          "name": "Fed Interest Rates"
+        },
+        {
+          "id": "86055078",
+          "name": "fed plumbing"
+        },
+        {
+          "id": "20077791",
+          "name": "Red list"
+        },
+        {
+          "id": "86084272",
+          "name": "Repo: Repo Mkt provides the cash the financial firms need to run their daily operations"
+        },
+        {
+          "id": "91305734",
+          "name": "United States GOV Data"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:NIIPYY": {
+      "alternative": "imf:PI:NIC.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "NIC.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "NIC",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1995-M01",
+        "snapshot_last": "2014-M06",
+        "snapshot_rows": 234,
+        "id": "imf:PI:NIC.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "NIC",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Nicaragua",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Nicaragua / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/NIC.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "NIC",
+        "iso2Code": "NI",
+        "name": "Nicaragua"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:UZIPYY": {
+      "alternative": "imf:PI:UZB.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "UZB.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "UZB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2011-M01",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 185,
+        "id": "imf:PI:UZB.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "UZB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Uzbekistan, Republic of",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Uzbekistan, Republic of / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/UZB.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "UZB",
+        "iso2Code": "UZ",
+        "name": "Uzbekistan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:TNIPYY": {
+      "alternative": "imf:PI:TUN.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "TUN.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "TUN",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1994-M01",
+        "snapshot_last": "2019-M04",
+        "snapshot_rows": 304,
+        "id": "imf:PI:TUN.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "TUN",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Tunisia",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Tunisia / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/TUN.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "TUN",
+        "iso2Code": "TN",
+        "name": "Tunisia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CRIPYY": {
+      "alternative": "imf:PI:CRI.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "CRI.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "CRI",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1992-M01",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 413,
+        "id": "imf:PI:CRI.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "CRI",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Costa Rica",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Costa Rica / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/CRI.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "CRI",
+        "iso2Code": "CR",
+        "name": "Costa Rica"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:UAIPYY": {
+      "alternative": "imf:PI:UKR.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "UKR.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "UKR",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2003-M01",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 281,
+        "id": "imf:PI:UKR.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "UKR",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Ukraine",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Ukraine / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/UKR.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "UKR",
+        "iso2Code": "UA",
+        "name": "Ukraine"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:KGIPYY": {
+      "alternative": "imf:PI:KGZ.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "KGZ.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "KGZ",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1992-M01",
+        "snapshot_last": "1997-M08",
+        "snapshot_rows": 68,
+        "id": "imf:PI:KGZ.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "KGZ",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Kyrgyz Republic",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Kyrgyz Republic / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/KGZ.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "KGZ",
+        "iso2Code": "KG",
+        "name": "Kyrgyz Republic"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:SVIPYY": {
+      "alternative": "imf:PI:SLV.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "SLV.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "SLV",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1991-M01",
+        "snapshot_last": "2019-M09",
+        "snapshot_rows": 345,
+        "id": "imf:PI:SLV.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "SLV",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "El Salvador",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "El Salvador / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/SLV.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "SLV",
+        "iso2Code": "SV",
+        "name": "El Salvador"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:RSIPYY": {
+      "alternative": "imf:PI:SRB.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "SRB.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1995-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 376,
+        "id": "imf:PI:SRB.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Serbia, Republic of",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Serbia, Republic of / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/SRB.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "SRB",
+        "iso2Code": "RS",
+        "name": "Serbia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JOIPYY": {
+      "alternative": "imf:PI:JOR.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "JOR.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JOR",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1998-M01",
+        "snapshot_last": "2019-M01",
+        "snapshot_rows": 253,
+        "id": "imf:PI:JOR.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "JOR",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Jordan",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Jordan / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/JOR.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "JOR",
+        "iso2Code": "JO",
+        "name": "Jordan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MKIPYY": {
+      "alternative": "imf:PI:MKD.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MKD.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MKD",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1994-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 388,
+        "id": "imf:PI:MKD.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MKD",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "North Macedonia, Republic of",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "North Macedonia, Republic of / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MKD.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MKD",
+        "iso2Code": "MK",
+        "name": "North Macedonia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CIIPYY": {
+      "alternative": "imf:PI:CIV.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "CIV.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "CIV",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2005-M11",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 247,
+        "id": "imf:PI:CIV.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "CIV",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "C\u00f4te d'Ivoire",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "C\u00f4te d'Ivoire / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/CIV.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "CIV",
+        "iso2Code": "CI",
+        "name": "Cote d'Ivoire"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BAIPYY": {
+      "alternative": "imf:PI:BIH.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "BIH.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BIH",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2007-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 232,
+        "id": "imf:PI:BIH.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "BIH",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Bosnia and Herzegovina",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Bosnia and Herzegovina / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/BIH.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "BIH",
+        "iso2Code": "BA",
+        "name": "Bosnia and Herzegovina"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:KZIPYY": {
+      "alternative": "imf:PI:KAZ.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "KAZ.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "KAZ",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2003-M01",
+        "snapshot_last": "2017-M12",
+        "snapshot_rows": 180,
+        "id": "imf:PI:KAZ.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "KAZ",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Kazakhstan, Republic of",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Kazakhstan, Republic of / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/KAZ.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "KAZ",
+        "iso2Code": "KZ",
+        "name": "Kazakhstan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CYIPYY": {
+      "alternative": "imf:PI:CYP.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "CYP.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "CYP",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1989-M01",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 447,
+        "id": "imf:PI:CYP.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "CYP",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Cyprus",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Cyprus / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/CYP.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "CYP",
+        "iso2Code": "CY",
+        "name": "Cyprus"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:ECIPYY": {
+      "alternative": "imf:PI:ECU.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "ECU.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "ECU",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2020-M10",
+        "snapshot_rows": 238,
+        "id": "imf:PI:ECU.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "ECU",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Ecuador",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Ecuador / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/ECU.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "ECU",
+        "iso2Code": "EC",
+        "name": "Ecuador"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BBIPYY": {
+      "alternative": "imf:PI:BRB.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "BRB.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1974-M01",
+        "snapshot_last": "2014-M10",
+        "snapshot_rows": 490,
+        "id": "imf:PI:BRB.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "BRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Barbados",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Barbados / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/BRB.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "BRB",
+        "iso2Code": "BB",
+        "name": "Barbados"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MWIPYY": {
+      "alternative": "imf:PI:MWI.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MWI.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MWI",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1989-M07",
+        "snapshot_last": "2016-M07",
+        "snapshot_rows": 309,
+        "id": "imf:PI:MWI.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MWI",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Malawi",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Malawi / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MWI.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MWI",
+        "iso2Code": "MW",
+        "name": "Malawi"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MEIPYY": {
+      "alternative": "imf:PI:MNE.IND.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MNE.IND.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 303,
+        "id": "imf:PI:MNE.IND.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Montenegro",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Montenegro / Industrial Production / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MNE.IND.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MNE",
+        "iso2Code": "ME",
+        "name": "Montenegro"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94031826",
+          "name": "Industrial Production YOY"
+        },
+        {
+          "id": "124903933",
+          "name": "Industrial Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:FJINTR": {
+      "alternative": "imf:MFS_IR:FJI.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "FJI.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "FJI",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2024-M12",
+        "snapshot_rows": 242,
+        "id": "imf:MFS_IR:FJI.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "FJI",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Fiji, Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Fiji, Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/FJI.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "FJI",
+        "iso2Code": "FJ",
+        "name": "Fiji"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BZINTR": {
+      "alternative": "imf:MFS_IR:BLZ.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "BLZ.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BLZ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1977-M12",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 572,
+        "id": "imf:MFS_IR:BLZ.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "BLZ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Belize",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Belize / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/BLZ.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "BLZ",
+        "iso2Code": "BZ",
+        "name": "Belize"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:HNINTR": {
+      "alternative": "imf:MFS_IR:HND.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "HND.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "HND",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2005-M05",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 253,
+        "id": "imf:MFS_IR:HND.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "HND",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Honduras",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Honduras / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/HND.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "HND",
+        "iso2Code": "HN",
+        "name": "Honduras"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:ALINTR": {
+      "alternative": "imf:MFS_IR:ALB.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "ALB.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "ALB",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M03",
+        "snapshot_last": "2025-M10",
+        "snapshot_rows": 296,
+        "id": "imf:MFS_IR:ALB.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "ALB",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Albania",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Albania / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/ALB.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "ALB",
+        "iso2Code": "AL",
+        "name": "Albania"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BGINTR": {
+      "alternative": "imf:MFS_IR:BGR.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "BGR.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BGR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1991-M02",
+        "snapshot_last": "2025-M12",
+        "snapshot_rows": 254,
+        "id": "imf:MFS_IR:BGR.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "BGR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Bulgaria",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Bulgaria / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/BGR.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "BGR",
+        "iso2Code": "BG",
+        "name": "Bulgaria"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BSINTR": {
+      "alternative": "imf:MFS_IR:BHS.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "BHS.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BHS",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1970-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 676,
+        "id": "imf:MFS_IR:BHS.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "BHS",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Bahamas, The",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Bahamas, The / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/BHS.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "BHS",
+        "iso2Code": "BS",
+        "name": "Bahamas, The"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:GYINTR": {
+      "alternative": "imf:MFS_IR:GUY.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "GUY.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "GUY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1966-M03",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 721,
+        "id": "imf:MFS_IR:GUY.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "GUY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Guyana",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Guyana / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/GUY.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "GUY",
+        "iso2Code": "GY",
+        "name": "Guyana"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MLINTR": {
+      "alternative": "imf:MFS_IR:MLI.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "MLI.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MLI",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2017-M03",
+        "snapshot_rows": 184,
+        "id": "imf:MFS_IR:MLI.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "MLI",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Mali",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Mali / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/MLI.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "MLI",
+        "iso2Code": "ML",
+        "name": "Mali"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:TGINTR": {
+      "alternative": "imf:MFS_IR:TGO.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "TGO.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "TGO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2017-M03",
+        "snapshot_rows": 184,
+        "id": "imf:MFS_IR:TGO.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "TGO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Togo",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Togo / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/TGO.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "TGO",
+        "iso2Code": "TG",
+        "name": "Togo"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:SNINTR": {
+      "alternative": "imf:MFS_IR:SEN.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "SEN.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "SEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2017-M03",
+        "snapshot_rows": 184,
+        "id": "imf:MFS_IR:SEN.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "SEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Senegal",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Senegal / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/SEN.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "SEN",
+        "iso2Code": "SN",
+        "name": "Senegal"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BJINTR": {
+      "alternative": "imf:MFS_IR:BEN.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "BEN.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2021-M03",
+        "snapshot_rows": 232,
+        "id": "imf:MFS_IR:BEN.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "BEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Benin",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Benin / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/BEN.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "BEN",
+        "iso2Code": "BJ",
+        "name": "Benin"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:NEINTR": {
+      "alternative": "imf:MFS_IR:NER.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "NER.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "NER",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2017-M03",
+        "snapshot_rows": 184,
+        "id": "imf:MFS_IR:NER.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "NER",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Niger",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Niger / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/NER.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "NER",
+        "iso2Code": "NE",
+        "name": "Niger"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MDINTR": {
+      "alternative": "imf:MFS_IR:MDA.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "MDA.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MDA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2000-M01",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 317,
+        "id": "imf:MFS_IR:MDA.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "MDA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Moldova, Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Moldova, Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/MDA.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "MDA",
+        "iso2Code": "MD",
+        "name": "Moldova"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JMINTR": {
+      "alternative": "imf:MFS_IR:JAM.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "JAM.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JAM",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2001-M12",
+        "snapshot_last": "2022-M12",
+        "snapshot_rows": 253,
+        "id": "imf:MFS_IR:JAM.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "JAM",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Jamaica",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Jamaica / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/JAM.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "JAM",
+        "iso2Code": "JM",
+        "name": "Jamaica"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:NPINTR": {
+      "alternative": "imf:MFS_IR:NPL.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "NPL.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "NPL",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1976-M07",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 597,
+        "id": "imf:MFS_IR:NPL.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "NPL",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Nepal",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Nepal / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/NPL.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "NPL",
+        "iso2Code": "NP",
+        "name": "Nepal"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JOINTR": {
+      "alternative": "imf:MFS_IR:JOR.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "JOR.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JOR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2004-M02",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 269,
+        "id": "imf:MFS_IR:JOR.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "JOR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Jordan",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Jordan / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/JOR.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "JOR",
+        "iso2Code": "JO",
+        "name": "Jordan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:IQINTR": {
+      "alternative": "imf:MFS_IR:IRQ.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "IRQ.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "IRQ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2004-M08",
+        "snapshot_last": "2017-M07",
+        "snapshot_rows": 155,
+        "id": "imf:MFS_IR:IRQ.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "IRQ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Iraq",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Iraq / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/IRQ.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "IRQ",
+        "iso2Code": "IQ",
+        "name": "Iraq"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:PYINTR": {
+      "alternative": "imf:MFS_IR:PRY.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "PRY.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "PRY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2011-M01",
+        "snapshot_last": "2021-M11",
+        "snapshot_rows": 131,
+        "id": "imf:MFS_IR:PRY.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "PRY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Paraguay",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Paraguay / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/PRY.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "PRY",
+        "iso2Code": "PY",
+        "name": "Paraguay"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:BYINTR": {
+      "alternative": "imf:MFS_IR:BLR.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "BLR.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "BLR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2000-M01",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 318,
+        "id": "imf:MFS_IR:BLR.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "BLR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Belarus, Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Belarus, Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/BLR.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "BLR",
+        "iso2Code": "BY",
+        "name": "Belarus"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:AMINTR": {
+      "alternative": "imf:MFS_IR:ARM.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "ARM.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "ARM",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1999-M12",
+        "snapshot_last": "2026-M07",
+        "snapshot_rows": 320,
+        "id": "imf:MFS_IR:ARM.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "ARM",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Armenia, Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Armenia, Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/ARM.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "ARM",
+        "iso2Code": "AM",
+        "name": "Armenia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:GEINTR": {
+      "alternative": "imf:MFS_IR:GEO.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "GEO.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "GEO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2008-M01",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 221,
+        "id": "imf:MFS_IR:GEO.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "GEO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Georgia",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Georgia / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/GEO.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "GEO",
+        "iso2Code": "GE",
+        "name": "Georgia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:UYINTR": {
+      "alternative": "imf:MFS_IR:URY.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "URY.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "URY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2008-M01",
+        "snapshot_last": "2013-M06",
+        "snapshot_rows": 65,
+        "id": "imf:MFS_IR:URY.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "URY",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Uruguay",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Uruguay / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/URY.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "URY",
+        "iso2Code": "UY",
+        "name": "Uruguay"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:SRINTR": {
+      "alternative": "imf:MFS_IR:SUR.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "SUR.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "SUR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1954-M01",
+        "snapshot_last": "2017-M11",
+        "snapshot_rows": 767,
+        "id": "imf:MFS_IR:SUR.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "SUR",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Suriname",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Suriname / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/SUR.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "SUR",
+        "iso2Code": "SR",
+        "name": "Suriname"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:KEINTR": {
+      "alternative": "imf:MFS_IR:KEN.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "KEN.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "KEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2006-M06",
+        "snapshot_last": "2025-M09",
+        "snapshot_rows": 232,
+        "id": "imf:MFS_IR:KEN.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "KEN",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Kenya",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Kenya / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/KEN.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "KEN",
+        "iso2Code": "KE",
+        "name": "Kenya"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MNINTR": {
+      "alternative": "imf:MFS_IR:MNG.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "MNG.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MNG",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2007-M07",
+        "snapshot_last": "2022-M09",
+        "snapshot_rows": 183,
+        "id": "imf:MFS_IR:MNG.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "MNG",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Mongolia",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Mongolia / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/MNG.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "MNG",
+        "iso2Code": "MN",
+        "name": "Mongolia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:GMINTR": {
+      "alternative": "imf:MFS_IR:GMB.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "GMB.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "GMB",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1981-M12",
+        "snapshot_last": "2025-M11",
+        "snapshot_rows": 492,
+        "id": "imf:MFS_IR:GMB.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "GMB",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Gambia, The",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Gambia, The / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/GMB.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "GMB",
+        "iso2Code": "GM",
+        "name": "Gambia, The"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:KZINTR": {
+      "alternative": "imf:MFS_IR:KAZ.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "KAZ.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "KAZ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2005-M05",
+        "snapshot_last": "2020-M12",
+        "snapshot_rows": 188,
+        "id": "imf:MFS_IR:KAZ.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "KAZ",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Kazakhstan, Republic of",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Kazakhstan, Republic of / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/KAZ.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "KAZ",
+        "iso2Code": "KZ",
+        "name": "Kazakhstan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:AOINTR": {
+      "alternative": "imf:MFS_IR:AGO.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "AGO.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "AGO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2011-M11",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 176,
+        "id": "imf:MFS_IR:AGO.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "AGO",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Angola",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Angola / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/AGO.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "AGO",
+        "iso2Code": "AO",
+        "name": "Angola"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:NGINTR": {
+      "alternative": "imf:MFS_IR:NGA.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "NGA.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "NGA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2007-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 232,
+        "id": "imf:MFS_IR:NGA.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "NGA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Nigeria",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Nigeria / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/NGA.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "NGA",
+        "iso2Code": "NG",
+        "name": "Nigeria"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CDINTR": {
+      "alternative": "imf:MFS_IR:COD.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "COD.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "COD",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "2006-M01",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 246,
+        "id": "imf:MFS_IR:COD.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "COD",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Congo, Democratic Republic of the",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Congo, Democratic Republic of the / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/COD.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "COD",
+        "iso2Code": "CD",
+        "name": "Congo, Dem. Rep."
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:GHINTR": {
+      "alternative": "imf:MFS_IR:GHA.MFS166_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "GHA.MFS166_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "GHA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1964-M01",
+        "snapshot_last": "2026-M06",
+        "snapshot_rows": 744,
+        "id": "imf:MFS_IR:GHA.MFS166_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "GHA",
+          "INDICATOR": "MFS166_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Ghana",
+          "INDICATOR": "Monetary policy-related, Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Ghana / Monetary policy-related, Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/GHA.MFS166_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "GHA",
+        "iso2Code": "GH",
+        "name": "Ghana"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "94032303",
+          "name": "Interest Rates"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JPPPIMM": {
+      "alternative": "imf:PPI:JPN.PPI.POP_PCH_PT.M",
+      "definition": {
+        "flow": "PPI",
+        "key": "JPN.PPI.POP_PCH_PT.M",
+        "unit": "Percent change from preceding period",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "POP_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "PPI"
+        },
+        "snapshot_first": "1960-M02",
+        "snapshot_last": "2018-M12",
+        "snapshot_rows": 707,
+        "id": "imf:PPI:JPN.PPI.POP_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "POP_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Japan",
+          "INDICATOR": "Producer price index (PPI)",
+          "TYPE_OF_TRANSFORMATION": "Period-over-preceding period percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Japan / Producer price index (PPI) / Period-over-preceding period percent change / Monthly",
+        "flow_version": "3.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PPI,3.0.0/JPN.PPI.POP_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "JPN",
+        "iso2Code": "JP",
+        "name": "Japan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "140312407",
+          "name": "Japan Inflation: Spike Marks End of Crypto Rally"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JPPPI": {
+      "alternative": "imf:PPI:JPN.PPI.IX.M",
+      "definition": {
+        "flow": "PPI",
+        "key": "JPN.PPI.IX.M",
+        "unit": "Index (2010=100)",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "IX",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "REFERENCE_PERIOD": "2010=100",
+          "METHODOLOGY": "PPI"
+        },
+        "snapshot_first": "1960-M01",
+        "snapshot_last": "2018-M12",
+        "snapshot_rows": 708,
+        "id": "imf:PPI:JPN.PPI.IX.M",
+        "dimensions": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "PPI",
+          "TYPE_OF_TRANSFORMATION": "IX",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Japan",
+          "INDICATOR": "Producer price index (PPI)",
+          "TYPE_OF_TRANSFORMATION": "Index",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Japan / Producer price index (PPI) / Index / Monthly",
+        "flow_version": "3.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PPI,3.0.0/JPN.PPI.IX.M"
+      },
+      "country_reference": {
+        "id": "JPN",
+        "iso2Code": "JP",
+        "name": "Japan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "140312407",
+          "name": "Japan Inflation: Spike Marks End of Crypto Rally"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:RSIPMM": {
+      "alternative": "imf:PI:SRB.IND.SA_POP_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "SRB.IND.SA_POP_PCH_PT.M",
+        "unit": "Percent change from preceding period",
+        "freq": "M",
+        "seasonal_adjustment": "Seasonally adjusted",
+        "fixed_attributes": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "SA_POP_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2000-M02",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 315,
+        "id": "imf:PI:SRB.IND.SA_POP_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "SA_POP_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Serbia, Republic of",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Seasonally adjusted (SA) Period-over-preceding period percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Serbia, Republic of / Industrial Production / Seasonally adjusted (SA) Period-over-preceding period percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/SRB.IND.SA_POP_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "SRB",
+        "iso2Code": "RS",
+        "name": "Serbia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906265",
+          "name": "Manufacturing Production MOM"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MEIPMM": {
+      "alternative": "imf:PI:MNE.IND.SA_POP_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MNE.IND.SA_POP_PCH_PT.M",
+        "unit": "Percent change from preceding period",
+        "freq": "M",
+        "seasonal_adjustment": "Seasonally adjusted",
+        "fixed_attributes": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "SA_POP_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2000-M02",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 314,
+        "id": "imf:PI:MNE.IND.SA_POP_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "IND",
+          "TYPE_OF_TRANSFORMATION": "SA_POP_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Montenegro",
+          "PRODUCTION_INDEX": "Industrial Production",
+          "TYPE_OF_TRANSFORMATION": "Seasonally adjusted (SA) Period-over-preceding period percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Montenegro / Industrial Production / Seasonally adjusted (SA) Period-over-preceding period percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MNE.IND.SA_POP_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MNE",
+        "iso2Code": "ME",
+        "name": "Montenegro"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906265",
+          "name": "Manufacturing Production MOM"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CYMPRYY": {
+      "alternative": "imf:PI:CYP.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "CYP.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "CYP",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 303,
+        "id": "imf:PI:CYP.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "CYP",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Cyprus",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Cyprus / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/CYP.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "CYP",
+        "iso2Code": "CY",
+        "name": "Cyprus"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:RSMPRYY": {
+      "alternative": "imf:PI:SRB.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "SRB.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 304,
+        "id": "imf:PI:SRB.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "SRB",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Serbia, Republic of",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Serbia, Republic of / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/SRB.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "SRB",
+        "iso2Code": "RS",
+        "name": "Serbia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JOMPRYY": {
+      "alternative": "imf:PI:JOR.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "JOR.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JOR",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2011-M01",
+        "snapshot_last": "2019-M01",
+        "snapshot_rows": 97,
+        "id": "imf:PI:JOR.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "JOR",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Jordan",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Jordan / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/JOR.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "JOR",
+        "iso2Code": "JO",
+        "name": "Jordan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:AUMPRYY": {
+      "alternative": "imf:PI:AUS.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "AUS.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "AUS",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2021-M01",
+        "snapshot_rows": 241,
+        "id": "imf:PI:AUS.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "AUS",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Australia",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Australia / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/AUS.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "AUS",
+        "iso2Code": "AU",
+        "name": "Australia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:PKMPRYY": {
+      "alternative": "imf:PI:PAK.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "PAK.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "PAK",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2021-M10",
+        "snapshot_rows": 250,
+        "id": "imf:PI:PAK.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "PAK",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Pakistan",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Pakistan / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/PAK.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "PAK",
+        "iso2Code": "PK",
+        "name": "Pakistan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:TNMPRYY": {
+      "alternative": "imf:PI:TUN.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "TUN.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "TUN",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2019-M04",
+        "snapshot_rows": 220,
+        "id": "imf:PI:TUN.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "TUN",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Tunisia",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Tunisia / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/TUN.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "TUN",
+        "iso2Code": "TN",
+        "name": "Tunisia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:CRMPRYY": {
+      "alternative": "imf:PI:CRI.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "CRI.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "CRI",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "1992-M01",
+        "snapshot_last": "2026-M05",
+        "snapshot_rows": 413,
+        "id": "imf:PI:CRI.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "CRI",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Costa Rica",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Costa Rica / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/CRI.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "CRI",
+        "iso2Code": "CR",
+        "name": "Costa Rica"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MKMPRYY": {
+      "alternative": "imf:PI:MKD.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MKD.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MKD",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2026-M04",
+        "snapshot_rows": 304,
+        "id": "imf:PI:MKD.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MKD",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "North Macedonia, Republic of",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "North Macedonia, Republic of / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MKD.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MKD",
+        "iso2Code": "MK",
+        "name": "North Macedonia"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:MEMPRYY": {
+      "alternative": "imf:PI:MNE.C.YOY_PCH_PT.M",
+      "definition": {
+        "flow": "PI",
+        "key": "MNE.C.YOY_PCH_PT.M",
+        "unit": "Percent change from same period one year earlier",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0",
+          "METHODOLOGY": "IRIIP"
+        },
+        "snapshot_first": "2001-M01",
+        "snapshot_last": "2026-M03",
+        "snapshot_rows": 303,
+        "id": "imf:PI:MNE.C.YOY_PCH_PT.M",
+        "dimensions": {
+          "COUNTRY": "MNE",
+          "PRODUCTION_INDEX": "C",
+          "TYPE_OF_TRANSFORMATION": "YOY_PCH_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Montenegro",
+          "PRODUCTION_INDEX": "Manufacturing",
+          "TYPE_OF_TRANSFORMATION": "Year-over-year (YOY) percent change",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Montenegro / Manufacturing / Year-over-year (YOY) percent change / Monthly",
+        "flow_version": "2.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,PI,2.0.0/MNE.C.YOY_PCH_PT.M"
+      },
+      "country_reference": {
+        "id": "MNE",
+        "iso2Code": "ME",
+        "name": "Montenegro"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "124906140",
+          "name": "Manufacturing Production YOY"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    },
+    "ECONOMICS:JPBLR": {
+      "alternative": "imf:MFS_IR:JPN.MFS162_RT_PT_A_PT.M",
+      "definition": {
+        "flow": "MFS_IR",
+        "key": "JPN.MFS162_RT_PT_A_PT.M",
+        "unit": "Percent per annum",
+        "freq": "M",
+        "seasonal_adjustment": "Not specified by this source definition",
+        "fixed_attributes": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "MFS162_RT_PT_A_PT",
+          "FREQUENCY": "M",
+          "SCALE": "0"
+        },
+        "snapshot_first": "1993-M04",
+        "snapshot_last": "2017-M02",
+        "snapshot_rows": 287,
+        "id": "imf:MFS_IR:JPN.MFS162_RT_PT_A_PT.M",
+        "dimensions": {
+          "COUNTRY": "JPN",
+          "INDICATOR": "MFS162_RT_PT_A_PT",
+          "FREQUENCY": "M"
+        },
+        "labels": {
+          "COUNTRY": "Japan",
+          "INDICATOR": "Lending Rate, Percent per annum",
+          "FREQUENCY": "Monthly"
+        },
+        "name": "Japan / Lending Rate, Percent per annum / Monthly",
+        "flow_version": "9.0.0",
+        "agency": "IMF.STA",
+        "source_url": "https://api.imf.org/external/sdmx/2.1/data/IMF.STA,MFS_IR,9.0.0/JPN.MFS162_RT_PT_A_PT.M"
+      },
+      "country_reference": {
+        "id": "JPN",
+        "iso2Code": "JP",
+        "name": "Japan"
+      },
+      "original_watchlist_membership": [
+        {
+          "id": "20077791",
+          "name": "Red list"
+        },
+        {
+          "id": "87852098",
+          "name": "TOP"
+        },
+        {
+          "id": "83758291",
+          "name": "yields"
+        }
+      ],
+      "equivalence_verified": false,
+      "live_history_verified": false,
+      "qualification": "Alternative IMF source only. Exact source, publication version, period, methodology, adjustment and units must remain visible. Vendor equivalence and release-time history are unverified; a monthly policy rate is not a live central-bank decision."
+    }
+  },
+  "no_exact_definition": [
+    {
+      "requested": "ECONOMICS:TWINTR",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:HKIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:HKG.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MAIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MAR.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ZAIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ZAF.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PEIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PER.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CHN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CHN.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:EUPPI",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:EUBLR",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:TWIPYY",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:EUMPRYY",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:SGINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:SGP.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AEINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:ARE.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BHINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BHR.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:DZINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:DZA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TNINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:TUN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:VNINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:VNM.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CHN.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNPPIYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PPI:CHN.PPI.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNPPI",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PPI:CHN.PPI.IX.M"
+    },
+    {
+      "requested": "ECONOMICS:CNPPIMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PPI:CHN.PPI.POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CNBLR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:CHN.MFS162_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LTINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LTU.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PAINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:PAN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:EUPPIYY",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:EUPPIMM",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:EUIPMM",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:FIBLR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:FIN.MFS162_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MOIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MAC.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MRIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MRT.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SCIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SYC.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TTIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TTO.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GEIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:GEO.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BIIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BDI.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:RWIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:RWA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:NEIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:NER.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TJIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TJK.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SAIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SAU.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CMIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CMR.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BJIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BEN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AMIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ARM.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PSIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PSE.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MYIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MYS.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MTIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MLT.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PHIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PHL.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:UYIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:URY.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:COIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:COL.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:QAIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:QAT.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ARIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ARG.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MUIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MUS.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:IRIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:IRN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ZMIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ZMB.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:VNIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:VNM.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AOIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:AGO.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ALIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ALB.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GWIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:GNB.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PAIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PAN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:EGIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:EGY.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MXIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MEX.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:THIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:THA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:FJIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:FJI.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MDIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MDA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:DZIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:DZA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PKIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PAK.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CUIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CUB.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BWIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BWA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TGIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TGO.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SGIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SGP.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MGIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MDG.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MZIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MOZ.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:IDIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:IDN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:XKIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:XKX.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AZIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:AZE.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MLIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MLI.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CDIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:COD.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KPIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PRK.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SNIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SEN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BYIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BLR.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BFIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BFA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:NGIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:NGA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TDIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TCD.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LKIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:LKA.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GNIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:GIN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:VEIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:VEN.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:IQIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:IRQ.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MNIPYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MNG.IND.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CUMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CUB.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KHINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:KHM.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BBINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BRB.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CUINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:CUB.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BWINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BWA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LYINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LBY.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KMINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:COM.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BOINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BOL.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CYINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:CYP.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MTINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:MLT.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LVINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LVA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TZINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:TZA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TDINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:TCD.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CMINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:CMR.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GAINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:GAB.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BNINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BRN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MOINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:MAC.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:OMINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:OMN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BTINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BTN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ETINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:ETH.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MVINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:MDV.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MMINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:MMR.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BIINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:BDI.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:RWINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:RWA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LAINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LAO.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LBINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LBN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:NAINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:NAM.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LSINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LSO.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ECINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:ECU.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:UGINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:UGA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ZMINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:ZMB.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LKINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LKA.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:DJINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:DJI.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GNINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:GIN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:HTINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:HTI.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:IRINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:IRN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:UAINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:UKR.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LRINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:LBR.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PKINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:PAK.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MWINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:MWI.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:YEINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:YEM.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SDINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:SDN.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ZWINTR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "MFS_IR:ZWE.MFS166_RT_PT_A_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TWIPMM",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:EGIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:EGY.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:QAIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:QAT.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MYIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MYS.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BYIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BLR.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TNIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TUN.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:THIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:THA.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:UAIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:UKR.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MNIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MNG.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AOIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:AGO.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AMIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ARM.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PKIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PAK.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MDIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MDA.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:JOIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:JOR.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MTIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MLT.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MOIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MAC.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SGIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SGP.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SAIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SAU.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:PSIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PSE.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SCIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SYC.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MZIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MOZ.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KZIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:KAZ.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SNIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SEN.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TTIPMM",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:TTO.IND.SA_POP_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:EGMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:EGY.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AOMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:AGO.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ZMMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ZMB.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:QAMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:QAT.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TWMPRYY",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:MTMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MLT.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MOMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MAC.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:RWMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:RWA.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LKMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:LKA.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:NGMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:NGA.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:VNMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:VNM.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:GEMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:GEO.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:CMMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:CMR.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:ALMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:ALB.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MYMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MYS.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BDMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BGD.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KPMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:PRK.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:BBMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:BRB.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:AZMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:AZE.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MNMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MNG.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KZMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:KAZ.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SAMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:SAU.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MUMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MUS.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:MRMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:MRT.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:KGMPRYY",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "PI:KGZ.C.YOY_PCH_PT.M"
+    },
+    {
+      "requested": "ECONOMICS:TWUR",
+      "reason": "Country crosswalk not established"
+    },
+    {
+      "requested": "ECONOMICS:XKUR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "LS:XKX.U.PT.M"
+    },
+    {
+      "requested": "ECONOMICS:SCUR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "LS:SYC.U.PT.M"
+    },
+    {
+      "requested": "ECONOMICS:LIUR",
+      "reason": "Exact public monthly definition with reviewed units absent",
+      "candidate": "LS:LIE.U.PT.M"
+    }
+  ],
+  "country_reference_receipt": {
+    "url": "https://api.worldbank.org/v2/country?format=json&per_page=400",
+    "at": "2026-10-05T02:41:47.569481+00:00",
+    "purpose": "Published country-code reference for exact identifier crosswalk; no observations or alternate source",
+    "no_retry_on_denial": true,
+    "http_status": 200,
+    "bytes": 113590,
+    "sha256": "d29d57f8adf954c5e2a1520a02fb2c7b45575d8db3bd327a9dff47d66914231c",
+    "rows": 295
+  },
+  "catalogue_sha256": "42602c214b3b629f8f1bb2e2db5d33bfca02e00042283f0cafefe4eaba385ffd",
+  "source_watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
+  "prior_source_commit": "3286e455c0f5f070ed7afe4ece042959282cbb85",
+  "routing_is_not_history_proof": true,
+  "existing_routes_preserved": {
+    "ECONOMICS:FRUR": {
+      "existing_route": "FRED:LRHUTTTTFRM156S",
+      "available_imf_series": "imf:LS:FRA.U.PT.M",
+      "reason": "Do not overwrite the existing fallback route. The IMF series remains selectable by its exact provider identifier."
+    }
+  }
+}
