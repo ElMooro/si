@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(R,p),'utf8');
-test('chart.html loads the universal search and TradingView watchlist after the engine',()=>{const h=read('chart.html'),e=h.indexOf('/jh-chart-engine.js?'),s=h.indexOf('/jh-uni-search.js?v=20261005-us2'),w=h.indexOf('/jh-tv-watchlist.js?v=20261005-wl1');assert.ok(e>0&&s>e&&w>s);});
+test('chart.html loads the universal search and TradingView watchlist after the engine',()=>{const h=read('chart.html'),e=h.indexOf('/jh-chart-engine.js?'),s=h.indexOf('/jh-uni-search.js?v=20261005-us3'),w=h.indexOf('/jh-tv-watchlist.js?v=20261005-wl2');assert.ok(e>0&&s>e&&w>s);});
 test('universal search queries the whole warehouse index, not a whitelist',()=>{const s=read('jh-uni-search.js');for(const k of ['/symsearch?','/browse?','/explorer','/tv-search?','instruments.json.gz'])assert.ok(s.includes(k),k);assert.match(s,/JHUniSearch\s*=/);});
 test('watchlist keeps TradingView list format and seeds from every existing source',()=>{const s=read('jh-tv-watchlist.js');assert.match(s,/###/);for(const k of ['/data/tv-watchlists.json','jh_custom_watchlists','jh-chart-custom-lists','/quote?ids='])assert.ok(s.includes(k),k);});
 test('default chart type is line; legacy saved layouts do not force candles',()=>{const s=read('jh-chart-engine.js');assert.ok(s.includes('kind="line", scaleMode=0;'));assert.ok(s.includes('if(lay.kind && lay.kindV===2) kind=lay.kind;'));assert.ok(s.includes('saveJSON(LAY_KEY,{kindV:2,'));});
@@ -16,4 +16,12 @@ test('search assist: aliases, ticker spellings, typo correction and watchlist na
  let missing=0;for(const id of ids){if(!names[id][0])missing++;}assert.equal(missing,0,'every watchlist symbol has a display name');
  for(const id of ids.filter((_,i)=>i%97===0)){const hit=U.localWatch(id,[],5).some(r=>r.id.toUpperCase()===id.toUpperCase());assert.ok(hit,id+' findable by its own symbol');}
  assert.ok(U.localWatch('XLY/XLP',[],5).some(r=>/XLY\/AMEX:XLP|XLY\/XLP/.test(r.id)));
+});
+test('TradingView spread/ratio symbols evaluate over full leg history with as-of alignment',async()=>{
+ const vm=require('node:vm'),series={'AMEX:XLY':[['2000-01-03',10],['2000-01-04',12],['2000-01-05',15]],'AMEX:XLP':[['2000-01-03',5],['2000-01-05',6]],'FRED:NFCI':[['1971-01-08',-0.5]]};
+ const c={setInterval:()=>0,setTimeout,Promise,JSON,Math,Date,encodeURIComponent,fetch:async u=>{const id=decodeURIComponent(new URL(u).searchParams.get('id'));return{json:async()=>series[id]?{id,name:id,freq:'D',obs:series[id]}:{error:'no warehouse bars for '+id}};}};c.window=c;vm.createContext(c);vm.runInContext(read('jh-chart-expr.js'),c);
+ const E=c.JHChartExpr;assert.equal(E.isExpr('AMEX:XLY/AMEX:XLP'),true);assert.equal(E.isExpr('NASDAQ:AAPL'),false);assert.equal(E.isExpr('COT3:12460+_F_DP_S'),false);assert.equal(E.isExpr('1-FRED:NFCI'),true);
+ assert.equal(JSON.stringify(E.legs('1-(TVC:US02Y-TVC:US10Y)')),JSON.stringify(['TVC:US02Y','TVC:US10Y']));
+ const r=await E.evaluate('AMEX:XLY/AMEX:XLP');assert.equal(JSON.stringify(r.d.map(b=>b.close)),'[2,2.4,2.5]');
+ await assert.rejects(E.evaluate('AMEX:XLY/ECONOMICS:NOPE'),/no warehouse bars/);
 });

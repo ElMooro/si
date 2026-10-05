@@ -417,7 +417,7 @@
     if (!det) return;
     var split = panel.querySelector(".wl-split");
     if (!D.details) { det.style.display = "none"; split.style.display = "none"; return; }
-    det.style.display = ""; split.style.display = ""; det.style.height = D.detH + "px";
+    det.style.display = ""; split.style.display = ""; det.style.height = Math.max(90, Math.min(D.detH, Math.round((panel.clientHeight || 600) * 0.45))) + "px";
     var id = detId(); if (!id) { det.innerHTML = ""; return; }
     var q = Q[id]; if (!q) { requestQuotes([id]); }
     var s = short(id), ok = q && q.ok;
@@ -429,9 +429,30 @@
         (Array.isArray(q.spark) ? '<div>' + spark(q.spark, Math.max(120, (panel.clientWidth || 300) - 28), 46) + "</div>" : "") +
         '<div class="perf"><div><small>1D</small><span class="' + sgn(q.chg_pct) + '">' + pct(q.chg_pct) + '</span></div><div><small>1M</small><span class="' + sgn(q.mom_pct) + '">' + pct(q.mom_pct) + '</span></div><div><small>3M</small><span class="' + sgn(q.qoq_pct) + '">' + pct(q.qoq_pct) + '</span></div><div><small>1Y</small><span class="' + sgn(q.yoy_pct) + '">' + pct(q.yoy_pct) + "</span></div></div>" +
         '<div class="kv"><span>Symbol</span><span>' + esc(id) + "</span><span>History</span><span>" + esc(q.first || "?") + " → " + esc(q.last_date || "?") + (q.n ? " · " + Number(q.n).toLocaleString("en-US") + " obs" : "") + "</span></div>"
-        : '<div class="asof">' + (q ? "No quote from the warehouse for this symbol" + (q.error ? ": " + esc(String(q.error).slice(0, 140)) : "") : "Loading quote…") + "</div>") +
+        : '<div class="asof">' + (q ? "No quote from the warehouse for this symbol" + (q.error ? ": " + esc(String(q.error).split("(")[0].slice(0, 140)) : "") : "Loading quote…") + "</div>" +
+          (q ? '<div class="alts" data-for="' + esc(id) + '"><div class="asof">Looking for the same data under other names…</div></div>' : "")) +
       '<div class="acts"><button type="button" data-a="dchart">Chart</button><button type="button" data-a="dcompare">Compare</button><button type="button" data-a="dflag">Flag</button>' + (cur() && cur().items.indexOf(id) >= 0 ? '<button type="button" data-a="drm">Remove</button>' : '<button type="button" data-a="dadd">+ Add</button>') + "</div>";
     det.setAttribute("data-id", id);
+    var altEl = det.querySelector(".alts"); if (altEl) loadAlts(id, (q && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "", altEl);
+  }
+
+  // Same data under other names: the warehouse's own alternatives first, then a name search across every provider.
+  var ALTS = {};
+  function loadAlts(id, name, el) {
+    var p = ALTS[id];
+    if (!p) {
+      var q1 = root.fetch(PROXY + "/series?id=" + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (d) { return (d.alternatives || []).map(function (a) { return { id: a.id, name: a.note || a.id, why: "warehouse alternative" }; }); }).catch(function () { return []; });
+      var nm = String(name || "").replace(/\(.*?\)/g, " ").trim();
+      var q2 = nm.length >= 4 ? root.fetch(PROXY + "/symsearch?q=" + encodeURIComponent(nm.slice(0, 90)) + "&kind=series&limit=6").then(function (r) { return r.json(); }).then(function (d) { return (d.rows || []).map(function (r) { return { id: r.id, name: r.name || r.id, why: (r.provider_name || r.provider || "") + (r.first ? " · " + String(r.first).slice(0, 4) + "→" + String(r.last || "").slice(0, 4) : "") }; }); }).catch(function () { return []; }) : Promise.resolve([]);
+      p = ALTS[id] = Promise.all([q1, q2]).then(function (a) { var seen = {}; return a[0].concat(a[1]).filter(function (x) { var k = String(x.id).toUpperCase(); if (seen[k] || k === String(id).toUpperCase()) return false; seen[k] = 1; return true; }).slice(0, 6); });
+    }
+    p.then(function (rows) {
+      if (!el.isConnected) return;
+      if (!rows.length) { el.innerHTML = '<div class="asof">No equivalent found in the warehouse under another name.</div>'; return; }
+      el.innerHTML = '<div class="asof" style="margin-top:6px">Similar data you can chart (equivalence not verified):</div>' + rows.map(function (r) {
+        return '<div class="alt" style="display:flex;gap:6px;align-items:center;padding:3px 0"><button type="button" data-a="altchart" data-alt="' + esc(r.id) + '" style="flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--fg);cursor:pointer;padding:0" title="' + esc(r.id) + '"><b style="font-weight:500">' + esc(short(r.id)) + '</b> <span style="color:var(--mut);font-size:11px">' + esc(String(r.name).slice(0, 70)) + " · " + esc(r.why) + '</span></button><button type="button" data-a="altuse" data-alt="' + esc(r.id) + '" title="Replace ' + esc(short(id)) + ' with this in the list" style="background:var(--bg2);border:1px solid var(--bd);color:var(--fg);border-radius:4px;font-size:11px;cursor:pointer;padding:2px 6px">Use</button></div>';
+      }).join("");
+    });
   }
 
   // ------------------------------------------------------------------ mutations
@@ -470,10 +491,22 @@
     save(); render();
   }
   function setFlag(id, color) { if (color) D.flags[id] = color; else delete D.flags[id]; save(); render(); }
+  // TradingView ids → the chart's routes: spreads/ratios go to the expression engine (jh-chart-expr.js); plain US listings
+  // drop their exchange prefix (the chart resolves AAPL, not NASDAQ:AAPL); everything else uses the reviewed watchlist route.
+  function chartTarget(id) {
+    var m = /^(NASDAQ|NYSE|AMEX|ARCA|BATS|NYSEARCA|NYSEMKT|CBOE):([A-Z][A-Z0-9.]{0,6})$/i.exec(id);
+    return m ? m[2].toUpperCase() : id;
+  }
+  var navAt = 0, lastSeen = "";
+  function route(id) {
+    var t = chartTarget(id), ex = root.JHChartExpr && root.JHChartExpr.isExpr(id);
+    if (!ex && t === id && typeof root.jhWatchlistOpen === "function") root.jhWatchlistOpen(id);
+    else if (typeof root.jhGoSymbol === "function") root.jhGoSymbol(t, "chart");
+  }
   function goChart(id) {
-    activeSym = id;
-    if (typeof root.jhGoSymbol === "function") root.jhGoSymbol(id, "chart");
-    else if (typeof root.jhWatchlistOpen === "function") root.jhWatchlistOpen(id);
+    activeSym = id; navAt = Date.now();
+    route(id);
+    if (!body) return;
     body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); });
     var row = body.querySelector('.wl-row[data-id="' + cssEsc(id) + '"]'); if (row) row.classList.add("act");
     renderDetails();
@@ -687,6 +720,12 @@
       if (act === "dflag") { var r0 = a.getBoundingClientRect(); flagMenu(r0.left, r0.bottom + 4, det.getAttribute("data-id")); return; }
       if (act === "drm") { var L0 = cur(), i0 = L0.items.indexOf(det.getAttribute("data-id")); if (i0 >= 0) removeIdx([i0]); return; }
       if (act === "dadd") { add(det.getAttribute("data-id")); return; }
+      if (act === "altchart") { var aid = a.getAttribute("data-alt"); if (root.jhGoSymbol) root.jhGoSymbol(aid, "chart"); return; }
+      if (act === "altuse") {
+        var L1 = cur(), from = det.getAttribute("data-id"), to = a.getAttribute("data-alt"), ix = L1 && !L1.flag ? L1.items.indexOf(from) : -1;
+        if (ix >= 0) { L1.items[ix] = to; if (D.flags[from]) { D.flags[to] = D.flags[from]; } save(); render(); toast("Replaced " + short(from) + " with " + short(to)); goChart(to); }
+        return;
+      }
       var srt = e.target.closest("[data-sort]");
       if (srt) {
         var k = srt.getAttribute("data-sort");
@@ -809,7 +848,10 @@
   function trackActive() {
     setInterval(function () {
       var a = root.jhActive || "";
-      if (a && a !== activeSym) {
+      if (a && a !== lastSeen) {
+        lastSeen = a;
+        if (Date.now() - navAt < 20000) return; // the chart is showing the row the user just picked (possibly under a resolved id)
+        if (a === activeSym) return;
         activeSym = a;
         if (body) {
           body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); });
@@ -844,6 +886,7 @@
   root.JHTvWatchlist = {
     add: function (id) { var r = add(id); return r; },
     remove: function (id) { var L = cur(); if (!L) return; var i = L.items.findIndex(function (s) { return sameId(s, id); }); if (i >= 0) removeIdx([i]); },
+    route: function (id) { activeSym = id; navAt = Date.now(); route(id); },
     activeName: function () { var L = cur(); return L ? L.name : "watchlist"; },
     lists: function () { return D.order.map(function (id) { return { id: id, name: D.lists[id].name, n: D.lists[id].items.length }; }); },
     open: function (id) { setActive(id); },

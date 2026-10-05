@@ -533,6 +533,7 @@
     var loc = localInstruments(q, 10);
     var cat = catalogHits(q);
     var wl = localWatch(q, expandQuery(q), 12);
+    if (G && G.q === q && G.fixed) wl = wl.concat(localWatch(G.fixed, expandQuery(G.fixed), 12));
     if (!G || G.q !== q) G = { q: q, local: loc, server: [], alt: [], tv: [], catalog: cat, wl: wl, done: false };
     else { G.local = loc; G.catalog = cat; G.wl = wl; }
     render();
@@ -567,10 +568,12 @@
       return symsearch(alt, S.prov, kind, sig).then(function (d) {
         if (seq !== S.seq) return;
         var rows = (d.rows || []).map(normServer); if (d.series_hits && d.series_hits.rows) rows = d.series_hits.rows.map(normServer).concat(rows);
-        rows.forEach(function (r) { r.via = alt; }); G.alt = G.alt.concat(rows.slice(0, 60)); render();
+        var tick = tickerVariants(q).indexOf(alt) >= 0;
+        rows.forEach(function (r) { r.via = alt; r.viaTicker = tick; }); G.alt = G.alt.concat(rows.slice(0, 60)); render();
       }).catch(function () {});
     }));
-    Promise.all([a, b, c]).then(function () {
+    function cap(p, ms) { return Promise.race([p, new Promise(function (r) { setTimeout(r, ms); })]); }
+    Promise.all([cap(a, 9000), cap(b, 6000), cap(c, 7000)]).then(function () {
       if (seq !== S.seq) return;
       S.loading = false; G.done = true;
       // Nothing useful? Try the closest spelling ("Did you mean"), TradingView-style "Showing results for …".
@@ -599,10 +602,16 @@
     // 1. exact matches anywhere (symbol or id equals query) — "Best match"
     var exact = [];
     var alt = G.alt || [];
-    server = server.concat(alt);
-    server.concat(G.local || [], G.wl || []).forEach(function (r) {
-      var s = String(r.sym || "").toUpperCase(), id = key(r);
-      if (r.pinned || s === Q || id === Q || id.split(":").pop() === Q) exact.push(r);
+    // a provider named in the query ("statcan cpi") also scopes the alternate phrasings
+    var pw = String(G.q).toLowerCase().match(/\b(statcan|eurostat|fred|ecb|bls|bea|boj|boe|bis|imf|oecd|worldbank|census|treasury|ofr|cftc|nyfed|snb|rba|boc|ons|insee|destatis|istat|ine|abs|stats?nz|cryptoquant|glassnode|coingecko|defillama)\b/);
+    if (pw) alt = alt.filter(function (r) { return String(r.provider || "").toLowerCase().indexOf(pw[1].replace(/s$/, "")) >= 0 || String(r.id).toLowerCase().indexOf(pw[1] + ":") === 0; });
+    // when the literal query already has plenty, alternates go below it instead of interleaving
+    var inline = server.length < 8 || G.fixed;
+    if (inline) server = server.concat(alt);
+    var tickAlt = (G.alt || []).filter(function (r) { return r.viaTicker; });
+    server.concat(G.local || [], G.wl || [], inline ? [] : tickAlt).forEach(function (r) {
+      var s = String(r.sym || "").toUpperCase(), id = key(r), V = r.viaTicker ? String(r.via).toUpperCase() : Q;
+      if (r.pinned || s === Q || id === Q || id.split(":").pop() === Q || r.viaTicker && (s === V || id === V || id.split(":").pop() === V)) exact.push(r);
     });
     exact.sort(function (a, b) { return (b.pinned ? 2 : 0) + (b.kind === "instrument" ? 1 : 0) - ((a.pinned ? 2 : 0) + (a.kind === "instrument" ? 1 : 0)); });
     exact.slice(0, 6).forEach(function (r) { push(r, "Best match"); });
@@ -621,6 +630,7 @@
     (G.tv || []).forEach(function (r) { push(r, "TradingView universe"); });
     // 7. stored files
     server.filter(function (r) { return r.kind === "file"; }).forEach(function (r) { push(r, "Stored files"); });
+    if (!inline) alt.forEach(function (r) { push(r, "Related: " + (r.via || "other names")); });
     if (S.tab !== "all") out = out.filter(function (r) { return r.cls === S.tab; });
     return out;
   }
@@ -832,7 +842,10 @@
       close(); return;
     }
     close();
-    if (typeof root.jhGoSymbol === "function") root.jhGoSymbol(r.id, "chart");
+    // TradingView-style ids (EXCH:SYMBOL, spreads like AMEX:XLY/AMEX:XLP) use the watchlist's reviewed route
+    var tvId = r.provider === "watchlist" || /^[A-Z][A-Z0-9_]*:/.test(String(r.id)) && !/^(X|C|I|CQ|CISS|DESK|DATA):/.test(String(r.id)) || (root.JHChartExpr && root.JHChartExpr.isExpr(r.id));
+    if (tvId && root.JHTvWatchlist && typeof root.JHTvWatchlist.route === "function") root.JHTvWatchlist.route(r.id);
+    else if (typeof root.jhGoSymbol === "function") root.jhGoSymbol(r.id, "chart");
     else root.location.hash = "s=" + encodeURIComponent(r.id);
   }
   function addToWatch(r) {
