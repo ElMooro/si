@@ -38,15 +38,6 @@ HEADERS = {
 MONTHS = {name: i + 1 for i, name in enumerate(('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))}
 _memory_index = {}
 _memory_source = {}
-MEMORY_DATASETS = 2
-
-
-def _reserve_memory_slot(cache, dataset):
-    # Raw archives remain in the shared content-addressed store. Bound resident
-    # parsed tables before allocating another dataset in a warm Lambda process.
-    cache.pop(dataset, None)
-    while len(cache) >= MEMORY_DATASETS:
-        cache.pop(next(iter(cache)))
 MAX_AGE = 86400
 
 
@@ -134,8 +125,6 @@ def _load(store, bucket, dataset):
         if memo and memo[0] == digest:
             raw, readme = memo[1:]
         else:
-            memo = None
-            _reserve_memory_slot(_memory_source, dataset)
             wire = _get(store, bucket, expected_key, MAX_WIRE)
             if wire is None or hashlib.sha256(wire).hexdigest() != digest or len(wire) != receipt['zip_bytes']:
                 raise ValueError('Retained archive failed integrity checks')
@@ -277,51 +266,11 @@ def measured(value):
         return None
 
 
-def source_headers(dataset=None):
-    if dataset is None:
-        return HEADERS
-    if reviewed_dataset(dataset) != dataset:
-        raise ValueError('Unreviewed Census source schema')
-    cfg = CATALOGUE['dataset_definitions'][dataset]
-    has_errors = cfg.get('has_error_dictionary', True)
-    if type(has_errors) is not bool:
-        raise ValueError('Census schema contract invalid')
-    columns = HEADERS['DATA'] if has_errors else [c for c in HEADERS['DATA'] if c != 'et_idx']
-    if cfg.get('data_columns', columns) != columns:
-        raise ValueError('Census data columns are unreviewed')
-    return {name: columns if name == 'DATA' else header for name, header in HEADERS.items()
-            if has_errors or name != 'ERROR TYPES'}
-
-
-def source_rows(raw, dataset=None):
-    stream = io.StringIO(raw.decode('utf-8-sig'), newline='')
-    cfg = CATALOGUE['dataset_definitions'].get(dataset, {})
-    notes_strict = cfg.get('notes_csv_strict', True)
-    if type(notes_strict) is not bool:
-        raise ValueError('Unreviewed Census notes dialect')
-    reader = csv.reader(stream, strict=True)
-    ordinal = 0
-    while True:
-        try:
-            row = next(reader)
-        except StopIteration:
-            return
-        yield ordinal, row
-        ordinal += 1
-        # Reviewed BFS/MTIS files have unescaped quotes in their narrative NOTES.
-        # Preserve those notes and their whole archive; all dictionaries and
-        # numeric DATA records still require the strict CSV dialect.
-        if row == ['NOTES'] and not notes_strict:
-            reader = csv.reader(stream, strict=False)
-        elif len(row) == 1 and row[0] in HEADINGS:
-            reader = csv.reader(stream, strict=True)
-
-
-def sections(raw, dataset=None):
+def sections(raw):
     if not isinstance(raw,bytes) or len(raw)>MAX_RAW:
         raise ValueError('Census source bounds exceeded')
     groups={};current=None
-    for ordinal,row in source_rows(raw,dataset):
+    for ordinal,row in enumerate(csv.reader(io.StringIO(raw.decode('utf-8-sig'),newline=''),strict=True)):
         if ordinal>MAX_ROWS+100000:raise ValueError('Census row bounds exceeded')
         if not row or all(v=='' for v in row):continue
         if len(row)==1 and row[0] in HEADINGS:
@@ -330,11 +279,9 @@ def sections(raw, dataset=None):
             groups[current]=[];continue
         if current is None:raise ValueError('Unknown Census source preamble')
         groups[current].append((ordinal,row))
-    headers=source_headers(dataset)
-    expected=set(headers)|{'NOTES','DATA UPDATED ON'}
-    if set(groups)!=expected:raise ValueError('Census source sections changed')
+    if set(groups)!=HEADINGS:raise ValueError('Census source sections changed')
     tables={}
-    for section,header in headers.items():
+    for section,header in HEADERS.items():
         if not groups[section] or groups[section][0][1]!=header:raise ValueError('Census '+section+' header changed')
         if any(len(r)!=len(header) for _,r in groups[section][1:]):raise ValueError('Census row width mismatch')
         tables[section]=[(i,dict(zip(header,row))) for i,row in groups[section][1:]]
@@ -346,17 +293,13 @@ def index(raw,dataset):
     memo=_memory_index.get(dataset)
     digest=memo[0] if memo and memo[1] is raw else hashlib.sha256(raw).hexdigest()
     if memo and memo[0]==digest:return memo[2]
-    memo=None
-    _reserve_memory_slot(_memory_index,dataset)
-    groups,tables=sections(raw,dataset);maps={}
+    groups,tables=sections(raw);maps={}
     for name in ('CATEGORIES','DATA TYPES','ERROR TYPES','GEO LEVELS','TIME PERIODS'):
-        key=HEADERS[name][0];maps[name]={row[key]:row for _,row in tables.get(name,[])}
-        if len(maps[name])!=len(tables.get(name,[])):raise ValueError('Duplicate Census dictionary key')
+        key=HEADERS[name][0];maps[name]={row[key]:row for _,row in tables[name]}
+        if len(maps[name])!=len(tables[name]):raise ValueError('Duplicate Census dictionary key')
     series={}
     for ordinal,row in tables['DATA']:
-        # Six-column sources publish no sampling-error field. Do not invent one
-        # in the original record or the inspectable source extract.
-        error=row.get('et_idx','0')!='0'
+        error=row['et_idx']!='0'
         if (row['dt_idx']=='0')!=error or row['is_adj'] not in ('0','1'):
             raise ValueError('Census estimate/error or adjustment identity invalid')
         try:
@@ -377,9 +320,7 @@ def parse(raw,d):
             raise ValueError('Census measure, units, category or geography changed; definition review required')
         anchor,freq=period(time['per_name']);value=measured(row['val']);reason=None
         if anchor is None or freq!=d['freq']:reason='invalid_or_changed_reference_frequency'
-        elif value is None:
-            fallback='estimate_rounds_to_zero' if row['val']=='Z' else 'source_suppressed' if row['val'] in ('S','(S)') else 'source_unavailable_or_unrepresentable_value'
-            reason=CATALOGUE['dataset_definitions'][d['dataset']].get('source_markers',{}).get(row['val'],fallback)
+        elif value is None:reason='estimate_rounds_to_zero' if row['val']=='Z' else 'source_suppressed' if row['val'] in ('S','(S)') else 'source_unavailable_or_unrepresentable_value'
         if anchor:counts[anchor]+=1
         records.append(dict(source_csv_record=ordinal,original=row,original_period=time['per_name'],anchor=anchor,value=value if reason is None else None,rejection=reason))
     observations={}
@@ -387,7 +328,7 @@ def parse(raw,d):
         if r['anchor']:
             if counts[r['anchor']]>1:r.update(value=None,rejection='duplicate_reference_period')
             observations[r['anchor']]=r['value']
-    output=io.StringIO(newline='');writer=csv.DictWriter(output,fieldnames=source_headers(d['dataset'])['DATA'],lineterminator='\n');writer.writeheader();writer.writerows(r['original'] for r in records)
+    output=io.StringIO(newline='');writer=csv.DictWriter(output,fieldnames=HEADERS['DATA'],lineterminator='\n');writer.writeheader();writer.writerows(r['original'] for r in records)
     return sorted([t,v] for t,v in observations.items()),records,output.getvalue().encode(),groups
 
 

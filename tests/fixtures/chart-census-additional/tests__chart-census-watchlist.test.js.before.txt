@@ -17,5 +17,5 @@ test('Census source lookup refuses conflicting source names and preserves canoni
 });
 test('the whole previous chart, routing functions and tests remain reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-census-watchlist-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-census-additional-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unrelated edit',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unrelated edit',file));}
 });

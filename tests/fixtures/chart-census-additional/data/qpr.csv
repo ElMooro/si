@@ -1,0 +1,329 @@
+CATEGORIES
+cat_idx,cat_code,cat_desc,cat_indent
+1,AMTHOLDINGS,Pre 2019 - Cash and Security Holdings,0
+2,AMTREVENUES,Pre 2019 - Revenues,0
+3,PCTHOLDINGS,Pre 2019 - Percent Distribution of Holdings,0
+4,TOTHOLDINGS,Cash and Security Holdings,0
+5,CSHHOLDINGS,Cash and Short-term Investments,0
+6,FEDHOLDINGS,Federal Government Securities,0
+7,BNDHOLDINGS,Corporate Bonds,0
+8,CEQHOLDINGS,Corporate Equity,0
+9,PEQHOLDINGS,Private Equity,0
+10,INDHOLDINGS,Other Indirectly Held Assets,0
+11,MIVHOLDINGS,Other Investments,0
+
+DATA TYPES
+dt_idx,dt_code,dt_desc,dt_unit
+1,HLDTOT,Total Cash and Security Holdings,MLN$
+2,HLDSTK,Corporate Stocks,MLN$
+3,HLDBND,Corporate Bonds,MLN$
+4,HLDFGS,Federal Government Securities,MLN$
+5,HLDINT,International Securities,MLN$
+6,HLDMTG,Mortgages,MLN$
+7,HLDSLS,State and Local Government Securities,MLN$
+8,HLDCSH,Cash and Short-Term Investments,MLN$
+9,HLDOTH,Other Securities,MLN$
+10,HLDUST,United States Treasuries,MLN$
+11,HLDFAS,Federal Agency Securities,MLN$
+12,RVTOT,Total Receipts,MLN$
+13,RVCNTT,Total Contributions,MLN$
+14,RVCNTE,Employee Contributions,MLN$
+15,RVCNTG,Government Contributions,MLN$
+16,RVEARN,Earnings on Investments,MLN$
+17,RVPMTS,Total Payments,MLN$
+18,RVBNFT,Benefits,MLN$
+19,RVWDLS,Withdrawals,MLN$
+20,PCTSTK,Percent Corporate Stocks,PCT
+21,PCTBND,Percent Corporate Bonds,PCT
+22,PCTFGS,Percent Federal Government Securities,PCT
+23,PCTINT,Percent International Securities,PCT
+24,PCTMTG,Percent Mortgages,PCT
+25,PCTSLS,Percent State and Local Government Securities,PCT
+26,PCTCSH,Percent Cash and Short-Term Investments,PCT
+27,PCTOTH,Percent Other Securities,PCT
+28,PCTUST,Percent United States Treasuries,PCT
+29,PCTFAS,Percent Federal Agency Securities,PCT
+30,HLDTCS,Total Cash and Short-term Investments,MLN$
+31,HLDCCD,Cash and Checkable Deposits,MLN$
+32,HLDCP,Commercial Paper,MLN$
+33,HLDMMF,Money Market Funds,MLN$
+34,HLDRRA,Reverse Repurchase Agreements,MLN$
+35,HLDTSD,Time and Savings Deposits,MLN$
+36,HLDOST,Other Short-Term Investments,MLN$
+37,HLDTFG,Total Federal Government Securities,MLN$
+38,HLDFTS,Federal Treasury Securities,MLN$
+39,HLDIFA,Securities Issued by Federal Agencies,MLN$
+40,HLDTCB,Total Corporate Bonds,MLN$
+41,HLDCBD,Corporate Bonds - Domestic,MLN$
+42,HLDCBF,Corporate Bonds - Foreign,MLN$
+43,HLDTCE,Total Corporate Equity,MLN$
+44,HLDCED,Corporate Equity - Domestic,MLN$
+45,HLDCEF,Corporate Equity - Foreign,MLN$
+46,HLDTPE,Total Private Equity,MLN$
+47,HLDOIA,Total Other Indirectly Held Assets,MLN$
+48,HLDTMF,Mutual Funds,MLN$
+49,HLDETF,Exchange Traded Funds,MLN$
+50,HLDREI,Real Estate Investment Trusts (REITs),MLN$
+51,HLDTHF,Hedge Funds,MLN$
+52,HLDOPF,Other Private Funds,MLN$
+53,HLDTOI,Total Other Investments,MLN$
+54,HLDDRP,Directly Held Real Property,MLN$
+55,HLDDHM,Directly Held Mortgages,MLN$
+56,HLDOMI,Other Miscellaneous Investments,MLN$
+
+GEO LEVELS
+geo_idx,geo_code,geo_desc
+1,US,U.S. Total
+
+TIME PERIODS
+per_idx,per_name
+1,Q1-1968
+2,Q2-1968
+3,Q3-1968
+4,Q4-1968
+5,Q1-1969
+6,Q2-1969
+7,Q3-1969
+8,Q4-1969
+9,Q1-1970
+10,Q2-1970
+11,Q3-1970
+12,Q4-1970
+13,Q1-1971
+14,Q2-1971
+15,Q3-1971
+16,Q4-1971
+17,Q1-1972
+18,Q2-1972
+19,Q3-1972
+20,Q4-1972
+21,Q1-1973
+22,Q2-1973
+23,Q3-1973
+24,Q4-1973
+25,Q1-1974
+26,Q2-1974
+27,Q3-1974
+28,Q4-1974
+29,Q1-1975
+30,Q2-1975
+31,Q3-1975
+32,Q4-1975
+33,Q1-1976
+34,Q2-1976
+35,Q3-1976
+36,Q4-1976
+37,Q1-1977
+38,Q2-1977
+39,Q3-1977
+40,Q4-1977
+41,Q1-1978
+42,Q2-1978
+43,Q3-1978
+44,Q4-1978
+45,Q1-1979
+46,Q2-1979
+47,Q3-1979
+48,Q4-1979
+49,Q1-1980
+50,Q2-1980
+51,Q3-1980
+52,Q4-1980
+53,Q1-1981
+54,Q2-1981
+55,Q3-1981
+56,Q4-1981
+57,Q1-1982
+58,Q2-1982
+59,Q3-1982
+60,Q4-1982
+61,Q1-1983
+62,Q2-1983
+63,Q3-1983
+64,Q4-1983
+65,Q1-1984
+66,Q2-1984
+67,Q3-1984
+68,Q4-1984
+69,Q1-1985
+70,Q2-1985
+71,Q3-1985
+72,Q4-1985
+73,Q1-1986
+74,Q2-1986
+75,Q3-1986
+76,Q4-1986
+77,Q1-1987
+78,Q2-1987
+79,Q3-1987
+80,Q4-1987
+81,Q1-1988
+82,Q2-1988
+83,Q3-1988
+84,Q4-1988
+85,Q1-1989
+86,Q2-1989
+87,Q3-1989
+88,Q4-1989
+89,Q1-1990
+90,Q2-1990
+91,Q3-1990
+92,Q4-1990
+93,Q1-1991
+94,Q2-1991
+95,Q3-1991
+96,Q4-1991
+97,Q1-1992
+98,Q2-1992
+99,Q3-1992
+100,Q4-1992
+101,Q1-1993
+102,Q2-1993
+103,Q3-1993
+104,Q4-1993
+105,Q1-1994
+106,Q2-1994
+107,Q3-1994
+108,Q4-1994
+109,Q1-1995
+110,Q2-1995
+111,Q3-1995
+112,Q4-1995
+113,Q1-1996
+114,Q2-1996
+115,Q3-1996
+116,Q4-1996
+117,Q1-1997
+118,Q2-1997
+119,Q3-1997
+120,Q4-1997
+121,Q1-1998
+122,Q2-1998
+123,Q3-1998
+124,Q4-1998
+125,Q1-1999
+126,Q2-1999
+127,Q3-1999
+128,Q4-1999
+129,Q1-2000
+130,Q2-2000
+131,Q3-2000
+132,Q4-2000
+133,Q1-2001
+134,Q2-2001
+135,Q3-2001
+136,Q4-2001
+137,Q1-2002
+138,Q2-2002
+139,Q3-2002
+140,Q4-2002
+141,Q1-2003
+142,Q2-2003
+143,Q3-2003
+144,Q4-2003
+145,Q1-2004
+146,Q2-2004
+147,Q3-2004
+148,Q4-2004
+149,Q1-2005
+150,Q2-2005
+151,Q3-2005
+152,Q4-2005
+153,Q1-2006
+154,Q2-2006
+155,Q3-2006
+156,Q4-2006
+157,Q1-2007
+158,Q2-2007
+159,Q3-2007
+160,Q4-2007
+161,Q1-2008
+162,Q2-2008
+163,Q3-2008
+164,Q4-2008
+165,Q1-2009
+166,Q2-2009
+167,Q3-2009
+168,Q4-2009
+169,Q1-2010
+170,Q2-2010
+171,Q3-2010
+172,Q4-2010
+173,Q1-2011
+174,Q2-2011
+175,Q3-2011
+176,Q4-2011
+177,Q1-2012
+178,Q2-2012
+179,Q3-2012
+180,Q4-2012
+181,Q1-2013
+182,Q2-2013
+183,Q3-2013
+184,Q4-2013
+185,Q1-2014
+186,Q2-2014
+187,Q3-2014
+188,Q4-2014
+189,Q1-2015
+190,Q2-2015
+191,Q3-2015
+192,Q4-2015
+193,Q1-2016
+194,Q2-2016
+195,Q3-2016
+196,Q4-2016
+197,Q1-2017
+198,Q2-2017
+199,Q3-2017
+200,Q4-2017
+201,Q1-2018
+202,Q2-2018
+203,Q3-2018
+204,Q4-2018
+205,Q1-2019
+206,Q2-2019
+207,Q3-2019
+208,Q4-2019
+209,Q1-2020
+210,Q2-2020
+211,Q3-2020
+212,Q4-2020
+213,Q1-2021
+214,Q2-2021
+215,Q3-2021
+216,Q4-2021
+217,Q1-2022
+218,Q2-2022
+219,Q3-2022
+220,Q4-2022
+221,Q1-2023
+222,Q2-2023
+223,Q3-2023
+224,Q4-2023
+225,Q1-2024
+226,Q2-2024
+227,Q3-2024
+228,Q4-2024
+229,Q1-2025
+230,Q2-2025
+231,Q3-2025
+232,Q4-2025
+233,Q1-2026
+234,Q2-2026
+235,Q3-2026
+236,Q4-2026
+
+NOTES
+"The Quarterly Survey of Public Pensions (QSPP) is a quarterly survey that provides national summary data on the revenues, expenditures, and composition of assets of the largest defined benefit public employee retirement systems for state and local governments. The survey consists of a panel of 100 retirement systems, which comprise 89.4 percent of financial activity among such entities, based on the 2007 Census of Governments. After a census has been taken, it is considered best practice to reselect the largest 100 retirement systems. The first quarter for 2009 presents data from the new universe of the 100 largest systems. The previous quarters represent data from the old universe. Five of the 100 units from the old universe were replaced with new retirement systems."
+"For more information, visit the (https://govs/qpr/index.html) website, which provides a link to (https://govs/qpr/historical_data.html) (including footnotes and explanations about changes to panel and definitions over time), detailed statements about (http://qpr/quarterly_methodology.pdf), (https://govs/qpr/how_data_collected.html), and the (https://govs/qpr/get_forms.html)."
+
+DATA UPDATED ON
+Thursday, 24-Sep-26 10:07:25 EDT
+
+DATA
+per_idx,cat_idx,dt_idx,geo_idx,is_adj,val
+1,1,3,1,0,20466
+2,1,3,1,0,21624
+3,1,3,1,0,22378
+

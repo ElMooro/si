@@ -1,0 +1,285 @@
+CATEGORIES
+cat_idx,cat_code,cat_desc,cat_indent
+1,MFG,All Manufacturing,0
+2,NDU,All Nondurable Manufacturing,1
+3,311,Food,2
+4,312,Beverage and Tobacco Products,2
+5,313,Textile Mills and Textile Product Mills,2
+6,ANL,Apparel and Leather Products,2
+7,322,Paper,2
+8,323,Printing and Related Support Activities,2
+9,324,Petroleum and Coal Products,2
+10,CHE,Chemicals,2
+11,375,"Basic Chemicals, Resins, and Synthetics",3
+12,385,Pharmaceuticals and Medicines,3
+13,325,All Other Chemicals,3
+14,326,Plastics and Rubber Products,2
+15,DUR,All Durable Manufacturing,1
+16,321,Wood Products,2
+17,327,Nonmetallic Mineral Products,2
+18,PRI,Primary Metals,2
+19,371,"Iron, Steel, and Ferroalloys",3
+20,381,Nonferrous Metals,3
+21,331,Foundries,3
+22,332,Fabricated Metal Products,2
+23,333,Machinery,2
+24,COM,Computer and Electronic Products,2
+25,374,Computer and Peripheral Equipment,3
+26,384,Communications Equipment,3
+27,334,All Other Electronic Products,3
+28,335,"Electrical Equipment, Appliances, and Components",2
+29,TRA,Transportation Equipment,2
+30,376,Motor Vehicles and Parts,3
+31,386,Aerospace Products and Parts,3
+32,337,Furniture and Related Products,2
+33,339,Miscellaneous Manufacturing,2
+34,MIN,All Mining,0
+35,WHS,All Wholesale Trade,0
+36,421,"Wholesale Trade, Durable Goods",1
+37,422,"Wholesale Trade, Nondurable Goods",1
+38,RET,All Retail Trade,0
+39,445,Food and Beverage Stores,1
+40,458,General Merchandise and Clothing Stores,1
+41,OTR,All Other Retail Trade,1
+42,INF,All Information,0
+43,513,Publishing Industries,1
+44,512,Motion Picture and Sound Recording Industries,1
+45,516,Broadcasting and Content Providers,1
+46,517,Telecommunications,1
+47,519,All Other Information,1
+48,PTS,"All Professional and Technical Services, Except Legal Services",0
+49,545,Computer Systems Design and Related Services,1
+50,546,Management and Technical Consulting Services,1
+51,547,Scientific Research and Development Services,1
+52,549,"All Other Professional and Technical Services, Except Legal Services",1
+
+DATA TYPES
+dt_idx,dt_code,dt_desc,dt_unit
+1,101,"Net Sales, Receipts, and Operating Revenues",MLN$
+2,102,"Depreciation, Depletion, and Amortization of Property, Plant, and Equipment",MLN$
+3,103,All Other Operating Costs and Expenses,MLN$
+4,104,Income (Loss) from Operations,MLN$
+5,105,Interest Expense,MLN$
+6,D110,All Other Nonoperating Income (Expense),MLN$
+7,111,Income (Loss) Before Income Taxes,MLN$
+8,D114,Provision for Current and Deferred Domestic Income Taxes,MLN$
+9,115,Income (Loss) After Income Taxes,MLN$
+10,120,Cash Dividends Charged to Retained Earnings This Quarter,MLN$
+11,NIRB,Net Income Retained in Business,MLN$
+12,D119,Retained Earnings at Beginning of Quarter,MLN$
+13,D122,Other Direct Credits (Charges) to Retained Earnings (Net),MLN$
+14,D123,Retained Earnings at End of Quarter,MLN$
+15,201,Cash and Demand Deposits in the U.S.,MLN$
+16,202,"Time Deposits in the U.S., Including Negotiable Certificates of Deposit",MLN$
+17,TCASH,Total Cash on Hand and in U.S. Banks,MLN$
+18,D210,Other Short-term Financial Investments,MLN$
+19,TCASH2,"Total Cash, U.S. Government and Other Securities",MLN$
+20,D213,Trade Accounts and Trade Notes Receivable (Less Allowance for Doubtful Accounts),MLN$
+21,214,Inventories,MLN$
+22,215,All Other Current Assets,MLN$
+23,TCA,Total Current Assets,MLN$
+24,216,"Property, Plant, and Equipment",MLN$
+25,217,Land and Mineral Rights,MLN$
+26,218,"Accumulated Depreciation, Depletion, and Amortization",MLN$
+27,219,"Net Property, Plant, and Equipment",MLN$
+28,D222,All Other Noncurrent Assets,MLN$
+29,223,Total Assets,MLN$
+30,301,"Short-term Debt, Original Maturity of 1 Year or Less: Loans from Banks",MLN$
+31,D304,"Short-term Debt, Original Maturity of 1 Year or Less: Other Short-term Loans, Including Commercial Paper",MLN$
+32,306,Trade Accounts and Trade Notes Payable,MLN$
+33,D309,"Income Taxes Accrued, Prior and Current Years, Net of Payments",MLN$
+34,310,"Current Portion of Long-term Debt, Due in 1 Year or Less: Loans from Banks",MLN$
+35,D313,"Current Portion of Long-term Debt, Due in 1 Year or Less: Other Long-term Loans",MLN$
+36,D315,All Other Current Liabilities,MLN$
+37,TCL,Total Current Liabilities,MLN$
+38,316,"Long-term Debt, Due in More than 1 Year: Loans from Banks",MLN$
+39,D319,"Long-term Debt, Due in More than 1 Year: Other Long-term Loans",MLN$
+40,320,All Other Noncurrent Liabilities,MLN$
+41,TL,Total Liabilities,MLN$
+42,D326,Capital Stock and Other Capital (Less Treasury Stock),MLN$
+43,322,Retained Earnings,MLN$
+44,327,Stockholders' Equity,MLN$
+45,328,Total Liabilities and Stockholders' Equity,MLN$
+46,NWC,Net Working Capital,MLN$
+
+ERROR TYPES
+et_idx,err_code,err_desc,err_unit
+1,E_101,"Relative Standard Error for Net Sales, Receipts, and Operating Revenues",PCT
+2,E_102,"Relative Standard Error for Depreciation, Depletion, and Amortization of Property, Plant, and Equipment",PCT
+3,E_103,Relative Standard Error for All Other Operating Costs and Expenses,PCT
+4,E_104,Standard Error for Income (Loss) from Operations,MLN$
+5,E_105,Relative Standard Error for Interest Expense,PCT
+6,E_D110,Standard Error for All Other Nonoperating Income (Expense),MLN$
+7,E_111,Standard Error for Income (Loss) Before Income Taxes,MLN$
+8,E_D114,Standard Error for Provision for Current and Deferred Domestic Income Taxes,MLN$
+9,E_115,Standard Error for Income (Loss) After Income Taxes,MLN$
+10,E_120,Relative Standard Error for Cash Dividends Charged to Retained Earnings This Quarter,PCT
+11,E_NIRB,Standard Error for Net Income Retained in Business,MLN$
+12,E_D119,Standard Error for Retained Earnings at Beginning of Quarter,MLN$
+13,E_D122,Standard Error for Other Direct Credits (Charges) to Retained Earnings (Net),MLN$
+14,E_D123,Standard Error for Retained Earnings at End of Quarter,MLN$
+15,E_201,Relative Standard Error for Cash and Demand Deposits in the U.S.,PCT
+16,E_202,"Relative Standard Error for Time Deposits in the U.S., Including Negotiable Certificates of Deposit",PCT
+17,E_TCASH,Relative Standard Error for Total Cash on Hand and in U.S. Banks,PCT
+18,E_D210,Relative Standard Error for Other Short-term Financial Investments,PCT
+19,E_TCASH2,"Relative Standard Error for Total Cash, U.S. Government and Other Securities",PCT
+20,E_D213,Relative Standard Error for Trade Accounts and Trade Notes Receivable (Less Allowance for Doubtful Accounts),PCT
+21,E_214,Relative Standard Error for Inventories,PCT
+22,E_215,Relative Standard Error for All Other Current Assets,PCT
+23,E_TCA,Relative Standard Error for Total Current Assets,PCT
+24,E_216,"Relative Standard Error for Property, Plant, and Equipment",PCT
+25,E_217,Relative Standard Error for Land and Mineral Rights,PCT
+26,E_218,"Relative Standard Error for Accumulated Depreciation, Depletion, and Amortization",PCT
+27,E_219,"Relative Standard Error for Net Property, Plant, and Equipment",PCT
+28,E_D222,Relative Standard Error for All Other Noncurrent Assets,PCT
+29,E_223,Relative Standard Error for Total Assets,PCT
+30,E_301,"Relative Standard Error for Short-term Debt, Original Maturity of 1 Year or Less: Loans from Banks",PCT
+31,E_D304,"Relative Standard Error for Short-term Debt, Original Maturity of 1 Year or Less: Other Short-term Loans, Including Commercial Paper",PCT
+32,E_306,Relative Standard Error for Trade Accounts and Trade Notes Payable,PCT
+33,E_D309,"Standard Error for Income Taxes Accrued, Prior and Current Years, Net of Payments",MLN$
+34,E_310,"Relative Standard Error for Current Portion of Long-term Debt, Due in 1 Year or Less: Loans from Banks",PCT
+35,E_D313,"Relative Standard Error for Current Portion of Long-term Debt, Due in 1 Year or Less: Other Long-term Loans",PCT
+36,E_D315,Relative Standard Error for All Other Current Liabilities,PCT
+37,E_TCL,Relative Standard Error for Total Current Liabilities,PCT
+38,E_316,"Relative Standard Error for Long-term Debt, Due in More Than 1 Year: Loans from Banks",PCT
+39,E_D319,"Relative Standard Error for Long-term Debt, Due in More than 1 Year: Other Long-term Loans",PCT
+40,E_320,Relative Standard Error for All Other Noncurrent Liabilities,PCT
+41,E_TL,Relative Standard Error for Total Liabilities,PCT
+42,E_D326,Standard Error for Capital Stock and Other Capital (Less Treasury Stock),MLN$
+43,E_322,Standard Error for Retained Earnings,MLN$
+44,E_327,Standard Error for Stockholders' Equity,MLN$
+45,E_328,Relative Standard Error for Total Liabilities and Stockholders' Equity,PCT
+46,E_NWC,Standard Error for Net Working Capital,MLN$
+
+GEO LEVELS
+geo_idx,geo_code,geo_desc
+1,US,U.S. Total
+
+TIME PERIODS
+per_idx,per_name
+1,Q1-2000
+2,Q2-2000
+3,Q3-2000
+4,Q4-2000
+5,Q1-2001
+6,Q2-2001
+7,Q3-2001
+8,Q4-2001
+9,Q1-2002
+10,Q2-2002
+11,Q3-2002
+12,Q4-2002
+13,Q1-2003
+14,Q2-2003
+15,Q3-2003
+16,Q4-2003
+17,Q1-2004
+18,Q2-2004
+19,Q3-2004
+20,Q4-2004
+21,Q1-2005
+22,Q2-2005
+23,Q3-2005
+24,Q4-2005
+25,Q1-2006
+26,Q2-2006
+27,Q3-2006
+28,Q4-2006
+29,Q1-2007
+30,Q2-2007
+31,Q3-2007
+32,Q4-2007
+33,Q1-2008
+34,Q2-2008
+35,Q3-2008
+36,Q4-2008
+37,Q1-2009
+38,Q2-2009
+39,Q3-2009
+40,Q4-2009
+41,Q1-2010
+42,Q2-2010
+43,Q3-2010
+44,Q4-2010
+45,Q1-2011
+46,Q2-2011
+47,Q3-2011
+48,Q4-2011
+49,Q1-2012
+50,Q2-2012
+51,Q3-2012
+52,Q4-2012
+53,Q1-2013
+54,Q2-2013
+55,Q3-2013
+56,Q4-2013
+57,Q1-2014
+58,Q2-2014
+59,Q3-2014
+60,Q4-2014
+61,Q1-2015
+62,Q2-2015
+63,Q3-2015
+64,Q4-2015
+65,Q1-2016
+66,Q2-2016
+67,Q3-2016
+68,Q4-2016
+69,Q1-2017
+70,Q2-2017
+71,Q3-2017
+72,Q4-2017
+73,Q1-2018
+74,Q2-2018
+75,Q3-2018
+76,Q4-2018
+77,Q1-2019
+78,Q2-2019
+79,Q3-2019
+80,Q4-2019
+81,Q1-2020
+82,Q2-2020
+83,Q3-2020
+84,Q4-2020
+85,Q1-2021
+86,Q2-2021
+87,Q3-2021
+88,Q4-2021
+89,Q1-2022
+90,Q2-2022
+91,Q3-2022
+92,Q4-2022
+93,Q1-2023
+94,Q2-2023
+95,Q3-2023
+96,Q4-2023
+97,Q1-2024
+98,Q2-2024
+99,Q3-2024
+100,Q4-2024
+101,Q1-2025
+102,Q2-2025
+103,Q3-2025
+104,Q4-2025
+105,Q1-2026
+106,Q2-2026
+107,Q3-2026
+108,Q4-2026
+
+NOTES
+"Visit the Quarterly Financial Report internet website (https://www.census.gov/econ/qfr/) for more information, including summary statements of income and retained earnings, balance sheets, and related financial and operating ratios for manufacturing, mining, wholesale trade, retail trade, and selected service industries.  Estimates starting in the 4th quarter of 2024 reflect the 2022 NAICS (North American Industry Classification System). Estimates before this time reflect the 2017 NAICS."
+"Measures of sampling variability are provided with the data and should be closely examined before the data are used. The measure of sampling variability displayed depends on the item selected. If an item can have a value that is zero, positive, or negative, the measure presented is the Standard Error. If an item can have a value that is only zero or positive, the measure presented is the Relative Standard Error (RSE, also called a coefficient of variation). Click on the Definitions link for more information on measures of sampling variability and their uses."
+NA - data not available
+
+DATA UPDATED ON
+Tuesday, 08-Sep-26 09:05:38 EDT
+
+DATA
+per_idx,cat_idx,dt_idx,et_idx,geo_idx,is_adj,val
+4,3,1,0,1,0,81841
+5,3,1,0,1,0,79409
+6,3,1,0,1,0,82954
+42,3,0,1,1,0,0.7
+43,3,0,1,1,0,0.6
+44,3,0,1,1,0,0.2
+

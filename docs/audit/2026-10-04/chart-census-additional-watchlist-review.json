@@ -1,0 +1,343 @@
+{
+  "stage": "candidate_definitions_reviewed_not_routed_or_live",
+  "scope": "Explicit source alternatives; requested-provider history/vintage equivalence remains unverified. No synthetic values or primary-provider substitution claim.",
+  "alternatives": {
+    "ECONOMICS:USFOET": {
+      "alternative": "census:m3:MPCNO:MXT:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USFOET/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=M3",
+      "definition": {
+        "dataset": "m3",
+        "data_type": "MPCNO",
+        "category": "MXT",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "11",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "2",
+          "cat_code": "MXT",
+          "cat_desc": "Manufacturing Excluding Transportation",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Manufacturers' Shipments, Inventories, and Orders \u00b7 Manufacturing Excluding Transportation \u00b7 New Orders Percent Change Monthly \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-03-01",
+        "snapshot_last": "2026-08-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USDGOET": {
+      "alternative": "census:m3adv:MPCNO:DXT:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USDGOET/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=M3ADV",
+      "definition": {
+        "dataset": "m3adv",
+        "data_type": "MPCNO",
+        "category": "DXT",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "6",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "2",
+          "cat_code": "DXT",
+          "cat_desc": "Durable goods excluding transportation",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Advance Monthly Manufacturers' Shipments, Inventories, and Orders \u00b7 Durable goods excluding transportation \u00b7 New Orders Percent Change Monthly \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-03-01",
+        "snapshot_last": "2026-08-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USDGOED": {
+      "alternative": "census:m3adv:MPCNO:DXD:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USDGOED/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=M3ADV",
+      "definition": {
+        "dataset": "m3adv",
+        "data_type": "MPCNO",
+        "category": "DXD",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "6",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "3",
+          "cat_code": "DXD",
+          "cat_desc": "Durable goods excluding defense",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Advance Monthly Manufacturers' Shipments, Inventories, and Orders \u00b7 Durable goods excluding defense \u00b7 New Orders Percent Change Monthly \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-03-01",
+        "snapshot_last": "2026-08-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USNDCGOEA": {
+      "alternative": "census:m3adv:MPCNO:NXA:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USNDCGOEA/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=M3ADV",
+      "definition": {
+        "dataset": "m3adv",
+        "data_type": "MPCNO",
+        "category": "NXA",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "6",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "19",
+          "cat_code": "NXA",
+          "cat_desc": "Nondefense Capital Goods Excluding Aircraft",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Advance Monthly Manufacturers' Shipments, Inventories, and Orders \u00b7 Nondefense Capital Goods Excluding Aircraft \u00b7 New Orders Percent Change Monthly \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-03-01",
+        "snapshot_last": "2026-08-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USBI": {
+      "alternative": "census:mtis:MPCIM:TOTBUS:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USBI/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=MTIS",
+      "definition": {
+        "dataset": "mtis",
+        "data_type": "MPCIM",
+        "category": "TOTBUS",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "4",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "1",
+          "cat_code": "TOTBUS",
+          "cat_desc": "Total Business",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Manufacturing and Trade Inventories and Sales \u00b7 Total Business \u00b7 Inventories - Monthly Percent Change \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-02-01",
+        "snapshot_last": "2026-07-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USWI": {
+      "alternative": "census:mwts:MPCIM:42:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USWI/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=MWTS",
+      "definition": {
+        "dataset": "mwts",
+        "data_type": "MPCIM",
+        "category": "42",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "PCT",
+        "unit": "Percent",
+        "measure_definition": {
+          "dt_idx": "5",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        "category_definition": {
+          "cat_idx": "1",
+          "cat_code": "42",
+          "cat_desc": "42: Total Merchant Wholesalers, Except Manufacturers' Sales Branches and Offices",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "U.S. Total"
+        },
+        "name": "Monthly Wholesale Trade: Sales and Inventories \u00b7 42: Total Merchant Wholesalers, Except Manufacturers' Sales Branches and Offices \u00b7 Inventories - Monthly Percent Change \u00b7 SA \u00b7 U.S. Total",
+        "snapshot_first": "1992-02-01",
+        "snapshot_last": "2026-07-01",
+        "snapshot_rows": 414,
+        "snapshot_numeric_rows": 414,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Percent",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false
+    },
+    "ECONOMICS:USGTB": {
+      "alternative": "census:ftdadv:BAL:CBG:yes:US",
+      "requested_definition_source": "https://www.tradingview.com/symbols/ECONOMICS-USGTB/",
+      "official_source": "https://www.census.gov/econ_getzippedfile/?programCode=FTDADV",
+      "definition": {
+        "dataset": "ftdadv",
+        "data_type": "BAL",
+        "category": "CBG",
+        "seasonally_adjusted": true,
+        "geography": "US",
+        "sampling_error": false,
+        "freq": "M",
+        "unit_code": "MLN$",
+        "unit": "Millions of US dollars",
+        "measure_definition": {
+          "dt_idx": "1",
+          "dt_code": "BAL",
+          "dt_desc": "Balance",
+          "dt_unit": "MLN$"
+        },
+        "category_definition": {
+          "cat_idx": "1",
+          "cat_code": "CBG",
+          "cat_desc": "Census Basis Goods",
+          "cat_indent": "0"
+        },
+        "geography_definition": {
+          "geo_idx": "1",
+          "geo_code": "US",
+          "geo_desc": "United States"
+        },
+        "name": "Advance U.S. International Trade in Goods \u00b7 Census Basis Goods \u00b7 Balance \u00b7 SA \u00b7 United States",
+        "snapshot_first": "1992-01-01",
+        "snapshot_last": "2026-08-01",
+        "snapshot_rows": 416,
+        "snapshot_numeric_rows": 416,
+        "annual_rate_in_category_label": false,
+        "unit_from_dictionary": "Millions of US dollars",
+        "annual_rate": false,
+        "measurement_basis": "Published reference-period measure"
+      },
+      "reason": "Census published-measurement alternative; vendor equivalence and publication vintage unverified. Exact category, seasonal adjustment, geography, units and reference period remain attached.",
+      "vendor_equivalence_verified": false,
+      "public_history_verified": false,
+      "point_in_time_vintages_verified": false,
+      "calls_eligible": false,
+      "sizing_eligible": false,
+      "unit_and_scope_note": "Advance Census-basis goods balance in millions of US dollars; excludes services and is not represented as a certified equivalent of revised vendor history."
+    }
+  }
+}

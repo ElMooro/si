@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
-const R=path.resolve(__dirname,'..'),read=p=>require('./helpers/chart-census-additional-preservation.cjs').normalize(fs.readFileSync(path.join(R,p),'utf8'),p);
+const R=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(R,p),'utf8');
 test('Census exact dimension allowlist covers all 3402 definitions and rejects partial selections',()=>{
  const scope={window:{},Set,URLSearchParams,TextDecoder,Uint8Array,AbortController,URL,Blob};vm.runInNewContext(read('jh-chart-provider-browser.js'),scope);const api=scope.window.JHChartProviderBrowser,cat=JSON.parse(read('aws/lambdas/justhodl-symdir/source/census-series.json'));
  assert.equal(Object.keys(cat.series).length,3402);

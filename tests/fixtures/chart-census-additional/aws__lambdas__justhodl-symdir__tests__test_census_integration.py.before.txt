@@ -14,8 +14,8 @@ class Tests(unittest.TestCase):
   m=self.module();ids=[]
   for slug,cfg in source.CATALOGUE['dataset_definitions'].items():
    self.assertEqual(m.browse('census:'+slug)['total'],cfg['series']);self.assertEqual(m.browse('census:'+slug.upper())['total'],cfg['series'])
-  for offset in range(0,13858,500):ids += [r['id'] for r in m.explorer({'provider':'census','kind':'series','offset':str(offset),'limit':'500'})['rows']]
-  self.assertEqual(len(set(ids)),13858);self.assertEqual(m.search(SID)['rows'][0]['id'],SID);m.load_index.assert_not_called()
+  for offset in range(0,3402,500):ids += [r['id'] for r in m.explorer({'provider':'census','kind':'series','offset':str(offset),'limit':'500'})['rows']]
+  self.assertEqual(len(set(ids)),3402);self.assertEqual(m.search(SID)['rows'][0]['id'],SID);m.load_index.assert_not_called()
  def test_each_dataset_canonicalizes_and_never_looks_up_another_provider(self):
   m=self.module()
   for slug in source.CATALOGUE['dataset_definitions']:

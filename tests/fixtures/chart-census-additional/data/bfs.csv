@@ -1,0 +1,401 @@
+CATEGORIES
+cat_idx,cat_code,cat_desc,cat_indent
+1,TOTAL,Total for All NAICS,0
+2,NAICS11,Agriculture,1
+3,NAICS21,Mining,1
+4,NAICS22,Utilities,1
+5,NAICS23,Construction,1
+6,NAICSMNF,Manufacturing,1
+7,NAICS42,Wholesale Trade,1
+8,NAICSRET,Retail Trade,1
+9,NAICSTW,Transportation and Warehousing,1
+10,NAICS51,Information,1
+11,NAICS52,Finance and Insurance,1
+12,NAICS53,Real Estate,1
+13,NAICS54,Professional Services,1
+14,NAICS55,Management of Companies,1
+15,NAICS56,Administrative and Support,1
+16,NAICS61,Educational Services,1
+17,NAICS62,Health Care and Social Assistance,1
+18,NAICS71,Arts and Entertainment,1
+19,NAICS72,Accommodation and Food Services,1
+20,NAICS81,Other Services,1
+21,NAICS92,Public Administration,1
+22,NONAICS,No NAICS Assigned,1
+
+DATA TYPES
+dt_idx,dt_code,dt_desc,dt_unit
+1,BA_BA,Business Applications,UNITS
+2,BA_CBA,Business Applications from Corporations,UNITS
+3,BA_HBA,High-Propensity Business Applications,UNITS
+4,BA_WBA,Business Applications with Planned Wages,UNITS
+5,BF_BF4Q,Business Formations within Four Quarters,UNITS
+6,BF_BF8Q,Business Formations within Eight Quarters,UNITS
+7,BF_PBF4Q,Projected Business Formations within Four Quarters,UNITS
+8,BF_PBF8Q,Projected Business Formations within Eight Quarters,UNITS
+9,BF_SBF4Q,Spliced Business Formations within Four Quarters,UNITS
+10,BF_SBF8Q,Spliced Business Formations within Eight Quarters,UNITS
+11,BF_DUR4Q,Average Duration (in Quarters) from Business Application to Formation within Four Quarters,UNITS
+12,BF_DUR8Q,Average Duration (in Quarters) from Business Application to Formation within Eight Quarters,UNITS
+
+GEO LEVELS
+geo_idx,geo_code,geo_desc
+1,US,U.S. Total
+2,NO,Northeast
+3,MW,Midwest
+4,SO,South
+5,WE,West
+6,AK,Alaska
+7,AL,Alabama
+8,AR,Arkansas
+9,AZ,Arizona
+10,CA,California
+11,CO,Colorado
+12,CT,Connecticut
+13,DE,Delaware
+14,DC,District of Columbia
+15,FL,Florida
+16,GA,Georgia
+17,HI,Hawaii
+18,ID,Idaho
+19,IL,Illinois
+20,IN,Indiana
+21,IA,Iowa
+22,KS,Kansas
+23,KY,Kentucky
+24,LA,Louisiana
+25,ME,Maine
+26,MD,Maryland
+27,MA,Massachusetts
+28,MI,Michigan
+29,MN,Minnesota
+30,MS,Mississippi
+31,MO,Missouri
+32,MT,Montana
+33,NE,Nebraska
+34,NV,Nevada
+35,NH,New Hampshire
+36,NJ,New Jersey
+37,NM,New Mexico
+38,NY,New York
+39,NC,North Carolina
+40,ND,North Dakota
+41,OH,Ohio
+42,OK,Oklahoma
+43,OR,Oregon
+44,PA,Pennsylvania
+45,RI,Rhode Island
+46,SC,South Carolina
+47,SD,South Dakota
+48,TN,Tennessee
+49,TX,Texas
+50,UT,Utah
+51,VT,Vermont
+52,VA,Virginia
+53,WA,Washington
+54,WV,West Virginia
+55,WI,Wisconsin
+56,WY,Wyoming
+57,PR,Puerto Rico
+
+TIME PERIODS
+per_idx,per_name
+1,Jan-2004
+2,Feb-2004
+3,Mar-2004
+4,Apr-2004
+5,May-2004
+6,Jun-2004
+7,Jul-2004
+8,Aug-2004
+9,Sep-2004
+10,Oct-2004
+11,Nov-2004
+12,Dec-2004
+13,Jan-2005
+14,Feb-2005
+15,Mar-2005
+16,Apr-2005
+17,May-2005
+18,Jun-2005
+19,Jul-2005
+20,Aug-2005
+21,Sep-2005
+22,Oct-2005
+23,Nov-2005
+24,Dec-2005
+25,Jan-2006
+26,Feb-2006
+27,Mar-2006
+28,Apr-2006
+29,May-2006
+30,Jun-2006
+31,Jul-2006
+32,Aug-2006
+33,Sep-2006
+34,Oct-2006
+35,Nov-2006
+36,Dec-2006
+37,Jan-2007
+38,Feb-2007
+39,Mar-2007
+40,Apr-2007
+41,May-2007
+42,Jun-2007
+43,Jul-2007
+44,Aug-2007
+45,Sep-2007
+46,Oct-2007
+47,Nov-2007
+48,Dec-2007
+49,Jan-2008
+50,Feb-2008
+51,Mar-2008
+52,Apr-2008
+53,May-2008
+54,Jun-2008
+55,Jul-2008
+56,Aug-2008
+57,Sep-2008
+58,Oct-2008
+59,Nov-2008
+60,Dec-2008
+61,Jan-2009
+62,Feb-2009
+63,Mar-2009
+64,Apr-2009
+65,May-2009
+66,Jun-2009
+67,Jul-2009
+68,Aug-2009
+69,Sep-2009
+70,Oct-2009
+71,Nov-2009
+72,Dec-2009
+73,Jan-2010
+74,Feb-2010
+75,Mar-2010
+76,Apr-2010
+77,May-2010
+78,Jun-2010
+79,Jul-2010
+80,Aug-2010
+81,Sep-2010
+82,Oct-2010
+83,Nov-2010
+84,Dec-2010
+85,Jan-2011
+86,Feb-2011
+87,Mar-2011
+88,Apr-2011
+89,May-2011
+90,Jun-2011
+91,Jul-2011
+92,Aug-2011
+93,Sep-2011
+94,Oct-2011
+95,Nov-2011
+96,Dec-2011
+97,Jan-2012
+98,Feb-2012
+99,Mar-2012
+100,Apr-2012
+101,May-2012
+102,Jun-2012
+103,Jul-2012
+104,Aug-2012
+105,Sep-2012
+106,Oct-2012
+107,Nov-2012
+108,Dec-2012
+109,Jan-2013
+110,Feb-2013
+111,Mar-2013
+112,Apr-2013
+113,May-2013
+114,Jun-2013
+115,Jul-2013
+116,Aug-2013
+117,Sep-2013
+118,Oct-2013
+119,Nov-2013
+120,Dec-2013
+121,Jan-2014
+122,Feb-2014
+123,Mar-2014
+124,Apr-2014
+125,May-2014
+126,Jun-2014
+127,Jul-2014
+128,Aug-2014
+129,Sep-2014
+130,Oct-2014
+131,Nov-2014
+132,Dec-2014
+133,Jan-2015
+134,Feb-2015
+135,Mar-2015
+136,Apr-2015
+137,May-2015
+138,Jun-2015
+139,Jul-2015
+140,Aug-2015
+141,Sep-2015
+142,Oct-2015
+143,Nov-2015
+144,Dec-2015
+145,Jan-2016
+146,Feb-2016
+147,Mar-2016
+148,Apr-2016
+149,May-2016
+150,Jun-2016
+151,Jul-2016
+152,Aug-2016
+153,Sep-2016
+154,Oct-2016
+155,Nov-2016
+156,Dec-2016
+157,Jan-2017
+158,Feb-2017
+159,Mar-2017
+160,Apr-2017
+161,May-2017
+162,Jun-2017
+163,Jul-2017
+164,Aug-2017
+165,Sep-2017
+166,Oct-2017
+167,Nov-2017
+168,Dec-2017
+169,Jan-2018
+170,Feb-2018
+171,Mar-2018
+172,Apr-2018
+173,May-2018
+174,Jun-2018
+175,Jul-2018
+176,Aug-2018
+177,Sep-2018
+178,Oct-2018
+179,Nov-2018
+180,Dec-2018
+181,Jan-2019
+182,Feb-2019
+183,Mar-2019
+184,Apr-2019
+185,May-2019
+186,Jun-2019
+187,Jul-2019
+188,Aug-2019
+189,Sep-2019
+190,Oct-2019
+191,Nov-2019
+192,Dec-2019
+193,Jan-2020
+194,Feb-2020
+195,Mar-2020
+196,Apr-2020
+197,May-2020
+198,Jun-2020
+199,Jul-2020
+200,Aug-2020
+201,Sep-2020
+202,Oct-2020
+203,Nov-2020
+204,Dec-2020
+205,Jan-2021
+206,Feb-2021
+207,Mar-2021
+208,Apr-2021
+209,May-2021
+210,Jun-2021
+211,Jul-2021
+212,Aug-2021
+213,Sep-2021
+214,Oct-2021
+215,Nov-2021
+216,Dec-2021
+217,Jan-2022
+218,Feb-2022
+219,Mar-2022
+220,Apr-2022
+221,May-2022
+222,Jun-2022
+223,Jul-2022
+224,Aug-2022
+225,Sep-2022
+226,Oct-2022
+227,Nov-2022
+228,Dec-2022
+229,Jan-2023
+230,Feb-2023
+231,Mar-2023
+232,Apr-2023
+233,May-2023
+234,Jun-2023
+235,Jul-2023
+236,Aug-2023
+237,Sep-2023
+238,Oct-2023
+239,Nov-2023
+240,Dec-2023
+241,Jan-2024
+242,Feb-2024
+243,Mar-2024
+244,Apr-2024
+245,May-2024
+246,Jun-2024
+247,Jul-2024
+248,Aug-2024
+249,Sep-2024
+250,Oct-2024
+251,Nov-2024
+252,Dec-2024
+253,Jan-2025
+254,Feb-2025
+255,Mar-2025
+256,Apr-2025
+257,May-2025
+258,Jun-2025
+259,Jul-2025
+260,Aug-2025
+261,Sep-2025
+262,Oct-2025
+263,Nov-2025
+264,Dec-2025
+265,Jan-2026
+266,Feb-2026
+267,Mar-2026
+268,Apr-2026
+269,May-2026
+270,Jun-2026
+271,Jul-2026
+272,Aug-2026
+273,Sep-2026
+274,Oct-2026
+275,Nov-2026
+276,Dec-2026
+
+NOTES
+"The statistics presented in this release are based on administrative data and therefore are not subject to sampling error. However, the statistics may be subject to non-sampling error. Non-sampling error occurs because accurate information cannot always be obtained. There are many potential contributors to non-sampling error such as misreporting, mistakes in recording and coding responses, misinterpretation of questions, and other errors of collection, response, coverage, or processing. Though non-sampling error is not measured directly, the Census Bureau employs quality control procedures throughout the process to minimize this type of error.  NA = Not Applicable  S = Estimate does not meet publication standards because concerns about the estimate&#39;s quality. Unpublished estimates derived from this table by subtraction are subject to this same limitation and should not be attributed to the U.S. Census Bureau.  D = Denotes an estimate withheld to avoid disclosing data of individual establishments; data are included in higher-level totals.
+For detailed instructions on using this Time Series/Trend Charts application", please visit the (https://www.census.gov/econ/bfs/pdf/technical_documentation.pdf)  The Census Bureau has reviewed the monthly data product to ensure appropriate access, use, and disclosure avoidance protection of the confidential source data (Project No. P-7515311," Disclosure Review Board (DRB) approval number: CBDRB-FY26-0112)."""
+
+DATA UPDATED ON
+Friday, 11-Sep-26 09:03:14 EDT
+
+DATA
+per_idx,cat_idx,dt_idx,geo_idx,is_adj,val
+7,2,1,1,0,1894
+8,2,1,1,0,1807
+9,2,1,1,0,1922
+7,2,11,1,0,0.36
+8,2,11,1,0,0.74
+9,2,11,1,0,1.02
+7,2,7,1,0,57
+8,2,7,1,0,56
+9,2,7,1,0,58
+7,2,9,1,0,101
+8,2,9,1,0,109
+9,2,9,1,0,101
+

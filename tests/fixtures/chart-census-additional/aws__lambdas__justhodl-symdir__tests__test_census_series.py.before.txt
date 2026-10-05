@@ -43,8 +43,8 @@ class Tests(unittest.TestCase):
  def fetch(self,sid=SID,**kw):return m.fetch(sid,self.store,'fixture',reader=kw.pop('reader',self.reader),now=kw.pop('now',NOW),**kw)
  def test_all_exact_series_definitions_and_pages(self):
   ids=[]
-  for pos in range(0,13858,500):ids.extend(r['id'] for r in m.directory(limit=500,offset=pos)['rows'])
-  self.assertEqual(len(ids),13858);self.assertEqual(len(set(ids)),13858)
+  for pos in range(0,3402,500):ids.extend(r['id'] for r in m.directory(limit=500,offset=pos)['rows'])
+  self.assertEqual(len(ids),3402);self.assertEqual(len(set(ids)),3402)
   for sid in ids:self.assertEqual(m.definition(sid.upper())['id'],sid)
   self.assertEqual(m.directory(dataset='qss',limit=1)['total'],2144)
  def test_canonical_identity_rejects_extra_dimensions_or_guessing(self):
@@ -118,7 +118,7 @@ class Tests(unittest.TestCase):
   with self.assertRaises(urllib.error.HTTPError):m.NoRedirect().redirect_request(urllib.request.Request(m.CATALOGUE['dataset_definitions']['mrts']['source_url']),None,302,'moved',{},'https://evil.test')
  def test_catalogue_counts_do_not_claim_numeric_or_full_history(self):
   rows=[]
-  for pos in range(0,13858,500):rows+=m.directory(limit=500,offset=pos)['rows']
+  for pos in range(0,3402,500):rows+=m.directory(limit=500,offset=pos)['rows']
   self.assertEqual(sum(r['snapshot_numeric_rows']==0 for r in rows),4)
   self.assertTrue(all(r['n'] is None and r['live_history_verified'] is False for r in rows))
  def test_invalid_page_bounds(self):

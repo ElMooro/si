@@ -1,0 +1,262 @@
+CATEGORIES
+cat_idx,cat_code,cat_desc,cat_indent
+1,QTAXCAT1,Table 1 - Latest National Totals of State and Local Tax Revenue,0
+2,QTAXCAT2,Table 2 - Latest National Totals of State Tax Revenue,0
+3,QTAXCAT3,Table 3 - Latest State Tax Collections by State and Type of Tax,0
+
+DATA TYPES
+dt_idx,dt_code,dt_desc,dt_unit
+1,T01,T01 Property Taxes,MLN$
+2,T014QE,"T01 Property Taxes, 4 Quarters Ending",MLN$
+3,T09,T09 General Sales and Gross Receipts Taxes,MLN$
+4,T094QE,"T09 General Sales and Gross Receipts Taxes, 4 Quarters Ending",MLN$
+5,T10,T10 Alcoholic Beverages Sales Tax,MLN$
+6,T104QE,"T10 Alcoholic Beverages Sales Tax, 4 Quarters Ending",MLN$
+7,T11,T11 Amusements Sales Tax,MLN$
+8,T12,T12 Insurance Premiums Sales Tax,MLN$
+9,T13,T13 Motor Fuels Sales Tax,MLN$
+10,T134QE,"T13 Motor Fuels Sales Tax, 4 Quarters Ending",MLN$
+11,T14,T14 Pari-Mutuels Sales Tax,MLN$
+12,T15,T15 Public Utilities Sales Tax,MLN$
+13,T16,T16 Tobacco Products Sales Tax,MLN$
+14,T164QE,"T16 Tobacco Products Sales Tax, 4 Quarters Ending",MLN$
+15,T19,T19 Other Selective Sales and Gross Receipts Taxes,MLN$
+16,T20,T20 Alcoholic Beverages License,MLN$
+17,T21,T21 Amusements License,MLN$
+18,T22,T22 Corporations In General License,MLN$
+19,T23,T23 Hunting and Fishing License,MLN$
+20,T24,T24 Motor Vehicles License,MLN$
+21,T25,T25 Motor Vehicle Operators License,MLN$
+22,T24T25,T24T25 Motor Vehicles License and Motor Vehicle Operators License,MLN$
+23,T24254,"T24T25 Motor Vehicles License and Motor Vehicle Operators License, 4 Quarters Ending",MLN$
+24,T27,T27 Public Utilities License,MLN$
+25,T28,"T28 Occupation and Business License, Not Elsewhere Classified",MLN$
+26,T29,T29 Other License Taxes,MLN$
+27,T40,T40 Individual Income Taxes,MLN$
+28,T404QE,"T40 Individual Income Taxes, 4 Quarters Ending",MLN$
+29,T41,T41 Corporation Net Income Taxes,MLN$
+30,T414QE,"T41 Corporation Net Income Taxes, 4 Quarters Ending",MLN$
+31,T50,T50 Death and Gift Taxes,MLN$
+32,T51,T51 Documentary and Stock Transfer Taxes,MLN$
+33,T53,T53 Severance Taxes,MLN$
+34,T99,"T99 Taxes, Not Elsewhere Classified",MLN$
+35,ALLOTH,All Other Taxes,MLN$
+36,AO4QE,"All Other Taxes, 4 Quarters Ending",MLN$
+37,TOTAL,Total Taxes,MLN$
+38,TOT4QE,"Total Taxes, 4 Quarters Ending",MLN$
+39,T18,T18 Sports Betting (including pari-mutuels) Sales Tax,MLN$
+40,T17,T17 Cannabis Sales Tax,MLN$
+
+GEO LEVELS
+geo_idx,geo_code,geo_desc
+1,US,U.S. Total
+2,AL,Alabama
+3,AK,Alaska
+4,AZ,Arizona
+5,AR,Arkansas
+6,CA,California
+7,CO,Colorado
+8,CT,Connecticut
+9,DE,Delaware
+10,DC,District of Columbia
+11,FL,Florida
+12,GA,Georgia
+13,HI,Hawaii
+14,ID,Idaho
+15,IL,Illinois
+16,IN,Indiana
+17,IA,Iowa
+18,KS,Kansas
+19,KY,Kentucky
+20,LA,Louisiana
+21,ME,Maine
+22,MD,Maryland
+23,MA,Massachusetts
+24,MI,Michigan
+25,MN,Minnesota
+26,MS,Mississippi
+27,MO,Missouri
+28,MT,Montana
+29,NE,Nebraska
+30,NV,Nevada
+31,NH,New Hampshire
+32,NJ,New Jersey
+33,NM,New Mexico
+34,NY,New York
+35,NC,North Carolina
+36,ND,North Dakota
+37,OH,Ohio
+38,OK,Oklahoma
+39,OR,Oregon
+40,PA,Pennsylvania
+41,RI,Rhode Island
+42,SC,South Carolina
+43,SD,South Dakota
+44,TN,Tennessee
+45,TX,Texas
+46,UT,Utah
+47,VT,Vermont
+48,VA,Virginia
+49,WA,Washington
+50,WV,West Virginia
+51,WI,Wisconsin
+52,WY,Wyoming
+
+TIME PERIODS
+per_idx,per_name
+1,Q1-1992
+2,Q2-1992
+3,Q3-1992
+4,Q4-1992
+5,Q1-1993
+6,Q2-1993
+7,Q3-1993
+8,Q4-1993
+9,Q1-1994
+10,Q2-1994
+11,Q3-1994
+12,Q4-1994
+13,Q1-1995
+14,Q2-1995
+15,Q3-1995
+16,Q4-1995
+17,Q1-1996
+18,Q2-1996
+19,Q3-1996
+20,Q4-1996
+21,Q1-1997
+22,Q2-1997
+23,Q3-1997
+24,Q4-1997
+25,Q1-1998
+26,Q2-1998
+27,Q3-1998
+28,Q4-1998
+29,Q1-1999
+30,Q2-1999
+31,Q3-1999
+32,Q4-1999
+33,Q1-2000
+34,Q2-2000
+35,Q3-2000
+36,Q4-2000
+37,Q1-2001
+38,Q2-2001
+39,Q3-2001
+40,Q4-2001
+41,Q1-2002
+42,Q2-2002
+43,Q3-2002
+44,Q4-2002
+45,Q1-2003
+46,Q2-2003
+47,Q3-2003
+48,Q4-2003
+49,Q1-2004
+50,Q2-2004
+51,Q3-2004
+52,Q4-2004
+53,Q1-2005
+54,Q2-2005
+55,Q3-2005
+56,Q4-2005
+57,Q1-2006
+58,Q2-2006
+59,Q3-2006
+60,Q4-2006
+61,Q1-2007
+62,Q2-2007
+63,Q3-2007
+64,Q4-2007
+65,Q1-2008
+66,Q2-2008
+67,Q3-2008
+68,Q4-2008
+69,Q1-2009
+70,Q2-2009
+71,Q3-2009
+72,Q4-2009
+73,Q1-2010
+74,Q2-2010
+75,Q3-2010
+76,Q4-2010
+77,Q1-2011
+78,Q2-2011
+79,Q3-2011
+80,Q4-2011
+81,Q1-2012
+82,Q2-2012
+83,Q3-2012
+84,Q4-2012
+85,Q1-2013
+86,Q2-2013
+87,Q3-2013
+88,Q4-2013
+89,Q1-2014
+90,Q2-2014
+91,Q3-2014
+92,Q4-2014
+93,Q1-2015
+94,Q2-2015
+95,Q3-2015
+96,Q4-2015
+97,Q1-2016
+98,Q2-2016
+99,Q3-2016
+100,Q4-2016
+101,Q1-2017
+102,Q2-2017
+103,Q3-2017
+104,Q4-2017
+105,Q1-2018
+106,Q2-2018
+107,Q3-2018
+108,Q4-2018
+109,Q1-2019
+110,Q2-2019
+111,Q3-2019
+112,Q4-2019
+113,Q1-2020
+114,Q2-2020
+115,Q3-2020
+116,Q4-2020
+117,Q1-2021
+118,Q2-2021
+119,Q3-2021
+120,Q4-2021
+121,Q1-2022
+122,Q2-2022
+123,Q3-2022
+124,Q4-2022
+125,Q1-2023
+126,Q2-2023
+127,Q3-2023
+128,Q4-2023
+129,Q1-2024
+130,Q2-2024
+131,Q3-2024
+132,Q4-2024
+133,Q1-2025
+134,Q2-2025
+135,Q3-2025
+136,Q4-2025
+137,Q1-2026
+138,Q2-2026
+139,Q3-2026
+140,Q4-2026
+
+NOTES
+"The Quarterly Summary of State and Local Government Tax Revenue provides quarterly estimates of state and local government tax revenue at a national level, as well as detailed tax revenue data for individual states. While data for Washington D.C. is included in Table 3, the U.S. Total in both Tables 2 and 3 does not include it. This quarterly survey has been conducted continuously since 1962. The information contained in this survey is the most current information available on a nationwide basis for government tax collections."
+"For more information about the survey, click here: (https://www.census.gov/programs-surveys/qtax/about.html) For more information about how data are collected, click here: (https://www.census.gov/programs-surveys/qtax/technical-documentation/methodology.html)"
+<u>A Special Note Concerning Revised Data:</u>
+"Revisions reflect tax collection amounts obtained from three general sources. State and local government respondents have submitted revisions to amounts as originally reported. In other cases, governments have reported data, which we used to replace data that were previously imputed or estimated. Finally, some of the revisions were compiled from government sources, both published and unpublished."
+
+DATA UPDATED ON
+Thursday, 10-Sep-26 09:04:58 EDT
+
+DATA
+per_idx,cat_idx,dt_idx,geo_idx,is_adj,val
+1,1,35,1,0,15130
+2,1,35,1,0,18169
+3,1,35,1,0,15582
+

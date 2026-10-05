@@ -1,0 +1,257 @@
+{
+  "m3adv": {
+    "series": [
+      "census:m3adv:MPCNO:31S:no:US"
+    ],
+    "fixture_sha256": "0c43ef72ae43de067325d3055727d53ed4e25ca0edb091f9c3a1a20bcabfe998",
+    "source_csv_sha256": "4c49e0595be8ac876c631760dddd1195932dd60dbc1e92726657a68233a486e1",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "mrtsadv": {
+    "series": [
+      "census:mrtsadv:IM:44000:no:US",
+      "census:mrtsadv:E_IM:44000:no:US"
+    ],
+    "fixture_sha256": "23113a6db15463e5a8f711bd8ebe8ee56c0d33f70ccf6d94f71cacb8c962fb92",
+    "source_csv_sha256": "ade6fea4f71a072499e05a15a7d518d9d3382b14555d46db01cbf931a438448d",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "ftdadv": {
+    "series": [
+      "census:ftdadv:BAL:CBG:no:US"
+    ],
+    "fixture_sha256": "8b43d75a007092188f76e654b1dfcbed57ca77cd4e068df018b2521e0e33e651",
+    "source_csv_sha256": "4c5f07664d0d21bd43dfcf133baf1ec22b3932648be19d1980a3f20d805c8c41",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "mwtsadv": {
+    "series": [
+      "census:mwtsadv:IM:423:no:US",
+      "census:mwtsadv:E_IM:423:no:US"
+    ],
+    "fixture_sha256": "eeb884ea890a6fb8b00a5398a6855cb1bbb221bbde2f824480800f6c8bf5ab50",
+    "source_csv_sha256": "a15c55929dd877d5c1e449ad66c6f85eb9a012b3d82518b7d429fe3bde7d4bde",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "bfs": {
+    "series": [
+      "census:bfs:BA_BA:NAICS11:no:US",
+      "census:bfs:BF_DUR4Q:NAICS11:no:US",
+      "census:bfs:BF_PBF4Q:NAICS11:no:US",
+      "census:bfs:BF_SBF4Q:NAICS11:no:US"
+    ],
+    "fixture_sha256": "3b03a66fadf40aba7b536b485528644e5c19549962ca35cb8e9ac423a2acf294",
+    "source_csv_sha256": "9375d78c0b61b719cddc4a2df2da734f02396346650976ea8f4c81cc44450205",
+    "selected_rows": 12,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "hv": {
+    "series": [
+      "census:hv:HOR:RATE:no:MW",
+      "census:hv:E_HOR:RATE:no:US"
+    ],
+    "fixture_sha256": "cba2dbd89b1ad3f079a210892ddf4b92dffa893f18831a90aba69015dded3cff",
+    "source_csv_sha256": "5ba0341cf4b8bacc8d858852796434cb4c2ac125bed643e79190b961d090633d",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "mhs2": {
+    "series": [
+      "census:mhs2:ISR:M:no:US",
+      "census:mhs2:SH:T:yes:US"
+    ],
+    "fixture_sha256": "6f77a5ae7b41c6e35bb3ec9028f971a8b1bef360c2b60c1fa8b95010f9892c0a",
+    "source_csv_sha256": "c5727d9723cdea5dca7c51e15e6fbe682b8b0b66eaf9588cb510aadd7b9faf52",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "m3": {
+    "series": [
+      "census:m3:FI:11S:no:US"
+    ],
+    "fixture_sha256": "bb4f3418e3efd1ed1f177e328967bad40e0cf4ae3dfa5ee883b35ac1991ba74e",
+    "source_csv_sha256": "412424e37d49289433c757129825b77cf171184f4aefea64c3661ce6c217eced",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "mtis": {
+    "series": [
+      "census:mtis:IM:MNFCTR:no:US",
+      "census:mtis:E_IM:RETAIL:no:US"
+    ],
+    "fixture_sha256": "21b0735a7e8e4453e08d185d77ba9e02d9d6053fc6837305878bd99bd8e6e41c",
+    "source_csv_sha256": "2c7c8048e7870c6a64b16f1180f8eda907bfbdf975229b09b46b6bb9c9a28ace",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "mwts": {
+    "series": [
+      "census:mwts:IM:4231:no:US",
+      "census:mwts:E_IM:4231:no:US"
+    ],
+    "fixture_sha256": "cf3fc5c7ef793562f03a4e7b34475b2cb93e8c63ccab853bc6286921d2e5f1bf",
+    "source_csv_sha256": "b3e3b1978a8ce3146e4a0bb0e96c24399a35f70bddddf6508d01780b1d7ead81",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "qfr": {
+    "series": [
+      "census:qfr:101:311:no:US",
+      "census:qfr:E_101:311:no:US"
+    ],
+    "fixture_sha256": "99981237fc2bfb26bda11d1d08bdcea3dd594ed8fdff6218b8961d7995bdec8e",
+    "source_csv_sha256": "a96b11ec37b37ab5b451aab359a7b28a323ca2d4e74ff5c08ed9fc19b37292a7",
+    "selected_rows": 6,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "et_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "qtax": {
+    "series": [
+      "census:qtax:ALLOTH:QTAXCAT1:no:US"
+    ],
+    "fixture_sha256": "ecad7849c99e6940b558b7615e8af62e49656e112be3e7012fce0958d783f7ba",
+    "source_csv_sha256": "0e495aeb8a603307cd9dd4b8a0f49226afc2e9b44ff0d96a038b7d4aac4af2e4",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "qpr": {
+    "series": [
+      "census:qpr:HLDBND:AMTHOLDINGS:no:US"
+    ],
+    "fixture_sha256": "b4a7313adf9735d4d5284a1465b5ad9bf3d8d584f54765a1a37ead2e7b4b3abf",
+    "source_csv_sha256": "1cf32fdc561e4959cda3e4f525115059edac221a9d6021ff8314227f34ac6b02",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  },
+  "ftd": {
+    "series": [
+      "census:ftd:BAL:BOPG:no:US"
+    ],
+    "fixture_sha256": "73c9e89e848e43e8dcae93bb376b277b147566c3dfdb7c07138be6f0f0a2503a",
+    "source_csv_sha256": "b2bc09cd992abfaa71edf63af574a591dd22efc56989d81fe82982f43c599b31",
+    "selected_rows": 3,
+    "columns": [
+      "per_idx",
+      "cat_idx",
+      "dt_idx",
+      "geo_idx",
+      "is_adj",
+      "val"
+    ],
+    "scope": "Partial parser test fixture with source dictionaries and three records per selected measurement; full live history is tested separately"
+  }
+}

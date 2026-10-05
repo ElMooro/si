@@ -1,0 +1,2991 @@
+{
+  "stage": "candidate_not_deployed",
+  "series": 13858,
+  "added_series": 10456,
+  "datasets": {
+    "m3adv": 320,
+    "mrtsadv": 24,
+    "ftdadv": 6,
+    "mwtsadv": 24,
+    "bfs": 1680,
+    "hv": 89,
+    "mhs2": 28,
+    "m3": 1454,
+    "mtis": 64,
+    "mwts": 440,
+    "qfr": 4784,
+    "qtax": 1480,
+    "qpr": 57,
+    "ftd": 6
+  },
+  "bytes": 13420724,
+  "sha256": "66ab9ddcba21d189407c84affe4e78838f647e50d858254230a04e94a3d75c91",
+  "existing_definitions_preserved": true,
+  "unreviewed_old_mhs_excluded": true,
+  "offline_replay": {
+    "passed": true,
+    "series": 13858,
+    "rows": 2555865,
+    "datasets": [
+      {
+        "dataset": "mrts",
+        "series": 568,
+        "rows": 195716,
+        "statuses": {
+          "observations": 511,
+          "partial": 57
+        },
+        "zip_sha256": "147c871d84e3ae3aaffba6dffedbabcbd0a6a68d9e1daf415b255502119ea937",
+        "csv_sha256": "983ea2fa994f85620a5dcde6acb1c8e8090191b85dea0dce91813b6cd7ef68be"
+      },
+      {
+        "dataset": "marts",
+        "series": 168,
+        "rows": 58898,
+        "statuses": {
+          "observations": 164,
+          "partial": 4
+        },
+        "zip_sha256": "3a746567b16004c46f95276790236e3824e02ed6285d321ea671f5df133466a9",
+        "csv_sha256": "595b7e6cb037f49f81db3f06a451f2b0346bac117fb5e54236ea3a26be3b3e6f"
+      },
+      {
+        "dataset": "resconst",
+        "series": 176,
+        "rows": 90537,
+        "statuses": {
+          "observations": 176
+        },
+        "zip_sha256": "85fdb4c9d3783cf9cbd17773ffe92579f9ccbfeff948fa2779c3a4f9e37d49c2",
+        "csv_sha256": "32c967aecbca74386d993f6b0437e312a480a395c3b0d126c8d73701826b7a5e"
+      },
+      {
+        "dataset": "ressales",
+        "series": 58,
+        "rows": 28532,
+        "statuses": {
+          "observations": 58
+        },
+        "zip_sha256": "baa0df38a33c0c4b11dd7910a9fcb1cb18ba49d1a451c59f3f37aaff52633bbc",
+        "csv_sha256": "6f0345ce3924bba4d205ad13c7272a82faa647af03cf6d4c9c535beefd35b887"
+      },
+      {
+        "dataset": "vip",
+        "series": 288,
+        "rows": 84480,
+        "statuses": {
+          "observations": 288
+        },
+        "zip_sha256": "1bb480764e528b4c7cb33bcc8a0ed49107b5494af51a59f8346a5ca0890fe377",
+        "csv_sha256": "724af2c5b0b5d296ba4a978e36f8d2cd498f3617196241dca342e96a4863de30"
+      },
+      {
+        "dataset": "qss",
+        "series": 2144,
+        "rows": 153128,
+        "statuses": {
+          "partial": 854,
+          "observations": 1286,
+          "unavailable": 4
+        },
+        "zip_sha256": "1c3b1bb93c8de3f388b290fdfd6108559c29a672b07e8a2ed28770f39a5fb97b",
+        "csv_sha256": "f55daac70bb2d7020b008f4c96b882a6923e83e53199972f7e2d240138490a1b"
+      },
+      {
+        "dataset": "m3adv",
+        "series": 320,
+        "rows": 132880,
+        "statuses": {
+          "observations": 320
+        },
+        "zip_sha256": "7fd06ea15ec3c6a8d8c8b02b4aa987ae8022c9b1038f214d05eece1765179ad4",
+        "csv_sha256": "4c49e0595be8ac876c631760dddd1195932dd60dbc1e92726657a68233a486e1"
+      },
+      {
+        "dataset": "mrtsadv",
+        "series": 24,
+        "rows": 8646,
+        "statuses": {
+          "observations": 22,
+          "partial": 2
+        },
+        "zip_sha256": "1e956425f7db663448dcb91a8e9024d5842a14a042358b5e3a6d8c5ac9ca981e",
+        "csv_sha256": "ade6fea4f71a072499e05a15a7d518d9d3382b14555d46db01cbf931a438448d"
+      },
+      {
+        "dataset": "ftdadv",
+        "series": 6,
+        "rows": 2496,
+        "statuses": {
+          "observations": 6
+        },
+        "zip_sha256": "7664b09350584163ad469c03eb62e57c9a341e1609a2c2255cae7547769a8c67",
+        "csv_sha256": "4c5f07664d0d21bd43dfcf133baf1ec22b3932648be19d1980a3f20d805c8c41"
+      },
+      {
+        "dataset": "mwtsadv",
+        "series": 24,
+        "rows": 8646,
+        "statuses": {
+          "observations": 24
+        },
+        "zip_sha256": "2123c0456c598c3bcc3a5e9fd21808cf1ae446f125070709f8a35479a3659aa6",
+        "csv_sha256": "a15c55929dd877d5c1e449ad66c6f85eb9a012b3d82518b7d429fe3bde7d4bde"
+      },
+      {
+        "dataset": "bfs",
+        "series": 1680,
+        "rows": 424080,
+        "statuses": {
+          "observations": 1573,
+          "partial": 107
+        },
+        "zip_sha256": "de661c3c62dfbace1163f0e46380789d01e8c2a03dd8ee9a8e92d13ff8618cce",
+        "csv_sha256": "9375d78c0b61b719cddc4a2df2da734f02396346650976ea8f4c81cc44450205"
+      },
+      {
+        "dataset": "hv",
+        "series": 89,
+        "rows": 12240,
+        "statuses": {
+          "observations": 88,
+          "partial": 1
+        },
+        "zip_sha256": "554f19e71f63d8f38a994b4ce6217bff51c5605f66276c436d5c738beae3e3ba",
+        "csv_sha256": "5ba0341cf4b8bacc8d858852796434cb4c2ac125bed643e79190b961d090633d"
+      },
+      {
+        "dataset": "mhs2",
+        "series": 28,
+        "rows": 5470,
+        "statuses": {
+          "partial": 5,
+          "observations": 23
+        },
+        "zip_sha256": "915fa5c10a0a4d7f435dedd90fbc30c11684d0f9ba2aa096e28932f0dbc5d868",
+        "csv_sha256": "c5727d9723cdea5dca7c51e15e6fbe682b8b0b66eaf9588cb510aadd7b9faf52"
+      },
+      {
+        "dataset": "m3",
+        "series": 1454,
+        "rows": 603178,
+        "statuses": {
+          "observations": 1454
+        },
+        "zip_sha256": "8b3c658f25088c5df5ac3659ad9eb018072d38871f56ab73872c57f0231bc054",
+        "csv_sha256": "412424e37d49289433c757129825b77cf171184f4aefea64c3661ce6c217eced"
+      },
+      {
+        "dataset": "mtis",
+        "series": 64,
+        "rows": 23880,
+        "statuses": {
+          "observations": 62,
+          "partial": 2
+        },
+        "zip_sha256": "009a5c040beb968bac97e493e46c6d2097ac5897746fb5bf2083a58082c31767",
+        "csv_sha256": "2c7c8048e7870c6a64b16f1180f8eda907bfbdf975229b09b46b6bb9c9a28ace"
+      },
+      {
+        "dataset": "mwts",
+        "series": 440,
+        "rows": 157492,
+        "statuses": {
+          "observations": 440
+        },
+        "zip_sha256": "66ec435e5e93642c35f2ebdfcf9a9bdd3f41cc6b0c62915dc8c0384dde1dfab3",
+        "csv_sha256": "b3e3b1978a8ce3146e4a0bb0e96c24399a35f70bddddf6508d01780b1d7ead81"
+      },
+      {
+        "dataset": "qfr",
+        "series": 4784,
+        "rows": 383638,
+        "statuses": {
+          "observations": 4784
+        },
+        "zip_sha256": "232f7757e654e787a9eab49792302feb3683e5280a66ff0cc9bd7f0cbc448654",
+        "csv_sha256": "a96b11ec37b37ab5b451aab359a7b28a323ca2d4e74ff5c08ed9fc19b37292a7"
+      },
+      {
+        "dataset": "qtax",
+        "series": 1480,
+        "rows": 173604,
+        "statuses": {
+          "observations": 1480
+        },
+        "zip_sha256": "135a9331199bdaee7d0c15bb3b31ae47f20d2d1e5a692bdf684cbaf0e2d9e1f8",
+        "csv_sha256": "0e495aeb8a603307cd9dd4b8a0f49226afc2e9b44ff0d96a038b7d4aac4af2e4"
+      },
+      {
+        "dataset": "qpr",
+        "series": 57,
+        "rows": 5858,
+        "statuses": {
+          "observations": 56,
+          "partial": 1
+        },
+        "zip_sha256": "3d19fe2dc4e9316ec9de357d1e590a99aebde4a04a25b1198b3352a0be851cdc",
+        "csv_sha256": "1cf32fdc561e4959cda3e4f525115059edac221a9d6021ff8314227f34ac6b02"
+      },
+      {
+        "dataset": "ftd",
+        "series": 6,
+        "rows": 2466,
+        "statuses": {
+          "observations": 6
+        },
+        "zip_sha256": "c494523b597156435cb3f9f17b970325d9654ba0feb7861aa8553320ab31bf83",
+        "csv_sha256": "b2bc09cd992abfaa71edf63af574a591dd22efc56989d81fe82982f43c599b31"
+      }
+    ],
+    "definition_sha256": "66ab9ddcba21d189407c84affe4e78838f647e50d858254230a04e94a3d75c91",
+    "adapter_sha256": "c3e19fd938a529493383d341afb785f3122f7ef1d344600599d9c44d9dc28cab"
+  },
+  "source_documentation": "https://www.census.gov/econ_datasets/",
+  "definition_review": [
+    {
+      "dataset": "mrtsadv",
+      "measures": [
+        {
+          "et_idx": "1",
+          "err_code": "E_IM",
+          "err_desc": "CV of Inventories - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "2",
+          "err_code": "E_MPCIM",
+          "err_desc": "SE of Inventories - Monthly % Chg",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "IM",
+          "dt_desc": "Inventories - Monthly",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly % Chg",
+          "dt_unit": "PCT"
+        }
+      ],
+      "notes": [
+        [
+          449,
+          [
+            "For Advance Retail Inventories, all current month estimates are advance estimates and will be superseded in following months by revised estimates."
+          ]
+        ],
+        [
+          450,
+          [
+            "Inventories estimates released as part of the Monthly Retail Trade Report are not included in the time series. For the latest preliminary estimates, select &quot;Monthly Retail Trade and Food Services&quot; in the dropdown above or visit the (https://www.census.gov/retail/index.html) website."
+          ]
+        ],
+        [
+          451,
+          [
+            "For information on the reliability and use of the data, including important notes on estimation and sampling variance, seasonal adjustment, measures of sampling variability, and other information pertinent to this economic indicator, go to the (https://www.census.gov/econ/indicators/advance_report.pdf) [PDF], or refer to the (https://www.census.gov/econ/indicators/index.html) website, which provides a link to more (https://www.census.gov/econ/indicators/historical_data.html) for these reports."
+          ]
+        ],
+        [
+          452,
+          [
+            "Estimated measures of sampling variability for totals are expressed as coefficients of variation (CV). Standard errors (SE) are provided for month-to-month change and ratio estimates."
+          ]
+        ],
+        [
+          453,
+          [
+            "Estimated measures of sampling variability are based on data not adjusted for seasonal variation, and should be used when drawing inferences about both adjusted and not adjusted estimates."
+          ]
+        ],
+        [
+          454,
+          [
+            "NA = Not available."
+          ]
+        ],
+        [
+          455,
+          [
+            "(S) = Suppressed  Z = Estimate rounds to zero."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {
+        "Z": 44
+      }
+    },
+    {
+      "dataset": "mwtsadv",
+      "measures": [
+        {
+          "et_idx": "1",
+          "err_code": "E_IM",
+          "err_desc": "CV of Inventories - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "2",
+          "err_code": "E_MPCIM",
+          "err_desc": "SE of Inventories - Monthly Percent Change",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "IM",
+          "dt_desc": "Inventories - Monthly",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly Percent Change",
+          "dt_unit": "PCT"
+        }
+      ],
+      "notes": [
+        [
+          449,
+          [
+            "For Advance Wholesale Inventories, all current month estimates are advance estimates and will be superseded in following months by revised estimates."
+          ]
+        ],
+        [
+          450,
+          [
+            "Inventories estimates released as part of the Monthly Wholesale Trade Report are not included in the time series. For the latest preliminary estimates, select &quot;Monthly Wholesale Trade: Sales and Inventories&quot; in the dropdown above or visit the (https://www.census.gov/wholesale/index.html) website."
+          ]
+        ],
+        [
+          451,
+          [
+            "For information on the reliability and use of the data, including important notes on estimation and sampling variance, seasonal adjustment, measures of sampling variability, and other information pertinent to this economic indicator, go to the (https://www.census.gov/econ/indicators/advance_report.pdf) [PDF], or refer to the (https://www.census.gov/econ/indicators/index.html) website, which provides a link to more (https://www.census.gov/econ/indicators/historical_data.html) for these reports."
+          ]
+        ],
+        [
+          452,
+          [
+            "Estimated measures of sampling variability for totals are expressed as coefficients of variation (CV). Standard errors (SE) are provided for month-to-month change and ratio estimates."
+          ]
+        ],
+        [
+          453,
+          [
+            "Estimated measures of sampling variability are based on data not adjusted for seasonal variation, and should be used when drawing inferences about both adjusted and not adjusted estimates."
+          ]
+        ],
+        [
+          454,
+          [
+            "NA = Not available."
+          ]
+        ],
+        [
+          455,
+          [
+            "Z = Estimate rounds to zero."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "hv",
+      "measures": [
+        {
+          "et_idx": "1",
+          "err_code": "E_HOR",
+          "err_desc": "Confidence Interval for Homeownership Rate",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "3",
+          "err_code": "E_HVR",
+          "err_desc": "Confidence Interval for Homeowner Vacancy Rate",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "2",
+          "err_code": "E_RVR",
+          "err_desc": "Confidence Interval for Rental Vacancy Rate",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "HOR",
+          "dt_desc": "Homeownership Rate",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "HVR",
+          "dt_desc": "Homeowner Vacancy Rate",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "OCC",
+          "dt_desc": "Occupied Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "16",
+          "dt_code": "OCCUSE",
+          "dt_desc": "Vacant Housing Units Held Off the Market and For Occasional Use",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "15",
+          "dt_code": "OFFMAR",
+          "dt_desc": "Vacant Housing Units Held Off the Market",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "18",
+          "dt_code": "OTH",
+          "dt_desc": "Vacant Housing Units Held Off the Market and Vacant for Other Reasons",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "OWNOCC",
+          "dt_desc": "Owner Occupied Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "RENT",
+          "dt_desc": "Vacant Housing Units for Rent",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "RNTOCC",
+          "dt_desc": "Renter Occupied Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "14",
+          "dt_code": "RNTSLD",
+          "dt_desc": "Vacant Housing Units Rented or Sold but not Yet Occupied",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "RVR",
+          "dt_desc": "Rental Vacancy Rate",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "SAHOR",
+          "dt_desc": "Seasonally Adjusted Homeownership Rate",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "13",
+          "dt_code": "SALE",
+          "dt_desc": "Vacant Housing Units for Sale",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "SEASON",
+          "dt_desc": "Seasonal Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "TOTAL",
+          "dt_desc": "Total Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "17",
+          "dt_code": "URE",
+          "dt_desc": "Vacant Housing Units Held Off the Market and Usual Residence Elsewhere",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "VACANT",
+          "dt_desc": "Vacant Housing Units",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "YRVAC",
+          "dt_desc": "Year-Round Vacant Housing Units",
+          "dt_unit": "K"
+        }
+      ],
+      "notes": [
+        [
+          333,
+          [
+            "<span style='font-size:11pt'><span style='line-height:107%'><span style='font-family:Calibri,sans-serif'>Since the first quarter 2003, the Current Population Survey/Housing Vacancy Survey (CPS/HVS) housing inventory estimates have been controlled to independent housing unit estimates based upon Census 2000 (2000-2009 data), Census 2010 (2010-2019 data), and Census 2020 (2020-present data) and updated with building permit data, estimates of housing loss, and other administrative records data. In the second quarter 2026, the CPS/HVS revised the entire series of housing inventory estimates back to the second quarter 2020, based on the latest series of independent housing controls, the Vintage 2025 time series. Housing inventory estimates from the first quarter 2010 through the first quarter 2020 are revised based on the Vintage 2020 time series. Housing inventory estimates from the second quarter 2000 through the fourth quarter 2009 are revised based on the Vintage 2010 time series. Housing inventory estimates, prior to the second quarter 2000, have not been revised. The revised CPS/HVS housing inventory data series are based on the independently produced Vintage 2025 housing unit estimates that are projected forward through the first quarter 2026. The same general procedure will be followed each year in revising housing inventory estimates with the most up-to-date independent housing estimates available.</span></span></span>  For an explanation of the methodology used in producing the housing inventory independent estimates, please see: (https://www.census.gov/programs-surveys/popest.html)"
+          ]
+        ],
+        [
+          334,
+          [
+            "<span style='font-size:11pt'><span style='line-height:107%'><span style='font-family:Calibri,sans-serif'><b>Note</b>: This time series is by the latest &quot;vintage&quot; year. For example, Vintage 2025 means that all of the estimates in this time series are identified as belonging to &quot;Vintage 2025.&quot; The 2021 data are from the 2025 vintage, the 2022 data are from the 2025 vintage, and so on.</span></span></span>"
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {
+        "(z)": 37
+      }
+    },
+    {
+      "dataset": "mhs2",
+      "measures": [
+        {
+          "dt_idx": "1",
+          "dt_code": "ISR",
+          "dt_desc": "Intended for Sale for Residential Use",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "NR",
+          "dt_desc": "For Non-Residential or Other Use",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "SH",
+          "dt_desc": "Total Shipments",
+          "dt_unit": "K"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "SP",
+          "dt_desc": "Average Sales Price",
+          "dt_unit": "DOL"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "SPR",
+          "dt_desc": "Sold for Residential Use",
+          "dt_unit": "K"
+        }
+      ],
+      "notes": [
+        [
+          854,
+          [
+            "NA - Not Available."
+          ]
+        ],
+        [
+          855,
+          [
+            "D - Estimate withheld to avoid disclosing data for an individual home."
+          ]
+        ],
+        [
+          856,
+          [
+            "A - Represents a Relative Standard Error of 100 or more, or could not be computed."
+          ]
+        ],
+        [
+          857,
+          [
+            "Z - Estimate is less than 50 units."
+          ]
+        ],
+        [
+          858,
+          [
+            "Information on the survey methodology and use of the data is available on the (https://programs-surveys/mhs.html) under the tabs labeled <strong>Information for Respondents</strong> and <strong>About the Survey</strong>."
+          ]
+        ],
+        [
+          860,
+          [
+            "<strong>Note:</strong> The total not seasonally adjusted shipment series is continuous from 1959 through current. To find total not seasonally adjusted shipment figures prior to 2014 visit the <a href='https://www.census.gov/econ/currentdata/dbsearch?program=MHS&amp;startYear=1959&amp;endYear=2018&amp;categories=T&amp;dataType=SH&amp;geoLevel=US&amp;adjusted=0%C2%ACAdjusted=1&amp;errorData=0' id='anch_341' target='_blank'>Historic MHS Time Series page.</a>"
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [
+        {
+          "key": "mhs2:ISR:M:no:US",
+          "measure": {
+            "dt_idx": "1",
+            "dt_code": "ISR",
+            "dt_desc": "Intended for Sale for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "2",
+            "cat_code": "M",
+            "cat_desc": "Multi-Section",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:ISR:S:no:US",
+          "measure": {
+            "dt_idx": "1",
+            "dt_code": "ISR",
+            "dt_desc": "Intended for Sale for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:ISR:T:no:US",
+          "measure": {
+            "dt_idx": "1",
+            "dt_code": "ISR",
+            "dt_desc": "Intended for Sale for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:NR:M:no:US",
+          "measure": {
+            "dt_idx": "2",
+            "dt_code": "NR",
+            "dt_desc": "For Non-Residential or Other Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "2",
+            "cat_code": "M",
+            "cat_desc": "Multi-Section",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:NR:S:no:US",
+          "measure": {
+            "dt_idx": "2",
+            "dt_code": "NR",
+            "dt_desc": "For Non-Residential or Other Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:NR:T:no:US",
+          "measure": {
+            "dt_idx": "2",
+            "dt_code": "NR",
+            "dt_desc": "For Non-Residential or Other Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SH:M:no:US",
+          "measure": {
+            "dt_idx": "3",
+            "dt_code": "SH",
+            "dt_desc": "Total Shipments",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "2",
+            "cat_code": "M",
+            "cat_desc": "Multi-Section",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SH:S:no:US",
+          "measure": {
+            "dt_idx": "3",
+            "dt_code": "SH",
+            "dt_desc": "Total Shipments",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SH:T:no:US",
+          "measure": {
+            "dt_idx": "3",
+            "dt_code": "SH",
+            "dt_desc": "Total Shipments",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SH:T:yes:US",
+          "measure": {
+            "dt_idx": "3",
+            "dt_code": "SH",
+            "dt_desc": "Total Shipments",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SP:D:no:MW",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "1",
+            "cat_code": "D",
+            "cat_desc": "Doubles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:D:no:NE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "1",
+            "cat_code": "D",
+            "cat_desc": "Doubles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:D:no:SO",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "1",
+            "cat_code": "D",
+            "cat_desc": "Doubles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:D:no:US",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "1",
+            "cat_code": "D",
+            "cat_desc": "Doubles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:D:no:WE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "1",
+            "cat_code": "D",
+            "cat_desc": "Doubles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:S:no:MW",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:S:no:NE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:S:no:SO",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:S:no:US",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:S:no:WE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:T:no:MW",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:T:no:NE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:T:no:SO",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:T:no:US",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SP:T:no:WE",
+          "measure": {
+            "dt_idx": "4",
+            "dt_code": "SP",
+            "dt_desc": "Average Sales Price",
+            "dt_unit": "DOL"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "DOL"
+        },
+        {
+          "key": "mhs2:SPR:M:no:US",
+          "measure": {
+            "dt_idx": "5",
+            "dt_code": "SPR",
+            "dt_desc": "Sold for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "2",
+            "cat_code": "M",
+            "cat_desc": "Multi-Section",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SPR:S:no:US",
+          "measure": {
+            "dt_idx": "5",
+            "dt_code": "SPR",
+            "dt_desc": "Sold for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "3",
+            "cat_code": "S",
+            "cat_desc": "Singles",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        },
+        {
+          "key": "mhs2:SPR:T:no:US",
+          "measure": {
+            "dt_idx": "5",
+            "dt_code": "SPR",
+            "dt_desc": "Sold for Residential Use",
+            "dt_unit": "K"
+          },
+          "category": {
+            "cat_idx": "4",
+            "cat_code": "T",
+            "cat_desc": "Total Homes",
+            "cat_indent": "0"
+          },
+          "frequency": "M",
+          "unit": "K"
+        }
+      ],
+      "markers": {
+        "D": 40,
+        "Z": 95
+      }
+    },
+    {
+      "dataset": "mtis",
+      "measures": [
+        {
+          "et_idx": "2",
+          "err_code": "E_IM",
+          "err_desc": "CV of Inventories - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "3",
+          "err_code": "E_IR",
+          "err_desc": "SE of Inventories/Sales Ratio",
+          "err_unit": "RATIO"
+        },
+        {
+          "et_idx": "4",
+          "err_code": "E_MPCIM",
+          "err_desc": "SE of Inventories - Monthly Percent Change",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "5",
+          "err_code": "E_MPCSM",
+          "err_desc": "SE of Sales - Monthly Percent Change",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "1",
+          "err_code": "E_SM",
+          "err_desc": "CV of Sales - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "IM",
+          "dt_desc": "Inventories - Monthly",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "IR",
+          "dt_desc": "Inventories/Sales Ratio",
+          "dt_unit": "RATIO"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "MPCSM",
+          "dt_desc": "Sales - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "SM",
+          "dt_desc": "Sales - Monthly",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          456,
+          [
+            "<div>\r\nFor the Manufacturing and Trade Inventories and Sales Report",
+            " all current month estimates are preliminary estimates",
+            " which will be superseded in following months by revised estimates. NA is provided for all future",
+            " unpublished months.\""
+          ]
+        ],
+        [
+          457,
+          [
+            "The Manufacturing and Trade Inventory and Sales estimates are based on data from three surveys: The Monthly Retail Trade Survey (MRTS), the Monthly Wholesale Trade Survey (MWTS), and the Manufacturers&#39; Shipments, Inventories, and Orders Survey (M3). Provided as measures of sampling variability are coefficients of variation (CV) for totals and standard errors (SE) for month-to-month percent change and ratio estimates, except in the following instances: For Manufacturers, SEs and CVs of the industry estimates cannot be calculated due to the fact that M3&#39;s mail panel is not a probability sample. Consequently, Manufacturers sampling error estimates are not available. Also at this time, Total Business SEs are unavailable for month-to-month percent change and ratio estimates."
+          ]
+        ],
+        [
+          458,
+          [
+            "For information on the reliability and use of the data, including important notes on estimation and sampling variance, seasonal adjustment, measures of sampling variability, and other information pertinent to this economic indicator, go to the (https://www.census.gov/mtis/index.html) website, which provides time-series excel files for (https://www.census.gov/mtis/www/data/text/timeseries1.xlsx) and (https://www.census.gov/mtis/www/data/text/timeseries2.xlsx) data."
+          ]
+        ],
+        [
+          459,
+          [
+            "Estimated measures of sampling variability are based on data not adjusted for seasonal variation, and should be used when drawing inferences about both adjusted and not adjusted estimates."
+          ]
+        ],
+        [
+          460,
+          [
+            "NA = Not available. Z = Estimate rounds to zero. </div>"
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {
+        "Z": 22
+      }
+    },
+    {
+      "dataset": "mwts",
+      "measures": [
+        {
+          "et_idx": "2",
+          "err_code": "E_IM",
+          "err_desc": "CV of Inventories - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "3",
+          "err_code": "E_IR",
+          "err_desc": "SE of Inventories/Sales Ratio",
+          "err_unit": "RATIO"
+        },
+        {
+          "et_idx": "4",
+          "err_code": "E_MPCIM",
+          "err_desc": "SE of Inventories - Monthly Percent Change",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "5",
+          "err_code": "E_MPCSM",
+          "err_desc": "SE of Sales - Monthly Percent Change",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "1",
+          "err_code": "E_SM",
+          "err_desc": "CV of Sales - Monthly",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "IM",
+          "dt_desc": "Inventories - Monthly",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "IR",
+          "dt_desc": "Inventories/Sales Ratio",
+          "dt_unit": "RATIO"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "MPCIM",
+          "dt_desc": "Inventories - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "MPCSM",
+          "dt_desc": "Sales - Monthly Percent Change",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "SM",
+          "dt_desc": "Sales - Monthly",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          474,
+          [
+            "For the Monthly Wholesale Trade Survey, all current month estimates are preliminary estimates and will be superseded in following months by revised estimates."
+          ]
+        ],
+        [
+          475,
+          [
+            "Inventories estimates released as part of the Advance Economic Indicators Report are not included in the time series. For the latest advance estimates, go to the (https://census.gov/econ/indicators/index.html) website."
+          ]
+        ],
+        [
+          476,
+          [
+            "For information on the reliability and use of the data, including important notes on estimation and sampling variance, seasonal adjustment, measures of sampling variability, and other information pertinent to this economic indicator, go to the (https://census.gov/wholesale/pdf/mwts/currentwhl.pdf) [PDF], or refer to the (https://census.gov/wholesale/index.html) website, which provides a link to more (/wholesale/data/index.html) for these reports."
+          ]
+        ],
+        [
+          477,
+          [
+            "Estimated measures of sampling variability for totals are expressed as coefficients of variation (CV). Standard errors (SE) are provided for month-to-month change and ratio estimates."
+          ]
+        ],
+        [
+          478,
+          [
+            "Estimated measures of sampling variability are based on data not adjusted for seasonal variation, and should be used when drawing inferences about both adjusted and not adjusted estimates."
+          ]
+        ],
+        [
+          479,
+          [
+            "NA = Not available."
+          ]
+        ],
+        [
+          480,
+          [
+            "Z = Estimate rounds to zero."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "qfr",
+      "measures": [
+        {
+          "dt_idx": "1",
+          "dt_code": "101",
+          "dt_desc": "Net Sales, Receipts, and Operating Revenues",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "102",
+          "dt_desc": "Depreciation, Depletion, and Amortization of Property, Plant, and Equipment",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "103",
+          "dt_desc": "All Other Operating Costs and Expenses",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "104",
+          "dt_desc": "Income (Loss) from Operations",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "105",
+          "dt_desc": "Interest Expense",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "111",
+          "dt_desc": "Income (Loss) Before Income Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "115",
+          "dt_desc": "Income (Loss) After Income Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "120",
+          "dt_desc": "Cash Dividends Charged to Retained Earnings This Quarter",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "15",
+          "dt_code": "201",
+          "dt_desc": "Cash and Demand Deposits in the U.S.",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "16",
+          "dt_code": "202",
+          "dt_desc": "Time Deposits in the U.S., Including Negotiable Certificates of Deposit",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "21",
+          "dt_code": "214",
+          "dt_desc": "Inventories",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "22",
+          "dt_code": "215",
+          "dt_desc": "All Other Current Assets",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "24",
+          "dt_code": "216",
+          "dt_desc": "Property, Plant, and Equipment",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "25",
+          "dt_code": "217",
+          "dt_desc": "Land and Mineral Rights",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "26",
+          "dt_code": "218",
+          "dt_desc": "Accumulated Depreciation, Depletion, and Amortization",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "27",
+          "dt_code": "219",
+          "dt_desc": "Net Property, Plant, and Equipment",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "29",
+          "dt_code": "223",
+          "dt_desc": "Total Assets",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "30",
+          "dt_code": "301",
+          "dt_desc": "Short-term Debt, Original Maturity of 1 Year or Less: Loans from Banks",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "32",
+          "dt_code": "306",
+          "dt_desc": "Trade Accounts and Trade Notes Payable",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "34",
+          "dt_code": "310",
+          "dt_desc": "Current Portion of Long-term Debt, Due in 1 Year or Less: Loans from Banks",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "38",
+          "dt_code": "316",
+          "dt_desc": "Long-term Debt, Due in More than 1 Year: Loans from Banks",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "40",
+          "dt_code": "320",
+          "dt_desc": "All Other Noncurrent Liabilities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "43",
+          "dt_code": "322",
+          "dt_desc": "Retained Earnings",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "44",
+          "dt_code": "327",
+          "dt_desc": "Stockholders' Equity",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "45",
+          "dt_code": "328",
+          "dt_desc": "Total Liabilities and Stockholders' Equity",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "D110",
+          "dt_desc": "All Other Nonoperating Income (Expense)",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "D114",
+          "dt_desc": "Provision for Current and Deferred Domestic Income Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "D119",
+          "dt_desc": "Retained Earnings at Beginning of Quarter",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "13",
+          "dt_code": "D122",
+          "dt_desc": "Other Direct Credits (Charges) to Retained Earnings (Net)",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "14",
+          "dt_code": "D123",
+          "dt_desc": "Retained Earnings at End of Quarter",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "18",
+          "dt_code": "D210",
+          "dt_desc": "Other Short-term Financial Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "20",
+          "dt_code": "D213",
+          "dt_desc": "Trade Accounts and Trade Notes Receivable (Less Allowance for Doubtful Accounts)",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "28",
+          "dt_code": "D222",
+          "dt_desc": "All Other Noncurrent Assets",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "31",
+          "dt_code": "D304",
+          "dt_desc": "Short-term Debt, Original Maturity of 1 Year or Less: Other Short-term Loans, Including Commercial Paper",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "33",
+          "dt_code": "D309",
+          "dt_desc": "Income Taxes Accrued, Prior and Current Years, Net of Payments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "35",
+          "dt_code": "D313",
+          "dt_desc": "Current Portion of Long-term Debt, Due in 1 Year or Less: Other Long-term Loans",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "36",
+          "dt_code": "D315",
+          "dt_desc": "All Other Current Liabilities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "39",
+          "dt_code": "D319",
+          "dt_desc": "Long-term Debt, Due in More than 1 Year: Other Long-term Loans",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "42",
+          "dt_code": "D326",
+          "dt_desc": "Capital Stock and Other Capital (Less Treasury Stock)",
+          "dt_unit": "MLN$"
+        },
+        {
+          "et_idx": "1",
+          "err_code": "E_101",
+          "err_desc": "Relative Standard Error for Net Sales, Receipts, and Operating Revenues",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "2",
+          "err_code": "E_102",
+          "err_desc": "Relative Standard Error for Depreciation, Depletion, and Amortization of Property, Plant, and Equipment",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "3",
+          "err_code": "E_103",
+          "err_desc": "Relative Standard Error for All Other Operating Costs and Expenses",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "4",
+          "err_code": "E_104",
+          "err_desc": "Standard Error for Income (Loss) from Operations",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "5",
+          "err_code": "E_105",
+          "err_desc": "Relative Standard Error for Interest Expense",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "7",
+          "err_code": "E_111",
+          "err_desc": "Standard Error for Income (Loss) Before Income Taxes",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "9",
+          "err_code": "E_115",
+          "err_desc": "Standard Error for Income (Loss) After Income Taxes",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "10",
+          "err_code": "E_120",
+          "err_desc": "Relative Standard Error for Cash Dividends Charged to Retained Earnings This Quarter",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "15",
+          "err_code": "E_201",
+          "err_desc": "Relative Standard Error for Cash and Demand Deposits in the U.S.",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "16",
+          "err_code": "E_202",
+          "err_desc": "Relative Standard Error for Time Deposits in the U.S., Including Negotiable Certificates of Deposit",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "21",
+          "err_code": "E_214",
+          "err_desc": "Relative Standard Error for Inventories",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "22",
+          "err_code": "E_215",
+          "err_desc": "Relative Standard Error for All Other Current Assets",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "24",
+          "err_code": "E_216",
+          "err_desc": "Relative Standard Error for Property, Plant, and Equipment",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "25",
+          "err_code": "E_217",
+          "err_desc": "Relative Standard Error for Land and Mineral Rights",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "26",
+          "err_code": "E_218",
+          "err_desc": "Relative Standard Error for Accumulated Depreciation, Depletion, and Amortization",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "27",
+          "err_code": "E_219",
+          "err_desc": "Relative Standard Error for Net Property, Plant, and Equipment",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "29",
+          "err_code": "E_223",
+          "err_desc": "Relative Standard Error for Total Assets",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "30",
+          "err_code": "E_301",
+          "err_desc": "Relative Standard Error for Short-term Debt, Original Maturity of 1 Year or Less: Loans from Banks",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "32",
+          "err_code": "E_306",
+          "err_desc": "Relative Standard Error for Trade Accounts and Trade Notes Payable",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "34",
+          "err_code": "E_310",
+          "err_desc": "Relative Standard Error for Current Portion of Long-term Debt, Due in 1 Year or Less: Loans from Banks",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "38",
+          "err_code": "E_316",
+          "err_desc": "Relative Standard Error for Long-term Debt, Due in More Than 1 Year: Loans from Banks",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "40",
+          "err_code": "E_320",
+          "err_desc": "Relative Standard Error for All Other Noncurrent Liabilities",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "43",
+          "err_code": "E_322",
+          "err_desc": "Standard Error for Retained Earnings",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "44",
+          "err_code": "E_327",
+          "err_desc": "Standard Error for Stockholders' Equity",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "45",
+          "err_code": "E_328",
+          "err_desc": "Relative Standard Error for Total Liabilities and Stockholders' Equity",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "6",
+          "err_code": "E_D110",
+          "err_desc": "Standard Error for All Other Nonoperating Income (Expense)",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "8",
+          "err_code": "E_D114",
+          "err_desc": "Standard Error for Provision for Current and Deferred Domestic Income Taxes",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "12",
+          "err_code": "E_D119",
+          "err_desc": "Standard Error for Retained Earnings at Beginning of Quarter",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "13",
+          "err_code": "E_D122",
+          "err_desc": "Standard Error for Other Direct Credits (Charges) to Retained Earnings (Net)",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "14",
+          "err_code": "E_D123",
+          "err_desc": "Standard Error for Retained Earnings at End of Quarter",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "18",
+          "err_code": "E_D210",
+          "err_desc": "Relative Standard Error for Other Short-term Financial Investments",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "20",
+          "err_code": "E_D213",
+          "err_desc": "Relative Standard Error for Trade Accounts and Trade Notes Receivable (Less Allowance for Doubtful Accounts)",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "28",
+          "err_code": "E_D222",
+          "err_desc": "Relative Standard Error for All Other Noncurrent Assets",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "31",
+          "err_code": "E_D304",
+          "err_desc": "Relative Standard Error for Short-term Debt, Original Maturity of 1 Year or Less: Other Short-term Loans, Including Commercial Paper",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "33",
+          "err_code": "E_D309",
+          "err_desc": "Standard Error for Income Taxes Accrued, Prior and Current Years, Net of Payments",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "35",
+          "err_code": "E_D313",
+          "err_desc": "Relative Standard Error for Current Portion of Long-term Debt, Due in 1 Year or Less: Other Long-term Loans",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "36",
+          "err_code": "E_D315",
+          "err_desc": "Relative Standard Error for All Other Current Liabilities",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "39",
+          "err_code": "E_D319",
+          "err_desc": "Relative Standard Error for Long-term Debt, Due in More than 1 Year: Other Long-term Loans",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "42",
+          "err_code": "E_D326",
+          "err_desc": "Standard Error for Capital Stock and Other Capital (Less Treasury Stock)",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "11",
+          "err_code": "E_NIRB",
+          "err_desc": "Standard Error for Net Income Retained in Business",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "46",
+          "err_code": "E_NWC",
+          "err_desc": "Standard Error for Net Working Capital",
+          "err_unit": "MLN$"
+        },
+        {
+          "et_idx": "23",
+          "err_code": "E_TCA",
+          "err_desc": "Relative Standard Error for Total Current Assets",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "19",
+          "err_code": "E_TCASH2",
+          "err_desc": "Relative Standard Error for Total Cash, U.S. Government and Other Securities",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "17",
+          "err_code": "E_TCASH",
+          "err_desc": "Relative Standard Error for Total Cash on Hand and in U.S. Banks",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "37",
+          "err_code": "E_TCL",
+          "err_desc": "Relative Standard Error for Total Current Liabilities",
+          "err_unit": "PCT"
+        },
+        {
+          "et_idx": "41",
+          "err_code": "E_TL",
+          "err_desc": "Relative Standard Error for Total Liabilities",
+          "err_unit": "PCT"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "NIRB",
+          "dt_desc": "Net Income Retained in Business",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "46",
+          "dt_code": "NWC",
+          "dt_desc": "Net Working Capital",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "23",
+          "dt_code": "TCA",
+          "dt_desc": "Total Current Assets",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "19",
+          "dt_code": "TCASH2",
+          "dt_desc": "Total Cash, U.S. Government and Other Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "17",
+          "dt_code": "TCASH",
+          "dt_desc": "Total Cash on Hand and in U.S. Banks",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "37",
+          "dt_code": "TCL",
+          "dt_desc": "Total Current Liabilities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "41",
+          "dt_code": "TL",
+          "dt_desc": "Total Liabilities",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          274,
+          [
+            "Visit the Quarterly Financial Report internet website (https://www.census.gov/econ/qfr/) for more information, including summary statements of income and retained earnings, balance sheets, and related financial and operating ratios for manufacturing, mining, wholesale trade, retail trade, and selected service industries.  Estimates starting in the 4th quarter of 2024 reflect the 2022 NAICS (North American Industry Classification System). Estimates before this time reflect the 2017 NAICS."
+          ]
+        ],
+        [
+          275,
+          [
+            "Measures of sampling variability are provided with the data and should be closely examined before the data are used. The measure of sampling variability displayed depends on the item selected. If an item can have a value that is zero, positive, or negative, the measure presented is the Standard Error. If an item can have a value that is only zero or positive, the measure presented is the Relative Standard Error (RSE, also called a coefficient of variation). Click on the Definitions link for more information on measures of sampling variability and their uses."
+          ]
+        ],
+        [
+          276,
+          [
+            "NA - data not available"
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "m3adv",
+      "measures": [
+        {
+          "dt_idx": "6",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "MPCTI",
+          "dt_desc": "Total Inventories Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "MPCUO",
+          "dt_desc": "Unfilled Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "MPCVS",
+          "dt_desc": "Value of Shipments Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "NO",
+          "dt_desc": "New Orders",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "TI",
+          "dt_desc": "Total Inventories",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "UO",
+          "dt_desc": "Unfilled Orders",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "VS",
+          "dt_desc": "Value of Shipments",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          466,
+          [
+            "Revised historical data from the Manufacturers&rsquo; Shipments, Inventories, and Orders (M3) Survey were issued on May 16, 2025. These revisions resulted from: benchmarking the M3 shipments and inventories data to the 2022 Economic Census (EC) data on a 2017 NAICS basis, as well as to revised ASM data from 2018 through 2021, resulting from benchmarking the ASM to the 2022 Economic Census; incorporating the unfilled orders to shipments ratios obtained for 2021 and 2022 from the Manufacturers&rsquo; Unfilled Orders (M3UFO) Survey by applying these ratios to the respective ASM and EC shipments data, as well as incorporating revised unfilled orders to shipments ratios for prior years; adjusting the new orders data to be consistent with the benchmarked shipments and unfilled orders data; correcting monthly data for late receipts, reclassifications of reported data, and revisions to previously reported data; updating the seasonally adjusted data based on the results of benchmarking and the recent annual review of the seasonal adjustment models. These revisions spanned the seasonally adjusted data for January 2012 through March 2025 and the data not seasonally adjusted for January 2017 through March 2025."
+          ]
+        ],
+        [
+          467,
+          [
+            "For the Manufacturers&#39; Shipments, Inventories, and Orders Survey, all current month estimates are preliminary estimates and will be superseded in following months by revised estimates."
+          ]
+        ],
+        [
+          468,
+          [
+            "For information on survey methodology and use of the data, including seasonal adjustment and other information pertinent to this economic indicator, go to the (/manufacturing/m3/index.html) website, which provides a link to (/manufacturing/m3/historical_data/index.html)."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "ftdadv",
+      "measures": [
+        {
+          "dt_idx": "1",
+          "dt_code": "BAL",
+          "dt_desc": "Balance",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "EXP",
+          "dt_desc": "Exports",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "IMP",
+          "dt_desc": "Imports",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          442,
+          [
+            "For Advance U.S. International Trade in Goods data, all current month estimates are advance estimates and will be superseded in following months by revised estimates. Due to annual revisions processing and recalculated seasonal factors, the seasonally adjusted advance time series will not be updated for the April stat period."
+          ]
+        ],
+        [
+          443,
+          [
+            "For information on the reliability and use of the data, including important notes on seasonal adjustment and other information pertinent to this economic indicator, go to the (https://www.census.gov/econ/indicators/advance_report.pdf) [PDF], or refer to the (https://www.census.gov/econ/indicators/index.html) website, which provides a link to more (https://www.census.gov/econ/indicators/historical_data.html) for these reports."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "bfs",
+      "measures": [
+        {
+          "dt_idx": "1",
+          "dt_code": "BA_BA",
+          "dt_desc": "Business Applications",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "BA_CBA",
+          "dt_desc": "Business Applications from Corporations",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "BA_HBA",
+          "dt_desc": "High-Propensity Business Applications",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "BA_WBA",
+          "dt_desc": "Business Applications with Planned Wages",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "BF_BF4Q",
+          "dt_desc": "Business Formations within Four Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "BF_BF8Q",
+          "dt_desc": "Business Formations within Eight Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "BF_DUR4Q",
+          "dt_desc": "Average Duration (in Quarters) from Business Application to Formation within Four Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "BF_DUR8Q",
+          "dt_desc": "Average Duration (in Quarters) from Business Application to Formation within Eight Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "BF_PBF4Q",
+          "dt_desc": "Projected Business Formations within Four Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "BF_PBF8Q",
+          "dt_desc": "Projected Business Formations within Eight Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "BF_SBF4Q",
+          "dt_desc": "Spliced Business Formations within Four Quarters",
+          "dt_unit": "UNITS"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "BF_SBF8Q",
+          "dt_desc": "Spliced Business Formations within Eight Quarters",
+          "dt_unit": "UNITS"
+        }
+      ],
+      "notes": [
+        [
+          384,
+          [
+            "The statistics presented in this release are based on administrative data and therefore are not subject to sampling error. However, the statistics may be subject to non-sampling error. Non-sampling error occurs because accurate information cannot always be obtained. There are many potential contributors to non-sampling error such as misreporting, mistakes in recording and coding responses, misinterpretation of questions, and other errors of collection, response, coverage, or processing. Though non-sampling error is not measured directly, the Census Bureau employs quality control procedures throughout the process to minimize this type of error.  NA = Not Applicable  S = Estimate does not meet publication standards because concerns about the estimate&#39;s quality. Unpublished estimates derived from this table by subtraction are subject to this same limitation and should not be attributed to the U.S. Census Bureau.  D = Denotes an estimate withheld to avoid disclosing data of individual establishments; data are included in higher-level totals.\r\nFor detailed instructions on using this Time Series/Trend Charts application",
+            " please visit the (https://www.census.gov/econ/bfs/pdf/technical_documentation.pdf)  The Census Bureau has reviewed the monthly data product to ensure appropriate access",
+            " use",
+            " and disclosure avoidance protection of the confidential source data (Project No. P-7515311",
+            " Disclosure Review Board (DRB) approval number: CBDRB-FY26-0112).\""
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {
+        "D": 6097,
+        "S": 48
+      }
+    },
+    {
+      "dataset": "m3",
+      "measures": [
+        {
+          "dt_idx": "7",
+          "dt_code": "FI",
+          "dt_desc": "Finished Goods Inventories",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "IS",
+          "dt_desc": "Inventories to Shipments Ratios",
+          "dt_unit": "RATIO"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "MI",
+          "dt_desc": "Materials and Supplies Inventories",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "16",
+          "dt_code": "MPCFI",
+          "dt_desc": "Finished Goods Inventories Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "14",
+          "dt_code": "MPCMI",
+          "dt_desc": "Materials & Supplies Inventories Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "MPCNO",
+          "dt_desc": "New Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "13",
+          "dt_code": "MPCTI",
+          "dt_desc": "Total Inventories Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "MPCUO",
+          "dt_desc": "Unfilled Orders Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "MPCVS",
+          "dt_desc": "Value of Shipments Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "15",
+          "dt_code": "MPCWI",
+          "dt_desc": "Work in Progress Inventories Percent Change Monthly",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "NO",
+          "dt_desc": "New Orders",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "TI",
+          "dt_desc": "Total Inventories",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "UO",
+          "dt_desc": "Unfilled Orders",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "US",
+          "dt_desc": "Unfilled Orders to Shipments Ratios",
+          "dt_unit": "RATIO"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "VS",
+          "dt_desc": "Value of Shipments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "WI",
+          "dt_desc": "Work in Process Inventories",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          541,
+          [
+            "Revised historical data from the Manufacturers&rsquo; Shipments, Inventories, and Orders (M3) Survey were issued on May 16, 2025. These revisions resulted from: benchmarking the M3 shipments and inventories data to the 2022 Economic Census (EC) data on a 2017 NAICS basis, as well as to revised ASM data from 2018 through 2021, resulting from benchmarking the ASM to the 2022 Economic Census; incorporating the unfilled orders to shipments ratios obtained for 2021 and 2022 from the Manufacturers&rsquo; Unfilled Orders (M3UFO) Survey by applying these ratios to the respective ASM and EC shipments data, as well as incorporating revised unfilled orders to shipments ratios for prior years; adjusting the new orders data to be consistent with the benchmarked shipments and unfilled orders data; correcting monthly data for late receipts, reclassifications of reported data, and revisions to previously reported data; updating the seasonally adjusted data based on the results of benchmarking and the recent annual review of the seasonal adjustment models. These revisions spanned the seasonally adjusted data for January 2012 through March 2025 and the data not seasonally adjusted for January 2017 through March 2025."
+          ]
+        ],
+        [
+          542,
+          [
+            "For the Manufacturers&#39; Shipments, Inventories, and Orders Survey, all current month estimates are preliminary estimates and will be superseded in following months by revised estimates."
+          ]
+        ],
+        [
+          543,
+          [
+            "For information on survey methodology and use of the data, including seasonal adjustment and other information pertinent to this economic indicator, go to the (http://www.census.gov/manufacturing/m3/index.html) website, which provides a link to (http://www.census.gov/manufacturing/m3/historical_data/index.html)."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "qtax",
+      "measures": [
+        {
+          "dt_idx": "35",
+          "dt_code": "ALLOTH",
+          "dt_desc": "All Other Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "36",
+          "dt_code": "AO4QE",
+          "dt_desc": "All Other Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "T014QE",
+          "dt_desc": "T01 Property Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "T01",
+          "dt_desc": "T01 Property Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "T094QE",
+          "dt_desc": "T09 General Sales and Gross Receipts Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "T09",
+          "dt_desc": "T09 General Sales and Gross Receipts Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "T104QE",
+          "dt_desc": "T10 Alcoholic Beverages Sales Tax, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "T10",
+          "dt_desc": "T10 Alcoholic Beverages Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "T11",
+          "dt_desc": "T11 Amusements Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "T12",
+          "dt_desc": "T12 Insurance Premiums Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "T134QE",
+          "dt_desc": "T13 Motor Fuels Sales Tax, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "T13",
+          "dt_desc": "T13 Motor Fuels Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "T14",
+          "dt_desc": "T14 Pari-Mutuels Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "T15",
+          "dt_desc": "T15 Public Utilities Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "14",
+          "dt_code": "T164QE",
+          "dt_desc": "T16 Tobacco Products Sales Tax, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "13",
+          "dt_code": "T16",
+          "dt_desc": "T16 Tobacco Products Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "40",
+          "dt_code": "T17",
+          "dt_desc": "T17 Cannabis Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "39",
+          "dt_code": "T18",
+          "dt_desc": "T18 Sports Betting (including pari-mutuels) Sales Tax",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "15",
+          "dt_code": "T19",
+          "dt_desc": "T19 Other Selective Sales and Gross Receipts Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "16",
+          "dt_code": "T20",
+          "dt_desc": "T20 Alcoholic Beverages License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "17",
+          "dt_code": "T21",
+          "dt_desc": "T21 Amusements License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "18",
+          "dt_code": "T22",
+          "dt_desc": "T22 Corporations In General License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "19",
+          "dt_code": "T23",
+          "dt_desc": "T23 Hunting and Fishing License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "23",
+          "dt_code": "T24254",
+          "dt_desc": "T24T25 Motor Vehicles License and Motor Vehicle Operators License, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "20",
+          "dt_code": "T24",
+          "dt_desc": "T24 Motor Vehicles License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "22",
+          "dt_code": "T24T25",
+          "dt_desc": "T24T25 Motor Vehicles License and Motor Vehicle Operators License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "21",
+          "dt_code": "T25",
+          "dt_desc": "T25 Motor Vehicle Operators License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "24",
+          "dt_code": "T27",
+          "dt_desc": "T27 Public Utilities License",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "25",
+          "dt_code": "T28",
+          "dt_desc": "T28 Occupation and Business License, Not Elsewhere Classified",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "26",
+          "dt_code": "T29",
+          "dt_desc": "T29 Other License Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "28",
+          "dt_code": "T404QE",
+          "dt_desc": "T40 Individual Income Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "27",
+          "dt_code": "T40",
+          "dt_desc": "T40 Individual Income Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "30",
+          "dt_code": "T414QE",
+          "dt_desc": "T41 Corporation Net Income Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "29",
+          "dt_code": "T41",
+          "dt_desc": "T41 Corporation Net Income Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "31",
+          "dt_code": "T50",
+          "dt_desc": "T50 Death and Gift Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "32",
+          "dt_code": "T51",
+          "dt_desc": "T51 Documentary and Stock Transfer Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "33",
+          "dt_code": "T53",
+          "dt_desc": "T53 Severance Taxes",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "34",
+          "dt_code": "T99",
+          "dt_desc": "T99 Taxes, Not Elsewhere Classified",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "38",
+          "dt_code": "TOT4QE",
+          "dt_desc": "Total Taxes, 4 Quarters Ending",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "37",
+          "dt_code": "TOTAL",
+          "dt_desc": "Total Taxes",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          252,
+          [
+            "The Quarterly Summary of State and Local Government Tax Revenue provides quarterly estimates of state and local government tax revenue at a national level, as well as detailed tax revenue data for individual states. While data for Washington D.C. is included in Table 3, the U.S. Total in both Tables 2 and 3 does not include it. This quarterly survey has been conducted continuously since 1962. The information contained in this survey is the most current information available on a nationwide basis for government tax collections."
+          ]
+        ],
+        [
+          253,
+          [
+            "For more information about the survey, click here: (https://www.census.gov/programs-surveys/qtax/about.html) For more information about how data are collected, click here: (https://www.census.gov/programs-surveys/qtax/technical-documentation/methodology.html)"
+          ]
+        ],
+        [
+          254,
+          [
+            "<u>A Special Note Concerning Revised Data:</u>"
+          ]
+        ],
+        [
+          255,
+          [
+            "Revisions reflect tax collection amounts obtained from three general sources. State and local government respondents have submitted revisions to amounts as originally reported. In other cases, governments have reported data, which we used to replace data that were previously imputed or estimated. Finally, some of the revisions were compiled from government sources, both published and unpublished."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    },
+    {
+      "dataset": "qpr",
+      "measures": [
+        {
+          "dt_idx": "3",
+          "dt_code": "HLDBND",
+          "dt_desc": "Corporate Bonds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "41",
+          "dt_code": "HLDCBD",
+          "dt_desc": "Corporate Bonds - Domestic",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "42",
+          "dt_code": "HLDCBF",
+          "dt_desc": "Corporate Bonds - Foreign",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "31",
+          "dt_code": "HLDCCD",
+          "dt_desc": "Cash and Checkable Deposits",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "44",
+          "dt_code": "HLDCED",
+          "dt_desc": "Corporate Equity - Domestic",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "45",
+          "dt_code": "HLDCEF",
+          "dt_desc": "Corporate Equity - Foreign",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "32",
+          "dt_code": "HLDCP",
+          "dt_desc": "Commercial Paper",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "8",
+          "dt_code": "HLDCSH",
+          "dt_desc": "Cash and Short-Term Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "55",
+          "dt_code": "HLDDHM",
+          "dt_desc": "Directly Held Mortgages",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "54",
+          "dt_code": "HLDDRP",
+          "dt_desc": "Directly Held Real Property",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "49",
+          "dt_code": "HLDETF",
+          "dt_desc": "Exchange Traded Funds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "11",
+          "dt_code": "HLDFAS",
+          "dt_desc": "Federal Agency Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "4",
+          "dt_code": "HLDFGS",
+          "dt_desc": "Federal Government Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "38",
+          "dt_code": "HLDFTS",
+          "dt_desc": "Federal Treasury Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "39",
+          "dt_code": "HLDIFA",
+          "dt_desc": "Securities Issued by Federal Agencies",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "5",
+          "dt_code": "HLDINT",
+          "dt_desc": "International Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "33",
+          "dt_code": "HLDMMF",
+          "dt_desc": "Money Market Funds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "6",
+          "dt_code": "HLDMTG",
+          "dt_desc": "Mortgages",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "47",
+          "dt_code": "HLDOIA",
+          "dt_desc": "Total Other Indirectly Held Assets",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "56",
+          "dt_code": "HLDOMI",
+          "dt_desc": "Other Miscellaneous Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "52",
+          "dt_code": "HLDOPF",
+          "dt_desc": "Other Private Funds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "36",
+          "dt_code": "HLDOST",
+          "dt_desc": "Other Short-Term Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "9",
+          "dt_code": "HLDOTH",
+          "dt_desc": "Other Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "50",
+          "dt_code": "HLDREI",
+          "dt_desc": "Real Estate Investment Trusts (REITs)",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "34",
+          "dt_code": "HLDRRA",
+          "dt_desc": "Reverse Repurchase Agreements",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "7",
+          "dt_code": "HLDSLS",
+          "dt_desc": "State and Local Government Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "HLDSTK",
+          "dt_desc": "Corporate Stocks",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "40",
+          "dt_code": "HLDTCB",
+          "dt_desc": "Total Corporate Bonds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "43",
+          "dt_code": "HLDTCE",
+          "dt_desc": "Total Corporate Equity",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "30",
+          "dt_code": "HLDTCS",
+          "dt_desc": "Total Cash and Short-term Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "37",
+          "dt_code": "HLDTFG",
+          "dt_desc": "Total Federal Government Securities",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "51",
+          "dt_code": "HLDTHF",
+          "dt_desc": "Hedge Funds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "48",
+          "dt_code": "HLDTMF",
+          "dt_desc": "Mutual Funds",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "53",
+          "dt_code": "HLDTOI",
+          "dt_desc": "Total Other Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "1",
+          "dt_code": "HLDTOT",
+          "dt_desc": "Total Cash and Security Holdings",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "46",
+          "dt_code": "HLDTPE",
+          "dt_desc": "Total Private Equity",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "35",
+          "dt_code": "HLDTSD",
+          "dt_desc": "Time and Savings Deposits",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "10",
+          "dt_code": "HLDUST",
+          "dt_desc": "United States Treasuries",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "21",
+          "dt_code": "PCTBND",
+          "dt_desc": "Percent Corporate Bonds",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "26",
+          "dt_code": "PCTCSH",
+          "dt_desc": "Percent Cash and Short-Term Investments",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "29",
+          "dt_code": "PCTFAS",
+          "dt_desc": "Percent Federal Agency Securities",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "22",
+          "dt_code": "PCTFGS",
+          "dt_desc": "Percent Federal Government Securities",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "23",
+          "dt_code": "PCTINT",
+          "dt_desc": "Percent International Securities",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "24",
+          "dt_code": "PCTMTG",
+          "dt_desc": "Percent Mortgages",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "27",
+          "dt_code": "PCTOTH",
+          "dt_desc": "Percent Other Securities",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "25",
+          "dt_code": "PCTSLS",
+          "dt_desc": "Percent State and Local Government Securities",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "20",
+          "dt_code": "PCTSTK",
+          "dt_desc": "Percent Corporate Stocks",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "28",
+          "dt_code": "PCTUST",
+          "dt_desc": "Percent United States Treasuries",
+          "dt_unit": "PCT"
+        },
+        {
+          "dt_idx": "18",
+          "dt_code": "RVBNFT",
+          "dt_desc": "Benefits",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "14",
+          "dt_code": "RVCNTE",
+          "dt_desc": "Employee Contributions",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "15",
+          "dt_code": "RVCNTG",
+          "dt_desc": "Government Contributions",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "13",
+          "dt_code": "RVCNTT",
+          "dt_desc": "Total Contributions",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "16",
+          "dt_code": "RVEARN",
+          "dt_desc": "Earnings on Investments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "17",
+          "dt_code": "RVPMTS",
+          "dt_desc": "Total Payments",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "12",
+          "dt_code": "RVTOT",
+          "dt_desc": "Total Receipts",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "19",
+          "dt_code": "RVWDLS",
+          "dt_desc": "Withdrawals",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          321,
+          [
+            "The Quarterly Survey of Public Pensions (QSPP) is a quarterly survey that provides national summary data on the revenues, expenditures, and composition of assets of the largest defined benefit public employee retirement systems for state and local governments. The survey consists of a panel of 100 retirement systems, which comprise 89.4 percent of financial activity among such entities, based on the 2007 Census of Governments. After a census has been taken, it is considered best practice to reselect the largest 100 retirement systems. The first quarter for 2009 presents data from the new universe of the 100 largest systems. The previous quarters represent data from the old universe. Five of the 100 units from the old universe were replaced with new retirement systems."
+          ]
+        ],
+        [
+          322,
+          [
+            "For more information, visit the (https://govs/qpr/index.html) website, which provides a link to (https://govs/qpr/historical_data.html) (including footnotes and explanations about changes to panel and definitions over time), detailed statements about (http://qpr/quarterly_methodology.pdf), (https://govs/qpr/how_data_collected.html), and the (https://govs/qpr/get_forms.html)."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {
+        "(z)": 34
+      }
+    },
+    {
+      "dataset": "ftd",
+      "measures": [
+        {
+          "dt_idx": "1",
+          "dt_code": "BAL",
+          "dt_desc": "Balance",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "2",
+          "dt_code": "EXP",
+          "dt_desc": "Exports",
+          "dt_unit": "MLN$"
+        },
+        {
+          "dt_idx": "3",
+          "dt_code": "IMP",
+          "dt_desc": "Imports",
+          "dt_unit": "MLN$"
+        }
+      ],
+      "notes": [
+        [
+          443,
+          [
+            "For the U.S. International Trade in Goods and Services Press Release, prior month totals are subject to revision. For additional information on revisions visit https://www.census.gov/foreign-trade/guide/sec2.html#revisions For information on the reliability and use of the data, including important notes on nonsampling errors, seasonal adjustment, and other information pertinent to this economic indicator, visit the (https://www.census.gov/foreign-trade/Press-Release/current_press_release/ft900.pdf) [PDF, 820KB], or refer to the (https://www.census.gov/foreign-trade/index.html) website, which provides a link to more (https://www.census.gov/foreign-trade/Press-Release/current_press_release/index.html) for this release."
+          ]
+        ]
+      ],
+      "annual_rate_definitions": [],
+      "markers": {}
+    }
+  ],
+  "notes_dialect_review": [
+    {
+      "dataset": "mrtsadv",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "mwtsadv",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "hv",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "mhs2",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "mtis",
+      "strict_csv_failure": {
+        "section": "NOTES",
+        "error": "',' expected after '\"'"
+      },
+      "notes_csv_strict": false,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "mwts",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "qfr",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "m3adv",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "ftdadv",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "bfs",
+      "strict_csv_failure": {
+        "section": "NOTES",
+        "error": "',' expected after '\"'"
+      },
+      "notes_csv_strict": false,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "m3",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "qtax",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "qpr",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    },
+    {
+      "dataset": "ftd",
+      "strict_csv_failure": null,
+      "notes_csv_strict": true,
+      "numeric_and_dictionary_sections_remain_strict": true
+    }
+  ],
+  "full_upstream_history_verified": false,
+  "point_in_time_vintages_verified": false,
+  "public_history_verified": false,
+  "vendor_equivalence_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}
