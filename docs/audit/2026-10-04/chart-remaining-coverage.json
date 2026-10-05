@@ -2,13 +2,13 @@
   "status": "remaining_work_not_complete",
   "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
   "unique_ids": 10745,
-  "route_count": 7029,
-  "unrouted": 3716,
+  "route_count": 7034,
+  "unrouted": 3711,
   "namespaces": [
     {
       "namespace": "ECONOMICS",
       "total": 3317,
-      "unrouted": 1074
+      "unrouted": 1069
     },
     {
       "namespace": "FTSE",
@@ -1576,7 +1576,6 @@
     "NASDAQ:NQG40/NASDAQ:NQG45",
     "ECONOMICS:USEC",
     "ECONOMICS:USPFMI",
-    "ECONOMICS:USCFNAI",
     "ICEEUR:MWN1!",
     "ICEEUR:ME32!",
     "ECONOMICS:USGDPT",
@@ -1680,7 +1679,6 @@
     "INDEX:HLUS",
     "INDEX:MMTH",
     "ECONOMICS:WWFPI",
-    "ECONOMICS:USKFNORDI",
     "USI:CVOLI",
     "ECONOMICS:USMPR",
     "ECONOMICS:USIPRIYY",
@@ -1834,7 +1832,6 @@
     "ICEUS:MMN2!",
     "ECONOMICS:DEIFOCC",
     "CME_MINI:EI2!",
-    "ECONOMICS:USKFCOMPI",
     "FTSE:FCSELIQ",
     "ECONOMICS:US30YMR",
     "CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC",
@@ -4418,7 +4415,6 @@
     "ECONOMICS:CNCF",
     "ECONOMICS:NLPROD",
     "ECONOMICS:DECORD",
-    "ECONOMICS:USCFNAISOII",
     "ECONOMICS:USCOR",
     "ECONOMICS:CACOP",
     "ECONOMICS:RUCOP",
@@ -5012,7 +5008,6 @@
     "ECONOMICS:USGDPU",
     "ECONOMICS:USGDPC",
     "ECONOMICS:USGDPA",
-    "ECONOMICS:USCFNAIPCHI",
     "ECONOMICS:USWAG",
     "ECONOMICS:USIRMM",
     "ECONOMICS:USMR",
@@ -5311,5 +5306,19 @@
     "point_in_time_vintages_verified": false,
     "route_is_not_history_proof": true,
     "measurement": "USD valuation stock; not capital inflows; official default exclusions retained"
+  },
+  "regional_fed_expansion": {
+    "source_commit": "12172907d147e0f8189402d1163937b47ab3a565",
+    "exact_provider_definitions": 77,
+    "datasets": 2,
+    "qualified_alternative_routes_added": 5,
+    "public_histories_independently_replayed": 77,
+    "provider_definitions_without_live_replay": 0,
+    "history_audit": "chart-regional-fed-public-history-audit.json",
+    "vendor_equivalence_verified": false,
+    "full_upstream_history_verified": false,
+    "point_in_time_vintages_verified": false,
+    "route_is_not_history_proof": true,
+    "measurement": "Monthly source diffusion and activity indices; comparison, seasonal adjustment and current revision vintage retained"
   }
 }
