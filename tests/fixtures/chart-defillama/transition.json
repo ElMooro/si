@@ -1,0 +1,380 @@
+{
+  "changes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+      "before_path": "tests/fixtures/chart-defillama/lambda_function.py.before.txt",
+      "before_sha256": "86ad79da7432e0b5a0d147077a9e5cb76da03cbd3a246eb071f5109477bb6992",
+      "after_sha256": "a84e900aed308310b6cc88006eec1d55048f3ca06af10fdd780b89b0be6dc53e",
+      "replacements": [
+        {
+          "before": "import cboe_index\n",
+          "after": "import cboe_index\nimport defillama_tvl\n"
+        },
+        {
+          "before": "    if d[D_ID]==\"cboe:reviewed-index-history\" and kind==\"dataset\":",
+          "after": "    if d[D_ID]==\"defillama:reviewed-tvl-history\" and kind==\"dataset\":\n        row.update(browse=True,chartable=False,reviewed_series=len(defillama_tvl.CATALOGUE[\"series\"]))\n    if d[D_ID].lower().startswith(\"defillama:tvl:\") and kind==\"series\":\n        try:\n            checked=defillama_tvl.definition(d[D_ID]);row.update(provider=\"defillama\",name=checked[\"name\"],unit=checked[\"unit\"],freq=checked[\"freq\"],currency=checked[\"currency\"],live_history_verified=False)\n        except ValueError:\n            row.update(chartable=False,definition_review_required=True)\n    if d[D_ID]==\"cboe:reviewed-index-history\" and kind==\"dataset\":"
+        },
+        {
+          "before": "def search(q, limit=40, prov=None, kind=None):\n",
+          "after": "def search(q, limit=40, prov=None, kind=None):\n    if (prov in (None,\"defillama\") and str(q or \"\").lower().startswith(\"defillama:tvl:\")) or (prov==\"defillama\" and kind==\"series\"):\n        return dict(defillama_tvl.directory(q or \"\",max(1,min(int(limit),200))),q=q)\n"
+        },
+        {
+          "before": "    if prov==\"cboe\" and rest==\"reviewed-index-history\":",
+          "after": "    if prov==\"defillama\" and rest==\"reviewed-tvl-history\":\n        return dict(defillama_tvl.directory(q,limit,offset),ds=ds)\n    if prov==\"defillama\":\n        raise ValueError(\"Choose the reviewed DefiLlama TVL dataset or an exact series identifier\")\n    if prov==\"cboe\" and rest==\"reviewed-index-history\":"
+        },
+        {
+          "before": "        if sid.lower().startswith(\"cboeindex:\") and not cboe_index.cache_valid(cached,sid):",
+          "after": "        if sid.lower().startswith(\"defillama:\") and not defillama_tvl.cache_valid(cached,sid):\n            return None,age\n        if sid.lower().startswith(\"cboeindex:\") and not cboe_index.cache_valid(cached,sid):"
+        },
+        {
+          "before": "RESOLVERS = {\"cboeindex\":",
+          "after": "RESOLVERS = {\"defillama\":lambda s,r,d:defillama_tvl.fetch(s,s3,BUCKET), \"cboeindex\":"
+        },
+        {
+          "before": "CACHE_TTL = {\"cboeindex\":",
+          "after": "CACHE_TTL = {\"defillama\":1800, \"cboeindex\":"
+        },
+        {
+          "before": "\"imf:\", \"cboeindex:\", \"cftc:\"",
+          "after": "\"imf:\", \"cboeindex:\", \"defillama:\", \"cftc:\""
+        },
+        {
+          "before": "    if sid.lower().startswith(\"cboeindex:\"):\n",
+          "after": "    if sid.lower().startswith(\"defillama:\"):\n        sid=defillama_tvl.definition(sid)[\"id\"]\n    if sid.lower().startswith(\"cboeindex:\"):\n"
+        },
+        {
+          "before": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\", \"cboeindex\")",
+          "after": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\", \"cboeindex\", \"defillama\")"
+        },
+        {
+          "before": "    if prov in (\"cboe\",\"cboeindex\") and kind==\"series\":",
+          "after": "    if prov==\"defillama\" and kind==\"series\":\n        return defillama_tvl.directory(q,limit,offset)\n    if prov in (\"cboe\",\"cboeindex\") and kind==\"series\":"
+        },
+        {
+          "before": "    if prov==\"cboe\":\n",
+          "after": "    if prov==\"defillama\":\n        docs=[doc(\"defillama:reviewed-tvl-history\",\"defillama\",\"Reviewed public DefiLlama default TVL histories\",\"dataset\",0.5)]+[d for d in docs if d[D_ID]!=\"defillama:reviewed-tvl-history\"]\n    if prov==\"cboe\":\n"
+        }
+      ]
+    },
+    "jh-chart-catalog.js": {
+      "before_path": "tests/fixtures/chart-defillama/jh-chart-catalog.js.before.txt",
+      "before_sha256": "a7eece23c0acb4577400979eff5841954e96f44a35e7bcbfc838fc9b4bc14a33",
+      "replacements": [
+        {
+          "before": "var SERIES_PROV = {",
+          "after": "var DEFILLAMA_IDS = new Map([\"defillama:tvl:0G\",\"defillama:tvl:AB\",\"defillama:tvl:ADI\",\"defillama:tvl:AFX%20L1\",\"defillama:tvl:AILayer\",\"defillama:tvl:ALEO\",\"defillama:tvl:ALV\",\"defillama:tvl:AO\",\"defillama:tvl:Abstract\",\"defillama:tvl:Acala\",\"defillama:tvl:Aeternity\",\"defillama:tvl:Agoric\",\"defillama:tvl:AirDAO\",\"defillama:tvl:Aleph%20Zero%20EVM\",\"defillama:tvl:Alephium\",\"defillama:tvl:Algorand\",\"defillama:tvl:Althea\",\"defillama:tvl:Ancient8\",\"defillama:tvl:Anubis\",\"defillama:tvl:ApeChain\",\"defillama:tvl:Aptos\",\"defillama:tvl:Arbitrum\",\"defillama:tvl:Arbitrum%20Nova\",\"defillama:tvl:Arc\",\"defillama:tvl:Archway\",\"defillama:tvl:Areum%20Network\",\"defillama:tvl:Artela\",\"defillama:tvl:Asset%20Chain\",\"defillama:tvl:Astar\",\"defillama:tvl:Astar%20zkEVM\",\"defillama:tvl:Aura%20Network\",\"defillama:tvl:Aurora\",\"defillama:tvl:Avalanche\",\"defillama:tvl:Axiome\",\"defillama:tvl:BCHyper\",\"defillama:tvl:BESC%20Hyperchain\",\"defillama:tvl:BEVM\",\"defillama:tvl:BOB\",\"defillama:tvl:BOT%20Chain\",\"defillama:tvl:BSC\",\"defillama:tvl:BSquared\",\"defillama:tvl:Babylon%20Genesis\",\"defillama:tvl:Bahamut\",\"defillama:tvl:Base\",\"defillama:tvl:Beam\",\"defillama:tvl:Berachain\",\"defillama:tvl:Bifrost\",\"defillama:tvl:Bifrost%20Network\",\"defillama:tvl:Binance\",\"defillama:tvl:Bitcichain\",\"defillama:tvl:Bitcoin\",\"defillama:tvl:Bitcoincash\",\"defillama:tvl:Bitgert\",\"defillama:tvl:Bitindi\",\"defillama:tvl:Bitlayer\",\"defillama:tvl:Bitnet\",\"defillama:tvl:Bitrock\",\"defillama:tvl:Bittensor\",\"defillama:tvl:Bittensor%20EVM\",\"defillama:tvl:Bittorrent\",\"defillama:tvl:Blast\",\"defillama:tvl:Boba\",\"defillama:tvl:Boba_Avax\",\"defillama:tvl:Boba_Bnb\",\"defillama:tvl:Bone\",\"defillama:tvl:Bostrom\",\"defillama:tvl:Botanix\",\"defillama:tvl:BounceBit\",\"defillama:tvl:CLV\",\"defillama:tvl:CMP\",\"defillama:tvl:CORE\",\"defillama:tvl:CSC\",\"defillama:tvl:Cabal\",\"defillama:tvl:Callisto\",\"defillama:tvl:Camp%20Network\",\"defillama:tvl:Canto\",\"defillama:tvl:Canton\",\"defillama:tvl:Capx%20Chain\",\"defillama:tvl:Carbon\",\"defillama:tvl:Cardano\",\"defillama:tvl:Celo\",\"defillama:tvl:Chainflip\",\"defillama:tvl:Chia\",\"defillama:tvl:Chihuahua\",\"defillama:tvl:Chiliz\",\"defillama:tvl:Chromia\",\"defillama:tvl:Citrea\",\"defillama:tvl:Civitia\",\"defillama:tvl:Comdex\",\"defillama:tvl:Concordium\",\"defillama:tvl:Conflux\",\"defillama:tvl:CookieChain\",\"defillama:tvl:Corn\",\"defillama:tvl:CosmosHub\",\"defillama:tvl:Coti\",\"defillama:tvl:Crab\",\"defillama:tvl:Crescent\",\"defillama:tvl:Cronos\",\"defillama:tvl:Cronos%20zkEVM\",\"defillama:tvl:CrossFi\",\"defillama:tvl:Cube\",\"defillama:tvl:Curio\",\"defillama:tvl:Cyber\",\"defillama:tvl:DChain\",\"defillama:tvl:DFK\",\"defillama:tvl:DFS%20Network\",\"defillama:tvl:DSC\",\"defillama:tvl:Darwinia\",\"defillama:tvl:Dash\",\"defillama:tvl:Data%20Network\",\"defillama:tvl:DeFiChain%20EVM\",\"defillama:tvl:DeFiVerse\",\"defillama:tvl:DefiChain\",\"defillama:tvl:Degen\",\"defillama:tvl:Dexalot\",\"defillama:tvl:Dexit\",\"defillama:tvl:Doge\",\"defillama:tvl:Dogechain\",\"defillama:tvl:Doma\",\"defillama:tvl:DuckChain\",\"defillama:tvl:Dungeon\",\"defillama:tvl:Dymension\",\"defillama:tvl:EDU%20Chain\",\"defillama:tvl:ENI\",\"defillama:tvl:ENULS\",\"defillama:tvl:EOS%20EVM\",\"defillama:tvl:ETHF\",\"defillama:tvl:Echelon\",\"defillama:tvl:Echelon%20Initia\",\"defillama:tvl:Eclipse\",\"defillama:tvl:Eden\",\"defillama:tvl:Elastos\",\"defillama:tvl:Electroneum\",\"defillama:tvl:Elys\",\"defillama:tvl:Elysium\",\"defillama:tvl:Empire\",\"defillama:tvl:Endurance\",\"defillama:tvl:Energi\",\"defillama:tvl:EnergyWeb\",\"defillama:tvl:Equilibrium\",\"defillama:tvl:Ergo\",\"defillama:tvl:Eteria\",\"defillama:tvl:Ethereal\",\"defillama:tvl:Ethereum\",\"defillama:tvl:EthereumClassic\",\"defillama:tvl:EthereumPoW\",\"defillama:tvl:Etherlink\",\"defillama:tvl:Etica\",\"defillama:tvl:Eventum\",\"defillama:tvl:Everscale\",\"defillama:tvl:Evmos\",\"defillama:tvl:FSC\",\"defillama:tvl:Fantom\",\"defillama:tvl:Filecoin\",\"defillama:tvl:Findora\",\"defillama:tvl:Flare\",\"defillama:tvl:Flow\",\"defillama:tvl:Fluence\",\"defillama:tvl:Fluent\",\"defillama:tvl:Fogo\",\"defillama:tvl:Form%20Network\",\"defillama:tvl:Fraxtal\",\"defillama:tvl:Fuel%20Ignition\",\"defillama:tvl:FunctionX\",\"defillama:tvl:Fuse\",\"defillama:tvl:Fusion\",\"defillama:tvl:GANchain\",\"defillama:tvl:GGCHAIN\",\"defillama:tvl:GOAT\",\"defillama:tvl:GRX%20Chain\",\"defillama:tvl:Gala\",\"defillama:tvl:GateLayer\",\"defillama:tvl:Genesys\",\"defillama:tvl:Genshiro\",\"defillama:tvl:Gnosis\",\"defillama:tvl:GoChain\",\"defillama:tvl:Godwoken\",\"defillama:tvl:GodwokenV1\",\"defillama:tvl:Goerli\",\"defillama:tvl:Gravity%20by%20Galxe\",\"defillama:tvl:HAQQ\",\"defillama:tvl:HPB\",\"defillama:tvl:Ham\",\"defillama:tvl:Harmony\",\"defillama:tvl:HashKey%20Chain\",\"defillama:tvl:Haven1\",\"defillama:tvl:HeLa\",\"defillama:tvl:Heco\",\"defillama:tvl:Hedera\",\"defillama:tvl:Heiko\",\"defillama:tvl:Hemi\",\"defillama:tvl:Hoo\",\"defillama:tvl:Horizen%20EON\",\"defillama:tvl:Hydra\",\"defillama:tvl:Hydra%20Chain\",\"defillama:tvl:Hydration\",\"defillama:tvl:Hyperliquid%20L1\",\"defillama:tvl:ICP\",\"defillama:tvl:INRI\",\"defillama:tvl:IOTA\",\"defillama:tvl:IOTA%20EVM\",\"defillama:tvl:Icon\",\"defillama:tvl:Igra\",\"defillama:tvl:Immutable%20zkEVM\",\"defillama:tvl:Inertia\",\"defillama:tvl:Initia\",\"defillama:tvl:Injective\",\"defillama:tvl:Ink\",\"defillama:tvl:Interlay\",\"defillama:tvl:IoTeX\",\"defillama:tvl:JBC\",\"defillama:tvl:JOC\",\"defillama:tvl:Joltify\",\"defillama:tvl:Juno\",\"defillama:tvl:K2\",\"defillama:tvl:KCC\",\"defillama:tvl:KUB\",\"defillama:tvl:Kadena\",\"defillama:tvl:Kaia\",\"defillama:tvl:Kardia\",\"defillama:tvl:Karura\",\"defillama:tvl:Kasplex\",\"defillama:tvl:Katana\",\"defillama:tvl:Kava\",\"defillama:tvl:Keeta\",\"defillama:tvl:Kekchain\",\"defillama:tvl:Kintsugi\",\"defillama:tvl:Kopi\",\"defillama:tvl:Kroma\",\"defillama:tvl:Krown%20Network\",\"defillama:tvl:Kujira\",\"defillama:tvl:LUKSO\",\"defillama:tvl:LaChain%20Network\",\"defillama:tvl:Lachain\",\"defillama:tvl:Lamden\",\"defillama:tvl:Lens\",\"defillama:tvl:Libre\",\"defillama:tvl:LightLink\",\"defillama:tvl:Linea\",\"defillama:tvl:Lisk\",\"defillama:tvl:Litecoin\",\"defillama:tvl:Loop\",\"defillama:tvl:Lung\",\"defillama:tvl:MANTRA\",\"defillama:tvl:MAP%20Protocol\",\"defillama:tvl:MEER\",\"defillama:tvl:MTT%20Network\",\"defillama:tvl:MUUCHAIN\",\"defillama:tvl:MVC\",\"defillama:tvl:Manta\",\"defillama:tvl:Manta%20Atlantic\",\"defillama:tvl:Mantle\",\"defillama:tvl:Massa\",\"defillama:tvl:Matchain\",\"defillama:tvl:Mayachain\",\"defillama:tvl:MegaETH\",\"defillama:tvl:Merlin\",\"defillama:tvl:Meter\",\"defillama:tvl:Metis\",\"defillama:tvl:Mezo\",\"defillama:tvl:Migaloo\",\"defillama:tvl:Milkomeda%20A1\",\"defillama:tvl:Milkomeda%20C1\",\"defillama:tvl:Mind%20Network\",\"defillama:tvl:Mint\",\"defillama:tvl:Mixin\",\"defillama:tvl:Mode\",\"defillama:tvl:Monad\",\"defillama:tvl:Moonbeam\",\"defillama:tvl:Moonchain\",\"defillama:tvl:Moonriver\",\"defillama:tvl:Morph\",\"defillama:tvl:Movement\",\"defillama:tvl:MultiVAC\",\"defillama:tvl:MultiversX\",\"defillama:tvl:MyRx\",\"defillama:tvl:NEO\",\"defillama:tvl:NOS\",\"defillama:tvl:Nahmii\",\"defillama:tvl:Naka\",\"defillama:tvl:Namada\",\"defillama:tvl:Near\",\"defillama:tvl:Neo%20X%20Mainnet\",\"defillama:tvl:Neon\",\"defillama:tvl:Neutron\",\"defillama:tvl:Nibiru\",\"defillama:tvl:Nolus\",\"defillama:tvl:Nova%20Network\",\"defillama:tvl:Nuls\",\"defillama:tvl:OKTChain\",\"defillama:tvl:OP%20Mainnet\",\"defillama:tvl:OXFUN\",\"defillama:tvl:Oasis%20Emerald\",\"defillama:tvl:Oasis%20Sapphire\",\"defillama:tvl:Oasys\",\"defillama:tvl:Obyte\",\"defillama:tvl:Odyssey\",\"defillama:tvl:Omax\",\"defillama:tvl:Ontology\",\"defillama:tvl:OntologyEVM\",\"defillama:tvl:Onus\",\"defillama:tvl:Open\",\"defillama:tvl:OpenGPU\",\"defillama:tvl:Optimism\",\"defillama:tvl:Oraichain\",\"defillama:tvl:Osmosis\",\"defillama:tvl:Palm\",\"defillama:tvl:Parallel\",\"defillama:tvl:Parex\",\"defillama:tvl:Peaq\",\"defillama:tvl:Pego\",\"defillama:tvl:Penumbra\",\"defillama:tvl:Pepu\",\"defillama:tvl:Perennial\",\"defillama:tvl:Persistence%20One\",\"defillama:tvl:Pharos\",\"defillama:tvl:Planq\",\"defillama:tvl:Plasma\",\"defillama:tvl:Plume\",\"defillama:tvl:Plume%20Mainnet\",\"defillama:tvl:Polis\",\"defillama:tvl:Polkadex\",\"defillama:tvl:Polygon\",\"defillama:tvl:Polygon%20zkEVM\",\"defillama:tvl:Polynomial\",\"defillama:tvl:Prom\",\"defillama:tvl:Provenance\",\"defillama:tvl:PulseChain\",\"defillama:tvl:Q%20Protocol\",\"defillama:tvl:QIE\",\"defillama:tvl:QL1\",\"defillama:tvl:Quai\",\"defillama:tvl:Qubic\",\"defillama:tvl:REI\",\"defillama:tvl:REIchain\",\"defillama:tvl:RENEC\",\"defillama:tvl:RISE\",\"defillama:tvl:RSS3\",\"defillama:tvl:Radix\",\"defillama:tvl:Rangers\",\"defillama:tvl:Rari\",\"defillama:tvl:Rayls\",\"defillama:tvl:Redbelly\",\"defillama:tvl:Redstone\",\"defillama:tvl:ReyaChain\",\"defillama:tvl:Robinhood%20Chain\",\"defillama:tvl:Rollux\",\"defillama:tvl:Ronin\",\"defillama:tvl:Rootstock\",\"defillama:tvl:SKALE%20Europa\",\"defillama:tvl:SX%20Network\",\"defillama:tvl:SX%20Rollup\",\"defillama:tvl:Saakuru\",\"defillama:tvl:Saga\",\"defillama:tvl:SatoshiVM\",\"defillama:tvl:Scroll\",\"defillama:tvl:Secret\",\"defillama:tvl:Sei\",\"defillama:tvl:Sentrix\",\"defillama:tvl:Shape\",\"defillama:tvl:Shibarium\",\"defillama:tvl:Shiden\",\"defillama:tvl:Shido\",\"defillama:tvl:ShimmerEVM\",\"defillama:tvl:Sifchain\",\"defillama:tvl:Silicon%20zkEVM\",\"defillama:tvl:Solana\",\"defillama:tvl:Somnia\",\"defillama:tvl:Soneium\",\"defillama:tvl:Songbird\",\"defillama:tvl:Sonic\",\"defillama:tvl:Soon%20Network\",\"defillama:tvl:Sophon\",\"defillama:tvl:Sora\",\"defillama:tvl:Stable\",\"defillama:tvl:Stacks\",\"defillama:tvl:Starcoin\",\"defillama:tvl:Stargaze\",\"defillama:tvl:Starknet\",\"defillama:tvl:Stellar\",\"defillama:tvl:Step\",\"defillama:tvl:Strat\",\"defillama:tvl:Stratis\",\"defillama:tvl:Strato%20Chain\",\"defillama:tvl:Sui\",\"defillama:tvl:Superposition\",\"defillama:tvl:Superseed\",\"defillama:tvl:Supra\",\"defillama:tvl:Swan\",\"defillama:tvl:Swellchain\",\"defillama:tvl:Syscoin\",\"defillama:tvl:TAC\",\"defillama:tvl:THORChain\",\"defillama:tvl:TON\",\"defillama:tvl:Taiko\",\"defillama:tvl:Taraxa\",\"defillama:tvl:Telos\",\"defillama:tvl:Tempo\",\"defillama:tvl:Tenet\",\"defillama:tvl:Terra%20Classic\",\"defillama:tvl:Terra2\",\"defillama:tvl:Tezos\",\"defillama:tvl:Theta\",\"defillama:tvl:ThunderCore\",\"defillama:tvl:Titan\",\"defillama:tvl:Tlchain\",\"defillama:tvl:Tombchain\",\"defillama:tvl:Tron\",\"defillama:tvl:UX\",\"defillama:tvl:Ubiq\",\"defillama:tvl:Ultron\",\"defillama:tvl:Unichain\",\"defillama:tvl:Unit%20Zero\",\"defillama:tvl:Vana\",\"defillama:tvl:Vara\",\"defillama:tvl:Vaulta\",\"defillama:tvl:VeChain\",\"defillama:tvl:Velas\",\"defillama:tvl:Venom\",\"defillama:tvl:Verus\",\"defillama:tvl:Viction\",\"defillama:tvl:VinuChain\",\"defillama:tvl:VirBiCoin\",\"defillama:tvl:Vision\",\"defillama:tvl:Vite\",\"defillama:tvl:Voi%20Network\",\"defillama:tvl:W%20Chain\",\"defillama:tvl:WEMIX3.0\",\"defillama:tvl:WINR%20Chain\",\"defillama:tvl:Wanchain\",\"defillama:tvl:Waterfall\",\"defillama:tvl:Waves\",\"defillama:tvl:Wax\",\"defillama:tvl:World%20Chain\",\"defillama:tvl:X%20Layer\",\"defillama:tvl:XCHAIN\",\"defillama:tvl:XDC\",\"defillama:tvl:XION\",\"defillama:tvl:XO\",\"defillama:tvl:XPLA\",\"defillama:tvl:XPR%20Network\",\"defillama:tvl:XRPL\",\"defillama:tvl:XRPL%20EVM\",\"defillama:tvl:Xai\",\"defillama:tvl:Xone%20Chain\",\"defillama:tvl:Xphere\",\"defillama:tvl:Yominet\",\"defillama:tvl:ZIGChain\",\"defillama:tvl:ZKsync%20Era\",\"defillama:tvl:ZKsync%20Lite\",\"defillama:tvl:ZYX\",\"defillama:tvl:Zcash\",\"defillama:tvl:Zeniq\",\"defillama:tvl:Zero%20Network\",\"defillama:tvl:ZetaChain\",\"defillama:tvl:Zilliqa\",\"defillama:tvl:Zircuit\",\"defillama:tvl:Zkfair\",\"defillama:tvl:Zora\",\"defillama:tvl:aelf\",\"defillama:tvl:all\",\"defillama:tvl:dYdX\",\"defillama:tvl:inEVM\",\"defillama:tvl:opBNB\",\"defillama:tvl:re.al\",\"defillama:tvl:smartBCH\",\"defillama:tvl:soonBase\",\"defillama:tvl:svmBNB\",\"defillama:tvl:zkLink%20Nova\"].map(function(id){return [id.toLowerCase(),id];}));\n  var SERIES_PROV = { defillama:1,"
+        },
+        {
+          "before": "    if (isWarehouse(s)) return s;",
+          "after": "    if (low === \"defillama:total_tvl\") return \"defillama:tvl:all\";\n    if (/^defillama:/i.test(s)) return DEFILLAMA_IDS.get(low) || \"\";\n    if (isWarehouse(s)) return s;"
+        },
+        {
+          "before": "  async function klines(sym) {\n    var s = String(sym || \"\");",
+          "after": "  async function klines(sym) {\n    var s = String(sym || \"\");\n    if (/^defillama:/i.test(s)) { s=chartId(s); if(!s)return {d:[],src:\"DefiLlama history unavailable: choose an exact reviewed TVL definition\"}; }"
+        },
+        {
+          "before": "      parsed.evidence.transport_cache=received.cache;",
+          "after": "      parsed.evidence.transport_cache=received.cache;\n      if (/^defillama:/i.test(String(sym)) && String(sym)!==s) { parsed.evidence.requested_id=String(sym); parsed.evidence.chart_alias={requested:String(sym),resolved:s,rule:\"Exact reviewed DefiLlama identifier or explicit default-TVL alias; source equivalence unverified\"}; }"
+        }
+      ],
+      "after_sha256": "a5d247a5e163cf30eb05e7a1a890d279b8d333d40dd27ff93a8712c38f9f2a1a"
+    },
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-defillama/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "aa79998c5a653d2c509802cb218fac8ed84b70089189f2809442949775a341c0",
+      "replacements": [
+        {
+          "before": "\\nCBOE:AVT5SMID|",
+          "after": "\\nDEFILLAMA:TOTAL_TVL|defillama:tvl:all\\nCBOE:AVT5SMID|"
+        },
+        {
+          "before": "      if (/^(DATA|DESK):/.test(u))",
+          "after": "      if (/^defillama:/i.test(requested)) {\n        var defillama=window.JHChartCatalog&&window.JHChartCatalog.chartId(requested);\n        if(!defillama){route.reason=\"DefiLlama definition unavailable; choose an exact reviewed TVL series\";return route;}\n        route.handoff=defillama;route.resolved=defillama;route.primary=defillama;\n        route.relation=defillama.toUpperCase()===u?\"exact\":\"qualified-alternative\";\n        route.handoffHints=routeHints(defillama);route.reason=\"DefiLlama default TVL in USD; a valuation stock, not net deposits or capital inflows. Token price changes affect TVL. Liquid staking and double-counted TVL are excluded by the default source methodology. Exact chain identity is retained. Vendor equivalence, full historical coverage and release-time vintages remain unverified.\";return route;\n      }\n      if (/^(DATA|DESK):/.test(u))"
+        },
+        {
+          "before": "FRED|WORLDBANK|BIS|BISFX|OECD|CENSUS|IMF|CBOEINDEX|CFTC",
+          "after": "FRED|WORLDBANK|BIS|BISFX|OECD|CENSUS|IMF|CBOEINDEX|CFTC|DEFILLAMA"
+        },
+        {
+          "before": "?\"exact\":\"qualified-alternative\"",
+          "after": "?\"exact\":\"mapped-route\""
+        },
+        {
+          "before": "route.reason=\"DefiLlama default TVL",
+          "after": "route.reason=\"Possible proxy or source substitution; equivalence unverified. DefiLlama default TVL"
+        },
+        {
+          "before": "if(/^cboeindex:/i.test(reference))return",
+          "after": "if(/^defillama:/i.test(reference))return \"Quote unavailable \u00b7 DefiLlama TVL observations (USD valuation stock)\";if(/^cboeindex:/i.test(reference))return"
+        },
+        {
+          "before": "var TYPE_COLOR = {Stock:",
+          "after": "var TYPE_COLOR = {Data:\"#787b86\",Stock:"
+        },
+        {
+          "before": "    if (e === \"OECD\"",
+          "after": "    if (e === \"DEFILLAMA\") return \"Data\";\n    if (e === \"OECD\""
+        }
+      ],
+      "after_sha256": "0650aa0772d8cb8cb1c89dc31bd7de250197aae61df6ac8f04699185c208ae2f"
+    },
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-defillama/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "57027b1be734a2c8b07d4b3941ee977d573b4504b135b50b0a0b2664a9058a8d",
+      "replacements": [
+        {
+          "before": "  var SCALAR=new Set([",
+          "after": "  var DEFILLAMA_KEYS=new Set([\"defillama:tvl:0G\",\"defillama:tvl:AB\",\"defillama:tvl:ADI\",\"defillama:tvl:AFX%20L1\",\"defillama:tvl:AILayer\",\"defillama:tvl:ALEO\",\"defillama:tvl:ALV\",\"defillama:tvl:AO\",\"defillama:tvl:Abstract\",\"defillama:tvl:Acala\",\"defillama:tvl:Aeternity\",\"defillama:tvl:Agoric\",\"defillama:tvl:AirDAO\",\"defillama:tvl:Aleph%20Zero%20EVM\",\"defillama:tvl:Alephium\",\"defillama:tvl:Algorand\",\"defillama:tvl:Althea\",\"defillama:tvl:Ancient8\",\"defillama:tvl:Anubis\",\"defillama:tvl:ApeChain\",\"defillama:tvl:Aptos\",\"defillama:tvl:Arbitrum\",\"defillama:tvl:Arbitrum%20Nova\",\"defillama:tvl:Arc\",\"defillama:tvl:Archway\",\"defillama:tvl:Areum%20Network\",\"defillama:tvl:Artela\",\"defillama:tvl:Asset%20Chain\",\"defillama:tvl:Astar\",\"defillama:tvl:Astar%20zkEVM\",\"defillama:tvl:Aura%20Network\",\"defillama:tvl:Aurora\",\"defillama:tvl:Avalanche\",\"defillama:tvl:Axiome\",\"defillama:tvl:BCHyper\",\"defillama:tvl:BESC%20Hyperchain\",\"defillama:tvl:BEVM\",\"defillama:tvl:BOB\",\"defillama:tvl:BOT%20Chain\",\"defillama:tvl:BSC\",\"defillama:tvl:BSquared\",\"defillama:tvl:Babylon%20Genesis\",\"defillama:tvl:Bahamut\",\"defillama:tvl:Base\",\"defillama:tvl:Beam\",\"defillama:tvl:Berachain\",\"defillama:tvl:Bifrost\",\"defillama:tvl:Bifrost%20Network\",\"defillama:tvl:Binance\",\"defillama:tvl:Bitcichain\",\"defillama:tvl:Bitcoin\",\"defillama:tvl:Bitcoincash\",\"defillama:tvl:Bitgert\",\"defillama:tvl:Bitindi\",\"defillama:tvl:Bitlayer\",\"defillama:tvl:Bitnet\",\"defillama:tvl:Bitrock\",\"defillama:tvl:Bittensor\",\"defillama:tvl:Bittensor%20EVM\",\"defillama:tvl:Bittorrent\",\"defillama:tvl:Blast\",\"defillama:tvl:Boba\",\"defillama:tvl:Boba_Avax\",\"defillama:tvl:Boba_Bnb\",\"defillama:tvl:Bone\",\"defillama:tvl:Bostrom\",\"defillama:tvl:Botanix\",\"defillama:tvl:BounceBit\",\"defillama:tvl:CLV\",\"defillama:tvl:CMP\",\"defillama:tvl:CORE\",\"defillama:tvl:CSC\",\"defillama:tvl:Cabal\",\"defillama:tvl:Callisto\",\"defillama:tvl:Camp%20Network\",\"defillama:tvl:Canto\",\"defillama:tvl:Canton\",\"defillama:tvl:Capx%20Chain\",\"defillama:tvl:Carbon\",\"defillama:tvl:Cardano\",\"defillama:tvl:Celo\",\"defillama:tvl:Chainflip\",\"defillama:tvl:Chia\",\"defillama:tvl:Chihuahua\",\"defillama:tvl:Chiliz\",\"defillama:tvl:Chromia\",\"defillama:tvl:Citrea\",\"defillama:tvl:Civitia\",\"defillama:tvl:Comdex\",\"defillama:tvl:Concordium\",\"defillama:tvl:Conflux\",\"defillama:tvl:CookieChain\",\"defillama:tvl:Corn\",\"defillama:tvl:CosmosHub\",\"defillama:tvl:Coti\",\"defillama:tvl:Crab\",\"defillama:tvl:Crescent\",\"defillama:tvl:Cronos\",\"defillama:tvl:Cronos%20zkEVM\",\"defillama:tvl:CrossFi\",\"defillama:tvl:Cube\",\"defillama:tvl:Curio\",\"defillama:tvl:Cyber\",\"defillama:tvl:DChain\",\"defillama:tvl:DFK\",\"defillama:tvl:DFS%20Network\",\"defillama:tvl:DSC\",\"defillama:tvl:Darwinia\",\"defillama:tvl:Dash\",\"defillama:tvl:Data%20Network\",\"defillama:tvl:DeFiChain%20EVM\",\"defillama:tvl:DeFiVerse\",\"defillama:tvl:DefiChain\",\"defillama:tvl:Degen\",\"defillama:tvl:Dexalot\",\"defillama:tvl:Dexit\",\"defillama:tvl:Doge\",\"defillama:tvl:Dogechain\",\"defillama:tvl:Doma\",\"defillama:tvl:DuckChain\",\"defillama:tvl:Dungeon\",\"defillama:tvl:Dymension\",\"defillama:tvl:EDU%20Chain\",\"defillama:tvl:ENI\",\"defillama:tvl:ENULS\",\"defillama:tvl:EOS%20EVM\",\"defillama:tvl:ETHF\",\"defillama:tvl:Echelon\",\"defillama:tvl:Echelon%20Initia\",\"defillama:tvl:Eclipse\",\"defillama:tvl:Eden\",\"defillama:tvl:Elastos\",\"defillama:tvl:Electroneum\",\"defillama:tvl:Elys\",\"defillama:tvl:Elysium\",\"defillama:tvl:Empire\",\"defillama:tvl:Endurance\",\"defillama:tvl:Energi\",\"defillama:tvl:EnergyWeb\",\"defillama:tvl:Equilibrium\",\"defillama:tvl:Ergo\",\"defillama:tvl:Eteria\",\"defillama:tvl:Ethereal\",\"defillama:tvl:Ethereum\",\"defillama:tvl:EthereumClassic\",\"defillama:tvl:EthereumPoW\",\"defillama:tvl:Etherlink\",\"defillama:tvl:Etica\",\"defillama:tvl:Eventum\",\"defillama:tvl:Everscale\",\"defillama:tvl:Evmos\",\"defillama:tvl:FSC\",\"defillama:tvl:Fantom\",\"defillama:tvl:Filecoin\",\"defillama:tvl:Findora\",\"defillama:tvl:Flare\",\"defillama:tvl:Flow\",\"defillama:tvl:Fluence\",\"defillama:tvl:Fluent\",\"defillama:tvl:Fogo\",\"defillama:tvl:Form%20Network\",\"defillama:tvl:Fraxtal\",\"defillama:tvl:Fuel%20Ignition\",\"defillama:tvl:FunctionX\",\"defillama:tvl:Fuse\",\"defillama:tvl:Fusion\",\"defillama:tvl:GANchain\",\"defillama:tvl:GGCHAIN\",\"defillama:tvl:GOAT\",\"defillama:tvl:GRX%20Chain\",\"defillama:tvl:Gala\",\"defillama:tvl:GateLayer\",\"defillama:tvl:Genesys\",\"defillama:tvl:Genshiro\",\"defillama:tvl:Gnosis\",\"defillama:tvl:GoChain\",\"defillama:tvl:Godwoken\",\"defillama:tvl:GodwokenV1\",\"defillama:tvl:Goerli\",\"defillama:tvl:Gravity%20by%20Galxe\",\"defillama:tvl:HAQQ\",\"defillama:tvl:HPB\",\"defillama:tvl:Ham\",\"defillama:tvl:Harmony\",\"defillama:tvl:HashKey%20Chain\",\"defillama:tvl:Haven1\",\"defillama:tvl:HeLa\",\"defillama:tvl:Heco\",\"defillama:tvl:Hedera\",\"defillama:tvl:Heiko\",\"defillama:tvl:Hemi\",\"defillama:tvl:Hoo\",\"defillama:tvl:Horizen%20EON\",\"defillama:tvl:Hydra\",\"defillama:tvl:Hydra%20Chain\",\"defillama:tvl:Hydration\",\"defillama:tvl:Hyperliquid%20L1\",\"defillama:tvl:ICP\",\"defillama:tvl:INRI\",\"defillama:tvl:IOTA\",\"defillama:tvl:IOTA%20EVM\",\"defillama:tvl:Icon\",\"defillama:tvl:Igra\",\"defillama:tvl:Immutable%20zkEVM\",\"defillama:tvl:Inertia\",\"defillama:tvl:Initia\",\"defillama:tvl:Injective\",\"defillama:tvl:Ink\",\"defillama:tvl:Interlay\",\"defillama:tvl:IoTeX\",\"defillama:tvl:JBC\",\"defillama:tvl:JOC\",\"defillama:tvl:Joltify\",\"defillama:tvl:Juno\",\"defillama:tvl:K2\",\"defillama:tvl:KCC\",\"defillama:tvl:KUB\",\"defillama:tvl:Kadena\",\"defillama:tvl:Kaia\",\"defillama:tvl:Kardia\",\"defillama:tvl:Karura\",\"defillama:tvl:Kasplex\",\"defillama:tvl:Katana\",\"defillama:tvl:Kava\",\"defillama:tvl:Keeta\",\"defillama:tvl:Kekchain\",\"defillama:tvl:Kintsugi\",\"defillama:tvl:Kopi\",\"defillama:tvl:Kroma\",\"defillama:tvl:Krown%20Network\",\"defillama:tvl:Kujira\",\"defillama:tvl:LUKSO\",\"defillama:tvl:LaChain%20Network\",\"defillama:tvl:Lachain\",\"defillama:tvl:Lamden\",\"defillama:tvl:Lens\",\"defillama:tvl:Libre\",\"defillama:tvl:LightLink\",\"defillama:tvl:Linea\",\"defillama:tvl:Lisk\",\"defillama:tvl:Litecoin\",\"defillama:tvl:Loop\",\"defillama:tvl:Lung\",\"defillama:tvl:MANTRA\",\"defillama:tvl:MAP%20Protocol\",\"defillama:tvl:MEER\",\"defillama:tvl:MTT%20Network\",\"defillama:tvl:MUUCHAIN\",\"defillama:tvl:MVC\",\"defillama:tvl:Manta\",\"defillama:tvl:Manta%20Atlantic\",\"defillama:tvl:Mantle\",\"defillama:tvl:Massa\",\"defillama:tvl:Matchain\",\"defillama:tvl:Mayachain\",\"defillama:tvl:MegaETH\",\"defillama:tvl:Merlin\",\"defillama:tvl:Meter\",\"defillama:tvl:Metis\",\"defillama:tvl:Mezo\",\"defillama:tvl:Migaloo\",\"defillama:tvl:Milkomeda%20A1\",\"defillama:tvl:Milkomeda%20C1\",\"defillama:tvl:Mind%20Network\",\"defillama:tvl:Mint\",\"defillama:tvl:Mixin\",\"defillama:tvl:Mode\",\"defillama:tvl:Monad\",\"defillama:tvl:Moonbeam\",\"defillama:tvl:Moonchain\",\"defillama:tvl:Moonriver\",\"defillama:tvl:Morph\",\"defillama:tvl:Movement\",\"defillama:tvl:MultiVAC\",\"defillama:tvl:MultiversX\",\"defillama:tvl:MyRx\",\"defillama:tvl:NEO\",\"defillama:tvl:NOS\",\"defillama:tvl:Nahmii\",\"defillama:tvl:Naka\",\"defillama:tvl:Namada\",\"defillama:tvl:Near\",\"defillama:tvl:Neo%20X%20Mainnet\",\"defillama:tvl:Neon\",\"defillama:tvl:Neutron\",\"defillama:tvl:Nibiru\",\"defillama:tvl:Nolus\",\"defillama:tvl:Nova%20Network\",\"defillama:tvl:Nuls\",\"defillama:tvl:OKTChain\",\"defillama:tvl:OP%20Mainnet\",\"defillama:tvl:OXFUN\",\"defillama:tvl:Oasis%20Emerald\",\"defillama:tvl:Oasis%20Sapphire\",\"defillama:tvl:Oasys\",\"defillama:tvl:Obyte\",\"defillama:tvl:Odyssey\",\"defillama:tvl:Omax\",\"defillama:tvl:Ontology\",\"defillama:tvl:OntologyEVM\",\"defillama:tvl:Onus\",\"defillama:tvl:Open\",\"defillama:tvl:OpenGPU\",\"defillama:tvl:Optimism\",\"defillama:tvl:Oraichain\",\"defillama:tvl:Osmosis\",\"defillama:tvl:Palm\",\"defillama:tvl:Parallel\",\"defillama:tvl:Parex\",\"defillama:tvl:Peaq\",\"defillama:tvl:Pego\",\"defillama:tvl:Penumbra\",\"defillama:tvl:Pepu\",\"defillama:tvl:Perennial\",\"defillama:tvl:Persistence%20One\",\"defillama:tvl:Pharos\",\"defillama:tvl:Planq\",\"defillama:tvl:Plasma\",\"defillama:tvl:Plume\",\"defillama:tvl:Plume%20Mainnet\",\"defillama:tvl:Polis\",\"defillama:tvl:Polkadex\",\"defillama:tvl:Polygon\",\"defillama:tvl:Polygon%20zkEVM\",\"defillama:tvl:Polynomial\",\"defillama:tvl:Prom\",\"defillama:tvl:Provenance\",\"defillama:tvl:PulseChain\",\"defillama:tvl:Q%20Protocol\",\"defillama:tvl:QIE\",\"defillama:tvl:QL1\",\"defillama:tvl:Quai\",\"defillama:tvl:Qubic\",\"defillama:tvl:REI\",\"defillama:tvl:REIchain\",\"defillama:tvl:RENEC\",\"defillama:tvl:RISE\",\"defillama:tvl:RSS3\",\"defillama:tvl:Radix\",\"defillama:tvl:Rangers\",\"defillama:tvl:Rari\",\"defillama:tvl:Rayls\",\"defillama:tvl:Redbelly\",\"defillama:tvl:Redstone\",\"defillama:tvl:ReyaChain\",\"defillama:tvl:Robinhood%20Chain\",\"defillama:tvl:Rollux\",\"defillama:tvl:Ronin\",\"defillama:tvl:Rootstock\",\"defillama:tvl:SKALE%20Europa\",\"defillama:tvl:SX%20Network\",\"defillama:tvl:SX%20Rollup\",\"defillama:tvl:Saakuru\",\"defillama:tvl:Saga\",\"defillama:tvl:SatoshiVM\",\"defillama:tvl:Scroll\",\"defillama:tvl:Secret\",\"defillama:tvl:Sei\",\"defillama:tvl:Sentrix\",\"defillama:tvl:Shape\",\"defillama:tvl:Shibarium\",\"defillama:tvl:Shiden\",\"defillama:tvl:Shido\",\"defillama:tvl:ShimmerEVM\",\"defillama:tvl:Sifchain\",\"defillama:tvl:Silicon%20zkEVM\",\"defillama:tvl:Solana\",\"defillama:tvl:Somnia\",\"defillama:tvl:Soneium\",\"defillama:tvl:Songbird\",\"defillama:tvl:Sonic\",\"defillama:tvl:Soon%20Network\",\"defillama:tvl:Sophon\",\"defillama:tvl:Sora\",\"defillama:tvl:Stable\",\"defillama:tvl:Stacks\",\"defillama:tvl:Starcoin\",\"defillama:tvl:Stargaze\",\"defillama:tvl:Starknet\",\"defillama:tvl:Stellar\",\"defillama:tvl:Step\",\"defillama:tvl:Strat\",\"defillama:tvl:Stratis\",\"defillama:tvl:Strato%20Chain\",\"defillama:tvl:Sui\",\"defillama:tvl:Superposition\",\"defillama:tvl:Superseed\",\"defillama:tvl:Supra\",\"defillama:tvl:Swan\",\"defillama:tvl:Swellchain\",\"defillama:tvl:Syscoin\",\"defillama:tvl:TAC\",\"defillama:tvl:THORChain\",\"defillama:tvl:TON\",\"defillama:tvl:Taiko\",\"defillama:tvl:Taraxa\",\"defillama:tvl:Telos\",\"defillama:tvl:Tempo\",\"defillama:tvl:Tenet\",\"defillama:tvl:Terra%20Classic\",\"defillama:tvl:Terra2\",\"defillama:tvl:Tezos\",\"defillama:tvl:Theta\",\"defillama:tvl:ThunderCore\",\"defillama:tvl:Titan\",\"defillama:tvl:Tlchain\",\"defillama:tvl:Tombchain\",\"defillama:tvl:Tron\",\"defillama:tvl:UX\",\"defillama:tvl:Ubiq\",\"defillama:tvl:Ultron\",\"defillama:tvl:Unichain\",\"defillama:tvl:Unit%20Zero\",\"defillama:tvl:Vana\",\"defillama:tvl:Vara\",\"defillama:tvl:Vaulta\",\"defillama:tvl:VeChain\",\"defillama:tvl:Velas\",\"defillama:tvl:Venom\",\"defillama:tvl:Verus\",\"defillama:tvl:Viction\",\"defillama:tvl:VinuChain\",\"defillama:tvl:VirBiCoin\",\"defillama:tvl:Vision\",\"defillama:tvl:Vite\",\"defillama:tvl:Voi%20Network\",\"defillama:tvl:W%20Chain\",\"defillama:tvl:WEMIX3.0\",\"defillama:tvl:WINR%20Chain\",\"defillama:tvl:Wanchain\",\"defillama:tvl:Waterfall\",\"defillama:tvl:Waves\",\"defillama:tvl:Wax\",\"defillama:tvl:World%20Chain\",\"defillama:tvl:X%20Layer\",\"defillama:tvl:XCHAIN\",\"defillama:tvl:XDC\",\"defillama:tvl:XION\",\"defillama:tvl:XO\",\"defillama:tvl:XPLA\",\"defillama:tvl:XPR%20Network\",\"defillama:tvl:XRPL\",\"defillama:tvl:XRPL%20EVM\",\"defillama:tvl:Xai\",\"defillama:tvl:Xone%20Chain\",\"defillama:tvl:Xphere\",\"defillama:tvl:Yominet\",\"defillama:tvl:ZIGChain\",\"defillama:tvl:ZKsync%20Era\",\"defillama:tvl:ZKsync%20Lite\",\"defillama:tvl:ZYX\",\"defillama:tvl:Zcash\",\"defillama:tvl:Zeniq\",\"defillama:tvl:Zero%20Network\",\"defillama:tvl:ZetaChain\",\"defillama:tvl:Zilliqa\",\"defillama:tvl:Zircuit\",\"defillama:tvl:Zkfair\",\"defillama:tvl:Zora\",\"defillama:tvl:aelf\",\"defillama:tvl:all\",\"defillama:tvl:dYdX\",\"defillama:tvl:inEVM\",\"defillama:tvl:opBNB\",\"defillama:tvl:re.al\",\"defillama:tvl:smartBCH\",\"defillama:tvl:soonBase\",\"defillama:tvl:svmBNB\",\"defillama:tvl:zkLink%20Nova\"]);\n  var SCALAR=new Set([\"defillama\","
+        },
+        {
+          "before": "catalogue_slug:\"census-us\"}];",
+          "after": "catalogue_slug:\"census-us\"},{slug:\"defillama\",name:\"DefiLlama \u00b7 reviewed default TVL histories\",api:\"api.llama.fi\",discovery_origin:\"chart_adapter\",catalogue_slug:null}];"
+        },
+        {
+          "before": "function storedProvider(provider){return provider===\"census\"?\"census-us\":provider;}",
+          "after": "function storedProvider(provider){return provider===\"defillama\"?null:provider===\"census\"?\"census-us\":provider;}"
+        },
+        {
+          "before": "    if(state.view===\"files\")return",
+          "after": "    if(state.view===\"files\"&&!storedProvider(state.provider))throw new Error(\"No published stored-file catalogue for this chart adapter.\");\n    if(state.view===\"files\")return"
+        },
+        {
+          "before": "    if(provider===\"cboeindex\"",
+          "after": "    if(provider===\"defillama\"&&!DEFILLAMA_KEYS.has(id))return \"inspect\";\n    if(provider===\"cboeindex\""
+        },
+        {
+          "before": "      crumb.appendChild(button(\"Stored files\",",
+          "after": "      if(storedProvider(state.provider))crumb.appendChild(button(\"Stored files\","
+        },
+        {
+          "before": "    if(state.dataset)crumb.appendChild",
+          "after": "    if(state.provider===\"defillama\")crumb.appendChild(node(\"small\",\"Default TVL \u00b7 USD valuation, not capital inflows. No published stored-file catalogue.\"));\n    if(state.dataset)crumb.appendChild"
+        },
+        {
+          "before": "\" \u00b7 Chart adapter; warehouse files: \"+p.catalogue_slug",
+          "after": "(p.catalogue_slug?\" \u00b7 Chart adapter; warehouse files: \"+p.catalogue_slug:\" \u00b7 Chart adapter; no published stored-file catalogue\")"
+        }
+      ],
+      "after_sha256": "abd9787a2b39a52a3ee5160cd156313e68b6e7b12805a293451c82301da1710c"
+    },
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": {
+      "before_path": "tests/fixtures/chart-defillama/aws__lambdas__justhodl-symdir__tests__run_tests.py.before.txt",
+      "before_sha256": "2338d992ded83ec018e08d979d9c9e9906b3cc5763cb8e88703dde3d4f169da5",
+      "replacements": [
+        {
+          "before": "import test_cboe_migration,",
+          "after": "import test_defillama_tvl,test_defillama_integration,test_cboe_migration,"
+        },
+        {
+          "before": "for module in (test_cboe_migration,",
+          "after": "for module in (test_defillama_tvl,test_defillama_integration,test_cboe_migration,"
+        },
+        {
+          "before": "import test_defillama_tvl,",
+          "after": "import test_defillama_originals,test_defillama_tvl,"
+        },
+        {
+          "before": "for module in (test_defillama_tvl,",
+          "after": "for module in (test_defillama_originals,test_defillama_tvl,"
+        }
+      ],
+      "after_sha256": "056079c541c4230c4103acccbe6b9a77f7f98d2dc8aabf0c6012682faa8e987a"
+    },
+    "tests/watchlist-identity.test.js": {
+      "before_path": "tests/fixtures/chart-defillama/tests__watchlist-identity.test.js.before.txt",
+      "before_sha256": "7367f640795800e71112e8bf7fb3651b3686346c5fbb90e29dab20419f1494ca",
+      "replacements": [
+        {
+          "before": "['EXCH','SERIES_PROV','CURATED']",
+          "after": "['EXCH','SERIES_PROV','CURATED','DEFILLAMA_IDS']"
+        },
+        {
+          "before": "assert.equal(providerEntries.length,997);",
+          "after": "assert.equal(providerEntries.length,998);"
+        },
+        {
+          "before": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-cboe-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))",
+          "after": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-cboe-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative])),\"DEFILLAMA:TOTAL_TVL\":\"defillama:tvl:all\""
+        }
+      ],
+      "after_sha256": "6a1418dd9cd46b5a6a79af8465590ad5700b391a0af158aa119fd086dc10c74c"
+    },
+    "tests/chart-provider-browser.test.js": {
+      "before_path": "tests/fixtures/chart-defillama/tests__chart-provider-browser.test.js.before.txt",
+      "before_sha256": "ee695963d09057aaa1e70ea7f327627f8fd76be0b4ce00f3f581d16b4ada8f26",
+      "replacements": [
+        {
+          "before": "assert.equal(nativePrefixes.length,24);",
+          "after": "assert.equal(nativePrefixes.length,25);"
+        },
+        {
+          "before": "p!==\"oecd\"&&p!==\"imf\"&&p!==\"cboeindex\"",
+          "after": "p!==\"oecd\"&&p!==\"imf\"&&p!==\"cboeindex\"&&p!==\"defillama\""
+        },
+        {
+          "before": "const id=provider==='cboeindex'?",
+          "after": "const id=provider==='defillama'?'defillama:tvl:all':provider==='cboeindex'?"
+        }
+      ],
+      "after_sha256": "0af7081b7c56fd524d378d70fcc8d1d9dbc7a67d334c6b626b8ac5cd8e957a77"
+    },
+    "tests/chart-provider-discovery.test.js": {
+      "before_path": "tests/fixtures/chart-defillama/tests__chart-provider-discovery.test.js.before.txt",
+      "before_sha256": "f6d145aa892105f71d57b23a609332bd2e2ed0616da3638ac1505ed071a171ed",
+      "replacements": [
+        {
+          "before": "packet.providers.length+1);assert.deepEqual(rows.slice(0,-1),packet.providers);",
+          "after": "packet.providers.length+2);assert.deepEqual(rows.slice(0,-2),packet.providers);"
+        },
+        {
+          "before": "const row=rows.at(-1);",
+          "after": "const row=rows.find(r=>r.slug==='census');"
+        },
+        {
+          "before": "plain(api().providerEntries({providers:[original]})),[original]",
+          "after": "plain(api().providerEntries({providers:[original]})).filter(r=>r.slug==='census'),[original]"
+        },
+        {
+          "before": "['fred','census']);",
+          "after": "['fred','census','defillama']);"
+        },
+        {
+          "before": "const raw=require(\"./helpers/chart-cq-definition-preservation.cjs\").normalize(read(file),file);",
+          "after": "const raw=require(\"./helpers/chart-cq-definition-preservation.cjs\").normalize(require(\"./helpers/chart-defillama-preservation.cjs\").normalize(read(file),file),file);"
+        }
+      ],
+      "after_sha256": "603af3af3f09f4e6a76587558894b353e6db7b94de3e527834c24e888594ab21"
+    },
+    "tests/chart-cq-definition.test.js": {
+      "before_path": "tests/fixtures/chart-defillama/tests__chart-cq-definition.test.js.before.txt",
+      "before_sha256": "af970dfd656d5956ad380e0e509c152823dd08e8aa8030b619c4c4edb84e3e09",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),",
+          "after": "const raw=require(\"./helpers/chart-defillama-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),"
+        }
+      ],
+      "after_sha256": "f4fe37883361bcc270946ca0b5bc0e7d7dc4c0ae2eb9c16efd05d57d2f8fe44a"
+    },
+    "tests/helpers/chart-cq-definition-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-defillama/tests__helpers__chart-cq-definition-preservation.cjs.before.txt",
+      "before_sha256": "b3c6d326d7a308968fa99976859cadb1665493e41e739447dcbfd1e8acb32e67",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-defillama-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "aef1ca2b69d28a403673a1d8ae903bcf1fd79577a5c56e9a91acd192dc20e32e"
+    },
+    "tests/chart_provider_discovery_preservation.py": {
+      "before_path": "tests/fixtures/chart-defillama/tests__chart_provider_discovery_preservation.py.before.txt",
+      "before_sha256": "25d940318c6cc229dbbfba03a9ed79270eb41432cb472b14a290857d02a8ae91",
+      "replacements": [
+        {
+          "before": "def normalize(file,raw):\n",
+          "after": "def normalize(file,raw):\n    from chart_defillama_preservation import normalize as newer\n    raw=newer(file,raw)\n"
+        }
+      ],
+      "after_sha256": "18cee210ab32e2e94f7c55cab8207f37cf7d74dd7b0654680c5212b4e604dd4c"
+    }
+  },
+  "predecessor_hashes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": [
+      "1b96ed5af164ad1b152fe8400759cda89cfea13abf7c735a96559dd6c2702f84",
+      "29706a948954a7dc4616ab01af56f1e861c8b6d774d9e90ee721c5b17a8f5ba2",
+      "3122161c1ca14b847b82385dea1a6c93b0a7bfabdb3f1203265c1823aaac3aee",
+      "3e130c022ac91aca292ce12594562d1d47834543934bd7f47a20674011a47580",
+      "859032f19e337418efd4a5f7ce5b14b88eca5d65d9f392cd6e8c342784e8f7cf",
+      "86ad79da7432e0b5a0d147077a9e5cb76da03cbd3a246eb071f5109477bb6992",
+      "b562d056403d69ff7a469e0e20867f553d22f36ead7fa559fdfa0030706bb7e7",
+      "b644bfb7530b4edb857dff9e4c0e13dad6d3f6f5753711a378b74d2d5eb1ef6a",
+      "c1142004129350c7dded1316e6ec7b293821f132ca4966db58e9d9e17b8d4e75",
+      "e97830a26ac8cc3ee7dfbae4c1e14b467351e2f1a76b3d4c8ed5869d417b0f3b"
+    ],
+    "jh-chart-catalog.js": [
+      "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "6d75d7f1356c15b3f0fdce1c1eecc55435fba9103877fe99560806f98f3f8c4b",
+      "8701e012f022f8396c42a51e8997a3b3764970f854f39fecb6898ab27d2f2621",
+      "903408cd617b40da991ffa36c164d110060863ec59555b3b67fba979a7d8dc2e",
+      "9c3a37688753a9b84a510909c48a7a6bda4fb4a6f880b941251af68948f00ff0",
+      "a7eece23c0acb4577400979eff5841954e96f44a35e7bcbfc838fc9b4bc14a33"
+    ],
+    "jh-chart-tvwatch.js": [
+      "0760b94e6649cd7dc494c0f5fbfede43ba92a25d7cb56b7ee99247d66769873b",
+      "174ee04ef2951ec06ab32c576d61388961185a5deda2900929a3991f364e33f5",
+      "38246a0a8671031d619e44bfc4326337b6a6c857acec7905b33116ecb62f4343",
+      "3c894741b53136a4b2b2a33235baf8f0d2b6700c6ad02d94791d636bb7622f53",
+      "49b288f1634c51e03c2da13a352b549bb8f1e3017bbd94448dfd0f9bc2dd7a96",
+      "4d16636e1b5c402e4b8f3a887d7fc03262fcef4dea57b3e94ee8bf35da2220ec",
+      "5616c1fe7d1a098e1aa70dbafd274c314c21cf5181af9be1384178f71dc67e91",
+      "72d633afc6c75b436101af714596347b1b493ca0a14cab6f440baf8e6d9fb5de",
+      "93d6d6588845424adf2ed493ae8911000744b101fae3887abad87eb2e6133098",
+      "aa79998c5a653d2c509802cb218fac8ed84b70089189f2809442949775a341c0",
+      "ad0afb89830ac706bd6ff6be2ab3b4497315c29f9e9801e3100ae4ba0c971233",
+      "b3e65946af643a64c569a88e9119ff7512fd3e7b2e0b5216bc5d48a3915e2fd5",
+      "d14dee4dde27313eef19c42a622338b32ee89f95e0a41afc18f6da897f31f022",
+      "efa886b6b42f168a47588449fcea9651b8dc8ea577641e4f96ecafd6960e72ef"
+    ],
+    "jh-chart-provider-browser.js": [
+      "029f3e4c616dce8e7b553c1e585ef09c3528f30bfd198df3f97d54eb2137c0e3",
+      "07fc18803fa892c2a07606acadb28b63090f68fd63a799fd51a709ce1ca83aad",
+      "57027b1be734a2c8b07d4b3941ee977d573b4504b135b50b0a0b2664a9058a8d",
+      "656be7f7d4e99b78d4fbd1c70e6d1a1acd3a644442065eda5cf3094e1409d74f",
+      "73549ee02b88237c047d9bb2b11f2936eacc22198118a1757aa1bff8c03c428f",
+      "b237d5d5a50c07cdb1b2a0aee0a7e1c3165b57b3d6ab12f896e2c2938b3191f4",
+      "bc72986b78e436dd2c009a0b9af544140769d7f9626e2ad8f7a955b93b04b906",
+      "c40d1b0fc53b27f89b386525f1c6605db86bdfb428b4cab02ba4e231ef5c4f33",
+      "cfad22c30909fbef0abac8ebfa0ee8d2735cab6e44e90f2295588049dd92e95a",
+      "d2e80172bace7806ec63f43b99508a6c2e9f61a0253d5dd5de8576d0358d3fa2",
+      "d32c362fb77f5a8e74e88f953c89d970b0afa96c81582e9c6979acf24e6e4685",
+      "dfdf37818cc098808625736f398828e59b4c4d308d086bc6dd348aa5deb263be"
+    ],
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": [
+      "10661611b00a3bde9db41b532e9bfddf8dc734180c4f8e6eba84de2ac95a03f5",
+      "1e5d9eb6f83a3e73c4d5e64f779f1ee81cbaed2aaef53633e634f74802d6f494",
+      "2338d992ded83ec018e08d979d9c9e9906b3cc5763cb8e88703dde3d4f169da5",
+      "2879608b5aaf95b8e658a885d431b4f721590bbdbdc27907d99a089bf1032db1",
+      "7c129ebac6a9bfbf3b130798bc88e69a9e7e0746ccaaafe36cddb9b32c3bedd5",
+      "830284e2b135354e370d10c1ec22a31a64ab35d88dda14396f57e1a33e8db802",
+      "997b88a03ae454608b5ac3d3d947bd664fd7e80279df41d4961a2fa12ed1c244",
+      "ac16dbf151f3582c032657c3ca56e326f50b2edb7608665d356696e1a371c95b",
+      "ba58429dca6fc0a783036b1e5a6d823151b619a6c74418f8ccf36392ba96adf5",
+      "d2b0490d8b06c59763852d59552eb5ea04bf9d1e9cc1586abc84a2598733caf7",
+      "de88e06c5d5663f3787b1ebf76defe9401e1bea308ea78be52a74fbea22d86c2"
+    ],
+    "tests/watchlist-identity.test.js": [
+      "2a846438d9f032f791221330365a6e3ebf03ef6c4addecc3e0494e3a4bffbda3",
+      "4ab14fc5e76e0dafe11c6c4a57ab70e331fb846e42e2b381b2b5eb5ac89c0f95",
+      "5a8b7d10d805140d2b4887d6a54b7f407b83d924e821cb8558ef613d492b828a",
+      "6311cef45a2d0ab1c93ce27b65c045d168ef3537a535054fd6bf0a7d795e32fc",
+      "7367f640795800e71112e8bf7fb3651b3686346c5fbb90e29dab20419f1494ca",
+      "78a51613482d0b779dc9ecdbfeaca13586ffd14b5e0452891ffb7c05995fb855",
+      "8620854bc18e5065fd95278b9e583b0a084deaa7f9ad1189a23a1133d308e436",
+      "90daf012a75049609f21cbe72f6fd0ae69fe1b46fe3327b0eeec79c8e4fde595",
+      "d24f2878b966ede6143f0e9f6729cd8a8048e80fbdb513e2c45bb489d0b903a6",
+      "f9ad6d096917163923594715412a092e47065c1bcfc292c01741d359ed25142e"
+    ],
+    "tests/chart-provider-browser.test.js": [
+      "4e8c2f46fbb464faab3bca461acf0ddf6c4eafd65fcf342f766b7c62ed7bae90",
+      "6365d9db4ac7a7f6a3d84536988495353f8b78d26b63f94e3df04272ec5b1cc2",
+      "83c27f55e736d2084ca58a9d6694922261acc822d0ed1bc548631a0658bb3dbf",
+      "88d69a3076cb833923ebd5460eb2e455763218ea4c2bdcf2c4beda88184ce9cb",
+      "ca10a95e3c4ca27e5585659cc771f5aee4e9ec0479583ed93ac2cd5c42420e5c",
+      "d866068b40fdcbeab8650810671a5e66b78e79b9a46daf2e338b7837fec678a9",
+      "ee695963d09057aaa1e70ea7f327627f8fd76be0b4ce00f3f581d16b4ada8f26"
+    ],
+    "tests/chart-provider-discovery.test.js": [
+      "f6d145aa892105f71d57b23a609332bd2e2ed0616da3638ac1505ed071a171ed",
+      "fe111f451148df81679dc7cfe38b2afcfac0d59e2bf05088c0fc4e973eab502b"
+    ],
+    "tests/chart-cq-definition.test.js": [
+      "af970dfd656d5956ad380e0e509c152823dd08e8aa8030b619c4c4edb84e3e09"
+    ],
+    "tests/helpers/chart-cq-definition-preservation.cjs": [
+      "b3c6d326d7a308968fa99976859cadb1665493e41e739447dcbfd1e8acb32e67"
+    ],
+    "tests/chart_provider_discovery_preservation.py": [
+      "25d940318c6cc229dbbfba03a9ed79270eb41432cb472b14a290857d02a8ae91"
+    ]
+  }
+}

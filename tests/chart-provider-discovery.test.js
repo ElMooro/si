@@ -4,17 +4,17 @@ function api(){const scope={window:{},Set,URLSearchParams};vm.runInNewContext(re
 const plain=v=>JSON.parse(JSON.stringify(v));
 test('published provider entries remain intact and native Census metadata is explicitly separate',()=>{
  const packet=JSON.parse(read('tests/fixtures/chart-provider-discovery/data/provider-catalog.json')),before=JSON.stringify(packet),rows=plain(api().providerEntries(packet));
- assert.equal(rows.length,packet.providers.length+1);assert.deepEqual(rows.slice(0,-1),packet.providers);assert.equal(JSON.stringify(packet),before);
- const row=rows.at(-1);assert.equal(row.slug,'census');assert.equal(row.catalogue_slug,'census-us');assert.equal(row.discovery_origin,'chart_adapter');
+ assert.equal(rows.length,packet.providers.length+2);assert.deepEqual(rows.slice(0,-2),packet.providers);assert.equal(JSON.stringify(packet),before);
+ const row=rows.find(r=>r.slug==='census');assert.equal(row.slug,'census');assert.equal(row.catalogue_slug,'census-us');assert.equal(row.discovery_origin,'chart_adapter');
  for(const field of ['as_of','freshest_h','coverage_pct','series_count','history_verified','calls_eligible'])assert.equal(Object.hasOwn(row,field),false);
  assert.equal(rows.filter(r=>r.slug==='census-us').length,1);
 });
 test('canonical provider already in the published catalogue is never duplicated or overwritten',()=>{
- const original={slug:'census',name:'Publisher name',api:'original source',custom:17};assert.deepEqual(plain(api().providerEntries({providers:[original]})),[original]);
+ const original={slug:'census',name:'Publisher name',api:'original source',custom:17};assert.deepEqual(plain(api().providerEntries({providers:[original]})).filter(r=>r.slug==='census'),[original]);
 });
 test('invalid catalogue shape cannot manufacture a successful native directory',()=>{
  for(const providers of [null,{},'census',undefined])assert.throws(()=>api().providerEntries({providers}),/missing its provider list/);
- const rows=plain(api().providerEntries({providers:[null,'x',{}, {slug:'../../private'}, {slug:'fred'}]}));assert.deepEqual(rows.map(r=>r.slug),['fred','census']);
+ const rows=plain(api().providerEntries({providers:[null,'x',{}, {slug:'../../private'}, {slug:'fred'}]}));assert.deepEqual(rows.map(r=>r.slug),['fred','census','defillama']);
 });
 test('Census chart discovery and stored-file pages use distinct exact identities',()=>{
  const a=api();assert.equal(a.route({provider:'census',view:'files',filePage:-1}),'/data/providers/census-us.json');assert.equal(a.route({provider:'census',view:'files',filePage:0}),'/data/providers/census-us/page-000.json');
@@ -24,5 +24,5 @@ test('Census chart discovery and stored-file pages use distinct exact identities
 });
 test('whole predecessor sources and all pre-existing test assertions are reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-provider-discovery-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-cq-definition-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-cq-definition-preservation.cjs").normalize(require("./helpers/chart-defillama-preservation.cjs").normalize(read(file),file),file);assert.equal(hash(raw),row.after_sha256);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
 });

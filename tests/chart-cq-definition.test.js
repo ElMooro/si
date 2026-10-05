@@ -40,5 +40,5 @@ test('fuse and catalogue expose conflict, withhold only affected derived interpr
 });
 test('whole predecessor source and all earlier assertions are reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-cq-definition-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-defillama-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
 });

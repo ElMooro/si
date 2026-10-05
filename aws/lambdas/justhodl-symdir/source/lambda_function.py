@@ -55,6 +55,7 @@ import oecd_series
 import census_series
 import imf_series
 import cboe_index
+import defillama_tvl
 from directory_resident import load as resident_load, evidence as resident_evidence
 import csv
 import gzip
@@ -1633,6 +1634,13 @@ def doc_row(d, score=None):
                 row.update(name=checked["name"],unit=checked["unit"],freq=checked["freq"],live_history_verified=False)
             except ValueError:
                 row.update(chartable=False,definition_review_required=True)
+    if d[D_ID]=="defillama:reviewed-tvl-history" and kind=="dataset":
+        row.update(browse=True,chartable=False,reviewed_series=len(defillama_tvl.CATALOGUE["series"]))
+    if d[D_ID].lower().startswith("defillama:tvl:") and kind=="series":
+        try:
+            checked=defillama_tvl.definition(d[D_ID]);row.update(provider="defillama",name=checked["name"],unit=checked["unit"],freq=checked["freq"],currency=checked["currency"],live_history_verified=False)
+        except ValueError:
+            row.update(chartable=False,definition_review_required=True)
     if d[D_ID]=="cboe:reviewed-index-history" and kind=="dataset":
         row.update(browse=True,chartable=False,reviewed_series=len(cboe_index.CATALOGUE["series"]))
     if d[D_ID].lower().startswith("cboeindex:") and kind=="series":
@@ -1646,6 +1654,8 @@ def doc_row(d, score=None):
 
 
 def search(q, limit=40, prov=None, kind=None):
+    if (prov in (None,"defillama") and str(q or "").lower().startswith("defillama:tvl:")) or (prov=="defillama" and kind=="series"):
+        return dict(defillama_tvl.directory(q or "",max(1,min(int(limit),200))),q=q)
     if (prov in (None,"cboe","cboeindex") and str(q or "").lower().startswith("cboeindex:")) or (prov in ("cboe","cboeindex") and kind=="series"):
         return dict(cboe_index.directory(q or "",max(1,min(int(limit),200))),q=q)
     if (prov in (None, "imf") and str(q or "").lower().startswith("imf:") and str(q or "").count(":")>=2) or (prov == "imf" and kind == "series"):
@@ -1956,6 +1966,10 @@ def browse(ds, q="", limit=200, offset=0):
     ql = q.lower()
     if prov == "oecd" and oecd_series.reviewed_flow(rest):
         return oecd_series.directory(q, limit, offset, dataset=True,flow=oecd_series.reviewed_flow(rest))
+    if prov=="defillama" and rest=="reviewed-tvl-history":
+        return dict(defillama_tvl.directory(q,limit,offset),ds=ds)
+    if prov=="defillama":
+        raise ValueError("Choose the reviewed DefiLlama TVL dataset or an exact series identifier")
     if prov=="cboe" and rest=="reviewed-index-history":
         return dict(cboe_index.directory(q,limit,offset),ds=ds)
     if prov=="cboeindex":
@@ -2147,6 +2161,8 @@ def _cache_get(sid, max_age_s):
             return None, age
         if sid.lower().startswith("census:") and census_series.reviewed_dataset(sid.split(":")[1]) and not census_series.cache_valid(cached,sid):
             return None, age
+        if sid.lower().startswith("defillama:") and not defillama_tvl.cache_valid(cached,sid):
+            return None,age
         if sid.lower().startswith("cboeindex:") and not cboe_index.cache_valid(cached,sid):
             return None,age
         if sid.lower().startswith("imf:") and not imf_series.cache_valid(cached,sid):
@@ -2990,10 +3006,10 @@ def r_official_yield(sid, rest, d):
     return _result(sid, "official-yields", obs, name=j.get("name") or j.get("title") or rest, unit="Percent", freq="D", source="warehouse:official-yields (%s)" % (j.get("source") or rest))
 
 
-RESOLVERS = {"cboeindex":lambda s,r,d:cboe_index.fetch(s,s3,BUCKET), "imf": lambda s, r, d: imf_series.fetch(s, s3, BUCKET), "oecd": lambda s, r, d: oecd_series.fetch(s, s3, BUCKET), "bis": lambda s, r, d: bis_reviewed_series.fetch(s), "bisfx": lambda s, r, d: bis_fx_cross.fetch(s, fetcher=fetch_series), "cftc": lambda s, r, d: cftc_series.fetch(s), "ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr, "ofr-fsi": r_ofr_fsi,
+RESOLVERS = {"defillama":lambda s,r,d:defillama_tvl.fetch(s,s3,BUCKET), "cboeindex":lambda s,r,d:cboe_index.fetch(s,s3,BUCKET), "imf": lambda s, r, d: imf_series.fetch(s, s3, BUCKET), "oecd": lambda s, r, d: oecd_series.fetch(s, s3, BUCKET), "bis": lambda s, r, d: bis_reviewed_series.fetch(s), "bisfx": lambda s, r, d: bis_fx_cross.fetch(s, fetcher=fetch_series), "cftc": lambda s, r, d: cftc_series.fetch(s), "ustpar": r_ustpar, "official-yields": r_official_yield, "fred": r_fred, "te": r_te, "eurostat": r_eurostat, "ecb": r_ecb, "nyfed": r_nyfed, "ofr": r_ofr, "ofr-fsi": r_ofr_fsi,
              "ofr-hfm": lambda s, r, d: r_ofr(s, r, d, "ofr-hfm"), "ofr-bsrm": lambda s, r, d: r_ofr(s, r, d, "ofr-bsrm"),
              "boj": r_boj, "statcan": r_statcan, "worldbank": r_worldbank, "treasury": r_treasury, "boe": r_boe, "census": r_census, "bls": r_bls}
-CACHE_TTL = {"cboeindex":1800, "imf": 1800, "oecd": 1800, "bisfx": 900, "bis": 900, "cftc": 900, "ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "ofr-fsi": 6 * 3600, "boj": 86400, "statcan": 86400,
+CACHE_TTL = {"defillama":1800, "cboeindex":1800, "imf": 1800, "oecd": 1800, "bisfx": 900, "bis": 900, "cftc": 900, "ustpar": 3600, "official-yields": 3600, "tv": 6 * 3600, "equity": 6 * 3600, "fred": 6 * 3600, "te": 86400, "eurostat": 86400, "ecb": 6 * 3600, "nyfed": 3600, "ofr": 6 * 3600, "ofr-fsi": 6 * 3600, "boj": 86400, "statcan": 86400,
              "worldbank": 86400, "treasury": 6 * 3600, "boe": 86400, "census": 86400, "bls": 86400}
 
 
@@ -3049,7 +3065,7 @@ def fetch_series(sid, nocache=False, _depth=0):
     try:
         return _fetch_series(sid, nocache=nocache)
     except Exception as e:  # noqa: BLE001
-        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith(("treasury:", "bis:", "bisfx:", "oecd:", "census:", "imf:", "cboeindex:", "cftc:", "cot:", "cot2:", "cot3:")):
+        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith(("treasury:", "bis:", "bisfx:", "oecd:", "census:", "imf:", "cboeindex:", "defillama:", "cftc:", "cot:", "cot2:", "cot3:")):
             raise
         cands = closest_ids(sid)
         # a typed id that is the prefix of a clearly better-known real id resolves to it (TVC:US10 -> TVC:US10Y)
@@ -3079,6 +3095,8 @@ def _fetch_series(sid, nocache=False):
         sid = cftc_series.definition(sid)["id"]
     if sid.lower().startswith("census:") and census_series.reviewed_dataset(sid.split(":")[1]):
         sid = census_series.definition(sid)["id"]
+    if sid.lower().startswith("defillama:"):
+        sid=defillama_tvl.definition(sid)["id"]
     if sid.lower().startswith("cboeindex:"):
         sid=cboe_index.definition(sid)["id"]
     if sid.lower().startswith("imf:"):
@@ -3111,7 +3129,7 @@ def _fetch_series(sid, nocache=False):
             c["cached"] = True
             c["cache_age_s"] = int(age)
             return c
-    d = None if prov in ("bis", "bisfx", "cftc", "oecd", "imf", "cboeindex") or (prov=="census" and census_series.reviewed_dataset(rest.split(":")[0])) else _doc_lookup(sid)
+    d = None if prov in ("bis", "bisfx", "cftc", "oecd", "imf", "cboeindex", "defillama") or (prov=="census" and census_series.reviewed_dataset(rest.split(":")[0])) else _doc_lookup(sid)
     if prov == "tv":
         out = r_tvsym(sid, rest, d)
     elif prov == "equity":
@@ -3181,6 +3199,8 @@ def explorer(qs):
     q = (qs.get("q") or "").strip().lower()
     kind = (qs.get("kind") or "").strip()
     offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
+    if prov=="defillama" and kind=="series":
+        return defillama_tvl.directory(q,limit,offset)
     if prov in ("cboe","cboeindex") and kind=="series":
         return cboe_index.directory(q,limit,offset)
     if prov == "imf" and kind == "series":
@@ -3222,6 +3242,8 @@ def explorer(qs):
         }
     ix = load_index()
     docs = ix["docs"]
+    if prov=="defillama":
+        docs=[doc("defillama:reviewed-tvl-history","defillama","Reviewed public DefiLlama default TVL histories","dataset",0.5)]+[d for d in docs if d[D_ID]!="defillama:reviewed-tvl-history"]
     if prov=="cboe":
         docs=[doc("cboe:reviewed-index-history","cboe","Reviewed public Cboe index and settlement histories","dataset",0.5)]+[d for d in docs if d[D_ID]!="cboe:reviewed-index-history"]
     if prov == "imf":

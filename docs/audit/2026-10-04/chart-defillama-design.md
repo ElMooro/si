@@ -1,0 +1,11 @@
+# DefiLlama default TVL source contract
+
+The chart adapter binds the free documented global default-TVL endpoint and each of the 468 exact chain names in the captured official catalogue. Definitions are distinct from historical availability. The global-total watchlist alias is explicit; other chain, token, protocol or toggle aliases are not guessed.
+
+TVL is a USD valuation stock including token-price effects, not net deposits or capital inflows. Default TVL excludes liquid staking and double-counted TVL. It is not protocol-level, borrowed, staking or all-toggle TVL. Each source timestamp must be UTC midnight. A current-day record is not certified as a completed day; a receipt time is not a publication time. Future timestamps, duplicate dates, negative TVL, invalid numbers and schema drift cannot create accepted measurements. Original source zeros retain their meaning without proving completeness.
+
+Every successful history retains the full original source response, acquisition receipt, exact definition, numeric lexemes and per-observation diagnostics. Source identity is bound to the reviewed URL and official chain name; source rows do not contain series identifiers. Missing values are not filled. Chart binary64 rounding is disclosed. Shared retention, per-series daily claims and a shared two-second request slot bound source acquisition. Access refusals stop it without retries or alternate proxies. No paid API is used.
+
+The global total and all 468 chain originals replay independently: 505,324 observations in the captured source set. This is candidate source research, not evidence of live deployment or full upstream availability. One chain, XO, ends on 2026-09-16 in the capture. Full vendor equivalence, historical methodology versions and release-time vintages remain unverified. All series remain ineligible for Calls and position sizing.
+
+All Providers exposes a separate reviewed chart adapter. There is no published DefiLlama warehouse catalogue in the captured provider-catalogue packet, so the chart does not invent a Stored files link or request a nonexistent key. The original catalogue download remains intact. The single newly qualified watchlist route is DEFILLAMA:TOTAL_TVL to defillama:tvl:all; 469 provider definitions do not mean 469 resolved watchlist gaps.
