@@ -138,11 +138,16 @@
   // ------------------------------------------------------------------ quotes
   var Q = {}, QT = {}, inflight = {}, queue = [], running = 0;
   function needQuote(id) { var t = QT[id]; return !inflight[id] && (!t || Date.now() - t > 60000); }
-  // TradingView ECONOMICS:* codes (provider denied) → reviewed warehouse equivalents in /data/tv-economics-map.json.
+  // TradingView ECONOMICS:* codes (provider denied) → reviewed warehouse equivalents in /jh-econ-map.js (window.JH_ECON_MAP).
   // Each entry names the series, its basis and the transform (yoy/mom/qoq/chg) that reproduces the TradingView figure.
   var EMAP = null, EMAPP = null, mapModeSaved = null;
   function econMap() {
-    if (!EMAPP) EMAPP = root.fetch("/data/tv-economics-map.json").then(function (r) { return r.ok ? r.json() : { map: {} }; }).catch(function () { return { map: {} }; }).then(function (d) { EMAP = (d && d.map) || {}; root.JHEconMap = d; return EMAP; });
+    if (!EMAPP) EMAPP = new Promise(function (res) {
+      if (root.JH_ECON_MAP) { res(root.JH_ECON_MAP); return; }
+      var sc = doc.createElement("script"); sc.src = "/jh-econ-map.js?v=20261005-em1"; sc.async = true;
+      sc.onload = function () { res(root.JH_ECON_MAP || { map: {} }); }; sc.onerror = function () { res({ map: {} }); };
+      (doc.head || doc.documentElement).appendChild(sc);
+    }).then(function (d) { EMAP = (d && d.map) || {}; root.JHEconMap = d; return EMAP; });
     return EMAPP;
   }
   function mapped(id) { return EMAP ? EMAP[String(id || "").toUpperCase()] || null : null; }

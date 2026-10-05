@@ -29,6 +29,6 @@ test('CSV/JSON import parses common layouts exactly',()=>{
  for(const [s,day] of [['2020Q3','2020-07-01'],['Jan 2020','2020-01-01'],['2020M03','2020-03-01'],['1704153600','2024-01-02'],['20200105','2020-01-05']])assert.equal(I.parseDate(s,undefined,true).day,day,s);
 });
 test('watchlist routes TradingView ECONOMICS codes to the reviewed map and labels the equivalence',()=>{
- const s=read('jh-tv-watchlist.js');assert.match(s,/\/data\/tv-economics-map\.json/);assert.match(s,/Mapped equivalent: /);assert.match(s,/TradingView feed not available/);
+ const s=read('jh-tv-watchlist.js');assert.match(s,/jh-econ-map\.js/);assert.match(s,/Mapped equivalent: /);assert.match(s,/TradingView feed not available/);
  assert.match(read('jh-chart-engine.js'),/window\.jhSetMode=function/);
 });
