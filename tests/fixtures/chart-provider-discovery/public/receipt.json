@@ -1,0 +1,99 @@
+{
+  "requests": [
+    {
+      "name": "catalogue",
+      "url": "https://justhodl.ai/data/provider-catalog.json",
+      "http_status": 200,
+      "bytes": 32746,
+      "sha256": "aacb7c618012c8081271add6d3cd9c5c13313856fcd189499381bbbf24ba056c",
+      "at": "2026-10-05T04:02:59.137457+00:00"
+    },
+    {
+      "name": "files",
+      "url": "https://justhodl.ai/data/providers/census-us.json",
+      "http_status": 200,
+      "bytes": 12531,
+      "sha256": "d70785ab2b848a47a4d7029b1d73fc483b98e582d0fa50e171fb3d55f5a1b4b8",
+      "at": "2026-10-05T04:02:59.370420+00:00"
+    },
+    {
+      "name": "files-page",
+      "url": "https://justhodl.ai/data/providers/census-us/page-000.json",
+      "http_status": 200,
+      "bytes": 31365,
+      "sha256": "dc983db8529de2c7f23e2046f943dbd82a436822b6102254550dc2ad5b7baa2c",
+      "at": "2026-10-05T04:02:59.640629+00:00"
+    },
+    {
+      "name": "census-directory",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/explorer?provider=census&limit=50&offset=0&q=",
+      "http_status": 200,
+      "bytes": 18075,
+      "sha256": "18863f64c3d3e8f26544044de6bcd224f9e8b56e32dd4a859cc00b523c5aeee1",
+      "at": "2026-10-05T04:03:21.884176+00:00"
+    },
+    {
+      "name": "census-us-directory",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/explorer?provider=census-us&limit=50&offset=0&q=",
+      "http_status": 200,
+      "bytes": 859,
+      "sha256": "438973098b2bf1bb39ad92c69de28648c287ef0298cf7d004336d72d6bae6bb4",
+      "at": "2026-10-05T04:03:22.385699+00:00"
+    },
+    {
+      "name": "series-0",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Amrts&limit=50&offset=0&q=census%3Amrts%3AIM%3A44000%3Ano%3AUS",
+      "http_status": 200,
+      "bytes": 847,
+      "sha256": "4b1c1a0dcfa73afb8829f09de26e6fc7d4493de2bd2d34b7cdf2abbf0ae951bb",
+      "at": "2026-10-05T04:03:22.557392+00:00"
+    },
+    {
+      "name": "series-1",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aresconst&limit=50&offset=0&q=census%3Aresconst%3AMULTI%3AACOMPLETIONS%3Ayes%3AUS",
+      "http_status": 200,
+      "bytes": 941,
+      "sha256": "0ddd82a8956cf850b7ffef0d1e3dfd87855e93aacb827c87fe498aaac3087b92",
+      "at": "2026-10-05T04:03:22.741376+00:00"
+    },
+    {
+      "name": "series-2",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aqss&limit=50&offset=0&q=census%3Aqss%3AADM%3A7111T%3Ano%3AUS",
+      "http_status": 200,
+      "bytes": 858,
+      "sha256": "9fef2284b6043cdceb15d38e9f8902f3615792b39dfeb89eeebed9521df809b3",
+      "at": "2026-10-05T04:03:22.910964+00:00"
+    },
+    {
+      "name": "dataset-0",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Amrts&limit=50&offset=0&q=",
+      "http_status": 200,
+      "bytes": 30557,
+      "sha256": "3b0ae9f8df31505273ec1762cced5a8e2df59a8b4716006d8158876e43157d0e",
+      "at": "2026-10-05T04:04:33.068640+00:00"
+    },
+    {
+      "name": "dataset-1",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aresconst&limit=50&offset=0&q=",
+      "http_status": 200,
+      "bytes": 31853,
+      "sha256": "5850ef8b7d6b9e0c7e05baba2ea06a18f35c06cfca7017cb573468de54cac59a",
+      "at": "2026-10-05T04:04:33.244853+00:00"
+    },
+    {
+      "name": "dataset-2",
+      "url": "https://justhodl-data-proxy.raafouis.workers.dev/browse?ds=census%3Aqss&limit=50&offset=0&q=",
+      "http_status": 200,
+      "bytes": 30358,
+      "sha256": "bccd26529355ef6301c189e867b713acd412c9f00908ea5cdd8294aebcf8be0f",
+      "at": "2026-10-05T04:04:33.420549+00:00"
+    }
+  ],
+  "series_ids": [
+    "census:mrts:IM:44000:no:US",
+    "census:resconst:MULTI:ACOMPLETIONS:yes:US",
+    "census:qss:ADM:7111T:no:US"
+  ],
+  "actual_public_metadata": true,
+  "history_claim": false
+}

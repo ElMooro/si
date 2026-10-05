@@ -18,19 +18,9 @@
   function text(value){return typeof value==="string"?value:"";}
   function providerId(value){return typeof value==="string"&&/^[a-z0-9][a-z0-9-]*$/.test(value)?value:"";}
   function natural(value){return Number.isSafeInteger(value)&&value>=0?value:null;}
-  // The warehouse catalogue uses census-us; the reviewed scalar adapter uses census.
-  // This is a discovery bridge, not another source or a history-coverage claim.
-  var NATIVE_PROVIDERS=[{slug:"census",name:"US Census Bureau · reviewed economic histories",api:"www.census.gov/econ/currentdata/",discovery_origin:"chart_adapter",catalogue_slug:"census-us"}];
-  function storedProvider(provider){return provider==="census"?"census-us":provider;}
-  function providerEntries(packet){
-    if(!Array.isArray(packet.providers))throw new Error("Provider catalogue is missing its provider list.");
-    var rows=packet.providers.filter(function(p){return p&&typeof p==="object"&&providerId(p.slug);}).slice();
-    NATIVE_PROVIDERS.forEach(function(p){if(!rows.some(function(r){return r.slug===p.slug;}))rows.push(Object.assign({},p));});
-    return rows;
-  }
   function route(state){
     if(!state.provider)return "/data/provider-catalog.json";
-    if(state.view==="files")return "/data/providers/"+storedProvider(state.provider)+(state.filePage<0?".json":"/page-"+String(state.filePage).padStart(3,"0")+".json");
+    if(state.view==="files")return "/data/providers/"+state.provider+(state.filePage<0?".json":"/page-"+String(state.filePage).padStart(3,"0")+".json");
     var params=new URLSearchParams({limit:String(PAGE),offset:String(state.offset),q:state.query});
     if(state.dataset){params.set("ds",state.dataset);return PROXY+"/browse?"+params;}
     params.set("provider",state.provider);return PROXY+"/explorer?"+params;
@@ -78,7 +68,6 @@
     var foot=dialog.querySelector(".jhp-foot");foot.replaceChildren();
     foot.appendChild(node("p","Directory metadata describes what is indexed. History, licence, units and observation dates must still be checked when a series loads."));
     if(!response)return;
-    if(!model.provider)foot.appendChild(node("p","Entries marked Chart adapter are supplied by the chart's reviewed adapter registry; they are not rows in the downloaded warehouse catalogue. Neither listing proves historical coverage."));
     var details=node("details"),summary=node("summary","Source receipt and original metadata");details.appendChild(summary);
     details.appendChild(node("pre",JSON.stringify(response.receipt,null,2)));details.appendChild(button("Download original metadata",capture));foot.appendChild(details);
   }
@@ -88,21 +77,20 @@
     if(state.provider){
       crumb.appendChild(button(state.provider,function(){navigate({dataset:"",offset:0,query:"",view:"directory"});}));
       crumb.appendChild(button("Indexed series",function(){navigate({dataset:"",offset:0,query:"",view:"directory"});}));
-      if(state.provider==="census-us")crumb.appendChild(button("Browse reviewed economic histories",function(){navigate({provider:"census",dataset:"",offset:0,query:"",view:"directory"});}));
-      if(state.provider==="census")crumb.appendChild(node("small","Census economic series · stored-file catalogue: census-us"));
       crumb.appendChild(button("Stored files",function(){navigate({dataset:"",offset:0,query:"",view:"files",filePage:-1,filePages:0});}));
     }
     if(state.dataset)crumb.appendChild(node("span",state.dataset));
     if(!state.provider){
-      var rows=providerEntries(packet).filter(function(p){return !state.query||(String(p.name)+" "+p.slug).toLowerCase().includes(state.query.toLowerCase());});
-      status(rows.length+" provider entries · published catalogue as of "+(text(packet.as_of)||"unreported")+". Select a provider to browse its indexed datasets.");
-      rows.forEach(function(p){var b=button(text(p.name)||p.slug,function(){navigate({provider:p.slug,dataset:"",offset:0,query:""});});b.className="jhp-row";b.appendChild(node("small",p.slug+" · "+(text(p.api)||"source not reported")+(p.discovery_origin==="chart_adapter"?" · Chart adapter; warehouse files: "+p.catalogue_slug:"")));list.appendChild(b);});
+      if(!Array.isArray(packet.providers))throw new Error("Provider catalogue is missing its provider list.");
+      var rows=packet.providers.filter(function(p){return providerId(p.slug)&&(!state.query||(String(p.name)+" "+p.slug).toLowerCase().includes(state.query.toLowerCase()));});
+      status(rows.length+" provider entries · catalogue as of "+(text(packet.as_of)||"unreported")+". Select a provider to browse its indexed datasets.");
+      rows.forEach(function(p){var b=button(text(p.name)||p.slug,function(){navigate({provider:p.slug,dataset:"",offset:0,query:""});});b.className="jhp-row";b.appendChild(node("small",p.slug+" · "+(text(p.api)||"source not reported")));list.appendChild(b);});
     }else if(state.view==="files"){
       if(!Array.isArray(packet.keys))throw new Error("Stored-file catalogue has no key list.");
-      if(state.filePage<0){if(packet.slug!==storedProvider(state.provider)||natural(packet.n_pages)===null)throw new Error("Stored-file catalogue identity or page count is invalid.");model.filePages=packet.n_pages;state.filePages=packet.n_pages;}
+      if(state.filePage<0){if(packet.slug!==state.provider||natural(packet.n_pages)===null)throw new Error("Stored-file catalogue identity or page count is invalid.");model.filePages=packet.n_pages;state.filePages=packet.n_pages;}
       else if(packet.page!==state.filePage)throw new Error("Stored-file page does not match the request.");
       var files=packet.keys.filter(function(row){return !state.query||JSON.stringify(row).toLowerCase().includes(state.query.toLowerCase());});
-      status("Stored-file metadata · "+storedProvider(state.provider)+" · "+(state.filePage<0?"overview":("continuation "+(state.filePage+1)+" of "+state.filePages))+" · "+files.length+" entries on this page. Search filters this page only; file presence does not establish chartable history.");
+      status("Stored-file metadata · "+(state.filePage<0?"overview":("continuation "+(state.filePage+1)+" of "+state.filePages))+" · "+files.length+" entries on this page. Search filters this page only; file presence does not establish chartable history.");
       files.forEach(function(row){var box=node("div",undefined,"jhp-row");box.appendChild(node("strong",text(row.key)||"Unnamed object"));box.appendChild(node("small","Reported status: "+(text(row.status)||"unreported")+" · stored object, no inferred scalar adapter"));var details=node("details");details.appendChild(node("summary","Full file metadata"));details.appendChild(node("pre",JSON.stringify(row,null,2)));box.appendChild(details);list.appendChild(box);});
       var back=button("Previous",function(){navigate({filePage:Math.max(-1,state.filePage-1)});});back.disabled=state.filePage<0;nav.appendChild(back);
       var forward=button("Next",function(){navigate({filePage:state.filePage+1});});forward.disabled=state.filePage+1>=state.filePages;nav.appendChild(forward);
@@ -171,6 +159,6 @@
     ensure();if(!dialog.open)opener=document.activeElement;model={provider:p,dataset:p&&id&&!/^DATA:|^provider:/i.test(id)?id:"",query:"",offset:0,destination:["chart","add","compare"].includes(options.destination)?options.destination:"chart",view:"directory",filePage:-1,filePages:0};dialog.hidden=false;if(!dialog.open)dialog.showModal();dialog.querySelector("input").value="";dialog.querySelector("input").placeholder="Series, country or dimension code";dialog.querySelector("input").focus();load();return true;
   }
   function install(){var parent=document.querySelector("#symsearch .shd");if(parent&&!document.getElementById("jh-provider-open")){var b=button("Providers",function(){var box=document.getElementById("symsearch");open({destination:box&&box.dataset.dest});});b.id="jh-provider-open";parent.insertBefore(b,document.getElementById("ssx"));}}
-  global.JHChartProviderBrowser={open:open,close:close,route:route,action:action,pageInfo:pageInfo,receive:receive,providerEntries:providerEntries,storedProvider:storedProvider};
+  global.JHChartProviderBrowser={open:open,close:close,route:route,action:action,pageInfo:pageInfo,receive:receive};
   if(typeof document!=="undefined"){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true});else install();}
 })(typeof window!=="undefined"?window:globalThis);

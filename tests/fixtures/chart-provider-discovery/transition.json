@@ -1,0 +1,85 @@
+{
+  "base_scope": "Exact checked Cboe candidate; no source series, route or authority changes",
+  "changes": {
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-provider-discovery/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "c40d1b0fc53b27f89b386525f1c6605db86bdfb428b4cab02ba4e231ef5c4f33",
+      "replacements": [
+        {
+          "before": "  function route(state){",
+          "after": "  // The warehouse catalogue uses census-us; the reviewed scalar adapter uses census.\n  // This is a discovery bridge, not another source or a history-coverage claim.\n  var NATIVE_PROVIDERS=[{slug:\"census\",name:\"US Census Bureau \u00b7 reviewed economic histories\",api:\"www.census.gov/econ/currentdata/\",discovery_origin:\"chart_adapter\",catalogue_slug:\"census-us\"}];\n  function storedProvider(provider){return provider===\"census\"?\"census-us\":provider;}\n  function providerEntries(packet){\n    if(!Array.isArray(packet.providers))throw new Error(\"Provider catalogue is missing its provider list.\");\n    var rows=packet.providers.filter(function(p){return p&&typeof p===\"object\"&&providerId(p.slug);}).slice();\n    NATIVE_PROVIDERS.forEach(function(p){if(!rows.some(function(r){return r.slug===p.slug;}))rows.push(Object.assign({},p));});\n    return rows;\n  }\n  function route(state){"
+        },
+        {
+          "before": "return \"/data/providers/\"+state.provider+",
+          "after": "return \"/data/providers/\"+storedProvider(state.provider)+"
+        },
+        {
+          "before": "    if(!response)return;\n    var details=node(\"details\"),summary=node(\"summary\",\"Source receipt and original metadata\");",
+          "after": "    if(!response)return;\n    if(!model.provider)foot.appendChild(node(\"p\",\"Entries marked Chart adapter are supplied by the chart's reviewed adapter registry; they are not rows in the downloaded warehouse catalogue. Neither listing proves historical coverage.\"));\n    var details=node(\"details\"),summary=node(\"summary\",\"Source receipt and original metadata\");"
+        },
+        {
+          "before": "      crumb.appendChild(button(\"Indexed series\",function(){navigate({dataset:\"\",offset:0,query:\"\",view:\"directory\"});}));",
+          "after": "      crumb.appendChild(button(\"Indexed series\",function(){navigate({dataset:\"\",offset:0,query:\"\",view:\"directory\"});}));\n      if(state.provider===\"census-us\")crumb.appendChild(button(\"Browse reviewed economic histories\",function(){navigate({provider:\"census\",dataset:\"\",offset:0,query:\"\",view:\"directory\"});}));\n      if(state.provider===\"census\")crumb.appendChild(node(\"small\",\"Census economic series \u00b7 stored-file catalogue: census-us\"));"
+        },
+        {
+          "before": "      if(!Array.isArray(packet.providers))throw new Error(\"Provider catalogue is missing its provider list.\");\n      var rows=packet.providers.filter(function(p){return providerId(p.slug)&&(!state.query||(String(p.name)+\" \"+p.slug).toLowerCase().includes(state.query.toLowerCase()));});",
+          "after": "      var rows=providerEntries(packet).filter(function(p){return !state.query||(String(p.name)+\" \"+p.slug).toLowerCase().includes(state.query.toLowerCase());});"
+        },
+        {
+          "before": "\" provider entries \u00b7 catalogue as of \"",
+          "after": "\" provider entries \u00b7 published catalogue as of \""
+        },
+        {
+          "before": "p.slug+\" \u00b7 \"+(text(p.api)||\"source not reported\")",
+          "after": "p.slug+\" \u00b7 \"+(text(p.api)||\"source not reported\")+(p.discovery_origin===\"chart_adapter\"?\" \u00b7 Chart adapter; warehouse files: \"+p.catalogue_slug:\"\")"
+        },
+        {
+          "before": "if(packet.slug!==state.provider||natural(packet.n_pages)===null)",
+          "after": "if(packet.slug!==storedProvider(state.provider)||natural(packet.n_pages)===null)"
+        },
+        {
+          "before": "\"Stored-file metadata \u00b7 \"+(state.filePage<0?",
+          "after": "\"Stored-file metadata \u00b7 \"+storedProvider(state.provider)+\" \u00b7 \"+(state.filePage<0?"
+        },
+        {
+          "before": "pageInfo:pageInfo,receive:receive};",
+          "after": "pageInfo:pageInfo,receive:receive,providerEntries:providerEntries,storedProvider:storedProvider};"
+        }
+      ],
+      "after_sha256": "57027b1be734a2c8b07d4b3941ee977d573b4504b135b50b0a0b2664a9058a8d"
+    },
+    "tests/helpers/chart-cboe-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-provider-discovery/tests__helpers__chart-cboe-preservation.cjs.before.txt",
+      "before_sha256": "c5d0cdcdc7f1ad5cb62c8c59f08dfdbcffa4be6e497a40b1e91329ff3cd0d823",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-provider-discovery-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "ff6d0aa4d06063036467820d9590dd994f2851a3fe2767afa343c61273b2c9ff"
+    },
+    "tests/chart_cboe_preservation.py": {
+      "before_path": "tests/fixtures/chart-provider-discovery/tests__chart_cboe_preservation.py.before.txt",
+      "before_sha256": "efb91ac21cf46c2de2d201d8efd849fd5bf3392124ace0873df56d52fb4ba98a",
+      "replacements": [
+        {
+          "before": "def normalize(file,raw):\n",
+          "after": "def normalize(file,raw):\n    from chart_provider_discovery_preservation import normalize as newer\n    raw=newer(file,raw)\n"
+        }
+      ],
+      "after_sha256": "76eec576859d1c7cc9a3d7559d911f513e0fd59ef9fb9369dcbf423710738094"
+    },
+    "tests/chart-cboe.test.js": {
+      "before_path": "tests/fixtures/chart-provider-discovery/tests__chart-cboe.test.js.before.txt",
+      "before_sha256": "516df6024e0a5dca5320a2bd8cd7787e7d0244ed77d7222cec89c4480d176e14",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),",
+          "after": "const raw=require(\"./helpers/chart-provider-discovery-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),"
+        }
+      ],
+      "after_sha256": "d3e9203ec8aa2145f5bef657c7b30f14100d095ace6f6ec7f7a16f6fea6e1f06"
+    }
+  }
+}

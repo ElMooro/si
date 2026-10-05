@@ -1,0 +1,28 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
+const R=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(R,p),'utf8');
+function api(){const scope={window:{},Set,URLSearchParams};vm.runInNewContext(read('jh-chart-provider-browser.js'),scope);return scope.window.JHChartProviderBrowser;}
+const plain=v=>JSON.parse(JSON.stringify(v));
+test('published provider entries remain intact and native Census metadata is explicitly separate',()=>{
+ const packet=JSON.parse(read('tests/fixtures/chart-provider-discovery/data/provider-catalog.json')),before=JSON.stringify(packet),rows=plain(api().providerEntries(packet));
+ assert.equal(rows.length,packet.providers.length+1);assert.deepEqual(rows.slice(0,-1),packet.providers);assert.equal(JSON.stringify(packet),before);
+ const row=rows.at(-1);assert.equal(row.slug,'census');assert.equal(row.catalogue_slug,'census-us');assert.equal(row.discovery_origin,'chart_adapter');
+ for(const field of ['as_of','freshest_h','coverage_pct','series_count','history_verified','calls_eligible'])assert.equal(Object.hasOwn(row,field),false);
+ assert.equal(rows.filter(r=>r.slug==='census-us').length,1);
+});
+test('canonical provider already in the published catalogue is never duplicated or overwritten',()=>{
+ const original={slug:'census',name:'Publisher name',api:'original source',custom:17};assert.deepEqual(plain(api().providerEntries({providers:[original]})),[original]);
+});
+test('invalid catalogue shape cannot manufacture a successful native directory',()=>{
+ for(const providers of [null,{},'census',undefined])assert.throws(()=>api().providerEntries({providers}),/missing its provider list/);
+ const rows=plain(api().providerEntries({providers:[null,'x',{}, {slug:'../../private'}, {slug:'fred'}]}));assert.deepEqual(rows.map(r=>r.slug),['fred','census']);
+});
+test('Census chart discovery and stored-file pages use distinct exact identities',()=>{
+ const a=api();assert.equal(a.route({provider:'census',view:'files',filePage:-1}),'/data/providers/census-us.json');assert.equal(a.route({provider:'census',view:'files',filePage:0}),'/data/providers/census-us/page-000.json');
+ for(const provider of ['census-us','fred','imf','cboe'])assert.equal(a.route({provider,view:'files',filePage:-1}),'/data/providers/'+provider+'.json');
+ assert.equal(new URL(a.route({provider:'census',offset:0,query:''})).searchParams.get('provider'),'census');
+ const ds='census:mrts';assert.equal(new URL(a.route({provider:'census',dataset:ds,offset:0,query:''})).searchParams.get('ds'),ds);
+});
+test('whole predecessor sources and all pre-existing test assertions are reconstructable',()=>{
+ const {normalize,transition}=require('./helpers/chart-provider-discovery-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+});
