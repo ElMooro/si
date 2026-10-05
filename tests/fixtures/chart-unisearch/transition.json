@@ -1,0 +1,40 @@
+{
+ "purpose": "Byte-exact reversal of the 2026-10-05 universal search + TradingView watchlist + default line chart change. Proves no other byte of chart.html or jh-chart-engine.js changed.",
+ "changes": {
+  "chart.html": {
+   "before_path": "tests/fixtures/chart-unisearch/chart.html.before.txt",
+   "before_sha256": "cc06165673a9aaff668d11896811ebe09c9f51d75dd729d61e59faeaf83b2d7d",
+   "after_sha256": "cd27724e2d11841ee0a76cd32c06cc4f4afec31ab09408d6a331b1e971547464",
+   "replacements": [
+    {
+     "before": "/jh-chart-engine.js?v=20261002ac-shelves&watch=",
+     "after": "/jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch="
+    },
+    {
+     "before": "</body>",
+     "after": "<!-- Universal search (entire data set) + TradingView-style watchlist, 2026-10-05 -->\n<script src=\"/jh-uni-search.js?v=20261005-us1\"></script>\n<script src=\"/jh-tv-watchlist.js?v=20261005-wl1\"></script>\n</body>"
+    }
+   ]
+  },
+  "jh-chart-engine.js": {
+   "before_path": "tests/fixtures/chart-unisearch/jh-chart-engine.js.before.txt",
+   "before_sha256": "33a6ad253d356a60106bc7e4d4b006e9c324f8c6fd8a2b60661c981d3aa0c062",
+   "after_sha256": "2f1273ab23d6c8580648ac10180c686a18c7ff4d7f50af08589134291719afb6",
+   "replacements": [
+    {
+     "before": "kind=\"candles\", scaleMode=0;",
+     "after": "kind=\"line\", scaleMode=0; /* default chart type: line (2026-10-05) */"
+    },
+    {
+     "before": "if(lay.kind) kind=lay.kind;",
+     "after": "if(lay.kind && lay.kindV===2) kind=lay.kind;"
+    },
+    {
+     "before": "saveJSON(LAY_KEY,{gridOn:gridOn,",
+     "after": "saveJSON(LAY_KEY,{kindV:2,gridOn:gridOn,"
+    }
+   ]
+  }
+ },
+ "predecessor_hashes": {}
+}

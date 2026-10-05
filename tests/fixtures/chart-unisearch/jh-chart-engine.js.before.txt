@@ -240,7 +240,7 @@
   }
   var UP="#089981", DN="#f23645", BG="#ffffff", ACC="#2962ff";
   var CUSTOM_KEY="jh-chart-custom-lists", LAY_KEY="jh-chart-v12-tv-layout", ALERT_KEY="jh-chart-alerts", DRAW_KEY="jh-chart-drawings", NOTE_KEY="jh-chart-notes", FLAG_KEY="jh-chart-flags", TPL_KEY="jh-chart-templates", FAV_KEY="jh-chart-favs", PAPER_KEY="jh-chart-paper";
-  var active="SPY", tf="1d", mode="price", kind="line", scaleMode=0; /* default chart type: line (2026-10-05) */
+  var active="SPY", tf="1d", mode="price", kind="candles", scaleMode=0;
   var quotes={}, lists=[], listId="ishares", letter="", filter="", sortCol="sym", sortDir=1;
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null, volSeries=null;
   // Bind identity to the returned array, never to whichever ticker is selected later.
@@ -2197,7 +2197,7 @@
 
   (function bootLay(){
     var lay=loadJSON(LAY_KEY,null);
-    if(lay){ if(lay.gridOn!=null) gridOn=lay.gridOn; if(lay.magnet!=null) magnet=lay.magnet; if(lay.magnetMode!=null) magnetMode=lay.magnetMode; if(lay.kind && lay.kindV===2) kind=lay.kind; if(lay.tf) tf=lay.tf; if(lay.invert!=null) invert=lay.invert; if(lay.hiLo!=null) hiLo=lay.hiLo; if(lay.crossMode!=null) crossMode=lay.crossMode; if(lay.tzName) tzName=lay.tzName; if(lay.tzOff!=null) tzOff=lay.tzOff; if(lay.stayTool!=null) stayTool=lay.stayTool; if(lay.layout) layout=lay.layout; if(lay.dark!=null) dark=!!lay.dark; if(lay.liveOn!=null) liveOn=lay.liveOn; if(lay.dwinOn!=null) dwinOn=lay.dwinOn; if(lay.miniOn!=null) miniOn=lay.miniOn; if(lay.leftOn!=null) leftOn=lay.leftOn; }
+    if(lay){ if(lay.gridOn!=null) gridOn=lay.gridOn; if(lay.magnet!=null) magnet=lay.magnet; if(lay.magnetMode!=null) magnetMode=lay.magnetMode; if(lay.kind) kind=lay.kind; if(lay.tf) tf=lay.tf; if(lay.invert!=null) invert=lay.invert; if(lay.hiLo!=null) hiLo=lay.hiLo; if(lay.crossMode!=null) crossMode=lay.crossMode; if(lay.tzName) tzName=lay.tzName; if(lay.tzOff!=null) tzOff=lay.tzOff; if(lay.stayTool!=null) stayTool=lay.stayTool; if(lay.layout) layout=lay.layout; if(lay.dark!=null) dark=!!lay.dark; if(lay.liveOn!=null) liveOn=lay.liveOn; if(lay.dwinOn!=null) dwinOn=lay.dwinOn; if(lay.miniOn!=null) miniOn=lay.miniOn; if(lay.leftOn!=null) leftOn=lay.leftOn; }
     if(!lay) dark=true;
     volOn=true; vpOn=true;
     magnet=magnetMode>0;
@@ -6528,7 +6528,7 @@ else if(o.id==="rvol"){
         return {id:i.id,on:!!i.on,hide:!!i.hide,p:i.p,p2:i.p2,p3:i.p3,ob:i.ob,os:i.os,mult:i.mult,c:i.c,c2:i.c2,c3:i.c3,w:i.w,h:i.h};
       });
     }
-    saveJSON(LAY_KEY,{kindV:2,gridOn:gridOn,watermark:watermark,magnet:magnet,magnetMode:magnetMode,layout:layout,kind:kind,tf:tf,invert:invert,hiLo:hiLo,crossMode:crossMode,tzName:tzName,tzOff:tzOff,stayTool:stayTool,volOn:volOn,dark:dark,liveOn:liveOn,dwinOn:dwinOn,miniOn:miniOn,leftOn:leftOn,inds:snap(INDS),osc:snap(OSC)});
+    saveJSON(LAY_KEY,{gridOn:gridOn,watermark:watermark,magnet:magnet,magnetMode:magnetMode,layout:layout,kind:kind,tf:tf,invert:invert,hiLo:hiLo,crossMode:crossMode,tzName:tzName,tzOff:tzOff,stayTool:stayTool,volOn:volOn,dark:dark,liveOn:liveOn,dwinOn:dwinOn,miniOn:miniOn,leftOn:leftOn,inds:snap(INDS),osc:snap(OSC)});
   }
   function openCtx(x,y,s){
     var el=document.getElementById("ctx");
