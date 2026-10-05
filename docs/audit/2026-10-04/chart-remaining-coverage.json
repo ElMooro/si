@@ -2,8 +2,8 @@
   "status": "remaining_work_not_complete",
   "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
   "unique_ids": 10745,
-  "route_count": 7028,
-  "unrouted": 3717,
+  "route_count": 7029,
+  "unrouted": 3716,
   "namespaces": [
     {
       "namespace": "ECONOMICS",
@@ -586,11 +586,6 @@
       "unrouted": 1
     },
     {
-      "namespace": "DEFILLAMA",
-      "total": 1,
-      "unrouted": 1
-    },
-    {
       "namespace": "DERIBIT",
       "total": 1,
       "unrouted": 1
@@ -842,6 +837,11 @@
     },
     {
       "namespace": "OMXSTO",
+      "total": 1,
+      "unrouted": 0
+    },
+    {
+      "namespace": "DEFILLAMA",
       "total": 1,
       "unrouted": 0
     },
@@ -1787,7 +1787,6 @@
     "CRYPTOCAP:TOTALE50.D",
     "CRYPTOCAP:TOTALES.D",
     "CRYPTOCAP:TOTALDEFI",
-    "DEFILLAMA:TOTAL_TVL",
     "CRYPTOCAP:OTHERS",
     "ECONOMICS:CLTVS",
     "ECONOMICS:CNTVS",
@@ -5298,5 +5297,19 @@
     "downstream_producer_repaired": false,
     "review": "chart-cq-definition-review.md",
     "public_packet_acceptance": "chart-cq-definition-public-packets.json"
+  },
+  "defillama_expansion": {
+    "source_commit": "2d3ad3c63d2d1eb1a9711b5d7ca68813e3c934c5",
+    "exact_provider_definitions": 469,
+    "datasets": 1,
+    "qualified_alternative_routes_added": 1,
+    "public_histories_independently_replayed": 469,
+    "provider_definitions_without_live_replay": 0,
+    "history_audit": "chart-defillama-public-history-audit.json",
+    "vendor_equivalence_verified": false,
+    "full_upstream_history_verified": false,
+    "point_in_time_vintages_verified": false,
+    "route_is_not_history_proof": true,
+    "measurement": "USD valuation stock; not capital inflows; official default exclusions retained"
   }
 }
