@@ -1,5 +1,5 @@
 {
-  "stage": "candidate_definitions_not_live",
+  "stage": "deployed_and_all_added_alternatives_live_replayed",
   "alternatives": {
     "ECONOMICS:JPPPIYY": {
       "alternative": "imf:PPI:JPN.PPI.YOY_PCH_PT.M",
@@ -4432,5 +4432,7 @@
       "available_imf_series": "imf:LS:FRA.U.PT.M",
       "reason": "Do not overwrite the existing fallback route. The IMF series remains selectable by its exact provider identifier."
     }
-  }
+  },
+  "source_commit": "5f55f1ea182d529b41d5311a4360f08e8e02e5af",
+  "history_acceptance": "chart-imf-public-history-audit.json"
 }

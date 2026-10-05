@@ -1,5 +1,5 @@
 {
-  "stage": "tested_candidate_not_live",
+  "stage": "deployed_with_explicit_live_history_scope",
   "catalogue_sha256": "42602c214b3b629f8f1bb2e2db5d33bfca02e00042283f0cafefe4eaba385ffd",
   "adapter_sha256": "a98fe7fcd51f5b40ac4b818b5e0418fc1415c3fbdda24c3d626664b419222514",
   "exact_public_definitions": 10113,
@@ -1535,7 +1535,7 @@
     "non_public_observations": "Discovery archives with mixed access labels are not published. Only exact PUBLIC_OPEN/PUB series and responses pass the new adapter."
   },
   "qualifications": {
-    "live_deployment_verified": false,
+    "live_deployment_verified": true,
     "full_upstream_history_verified": false,
     "point_in_time_vintages_verified": false,
     "watchlist_vendor_equivalence_verified": false,
@@ -1548,5 +1548,10 @@
     "transformations": "Use published year-over-year or period-on-period series, not a fabricated growth calculation.",
     "units": "Exact percentage units and index reference bases; no monetary scaling assumption. Missing and excluded statuses remain null.",
     "old_histories": "Source last observation remains visible; a monthly policy rate is not the current policy decision."
-  }
+  },
+  "source_commit": "5f55f1ea182d529b41d5311a4360f08e8e02e5af",
+  "history_acceptance": "chart-imf-public-history-audit.json",
+  "native_acceptance": "chart-imf-native-acceptance.json",
+  "live_replayed_series": 76,
+  "catalogue_series_not_yet_live_replayed": 10037
 }
