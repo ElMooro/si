@@ -1,0 +1,2795 @@
+{
+  "source_commit": "caf0b36b415116921d41abbd923465e65bcedf63",
+  "requests": [
+    {
+      "url": "https://justhodl.ai/data/cryptoquant-series.json",
+      "http_status": 200,
+      "received_at": "2026-10-05T05:08:35.982784+00:00",
+      "bytes": 3666573,
+      "sha256": "c1ff4edeffb62406474e1cfa9b276de356d0809f5a17fb52772d932e4ccf6954"
+    },
+    {
+      "url": "https://justhodl.ai/data/cryptoquant-onchain.json",
+      "http_status": 200,
+      "received_at": "2026-10-05T05:08:36.463641+00:00",
+      "bytes": 324131,
+      "sha256": "849653c43db69e76d639457d96a1c66993f250355a6d138cbc7f16da65ccf56d"
+    },
+    {
+      "url": "https://justhodl.ai/data/config/cryptoquant-spec.json",
+      "http_status": 200,
+      "received_at": "2026-10-05T05:08:36.864515+00:00",
+      "bytes": 157292,
+      "sha256": "058b56994f1b8ee13c4219273e355afeed43489ceefd38d1c1816d6df7275aa9"
+    }
+  ],
+  "generated_at": "2026-10-04T21:05:07+00:00",
+  "series_count": 344,
+  "received_observation_count": 133965,
+  "series": [
+    {
+      "id": "CQ:btc_exchange_netflow",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "f659d1f888e6d4849b2413aa658827bcb4a812dd41c024cb5a1a47dd344822dd",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_exchange_inflow",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "4158cd2c01fb599f44f96776bd47e4a158016d8c3df91bba146307f0a8679169",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_inflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "448dfefd2df6e14882b9410716b9cd347f7492c4fc3d07a783e2ffb7c3faddca",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_inflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "75ff61991509f6cc84786689fea3bcbf91c1ba2b68eb53f53b2e11e51ba0e018",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_exchange_outflow",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "b5f9bd7b0f50a5e37b4b734da5b868fb5d57211ac91f03240410a438577fb465",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_outflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "de74b1e7f847ea3f797f54bd964da5d8e4575554548498b864a74a229b74a920",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_outflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "c8e33070ac0e1e2cecdc465ae43c9c25cee584a11eb6e5df41a83eeec89d4247",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_exchange_reserve",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "95eb7b4c1c6252ac2e84dca05eaf81bc81c396cc735c87b2615343617ec16aa4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_reserve_usd",
+      "received_observations": 378,
+      "first": "2025-09-22",
+      "last": "2026-10-04",
+      "received_series_sha256": "903a14bca46b376f9064407fc3605460aca5bced39a1e29f4507f9c1f3e532c4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_exchange_addr_in",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "09a9746a82fff7802b2ef5759bc3c54761e531d102673970afbd5cabcf5857af",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_addresses_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "e002692879bbe54c555fb302283378e2a06671d90a533e44d3a1788e259b1fbf",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_mpi",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "6d9b3fd65185107455799480fc75dc1829a7110b23a8ba675d86e953ac598ef7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_whale_ratio",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "c605205138936d172fc8fa66806eb46ee05ecc21bcc84b2afaab253852da466f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fund_flow_ratio",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "c54b35b27f0644a6b035c86636920c35fda5a019cfceb9699eb6b8481f00a6e6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_stablecoins_ratio",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "78952eadd22b49e0d64250b8db42571962d0f881374c4972167060f7f4400b0b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_stablecoins_ratio_usd",
+      "received_observations": 378,
+      "first": "2025-09-22",
+      "last": "2026-10-04",
+      "received_series_sha256": "6393482a7a75de6784a30593973de9f72112845d83969082b81035a54fdfb7f8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_exchange_supply_ratio",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "c84a0d03dc3b6250cf8618b618dfd1b408862a700e77c0f92ee071c7fe4cee79",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_mvrv",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "68b4c9435bd81b42af9ec9e92dcde09e17712da1c0cf79b0132a778c24b7f87d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sopr",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "e62816a6860458b7053b1e62d701a2ed42cc7de58ab6a707d4038c99e89e3d32",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_a_sopr",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "434ebde398d170b053e0836152a4ebf4379d91208afefff59c75b706a16cd909",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sth_sopr",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "604100c8a3bb3e9e521c901a02b286f2c39592bc8642b6ef97e4ad05c5b7d170",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_lth_sopr",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "4feb12250ec31958ad098e3e4e0d9273b448c30d89bef91bf1f260fcfb540914",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sopr_ratio",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "7b33cc2cf0f44d850be01c089d0a4de8b64e0cc7477538e05da1c23a8fbceef7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nupl",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "8fbbecfcd7e46ebdf032130c8ebc762d6cb2f29de42c2b8b364e1fc3a38dfd68",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nup",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "7eca7d05987121c6ad3cca3cb1b55e542aec344e71aa658c9cbf1f40157bcbf2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nul",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "b639777a6462e222eded63a8fb18aa72a1ac33a9224a6b11214d4a3e974b1aa2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_realized_price",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "b3dc3c47107a64fc9196c4893188ca174711821c7adbdaefc49e411f0dc59db1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_ssr",
+      "received_observations": 388,
+      "first": "2025-09-11",
+      "last": "2026-10-03",
+      "received_series_sha256": "c32560fa111fb0a0a0673c996fb7b5c2aad2eea075de4393887a168c463aa9e8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nvt",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "74343e432f6270c57a24589978f4e7e8b76bae0700b9d4b6c55631e2514404db",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nvt_golden",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "0a5ad797aa668c0beed22646d436936e6eb5467c3047ebe63fe62a1d549ffebf",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nvm",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "73aeb8abeb1d18f78b0996fef237cdd40e0eca3137c8a7caa718440f86c2b299",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_puell",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "40c17982ba6f3831eba54b8fe4371a59bb23f779ad28b2c4f9450e1b0dd0fd29",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_stock_to_flow",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "57da25e160739865e4ac787c91e4b39e335670961814daa7bfd0222392bcbd17",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_stock_to_flow_reversion",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "67783b71deb7880bcba44a15dffc97ed4fd1f4341fc0af831e20849b78e22eab",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_netflow",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "21be995c00349887acb85b5407cec960a163818bb9c4f8bcfbb11d314b504679",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_outflow",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "ca32aabc22d3d0ae2e0371f1736c7424a8d1a4b819c163182221191a973c3b8f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_outflow_outflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "b5cc543787a8dc15bdeeeb0528cbe84379910493b4be71f862ef685a04af829b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_outflow_outflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "344558c68f2a51218781533e0e31adb45d25962785e1c08e1d66a6476ea1cfb9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_reserve",
+      "received_observations": 460,
+      "first": "2025-07-02",
+      "last": "2026-10-04",
+      "received_series_sha256": "ede2c0ce91747ead118efa65995efc388af2f2635f45dc23e379689cb442bdac",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_reserve_reserve_usd",
+      "received_observations": 378,
+      "first": "2025-09-22",
+      "last": "2026-10-04",
+      "received_series_sha256": "dc86ac322b1e854edb3374dcb3ad5ddc6abe69ce8ad192475fb7218e7ecc5240",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_tx_count",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "4132a7b809ed75478f60912ad409a7fdf88c057ab1abbc48ff20291dd9be5055",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_transactions_count_mean",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "de9e1c71bcaf78149bec9b129d45977d9262d1e95b6ca8e044f04f1586df672d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_addresses_active",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "4599a354e26d24cc2db720c9f648d775ae8601b6248c844841f9ef8015b614dd",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_addresses_count_sender",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "5f123ac43b7baf739418743bc8e29daf442430e08938cdddf8d2cd54532aceb4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_addresses_count_receiver",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "57fc86ae711bfb39edbbd477b44aa06690437af391b1a10fa03a1891c712ef97",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_total",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "238d72c9d0a913fb1a284485615a7158c1c1cb2975e5350fe51344f394345b0f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_block_mean_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "b1a8e5905df7da012ea1a3575cbf2b3f5718aac14223f57b70a143e5faa91900",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_data_fees_fees_total",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1a0935ea44f3baba5f5ba279d1d174081d8b5ec4b835ff6e2724abdf2503edba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_total_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1245525f077edbe37edd90ed2eeabb1aa5be799aa37aed93d3f8b0dcc6981b06",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_reward_percent",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "06b97a3ca7ccb46aa9cd89144c656e1ecb19aa1079527936ecf8d14181481452",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_tx_mean",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "a9d38ae90e62eba0398e626a100298508d9f17b3f6b2112f440438855e993eb8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_transaction_mean_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "ac50b474657db30c6538733485265dd3509d5d7db5e35705af148a14bbe09b13",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_transaction_median",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d7f076dc3751255da56aa1d9870a382f77a576995a27cb9410b06ccd45cc99ee",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_fees_transaction_median_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "13e673269edf122fb6a334a6ab82449aa23fe0e76d55b57cdd1c2e32f202f86a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_blockreward",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "f60d11e56e1bd30347d0cbb163db045e2cf969132611f072154755f1e60fb9ff",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_blockreward_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "817c5b8c85df4398453cedd37995ba4c1babb8f9d479a809833e18c08e5014e3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_difficulty",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "8722c3b70ce285dfe4eefacf76b709b1ceb4db21d32e8b7b32e9fc18d9d5cf6f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_hashrate",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "04e4e1f953d1e2946093ae1f93f761c07e0f98e85a4bbf6d1bcf68b024e77c89",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_utxo_count",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "bba6124fd1ef016521e194a560703d086335332e3be96c69f41eebcdfce2374f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_velocity",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "86c6a873f689e24eda2a4602fdc838aeacaafef7a9e000ebbbe38013ab3afe18",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_tokens_transferred",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "e18924d95e20bf326736086a4822decddc66de198dd81b0a4b5c5a7c0a87bca7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_tokens_transferred_mean",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "0bd885cb366d51554643917a00997b0a6efaf07f750434d3694da975f979cc27",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_tokens_transferred_median",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "2f7b9c0c102d4677f8206d5d3f7597e2fdee2b583f4d865795c0dd1263dcb411",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_supply_total",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "7c66b46ea55f210602c84e33106a67cc8aaf31d09445213ee8ce7325ff22f960",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_data_supply_supply_total",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "fd553bae95b9de1878c0df6df0541b555d7ea8aeea656287ebc22a3367d7088e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_open_interest",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "6d690a11824bf26d1df42efcb840cff2e0d2f2485b2e2e6120a750db7d630f89",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_funding_rates",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "4de92ae42e085b68d264e34a12d4c09f897a72ae1c7b719cd74b4f3c7b5b6e55",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_liquidations",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "255ed876bcde481fcc09a0d8425b452b9abb0cc7516dd56e2ba4ea9c5f38aae9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_short_liquidations",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ebdaaea559b61264e0403c7930758ecc12a24ad36a81ee4c505738f01b072f45",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_long_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "75c7b978c7011cfb006cf04e14463c7b0018cb2bc121328857c267f351b36c43",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_short_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "7052ccfda2e38ac826419a154c73d156a41d183c35ec5441067c3ea29ffb1557",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_taker_ratio",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "2cadd1586bb702c1f3b5b9d90886514b9b61319276ca05ed96009a2a09bb96bc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_taker_sell_volume",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "a03074cc59c2b46dc4a8fc95c14197152b5169ccdab361541c55da56769657b7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_taker_buy_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "6acc7c391740f906a899bffd75708d0b5de14b352848bd449ba953543c069836",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_taker_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b72242741596b077ac06bfa4b6b7414e45bdd4179e7b8d8a93760fbb4102b82d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_taker_buy_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ffa77699982ec580d49cdf9257993fc8da19054c029f309c85fbc56aeb26e3d3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_coinbase_premium",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "0a417fda5d221a5df9fdf888b27b4533e4146c60239534325520f602c08c669a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_coinbase_premium_index",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d9c9cfe0b3045d543b3c7b4ca5165e15f3abaac99e546939e50bec0105c515e3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_exchange_netflow",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "7630130f341f2474db179cc0f722f97c496dce131e22bc6c059529a2b8188413",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_exchange_inflow",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "360f4f5bd5611b4568acf3e8c71b9aa203d48e4c5a21d283cd91803313377047",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_inflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ea82b5f9a550bebfd9555cfa97c9f92b865abb814dcd21eb52533d1798454ea2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_inflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "fcd17808eab5224656f91b1b3463b22d5148bbfa0ae6205fc533f5374e377e72",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_exchange_outflow",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "b194b22b2154f3bccd5f601380d136e59fff3039bef294e789d8c212b3e5ffd3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_outflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "27c4335cb7f27707f3c8c8914d9a6e9ef5773c70bdaf4ba5563ed784669afbf7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_outflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9cbffdff524a332729cc5cadf544480820006ea294bbbb55464453b085f062e0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_exchange_reserve",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "b424439e2ad84de8b0ec49c2d1e878705ca4ef1c8dcc3c3524a91df75c42381c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_reserve_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e4aab012294ccd8b4f9b69e634992fd1a722267869d27032a86824f1b0cbcafd",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_addresses_active",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "7d6f4a9619d71bc54d4d1bc7ab404cfa0797dcd4a203f8e720bc2828121ee3f9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_addresses_count_sender",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c769af703e6fb7555d2c3f2286af5a33b836ae3b3496d4f850fa2d8166e547f9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_addresses_count_receiver",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "797de65a3a38da1993311d01fa5867ac7a04a35cef05db699b251683db770c9d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tx_count",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "e951154b88c6f7cde93311dcde55af69544f084c152fbd12d93c520152b0ce6c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_transactions_count_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "270846e6acffaf4d64659294b136f23ae15e08d0b6233eeb59fb8a027d52a028",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_open_interest",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "315716026621c4a384da0dc16e064df66011af72530d44142cac7979e4faa639",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_funding_rates",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "2ba3372196f13757bdbd9faa909893167cc56f371603871072c3aba5778a676d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_exchange_reserve",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "631eb5469d312e9f4f1fb91fabaf3762292087851ba38466fd0f69c53067cf74",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_exchange_netflow",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "abedbf5959e803ec027ecc81b4cd3677c359949f10995efd8d9653f9cfb558f1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_exchange_inflow",
+      "received_observations": 465,
+      "first": "2025-06-26",
+      "last": "2026-10-03",
+      "received_series_sha256": "74038334edebf3a570d682a9e1e0688d989c069512d1dca7a3fe2138d417eeca",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_inflow_top10",
+      "received_observations": 383,
+      "first": "2025-09-16",
+      "last": "2026-10-03",
+      "received_series_sha256": "37af7977e91f490b36066f92fda4ea380b0bb7bb009936b32dc288d53421b9ec",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_inflow_mean",
+      "received_observations": 383,
+      "first": "2025-09-16",
+      "last": "2026-10-03",
+      "received_series_sha256": "3ac9498a0142b24225e07c37dc595072d8f1e328e9792da45ee02be0ed032ede",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_exchange_outflow",
+      "received_observations": 465,
+      "first": "2025-06-26",
+      "last": "2026-10-03",
+      "received_series_sha256": "60660eda2977628cbae227052d1fc5edb8355b01d7ff52ef714e17d0dbdc1a43",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_outflow_top10",
+      "received_observations": 383,
+      "first": "2025-09-16",
+      "last": "2026-10-03",
+      "received_series_sha256": "62c96f6b8618b00994c740169e30322a0cd34ab28456e395872cf1f3206443d3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_outflow_mean",
+      "received_observations": 383,
+      "first": "2025-09-16",
+      "last": "2026-10-03",
+      "received_series_sha256": "97e39c79d92cb05a159439c07363f304a459445c96d2c07a3e0494659eaf930c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_total",
+      "received_observations": 459,
+      "first": "2025-07-02",
+      "last": "2026-10-03",
+      "received_series_sha256": "dd1acd00287ba0275f65252c379a162eac20a5309bad95b017447bc597607ff6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_minted",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "58848c2e5ab44ee437ed35d7c9033ef85bbb0f4122bfd0fa521b1cc2f5f99339",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_burned",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "a5d5a5224eb9d9b6d1c10f375c630a67dbb8de936cd96f82bec4fd9d4488aa7d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_circulating",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c8051d7d6b2d03256b02bcf861d538bb7f982dbce68172f4f99b52b9d655ba84",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_issued",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "207080d858b91f8ebc018f5bba4d531841e4388ac5494b24c8cbdadd4ad95421",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_supply_redeemed",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d5791fa31d2f952e9436242db98300880c9a6334e6f54b86e7894136a358eff5",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:usdc_exchange_reserve",
+      "received_observations": 458,
+      "first": "2025-07-03",
+      "last": "2026-10-03",
+      "received_series_sha256": "f56264ac6467eeeaccc73e7e5834bbcb33b983a3fb22e9bdca95f4099f0c380c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_transactions_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "17dd82a85eccd1c9d57b5c3d382a57d542911302c03f205436ab641be365c03a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_transactions_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "0367cd82dc2ab8204ac8f4736f9c6ca912ac9023ce42a54f7f745663041996b0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_flow_total",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "29793154f32f6f5be4be2872258a2400a222c22dd4111c617e4a06318904d131",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_flow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "30bf69aeca174e968ae4ed86b92b68bc9a94af0c864e1f7d85b16a2d53a136e6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_transactions_count_flow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "e8957b539518bd72b65e0a8f0cfb9747d3a22c7988026695fc6b1c526928a094",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_inflow_total",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "8dca4d918b5bc92d6fe9f44c96eeb32c669cc171ea3ddf356f396c931e014672",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_inflow_inflow_top10",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "a9ca0b45a5153d734cc0a6a2cf6ffffd0b19d47bd9e850686f716b2ffc2dc721",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_inflow_inflow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "c369cb9767c72f4ef8982a1cc038eb4b2d1af600b09e5847fff0b46f6bcd9857",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_transactions_count_transactions_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "2f68082f97020007cd7e81ca470587efacb5e343f20790527024a92a90b33492",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_transactions_count_transactions_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "fbe6337b8f96d94a5a9edb239034a53c483e7f062c1bd9bf3a75afc2b5aac44d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_addresses_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "96c0dfc6a2be1bb8c3360720ce310763699ee206d63ba872c1ad205d92f66065",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_addresses_count_addresses_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "b4231a5011f75b4661eac61fe042cb311b5a76ac7766ba006a8ae9005f7a598b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_in_house_flow_flow_total",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "559bf6e217cfc8f9044f0ec1f28722feb6aa8d6dcce7b2f9177139d058d76387",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_in_house_flow_flow_mean",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "c2e8b5dfeab5febdaa2444998c2c1e8aa3ddbfc4a544f6d206254dbf953bee90",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_miner_flows_in_house_flow_transactions_count_flow",
+      "received_observations": 377,
+      "first": "2025-09-23",
+      "last": "2026-10-04",
+      "received_series_sha256": "e21d4f378dd217714c3be4da16f1b0c3e29d6052569d1a5cdec55f23b3edd314",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_block_bytes",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "71da81a54511538ef18a8b84d18bb4bd6e337c66f7b465e7e6d22733f769aa79",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_block_count",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1c468b3b364ed21f08decdbf7023440e47074572721dc37d9e3e5d4ff7667bad",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_block_interval",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "199f13383a83e3341bf2fba4724d60c42159abc5341b09ecfe617510d6f1cde7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_market_cap",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "a67d3b9eb9658f64cd1bd125ba812a0031a6b4082c837cae2fa69350ade7b169",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_realized_cap",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "940f7ac3b3cfb2dbd5b2ab78454f64a92f6e30662a7d6c2a40c8d8155137cf34",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_average_cap",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "02091f9b5416fcc65fd64898b507edabb916e5b76dc3d6a2fa83810f63335a98",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_delta_cap",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "c62677726ad543f6af6f1c0b8965ea76a2a761bfca52008d65898fb132b1b786",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_thermo_cap",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "ecfd8674a5ed7ab89cf9b10380eda73ca058c44e33d38182dd3284d96a7449ca",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_cdd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "4c986133e8af90e42815cd59abd57b7b375639ba87ceb74316f3189f2e3d2aff",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sa_cdd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "10ad4c1af7099416d1cf1e78229632764920cb1c8675b6a050a9b2f7722f9d6d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_average_sa_cdd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "308616605cb387850675c012ff719a4961389d2c7c7b03cfd50759607635a963",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_binary_cdd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "aaed73f56a566dccf7d460f99a7aae09a61a9e0ba3b7dbe7252f8a6d97cbed3e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_mca",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "85827819f08741a8c5a662f87326f82524178e4d9638d8d59139a73c73dbbca2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_mcda",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "04e332d20e7c251f1228dc2fda57f49f3ee07e9ef3197bfb5523211688683ebd",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sca",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "75868a4b757cf5152d6bf34d8980b7bc025450edcd9a26e925f87bcbcf7d60bf",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_scda",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "7de6f2a85b7a28391f768a190bac33734c4fddb78cbff0b30d28902ed2bb845c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_nrpl",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "2a8625b38714deed59e8f81f4702387b0b2753d228b927cd6b49b9bb2aeb3fd6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_profit_percent",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "dca5b0fd4ecab2c9adb203b1ee5cb44e6f1c12b483e75dc0c94f2e51c4ac0290",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_loss_percent",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f199df9ed10d5993a17da08e307f71cc994a0dea2da30f4b0bf980df9188af78",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_profit_amount",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "3e32453e7b8907a90af6eb116f552530a44d5046d6727d9188441600944c33d2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_loss_amount",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f1cd6bdefa5413e4650f8db2279444d6c9ec138e4d856df4d9f9fc9950da6a4b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_indicator_pnl_supply_profit_percent",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "24be05c3f48dfde0a4f460ebb3063b6eb24b872353f8778c5c503414cdadfbdb",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_indicator_pnl_supply_loss_percent",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d8627e401f9ad838f9a6e1d969bf504eac3e6df527c2797aa178da1c1b9cf3a3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_indicator_pnl_supply_profit_amount",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d3cd80bb36b027ee293f368b904875867e6017e19cb396da25d1a80e7cae4378",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_network_indicator_pnl_supply_loss_amount",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "18e05dbe1eafb9b402fbab634d1879dbb0cd9d71f5473779c2b646f4e9d3d2dc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_average_dormancy",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "0fd4e570abf3caea314261097890a20044d500f9a0aaf372a172e20a0f5b6033",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_sa_average_dormancy",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "e00fc44551c53bc4c049640c779ca8d19b49c80d220e9dea91e358ab5c6bb080",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_estimated_leverage_ratio",
+      "received_observations": 378,
+      "first": "2025-09-22",
+      "last": "2026-10-04",
+      "received_series_sha256": "c59bdc49487a37007904f5ae285e62849ef55b546483db5384ca6fb707a755bc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_is_shutdown",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "028f0e4223a5f63b4ab480673875f1af2e19c984bcd3d93924cb0d623c345210",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_inflow_cdd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "47c1040973e56566d4ea9c76708da53689ecb9c2fa1abeda368360d499cf4f71",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_transactions_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3412d685ed71ffd78fb08904adf232a2a4ddcf164c6c9c1582c5fcc7691907d3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_transactions_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "19964afa0144d86100557ba4761eb786cb8e9a52f8793861eeec8cfb70e66108",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "232a272af5f1dfb6608bcb4fb70a835f1d4ee4d785fde40b3a71926deeb98d90",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "beceaf31ceee5edeb6614fcd43ed32848ff7d6d1ca17561b53a64196764f76a7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_events_transfer_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "a66ae331961678308df657e7569b30b23f04781bae1577f4f2a5b29ad425b26e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_events_mint_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d127694a995b2d30a2935ec47888d934bbc95bda11f0d8ac8289ca2c4ce89fb3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_events_issue_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ec0661fb64960a06eb4fbee86ddcdbe501952a6236758fa56bac3d17586dba7c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_events_burn_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "77a1dd460bd7c4995cf09008cc7fc23a8d867587cb608857727690bfb6cb1178",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_events_redeem_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "6c8d195ed5423a41f5ea214b851ca9aced8b497af928809d41516c3a28b1335b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_tokens_transferred_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "a6073fc6775bb6e229308b21004e778845eb94cdbd5ef1b8b56110b9113e6077",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_tokens_transferred_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3c914151552ea432bd7ccf010438adde7c871c9e294d445c4142089bac4706ca",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_active_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e1dc2e18278dee1b9c120b3f5b3cbb777607637130e396d2a81ec3b404c3dfed",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_active_sender_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ba2ea12bec616bc3d18b5843a80641a246bc1e806b142d24a2248a71ac19553d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_active_receiver_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f2c3948635d2fbd8e576407905e522cf8f082c449f573355e3452ba8b0ec82f6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_active_sender_percent",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "41be8994a266e49ecc99bbe503c56b61ae52478e36f0f66848a95bbcc3180d52",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:stablecoin_addresses_active_receiver_percent",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "4ac0384dfba82faece743f99cd084f295dfddad11b12c17498f3dde759bd446a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_supply_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9ccb937d2ffc199d0a8f1b124202894888a29be9458b5bf33a842c651ffb2e1c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_supply_new",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e9839bbaa9885aaa142961c90ffb934239a5e1a2b435efde672b9e0bcf817b8e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_velocity_supply_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b4a1db513fe6ece67d7809d2ca0946764c5ad87550f1bde80d3d8111bdb6c917",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_contracts_created_new",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "1e3f11142dea4573b15903a7a187bc57ede0185e2e22ecfe9904667b9f757e11",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_contracts_destroyed_new",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "4e4a7be6cde837f6a4c055f97297c82212ad640d51522f420570a5ca8cb0f0a7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_contracts_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "daa9ed1c8f5b4a45965e51bca21a0c75741b8c78659af7311f3ec3a4d4174ebe",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_contract_calls_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "030648d536dc1e90c0e5bb8b05a676ff9c400d2607646dc5e7623efd6feda199",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_contract_calls_count_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d802b4d7fc20c427a5b04ab837e26cae59c440fe2ec1c917a75c38f236063740",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "fa8905993a4320db33e73ef58c6bdc6327058694f0a5c0dbd8efd21e3a29a8ed",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_count_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "5fe405abff330a8c5608f99ae696f00ea797fb84043129b55434ae72abd8d72f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "de07cf2ff70f8ad64077ade5b88ca477d030e29c234d75a3ba898e670a7ba2f7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "2ebbbb287679d15e2ad396ff26a89696be11e6bba57913e4da7d85e9db696996",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ed1f12b8b0781ab3db6de69681d2fbff3f0db4074ba2e2134ee1268fa3f1d887",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f35a9add96e89dab4748d7d42619689e31b040470d7764f2154a2ddbb3188e1d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_median",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "25f90aec55643b6af45acb154c5049c8e820614e6b59aa7c966eafd72b7a6de4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_total_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "205832526278043d6b0b44360148072a938e2e2b054389140d3e4d6875cc4c82",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "439615df29c4ddadbdecfbb840c20aa412cfbddfe36fc401988446e14b5f49a8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_tokens_transferred_median_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "fd8cd59730fecaf85c37398fa1c80a852fb791c38c4a967e12ae4a2ab0b9fdb6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_block_bytes",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ad33de9e94168163d2e3cadc981a5643f7ea8fe0a2194306564603bbbe136957",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_block_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "332072bca9600349fc68ca9f0a9f722356114566d353ea5d9875416917117942",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_block_interval",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "257fe86d70683c64c42c21c2107af033e4666f2148aa8835e43d21419c2fd215",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_block_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "5d70db91004b1792b3b292b24b9b88e0f0a6c77a0e312c5182fb1119233b72c0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_block_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "27d7fafeb2a943b2c685c34485a02a3f8fa4651d9d5fde8cb0a139b5b29d055e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "2e893637bb93c2b8d99592ffc1a285e2b244241477736e4daefb9829602db076",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_total_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c1870aefd7d0ab529c4ffcbebf633544d5960f02843d2ee83b97ec8bc0989bd3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_reward_percent",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "dedfec25d7282af494a9f553e624427bf99b8e56d9eeab6ec5bd60a50f870a4e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "818362ae8b1c12df7998b1054efd0e499de9dd1ee3efd291ab0a9623359757ba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_total_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9723abc03a1ba75e8f2e02fb90d6625f7ef36a6d62dac130b396796ea79bf91c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "557698a69b1b666958b410a0d50b28c845a8a4572a3de4512adb1ac3b87f09d5",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_total_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e2a28cb09991f32e1e5b0bd31590f87020cd300d47ab1d3ae1abe282a5b34e86",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_transaction_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e0f56a4a2636f144bdc0da785e049b662111fb224b07a9dc8aadf58c21a0802a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_transaction_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f7a9644b4997574650ef3c893a50cb7ca7128a047d029538d7ea64622fb1aa95",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_transaction_median",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f7d5a61ccb91c800a23b0c9e1d39bab30fcea167e7d5828f1600318f002c48a9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_transaction_median_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "8a194c6f6021b0a3fbd55394f2ff68eab237f5f3017448a207434a71b589b431",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_transaction_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d37b236daa84008d591216c51ff15c7f2ba2bd52ee31fabc7e5201c54434dd98",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_transaction_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e627e31e71bdfd391addec6922924964b3cfb5cdbca594a566062a8b3c31a475",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_transaction_median",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "708ce07a93628838a36a4aa52929067a036b47426ba9841bf6118a742d2e0f87",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_burnt_transaction_median_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e879cb851e9712f71e1ff00d12c55077d5500e6d9f28add6a8af489375609008",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_transaction_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "81dec782b872fdd03b56b28c0717a7559339f1eee85095ed6372c0874559b6a1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_transaction_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "24e0b794e5e011d353341bdbb476f7e7518e96c0447ad1313c4fcceb13d1873c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_transaction_median",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3d6fd8b3460adbb75f4569f8621297995343d3b74dc8502ad5ebba2b20c7a49b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_fees_tips_transaction_median_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "961cb69423ff3e5d064fa7d5dd6e95895a6cbff66869452f727f6292a68455c0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_blockreward",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "557698a69b1b666958b410a0d50b28c845a8a4572a3de4512adb1ac3b87f09d5",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_blockreward_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e2a28cb09991f32e1e5b0bd31590f87020cd300d47ab1d3ae1abe282a5b34e86",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_blockreward_except_uncle",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_blockreward_except_uncle_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_gas_used_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9ca1dd3c04bc2f357c3c28f51138efab7864e7c56229ede2f0cc6bf52cc4af71",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_gas_used_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "0563e5b6db7ed7bce02afa9df98b6587856eb9a5d513569c652682d49ed3b9e0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_gas_price_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "adc91eab59ead5aa4f2ccf4a58907dd6cd4411c4cf98cdb0e77df682ca5dd847",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_gas_limit_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "be1eeabd37a6f66ed3553a06eb6939307a6f59839afc173afe483465ce90821f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_base_fee_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c1cf82409d8473bc40ae3abd2957bfdff87d0cbb070b00da06299b2f50369a09",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_max_fee_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "02ee0555912faae18266f52cae675351787edf60817b36d68f7cc992c4ab20bb",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_max_priority_fee_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "dccb52483d9d8bb914ad65b1e8df5bb030fdd5eb93f31369bb2262e698b14175",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_difficulty",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_hashrate",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_uncle_block_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_uncle_blockreward",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_uncle_blockreward_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "337295e8d45088cebe787345348ab746788a2c6f0259296e0f011b9c441d8dba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_total_value_staked",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "818ad32da907454cf05d5dc2fe5e210a5e2bf2fe574f089ebe25a32c073a21a8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_staking_inflow_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c1e2527bd533b7c6803b9031e0ab73f765c7a98f6e65389decdd9c928716c853",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_staking_transaction_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d17fcf2db3c95ebc3d6a7f24b1b0b38b3a2692bdec0625e04b6c0025c73b5e74",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_staking_validator_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e2308e402ff05efcfeda6fca35a4db5855b642b5d3b623c3b799aa897f142d26",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_depositor_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c2e77db120d202b9912ee6710ec1a4d10aa407c11ed3024c6ac47d1bd7be1e70",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_depositor_count_new",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "386b478e8e881244600730826672ac369889f69074fa4d94341b4fbd4c10836c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_staking_rate",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "61e156d101d9f2a03fafa89b86df48482c712c6e8978fdb13133f73909d2d31f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_phase0_success_rate",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "489d2eceb5586bd2d752e8d079654f209e0bbe77b9822d418db55a039ede45b4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_transactions_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "4614a507cf78baa5124dd6d8a6765f6c47c1197c0544a10e08e20f4da00ae7d7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_transactions_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b3005470365158ac0eaa2fc8d3a0dba8fcbc321328fd4641dcc3af23b15eac93",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_addresses_count_inflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "27a569359f81cb55fa7a32e5fbff7196bed6dea4441999a4d972bb960d7df160",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_addresses_count_outflow",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "707c9f54b04453930d524e699648e822d55c986af75b942db4c1a486aa853387",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_taker_buy_volume",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ac5cae967d40940bfdb2810f5e8bdf3ff46d6418f1e0658ef2e1233b92478a65",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_taker_sell_volume",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "d25dfcca8f3d8279e6b553f06cde702a6f47d2b686d65e0b15d3503ef43704e5",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_taker_buy_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "71db7b14e5fc86f0ff3f05af23ce75517f7903c8a1474a3e884f2cd6f5617fc1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_taker_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "146ec20336d379095e39d2db3a94bbb45b213486c19622d54e079dd6522e097f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_taker_buy_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "61d64ae7243f2a7b6b909e14cfc23c6c2bd6bf5a6f77835a1f347857afa6f19a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_long_liquidations",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "6ba4a562c5bf34757637fcec347fd325494baf8ced6cdce41700db4a370d33c7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_short_liquidations",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3d6d03d1fccdcef850abd8e61c9d96cc415b848eb60c4fed60783432303a01c7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_long_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "619a48e5e202ae8f7a31e27bd5fb23361831f901b41071e0c101162cc4ea3202",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_short_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e3d00a9f53f91f106c234132ef2eee8176e5cb96d8b0e5ac028973cc7dd2f7ec",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_coinbase_premium_gap",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "bc28a4aff2414c7a30e25fe43e68a2c5bd5f3cebcdd56d45d29d7a8f55f478f1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_coinbase_premium_index",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "29ff4cf39dc304eea35d359599e9c2ae67e26edddfd578ab25a22fec428367e2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_market_cap",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3aa4c9002d45cc9be7803dacd4d923ddf287a9105e78c3574ed0fe3036a80e18",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:eth_estimated_leverage_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "8f0c0aa68972477ab0dd4a2f402a45bb3b6323a13b97b1cc242948b120f83358",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_open_interest",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "1770874ad9738e31a49e136b93435dc974230560aa56ad761b9a904c9cdcc285",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_funding_rates",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "dac0d132b72dd6fc25e536abeac570531fe1fa7896df600c8ee58de8861559d3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_taker_buy_volume",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b29ece459e69f01a7cd1dbc0b2459f2070bed488c845bd0eac2da3985faf9233",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_taker_sell_volume",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "5f98da592594d8e8b2da971fc5d37704b484c2bf1aa10408f0ca12f77ddc3e44",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_taker_buy_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "570591478d4c05ad616f7fe49a41db630afb9af28644e5b2be09d3a2d589f9e8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_taker_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9fc1f1257468261c214eb45a30338bb2e0b5b4813d6071143259d308e494af57",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_taker_buy_sell_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "0f4e718ea7c7f73cf9df821f77aae220e608f783c8380b3cdb65159c1a311119",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_long_liquidations",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "060f9356a8486ef28fe45a18a429236306425cbe940eb750b198ddfb9b571257",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_short_liquidations",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f1956926aaf9c0211a7e0437662cdbba50c2b3bb3da62f0d44a7b6e667528a97",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_long_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "f3c7dd3fc52e303ad08bc25033c8c7744842fc6ccb47702ab46a2571886e6c0d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_short_liquidations_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "3fc303f764a9f087c03e979f61e05c795b60b5b7a70309212620f73c823e418c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_market_cap",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "efb90afbb9f3711449f3e8b66286d624153b80faa76a04e487c385bb90e06160",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_estimated_leverage_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "534bcb57e0c2e30285f7fa8823967b538624c4ab985513da949dc6d3760d7a6c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_reserve",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "6d2c201d565667346a5a94f218e111d93fef34207eafa3f345de8a6bf2b1d2fc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_reserve_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "294d7b95fdc9cbb27c2a9e4f5eadae9f572f18293e86f27d7c7ac71cdc214b9d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_share",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "5ad590189f7f486a603f81e0401c3f1f0cad740f10b0b73b600c4b316e6b7b2f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_exchange_supply_ratio",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "e4a9f6e76dfdcb8ab49a66963db5731e664d84cb834b8244c81f95062e5e8aa4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_active_account",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "0ded417c29e23780524155fec7997d8947f244f845d2fa90194f66ce53d629f6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_total_account",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "483ed2be0d819fea85e3185c24f3300b8404f138305633283f4c6e8119fbab29",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_sending_account",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c60762bc5603839b1f3180845ab00d0a3b8f90699d868c890aee9c99cb031ded",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_velocity",
+      "received_observations": 365,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "7c8bc804acd75a16f8e78da977d8a01161eb95ac2f6ddfc6a9f3676486c08861",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_average_block_interval",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "95ced8c0826fe79dd3d18fb2cdebe6bcaf006a350f92d409987dae304d2327e6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_xrp_burnt",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "90dd081944f5b34608613ad2a181572e54d668a4f7712b158b462857f8341cbb",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_total_ledgers",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b6c6a4f03b110e323f9237f50cf2bd9dbbb65ecb60d057ef12c7fae1c23604f4",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_total_fees",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "feca96b64771d6762aeaa5640e49faa5b4d0d5458b0c3ff4d190611bda39afd6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_total_transactions_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "a42cec5964962ab31545a2e36efee288579d99f83f34db3cbf46a2196432b876",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_tokens_transferred_total",
+      "received_observations": 365,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "14741a016d8ab50bfd4871a500e00c9731741233fe2d3071bd6e285c03a7aeda",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_supply_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "4305f845396e862fa5c7907c8683ddbd70dd88b9056b4d6151577efb6eb44999",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:xrp_nvt",
+      "received_observations": 365,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "0823510327045354c91e0daa881734730d1cacf7595fd65dea22e0aa11500811",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_market_cap",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "7df7bd6fa9103afde61ab0c1ecbcb46d215f3f75138baedf1113330ad7a491a5",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_supply_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "b7eaf0961966c677331ceb92b9ef87da7031ad84b742960e0c0b18baf48d0871",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_supply_circulating",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "dcf96951088f2fb7ea97342932578a8bbc9befe252c31209e27d2c873415b0a7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_supply_minted",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "426e7d02dc3c4bf10d7991c2d60c7702280d5497c48ee2bb07389bf6fbad21c1",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_supply_burned",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "94827c4a64092d91e4a633102ad612bc27d1cf5fee4d406eecac5763bc56ed2d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_supply_staked",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "cdb66516f40931c374e156a00903f3d60f61a2d05cf2e50aa54a789f08b39b32",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_transactions_count_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "67583bf1aa200e800e789d536bde98818733f6f693db1347d869965771766e74",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_transactions_count_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "1dc5579e281590712889541e3d30c33116b1f8f6948a8f8e50166314b4308eb3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_addresses_count_active",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "62b12b2d1c4b7a4761b324fe6f1102cc697df3e25e909436f2de7b4b2fa19e1f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_addresses_count_sender",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "87c442100cc92f7140e08879f1e1e6436d22f7a5997de6b8aa0f4749b0c7f5dc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_addresses_count_receiver",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ea18c45fb0b015e986bf968ebe286057e65eb8be76e7d73402d022e760a179ae",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_tokens_transferred_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "8553c515cfa0a48f0089aedaf04bb3a1a6c3f5ab46576c12982dfce6fc499458",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_tokens_transferred_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "9478f7dc2f01d6c512ee715ebb928a54cd1774b0ba062e3273c20c635c82592f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_tokens_transferred_median",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "954283771a835abf503d1ceed25fa05b8888f2c12b11a418ecc56e33ba266680",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_block_count",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "c793fab793a22741eb3376a992689864c1dcbc6d682bce777c560143ea3de585",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_fees_total",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "7d9e29fa8d99503ffecda8c661adf7b2f9adbde7a1a578d93232e9cd3c2b526f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_fees_total_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "ac0383b55d357f8a2b03f16150723c9b0745f99d990ffc27eb73b8bfd50873a2",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_fees_block_mean",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "669bd08d28e68721851bf4de13c9a44da946f2a8ef297bff07f0d9f65b852f72",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_fees_block_mean_usd",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "42e02a45afa3223f2fa1c29916182f6075ff7afd33c54c32ab9b1e2252ee2fa0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_tps",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "1054f0777a6ef63fae0090d8eafb7643ed549a020526911fe0fa75e8047bc37f",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_v1_staking_amount",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "8494b26fc856aa98f5b869019789d430ca663aa7acdcf9f7c18922af6009993d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_v2_staking_amount",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "1164a1bc9432f321d88484491290b14ed2d37d34d4d9f5291cf39bedfbf9ec46",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:trx_staking_rate",
+      "received_observations": 377,
+      "first": "2025-09-22",
+      "last": "2026-10-03",
+      "received_series_sha256": "35897ad9f07695d5f121332fc6efbddb565896778a0babafaabc81de034b2abd",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_apparent_demand",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "ef620b60639cd3869195d45fd890d9b3664be8bb392d7502b3609f18b77b11fc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_apparent_demand_1y",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f4bc388c14aa6a6e9a033d2cb229f02db97cc20974bcda38a2c4b6b8cf0c2bce",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_etf_demand_30d",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "99b5971bfcad67fd0569c5470150b2cb5c95be8c7fbf68db79571c77062dcba6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_etf_demand_1y",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "8b29f36f83b4784fbae5d08bf8db290f16989427c413e485aed0f39433a80bba",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_mvrv_ratio_zscore",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "97f7903dd25ae24cb5441fe22a488a99686f7b447528e565fac44b822932fb33",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_realized_price_1m_3m",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "50e6b807951c12560e73ac0cde936d2b343e4e9f21bdd900455d8419302a0136",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_realized_price_max_band",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "8e2954edd0ce6b1b5ee2901ee3e766e5b5db68a265e5b2ab5cc788d32334d242",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_realized_price_upper_band",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "3d7491c9e5d24c5c0e12f6a67cf2ed197c7184eb9fff7ce9b715dd9ebbbcbeca",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_realized_price_lower_band",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "a89bb215d1d349d81e263013ca49804ef8ee858fbd1f934bcc9343ddb66c0d40",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_realized_price_min_band",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "8a736754f777cf9d8cb3a555ae5d67443a96d39adbef55fac93aa9839f093be0",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "39b642159c945c94e80a866a6dd97534ee4db39ecc328909ce9dd9328a77ccfb",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_50_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d710bf7d8bfe3696962d01b4bffa8c9f7b80ae2e7ff86627e39fd2cf0368003c",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_25_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "00fe46661d972f72860811de0c598abee804c84d794dcbecc74c16b804a3b7b9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_10_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d8fd65289cc0955fff68f131d9ca8872631111cb846648f6417121ddb9ec5693",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_3x_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "5b4e49b68a955ee9c2970905ae1db653120b1adb653ef83d382a5dfccad08c83",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_2x_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "698098ef8a27c962a069d551af8c7db0ff6089f3b09bd89f4cba9d8f2afbc81b",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses_squared_04_price_365ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "b37b41a36a71ac3b9827039a0894000495cbd60447b6c184e0f50fdc627f0b65",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_nupl_1m_3m",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "b104daa60a3a25a48c995ed54b362ae38588b9086fc448ebbf14ebb4830e17ae",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_positive_net_realized_profit",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "e577b33235cc32ffbdbb59b73866269311a6c868eeb550b99c6b451d15d7b481",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_negative_net_realized_profit",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f7dc749312456425c67e71da332ded82514617997f1db4c438118c087669e8f6",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_yearly_realized_net_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "55688c64a7aedc196533d52b4d8d249669bbc5aaf51291e8569a5cff7127d01a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_yearly_realized_net_profit_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "e0dc2160f19cddc675bbd5566db498c145d7fb64544782bb71b8a5fb39f9a35e",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_monthly_realized_net_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1477ddea8508d17d6fb6e2453b62c803360d9e4ab160872a38edf5611aa33d25",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_monthly_realized_net_profit_usd",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "8cc2fa72dcd7763e6f37bf40fd60d54e62633dbe3b192f3172aed3a4a63782de",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_positive_monthly_realized_net_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "a0d3cd5ecc88b47b35105cd0cd95468b06099977900e2c7f7425fbc28113a13d",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_negative_monthly_realized_net_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "d0fc4a2dceed7fed893b282e95471bdab3e9e1ede03ec49c102f177ca896d3a9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_positive_net_realized_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1a0e72e7ab583b0049a394ec36536155ae372f17129a38c1f1bcc233ffb81773",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_negative_net_realized_profit_btc",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "b4c5c39546a5a68c5c8a6e62e8f14f87d4a6e3d88f3937d3eff0d00c24b230d8",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_amount_null_data",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "6af51cbbab6b71bee73f7a3e660a6028ef1fae62788d568f2ad58b0a168a2dd9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_netflow",
+      "received_observations": 375,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "00c78dde4b87a58b3720b91a09b2cce5825002de26a38f6d4c2cbbb8d5e4ddc3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_netflow_usd",
+      "received_observations": 375,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "8f5ccda14fd32801e9f5074dcc266ed022354ccbad2abf9559ccfd42383f57f7",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_total_balance",
+      "received_observations": 375,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f26e25871d9fb2f789dc41d18cb5dba6d3379e3b2a129b3e395ce326e278dab3",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_total_balance_usd",
+      "received_observations": 375,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "82b2cef7c804e96152d0e48ce19addf19328545a1f705d782f469823e33539b9",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_active_addresses",
+      "received_observations": 375,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "a4bae87d33f9b701f342c1d6ddec8759403a8604f5c273b720a333e83c588620",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_pnl_index",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "1bd637a46c37c02635104ebd44bd2d53cc4d26a9bd7351c59a11326db621a733",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_pnl_index_365day_ma",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "5d62c3f0b748ca44294973bf47a456dbfb361477bf0f18f3cc1b03b21f2eb93a",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_buy",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "f6eab25155953aa3ee19997e291e3e2aa38b3e6b3f8e3e65f9aa2c63c44f5dfc",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_neutral",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "e9ba9cf84819e34f587951b736e747ef091dc3b480982097c4a53ea608ca1d94",
+      "upstream_originals_verified": false
+    },
+    {
+      "id": "CQ:btc_v2_bull_bear_indicator",
+      "received_observations": 376,
+      "first": "2025-09-23",
+      "last": "2026-10-03",
+      "received_series_sha256": "53c711dde7b3c809ca6233932317986059e8fc7bd684067288563743bcf48cae",
+      "upstream_originals_verified": false
+    }
+  ],
+  "confirmed_conflict": {
+    "id": "CQ:btc_fees_total",
+    "configured_field": "fees_block_mean",
+    "reported_label": "Total Fees",
+    "reported_unit": "BTC/d",
+    "historical_field_lineage_verified": false
+  },
+  "whole_packets_retained_locally": true,
+  "producer_invoked": false,
+  "native_release_changed": false,
+  "upstream_originals_verified": false,
+  "scope": "Fresh public packet structural review and configuration conflict. This verifies published arrays and warning applicability, not original CryptoQuant response replay, source freshness, valid total fees or provider completeness."
+}

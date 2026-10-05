@@ -1,0 +1,3075 @@
+{
+  "scope": "Whole chart markup and seven complete modules with pinned drawing library; all requests intercepted; whole captured public packets; no upstream-original replay claim",
+  "results": [
+    {
+      "width": 1440,
+      "passed": true,
+      "whole_received_history_checked": true,
+      "definition_conflict_visible": true,
+      "complete_export_checked": true,
+      "unaffected_series_checked": true,
+      "actual_network_requests": 0,
+      "requests": [
+        {
+          "path": "/chart.html",
+          "query": "?s=CQ:btc_fees_total"
+        },
+        {
+          "path": "/fixture-drawing.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-observation-series.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-observation-cache.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-cq-fuse.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-catalog.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-engine.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-stock-desk-research.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-stock-desk.js",
+          "query": ""
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=tv-watchlists.json"
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=jh-internals.json"
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=finviz-news.json"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=QQQ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=AAPL&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=MSFT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=NVDA&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=AMZN&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=META&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TSLA&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=XLE&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GLD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/data/cryptoquant-series.json",
+          "query": ""
+        },
+        {
+          "path": "/data/tv-watchlists.json",
+          "query": ""
+        },
+        {
+          "path": "/data/jh-internals.json",
+          "query": ""
+        },
+        {
+          "path": "/data/finviz-news.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=QQQ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=AAPL&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=MSFT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=NVDA&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=AMZN&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=META&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TSLA&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=XLE&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GLD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=META&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/cryptoquant-onchain.json",
+          "query": ""
+        },
+        {
+          "path": "/data/cq-feed.json",
+          "query": ""
+        },
+        {
+          "path": "/data/cq-catalog.json",
+          "query": ""
+        },
+        {
+          "path": "/data/config/cryptoquant-spec.json",
+          "query": ""
+        },
+        {
+          "path": "/cq-universe.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "whole_received_history_checked": true,
+      "definition_conflict_visible": true,
+      "complete_export_checked": true,
+      "unaffected_series_checked": true,
+      "actual_network_requests": 0,
+      "requests": [
+        {
+          "path": "/chart.html",
+          "query": "?s=CQ:btc_fees_total"
+        },
+        {
+          "path": "/fixture-drawing.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-observation-series.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-observation-cache.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-cq-fuse.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-catalog.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-engine.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-stock-desk-research.js",
+          "query": ""
+        },
+        {
+          "path": "/jh-chart-stock-desk.js",
+          "query": ""
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=tv-watchlists.json"
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=jh-internals.json"
+        },
+        {
+          "path": "/api/warehouse",
+          "query": "?file=finviz-news.json"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=SPY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=QQQ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=AAPL&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=MSFT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=NVDA&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=AMZN&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=META&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TSLA&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=XLE&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GLD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/data/cryptoquant-series.json",
+          "query": ""
+        },
+        {
+          "path": "/data/tv-watchlists.json",
+          "query": ""
+        },
+        {
+          "path": "/data/jh-internals.json",
+          "query": ""
+        },
+        {
+          "path": "/data/finviz-news.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=META&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=SPY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=QQQ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=AAPL&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=MSFT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=NVDA&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=AMZN&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=META&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TSLA&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=XLE&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GLD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=CMDY&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=COMT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EEM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZ&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=EWZS&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=GSG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=HYG&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IAT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IEI&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IVV&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=IWM&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LOCK&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=LQD&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/ohlc",
+          "query": "?ticker=TLT&span=day&mult=1&days=12000"
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=SPY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=QQQ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=AAPL&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=MSFT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=NVDA&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=AMZN&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=META&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TSLA&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=XLE&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GLD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/yf-ohlc",
+          "query": "?symbol=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/SPY.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/QQQ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/AAPL.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/MSFT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/NVDA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/AMZN.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/META.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TSLA.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/XLE.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GLD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=CMDY&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=COMT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EEM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZ&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=EWZS&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=GSG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=HYG&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IAT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IEI&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IVV&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=IWM&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LOCK&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=LQD&interval=1d&limit=1000"
+        },
+        {
+          "path": "/api/klines",
+          "query": "?symbol=TLT&interval=1d&limit=1000"
+        },
+        {
+          "path": "/data/cryptoquant-onchain.json",
+          "query": ""
+        },
+        {
+          "path": "/data/cq-feed.json",
+          "query": ""
+        },
+        {
+          "path": "/data/cq-catalog.json",
+          "query": ""
+        },
+        {
+          "path": "/data/config/cryptoquant-spec.json",
+          "query": ""
+        },
+        {
+          "path": "/cq-universe.json",
+          "query": ""
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=CMDY&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=COMT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EEM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZ&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=EWZS&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=GSG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=HYG&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IAT&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IEI&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IVV&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=IWM&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LOCK&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=LQD&range=max&interval=1d"
+        },
+        {
+          "path": "/api/yahoo",
+          "query": "?ticker=TLT&range=max&interval=1d"
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/CMDY.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/COMT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EEM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZ.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/EWZS.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/GSG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/HYG.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IAT.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IEI.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IVV.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/IWM.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LOCK.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/LQD.json",
+          "query": ""
+        },
+        {
+          "path": "/data/series/TLT.json",
+          "query": ""
+        }
+      ]
+    }
+  ]
+}

@@ -5281,5 +5281,18 @@
     "history_acceptance": "chart-provider-discovery-public-history.json",
     "route_count_changed": false,
     "source_unit_or_history_requalification": false
+  },
+  "cryptoquant_definition_review": {
+    "source_commit": "caf0b36b415116921d41abbd923465e65bcedf63",
+    "received_series_structurally_checked": 344,
+    "histories_changed": 0,
+    "new_routes": 0,
+    "conflicted_id": "CQ:btc_fees_total",
+    "configured_field": "fees_block_mean",
+    "total_fees_qualified": false,
+    "upstream_originals_verified": false,
+    "downstream_producer_repaired": false,
+    "review": "chart-cq-definition-review.md",
+    "public_packet_acceptance": "chart-cq-definition-public-packets.json"
   }
 }

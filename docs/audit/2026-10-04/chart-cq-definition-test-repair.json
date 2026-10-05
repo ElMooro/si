@@ -1,0 +1,155 @@
+{
+  "initial_checks": [
+    {
+      "suite": "cq-definition-browser",
+      "exit": 0
+    },
+    {
+      "suite": "discovery-browser",
+      "exit": 0
+    },
+    {
+      "suite": "cboe-browser",
+      "exit": 0
+    },
+    {
+      "suite": "cboe-watchlist-browser",
+      "exit": 0
+    },
+    {
+      "suite": "cboe-operation",
+      "exit": 0
+    },
+    {
+      "suite": "imf-browser",
+      "exit": 0
+    },
+    {
+      "suite": "imf-watchlist-browser",
+      "exit": 0
+    },
+    {
+      "suite": "imf-operation",
+      "exit": 0
+    },
+    {
+      "suite": "census-additional-browser",
+      "exit": 0
+    },
+    {
+      "suite": "census-additional-watchlist-browser",
+      "exit": 0
+    },
+    {
+      "suite": "census-additional-operation",
+      "exit": 0
+    },
+    {
+      "suite": "census-watchlist-browser",
+      "exit": 0
+    },
+    {
+      "suite": "census-browser",
+      "exit": 0
+    },
+    {
+      "suite": "census-operation",
+      "exit": 0
+    },
+    {
+      "suite": "oecd-additional-browser",
+      "exit": 0
+    },
+    {
+      "suite": "oecd-additional-operation",
+      "exit": 0
+    },
+    {
+      "suite": "oecd-browser",
+      "exit": 0
+    },
+    {
+      "suite": "oecd-operation",
+      "exit": 0
+    },
+    {
+      "suite": "monthly-browser",
+      "exit": 0
+    },
+    {
+      "suite": "fx-browser",
+      "exit": 0
+    },
+    {
+      "suite": "fx-operation",
+      "exit": 0
+    },
+    {
+      "suite": "qualified-browser",
+      "exit": 0
+    },
+    {
+      "suite": "market-browser",
+      "exit": 0
+    },
+    {
+      "suite": "tv-native",
+      "exit": 0
+    },
+    {
+      "suite": "market-operation",
+      "exit": 0
+    },
+    {
+      "suite": "bis-browser",
+      "exit": 0
+    },
+    {
+      "suite": "native",
+      "exit": 0
+    },
+    {
+      "suite": "cftc-browser",
+      "exit": 0
+    },
+    {
+      "suite": "frontend",
+      "exit": 1
+    },
+    {
+      "suite": "contracts",
+      "exit": 0
+    },
+    {
+      "suite": "scripts",
+      "exit": 0
+    },
+    {
+      "suite": "wiring",
+      "exit": 0
+    },
+    {
+      "suite": "browser",
+      "exit": 0
+    },
+    {
+      "suite": "accounting-browser",
+      "exit": 0
+    },
+    {
+      "suite": "provider-browser",
+      "exit": 0
+    },
+    {
+      "suite": "deployment",
+      "exit": 0
+    }
+  ],
+  "changed_since_initial_pass": [
+    "jh-chart-stock-desk.js",
+    "tests/chart-cq-definition-browser.cjs",
+    "tests/fixtures/chart-cq-definition/transition.json",
+    "tests/warehouse-observation-preservation.test.js"
+  ],
+  "repair": "Retain old source-preservation assertions through the exact new edit ledger. Move the explicit fee warning before technical source details; assert it is in the mobile/desktop viewport. All native sources and unrelated tested files are byte-identical."
+}
