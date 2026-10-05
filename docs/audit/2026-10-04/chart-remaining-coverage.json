@@ -2,13 +2,13 @@
   "status": "remaining_work_not_complete",
   "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
   "unique_ids": 10745,
-  "route_count": 7034,
-  "unrouted": 3711,
+  "route_count": 7045,
+  "unrouted": 3700,
   "namespaces": [
     {
       "namespace": "ECONOMICS",
       "total": 3317,
-      "unrouted": 1069
+      "unrouted": 1058
     },
     {
       "namespace": "FTSE",
@@ -1500,7 +1500,6 @@
     "TVC:EU20",
     "TVC:EU30",
     "ECONOMICS:USFBI",
-    "ECONOMICS:USDFMI",
     "ECONOMICS:USSP",
     "ECONOMICS:USEOI",
     "NEO:VBU",
@@ -1581,7 +1580,6 @@
     "ECONOMICS:USGDPT",
     "ECONOMICS:USGDPMAN",
     "ECONOMICS:USFYGDPG",
-    "ECONOMICS:USDFSRI",
     "FTSE:AWHDY01.TR",
     "HSI:HSHDYI.TRI.GRS",
     "ECONOMICS:MACIR",
@@ -1655,7 +1653,6 @@
     "ECONOMICS:CNRSMM",
     "ECONOMICS:CNFAI",
     "ECONOMICS:DERSMM",
-    "ECONOMICS:USNYESMI",
     "ECONOMICS:EUSS",
     "ECONOMICS:EUIRMM",
     "ECONOMICS:EUPPI",
@@ -1684,9 +1681,7 @@
     "ECONOMICS:USIPRIYY",
     "ECONOMICS:USPS",
     "ECONOMICS:USPSP",
-    "ECONOMICS:USPHFCAPEX",
     "TVC:DE10Y-TVC:DE02Y",
-    "ECONOMICS:USNYESNORDI",
     "BMFBOVESPA:IBOV",
     "TADAWUL:TASI",
     "EIGHTCAP:ASX200",
@@ -2363,10 +2358,6 @@
     "ISM:MAN_PROD",
     "ECONOMICS:USGNP",
     "ECONOMICS:USKFMI",
-    "ECONOMICS:USDFSI",
-    "ECONOMICS:USRFSI",
-    "ECONOMICS:USRFMI",
-    "ECONOMICS:USRFMSI",
     "ECONOMICS:USPHSIYY",
     "ECONOMICS:USHPI",
     "ECONOMICS:USCSHPIYY",
@@ -4169,7 +4160,6 @@
     "FX_IDC:JPYWCU",
     "FX_IDC:JPYTHX",
     "AMEX:HYG/NASDAQ:IEI",
-    "ECONOMICS:USDFMNORDI",
     "ECONOMICS:TWLEI",
     "ECONOMICS:BRLEI",
     "ECONOMICS:AULEI",
@@ -4229,7 +4219,6 @@
     "BSE:MFG",
     "ICEEUR:MWI1!",
     "ICEEUR:MWM1!",
-    "ECONOMICS:USPHFNORD",
     "ECONOMICS:TWIPMM",
     "ECONOMICS:EGIPMM",
     "ECONOMICS:QAIPMM",
@@ -5320,5 +5309,25 @@
     "point_in_time_vintages_verified": false,
     "route_is_not_history_proof": true,
     "measurement": "Monthly source diffusion and activity indices; comparison, seasonal adjustment and current revision vintage retained"
+  },
+  "regional_survey_expansion": {
+    "source_commit": "c1167100eb9302ef2c154d6fb1df0e2761e9c190",
+    "additional_provider_definitions": 567,
+    "total_regional_fed_definitions": 644,
+    "additional_datasets": 9,
+    "total_datasets": 11,
+    "qualified_alternative_routes_added": 11,
+    "public_histories_independently_replayed": 644,
+    "provider_definitions_without_live_replay": 0,
+    "history_audit": "chart-regional-surveys-public-history-audit.json",
+    "vendor_equivalence_verified": false,
+    "full_upstream_history_verified": false,
+    "point_in_time_vintages_verified": false,
+    "route_is_not_history_proof": true,
+    "held_dictionary_fields": [
+      "nsa_mfg_emp_e",
+      "sa_mfg_emp_e"
+    ],
+    "measurement": "Monthly diffusion indexes, response shares and explicitly defined annualized price changes; expected/current responses and SA/NSA variants stay separate"
   }
 }
