@@ -1,0 +1,27 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
+const R=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(R,p),'utf8');
+test('Census exact dimension allowlist covers all 3402 definitions and rejects partial selections',()=>{
+ const scope={window:{},Set,URLSearchParams,TextDecoder,Uint8Array,AbortController,URL,Blob};vm.runInNewContext(read('jh-chart-provider-browser.js'),scope);const api=scope.window.JHChartProviderBrowser,cat=JSON.parse(read('aws/lambdas/justhodl-symdir/source/census-series.json'));
+ assert.equal(Object.keys(cat.series).length,3402);
+ for(const key of Object.keys(cat.series)){const row={id:'census:'+key,provider:'census',kind:'series',chartable:true};assert.equal(api.action(row),'chart');assert.equal(api.action({...row,id:row.id+':extra'}),'inspect');}
+ assert.equal(api.action({id:'census:mrts',provider:'census',kind:'dataset'}),'dataset');
+ assert.equal(api.action({id:'census:mrts:SM:guess:no:US',provider:'census',kind:'series',chartable:true}),'inspect');
+});
+test('Census units, sampling errors, annual-rate flags and missing series remain explicit',()=>{
+ const prefix='aws/lambdas/justhodl-symdir/',raw=read(prefix+'source/census-series.json');assert.equal(raw,read(prefix+'config/census-series.json'));
+ const cat=JSON.parse(raw),rows=Object.values(cat.series);assert.equal(Object.keys(cat.dataset_definitions).length,6);assert.equal(rows.filter(r=>r.snapshot_numeric_rows===0).length,4);
+ for(const row of rows){assert.ok(row.unit);assert.ok(row.measure_definition);assert.equal(row.freq,row.dataset==='qss'?'Q':'M');if(row.annual_rate_in_category_label)assert.match(row.name,/Annual Rate/);}
+ assert.ok(rows.some(r=>r.sampling_error));assert.ok(rows.some(r=>r.unit==='Millions of US dollars'&&r.unit_code==='MLN$'));
+ for(const row of rows){if(row.annual_rate){assert.match(row.unit,/annual rate/);assert.ok(row.annual_rate_documentation);assert.equal(row.sampling_error,false);}else if(row.sampling_error)assert.equal(row.unit,row.unit_from_dictionary);}
+ assert.equal(cat.series['resconst:TOTAL:ASTARTS:yes:US'].unit,'Thousands of units (seasonally adjusted annual rate)');
+ assert.equal(cat.series['vip:T:XXXX:yes:US'],undefined); // Bulk snapshot does not publish this dimension; never invent it.
+ assert.equal(cat.series['vip:T:XXXX:no:US'].unit,'Millions of US dollars');
+ assert.equal(cat.series['marts:SM:44X72:yes:US'].annual_rate,false);
+});
+test('preceding complete files and peer provider edits remain byte reconstructable',()=>{
+ const {normalize,transition}=require('./helpers/chart-census-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+});
+test('long scalar names are contained and non-production OECD definitions have an accurate label',()=>{
+ assert.match(read('chart.html'),/\.tv-symid\{[^}]*min-width:0[^}]*text-overflow:ellipsis/);assert.match(read('jh-chart-tvwatch.js'),/OECD reviewed-series route/);assert.doesNotMatch(read('jh-chart-tvwatch.js'),/OECD production-history alternative/);
+});

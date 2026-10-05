@@ -1,0 +1,382 @@
+CATEGORIES
+cat_idx,cat_code,cat_desc,cat_indent
+1,XXXX,Total Construction,0
+2,00XX,Residential,0
+3,NRXX,Nonresidential,0
+4,01XX,Lodging,1
+5,02XX,Office,1
+6,03XX,Commercial,1
+7,04XX,Health Care,1
+8,05XX,Educational,1
+9,06XX,Religious,1
+10,07XX,Public Safety,1
+11,08XX,Amusement and Recreation,1
+12,09XX,Transportation,1
+13,10XX,Communication,1
+14,11XX,Power,1
+15,12XX,Highway and Street,1
+16,13XX,Sewage and Waste Disposal,1
+17,14XX,Water Supply,1
+18,15XX,Conservation and Development,1
+19,20IX,Manufacturing,1
+20,AXXXX,Annual Rate for Total Construction,0
+21,A00XX,Annual Rate for Residential,0
+22,ANRXX,Annual Rate for Nonresidential,0
+23,A01XX,Annual Rate for Lodging,1
+24,A02XX,Annual Rate for Office,1
+25,A03XX,Annual Rate for Commercial,1
+26,A04XX,Annual Rate for Health Care,1
+27,A05XX,Annual Rate for Educational,1
+28,A06XX,Annual Rate for Religious,1
+29,A07XX,Annual Rate for Public Safety,1
+30,A08XX,Annual Rate for Amusement and Recreation,1
+31,A09XX,Annual Rate for Transportation,1
+32,A10XX,Annual Rate for Communication,1
+33,A11XX,Annual Rate for Power,1
+34,A12XX,Annual Rate for Highway and Street,1
+35,A13XX,Annual Rate for Sewage and Waste Disposal,1
+36,A14XX,Annual Rate for Water Supply,1
+37,A15XX,Annual Rate for Conservation and Development,1
+38,A20IX,Annual Rate for Manufacturing,1
+
+DATA TYPES
+dt_idx,dt_code,dt_desc,dt_unit
+1,T,Total Construction,MLN$
+2,V,Total Private Construction,MLN$
+3,P,Total Public Construction,MLN$
+4,MPCT,Monthly Percent Change for Total Construction,PCT
+5,MPCV,Monthly Percent Change for Private Construction,PCT
+6,MPCP,Monthly Percent Change for Public Construction,PCT
+
+ERROR TYPES
+et_idx,err_code,err_desc,err_unit
+1,E_T,Relative Standard Error for Total Construction,PCT
+2,E_V,Relative Standard Error for Total Private Construction,PCT
+3,E_P,Relative Standard Error for Total Public Construction,PCT
+4,E_MPCT,Relative Standard Error for MPC Total Construction,PCT
+5,E_MPCV,Relative Standard Error for MPC Total Private Construction,PCT
+6,E_MPCP,Relative Standard Error for MPC Total Public Construction,PCT
+
+GEO LEVELS
+geo_idx,geo_code,geo_desc
+1,US,U.S. Total
+
+TIME PERIODS
+per_idx,per_name
+1,Jan-2002
+2,Feb-2002
+3,Mar-2002
+4,Apr-2002
+5,May-2002
+6,Jun-2002
+7,Jul-2002
+8,Aug-2002
+9,Sep-2002
+10,Oct-2002
+11,Nov-2002
+12,Dec-2002
+13,Jan-2003
+14,Feb-2003
+15,Mar-2003
+16,Apr-2003
+17,May-2003
+18,Jun-2003
+19,Jul-2003
+20,Aug-2003
+21,Sep-2003
+22,Oct-2003
+23,Nov-2003
+24,Dec-2003
+25,Jan-2004
+26,Feb-2004
+27,Mar-2004
+28,Apr-2004
+29,May-2004
+30,Jun-2004
+31,Jul-2004
+32,Aug-2004
+33,Sep-2004
+34,Oct-2004
+35,Nov-2004
+36,Dec-2004
+37,Jan-2005
+38,Feb-2005
+39,Mar-2005
+40,Apr-2005
+41,May-2005
+42,Jun-2005
+43,Jul-2005
+44,Aug-2005
+45,Sep-2005
+46,Oct-2005
+47,Nov-2005
+48,Dec-2005
+49,Jan-2006
+50,Feb-2006
+51,Mar-2006
+52,Apr-2006
+53,May-2006
+54,Jun-2006
+55,Jul-2006
+56,Aug-2006
+57,Sep-2006
+58,Oct-2006
+59,Nov-2006
+60,Dec-2006
+61,Jan-2007
+62,Feb-2007
+63,Mar-2007
+64,Apr-2007
+65,May-2007
+66,Jun-2007
+67,Jul-2007
+68,Aug-2007
+69,Sep-2007
+70,Oct-2007
+71,Nov-2007
+72,Dec-2007
+73,Jan-2008
+74,Feb-2008
+75,Mar-2008
+76,Apr-2008
+77,May-2008
+78,Jun-2008
+79,Jul-2008
+80,Aug-2008
+81,Sep-2008
+82,Oct-2008
+83,Nov-2008
+84,Dec-2008
+85,Jan-2009
+86,Feb-2009
+87,Mar-2009
+88,Apr-2009
+89,May-2009
+90,Jun-2009
+91,Jul-2009
+92,Aug-2009
+93,Sep-2009
+94,Oct-2009
+95,Nov-2009
+96,Dec-2009
+97,Jan-2010
+98,Feb-2010
+99,Mar-2010
+100,Apr-2010
+101,May-2010
+102,Jun-2010
+103,Jul-2010
+104,Aug-2010
+105,Sep-2010
+106,Oct-2010
+107,Nov-2010
+108,Dec-2010
+109,Jan-2011
+110,Feb-2011
+111,Mar-2011
+112,Apr-2011
+113,May-2011
+114,Jun-2011
+115,Jul-2011
+116,Aug-2011
+117,Sep-2011
+118,Oct-2011
+119,Nov-2011
+120,Dec-2011
+121,Jan-2012
+122,Feb-2012
+123,Mar-2012
+124,Apr-2012
+125,May-2012
+126,Jun-2012
+127,Jul-2012
+128,Aug-2012
+129,Sep-2012
+130,Oct-2012
+131,Nov-2012
+132,Dec-2012
+133,Jan-2013
+134,Feb-2013
+135,Mar-2013
+136,Apr-2013
+137,May-2013
+138,Jun-2013
+139,Jul-2013
+140,Aug-2013
+141,Sep-2013
+142,Oct-2013
+143,Nov-2013
+144,Dec-2013
+145,Jan-2014
+146,Feb-2014
+147,Mar-2014
+148,Apr-2014
+149,May-2014
+150,Jun-2014
+151,Jul-2014
+152,Aug-2014
+153,Sep-2014
+154,Oct-2014
+155,Nov-2014
+156,Dec-2014
+157,Jan-2015
+158,Feb-2015
+159,Mar-2015
+160,Apr-2015
+161,May-2015
+162,Jun-2015
+163,Jul-2015
+164,Aug-2015
+165,Sep-2015
+166,Oct-2015
+167,Nov-2015
+168,Dec-2015
+169,Jan-2016
+170,Feb-2016
+171,Mar-2016
+172,Apr-2016
+173,May-2016
+174,Jun-2016
+175,Jul-2016
+176,Aug-2016
+177,Sep-2016
+178,Oct-2016
+179,Nov-2016
+180,Dec-2016
+181,Jan-2017
+182,Feb-2017
+183,Mar-2017
+184,Apr-2017
+185,May-2017
+186,Jun-2017
+187,Jul-2017
+188,Aug-2017
+189,Sep-2017
+190,Oct-2017
+191,Nov-2017
+192,Dec-2017
+193,Jan-2018
+194,Feb-2018
+195,Mar-2018
+196,Apr-2018
+197,May-2018
+198,Jun-2018
+199,Jul-2018
+200,Aug-2018
+201,Sep-2018
+202,Oct-2018
+203,Nov-2018
+204,Dec-2018
+205,Jan-2019
+206,Feb-2019
+207,Mar-2019
+208,Apr-2019
+209,May-2019
+210,Jun-2019
+211,Jul-2019
+212,Aug-2019
+213,Sep-2019
+214,Oct-2019
+215,Nov-2019
+216,Dec-2019
+217,Jan-2020
+218,Feb-2020
+219,Mar-2020
+220,Apr-2020
+221,May-2020
+222,Jun-2020
+223,Jul-2020
+224,Aug-2020
+225,Sep-2020
+226,Oct-2020
+227,Nov-2020
+228,Dec-2020
+229,Jan-2021
+230,Feb-2021
+231,Mar-2021
+232,Apr-2021
+233,May-2021
+234,Jun-2021
+235,Jul-2021
+236,Aug-2021
+237,Sep-2021
+238,Oct-2021
+239,Nov-2021
+240,Dec-2021
+241,Jan-2022
+242,Feb-2022
+243,Mar-2022
+244,Apr-2022
+245,May-2022
+246,Jun-2022
+247,Jul-2022
+248,Aug-2022
+249,Sep-2022
+250,Oct-2022
+251,Nov-2022
+252,Dec-2022
+253,Jan-2023
+254,Feb-2023
+255,Mar-2023
+256,Apr-2023
+257,May-2023
+258,Jun-2023
+259,Jul-2023
+260,Aug-2023
+261,Sep-2023
+262,Oct-2023
+263,Nov-2023
+264,Dec-2023
+265,Jan-2024
+266,Feb-2024
+267,Mar-2024
+268,Apr-2024
+269,May-2024
+270,Jun-2024
+271,Jul-2024
+272,Aug-2024
+273,Sep-2024
+274,Oct-2024
+275,Nov-2024
+276,Dec-2024
+277,Jan-2025
+278,Feb-2025
+279,Mar-2025
+280,Apr-2025
+281,May-2025
+282,Jun-2025
+283,Jul-2025
+284,Aug-2025
+285,Sep-2025
+286,Oct-2025
+287,Nov-2025
+288,Dec-2025
+289,Jan-2026
+290,Feb-2026
+291,Mar-2026
+292,Apr-2026
+293,May-2026
+294,Jun-2026
+295,Jul-2026
+296,Aug-2026
+297,Sep-2026
+298,Oct-2026
+299,Nov-2026
+300,Dec-2026
+
+NOTES
+"For the Construction Spending Survey, all current month estimates are preliminary estimates and will be superseded in following months by revised estimates."
+"For information on survey methodology and use of the data, including seasonal adjustment and other information pertinent to this economic indicator, go to the (/construction/c30/pdf/release.pdf) [PDF &lt;1 MB], or refer to the (/construction/c30/c30index.html) website, which provides a link to more (/construction/c30/prpdf.html) for these reports."
+
+DATA UPDATED ON
+Thursday, 01-Oct-26 09:00:24 EDT
+
+DATA
+per_idx,cat_idx,dt_idx,et_idx,geo_idx,is_adj,val
+2,2,6,0,1,1,6.4
+3,2,6,0,1,1,-2.7
+4,2,6,0,1,1,-4.9
+6,2,0,6,1,0,3.1
+7,2,0,6,1,0,3.2
+8,2,0,6,1,0,3.3
+

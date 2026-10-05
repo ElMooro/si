@@ -370,7 +370,7 @@
   function tickerOf(s){return quoteIdentity(s).ticker||"";}
   function quoteStatus(s){
     var q=quotes[s]||{},identity=quoteIdentity(s);
-    if(q.last==null){var reference=(typeof providerRest==="function"&&providerRest(s))||String(s||"");if(/^census:/i.test(reference))return "Quote unavailable · U.S. Census observations (source equivalence unqualified)";if(/^oecd:/i.test(reference))return "Quote unavailable · OECD reviewed-series route (source equivalence unqualified)";if(/^bisfx:/i.test(reference))return "Quote unavailable · "+(/:M$/i.test(reference)?"monthly":"daily")+" BIS reference alternative route (unqualified)";return "Unavailable · "+(q.reason||identity.reason||"awaiting aggregate");}
+    if(q.last==null){var reference=(typeof providerRest==="function"&&providerRest(s))||String(s||"");if(/^oecd:/i.test(reference))return "Quote unavailable · OECD production-history alternative route (unqualified)";if(/^bisfx:/i.test(reference))return "Quote unavailable · "+(/:M$/i.test(reference)?"monthly":"daily")+" BIS reference alternative route (unqualified)";return "Unavailable · "+(q.reason||identity.reason||"awaiting aggregate");}
     return q.date+(q.previousTime?" vs "+new Date(q.previousTime*1000).toISOString().slice(0,10):"")+" · "+q.source+" · "+Math.max(0,Math.floor((Date.now()-q.time*1000)/86400000))+"d since bar timestamp · completion and venue/currency unverified"+(Date.now()-q.fetched>=TTL?" · cache expired":"")+(q.reason?" · "+q.reason:"");
   }
   function gridMinWidth(){var sum=3+16+16+16+(ui.logo?22:0),count=4+(ui.logo?1:0);if(ui.ticker||ui.desc){sum+=ui.widths.sym||72;count++;}metrics().forEach(function(id){sum+=Number.parseFloat(colW(id));count++;});return sum+6*(count-1);}

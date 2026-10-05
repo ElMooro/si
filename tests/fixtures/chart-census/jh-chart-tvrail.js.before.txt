@@ -595,9 +595,7 @@
       if (!wnow || !wnow.classList.contains("is-open") || pinned) return;
       if (wnow.contains(e.target)) return;
       if (rr && rr.contains(e.target)) return;
-      // Watchlist buttons own their click toggle. Outside-mousedown dismissal
-      // must not close first and make the following click reopen the drawer.
-      if (e.target.closest && e.target.closest("#btn-watch,#listfab,#symsearch,#inddlg,#indset,#listdrop,#menu,#chartm,#ws-overlay,#cmdk,#modal,#ctx,#fly")) return;
+      if (e.target.closest && e.target.closest("#symsearch,#inddlg,#indset,#listdrop,#menu,#chartm,#ws-overlay,#cmdk,#modal,#ctx,#fly")) return;
       dismiss();
     });
     document.addEventListener("click", function (e) {

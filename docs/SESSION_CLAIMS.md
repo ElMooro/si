@@ -215,3 +215,5 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 - 2026-10-04 ChatGPT: ops 6480 accepted source 8bc8aaf98f1b2b60455d46a66455c41b3065fbde through exact ZIP/receipt and unchanged symdir controls. All 1,589 public OECD histories independently replayed; served chart, 49 assets and desktop/mobile plotting checked. No manual producer invocation, IAM, schedule or private-data work. See chart-oecd-* acceptance evidence.
 
 - 2026-10-04 ChatGPT: ops 6481 accepted source 783645f94e6892f171af055169336f83455c0997 with all 21 native files and unchanged controls. All 2,338 additional public OECD histories independently replayed. Whole served chart/static graph and desktop/mobile chart checks passed. Qualified market identity rejects wrong IDs, scalar-as-OHLC and silent fallback. No producer invocation, IAM/schedule or private/account work. Coverage 6,870 routed / 3,875 unresolved remains unchanged.
+
+- 2026-10-04 ChatGPT: reserve ops 6482 for read-only Census chart release acceptance, all source/shared files and unchanged symdir controls. No producer invocation, credentials, IAM, schedules or private/account reads. Stage590 checks pending.

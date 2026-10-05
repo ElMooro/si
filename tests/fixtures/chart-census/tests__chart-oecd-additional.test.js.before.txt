@@ -12,5 +12,5 @@ test('all catalogue config twins preserve exact definitions, status and units',(
 });
 test('complete previous modules, tests and every assertion remain reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-oecd-additional-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-census-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unrelated',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unrelated',file));}
 });

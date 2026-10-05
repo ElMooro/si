@@ -1,0 +1,62 @@
+{
+  "mrts": {
+    "series": [
+      "census:mrts:IM:44000:no:US",
+      "census:mrts:E_IM:44000:no:US"
+    ],
+    "fixture_sha256": "84f4d5f31b7919fe5552db4e2d9913b1e66ff3994e6b5e0c623a0df1d82b1952",
+    "source_csv_sha256": "983ea2fa994f85620a5dcde6acb1c8e8090191b85dea0dce91813b6cd7ef68be",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  },
+  "marts": {
+    "series": [
+      "census:marts:MPCSM:44000:no:US",
+      "census:marts:E_MPCSM:44000:no:US"
+    ],
+    "fixture_sha256": "9a57ce82e6efcf37dc871aa54cef372e1b4f4b276791032f9bcf3e5db56c242e",
+    "source_csv_sha256": "595b7e6cb037f49f81db3f06a451f2b0346bac117fb5e54236ea3a26be3b3e6f",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  },
+  "resconst": {
+    "series": [
+      "census:resconst:MULTI:ACOMPLETIONS:yes:US",
+      "census:resconst:E_MULTI:ACOMPLETIONS:yes:US"
+    ],
+    "fixture_sha256": "ce53b8ccec800da361a930cedcb1021febfcb79ffb068589592bbeb114d225bf",
+    "source_csv_sha256": "32c967aecbca74386d993f6b0437e312a480a395c3b0d126c8d73701826b7a5e",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  },
+  "ressales": {
+    "series": [
+      "census:ressales:AVERAG:SOLD:no:US",
+      "census:ressales:E_AVERAG:SOLD:no:US"
+    ],
+    "fixture_sha256": "844b95d15e50df1d52dc56f2f5850ad316b322bb4df189e98215fa7861f80571",
+    "source_csv_sha256": "6f0345ce3924bba4d205ad13c7272a82faa647af03cf6d4c9c535beefd35b887",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  },
+  "vip": {
+    "series": [
+      "census:vip:MPCP:00XX:yes:US",
+      "census:vip:E_MPCP:00XX:no:US"
+    ],
+    "fixture_sha256": "82321893f481bfe7b4cbd3807c6c0184670ced95316454c719f3dfb6d7eb0e27",
+    "source_csv_sha256": "724af2c5b0b5d296ba4a978e36f8d2cd498f3617196241dca342e96a4863de30",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  },
+  "qss": {
+    "series": [
+      "census:qss:ADM:7111T:no:US",
+      "census:qss:E_ADM:7111T:no:US"
+    ],
+    "fixture_sha256": "b443b41afd1b2bbea6ed1e602f72fbed039767f9972c3e8220a3c822a1a7b9d2",
+    "source_csv_sha256": "f55daac70bb2d7020b008f4c96b882a6923e83e53199972f7e2d240138490a1b",
+    "selected_rows": 6,
+    "scope": "Retains source dictionaries and first three records for one measure and one sampling-error series; intentionally partial test fixture"
+  }
+}

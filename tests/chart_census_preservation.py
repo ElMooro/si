@@ -2,13 +2,11 @@ from pathlib import Path
 import hashlib,json
 R=Path(__file__).resolve().parents[1]
 def normalize(file,raw):
-    from chart_census_preservation import normalize as newer
-    raw=newer(file,raw)
-    t=json.loads((R/'tests/fixtures/chart-oecd-additional/transition.json').read_bytes())['changes'].get(file)
+    t=json.loads((R/'tests/fixtures/chart-census/transition.json').read_bytes())['changes'].get(file)
     if not t:return raw
     digest=lambda s:hashlib.sha256(s).hexdigest()
     if digest(raw)==t['before_sha256']:return raw
-    for name in ['chart-oecd','chart-bis-fx','chart-market-repair','chart-bis','chart-cftc']:
+    for name in ['chart-oecd-additional','chart-oecd','chart-bis-fx','chart-market-repair','chart-bis','chart-cftc']:
         old=json.loads((R/('tests/fixtures/'+name+'/transition.json')).read_bytes())['changes'].get(file)
         if old and digest(raw) in [old['before_sha256'],old['after_sha256']]:return raw
     assert digest(raw)==t['after_sha256'],file

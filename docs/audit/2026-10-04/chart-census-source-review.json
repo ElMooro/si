@@ -1,0 +1,84 @@
+{
+  "passed": true,
+  "series": 3402,
+  "rows": 611291,
+  "datasets": [
+    {
+      "dataset": "mrts",
+      "series": 568,
+      "rows": 195716,
+      "statuses": {
+        "observations": 511,
+        "partial": 57
+      },
+      "zip_sha256": "147c871d84e3ae3aaffba6dffedbabcbd0a6a68d9e1daf415b255502119ea937",
+      "csv_sha256": "983ea2fa994f85620a5dcde6acb1c8e8090191b85dea0dce91813b6cd7ef68be"
+    },
+    {
+      "dataset": "marts",
+      "series": 168,
+      "rows": 58898,
+      "statuses": {
+        "observations": 164,
+        "partial": 4
+      },
+      "zip_sha256": "3a746567b16004c46f95276790236e3824e02ed6285d321ea671f5df133466a9",
+      "csv_sha256": "595b7e6cb037f49f81db3f06a451f2b0346bac117fb5e54236ea3a26be3b3e6f"
+    },
+    {
+      "dataset": "resconst",
+      "series": 176,
+      "rows": 90537,
+      "statuses": {
+        "observations": 176
+      },
+      "zip_sha256": "85fdb4c9d3783cf9cbd17773ffe92579f9ccbfeff948fa2779c3a4f9e37d49c2",
+      "csv_sha256": "32c967aecbca74386d993f6b0437e312a480a395c3b0d126c8d73701826b7a5e"
+    },
+    {
+      "dataset": "ressales",
+      "series": 58,
+      "rows": 28532,
+      "statuses": {
+        "observations": 58
+      },
+      "zip_sha256": "baa0df38a33c0c4b11dd7910a9fcb1cb18ba49d1a451c59f3f37aaff52633bbc",
+      "csv_sha256": "6f0345ce3924bba4d205ad13c7272a82faa647af03cf6d4c9c535beefd35b887"
+    },
+    {
+      "dataset": "vip",
+      "series": 288,
+      "rows": 84480,
+      "statuses": {
+        "observations": 288
+      },
+      "zip_sha256": "1bb480764e528b4c7cb33bcc8a0ed49107b5494af51a59f8346a5ca0890fe377",
+      "csv_sha256": "724af2c5b0b5d296ba4a978e36f8d2cd498f3617196241dca342e96a4863de30"
+    },
+    {
+      "dataset": "qss",
+      "series": 2144,
+      "rows": 153128,
+      "statuses": {
+        "partial": 854,
+        "observations": 1286,
+        "unavailable": 4
+      },
+      "zip_sha256": "1c3b1bb93c8de3f388b290fdfd6108559c29a672b07e8a2ed28770f39a5fb97b",
+      "csv_sha256": "f55daac70bb2d7020b008f4c96b882a6923e83e53199972f7e2d240138490a1b"
+    }
+  ],
+  "definition_sha256": "af297c18b315b1c1a91811537d3232e11b62e3bb20a5da8251976613efb06b98",
+  "adapter_sha256": "cd3c1f56b6875c1423b4af7a0430a28482f75acc87e44ebe6d995ba140237dfb",
+  "stage": "source_reviewed_offline_not_live",
+  "source_url": "https://www.census.gov/econ_datasets/",
+  "definition_count": 3402,
+  "qualified_watchlist_routes_added": 0,
+  "quality_note": "Census ZIP retains dictionaries and original rows. Z means rounds to zero, S/(S) suppression: both remain null with reasons. Sampling errors are separate series. Four definitions have no numeric observations.",
+  "api_access": "Only independently published public bulk ZIPs. No key-requiring data API observations requested; prior obsolete XML metadata URLs returned 400 and were stopped.",
+  "trade_authority": false,
+  "peer_repair": "Concurrent main ba7bbed4e restored the exact qualified-market and source-preserving scalar paths. Its complete engine and prior transition ledger are retained unchanged. This batch adds regression coverage without reinstating the permissive fallback.",
+  "full_upstream_history_verified": false,
+  "point_in_time_vintages_verified": false,
+  "mobile_repair": "Outside mousedown dismissal excludes the List and floating List controls, preventing close-then-reopen on the same pointer action. Bounded desktop/mobile browser acceptance reproduces the predecessor failure and checks the repaired toggle."
+}

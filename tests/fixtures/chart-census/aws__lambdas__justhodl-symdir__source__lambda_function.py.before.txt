@@ -52,7 +52,6 @@ import bis_policy_series
 import bis_reviewed_series
 import bis_fx_cross
 import oecd_series
-import census_series
 from directory_resident import load as resident_load, evidence as resident_evidence
 import csv
 import gzip
@@ -1613,23 +1612,12 @@ def doc_row(d, score=None):
     if prov == "oecd" and kind == "dataset" and oecd_series.reviewed_flow(d[D_ID].split(":", 1)[-1]):
         row["browse"] = True
         row["reviewed_series"] = oecd_series.directory(limit=1,flow=oecd_series.reviewed_flow(d[D_ID].split(":",1)[-1]))["total"]
-    if prov == "census" and census_series.reviewed_dataset(d[D_ID].split(":")[1]):
-        if kind == "dataset":
-            row["reviewed_series"] = census_series.directory(limit=1,dataset=d[D_ID].split(":")[1])["total"]
-        elif kind == "series":
-            try:
-                checked = census_series.definition(d[D_ID])
-                row.update(name=checked["name"],unit=checked["unit"],freq=checked["freq"],sampling_error=checked["sampling_error"],live_history_verified=False)
-            except ValueError:
-                row.update(chartable=False,definition_review_required=True)
     if score is not None:
         row["score"] = round(score, 2)
     return row
 
 
 def search(q, limit=40, prov=None, kind=None):
-    if (prov in (None, "census") and str(q or "").lower().startswith("census:") and str(q or "").count(":")>=2) or (prov == "census" and kind == "series"):
-        return dict(census_series.directory(q or "", max(1,min(int(limit),200))), q=q)
     if (prov in (None, "oecd") and str(q or "").lower().startswith("oecd:") and str(q or "").count(":")>=2) or (prov == "oecd" and kind == "series"):
         return dict(oecd_series.all_directory(q or "", max(1, min(int(limit), 200))), q=q)
     if (prov in (None, "bis") and str(q or "").lower().startswith(("bis:ws_cbpol:","bis:ws_xru:"))):
@@ -1934,8 +1922,6 @@ def browse(ds, q="", limit=200, offset=0):
     ql = q.lower()
     if prov == "oecd" and oecd_series.reviewed_flow(rest):
         return oecd_series.directory(q, limit, offset, dataset=True,flow=oecd_series.reviewed_flow(rest))
-    if prov == "census" and census_series.reviewed_dataset(rest):
-        return dict(census_series.directory(q,limit,offset,dataset=rest),ds=ds)
     if prov == "bis" and rest.upper() in bis_reviewed_series.ADAPTERS:
         return bis_reviewed_series.directory(q, limit, offset, flow=rest)
     if prov in ("eurostat", "ecb"):
@@ -2116,8 +2102,6 @@ def _cache_get(sid, max_age_s):
         if sid.lower().startswith("bis:") and not bis_reviewed_series.cache_valid(cached, sid):
             return None, age
         if sid.lower().startswith("oecd:") and not oecd_series.cache_valid(cached, sid):
-            return None, age
-        if sid.lower().startswith("census:") and census_series.reviewed_dataset(sid.split(":")[1]) and not census_series.cache_valid(cached,sid):
             return None, age
         if sid.lower().startswith("bisfx:") and not bis_fx_cross.cache_valid(cached, sid):
             return None, age
@@ -2561,8 +2545,6 @@ def r_boe(sid, rest, d):
 
 
 def r_census(sid, rest, d):
-    if census_series.reviewed_dataset(rest.split(":")[0]):
-        return census_series.fetch(sid,s3,BUCKET)
     p = rest.split(":")
     if len(p) < 5:
         raise ValueError("census needs DATASET:DATA_TYPE:CATEGORY:SA:GEO")
@@ -3017,7 +2999,7 @@ def fetch_series(sid, nocache=False, _depth=0):
     try:
         return _fetch_series(sid, nocache=nocache)
     except Exception as e:  # noqa: BLE001
-        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith(("treasury:", "bis:", "bisfx:", "oecd:", "census:", "cftc:", "cot:", "cot2:", "cot3:")):
+        if _depth > 0 or not sid or ":" not in sid or sid.lower().startswith(("treasury:", "bis:", "bisfx:", "oecd:", "cftc:", "cot:", "cot2:", "cot3:")):
             raise
         cands = closest_ids(sid)
         # a typed id that is the prefix of a clearly better-known real id resolves to it (TVC:US10 -> TVC:US10Y)
@@ -3045,8 +3027,6 @@ def _fetch_series(sid, nocache=False):
         sid = oecd_series.definition(sid)["id"]
     if re.match(r"^(?:COT[23]?|cftc):", sid, re.I):
         sid = cftc_series.definition(sid)["id"]
-    if sid.lower().startswith("census:") and census_series.reviewed_dataset(sid.split(":")[1]):
-        sid = census_series.definition(sid)["id"]
     if sid.upper().startswith("FRED:"):
         sid = "fred:" + sid[5:]
     prov, _, rest = sid.partition(":")
@@ -3075,7 +3055,7 @@ def _fetch_series(sid, nocache=False):
             c["cached"] = True
             c["cache_age_s"] = int(age)
             return c
-    d = None if prov in ("bis", "bisfx", "cftc", "oecd") or (prov=="census" and census_series.reviewed_dataset(rest.split(":")[0])) else _doc_lookup(sid)
+    d = None if prov in ("bis", "bisfx", "cftc", "oecd") else _doc_lookup(sid)
     if prov == "tv":
         out = r_tvsym(sid, rest, d)
     elif prov == "equity":
@@ -3145,8 +3125,6 @@ def explorer(qs):
     q = (qs.get("q") or "").strip().lower()
     kind = (qs.get("kind") or "").strip()
     offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
-    if prov == "census" and kind == "series":
-        return census_series.directory(q,limit,offset)
     if prov == "oecd" and kind == "series":
         return oecd_series.all_directory(q, limit, offset)
     if prov == "bis" and kind == "series":
@@ -3182,10 +3160,6 @@ def explorer(qs):
         }
     ix = load_index()
     docs = ix["docs"]
-    if prov == "census":
-        # Overlay reviewed dataset metadata without rebuilding or dropping any other datasets.
-        docs = [d for d in docs if not (d[D_PROV]=="census" and d[D_KIND]=="dataset" and census_series.reviewed_dataset(d[D_ID].split(":")[1]))]
-        docs = [doc("census:"+slug,"census",cfg["name"],"dataset",0.5) for slug,cfg in census_series.CATALOGUE["dataset_definitions"].items()]+docs
     if not prov:
         counts = defaultdict(lambda: {"series": 0, "dataset": 0, "instrument": 0})
         for d in docs:
