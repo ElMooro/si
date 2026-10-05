@@ -1,14 +1,14 @@
 {
-  "observed_at": "2026-10-05T05:27:28.313662+00:00",
+  "observed_at": "2026-10-05T05:27:48.405242+00:00",
   "runs": [
     {
       "id": 37267435488,
       "path": ".github/workflows/pages.yml",
       "head_sha": "2d3ad3c63d2d1eb1a9711b5d7ca68813e3c934c5",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-10-05T05:21:43Z",
-      "updated_at": "2026-10-05T05:27:10Z",
+      "updated_at": "2026-10-05T05:27:21Z",
       "jobs": [
         {
           "id": 111627103621,
@@ -271,10 +271,10 @@
         {
           "id": 111628320514,
           "name": "deploy",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-10-05T05:27:10Z",
-          "completed_at": null,
+          "completed_at": "2026-10-05T05:27:21Z",
           "steps": [
             {
               "number": 1,
@@ -295,28 +295,45 @@
             {
               "number": 3,
               "name": "Report deploy outcome",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-05T05:27:18Z",
-              "completed_at": null
+              "completed_at": "2026-10-05T05:27:18Z"
             },
             {
               "number": 4,
               "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-05T05:27:18Z",
+              "completed_at": "2026-10-05T05:27:18Z"
             },
             {
               "number": 5,
               "name": "Fail this run when Pages was not deployed",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-05T05:27:18Z",
+              "completed_at": "2026-10-05T05:27:18Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-05T05:27:18Z",
+              "completed_at": "2026-10-05T05:27:18Z"
             }
           ]
+        },
+        {
+          "id": 111628377474,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-05T05:27:21Z",
+          "completed_at": "2026-10-05T05:27:21Z",
+          "steps": []
         }
       ]
     },
