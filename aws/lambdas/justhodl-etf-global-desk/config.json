@@ -23,5 +23,8 @@
     "expression": "cron(5 23 * * ? *)",
     "name": "justhodl-etf-global-desk-daily",
     "description": "23:05 UTC daily \u2014 after canonical ETF holdings; unchanged once-daily collection scope"
+  },
+  "environment": {
+    "ETF_OWNERSHIP_SUMMARY_ENABLED": "true"
   }
 }
