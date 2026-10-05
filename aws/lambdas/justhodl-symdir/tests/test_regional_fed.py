@@ -26,7 +26,7 @@ class Reader:
   return (self.csv if 'chicagofed.org' in url else XLSX if url.endswith('.xlsx') else PAGE),{'Content-Type':'application/octet-stream'}
 class Tests(unittest.TestCase):
  def test_exact_identifiers_case_and_directory_never_infer_variants(self):
-  rows=m.directory(limit=500)['rows'];self.assertEqual(len(rows),77);self.assertEqual(len(m.directory('chicago-cfnai')['rows']),7)
+  rows=m.directory(limit=500)['rows']+m.directory(limit=500,offset=500)['rows'];self.assertEqual(len(rows),644);self.assertEqual(len(m.directory('chicago-cfnai')['rows']),7)
   for row in rows:
    self.assertEqual(m.definition(row['id'].upper())['id'],row['id']);self.assertIsNone(row['n']);self.assertFalse(row['live_history_verified'])
   for sid in [CHICAGO+':extra','regionalfed:kc-manufacturing:composite','ECONOMICS:USCFNAI','regionalfed:chicago-cfnai:UNKNOWN']:

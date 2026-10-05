@@ -12,7 +12,7 @@ class Tests(unittest.TestCase):
   return m
  def test_exact_two_dataset_browsing_and_full_directory_need_no_unrelated_index(self):
   m=self.module();a=m.browse('regionalfed:chicago-cfnai',limit=500)['rows'];b=m.browse('regionalfed:kc-manufacturing',limit=500)['rows'];self.assertEqual(len(a),7);self.assertEqual(len(b),70)
-  rows=m.explorer({'provider':'regionalfed','kind':'series','limit':'500'})['rows'];self.assertEqual(len(rows),77);self.assertEqual({r['id'] for r in rows},{r['id'] for r in a+b});self.assertEqual(m.search(SID)['rows'][0]['id'],SID)
+  rows=m.explorer({'provider':'regionalfed','kind':'series','limit':'500'})['rows']+m.explorer({'provider':'regionalfed','kind':'series','limit':'500','offset':'500'})['rows'];self.assertEqual(len(rows),644);self.assertEqual({r['id'] for r in rows},set(source.CATALOGUE['series']));self.assertTrue({r['id'] for r in a+b}.issubset({r['id'] for r in rows}));self.assertEqual(m.search(SID)['rows'][0]['id'],SID)
   self.assertEqual(m.browse('regionalfed:kc-manufacturing',limit=50)['rows']+m.browse('regionalfed:kc-manufacturing',offset=50,limit=50)['rows'],b);m.load_index.assert_not_called()
  def test_all_canonical_definitions_keep_case_comparison_adjustment_and_exact_source(self):
   m=self.module()
@@ -32,10 +32,10 @@ class Tests(unittest.TestCase):
   self.assertIsNone(m._cache_get(SID,86400)[0])
  def test_two_reviewed_datasets_overlay_without_deleting_existing_provider_entries(self):
   m=self.module();m.load_index=Mock(return_value={'docs':[m.doc('regionalfed:OTHER','regionalfed','Existing dataset','dataset',.5),m.doc('regionalfed:chicago-cfnai','regionalfed','Old label','dataset',.5)]});m.hub=Mock(return_value={})
-  rows=m.explorer({'provider':'regionalfed','limit':'100'})['rows'];self.assertEqual({r['id'] for r in rows},{'regionalfed:OTHER','regionalfed:chicago-cfnai','regionalfed:kc-manufacturing'});self.assertEqual(len(rows),3)
+  rows=m.explorer({'provider':'regionalfed','limit':'100'})['rows'];self.assertEqual({r['id'] for r in rows},{'regionalfed:OTHER'}|{d['id'] for d in source.CATALOGUE['datasets'].values()});self.assertEqual(len(rows),12)
   for row in rows:
    if row['id']=='regionalfed:OTHER':continue
-   self.assertTrue(row['browse']);self.assertFalse(row['chartable']);self.assertEqual(row['reviewed_series'],7 if row['id'].endswith('chicago-cfnai') else 70)
+   self.assertTrue(row['browse']);self.assertFalse(row['chartable']);self.assertEqual(row['reviewed_series'],sum(d['dataset']==row['id'].split(':',1)[1] for d in source.CATALOGUE['series'].values()))
  def test_doc_metadata_uses_source_units_and_monthly_frequency(self):
   m=self.module();row=m.doc_row(m.doc(SID,'regionalfed','Old metadata','series',.3,freq='D'));self.assertEqual(row['freq'],'M');self.assertEqual(row['unit'],'CFNAI standard-deviation units');self.assertEqual(row['provider'],'regionalfed');self.assertIsNone(row['currency']);self.assertFalse(row['live_history_verified'])
 if __name__=='__main__':unittest.main(verbosity=2)

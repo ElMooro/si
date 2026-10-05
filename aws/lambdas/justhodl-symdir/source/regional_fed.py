@@ -4,6 +4,7 @@ from collections import Counter
 from pathlib import Path
 import base64,csv,gzip,hashlib,json,re,urllib.request,urllib.error,zipfile,xml.etree.ElementTree as ET
 import regional_fed_parser as parser
+import regional_survey_parser as survey_parser
 
 CONTRACT='regional-fed-reviewed-series.v1'
 CATALOGUE_RAW=Path(__file__).with_name('regional-fed-series.json').read_bytes()
@@ -68,6 +69,10 @@ def _parse(dataset,blobs):
     if dataset=='kc-manufacturing':
         if len(blobs)!=2:raise ValueError('Kansas City requires source discovery page and workbook')
         parser.kc_workbook_url(blobs[0]);return parser.parse_kc(blobs[1])
+    ds=CATALOGUE['datasets'].get(dataset,{})
+    if ds.get('format') in ('survey_csv','survey_xlsx'):
+        if len(blobs)!=1:raise ValueError('Reviewed survey requires one complete original table')
+        return survey_parser.parse(blobs[0],ds['table_schema'])
     raise ValueError('Unreviewed regional Fed dataset')
 
 def parse(dataset,blobs):

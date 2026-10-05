@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-regional-fed/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
-function normalize(raw,file){const row=transition.changes[file];if(!row)return raw;const digest=hash(raw);
+function normalize(raw,file){raw=require("./chart-regional-surveys-preservation.cjs").normalize(raw,file);const row=transition.changes[file];if(!row)return raw;const digest=hash(raw);
  if(digest===row.before_sha256)return raw;
  if(digest!==row.after_sha256){
   // Only byte-for-byte retained earlier revisions may pass through the chain.

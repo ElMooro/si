@@ -1,0 +1,24 @@
+{
+  "status": "candidate_not_deployed",
+  "added_series": 567,
+  "total_series": 644,
+  "new_datasets": 9,
+  "held_dictionary_conflicts": [
+    {
+      "dataset": "richmond-manufacturing",
+      "source_key": "nsa_mfg_emp_e",
+      "reason": "Primary dictionary omitted this key or gives conflicting adjustment definitions",
+      "dictionary_definitions": []
+    },
+    {
+      "dataset": "richmond-manufacturing",
+      "source_key": "sa_mfg_emp_e",
+      "reason": "Primary dictionary omitted this key or gives conflicting adjustment definitions",
+      "dictionary_definitions": [
+        "expected manufacturing employment; diffusion index, NSA",
+        "expected manufacturing employment; diffusion index, SA"
+      ]
+    }
+  ],
+  "original_77_definitions_unchanged": true
+}
