@@ -1609,17 +1609,17 @@ def doc_row(d, score=None):
             row[k] = ex[k]
     if ex.get("chartable") is not None:
         row["chartable"] = bool(ex["chartable"])
-    if prov == "oecd" and kind == "dataset" and oecd_series.reviewed_flow(d[D_ID].split(":", 1)[-1]):
+    if prov == "oecd" and kind == "dataset" and d[D_ID].split(":", 1)[-1].upper() in (oecd_series.FLOW.upper(), "DSD_STES@DF_INDSERV"):
         row["browse"] = True
-        row["reviewed_series"] = oecd_series.directory(limit=1,flow=oecd_series.reviewed_flow(d[D_ID].split(":",1)[-1]))["total"]
+        row["reviewed_series"] = len(oecd_series.CATALOG["series"])
     if score is not None:
         row["score"] = round(score, 2)
     return row
 
 
 def search(q, limit=40, prov=None, kind=None):
-    if (prov in (None, "oecd") and str(q or "").lower().startswith("oecd:") and str(q or "").count(":")>=2) or (prov == "oecd" and kind == "series"):
-        return dict(oecd_series.all_directory(q or "", max(1, min(int(limit), 200))), q=q)
+    if (prov in (None, "oecd") and str(q or "").lower().startswith("oecd:"+oecd_series.FLOW.lower()+":")) or (prov == "oecd" and kind == "series"):
+        return dict(oecd_series.directory(q or "", max(1, min(int(limit), 200))), q=q)
     if (prov in (None, "bis") and str(q or "").lower().startswith(("bis:ws_cbpol:","bis:ws_xru:"))):
         return dict(bis_reviewed_series.directory(q or "", max(1, min(int(limit), 200))), q=q)
     if prov == "cftc" or (not prov and re.match(r"^(?:COT[23]?|cftc):", str(q or ""), re.I)):
@@ -1920,8 +1920,8 @@ def browse(ds, q="", limit=200, offset=0):
     prov, _, rest = ds.partition(":")
     prov = prov.lower()
     ql = q.lower()
-    if prov == "oecd" and oecd_series.reviewed_flow(rest):
-        return oecd_series.directory(q, limit, offset, dataset=True,flow=oecd_series.reviewed_flow(rest))
+    if prov == "oecd" and rest.upper() in (oecd_series.FLOW.upper(), "DSD_STES@DF_INDSERV"):
+        return oecd_series.directory(q, limit, offset, dataset=True)
     if prov == "bis" and rest.upper() in bis_reviewed_series.ADAPTERS:
         return bis_reviewed_series.directory(q, limit, offset, flow=rest)
     if prov in ("eurostat", "ecb"):
@@ -3126,7 +3126,7 @@ def explorer(qs):
     kind = (qs.get("kind") or "").strip()
     offset, limit = int(qs.get("offset") or 0), max(1, min(int(qs.get("limit") or 200), 500))
     if prov == "oecd" and kind == "series":
-        return oecd_series.all_directory(q, limit, offset)
+        return oecd_series.directory(q, limit, offset)
     if prov == "bis" and kind == "series":
         return bis_reviewed_series.directory(q, limit, offset)
     if prov == "cftc":

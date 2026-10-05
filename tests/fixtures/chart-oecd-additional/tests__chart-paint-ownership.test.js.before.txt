@@ -42,12 +42,12 @@ test('cancelled relative fallback never computes a result for an obsolete frame'
 });
 
 function painter(){
- const effects=[],adds=[],rafs=[],cleared=[],elements=new Map(),el=id=>{if(!elements.has(id))elements.set(id,{textContent:'',style:{}});return elements.get(id);};
+ const effects=[],adds=[],rafs=[],elements=new Map(),el=id=>{if(!elements.has(id))elements.set(id,{textContent:'',style:{}});return elements.get(id);};
  const chart={timeScale:()=>({getVisibleLogicalRange:()=>null,fitContent(){},setVisibleLogicalRange(){}}),priceScale:()=>({applyOptions(){}}),applyOptions(){},addHistogramSeries:o=>{const s={options:o,setData:d=>{s.data=d;}};adds.push(s);return s;}};
- const c=setup(['reportedVolume','paint'],{toastT:42,clearTimeout:id=>cleared.push(id),paintSeq:0,loadGen:0,active:'OLD',tf:'1d',barEvidence:new WeakMap(),observationId:()=>false,lastBars:[],INDS:[],OSC:[],series:[],mode:'ytd',lastSource:'invented',compare:[],COLORS:[],tape:{prints:[]},preserveView:false,volOn:true,watermark:true,UP:'up',DN:'down',chart,window:{},document:{getElementById:el},
+ const c=setup(['reportedVolume','paint'],{paintSeq:0,loadGen:0,active:'OLD',tf:'1d',barEvidence:new WeakMap(),observationId:()=>false,lastBars:[],INDS:[],OSC:[],series:[],mode:'ytd',lastSource:'invented',compare:[],COLORS:[],tape:{prints:[]},preserveView:false,volOn:true,watermark:true,UP:'up',DN:'down',chart,window:{},document:{getElementById:el},
   wipe(){c.series=[];},pal:()=>({}),volScore:()=>0,chartLook:()=>({}),rightScaleMode:()=>0,computeChange:d=>d.map(b=>({time:b.time,value:b.close})),requestAnimationFrame:f=>rafs.push(f),refreshHiLoVP:()=>effects.push(['refresh']),fmtVol:String,loadBench:async()=>rows(),lastSpxDaily:[],lastBenchName:'SPX',lastVsSpx:null});
  for(const name of ['paintOsc','drawSVG','paintPat','quoteUI','renderDetail','checkAlerts','countdown','renderLegend','syncLivePill','renderTech','renderOver','renderSeason','renderFin','paintMini','writeState'])c[name]=(...args)=>effects.push([name,...args]);
- return {c,effects,adds,rafs,cleared,el};
+ return {c,effects,adds,rafs,el};
 }
 test('an older successful paint cannot replace the newer frame after its benchmark resolves',async()=>{
  const h=painter(),wait=deferred(),old=rows(100),fresh=rows(null);let calls=0;h.c.loadBench=()=>++calls===1?wait.promise:Promise.resolve(rows(200));
@@ -99,5 +99,3 @@ test('obsolete ticker paint errors cannot close the current search or replace it
 test('live refresh does not initiate tape work after its frame was superseded',async()=>{
  const h=loader(['tickLive']),pending=h.c.tickLive();await h.entered.promise;h.c.active='NEW';h.c.loadGen++;h.wait.resolve();await pending;assert.deepEqual(h.effects,[]);
 });
-
-test('successful identified paint clears an obsolete toast and publishes only its matching source label',async()=>{for(const matches of [true,false]){const h=painter(),frame=rows();h.el('toast').textContent='Old unavailable notice';h.el('toast').className='on';h.c.barEvidence.set(frame,{symbol:matches?'OLD':'OTHER',interval:'1d',source:'Bound unverified warehouse source',market_history:{provider_identity_verified:false}});await h.c.paint(frame);assert.deepEqual(h.cleared,[42]);assert.equal(h.c.toastT,null);assert.equal(h.el('toast').textContent,'');assert.equal(h.el('toast').className,'');assert.equal(h.c.lastSource,matches?'Bound unverified warehouse source':'invented');assert.equal(h.c.window.lastSource,h.c.lastSource);}});

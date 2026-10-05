@@ -30,5 +30,5 @@ test('prior complete preservation manifest changes only the two reviewed functio
 
 test('paint race and cancellation assertions are unchanged while loading the real volume dependency',()=>{
  const old=fs.readFileSync(path.join(D,'paint-ownership-before.js.txt'),'utf8'),needle="const c=setup(['paint'],{paintSeq:0";assert.equal(old.split(needle).length,2);
- assert.equal(require('./helpers/chart-oecd-additional-preservation.cjs').normalize(fs.readFileSync(path.join(R,'tests/chart-paint-ownership.test.js'),'utf8'),'tests/chart-paint-ownership.test.js'),old.replace(needle,"const c=setup(['reportedVolume','paint'],{paintSeq:0"));
+ assert.equal(fs.readFileSync(path.join(R,'tests/chart-paint-ownership.test.js'),'utf8'),old.replace(needle,"const c=setup(['reportedVolume','paint'],{paintSeq:0"));
 });

@@ -33,49 +33,6 @@ _memory_source = None
 _memory_index = None
 
 
-# Each reviewed dataflow has an independent source URL, cache namespace, daily
-# acquisition gate and in-memory index. The original industrial catalogue and
-# retained receipts retain their exact contract and hash.
-from types import SimpleNamespace
-_additional_raw = Path(__file__).with_name('oecd-additional-series.json').read_bytes()
-_additional = json.loads(_additional_raw)
-assert _additional['contract']=='oecd-additional-catalogs.v1'
-_CONTEXTS = {}
-for _cat,_digest in [(CATALOG,CATALOG_HASH)]+[(c,hashlib.sha256(_additional_raw).hexdigest()) for c in _additional['flows'].values()]:
-    _flow=_cat['flow']
-    assert _flow not in _CONTEXTS and _cat['contract']=='oecd-reviewed-catalog.v1'
-    _CONTEXTS[_flow]=SimpleNamespace(CATALOG=_cat,CATALOG_HASH=_digest,FLOW=_flow,
-        SOURCE_URL='https://sdmx.oecd.org/public/rest/data/'+_flow+'/all?format=csvfile',
-        PREFIX='data/series-cache/oecd-source/'+hashlib.sha256(_flow.encode()).hexdigest()[:20]+'/',
-        growth_reviewed=_flow==FLOW)
-
-
-def _context(flow=None):
-    key=FLOW if flow is None else flow
-    if not isinstance(key,str):raise ValueError('OECD dataset/version has not been reviewed')
-    matches=[c for k,c in _CONTEXTS.items() if k.upper()==key.upper()]
-    if len(matches)!=1:raise ValueError('OECD dataset/version has not been reviewed')
-    return matches[0]
-
-
-def reviewed_flow(value):
-    if not isinstance(value,str):return None
-    matches=[k for k in _CONTEXTS if value.upper() in (k.upper(),k.split(',')[1].upper())]
-    return matches[0] if len(matches)==1 else None
-
-
-def all_directory(q='',limit=50,offset=0):
-    if type(limit) is not int or not 1<=limit<=500 or type(offset) is not int or offset<0:
-        raise ValueError('Invalid OECD directory page')
-    rows=[]
-    for flow in _CONTEXTS:
-        part=directory(q,500,0,flow=flow);rows.extend(part['rows'])
-        for pos in range(500,part['total'],500):rows.extend(directory(q,500,pos,flow=flow)['rows'])
-    return dict(provider='oecd',rows=rows[offset:offset+limit],total=len(rows),offset=offset,limit=limit,
-        contract=CONTRACT,catalogue_scope='Exact reviewed definitions; catalogue counts are not live history proof',
-        definition_sha256_by_flow={flow:c.CATALOG_HASH for flow,c in _CONTEXTS.items()})
-
-
 class SourceUnavailable(ValueError):
     pass
 
@@ -84,14 +41,13 @@ def definition(sid):
     if not isinstance(sid, str) or len(sid)>240 or sid.split(':',1)[0].lower()!='oecd':
         raise ValueError('Select an exact reviewed OECD series')
     parts=sid.split(':')
-    ctx=_context(parts[1] if len(parts)>1 else '')
-    if len(parts) not in (3,4) or parts[1].upper()!=ctx.FLOW.upper() or parts[2].upper() not in ctx.CATALOG['series']:
+    if len(parts) not in (3,4) or parts[1].upper()!=FLOW.upper() or parts[2].upper() not in CATALOG['series']:
         raise ValueError('OECD dataset/version/dimensions have not been reviewed')
     key=parts[2].upper()
-    d=dict(ctx.CATALOG['series'][key],id='oecd:'+ctx.FLOW+':'+key,flow=ctx.FLOW)
+    d=dict(CATALOG['series'][key],id='oecd:'+FLOW+':'+key,flow=FLOW)
     if len(parts)==4:
         transform=parts[3].upper()
-        if ctx.growth_reviewed is not True or transform not in ('G1','GY') or d['freq']!='M' or d['unit_code']!='IX':
+        if transform not in ('G1','GY') or d['freq']!='M' or d['unit_code']!='IX':
             raise ValueError('Only exact 1-month or 12-month changes of reviewed monthly indices are available')
         d.update(id=d['id']+':'+transform,source_unit=d['unit'],unit='Percent change ('+('1 month' if transform=='G1' else '12 months')+')',
                  computed_transform=transform,lag_months=1 if transform=='G1' else 12,
@@ -99,22 +55,21 @@ def definition(sid):
     return d
 
 
-def directory(q='',limit=50,offset=0,dataset=False,flow=None):
-    ctx=_context(flow)
+def directory(q='',limit=50,offset=0,dataset=False):
     if type(limit) is not int or not 1<=limit<=500 or type(offset) is not int or offset<0:
         raise ValueError('Invalid OECD directory page')
     tokens=str(q).lower().split();rows=[]
-    for key in sorted(ctx.CATALOG['series']):
-        d=definition('oecd:'+ctx.FLOW+':'+key)
+    for key in sorted(CATALOG['series']):
+        d=definition('oecd:'+FLOW+':'+key)
         if not all(t in (d['id']+' '+d['name']+' '+d['unit']).lower() for t in tokens):continue
         rows.append(dict(id=d['id'],name=d['name'],provider='oecd',provider_name='OECD',kind='series',
                          chartable=True,freq=d['freq'],unit=d['unit'],geo=d['geo'],
                          reference_last=d['reference_last'],history_verified=False,
                          dimensions=d['dimensions'],labels=d['labels'],base_period=d['base_period']))
     return dict(provider='oecd',rows=rows[offset:offset+limit],total=len(rows),offset=offset,limit=limit,
-                definition_sha256=ctx.CATALOG_HASH,contract=CONTRACT,
-                catalogue_scope='Exact reviewed series definitions; catalogue counts are not live history proof',
-                **({'ds':'oecd:'+ctx.FLOW} if dataset else {}))
+                definition_sha256=CATALOG_HASH,contract=CONTRACT,
+                catalogue_scope='Exact reviewed production, sales, orders and construction definitions; catalogue counts are not live history proof',
+                **({'ds':'oecd:'+FLOW} if dataset else {}))
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -123,7 +78,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def read_http(url):
-    if url not in {c.SOURCE_URL for c in _CONTEXTS.values()}:raise ValueError('Unreviewed OECD source URL')
+    if url!=SOURCE_URL:raise ValueError('Unreviewed OECD source URL')
     req=urllib.request.Request(url,headers={'Accept':'text/csv','Accept-Encoding':'gzip',
                                           'User-Agent':'JustHodl-OECD/1.0 (+https://justhodl.ai)'})
     with urllib.request.build_opener(NoRedirect()).open(req,timeout=60) as res:
@@ -161,46 +116,42 @@ def _put(store,bucket,key,body,**extra):
     except Exception as exc:raise SourceUnavailable('OECD evidence retention failed') from exc
 
 
-def _load(store,bucket,flow=None):
-    ctx=_context(flow)
+def _load(store,bucket):
     global _memory_source
-    memo=(_memory_source or {}).get(ctx.FLOW)
-    raw=_get(store,bucket,ctx.PREFIX+'current.json',32000)
+    raw=_get(store,bucket,PREFIX+'current.json',32000)
     if raw is None:return None
     try:
         receipt=json.loads(raw)
-        assert receipt['contract']==CONTRACT and receipt['url']==ctx.SOURCE_URL and receipt['flow']==ctx.FLOW
+        assert receipt['contract']==CONTRACT and receipt['url']==SOURCE_URL and receipt['flow']==FLOW
         sha=receipt['sha256'];assert re.fullmatch('[0-9a-f]{64}',sha)
-        assert receipt['retained_key']==ctx.PREFIX+'responses/'+sha+'.csv.gz'
+        assert receipt['retained_key']==PREFIX+'responses/'+sha+'.csv.gz'
         acquired=datetime.fromisoformat(receipt['received_at']);assert acquired.tzinfo is not None
-        if memo and memo[0]==(sha,receipt['retained_sha256']):
-            original=memo[1]
+        if _memory_source and _memory_source[0]==(sha,receipt['retained_sha256']):
+            original=_memory_source[1]
         else:
             wire=_get(store,bucket,receipt['retained_key'],MAX_WIRE)
             if wire is None:raise ValueError('Missing retained response')
             assert hashlib.sha256(wire).hexdigest()==receipt['retained_sha256']
             original=unpack(wire);assert hashlib.sha256(original).hexdigest()==sha
-            if _memory_source is None:_memory_source={}
-            _memory_source[ctx.FLOW]=((sha,receipt['retained_sha256']),original)
+            _memory_source=((sha,receipt['retained_sha256']),original)
         assert len(original)==receipt['bytes']
         return original,receipt
     except (KeyError,ValueError,AssertionError,TypeError,EOFError,OSError) as exc:
         raise SourceUnavailable('OECD retained response failed integrity checks') from exc
 
 
-def snapshot(store,bucket,reader=None,now=None,flow=None):
-    ctx=_context(flow)
+def snapshot(store,bucket,reader=None,now=None):
     now=now or datetime.now(timezone.utc)
-    blocked=_get(store,bucket,ctx.PREFIX+'blocked.json',32000)
+    blocked=_get(store,bucket,PREFIX+'blocked.json',32000)
     if blocked is not None:raise SourceUnavailable('OECD source stopped after recorded HTTP refusal; access review required')
-    current=_load(store,bucket,flow=flow)
+    current=_load(store,bucket)
     if current:
         age=(now-datetime.fromisoformat(current[1]['received_at'])).total_seconds()
         if 0<=age<MAX_AGE:return current[0],dict(current[1],snapshot_age_s=int(age),stale=False)
     # A shared conditional write is required before any upstream request. Daily
     # claims remain in storage even on failure. nocache cannot bypass this gate.
-    claim=ctx.PREFIX+'download-claims/'+now.date().isoformat()+'.json'
-    body=json.dumps({'contract':CONTRACT,'flow':ctx.FLOW,'requested_at':now.isoformat()}).encode()
+    claim=PREFIX+'download-claims/'+now.date().isoformat()+'.json'
+    body=json.dumps({'contract':CONTRACT,'flow':FLOW,'requested_at':now.isoformat()}).encode()
     try:store.put_object(Bucket=bucket,Key=claim,Body=body,ContentType='application/json',IfNoneMatch='*')
     except Exception as exc:
         code=getattr(exc,'response',{}).get('Error',{}).get('Code')
@@ -211,31 +162,30 @@ def snapshot(store,bucket,reader=None,now=None,flow=None):
                                    cache_note='Daily source request already claimed; retained historical snapshot only')
         raise SourceUnavailable('OECD daily download already claimed; no retained response is available') from exc
     try:
-        wire,headers=(reader or read_http)(ctx.SOURCE_URL);raw=unpack(wire)
-        validate_schema(raw,flow=flow)
+        wire,headers=(reader or read_http)(SOURCE_URL);raw=unpack(wire)
+        validate_schema(raw)
         sha=hashlib.sha256(raw).hexdigest();retained=gzip.compress(raw,mtime=0)
         if len(retained)>MAX_WIRE:raise ValueError('OECD retained response bound exceeded')
-        key=ctx.PREFIX+'responses/'+sha+'.csv.gz'
-        receipt=dict(contract=CONTRACT,flow=ctx.FLOW,url=ctx.SOURCE_URL,http_status=200,received_at=now.isoformat(),
+        key=PREFIX+'responses/'+sha+'.csv.gz'
+        receipt=dict(contract=CONTRACT,flow=FLOW,url=SOURCE_URL,http_status=200,received_at=now.isoformat(),
                      wire_bytes=len(wire),wire_sha256=hashlib.sha256(wire).hexdigest(),bytes=len(raw),sha256=sha,
                      retained_key=key,retained_url='https://justhodl.ai/'+key,retained_sha256=hashlib.sha256(retained).hexdigest(),
                      complete_response_retained=True,headers={k:v for k,v in headers.items() if k.lower() in ('last-modified','etag','content-type','content-encoding')})
         _put(store,bucket,key,retained,ContentType='application/gzip',CacheControl='public, max-age=31536000, immutable')
-        _put(store,bucket,ctx.PREFIX+'current.json',json.dumps(receipt).encode(),ContentType='application/json',CacheControl='no-cache')
+        _put(store,bucket,PREFIX+'current.json',json.dumps(receipt).encode(),ContentType='application/json',CacheControl='no-cache')
         return raw,dict(receipt,snapshot_age_s=0,stale=False)
     except urllib.error.HTTPError as exc:
-        record=json.dumps({'contract':CONTRACT,'url':ctx.SOURCE_URL,'status':exc.code,'received_at':now.isoformat(),'retry_allowed':False}).encode()
-        _put(store,bucket,ctx.PREFIX+'blocked.json',record,ContentType='application/json',CacheControl='no-cache')
+        record=json.dumps({'contract':CONTRACT,'url':SOURCE_URL,'status':exc.code,'received_at':now.isoformat(),'retry_allowed':False}).encode()
+        _put(store,bucket,PREFIX+'blocked.json',record,ContentType='application/json',CacheControl='no-cache')
         raise SourceUnavailable('OECD HTTP '+str(exc.code)+'; no fallback or retry') from exc
     except (ValueError,OSError,UnicodeError,EOFError,csv.Error) as exc:
         raise SourceUnavailable('OECD acquisition failed; shared daily claim retained') from exc
 
 
-def validate_schema(raw,flow=None):
-    ctx=_context(flow)
+def validate_schema(raw):
     text=raw.decode('utf-8-sig');reader=csv.DictReader(io.StringIO(text,newline=''),strict=True)
     fields=reader.fieldnames or []
-    required=set(ctx.CATALOG['dimension_order'])|{'DATAFLOW','TIME_PERIOD','OBS_VALUE','OBS_STATUS','UNIT_MULT','DECIMALS','BASE_PER'}
+    required=set(CATALOG['dimension_order'])|{'DATAFLOW','TIME_PERIOD','OBS_VALUE','OBS_STATUS','UNIT_MULT','DECIMALS','BASE_PER'}
     if len(fields)!=len(set(fields)) or not required.issubset(fields):raise ValueError('OECD CSV schema mismatch')
     return reader
 
@@ -259,20 +209,16 @@ def measured(value):
 
 def parse(raw,d):
     global _memory_index
-    ctx=_context(d["flow"])
-    memo=(_memory_index or {}).get(ctx.FLOW)
-    sha=memo[0] if memo and memo[3] is raw else hashlib.sha256(raw).hexdigest()
-    if not memo or memo[0]!=sha:
-        reader=validate_schema(raw,flow=ctx.FLOW);fields=reader.fieldnames;groups={}
+    sha=_memory_index[0] if _memory_index and _memory_index[3] is raw else hashlib.sha256(raw).hexdigest()
+    if not _memory_index or _memory_index[0]!=sha:
+        reader=validate_schema(raw);fields=reader.fieldnames;groups={}
         for ordinal,row in enumerate(reader):
             if ordinal>=MAX_ROWS or None in row or any(v is None for v in row.values()):raise ValueError('OECD CSV row bound or shape mismatch')
-            if row['DATAFLOW']!=ctx.CATALOG['dataflow']:raise ValueError('OECD dataflow/version mismatch')
-            key='.'.join(row[k] for k in ctx.CATALOG['dimension_order'])
+            if row['DATAFLOW']!=CATALOG['dataflow']:raise ValueError('OECD dataflow/version mismatch')
+            key='.'.join(row[k] for k in CATALOG['dimension_order'])
             groups.setdefault(key,[]).append((ordinal,tuple(row[k] for k in fields)))
-        memo=(sha,fields,groups,raw)
-        if _memory_index is None:_memory_index={}
-        _memory_index[ctx.FLOW]=memo
-    _,fields,groups,_=memo;selected=[];dates=Counter()
+        _memory_index=(sha,fields,groups,raw)
+    _,fields,groups,_=_memory_index;selected=[];dates=Counter()
     for ordinal,values in groups.get(d['key'],[]):
         row=dict(zip(fields,values))
         if (row['UNIT_MEASURE'],row['UNIT_MULT'],row['BASE_PER'])!=(d['unit_code'],d['unit_mult'],d['base_period']):
@@ -312,17 +258,17 @@ def growth(obs,records,months):
 
 
 def fetch(sid,store,bucket,reader=None,now=None):
-    d=definition(sid);ctx=_context(d['flow']);obs=[];records=[];receipt=None;error=None;extracted=b'';derived=[]
+    d=definition(sid);obs=[];records=[];receipt=None;error=None;extracted=b'';derived=[]
     try:
-        raw,receipt=snapshot(store,bucket,reader,now,flow=d['flow']);candidate,records,extracted=parse(raw,d)
+        raw,receipt=snapshot(store,bucket,reader,now);candidate,records,extracted=parse(raw,d)
         if d.get('computed_transform'):candidate,derived=growth(candidate,records,d['lag_months'])
         obs=candidate
     except (SourceUnavailable,ValueError,UnicodeError,csv.Error) as exc:error=str(exc)[:200]
     n=sum(v is not None for _,v in obs);rejected=sum(r['rejection'] is not None for r in records)
     if derived:rejected=sum(r[-1] is not None for r in derived)
     stale=bool(receipt and receipt.get('stale'))
-    out=dict(contract=CONTRACT,definition_sha256=ctx.CATALOG_HASH,id=d['id'],requested_id=sid,provider='oecd',provider_name='OECD',
-             name=d['name'],unit=d['unit'],freq=d['freq'],definition=d,source=ctx.SOURCE_URL,
+    out=dict(contract=CONTRACT,definition_sha256=CATALOG_HASH,id=d['id'],requested_id=sid,provider='oecd',provider_name='OECD',
+             name=d['name'],unit=d['unit'],freq=d['freq'],definition=d,source=SOURCE_URL,
              obs=obs,n=n,first=obs[0][0] if obs else None,last=obs[-1][0] if obs else None,
              last_valid=next((t for t,v in reversed(obs) if v is not None),None),acquired_at=receipt.get('received_at') if receipt else None,
              source_published_at=None,quality={'status':'unavailable' if not n else 'stale_source_snapshot' if stale else 'partial' if rejected else 'observations',
@@ -351,8 +297,8 @@ def fetch(sid,store,bucket,reader=None,now=None):
 
 
 def cache_valid(packet,sid):
-    try:d=definition(sid);ctx=_context(d['flow'])
+    try:d=definition(sid)
     except ValueError:return False
     return (isinstance(packet,dict) and packet.get('contract')==CONTRACT and packet.get('id')==d['id']
-            and packet.get('definition_sha256')==ctx.CATALOG_HASH and packet.get('definition')==d
+            and packet.get('definition_sha256')==CATALOG_HASH and packet.get('definition')==d
             and packet.get('history',{}).get('response_complete') is True and not packet.get('history',{}).get('source_snapshot_stale'))

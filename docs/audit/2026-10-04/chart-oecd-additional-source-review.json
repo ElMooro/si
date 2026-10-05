@@ -1,0 +1,125 @@
+{
+  "stage": "candidate_not_deployed",
+  "catalogue_sha256": "907f3d7d644f43461f2a3a78cd97b7eea7310d23d8936eab793a4604fbc926c6",
+  "additional_series": 2338,
+  "flows": [
+    {
+      "flow": "OECD.SDD.STES,DSD_STES@DF_FINMARK,4.0",
+      "name": "Financial market",
+      "structure_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/dataflow/OECD.SDD.STES/DSD_STES@DF_FINMARK/?references=all",
+        "requested_at": "2026-10-04T23:11:35.093227+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.structure+xml; charset=utf-8; version=2.1",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2023-11-08"
+        },
+        "wire_bytes": 218029,
+        "wire_sha256": "b10c463d071f55ee6d2ee3c107f67efe7b0eca337c64723b97eea317a197028a",
+        "bytes": 1872511,
+        "sha256": "0c86557fbd8d55cafe8a8722a0a7cd96c747236687d3192a96a6168e89e313d2"
+      },
+      "observation_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_FINMARK,4.0/all?format=csvfile",
+        "requested_at": "2026-10-04T23:11:57.282567+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.data+csv; charset=utf-8",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2023-11-08"
+        },
+        "wire_bytes": 2098408,
+        "wire_sha256": "9fb0c87fe299680c01de7c0e7c22a277438b3f8fd6bddb7731c5c7f2fff87b45",
+        "bytes": 19922148,
+        "sha256": "bcb93151e8618806638aab75c23cbdab104dc511f44ce56a6fb007d29b8d33de"
+      }
+    },
+    {
+      "flow": "OECD.SDD.STES,DSD_STES@DF_BTS,4.0",
+      "name": "Business tendency surveys",
+      "structure_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/dataflow/OECD.SDD.STES/DSD_STES@DF_BTS/?references=all",
+        "requested_at": "2026-10-04T23:12:02.052000+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.structure+xml; charset=utf-8; version=2.1",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2023-11-08"
+        },
+        "wire_bytes": 219475,
+        "wire_sha256": "0911747152d504f803e71a96becd3372146ad50a3e8ff598a27fee6b183671a9",
+        "bytes": 1876280,
+        "sha256": "acb3d003f6f63d47b36ac7f59c642f87a88ef568b0e2c83dddd7365b2c7739ac"
+      },
+      "observation_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_BTS,4.0/all?format=csvfile",
+        "requested_at": "2026-10-04T23:12:04.708379+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.data+csv; charset=utf-8",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2023-11-08"
+        },
+        "wire_bytes": 2830064,
+        "wire_sha256": "69dcc0634e19f42f617c26586b03afcc59ee6ec3f4ed06d69d2e3053761a2d10",
+        "bytes": 29658798,
+        "sha256": "9e3ca202f7134c6b352b4082247fc55c4263d71cf4eb6eb7fe51d934781089f5"
+      }
+    },
+    {
+      "flow": "OECD.SDD.STES,DSD_STES@DF_CLI,4.1",
+      "name": "Composite leading indicators",
+      "structure_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/dataflow/OECD.SDD.STES/DSD_STES@DF_CLI/?references=all",
+        "requested_at": "2026-10-04T23:12:11.916482+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.structure+xml; version=2.1; charset=utf-8",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2023-11-08"
+        },
+        "wire_bytes": 223306,
+        "wire_sha256": "ea90444176e333e84afeebaf73f39c35e5ae880eac3a4ec555d2aa02b51c0eb1",
+        "bytes": 1924383,
+        "sha256": "a4b90d7bbf00cf87534a0e6e4d76561e8e5624c30597fd66b36d5ccd42623bd5"
+      },
+      "observation_receipt": {
+        "url": "https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_CLI,4.1/all?format=csvfile",
+        "requested_at": "2026-10-04T23:12:13.132758+00:00",
+        "no_redirects_or_retries": true,
+        "session_official_data_download_limit": 4,
+        "documented_hourly_download_limit": 60,
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/vnd.sdmx.data+csv; charset=utf-8",
+          "Content-Encoding": "gzip",
+          "Last-Modified": "2024-03-07"
+        },
+        "wire_bytes": 2523610,
+        "wire_sha256": "2a00c53f94004f0c76eaf7ddf17d1b189feaa2873a6931232feef9cec9debac2",
+        "bytes": 21200435,
+        "sha256": "92198819dc199ebad24e14522a9fc93b263a4c2dc96edb0eac29d4cd5c8fa88a"
+      }
+    }
+  ],
+  "watchlist_aliases_added": 0,
+  "scope": "Exact source series only; no substitution of business-survey balances, normalized confidence indexes or general interest-rate series for vendor-specific indicators.",
+  "vendor_equivalence_verified": false,
+  "point_in_time_vintages_verified": false
+}

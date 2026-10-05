@@ -4,8 +4,6 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 TRANSITION=json.loads((ROOT/'tests/fixtures/chart-oecd/transition.json').read_bytes())
 def normalize(file,raw):
-    from chart_oecd_additional_preservation import normalize as newer
-    raw=newer(file,raw)
     row=TRANSITION['changes'].get(file)
     if not row:return raw
     if hashlib.sha256(raw).hexdigest()==row['before_sha256']:return raw

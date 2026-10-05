@@ -12,8 +12,8 @@ class Tests(unittest.TestCase):
  def test_all_reviewed_keys_are_reachable_without_index_rebuild(self):
   m=self.module();self.assertEqual(m.browse('oecd:DSD_STES@DF_INDSERV')['total'],1511);self.assertEqual(m.browse('oecd:'+source.FLOW)['total'],1511)
   ids=[]
-  for offset in range(0,3849,500):ids.extend(r['id'] for r in m.explorer({'provider':'oecd','kind':'series','limit':'500','offset':str(offset)})['rows'])
-  self.assertEqual(len(set(ids)),3849);self.assertEqual(len([sid for sid in ids if sid.startswith("oecd:"+source.FLOW+":")]),1511);self.assertEqual(m.search(SID)['rows'][0]['id'],SID);self.assertEqual(m.search('United States',prov='oecd',kind='series')['rows'][0]['provider'],'oecd');m.load_index.assert_not_called()
+  for offset in range(0,1511,500):ids.extend(r['id'] for r in m.explorer({'provider':'oecd','kind':'series','limit':'500','offset':str(offset)})['rows'])
+  self.assertEqual(len(set(ids)),1511);self.assertEqual(m.search(SID)['rows'][0]['id'],SID);self.assertEqual(m.search('United States',prov='oecd',kind='series')['rows'][0]['provider'],'oecd');m.load_index.assert_not_called()
  def test_native_resolution_preserves_version_and_never_uses_market_provider(self):
   m=self.module()
   for sid in (SID,SID+':G1',SID+':GY'):
