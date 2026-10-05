@@ -1,5 +1,5 @@
 {
-  "stage": "candidate_not_live",
+  "stage": "deployed_and_all_added_alternatives_live_replayed",
   "alternatives": {
     "CBOE:AVT5SMID": {
       "alternative": "cboeindex:AVT5SMID",
@@ -4553,5 +4553,7 @@
     }
   ],
   "routing_is_not_history_proof": true,
-  "catalogue_migration": "Legacy receipts accepted only for an exact unchanged reviewed definition. New receipts add a per-series definition hash so unrelated catalogue additions do not invalidate retained sources."
+  "catalogue_migration": "Legacy receipts accepted only for an exact unchanged reviewed definition. New receipts add a per-series definition hash so unrelated catalogue additions do not invalidate retained sources.",
+  "source_commit": "9253a12e74e5fb76bb4c0af59a4669e0fb9eaddf",
+  "history_acceptance": "chart-cboe-public-history-audit.json"
 }

@@ -2,8 +2,8 @@
   "status": "remaining_work_not_complete",
   "watchlist_sha256": "679d491892deadd5efe1a31e1abaacd3b36be5e368d453f7d288504e2fb8ef7c",
   "unique_ids": 10745,
-  "route_count": 6951,
-  "unrouted": 3794,
+  "route_count": 7028,
+  "unrouted": 3717,
   "namespaces": [
     {
       "namespace": "ECONOMICS",
@@ -56,11 +56,6 @@
       "unrouted": 62
     },
     {
-      "namespace": "CBOE",
-      "total": 172,
-      "unrouted": 61
-    },
-    {
       "namespace": "HSI",
       "total": 52,
       "unrouted": 52
@@ -71,11 +66,6 @@
       "unrouted": 47
     },
     {
-      "namespace": "CBOEEU",
-      "total": 40,
-      "unrouted": 40
-    },
-    {
       "namespace": "EUREX",
       "total": 42,
       "unrouted": 39
@@ -84,6 +74,11 @@
       "namespace": "CRYPTOCAP",
       "total": 36,
       "unrouted": 36
+    },
+    {
+      "namespace": "CBOE",
+      "total": 172,
+      "unrouted": 31
     },
     {
       "namespace": "CME",
@@ -241,11 +236,6 @@
       "unrouted": 7
     },
     {
-      "namespace": "MSTAR",
-      "total": 7,
-      "unrouted": 7
-    },
-    {
       "namespace": "TSX",
       "total": 21,
       "unrouted": 6
@@ -311,8 +301,8 @@
       "unrouted": 5
     },
     {
-      "namespace": "CBOEFTSE",
-      "total": 5,
+      "namespace": "MSTAR",
+      "total": 7,
       "unrouted": 5
     },
     {
@@ -461,11 +451,6 @@
       "unrouted": 2
     },
     {
-      "namespace": "RUSSELL",
-      "total": 2,
-      "unrouted": 2
-    },
-    {
       "namespace": "COMEX_MINI",
       "total": 2,
       "unrouted": 2
@@ -586,6 +571,11 @@
       "unrouted": 1
     },
     {
+      "namespace": "CBOEEU",
+      "total": 40,
+      "unrouted": 1
+    },
+    {
       "namespace": "CSELK",
       "total": 1,
       "unrouted": 1
@@ -608,6 +598,11 @@
     {
       "namespace": "BITTREX",
       "total": 1,
+      "unrouted": 1
+    },
+    {
+      "namespace": "RUSSELL",
+      "total": 2,
       "unrouted": 1
     },
     {
@@ -858,6 +853,11 @@
     {
       "namespace": "BYBIT",
       "total": 1,
+      "unrouted": 0
+    },
+    {
+      "namespace": "CBOEFTSE",
+      "total": 5,
       "unrouted": 0
     },
     {
@@ -1744,7 +1744,6 @@
     "ICEEUR:EWW2!",
     "ICEEUR:EWE2!",
     "ICEEUR:EWM2!",
-    "CBOEEU:BDES50P",
     "FTSE:SD14",
     "OMXNORDIC:OMXN40",
     "HOSE:VN30",
@@ -1964,14 +1963,11 @@
     "ICEEUR:MWG2!/ICEEUR:MWB2!",
     "AMEX:XLB/AMEX:XLU",
     "SP:SPX/FRED:CURRCIR",
-    "CBOEEU:BEPCONC",
     "BVB:IORB-FRED:DCPN3M",
     "SPARKS:RECESSION",
     "TVC:CL10Y-TVC:CL02Y",
     "CME:SR32!-TVC:US03MY",
     "FTSE:FEMCRF.TR",
-    "CBOEEU:BEPXUKN",
-    "CBOEEU:BEZACN",
     "SPARKS:LEISURE",
     "LME:CA1!",
     "SGX:TWN1!",
@@ -2514,8 +2510,6 @@
     "ECONOMICS:FIFYGDPG",
     "FTSE:WIFIN",
     "FTSE:NFIX",
-    "CBOEEU:BFI25N",
-    "CBOEEU:BFI25P",
     "EUREX:FMFI2!",
     "ECONOMICS:FIPROD",
     "ECONOMICS:FIEMR",
@@ -3143,43 +3137,10 @@
     "TVC:PH02Y",
     "TVC:ID03Y",
     "TVC:IN02Y",
-    "CBOEEU:BIT40N",
-    "CBOEEU:BES35N",
-    "CBOEEU:BFR40N",
-    "CBOEEU:BDE40N",
-    "CBOEEU:BCH20N",
-    "CBOEEU:BDES50N",
-    "CBOEEU:BEPINDN",
-    "CBOEEU:BEPUTLN",
-    "CBOEEU:BEPFINN",
-    "CBOEEU:BEPTECN",
-    "CBOEEU:BEPCONCN",
-    "CBOEEU:BEPBUSN",
-    "CBOEEU:BEPCONSN",
-    "CBOEEU:BEP50N",
-    "CBOEEU:BEZ50N",
-    "CBOEEU:BEPACN",
     "USI:OVLCE",
     "USI:OVLCI",
     "USI:OVOLC",
-    "CBOEEU:BSE30N",
-    "CBOEEU:BNO25N",
-    "CBOEEU:BDK25N",
-    "CBOEEU:BPT20N",
-    "CBOEEU:BAT20N",
-    "CBOEEU:BBE20N",
-    "CBOEEU:BIE20N",
-    "CBOEEU:BFRM20N",
-    "CBOEEU:BDEM50N",
     "CBOEEU:BNL25N",
-    "CBOEEU:BEPENGYN",
-    "CBOEEU:BEPHLTHN",
-    "CBOEEU:BCHM30N",
-    "CBOEEU:BNLM25N",
-    "CBOEEU:BEPCNCN",
-    "CBOEEU:BEPNEMN",
-    "CBOEEU:BEPTELN",
-    "CBOEEU:BNORD40N",
     "ECONOMICS:WWFYGDPG",
     "ECONOMICS:PEMGDPYY",
     "ECONOMICS:GBMGDPYY",
@@ -3461,7 +3422,6 @@
     "TVC:SA40",
     "EUREX:TLSE1!",
     "HKEX:MNZ1!",
-    "CBOE:IDB50N",
     "CBOE:LTACQGN",
     "PSECZ:PX-TRNET",
     "MSTAR:RTRNNTR",
@@ -3473,8 +3433,6 @@
     "SSE:N00905",
     "SSE:N00300",
     "MSTAR:DIGITAL",
-    "MSTAR:XBITQN",
-    "MSTAR:RISXNTR",
     "SSE:933000",
     "TSE:2048",
     "HSI:HSI.FIN.TRI.NET",
@@ -4057,46 +4015,25 @@
     "ICE:ICET7YW",
     "ICE:ICETIPYW",
     "ICE:ICETCYW",
-    "CBOEFTSE:RLR",
-    "CBOEFTSE:RVS",
     "CBOE:UKS",
-    "CBOE:SISB",
-    "CBOE:SISE",
-    "CBOE:SIST",
-    "CBOE:SISRE",
-    "CBOE:SISUT",
-    "CBOE:SISM",
-    "CBOE:SET",
-    "CBOE:VRO",
-    "CBOE:SISR",
-    "CBOE:SISV",
     "INDEX:BCMC",
     "CBOE:BDEF",
-    "CBOE:BXNTU",
     "CBOE:BDEA",
     "CBOE:BXEF",
     "INTOTHEBLOCK:YFII_AVGBALANCE",
     "INTOTHEBLOCK:BASED_AVGBALANCE",
     "INTOTHEBLOCK:LMY_AVGBALANCE",
-    "CBOE:BXTW",
-    "CBOE:PTLT",
     "CBOE:QSWNXT",
     "CBOE:TLTPRO",
     "USI:QSWN.TC",
     "USI:QSWN.EU",
     "CME:SED1!",
-    "CBOE:CLLZ",
     "COMEX:GPS1!",
     "CBOT:QCW1!",
     "NYMEX:PPS1!",
     "NYMEX:ZXY1!",
     "NYMEX:BD1!",
-    "CBOE:PPUT3M",
-    "CBOE:CLL1M",
-    "CBOE:SVRPO",
-    "CBOE:AVT5SMID",
     "1-TVC:ID10Y",
-    "CBOE:SIXI",
     "ECONOMICS:MOIPYY",
     "ECONOMICS:MRIPYY",
     "ECONOMICS:SCIPYY",
@@ -4479,7 +4416,6 @@
     "CBOT:B1U1!",
     "BER:2VWE",
     "CRYPTOCAP:ETH/CRYPTOCAP:BTC",
-    "CBOE:BXN",
     "ECONOMICS:CNCF",
     "ECONOMICS:NLPROD",
     "ECONOMICS:DECORD",
@@ -4584,7 +4520,6 @@
     "FTSE:NTGQRETR",
     "FTSE:NMX351010.TR",
     "ICEEUR:MWC2!",
-    "RUSSELL:RUT",
     "TVC:OSX",
     "ECONOMICS:HKRSYY",
     "1-TVC:PH03Y",
@@ -4799,16 +4734,9 @@
     "ECONOMICS:CASBSI",
     "ECONOMICS:AUSS",
     "ECONOMICS:SGSS",
-    "CBOEFTSE:RLS",
-    "CBOEFTSE:RIR",
     "CBOE:AMT1S",
     "CBOE:AMT3S",
-    "CBOE:DJS",
-    "CBOE:ESGST",
-    "CBOE:XSR",
-    "CBOE:OET",
     "HKEX:147",
-    "CBOEFTSE:MRLS",
     "BVB:IORB-FRED:RRPONTSYAWARD",
     "AMEX:RSP/AMEX:SPY",
     "TVC:SG02",
@@ -5122,9 +5050,6 @@
     "LSE:0VOO",
     "HOSE:VIX",
     "FTX:BVOLUSD",
-    "CBOE:VIX6M",
-    "CBOE:VXD",
-    "CBOE:VXTLT",
     "PEPPERSTONE:VIX",
     "CAPITALCOM:VIX",
     "BITMEX:BVOL",
@@ -5151,12 +5076,10 @@
     "1/TVC:VIX/TVC:NDQ",
     "1/TVC:VIX/VANTAGE:SP500",
     "CBOT:ZN2!",
-    "CBOE:SIXU",
     "1/AMEX:UUP",
     "VANTAGE:SP500/NASDAQ:TLT",
     "VANTAGE:SP500/AMEX:BIL",
     "VANTAGE:SP500/NASDAQ:VGSH",
-    "CBOE:BXRC",
     "VANTAGE:SP500/TVC:DXY",
     "NASDAQ:IEI-AMEX:HYG",
     "CBOT:ZQZ2022",
@@ -5330,6 +5253,20 @@
     "provider_definitions_without_live_replay": 10037,
     "all_68_added_watchlist_alternatives_live_replayed": true,
     "history_audit": "chart-imf-public-history-audit.json",
+    "vendor_equivalence_verified": false,
+    "full_upstream_history_verified": false,
+    "point_in_time_vintages_verified": false,
+    "route_is_not_history_proof": true
+  },
+  "cboe_expansion": {
+    "source_commit": "9253a12e74e5fb76bb4c0af59a4669e0fb9eaddf",
+    "exact_provider_definitions": 77,
+    "datasets": 1,
+    "qualified_alternative_routes_added": 77,
+    "public_histories_independently_replayed": 77,
+    "provider_definitions_without_live_replay": 0,
+    "all_77_added_watchlist_alternatives_live_replayed": true,
+    "history_audit": "chart-cboe-public-history-audit.json",
     "vendor_equivalence_verified": false,
     "full_upstream_history_verified": false,
     "point_in_time_vintages_verified": false,

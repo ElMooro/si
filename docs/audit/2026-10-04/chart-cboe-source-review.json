@@ -1,5 +1,5 @@
 {
-  "stage": "candidate_not_live",
+  "stage": "deployed_with_explicit_live_history_scope",
   "exact_definitions": 77,
   "catalogue_sha256": "750d0e55ce141ca8ff12d068c134c66ebc16efedfa3b3493cfd1e6893a6bbafc",
   "adapter_sha256": "c60af77e59ad7eec1a671bd35263430a9762f28a21d7f7dc14ca065e881c0ccc",
@@ -1726,7 +1726,7 @@
     }
   ],
   "qualifications": {
-    "live_deployment_verified": false,
+    "live_deployment_verified": true,
     "full_upstream_history_verified": false,
     "point_in_time_vintages_verified": false,
     "watchlist_vendor_equivalence_verified": false,
@@ -4458,5 +4458,10 @@
       ]
     }
   ],
-  "catalogue_migration": "Legacy receipts accepted only for an exact unchanged reviewed definition. New receipts add a per-series definition hash so unrelated catalogue additions do not invalidate retained sources."
+  "catalogue_migration": "Legacy receipts accepted only for an exact unchanged reviewed definition. New receipts add a per-series definition hash so unrelated catalogue additions do not invalidate retained sources.",
+  "source_commit": "9253a12e74e5fb76bb4c0af59a4669e0fb9eaddf",
+  "history_acceptance": "chart-cboe-public-history-audit.json",
+  "native_acceptance": "chart-cboe-native-acceptance.json",
+  "live_replayed_series": 77,
+  "catalogue_series_not_yet_live_replayed": 0
 }
