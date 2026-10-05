@@ -2043,41 +2043,93 @@
       }catch(eCat){}
     }
     // A measurement ID cannot become a similarly named exchange ticker.
-    if(scalar){
+    // Namespaced ids, including every data provider, take the warehouse pull first.
+    if(scalar && String(sym).indexOf(":")<0){
       // Scalar download completion cannot publish a label for a superseded selection.
       return [];
     }
-    // Preserve the complete exchange id. This endpoint reports daily OHLC;
-    // observations without OHLC cannot be manufactured into market candles.
+    // One /series pull for every namespaced id. Data providers plot the
+    // observations the warehouse returned. Daily OHLC is drawn only from
+    // reported OHLC and is never manufactured from closes. A measurement
+    // the warehouse does not return still cannot become an exchange ticker.
     if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){
       var seriesUrl=PROXY+"/series?id="+encodeURIComponent(sym),tvRaw=null;
       try{
-        if(!/^(1d|2d|3d|5d|1w|2w|1M|3M)$/.test(sp[0]))return [];
         tvRaw=await fetchJson(seriesUrl);
-        if(!tvRaw||typeof tvRaw!=="object"||typeof tvRaw.id!=="string"||tvRaw.id.toUpperCase()!==String(sym).toUpperCase()||tvRaw.via||tvRaw.routing_evidence||tvRaw.freq!=="D"||!Array.isArray(tvRaw.ohlc))return [];
-        var tvBars=[],seenDays=new Set(),ordinals=[];
-        for(var rowIndex=0;rowIndex<tvRaw.ohlc.length;rowIndex++){
-          var row=tvRaw.ohlc[rowIndex];
-          if(!Array.isArray(row)||(row.length!==5&&row.length!==6)||typeof row[0]!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(row[0]))return [];
-          var stamp=Date.parse(row[0]+"T00:00:00Z");
-          if(!Number.isFinite(stamp)||new Date(stamp).toISOString().slice(0,10)!==row[0]||seenDays.has(row[0]))return [];
-          for(var priceIndex=1;priceIndex<=4;priceIndex++)if(typeof row[priceIndex]!=="number"||!Number.isFinite(row[priceIndex]))return [];
-          if(row[2]<Math.max(row[1],row[4])||row[3]>Math.min(row[1],row[4])||row[2]<row[3])return [];
-          seenDays.add(row[0]);ordinals.push(rowIndex);
-          tvBars.push({time:stamp/1000,open:row[1],high:row[2],low:row[3],close:row[4],volume:reportedVolume(row[5])});
+        var want=String(sym).toUpperCase();
+        var got=tvRaw&&typeof tvRaw.id==="string"?tvRaw.id.toUpperCase():"";
+        var bound=!!got&&(got===want||got.indexOf(want+":")===0);
+        var prov=tvRaw&&tvRaw.provider?String(tvRaw.provider).toLowerCase():"";
+        var marketProv=prov==="equity"||prov==="tv"||prov==="instrument"||prov==="polygon";
+        if(bound&&!marketProv&&Array.isArray(tvRaw.obs)){
+          var obsBars=[],seenObs={},obsOk=true;
+          for(var oi=0;oi<tvRaw.obs.length;oi++){
+            var orow=tvRaw.obs[oi];
+            if(!Array.isArray(orow)||orow.length<2){obsOk=false;break;}
+            var od=orow[0],ov=orow[1];
+            if(ov===null||ov==="")continue;
+            var on=typeof ov==="number"?ov:+ov;
+            if(!isFinite(on)){obsOk=false;break;}
+            var ot=null;
+            if(typeof od==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(od)){
+              var oms=Date.parse(od+"T00:00:00Z");
+              if(isFinite(oms)&&new Date(oms).toISOString().slice(0,10)===od)ot=oms/1000;
+            }else if(typeof od==="string"&&/^(\d{4})-(\d{2})$/.test(od)){
+              var om=/^(\d{4})-(\d{2})$/.exec(od);
+              ot=Date.UTC(+om[1],+om[2],0)/1000;
+            }else if(typeof od==="string"&&/^\d{4}$/.test(od)){
+              ot=Date.UTC(+od,0,1)/1000;
+            }
+            if(ot===null){obsOk=false;break;}
+            if(Object.prototype.hasOwnProperty.call(seenObs,ot)&&seenObs[ot]!==on)continue;
+            if(!Object.prototype.hasOwnProperty.call(seenObs,ot)){
+              seenObs[ot]=on;
+              obsBars.push({time:ot,open:on,high:on,low:on,close:on,volume:null});
+            }
+          }
+          if(obsOk&&obsBars.length>=8){
+            obsBars.sort(function(a,b){return a.time-b.time;});
+            var obsSrc=(tvRaw.provider_name||tvRaw.provider||"series")+" · "+obsBars.length+" observations";
+            if(tvRaw.via)obsSrc+=" · "+sym+" → "+tvRaw.via;
+            else if(got!==want)obsSrc+=" · "+tvRaw.id;
+            identifyBars(obsBars,sym,tfId,obsSrc);
+            try{barEvidence.get(obsBars).market_history={contract:"chart-provider-series.v1",requested_id:sym,reported_id:tvRaw.id,request_url:seriesUrl,source_frequency:tvRaw.freq||null,display_interval:tfId,via:tvRaw.via||null,provider_identity_verified:false,full_history_verified:false,calls_eligible:false,sizing_eligible:false,scope:"Scalar observations from /series for this id. Not market OHLC. Values are not reconstructed into candles."};}catch(eEv){}
+            if(!quiet&&sym===active&&tfId===tf)lastSource=obsSrc;
+            return obsBars;
+          }
         }
-        tvBars.sort(function(a,b){return a.time-b.time;});
-        if(tvBars.length<8)return [];
-        var shown=resampleToTf(tvBars,tfId);
-        if(!shown||shown.length<2||!barsFitTf(shown,tfId))return [];
-        var tvSrc="Warehouse OHLC · provider identity and historical completeness unverified";
-        identifyBars(shown,sym,tfId,tvSrc);
-        barEvidence.get(shown).market_history={contract:"chart-market-series.v1",requested_id:sym,reported_id:tvRaw.id,request_url:seriesUrl,source_frequency:"D",display_interval:tfId,whole_packet:tvRaw,source_row_ordinals:ordinals,
-          provider_identity_verified:false,full_history_verified:false,raw_upstream_replay_verified:false,point_in_time_verified:false,calls_eligible:false,sizing_eligible:false,
-          scope:"Complete received parsed warehouse packet retained. Full id binding is checked; upstream instrument identity is not independently verified. OHLC values are not reconstructed from closes. Missing volume remains unavailable. Display aggregation retains the original rows in this packet."};
-        if(!quiet&&sym===active&&tfId===tf)lastSource=tvSrc;
-        return shown;
-      }catch(eTv){return [];}
+        var dailyTf=/^(1d|2d|3d|5d|1w|2w|1M|3M)$/.test(sp[0]);
+        if(bound&&dailyTf&&!tvRaw.via&&!tvRaw.routing_evidence&&tvRaw.freq==="D"&&Array.isArray(tvRaw.ohlc)){
+          var tvBars=[],seenDays=new Set(),ordinals=[],ohlcOk=true;
+          for(var rowIndex=0;rowIndex<tvRaw.ohlc.length;rowIndex++){
+            var row=tvRaw.ohlc[rowIndex];
+            if(!Array.isArray(row)||(row.length!==5&&row.length!==6)||typeof row[0]!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(row[0])){ohlcOk=false;break;}
+            var stamp=Date.parse(row[0]+"T00:00:00Z");
+            if(!isFinite(stamp)||new Date(stamp).toISOString().slice(0,10)!==row[0]||seenDays.has(row[0])){ohlcOk=false;break;}
+            for(var priceIndex=1;priceIndex<=4;priceIndex++)if(typeof row[priceIndex]!=="number"||!isFinite(row[priceIndex])){ohlcOk=false;break;}
+            if(!ohlcOk)break;
+            if(row[2]<Math.max(row[1],row[4])||row[3]>Math.min(row[1],row[4])||row[2]<row[3]){ohlcOk=false;break;}
+            seenDays.add(row[0]);ordinals.push(rowIndex);
+            tvBars.push({time:stamp/1000,open:row[1],high:row[2],low:row[3],close:row[4],volume:reportedVolume(row[5])});
+          }
+          if(ohlcOk){
+            tvBars.sort(function(a,b){return a.time-b.time;});
+            if(tvBars.length>=8){
+              var shown=resampleToTf(tvBars,tfId);
+              if(shown&&shown.length>=2&&barsFitTf(shown,tfId)){
+                var tvSrc="Warehouse OHLC · provider identity and historical completeness unverified";
+                identifyBars(shown,sym,tfId,tvSrc);
+                barEvidence.get(shown).market_history={contract:"chart-market-series.v1",requested_id:sym,reported_id:tvRaw.id,request_url:seriesUrl,source_frequency:"D",display_interval:tfId,whole_packet:tvRaw,source_row_ordinals:ordinals,
+                  provider_identity_verified:false,full_history_verified:false,raw_upstream_replay_verified:false,point_in_time_verified:false,calls_eligible:false,sizing_eligible:false,
+                  scope:"Complete received parsed warehouse packet retained. Full id binding is checked; upstream instrument identity is not independently verified. OHLC values are not reconstructed from closes. Missing volume remains unavailable. Display aggregation retains the original rows in this packet."};
+                if(!quiet&&sym===active&&tfId===tf)lastSource=tvSrc;
+                return shown;
+              }
+            }
+          }
+        }
+      }catch(eTv){}
+      if(scalar)return [];
     }
     var ws=warehouseSpec(tfId);
     var yInt=(ws.span==="day")?"1d":sp[2], yRange=(ws.span==="day")?"max":sp[3];
