@@ -411,7 +411,7 @@
     var inList = L.items.filter(function (s) { return !isSec(s) && (sameId(s, activeSym) || sameId(short(s), activeSym)); })[0];
     if (inList) return inList;
     var f = focusIdx >= 0 && view[focusIdx] && !view[focusIdx].sec ? view[focusIdx].id : null;
-    return f || activeSym;
+    return activeSym || f;
   }
   function renderDetails() {
     if (!det) return;
@@ -850,7 +850,7 @@
       var a = root.jhActive || "";
       if (a && a !== lastSeen) {
         lastSeen = a;
-        if (Date.now() - navAt < 20000) return; // the chart is showing the row the user just picked (possibly under a resolved id)
+        if (Date.now() - navAt < 20000) { if (body) renderDetails(); return; } // the chart shows the row just picked (possibly under a resolved id)
         if (a === activeSym) return;
         activeSym = a;
         if (body) {
@@ -886,7 +886,7 @@
   root.JHTvWatchlist = {
     add: function (id) { var r = add(id); return r; },
     remove: function (id) { var L = cur(); if (!L) return; var i = L.items.findIndex(function (s) { return sameId(s, id); }); if (i >= 0) removeIdx([i]); },
-    route: function (id) { activeSym = id; navAt = Date.now(); route(id); },
+    route: function (id) { activeSym = id; navAt = Date.now(); route(id); if (body) { body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); }); renderDetails(); } },
     activeName: function () { var L = cur(); return L ? L.name : "watchlist"; },
     lists: function () { return D.order.map(function (id) { return { id: id, name: D.lists[id].name, n: D.lists[id].items.length }; }); },
     open: function (id) { setActive(id); },
