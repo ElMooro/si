@@ -1,0 +1,356 @@
+{
+  "changes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+      "before_path": "tests/fixtures/chart-regional-fed/aws__lambdas__justhodl-symdir__source__lambda_function.py.before.txt",
+      "before_sha256": "a84e900aed308310b6cc88006eec1d55048f3ca06af10fdd780b89b0be6dc53e",
+      "replacements": [
+        {
+          "before": "import defillama_tvl\n",
+          "after": "import defillama_tvl\nimport regional_fed\n"
+        },
+        {
+          "before": "    if d[D_ID]==\"defillama:reviewed-tvl-history\" and kind==\"dataset\":",
+          "after": "    if d[D_ID].startswith(\"regionalfed:\"):\n        if kind==\"dataset\" and d[D_ID].split(\":\",1)[1] in regional_fed.CATALOGUE[\"datasets\"]:\n            dataset=d[D_ID].split(\":\",1)[1];row.update(browse=True,chartable=False,reviewed_series=regional_fed.directory(dataset,limit=1)[\"total\"])\n        elif kind==\"series\":\n            try:\n                checked=regional_fed.definition(d[D_ID]);row.update(provider=\"regionalfed\",provider_name=checked[\"provider_name\"],name=checked[\"name\"],unit=checked[\"unit\"],freq=checked[\"freq\"],currency=None,live_history_verified=False)\n            except ValueError:\n                row.update(chartable=False,definition_review_required=True)\n    if d[D_ID]==\"defillama:reviewed-tvl-history\" and kind==\"dataset\":"
+        },
+        {
+          "before": "def search(q, limit=40, prov=None, kind=None):\n",
+          "after": "def search(q, limit=40, prov=None, kind=None):\n    if (prov in (None,\"regionalfed\") and str(q or \"\").lower().startswith(\"regionalfed:\")) or (prov==\"regionalfed\" and kind==\"series\"):\n        return dict(regional_fed.directory(q=q or \"\",limit=max(1,min(int(limit),200))),q=q)\n"
+        },
+        {
+          "before": "    if prov==\"defillama\" and rest==\"reviewed-tvl-history\":",
+          "after": "    if prov==\"regionalfed\":\n        return dict(regional_fed.directory(rest,q=q,limit=limit,offset=offset),ds=ds)\n    if prov==\"defillama\" and rest==\"reviewed-tvl-history\":"
+        },
+        {
+          "before": "        if sid.lower().startswith(\"defillama:\") and not defillama_tvl.cache_valid(cached,sid):",
+          "after": "        if sid.lower().startswith(\"regionalfed:\") and not regional_fed.cache_valid(cached,sid):\n            return None,age\n        if sid.lower().startswith(\"defillama:\") and not defillama_tvl.cache_valid(cached,sid):"
+        },
+        {
+          "before": "RESOLVERS = {\"defillama\":",
+          "after": "RESOLVERS = {\"regionalfed\":lambda s,r,d:regional_fed.fetch(s,s3,BUCKET), \"defillama\":"
+        },
+        {
+          "before": "CACHE_TTL = {\"defillama\":",
+          "after": "CACHE_TTL = {\"regionalfed\":1800, \"defillama\":"
+        },
+        {
+          "before": "\"cboeindex:\", \"defillama:\", \"cftc:\"",
+          "after": "\"cboeindex:\", \"defillama:\", \"regionalfed:\", \"cftc:\""
+        },
+        {
+          "before": "    if sid.lower().startswith(\"defillama:\"):\n",
+          "after": "    if sid.lower().startswith(\"regionalfed:\"):\n        sid=regional_fed.definition(sid)[\"id\"]\n    if sid.lower().startswith(\"defillama:\"):\n"
+        },
+        {
+          "before": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\", \"cboeindex\", \"defillama\")",
+          "after": "(\"bis\", \"bisfx\", \"cftc\", \"oecd\", \"imf\", \"cboeindex\", \"defillama\", \"regionalfed\")"
+        },
+        {
+          "before": "    if prov==\"defillama\" and kind==\"series\":",
+          "after": "    if prov==\"regionalfed\" and kind==\"series\":\n        return regional_fed.directory(q=q,limit=limit,offset=offset)\n    if prov==\"defillama\" and kind==\"series\":"
+        },
+        {
+          "before": "    if prov==\"defillama\":\n        docs=[doc(",
+          "after": "    if prov==\"regionalfed\":\n        reviewed=regional_fed.CATALOGUE[\"datasets\"].values();ids={d[\"id\"] for d in reviewed}\n        docs=[doc(d[\"id\"],\"regionalfed\",d[\"name\"],\"dataset\",0.5) for d in reviewed]+[d for d in docs if d[D_ID] not in ids]\n    if prov==\"defillama\":\n        docs=[doc("
+        }
+      ],
+      "after_sha256": "71bfb5fe08276a4892be85178a89a905be4e3c926bbce5a43ec3a7387e70e051"
+    },
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": {
+      "before_path": "tests/fixtures/chart-regional-fed/aws__lambdas__justhodl-symdir__tests__run_tests.py.before.txt",
+      "before_sha256": "056079c541c4230c4103acccbe6b9a77f7f98d2dc8aabf0c6012682faa8e987a",
+      "replacements": [
+        {
+          "before": "import test_defillama_originals,",
+          "after": "import test_regional_fed,test_regional_fed_parser,test_regional_fed_integration,test_defillama_originals,"
+        },
+        {
+          "before": "for module in (test_defillama_originals,",
+          "after": "for module in (test_regional_fed,test_regional_fed_parser,test_regional_fed_integration,test_defillama_originals,"
+        },
+        {
+          "before": "import test_regional_fed,",
+          "after": "import test_regional_fed_originals,test_regional_fed,"
+        },
+        {
+          "before": "for module in (test_regional_fed,",
+          "after": "for module in (test_regional_fed_originals,test_regional_fed,"
+        }
+      ],
+      "after_sha256": "fe26ea1f948e48984ffb7cd1e3cee84b6f49588d1bcde525bfaf53a796abbcd3"
+    },
+    "jh-chart-catalog.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/jh-chart-catalog.js.before.txt",
+      "before_sha256": "a5d247a5e163cf30eb05e7a1a890d279b8d333d40dd27ff93a8712c38f9f2a1a",
+      "replacements": [
+        {
+          "before": "var SERIES_PROV = {",
+          "after": "var REGIONAL_FED_IDS = new Map([\"regionalfed:chicago-cfnai:CFNAI\",\"regionalfed:chicago-cfnai:CFNAI_MA3\",\"regionalfed:chicago-cfnai:C_H\",\"regionalfed:chicago-cfnai:DIFFUSION\",\"regionalfed:chicago-cfnai:EU_H\",\"regionalfed:chicago-cfnai:P_I\",\"regionalfed:chicago-cfnai:SO_I\",\"regionalfed:kc-manufacturing:month-nsa:backlog\",\"regionalfed:kc-manufacturing:month-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:month-nsa:composite\",\"regionalfed:kc-manufacturing:month-nsa:delivery-time\",\"regionalfed:kc-manufacturing:month-nsa:employment\",\"regionalfed:kc-manufacturing:month-nsa:export-orders\",\"regionalfed:kc-manufacturing:month-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:month-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:month-nsa:new-orders\",\"regionalfed:kc-manufacturing:month-nsa:prices-paid\",\"regionalfed:kc-manufacturing:month-nsa:prices-received\",\"regionalfed:kc-manufacturing:month-nsa:production\",\"regionalfed:kc-manufacturing:month-nsa:shipments\",\"regionalfed:kc-manufacturing:month-nsa:workweek\",\"regionalfed:kc-manufacturing:month-sa:backlog\",\"regionalfed:kc-manufacturing:month-sa:capital-expenditures\",\"regionalfed:kc-manufacturing:month-sa:composite\",\"regionalfed:kc-manufacturing:month-sa:delivery-time\",\"regionalfed:kc-manufacturing:month-sa:employment\",\"regionalfed:kc-manufacturing:month-sa:export-orders\",\"regionalfed:kc-manufacturing:month-sa:finished-inventories\",\"regionalfed:kc-manufacturing:month-sa:materials-inventories\",\"regionalfed:kc-manufacturing:month-sa:new-orders\",\"regionalfed:kc-manufacturing:month-sa:prices-paid\",\"regionalfed:kc-manufacturing:month-sa:prices-received\",\"regionalfed:kc-manufacturing:month-sa:production\",\"regionalfed:kc-manufacturing:month-sa:shipments\",\"regionalfed:kc-manufacturing:month-sa:workweek\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:backlog\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:composite\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:delivery-time\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:employment\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:export-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:new-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:prices-paid\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:prices-received\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:production\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:shipments\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:workweek\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:backlog\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:capital-expenditures\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:composite\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:delivery-time\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:employment\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:export-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:finished-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:materials-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:new-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:prices-paid\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:prices-received\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:production\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:shipments\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:workweek\",\"regionalfed:kc-manufacturing:year-nsa:backlog\",\"regionalfed:kc-manufacturing:year-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:year-nsa:composite\",\"regionalfed:kc-manufacturing:year-nsa:delivery-time\",\"regionalfed:kc-manufacturing:year-nsa:employment\",\"regionalfed:kc-manufacturing:year-nsa:export-orders\",\"regionalfed:kc-manufacturing:year-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:year-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:year-nsa:new-orders\",\"regionalfed:kc-manufacturing:year-nsa:prices-paid\",\"regionalfed:kc-manufacturing:year-nsa:prices-received\",\"regionalfed:kc-manufacturing:year-nsa:production\",\"regionalfed:kc-manufacturing:year-nsa:shipments\",\"regionalfed:kc-manufacturing:year-nsa:workweek\"].map(function(id){return [id.toLowerCase(),id];}));\n  var SERIES_PROV = { regionalfed:1,"
+        },
+        {
+          "before": "    if (isWarehouse(s)) return s;",
+          "after": "    if (/^regionalfed:/i.test(s)) return REGIONAL_FED_IDS.get(low) || \"\";\n    if (isWarehouse(s)) return s;"
+        },
+        {
+          "before": "    if (/^calc:/i.test(s)) return calcSeries(s);",
+          "after": "    if (/^regionalfed:/i.test(s)) { s=chartId(s); if(!s)return {d:[],src:\"Regional Fed history unavailable: select an exact reviewed series and adjustment\"}; }\n    if (/^calc:/i.test(s)) return calcSeries(s);"
+        },
+        {
+          "before": "      parsed.evidence.transport_cache=received.cache;",
+          "after": "      parsed.evidence.transport_cache=received.cache;\n      if (/^regionalfed:/i.test(String(sym)) && String(sym)!==s) { parsed.evidence.requested_id=String(sym); parsed.evidence.chart_alias={requested:String(sym),resolved:s,rule:\"Exact reviewed regional Fed identifier; source equivalence unverified\"}; }"
+        }
+      ],
+      "after_sha256": "8ca52539a67bc314350e01e49e70d053762c48fe51ae0b90a9b4c074cc1ca931"
+    },
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "0650aa0772d8cb8cb1c89dc31bd7de250197aae61df6ac8f04699185c208ae2f",
+      "replacements": [
+        {
+          "before": "\\nDEFILLAMA:TOTAL_TVL|",
+          "after": "\\nECONOMICS:USCFNAI|regionalfed:chicago-cfnai:CFNAI\\nECONOMICS:USCFNAISOII|regionalfed:chicago-cfnai:SO_I\\nECONOMICS:USCFNAIPCHI|regionalfed:chicago-cfnai:C_H\\nECONOMICS:USKFCOMPI|regionalfed:kc-manufacturing:month-sa:composite\\nECONOMICS:USKFNORDI|regionalfed:kc-manufacturing:month-sa:new-orders\\nDEFILLAMA:TOTAL_TVL|"
+        },
+        {
+          "before": "      if (/^defillama:/i.test(requested)) {",
+          "after": "      if (/^regionalfed:/i.test(requested)) {\n        var regional=window.JHChartCatalog&&window.JHChartCatalog.chartId(requested);\n        if(!regional){route.reason=\"Regional Fed definition unavailable; choose the exact reviewed series and adjustment\";return route;}\n        route.handoff=regional;route.resolved=regional;route.primary=regional;route.relation=\"exact\";\n        route.handoffHints=routeHints(regional);route.reason=\"Possible proxy or source substitution; equivalence unverified. Official regional Federal Reserve monthly history. Source definitions distinguish index contributions, seasonal adjustment, survey comparison and expectations. Survey diffusion points are not growth percentages. Month-start chart anchors are not release dates. Current revised histories are not original release vintages.\";return route;\n      }\n      if (/^defillama:/i.test(requested)) {"
+        },
+        {
+          "before": "      if (/^cboeindex:/i.test(route.handoff || \"\"))",
+          "after": "      if (/^regionalfed:/i.test(route.handoff || \"\")) route.reason = \"Possible proxy or source substitution; equivalence unverified. Official regional Federal Reserve monthly history. Source definitions distinguish index contributions, seasonal adjustment, survey comparison and expectations. Survey diffusion points are not growth percentages. Month-start chart anchors are not release dates. Current revised histories are not original release vintages.\";\n      if (/^cboeindex:/i.test(route.handoff || \"\"))"
+        },
+        {
+          "before": "FRED|WORLDBANK|BIS|BISFX|OECD|CENSUS|IMF|CBOEINDEX|CFTC|DEFILLAMA",
+          "after": "FRED|WORLDBANK|BIS|BISFX|OECD|CENSUS|IMF|CBOEINDEX|CFTC|DEFILLAMA|REGIONALFED"
+        },
+        {
+          "before": "    if (e === \"DEFILLAMA\")",
+          "after": "    if (e === \"REGIONALFED\") return \"Macro\";\n    if (e === \"DEFILLAMA\")"
+        },
+        {
+          "before": "if(/^defillama:/i.test(reference))return",
+          "after": "if(/^regionalfed:/i.test(reference))return \"Quote unavailable \u00b7 regional Fed monthly observations\";if(/^defillama:/i.test(reference))return"
+        }
+      ],
+      "after_sha256": "6046e54f5e8db16bc435e140c1c2b8f9bad4be06c40c8de17ddd1c2ca713f58e"
+    },
+    "jh-chart-provider-browser.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/jh-chart-provider-browser.js.before.txt",
+      "before_sha256": "abd9787a2b39a52a3ee5160cd156313e68b6e7b12805a293451c82301da1710c",
+      "replacements": [
+        {
+          "before": "  var SCALAR=new Set([",
+          "after": "  var REGIONAL_FED_KEYS=new Set([\"regionalfed:chicago-cfnai:CFNAI\",\"regionalfed:chicago-cfnai:CFNAI_MA3\",\"regionalfed:chicago-cfnai:C_H\",\"regionalfed:chicago-cfnai:DIFFUSION\",\"regionalfed:chicago-cfnai:EU_H\",\"regionalfed:chicago-cfnai:P_I\",\"regionalfed:chicago-cfnai:SO_I\",\"regionalfed:kc-manufacturing:month-nsa:backlog\",\"regionalfed:kc-manufacturing:month-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:month-nsa:composite\",\"regionalfed:kc-manufacturing:month-nsa:delivery-time\",\"regionalfed:kc-manufacturing:month-nsa:employment\",\"regionalfed:kc-manufacturing:month-nsa:export-orders\",\"regionalfed:kc-manufacturing:month-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:month-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:month-nsa:new-orders\",\"regionalfed:kc-manufacturing:month-nsa:prices-paid\",\"regionalfed:kc-manufacturing:month-nsa:prices-received\",\"regionalfed:kc-manufacturing:month-nsa:production\",\"regionalfed:kc-manufacturing:month-nsa:shipments\",\"regionalfed:kc-manufacturing:month-nsa:workweek\",\"regionalfed:kc-manufacturing:month-sa:backlog\",\"regionalfed:kc-manufacturing:month-sa:capital-expenditures\",\"regionalfed:kc-manufacturing:month-sa:composite\",\"regionalfed:kc-manufacturing:month-sa:delivery-time\",\"regionalfed:kc-manufacturing:month-sa:employment\",\"regionalfed:kc-manufacturing:month-sa:export-orders\",\"regionalfed:kc-manufacturing:month-sa:finished-inventories\",\"regionalfed:kc-manufacturing:month-sa:materials-inventories\",\"regionalfed:kc-manufacturing:month-sa:new-orders\",\"regionalfed:kc-manufacturing:month-sa:prices-paid\",\"regionalfed:kc-manufacturing:month-sa:prices-received\",\"regionalfed:kc-manufacturing:month-sa:production\",\"regionalfed:kc-manufacturing:month-sa:shipments\",\"regionalfed:kc-manufacturing:month-sa:workweek\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:backlog\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:composite\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:delivery-time\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:employment\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:export-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:new-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:prices-paid\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:prices-received\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:production\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:shipments\",\"regionalfed:kc-manufacturing:six-month-expectation-nsa:workweek\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:backlog\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:capital-expenditures\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:composite\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:delivery-time\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:employment\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:export-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:finished-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:materials-inventories\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:new-orders\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:prices-paid\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:prices-received\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:production\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:shipments\",\"regionalfed:kc-manufacturing:six-month-expectation-sa:workweek\",\"regionalfed:kc-manufacturing:year-nsa:backlog\",\"regionalfed:kc-manufacturing:year-nsa:capital-expenditures\",\"regionalfed:kc-manufacturing:year-nsa:composite\",\"regionalfed:kc-manufacturing:year-nsa:delivery-time\",\"regionalfed:kc-manufacturing:year-nsa:employment\",\"regionalfed:kc-manufacturing:year-nsa:export-orders\",\"regionalfed:kc-manufacturing:year-nsa:finished-inventories\",\"regionalfed:kc-manufacturing:year-nsa:materials-inventories\",\"regionalfed:kc-manufacturing:year-nsa:new-orders\",\"regionalfed:kc-manufacturing:year-nsa:prices-paid\",\"regionalfed:kc-manufacturing:year-nsa:prices-received\",\"regionalfed:kc-manufacturing:year-nsa:production\",\"regionalfed:kc-manufacturing:year-nsa:shipments\",\"regionalfed:kc-manufacturing:year-nsa:workweek\"]);\n  var SCALAR=new Set([\"regionalfed\","
+        },
+        {
+          "before": "catalogue_slug:null}];",
+          "after": "catalogue_slug:null},{slug:\"regionalfed\",name:\"Regional Federal Reserve Banks \u00b7 reviewed monthly histories\",api:\"Official Chicago and Kansas City Fed downloads\",discovery_origin:\"chart_adapter\",catalogue_slug:null}];"
+        },
+        {
+          "before": "provider===\"defillama\"?null:provider===",
+          "after": "(provider===\"defillama\"||provider===\"regionalfed\")?null:provider==="
+        },
+        {
+          "before": "    if(provider===\"defillama\"&&!DEFILLAMA_KEYS.has(id))",
+          "after": "    if(provider===\"regionalfed\"&&!REGIONAL_FED_KEYS.has(id))return \"inspect\";\n    if(provider===\"defillama\"&&!DEFILLAMA_KEYS.has(id))"
+        },
+        {
+          "before": "    if(state.dataset)crumb.appendChild",
+          "after": "    if(state.provider===\"regionalfed\")crumb.appendChild(node(\"small\",\"Official monthly indexes and survey comparisons \u00b7 current revised histories, not release-time vintages. No published stored-file catalogue.\"));\n    if(state.dataset)crumb.appendChild"
+        }
+      ],
+      "after_sha256": "cd1046f24ef5c158ee09723de91d13df1cf72e38f3880e4632d495f31b1b0158"
+    },
+    "tests/watchlist-identity.test.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__watchlist-identity.test.js.before.txt",
+      "before_sha256": "6a1418dd9cd46b5a6a79af8465590ad5700b391a0af158aa119fd086dc10c74c",
+      "replacements": [
+        {
+          "before": "['EXCH','SERIES_PROV','CURATED','DEFILLAMA_IDS']",
+          "after": "['EXCH','SERIES_PROV','CURATED','DEFILLAMA_IDS','REGIONAL_FED_IDS']"
+        },
+        {
+          "before": "assert.equal(providerEntries.length,998);",
+          "after": "assert.equal(providerEntries.length,1003);"
+        },
+        {
+          "before": "\"DEFILLAMA:TOTAL_TVL\":\"defillama:tvl:all\"",
+          "after": "\"DEFILLAMA:TOTAL_TVL\":\"defillama:tvl:all\",...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-regional-fed-watchlist-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))"
+        }
+      ],
+      "after_sha256": "a370e547c00fb1db4d79dfa1bf2ee94a52699f9f9fe5f34b89faf92d7ace60de"
+    },
+    "tests/chart-provider-browser.test.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__chart-provider-browser.test.js.before.txt",
+      "before_sha256": "0af7081b7c56fd524d378d70fcc8d1d9dbc7a67d334c6b626b8ac5cd8e957a77",
+      "replacements": [
+        {
+          "before": "assert.equal(nativePrefixes.length,25);",
+          "after": "assert.equal(nativePrefixes.length,26);"
+        },
+        {
+          "before": "p!==\"defillama\"",
+          "after": "p!==\"defillama\"&&p!==\"regionalfed\""
+        },
+        {
+          "before": "const id=provider==='defillama'?",
+          "after": "const id=provider==='regionalfed'?'regionalfed:chicago-cfnai:CFNAI':provider==='defillama'?"
+        }
+      ],
+      "after_sha256": "961562f955b8e00b801c84873c06315cf76c3565b88a9b92a9b29043d847e6fd"
+    },
+    "tests/chart-provider-discovery.test.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__chart-provider-discovery.test.js.before.txt",
+      "before_sha256": "603af3af3f09f4e6a76587558894b353e6db7b94de3e527834c24e888594ab21",
+      "replacements": [
+        {
+          "before": "packet.providers.length+2);assert.deepEqual(rows.slice(0,-2),packet.providers);",
+          "after": "packet.providers.length+3);assert.deepEqual(rows.slice(0,-3),packet.providers);"
+        },
+        {
+          "before": "['fred','census','defillama']);",
+          "after": "['fred','census','defillama','regionalfed']);"
+        }
+      ],
+      "after_sha256": "46d28eafe96f405929a14e6449274533ffe7f21ac0f6d55eeb429b475153f28c"
+    },
+    "tests/chart-defillama.test.js": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__chart-defillama.test.js.before.txt",
+      "before_sha256": "83082c71d4dd37873ed7a5001f2754e9ac0c4a4648576d585d687339848ada85",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),",
+          "after": "const raw=require(\"./helpers/chart-regional-fed-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),"
+        }
+      ],
+      "after_sha256": "18ef92a282d3b452db890d554475aff3a821187331fc785d0957b24bbf03560c"
+    },
+    "tests/helpers/chart-defillama-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__helpers__chart-defillama-preservation.cjs.before.txt",
+      "before_sha256": "be7323279d71fe4623ea03d256e4ffadb7c4970936cc650e561a0bb63856868c",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-regional-fed-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "559184d3840adfd21fa48de57d42dd824328ab55059a3bb5e1ce66eb43600469"
+    },
+    "tests/chart_defillama_preservation.py": {
+      "before_path": "tests/fixtures/chart-regional-fed/tests__chart_defillama_preservation.py.before.txt",
+      "before_sha256": "94d258830ee8415bd6a1bac3a00d17e671ae0dfe5aa6cad64f2927a917925403",
+      "replacements": [
+        {
+          "before": "def normalize(file,raw):\n",
+          "after": "def normalize(file,raw):\n    from chart_regional_fed_preservation import normalize as newer\n    raw=newer(file,raw)\n"
+        }
+      ],
+      "after_sha256": "4b387a24f4adf50a6448d9c1e9950787764d2f288688e110e766720274b6547d"
+    }
+  },
+  "predecessor_hashes": {
+    "aws/lambdas/justhodl-symdir/source/lambda_function.py": [
+      "1b96ed5af164ad1b152fe8400759cda89cfea13abf7c735a96559dd6c2702f84",
+      "29706a948954a7dc4616ab01af56f1e861c8b6d774d9e90ee721c5b17a8f5ba2",
+      "3122161c1ca14b847b82385dea1a6c93b0a7bfabdb3f1203265c1823aaac3aee",
+      "3e130c022ac91aca292ce12594562d1d47834543934bd7f47a20674011a47580",
+      "859032f19e337418efd4a5f7ce5b14b88eca5d65d9f392cd6e8c342784e8f7cf",
+      "86ad79da7432e0b5a0d147077a9e5cb76da03cbd3a246eb071f5109477bb6992",
+      "a84e900aed308310b6cc88006eec1d55048f3ca06af10fdd780b89b0be6dc53e",
+      "b562d056403d69ff7a469e0e20867f553d22f36ead7fa559fdfa0030706bb7e7",
+      "b644bfb7530b4edb857dff9e4c0e13dad6d3f6f5753711a378b74d2d5eb1ef6a",
+      "c1142004129350c7dded1316e6ec7b293821f132ca4966db58e9d9e17b8d4e75",
+      "e97830a26ac8cc3ee7dfbae4c1e14b467351e2f1a76b3d4c8ed5869d417b0f3b"
+    ],
+    "aws/lambdas/justhodl-symdir/tests/run_tests.py": [
+      "056079c541c4230c4103acccbe6b9a77f7f98d2dc8aabf0c6012682faa8e987a",
+      "10661611b00a3bde9db41b532e9bfddf8dc734180c4f8e6eba84de2ac95a03f5",
+      "1e5d9eb6f83a3e73c4d5e64f779f1ee81cbaed2aaef53633e634f74802d6f494",
+      "2338d992ded83ec018e08d979d9c9e9906b3cc5763cb8e88703dde3d4f169da5",
+      "2879608b5aaf95b8e658a885d431b4f721590bbdbdc27907d99a089bf1032db1",
+      "7c129ebac6a9bfbf3b130798bc88e69a9e7e0746ccaaafe36cddb9b32c3bedd5",
+      "830284e2b135354e370d10c1ec22a31a64ab35d88dda14396f57e1a33e8db802",
+      "997b88a03ae454608b5ac3d3d947bd664fd7e80279df41d4961a2fa12ed1c244",
+      "ac16dbf151f3582c032657c3ca56e326f50b2edb7608665d356696e1a371c95b",
+      "ba58429dca6fc0a783036b1e5a6d823151b619a6c74418f8ccf36392ba96adf5",
+      "d2b0490d8b06c59763852d59552eb5ea04bf9d1e9cc1586abc84a2598733caf7",
+      "de88e06c5d5663f3787b1ebf76defe9401e1bea308ea78be52a74fbea22d86c2"
+    ],
+    "jh-chart-catalog.js": [
+      "4f00c16a69163e85b736ed4ea243c4157196d4a59e281c4bef4e057f7660bd4d",
+      "6d75d7f1356c15b3f0fdce1c1eecc55435fba9103877fe99560806f98f3f8c4b",
+      "8701e012f022f8396c42a51e8997a3b3764970f854f39fecb6898ab27d2f2621",
+      "903408cd617b40da991ffa36c164d110060863ec59555b3b67fba979a7d8dc2e",
+      "9c3a37688753a9b84a510909c48a7a6bda4fb4a6f880b941251af68948f00ff0",
+      "a5d247a5e163cf30eb05e7a1a890d279b8d333d40dd27ff93a8712c38f9f2a1a",
+      "a7eece23c0acb4577400979eff5841954e96f44a35e7bcbfc838fc9b4bc14a33"
+    ],
+    "jh-chart-tvwatch.js": [
+      "0650aa0772d8cb8cb1c89dc31bd7de250197aae61df6ac8f04699185c208ae2f",
+      "0760b94e6649cd7dc494c0f5fbfede43ba92a25d7cb56b7ee99247d66769873b",
+      "174ee04ef2951ec06ab32c576d61388961185a5deda2900929a3991f364e33f5",
+      "38246a0a8671031d619e44bfc4326337b6a6c857acec7905b33116ecb62f4343",
+      "3c894741b53136a4b2b2a33235baf8f0d2b6700c6ad02d94791d636bb7622f53",
+      "49b288f1634c51e03c2da13a352b549bb8f1e3017bbd94448dfd0f9bc2dd7a96",
+      "4d16636e1b5c402e4b8f3a887d7fc03262fcef4dea57b3e94ee8bf35da2220ec",
+      "5616c1fe7d1a098e1aa70dbafd274c314c21cf5181af9be1384178f71dc67e91",
+      "72d633afc6c75b436101af714596347b1b493ca0a14cab6f440baf8e6d9fb5de",
+      "93d6d6588845424adf2ed493ae8911000744b101fae3887abad87eb2e6133098",
+      "aa79998c5a653d2c509802cb218fac8ed84b70089189f2809442949775a341c0",
+      "ad0afb89830ac706bd6ff6be2ab3b4497315c29f9e9801e3100ae4ba0c971233",
+      "b3e65946af643a64c569a88e9119ff7512fd3e7b2e0b5216bc5d48a3915e2fd5",
+      "d14dee4dde27313eef19c42a622338b32ee89f95e0a41afc18f6da897f31f022",
+      "efa886b6b42f168a47588449fcea9651b8dc8ea577641e4f96ecafd6960e72ef"
+    ],
+    "jh-chart-provider-browser.js": [
+      "029f3e4c616dce8e7b553c1e585ef09c3528f30bfd198df3f97d54eb2137c0e3",
+      "07fc18803fa892c2a07606acadb28b63090f68fd63a799fd51a709ce1ca83aad",
+      "57027b1be734a2c8b07d4b3941ee977d573b4504b135b50b0a0b2664a9058a8d",
+      "656be7f7d4e99b78d4fbd1c70e6d1a1acd3a644442065eda5cf3094e1409d74f",
+      "73549ee02b88237c047d9bb2b11f2936eacc22198118a1757aa1bff8c03c428f",
+      "abd9787a2b39a52a3ee5160cd156313e68b6e7b12805a293451c82301da1710c",
+      "b237d5d5a50c07cdb1b2a0aee0a7e1c3165b57b3d6ab12f896e2c2938b3191f4",
+      "bc72986b78e436dd2c009a0b9af544140769d7f9626e2ad8f7a955b93b04b906",
+      "c40d1b0fc53b27f89b386525f1c6605db86bdfb428b4cab02ba4e231ef5c4f33",
+      "cfad22c30909fbef0abac8ebfa0ee8d2735cab6e44e90f2295588049dd92e95a",
+      "d2e80172bace7806ec63f43b99508a6c2e9f61a0253d5dd5de8576d0358d3fa2",
+      "d32c362fb77f5a8e74e88f953c89d970b0afa96c81582e9c6979acf24e6e4685",
+      "dfdf37818cc098808625736f398828e59b4c4d308d086bc6dd348aa5deb263be"
+    ],
+    "tests/watchlist-identity.test.js": [
+      "2a846438d9f032f791221330365a6e3ebf03ef6c4addecc3e0494e3a4bffbda3",
+      "4ab14fc5e76e0dafe11c6c4a57ab70e331fb846e42e2b381b2b5eb5ac89c0f95",
+      "5a8b7d10d805140d2b4887d6a54b7f407b83d924e821cb8558ef613d492b828a",
+      "6311cef45a2d0ab1c93ce27b65c045d168ef3537a535054fd6bf0a7d795e32fc",
+      "6a1418dd9cd46b5a6a79af8465590ad5700b391a0af158aa119fd086dc10c74c",
+      "7367f640795800e71112e8bf7fb3651b3686346c5fbb90e29dab20419f1494ca",
+      "78a51613482d0b779dc9ecdbfeaca13586ffd14b5e0452891ffb7c05995fb855",
+      "8620854bc18e5065fd95278b9e583b0a084deaa7f9ad1189a23a1133d308e436",
+      "90daf012a75049609f21cbe72f6fd0ae69fe1b46fe3327b0eeec79c8e4fde595",
+      "d24f2878b966ede6143f0e9f6729cd8a8048e80fbdb513e2c45bb489d0b903a6",
+      "f9ad6d096917163923594715412a092e47065c1bcfc292c01741d359ed25142e"
+    ],
+    "tests/chart-provider-browser.test.js": [
+      "0af7081b7c56fd524d378d70fcc8d1d9dbc7a67d334c6b626b8ac5cd8e957a77",
+      "4e8c2f46fbb464faab3bca461acf0ddf6c4eafd65fcf342f766b7c62ed7bae90",
+      "6365d9db4ac7a7f6a3d84536988495353f8b78d26b63f94e3df04272ec5b1cc2",
+      "83c27f55e736d2084ca58a9d6694922261acc822d0ed1bc548631a0658bb3dbf",
+      "88d69a3076cb833923ebd5460eb2e455763218ea4c2bdcf2c4beda88184ce9cb",
+      "ca10a95e3c4ca27e5585659cc771f5aee4e9ec0479583ed93ac2cd5c42420e5c",
+      "d866068b40fdcbeab8650810671a5e66b78e79b9a46daf2e338b7837fec678a9",
+      "ee695963d09057aaa1e70ea7f327627f8fd76be0b4ce00f3f581d16b4ada8f26"
+    ],
+    "tests/chart-provider-discovery.test.js": [
+      "603af3af3f09f4e6a76587558894b353e6db7b94de3e527834c24e888594ab21",
+      "f6d145aa892105f71d57b23a609332bd2e2ed0616da3638ac1505ed071a171ed",
+      "fe111f451148df81679dc7cfe38b2afcfac0d59e2bf05088c0fc4e973eab502b"
+    ],
+    "tests/chart-defillama.test.js": [
+      "83082c71d4dd37873ed7a5001f2754e9ac0c4a4648576d585d687339848ada85"
+    ],
+    "tests/helpers/chart-defillama-preservation.cjs": [
+      "be7323279d71fe4623ea03d256e4ffadb7c4970936cc650e561a0bb63856868c"
+    ],
+    "tests/chart_defillama_preservation.py": [
+      "94d258830ee8415bd6a1bac3a00d17e671ae0dfe5aa6cad64f2927a917925403"
+    ]
+  }
+}

@@ -1,0 +1,706 @@
+{
+  "at": "2026-10-05T05:25:10.985078+00:00",
+  "scope": "Source research and offline parser only; not deployed or a live-coverage claim",
+  "series": 77,
+  "numeric": 25598,
+  "rows": 26208,
+  "results": [
+    {
+      "id": "chicago-cfnai:P_I",
+      "observations": 714,
+      "numeric": 714,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:EU_H",
+      "observations": 714,
+      "numeric": 714,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:C_H",
+      "observations": 714,
+      "numeric": 714,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:SO_I",
+      "observations": 714,
+      "numeric": 714,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:CFNAI",
+      "observations": 714,
+      "numeric": 714,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:CFNAI_MA3",
+      "observations": 714,
+      "numeric": 712,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "chicago-cfnai:DIFFUSION",
+      "observations": 714,
+      "numeric": 712,
+      "first": "1967-03",
+      "last": "2026-08",
+      "source_sha256": "8994854297341bf2ca265974b8726e9545521638b67be8cb870a1e54d11d7472",
+      "cross_check": "Separate official XLSX file parsed independently with openpyxl; all values and monthly periods matched"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:composite",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:production",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:shipments",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:new-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:backlog",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:employment",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:workweek",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:prices-received",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:prices-paid",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:capital-expenditures",
+      "observations": 303,
+      "numeric": 0,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:export-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:delivery-time",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:materials-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-sa:finished-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:composite",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:production",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:shipments",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:new-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:backlog",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:employment",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:workweek",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:prices-received",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:prices-paid",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:capital-expenditures",
+      "observations": 303,
+      "numeric": 0,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:export-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:delivery-time",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:materials-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:month-nsa:finished-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:composite",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:production",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:shipments",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:new-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:backlog",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:employment",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:workweek",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:prices-received",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:prices-paid",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:capital-expenditures",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:export-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:delivery-time",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:materials-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:year-nsa:finished-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:composite",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:production",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:shipments",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:new-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:backlog",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:employment",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:workweek",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:prices-received",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:prices-paid",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:capital-expenditures",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:export-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:delivery-time",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:materials-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-sa:finished-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:composite",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:production",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:shipments",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:new-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:backlog",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:employment",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:workweek",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:prices-received",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:prices-paid",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:capital-expenditures",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:export-orders",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:delivery-time",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:materials-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    },
+    {
+      "id": "kc-manufacturing:six-month-expectation-nsa:finished-inventories",
+      "observations": 303,
+      "numeric": 303,
+      "first": "2001-07",
+      "last": "2026-09",
+      "source_sha256": "3583db7de39b755cc91eb751c695e77c31becdf2fc85fca33e10d513eb071577",
+      "cross_check": "All cells and original Excel dates independently parsed with openpyxl; chart uses month precision without treating worksheet day as release date"
+    }
+  ],
+  "point_in_time_vintages_verified": false,
+  "vendor_equivalence_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false
+}

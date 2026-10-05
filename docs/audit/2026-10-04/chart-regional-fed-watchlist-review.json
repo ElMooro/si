@@ -1,0 +1,121 @@
+{
+  "stage": "candidate_not_deployed",
+  "alternatives": {
+    "ECONOMICS:USCFNAI": {
+      "alternative": "regionalfed:chicago-cfnai:CFNAI",
+      "label": "Chicago Fed National Activity Index",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USCFNAI/",
+      "source_definition": {
+        "id": "regionalfed:chicago-cfnai:CFNAI",
+        "dataset": "chicago-cfnai",
+        "source_key": "CFNAI",
+        "name": "Chicago Fed National Activity Index",
+        "provider_name": "Federal Reserve Bank of Chicago",
+        "unit": "CFNAI standard-deviation units",
+        "currency": null,
+        "freq": "M",
+        "measurement_kind": "standardized_activity_index",
+        "adjustment": "Published composite of underlying series; no additional seasonal adjustment",
+        "reference_period": "Calendar month; first-day chart anchor is not a release date",
+        "vintage": "Current revised published history; not release-time vintages",
+        "precision": "Official historical CSV values are rounded to two decimal places; higher-precision current-release table is a separate source and is not spliced in",
+        "interpretation": "Index points and contributions are not growth percentages. Rounded components may not sum exactly to the rounded aggregate. CFNAI-MA3 and diffusion are distinct three-month measures."
+      },
+      "equivalence_verified": false
+    },
+    "ECONOMICS:USCFNAISOII": {
+      "alternative": "regionalfed:chicago-cfnai:SO_I",
+      "label": "Sales, orders and inventories contribution",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USCFNAISOII/",
+      "source_definition": {
+        "id": "regionalfed:chicago-cfnai:SO_I",
+        "dataset": "chicago-cfnai",
+        "source_key": "SO_I",
+        "name": "Sales, orders and inventories contribution",
+        "provider_name": "Federal Reserve Bank of Chicago",
+        "unit": "CFNAI standard-deviation units",
+        "currency": null,
+        "freq": "M",
+        "measurement_kind": "index_contribution",
+        "adjustment": "Published composite of underlying series; no additional seasonal adjustment",
+        "reference_period": "Calendar month; first-day chart anchor is not a release date",
+        "vintage": "Current revised published history; not release-time vintages",
+        "precision": "Official historical CSV values are rounded to two decimal places; higher-precision current-release table is a separate source and is not spliced in",
+        "interpretation": "Index points and contributions are not growth percentages. Rounded components may not sum exactly to the rounded aggregate. CFNAI-MA3 and diffusion are distinct three-month measures."
+      },
+      "equivalence_verified": false
+    },
+    "ECONOMICS:USCFNAIPCHI": {
+      "alternative": "regionalfed:chicago-cfnai:C_H",
+      "label": "Personal consumption and housing contribution",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USCFNAIPCHI/",
+      "source_definition": {
+        "id": "regionalfed:chicago-cfnai:C_H",
+        "dataset": "chicago-cfnai",
+        "source_key": "C_H",
+        "name": "Personal consumption and housing contribution",
+        "provider_name": "Federal Reserve Bank of Chicago",
+        "unit": "CFNAI standard-deviation units",
+        "currency": null,
+        "freq": "M",
+        "measurement_kind": "index_contribution",
+        "adjustment": "Published composite of underlying series; no additional seasonal adjustment",
+        "reference_period": "Calendar month; first-day chart anchor is not a release date",
+        "vintage": "Current revised published history; not release-time vintages",
+        "precision": "Official historical CSV values are rounded to two decimal places; higher-precision current-release table is a separate source and is not spliced in",
+        "interpretation": "Index points and contributions are not growth percentages. Rounded components may not sum exactly to the rounded aggregate. CFNAI-MA3 and diffusion are distinct three-month measures."
+      },
+      "equivalence_verified": false
+    },
+    "ECONOMICS:USKFCOMPI": {
+      "alternative": "regionalfed:kc-manufacturing:month-sa:composite",
+      "label": "Kansas City manufacturing \u00b7 Composite Index \u00b7 Versus a Month Ago \u00b7 seasonally adjusted",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USKFCOMPI/",
+      "source_definition": {
+        "id": "regionalfed:kc-manufacturing:month-sa:composite",
+        "dataset": "kc-manufacturing",
+        "source_key": "month-sa:composite",
+        "name": "Kansas City manufacturing \u00b7 Composite Index \u00b7 Versus a Month Ago \u00b7 seasonally adjusted",
+        "provider_name": "Federal Reserve Bank of Kansas City",
+        "unit": "diffusion index points",
+        "currency": null,
+        "freq": "M",
+        "measurement_kind": "survey_composite_diffusion_index",
+        "comparison": "Versus a Month Ago",
+        "adjustment": "seasonally adjusted",
+        "expectation_horizon_months": null,
+        "reference_period": "Survey reference month; original Excel day is retained but is neither a daily observation nor publication date",
+        "vintage": "Current revised history; annual seasonal-factor revisions can change earlier observations",
+        "interpretation": "Respondents reporting increases minus respondents reporting declines, in percentage points. Year-ago comparisons are survey diffusion responses, not calculated YoY growth. Expected-in-six-months values are survey expectations observed in the reference month. Composite is the published average of five component indexes, not an ISM PMI level."
+      },
+      "equivalence_verified": false
+    },
+    "ECONOMICS:USKFNORDI": {
+      "alternative": "regionalfed:kc-manufacturing:month-sa:new-orders",
+      "label": "Kansas City manufacturing \u00b7 Volume of new orders \u00b7 Versus a Month Ago \u00b7 seasonally adjusted",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USKFNORDI/",
+      "source_definition": {
+        "id": "regionalfed:kc-manufacturing:month-sa:new-orders",
+        "dataset": "kc-manufacturing",
+        "source_key": "month-sa:new-orders",
+        "name": "Kansas City manufacturing \u00b7 Volume of new orders \u00b7 Versus a Month Ago \u00b7 seasonally adjusted",
+        "provider_name": "Federal Reserve Bank of Kansas City",
+        "unit": "diffusion index points",
+        "currency": null,
+        "freq": "M",
+        "measurement_kind": "survey_diffusion_index",
+        "comparison": "Versus a Month Ago",
+        "adjustment": "seasonally adjusted",
+        "expectation_horizon_months": null,
+        "reference_period": "Survey reference month; original Excel day is retained but is neither a daily observation nor publication date",
+        "vintage": "Current revised history; annual seasonal-factor revisions can change earlier observations",
+        "interpretation": "Respondents reporting increases minus respondents reporting declines, in percentage points. Year-ago comparisons are survey diffusion responses, not calculated YoY growth. Expected-in-six-months values are survey expectations observed in the reference month. Composite is the published average of five component indexes, not an ISM PMI level."
+      },
+      "equivalence_verified": false
+    }
+  },
+  "held_unresolved": {
+    "ECONOMICS:USKFMI": "Published generic manufacturing description does not establish a precise column/adjustment match; no production/composite guess."
+  },
+  "qualification": "Possible proxy or source substitution; equivalence unverified. Official regional Federal Reserve monthly history. Source definitions distinguish index contributions, seasonal adjustment, survey comparison and expectations. Survey diffusion points are not growth percentages. Month-start chart anchors are not release dates. Current revised histories are not original release vintages."
+}

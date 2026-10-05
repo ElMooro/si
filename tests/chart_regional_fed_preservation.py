@@ -2,9 +2,7 @@ from pathlib import Path
 import hashlib,json
 R=Path(__file__).resolve().parents[1]
 def normalize(file,raw):
-    from chart_regional_fed_preservation import normalize as newer
-    raw=newer(file,raw)
-    manifest=json.loads((R/'tests/fixtures/chart-defillama/transition.json').read_bytes());t=manifest['changes'].get(file)
+    manifest=json.loads((R/'tests/fixtures/chart-regional-fed/transition.json').read_bytes());t=manifest['changes'].get(file)
     if not t:return raw
     digest=lambda s:hashlib.sha256(s).hexdigest()
     if digest(raw)==t['before_sha256']:return raw
