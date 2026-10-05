@@ -30,7 +30,7 @@ const named=Object.fromEntries(top.filter(x=>x.type==='FunctionDeclaration').map
 function engineContext(catalog){
  const requests=[],elements=new Map(),lineData=[];
  const el=id=>{if(!elements.has(id))elements.set(id,{textContent:'',innerHTML:'',className:'',style:{}});return elements.get(id);};
- const c={Date,Math,Map,WeakMap,mode:'price',kind:'line',rightScaleMode:()=>0,obsDisplay:'',CHG:[],UP:'#0a0',DN:'#a00',toast(){},computeChange:()=>[],displayBars:d=>d,rightPriceFormatter:String,barEvidence:new WeakMap(),observationAxes:new WeakMap(),barCache:{},active:'CQ:invented_metric',tf:'1d',lastSource:'old',
+ const c={Date,Math,Map,WeakMap,barEvidence:new WeakMap(),observationAxes:new WeakMap(),barCache:{},active:'CQ:invented_metric',tf:'1d',lastSource:'old',
   window:{JHChartCatalog:catalog},resolveSym:s=>({ticker:s,yahoo:s}),spec:id=>[id],warehouseSpec:()=>{throw Error('No market warehouse for observations');},fetchJson:async u=>{requests.push(u);throw Error('No market endpoint');},
   document:{getElementById:el},series:[],oscCharts:[],oscSeries:[],preserveView:false,ACC:'#ff9900',
   chart:{applyOptions(){},priceScale:()=>({applyOptions(){}}),addLineSeries:()=>({applyOptions(){},setData:d=>lineData.push(d)}),timeScale:()=>({fitContent(){},setVisibleLogicalRange(){}})},

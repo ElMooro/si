@@ -138,20 +138,54 @@
   // ------------------------------------------------------------------ quotes
   var Q = {}, QT = {}, inflight = {}, queue = [], running = 0;
   function needQuote(id) { var t = QT[id]; return !inflight[id] && (!t || Date.now() - t > 60000); }
+  // TradingView ECONOMICS:* codes (provider denied) → reviewed warehouse equivalents in /data/tv-economics-map.json.
+  // Each entry names the series, its basis and the transform (yoy/mom/qoq/chg) that reproduces the TradingView figure.
+  var EMAP = null, EMAPP = null, mapModeSaved = null;
+  function econMap() {
+    if (!EMAPP) EMAPP = root.fetch("/data/tv-economics-map.json").then(function (r) { return r.ok ? r.json() : { map: {} }; }).catch(function () { return { map: {} }; }).then(function (d) { EMAP = (d && d.map) || {}; root.JHEconMap = d; return EMAP; });
+    return EMAPP;
+  }
+  function mapped(id) { return EMAP ? EMAP[String(id || "").toUpperCase()] || null : null; }
+  var PPY = { D: 252, W: 52, M: 12, Q: 4, A: 1 };
+  function mappedQuote(q, m) {
+    if (!q || !q.ok) return q;
+    var o = {}; for (var k in q) o[k] = q[k];
+    o.mapped = m; o.src_last = q.last;
+    var sp = Array.isArray(q.spark) ? q.spark : [], n = sp.length, ppy = PPY[q.freq] || 0;
+    function back(k) { return n > k && k > 0 && sp[n - 1 - k] ? (sp[n - 1] / sp[n - 1 - k] - 1) * 100 : null; }
+    var v = null;
+    if (m.mode === "yoy") v = ppy && ppy <= 12 ? back(ppy) : q.yoy_pct;
+    else if (m.mode === "mom") v = q.freq === "M" ? back(1) : q.mom_pct;
+    else if (m.mode === "qoq") v = q.freq === "Q" ? back(1) : q.freq === "M" ? back(3) : q.qoq_pct;
+    else if (m.mode === "chg") v = q.chg;
+    if (m.mode && m.mode !== "price") { o.last = v; o.chg = null; o.chg_pct = null; o.unit = m.mode === "chg" ? q.unit : "%"; }
+    return o;
+  }
   function requestQuotes(ids) {
     ids.forEach(function (id) { if (needQuote(id) && queue.indexOf(id) < 0) queue.push(id); });
+    if (!EMAP && ids.some(function (id) { return /^ECONOMICS:/i.test(id); })) { econMap().then(pump); return; }
     pump();
   }
   function pump() {
     while (running < 3 && queue.length) {
       var batch = queue.splice(0, 20);
+      // imported CSV/JSON files are quoted from the rows stored in this browser, never from the proxy
+      var files = batch.filter(function (id) { return /^FILE[:\-]/i.test(id) && root.JHChartImport && root.JHChartImport.quote; });
+      if (files.length) {
+        batch = batch.filter(function (id) { return files.indexOf(id) < 0; });
+        files.forEach(function (id) { inflight[id] = 1; root.JHChartImport.quote(id).then(function (q) { Q[id] = q; QT[id] = Date.now(); delete inflight[id]; paintQuotes([id]); if (det && det.getAttribute("data-id") === id) renderDetails(); }); });
+        if (!batch.length) continue;
+      }
       batch.forEach(function (id) { inflight[id] = 1; });
       running++;
       (function (b) {
-        root.fetch(PROXY + "/quote?ids=" + encodeURIComponent(b.join(","))).then(function (r) { return r.ok ? r.json() : { quotes: {} }; }).catch(function () { return { quotes: {} }; }).then(function (d) {
+        var qb = b.map(function (id) { var m = mapped(id); return m ? m.id : id; });
+        root.fetch(PROXY + "/quote?ids=" + encodeURIComponent(qb.join(","))).then(function (r) { return r.ok ? r.json() : { quotes: {} }; }).catch(function () { return { quotes: {} }; }).then(function (d) {
           var qs = d.quotes || {};
           b.forEach(function (id) {
-            var q = qs[id]; if (!q) { var k = Object.keys(qs).filter(function (x) { return sameId(x, id); })[0]; q = k ? qs[k] : null; }
+            var mm = mapped(id), qid = mm ? mm.id : id;
+            var q = qs[qid]; if (!q) { var k = Object.keys(qs).filter(function (x) { return sameId(x, qid); })[0]; q = k ? qs[k] : null; }
+            if (mm && q) q = mappedQuote(q, mm);
             Q[id] = q || { ok: false, error: "no quote" }; QT[id] = Date.now(); delete inflight[id];
           });
           running--; paintQuotes(b); pump();
@@ -424,6 +458,7 @@
     det.innerHTML =
       '<h3><i class="wl-logo" style="background:' + hashC(s) + ';width:24px;height:24px;flex:0 0 24px;font-size:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal">' + esc(s.charAt(0).toUpperCase()) + "</i>" + esc(s) + (D.flags[id] ? '<i style="width:10px;height:10px;border-radius:2px;background:' + FLAG_HEX[D.flags[id]] + '"></i>' : "") + "</h3>" +
       '<div class="nm" title="' + esc(id) + '">' + esc((ok && q.name) || id) + "</div>" +
+      (q && q.mapped ? '<div class="asof" style="color:#f0b90b">Mapped equivalent: ' + esc(q.mapped.id) + (q.mapped.mode && q.mapped.mode !== "price" ? " shown as " + esc({ yoy: "% change from year ago", mom: "% change from prior month", qoq: "% change from prior quarter", chg: "change from prior period" }[q.mapped.mode] || q.mapped.mode) : "") + " · " + esc(q.mapped.basis || "") + " · TradingView feed not available</div>" : "") +
       (ok ? '<div><span class="px">' + fmt(q.last) + '</span><span class="ch ' + sgn(q.chg) + '">' + (q.chg > 0 ? "+" : "") + fmt(q.chg) + " (" + pct(q.chg_pct) + ")</span>" + (q.unit ? ' <span style="color:var(--mut)">' + esc(q.unit) + "</span>" : "") + "</div>" +
         '<div class="asof">As of ' + esc(q.last_date || "?") + (q.freq ? " · " + esc(q.freq) : "") + (q.prev_date ? " · prev " + esc(q.prev_date) : "") + "</div>" +
         (Array.isArray(q.spark) ? '<div>' + spark(q.spark, Math.max(120, (panel.clientWidth || 300) - 28), 46) + "</div>" : "") +
@@ -499,6 +534,15 @@
   }
   var navAt = 0, lastSeen = "";
   function route(id) {
+    if (/^ECONOMICS:/i.test(id) && !EMAP) { econMap().then(function () { route(id); }); return; }
+    var mm = mapped(id);
+    if (mm && typeof root.jhGoSymbol === "function") {
+      var want = mm.mode || "price";
+      if (root.jhGetView && root.jhSetMode) { if (mapModeSaved == null) mapModeSaved = root.jhGetView().mode; root.jhSetMode(want); }
+      root.jhGoSymbol(mm.id, "chart");
+      return;
+    }
+    if (mapModeSaved != null && root.jhSetMode) { root.jhSetMode(mapModeSaved); mapModeSaved = null; }
     var t = chartTarget(id), ex = root.JHChartExpr && root.JHChartExpr.isExpr(id);
     if (!ex && t === id && typeof root.jhWatchlistOpen === "function") root.jhWatchlistOpen(id);
     else if (typeof root.jhGoSymbol === "function") root.jhGoSymbol(t, "chart");
@@ -888,6 +932,7 @@
     remove: function (id) { var L = cur(); if (!L) return; var i = L.items.findIndex(function (s) { return sameId(s, id); }); if (i >= 0) removeIdx([i]); },
     route: function (id) { activeSym = id; navAt = Date.now(); route(id); if (body) { body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); }); renderDetails(); } },
     activeName: function () { var L = cur(); return L ? L.name : "watchlist"; },
+    econMap: econMap, mapped: function (id) { return mapped(id); },
     lists: function () { return D.order.map(function (id) { return { id: id, name: D.lists[id].name, n: D.lists[id].items.length }; }); },
     open: function (id) { setActive(id); },
     show: function () { var w = doc.getElementById("watch"); if (w) w.classList.add("jhwl-on"); if (root.jhWatchSet) root.jhWatchSet(true); },

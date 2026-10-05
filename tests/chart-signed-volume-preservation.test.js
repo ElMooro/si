@@ -5,7 +5,7 @@ test('HTML-label preservation retains all earlier assertions through two hash-bo
  const file='tests/helpers/chart-html-labels-preservation.cjs',prior=fs.readFileSync(path.join(D,file+'.txt'),'utf8');
  const hook="\n const later=require('./chart-signed-volume-preservation.cjs');if(later.manifest.entries[file]&&hash(raw)!==later.manifest.entries[file].prior.sha256)raw=later.normalize(raw,file);";
  const legacy="\n const later=require('./chart-signed-volume-preservation.cjs');if(later.manifest.test_adaptations[file]&&hash(raw)!==later.manifest.test_adaptations[file].prior.sha256)raw=later.normalizeLegacyTest(raw,file);";
- assert.equal(fs.readFileSync(path.join(R,file),'utf8'),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook).replace('function normalizeLegacyTest(raw,file){','function normalizeLegacyTest(raw,file){'+legacy));
+ assert.equal(require('./helpers/chart-macro-line-preservation.cjs').normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file),prior.replace('function normalize(raw,file){','function normalize(raw,file){'+hook).replace('function normalizeLegacyTest(raw,file){','function normalizeLegacyTest(raw,file){'+legacy));
 });
 test('all earlier volume assertions survive with only actual new function dependencies',()=>{for(const file of Object.keys(manifest.test_adaptations))normalizeLegacyTest(fs.readFileSync(path.join(R,file),'utf8'),file);});
 test('restoring the sign defect or changing market arithmetic fails preservation',()=>{

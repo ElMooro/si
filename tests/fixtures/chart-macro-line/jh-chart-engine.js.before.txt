@@ -35,11 +35,11 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var LIVE = "https://justhodl.ai";
   var TFS = [["1s","1s","1m","1d"],["1m","1m","1m","5d"],["3m","3m","5m","1mo"],["5m","5m","5m","1mo"],["15m","15m","15m","3mo"],["30m","30m","30m","6mo"],["45m","45m","60m","6mo"],["1h","1h","60m","2y"],["2h","2h","60m","2y"],["4h","4h","60m","2y"],["12h","12h","60m","2y"],["1d","D","1d","max"],["2d","2D","1d","max"],["3d","3D","1d","max"],["5d","5D","1d","max"],["1w","W","1wk","max"],["2w","2W","1wk","max"],["1M","M","1mo","max"],["3M","3M","3mo","max"]];
-  var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["yoyd","Chg from yr ago"],["pch","% Chg"],["chg","Change"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPX"]];
+  var CHG = [["price","Price"],["dod","DoD"],["wow","WoW"],["mom","MoM"],["qoq","QoQ"],["yoy","YoY"],["ytd","YTD"],["fromhigh","From High"],["fromlow","From Low"],["vsspy","vs SPX"]];
   var BARS = { dod:1, wow:5, mom:21, qoq:63, yoy:252 };
   var TABS = ["SPY","QQQ","IWM","AAPL","MSFT","NVDA","AMZN","META","TSLA","XLE","TLT","GLD"];
   var ISHARES = ["GSG","COMT","EWZS","CMDY","EWZ","LOCK","IAT","IVV","IWM","EEM","LQD","HYG","TLT","IEI"];
-  var KINDS = [["candles","Candles"],["hollow","Hollow"],["bars","Bars"],["line","Line"],["area","Area"],["baseline","Baseline"],["heikin","Heikin"],["columns","Columns"],["step","Step"],["hlc","HLC"],["volcandle","Vol candles"],["renko","Renko"],["kagi","Kagi"],["linebreak","Line break"],["pnf","Point & Figure"],["range","Range"],["points","Source points"]];
+  var KINDS = [["candles","Candles"],["hollow","Hollow"],["bars","Bars"],["line","Line"],["area","Area"],["baseline","Baseline"],["heikin","Heikin"],["columns","Columns"],["step","Step"],["hlc","HLC"],["volcandle","Vol candles"],["renko","Renko"],["kagi","Kagi"],["linebreak","Line break"],["pnf","Point & Figure"],["range","Range"]];
   var SCALES = [["0","Linear"],["1","Log"],["2","Percent"],["3","Index"]];
   var TZS = [["UTC",0],["New York",-4],["London",1],["Tokyo",9],["Hong Kong",8]];
   var COLORS = ["#2962ff","#089981","#f23645","#ff6d00","#ab47bc","#26c6da","#e91e63","#7e57c2","#131722","#f0b429"];
@@ -245,7 +245,7 @@
   var lastBars=[], series=[], spyBars=null, barCache={}, compare=[], mainSeries=null, volSeries=null;
   // Bind identity to the returned array, never to whichever ticker is selected later.
   var barEvidence=new WeakMap();
-  var observationAxes=new WeakMap(), obsDisplay="";
+  var observationAxes=new WeakMap();
   function identifyBars(d,sym,interval,source,observations){
     barEvidence.set(d,{symbol:sym,interval:interval,source:source||"unavailable",bars:d,published_at:new Date().toISOString()});
     if(observations) barEvidence.get(d).observations=observations;
@@ -283,11 +283,9 @@
   function comparingOn(){ return compare.length>0 && mode==="price"; }
   function rightScaleMode(){ if(mode!=="price") return 0; return comparingOn()?2:scaleMode; }
   function rightPriceFormatter(p){
-    var diffMode=mode==="chg"||mode==="yoyd";
-    if(observationId(active)&&(mode==="price"||mode==="vsspy"))return String(p);
+    if(observationId(active))return String(p);
     p=Number(p);
     if(!isFinite(p)) return "";
-    if(diffMode) return (p>0?"+":"")+(Math.abs(p)>=1000?fmt(p):String(+p.toPrecision(8)));
     if(mode!=="price" || comparingOn() || scaleMode===2) return (p>=0?"+":"")+p.toFixed(2)+"%";
     return fmt(p);
   }
@@ -2158,7 +2156,6 @@
     var closes=d.map(function(b){ return {time:b.time,value:b.close}; });
     if(m==="ytd"){ var yr=new Date().getUTCFullYear(), base=null, out=[]; for(var i=0;i<closes.length;i++){ var y=new Date(closes[i].time*1000).getUTCFullYear(); if(y===yr&&base==null) base=closes[i].value; if(base) out.push({time:closes[i].time,value:(closes[i].value/base-1)*100}); } return out; }
     if(m==="fromhigh"||m==="fromlow"){ var out2=[]; for(var i=0;i<closes.length;i++){ var ext=m==="fromhigh"?-1e99:1e99, t0=closes[i].time-365*86400; for(var j=0;j<=i;j++){ if(closes[j].time<t0) continue; var v=closes[j].value; if(m==="fromhigh"){ if(v>ext)ext=v; } else if(v<ext) ext=v; } if(ext&&isFinite(ext)) out2.push({time:closes[i].time,value:(closes[i].value/ext-1)*100}); } return out2; }
-    if(window.JHChartTransforms&&window.JHChartTransforms.DEF[m]) return window.JHChartTransforms.change(closes,m); /* calendar-correct on every interval (2026-10-05) */
     var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;
   }
   async function loadSpxDaily(current){
@@ -2442,59 +2439,17 @@
     seriesApi.applyOptions({priceFormat:{type:"custom",formatter:formatter}});
   }
   function paintObservations(d,saved){
-    /* 2026-10-05: macro/warehouse observations honour the chart type, scale and change mode.
-       Line = accepted observations joined in order, broken (whitespace) at rejected source records; candles = open at the
-       prior period's value; change modes are computed from the plotted observations with exact calendar bases only. */
-    var TX=window.JHChartTransforms, obsFrame=barEvidence.get(d), obsEv=obsFrame&&obsFrame.observations;
-    var chgMode=mode!=="price"&&mode!=="vsspy"&&(TX&&TX.DEF[mode]||mode==="ytd"||mode==="fromhigh"||mode==="fromlow");
-    var sm=rightScaleMode(); if(sm===1&&d.some(function(b){return !(b.close>0);}))sm=0;
-    chart.priceScale("right").applyOptions({mode:chgMode?0:sm,scaleMargins:{top:0.06,bottom:0.04}});
-    var exactFmt={type:"custom",formatter:function(x){return String(x);}}, few=d.length<=120;
-    var CANDLE={candles:1,hollow:1,bars:1,heikin:1,volcandle:1,renko:1,linebreak:1,pnf:1,range:1,hlc:0};
-    obsDisplay="";
-    if(chgMode){
-      var cpts=TX&&TX.DEF[mode]?TX.change(d.map(function(b){return {time:b.time,value:b.close};}),mode):(computeChange(d,mode)||[]);
-      var cfmt={type:"custom",formatter:rightPriceFormatter,minMove:0.0001}, clab=(CHG.filter(function(t){return t[0]===mode;})[0]||[0,mode])[1];
-      mainSeries=kind==="columns"?chart.addHistogramSeries({priceFormat:cfmt,lastValueVisible:true,priceLineVisible:false}):chart.addLineSeries({color:ACC,lineWidth:2,pointMarkersVisible:cpts.length<=120,pointMarkersRadius:2.5,title:"",priceFormat:cfmt,lastValueVisible:true,priceLineVisible:false});
-      mainSeries.setData(cpts.map(function(q){return kind==="columns"?{time:q.time,value:q.value,color:q.value>=0?UP:DN}:{time:q.time,value:q.value};}));series.push(mainSeries);
-      try{mainSeries.createPriceLine({price:0,color:"rgba(128,128,128,.55)",lineWidth:1,lineStyle:2,axisLabelVisible:false});}catch(eZ){}
-      chart.applyOptions({localization:{priceFormatter:rightPriceFormatter}});
-      obsDisplay=clab+" · computed from the plotted source observations · "+cpts.length+" points · periods without an exact comparison base are omitted";
-      if(!cpts.length)toast(clab+" needs a comparable earlier period; none exists at this series' frequency");
-    } else if(CANDLE[kind]){
-      var cb=TX?TX.candles(d):d, rows=kind==="heikin"||kind==="renko"||kind==="linebreak"||kind==="pnf"||kind==="range"?displayBars(cb):cb;
-      mainSeries=kind==="bars"?chart.addBarSeries({upColor:UP,downColor:DN,thinBars:true,openVisible:true,lastValueVisible:true,priceLineVisible:false,title:"",priceFormat:exactFmt}):
-        chart.addCandlestickSeries({upColor:kind==="hollow"?pal().bg:UP,downColor:DN,borderVisible:true,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN,lastValueVisible:true,priceLineVisible:false,title:"",priceFormat:exactFmt});
-      mainSeries.setData(rows);series.push(mainSeries);
-      bindObservationAxis(chart,mainSeries,d);
-      obsDisplay="Candles · open = prior period's value, close = this period's value, high/low = extremes within the period";
-    } else if(kind==="points"){
-      mainSeries=chart.addLineSeries({color:ACC,lineWidth:2,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,title:"",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});
-      mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);
-      bindObservationAxis(chart,mainSeries,d);
-    } else if(kind==="columns"){
-      mainSeries=chart.addHistogramSeries({color:ACC,priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});
-      mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);
-      bindObservationAxis(chart,mainSeries,d);
-    } else {
-      var lp=TX?TX.gapLine(d,obsEv):d.map(function(b){return {time:b.time,value:b.close};});
-      mainSeries=kind==="area"?chart.addAreaSeries({lineColor:ACC,lineWidth:2,topColor:"rgba(41,98,255,.22)",bottomColor:"rgba(41,98,255,0)",pointMarkersVisible:few,pointMarkersRadius:2.5,title:"",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false}):
-        chart.addLineSeries({color:ACC,lineWidth:2,lineType:kind==="step"?1:0,pointMarkersVisible:few,pointMarkersRadius:2.5,title:"",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});
-      mainSeries.setData(lp);series.push(mainSeries);
-      if(!few&&TX&&typeof mainSeries.setMarkers==="function"){ // a value isolated between two rejected records stays visible
-        var iso=[];for(var li=0;li<lp.length;li++){if(lp[li].value===undefined)continue;var pv=lp[li-1],nx=lp[li+1];if((!pv||pv.value===undefined)&&(!nx||nx.value===undefined)&&(pv||nx))iso.push({time:lp[li].time,position:"inBar",color:ACC,shape:"circle",size:0.4});}
-        if(iso.length)try{mainSeries.setMarkers(iso);}catch(eM){}
-      }
-      bindObservationAxis(chart,mainSeries,d);
-      obsDisplay=(kind==="step"?"Step":kind==="area"?"Area":"Line")+" · joins accepted observations in date order; breaks at rejected source records; no values are interpolated into the data";
-    }
+    chart.priceScale("right").applyOptions({mode:0,scaleMargins:{top:0.06,bottom:0.04}});
+    mainSeries=chart.addLineSeries({color:ACC,lineWidth:2,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,title:"",priceFormat:{type:"custom",formatter:function(x){return String(x);}},lastValueVisible:true,priceLineVisible:false});
+    mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);
+    bindObservationAxis(chart,mainSeries,d);
     oscCharts.forEach(function(c){try{c.remove();}catch(e){}});oscCharts=[];oscSeries=[];
     var wrap=document.getElementById("oscwrap");if(wrap){wrap.className="";wrap.innerHTML="";}
     lastVolShow=false;
     var vp=document.getElementById("vp");if(vp)vp.width=vp.width;
     ["quote","detail","legend","st","ohlc","dwin"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=observationText(d,null,id==="quote"||id==="detail");});
     var cd=document.getElementById("cd"),sourceFrame=barEvidence.get(d),sourcePacket=sourceFrame&&sourceFrame.observations&&sourceFrame.observations.whole_packet;
-    if(cd)cd.textContent=(obsDisplay?obsDisplay+" · ":"Source points · ")+(sourcePacket&&sourcePacket.provider==="regionalfed"&&/^regionalfed:cleveland-/i.test(String(sourcePacket.id||""))?"publisher interpolation flagged":"no interpolation");
+    if(cd)cd.textContent=sourcePacket&&sourcePacket.provider==="regionalfed"&&/^regionalfed:cleveland-/i.test(String(sourcePacket.id||""))?"Source points · publisher interpolation flagged":"Source points · no interpolation";
     ["fin","over","season","trade","test","corr"].forEach(scalarPanel);
     paintMini(d);
     if(preserveView&&saved)chart.timeScale().setVisibleLogicalRange(saved);else chart.timeScale().fitContent();
@@ -2543,7 +2498,7 @@
         return o;
       }
       if(kind==="kagi"){ c=chart.addLineSeries(lineKindOpts()); c.setData(toKagi(d)); }
-      else if(kind==="line"||kind==="points"){ c=chart.addLineSeries(lineKindOpts(kind==="points"?{lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:2}:null)); c.setData(closePts()); }
+      else if(kind==="line"){ c=chart.addLineSeries(lineKindOpts()); c.setData(closePts()); }
       else if(kind==="step"){ c=chart.addLineSeries(lineKindOpts({lineType:1})); c.setData(closePts()); }
       else if(kind==="hlc"){ c=chart.addAreaSeries({lineColor:"#2962ff",lineWidth:1.5,topColor:"rgba(41,98,255,.16)",bottomColor:"rgba(41,98,255,0)", lastValueVisible:true, priceLineVisible:true, priceFormat:pxF, title:active+" H"}); c.setData(display.map(function(b){return {time:b.time,value:b.high};})); var lo=chart.addLineSeries({color:DN,lineWidth:1,lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false}); lo.setData(display.map(function(b){return {time:b.time,value:b.low};})); series.push(lo); }
       else if(kind==="area"){ c=chart.addAreaSeries({lineColor:UP,lineWidth:1.5,topColor:"rgba(8,153,129,0.22)",bottomColor:"rgba(8,153,129,0)", lastValueVisible:true, priceLineVisible:true, priceLineWidth:1, priceLineStyle:2, crosshairMarkerVisible:true, crosshairMarkerRadius:3.5, title:active, priceFormat:pxF}); c.setData(closePts()); }
@@ -2987,8 +2942,7 @@
     } else {
       var pct= mode==="vsspy" ? await vsSpy(d,current) : computeChange(d, mode);
       if(!current())return;
-      var chgFmt={type:"custom",formatter:rightPriceFormatter,minMove:0.0001};
-      var h=chart.addHistogramSeries({ priceFormat:chgFmt });
+      var h=chart.addHistogramSeries({ priceFormat:{type:"percent"} });
       h.setData((pct||[]).map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));
       series.push(h); mainSeries=h;
     }
@@ -4043,7 +3997,7 @@ else if(o.id==="rvol"){
         var d=await klines(sym,tf,true); if(d.length<(observationId(sym)?1:2)) continue;
         if(observationId(sym)){
           refs[i].applyOptions({localization:{priceFormatter:function(value){return String(value);}}});
-          var scalar=refs[i].addLineSeries({color:ACC,title:sym,lineWidth:2,pointMarkersVisible:d.length<=120,pointMarkersRadius:2.5,priceLineVisible:false,priceFormat:{type:"custom",formatter:function(x){return String(x);}}});
+          var scalar=refs[i].addLineSeries({color:ACC,title:sym+" · source points",lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,priceLineVisible:false,priceFormat:{type:"custom",formatter:function(x){return String(x);}}});
           scalar.setData(d.map(function(b){return {time:b.time,value:b.close};}));bindObservationAxis(refs[i],scalar,d);refs[i].timeScale().fitContent();continue;
         }
         var c=refs[i].addCandlestickSeries({upColor:UP,downColor:DN,borderVisible:true,borderUpColor:UP,borderDownColor:DN,wickVisible:true,wickUpColor:UP,wickDownColor:DN,lastValueVisible:true,priceLineVisible:true,priceLineWidth:1,priceFormat:pxFormat(d)});
@@ -5035,7 +4989,7 @@ else if(o.id==="rvol"){
     var kindLab=(KINDS.filter(function(k){return k[0]===kind;})[0]||KINDS[0])[1];
     var scLab=(SCALES.filter(function(s){return +s[0]===scaleMode;})[0]||SCALES[0])[1];
     var mdLab=(CHG.filter(function(t){return t[0]===mode;})[0]||CHG[0])[1];
-    if(observationId(active)&&mode==="price")mdLab="Level";
+    if(observationId(active)){kindLab="Source points";scLab="Linear";mdLab="Scalar";}
     var TF_FAVS=["1m","5m","15m","1h","1d","1w","1M","3M"];
     var favOn=TF_FAVS.indexOf(tf)>=0;
     var tfHtml=TFS.filter(function(t){ return TF_FAVS.indexOf(t[0])>=0; }).map(function(t){
@@ -5103,7 +5057,7 @@ else if(o.id==="rvol"){
       "<button id=btn-set title=Settings>⚙</button>"+
       "<button id=btn-cmd title='Quick search'>⌘K</button>"+
       "<input id=goto type=date title='Go to date'>";
-    ["btn-kind","btn-md","btn-sc"].forEach(function(id){var button=document.getElementById(id);if(button)button.disabled=false;}); /* macro series: every type, scale and change mode (2026-10-05) */
+    ["btn-kind","btn-md","btn-sc"].forEach(function(id){var button=document.getElementById(id);if(button)button.disabled=observationId(active);});
     document.querySelectorAll("#tfbar [data-tf]").forEach(function(b){ b.onclick=function(){ tf=b.dataset.tf; renderTf(); load(); }; });
     document.querySelectorAll("#tfbar [data-chg]").forEach(function(b){ b.onclick=function(){ mode=b.dataset.chg; renderTf(); if(lastBars.length) paint(lastBars); }; });
     var bmac=document.getElementById("btn-macro"); if(bmac) bmac.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("macro"); };
@@ -6893,7 +6847,7 @@ else if(o.id==="rvol"){
     var scalar=observationId(active);
     if(miniSeries&&((miniSeries.seriesType()==="Line")!==scalar)){miniChart.removeSeries(miniSeries);miniSeries=null;}
     if(!miniSeries)miniSeries=scalar?
-      miniChart.addLineSeries({color:ACC,lineWidth:1,lastValueVisible:false,priceLineVisible:false}):
+      miniChart.addLineSeries({color:ACC,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:2,lastValueVisible:false,priceLineVisible:false}):
       miniChart.addAreaSeries({ lineColor:ACC, topColor:"rgba(41,98,255,.25)", bottomColor:"rgba(41,98,255,.02)", lineWidth:1, lastValueVisible:false, priceLineVisible:false });
     if(miniSeries) miniSeries.setData(d.map(function(b){ return {time:b.time,value:b.close}; }));
   }
@@ -7252,8 +7206,6 @@ else if(o.id==="rvol"){
   window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,crossedAlert:crossedAlert,retCal:retCal,barsFitTf:barsFitTf,escHtml:escHtml,medianGap:medianGap,expectedGap:expectedGap,safeHref:safeHref,retsByTime:retsByTime,alignedRets:alignedRets,isCryptoTape:isCryptoTape};
   window.jhFmtXs=fmtXs;
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
-  window.jhSetMode=function(m){ if(!CHG.some(function(t){return t[0]===m;})) return false; mode=m; renderTf(); if(lastBars.length) paint(lastBars); return true; };
-  window.jhGetView=function(){ return {symbol:active,tf:tf,kind:kind,mode:mode,scale:scaleMode}; };
   window.jhSetScale=function(m){ scaleMode=+m||0; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetTf=function(t){ if(!t) return; tf=t; renderTf(); load(); };
   window.jhSetLayout=function(n){ setLayout(n); renderTf(); };

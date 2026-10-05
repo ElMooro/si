@@ -270,6 +270,8 @@
     }
     if (D && D.lists) Object.keys(D.lists).forEach(function (lid) { var L = D.lists[lid]; (L.items || []).forEach(function (s) { put(s, L.name); }); });
     if (D && D.flags) Object.keys(D.flags).forEach(function (s) { put(s, D.flags[s].charAt(0).toUpperCase() + D.flags[s].slice(1) + " list"); });
+    var files = root.JH_FILE_NAMES || {}; // CSV/JSON files the user imported (jh-chart-import.js)
+    Object.keys(files).forEach(function (s) { names[s] = files[s]; put(s, "Your files"); });
     Object.keys(names).forEach(function (s) { put(s, null); });
     WLX = Object.keys(map).map(function (k) { return map[k]; });
     return WLX;

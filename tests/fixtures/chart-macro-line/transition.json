@@ -1,0 +1,83 @@
+{
+ "purpose": "2026-10-05 macro series as line/candles with calendar change modes (MoM/QoQ/YoY/change from year ago), auto-hide full-page workspace, CSV/JSON import. Reversal restores the exact prior bytes.",
+ "changes": {
+  "jh-chart-engine.js": {
+   "before_path": "tests/fixtures/chart-macro-line/jh-chart-engine.js.before.txt",
+   "before_sha256": "2f1273ab23d6c8580648ac10180c686a18c7ff4d7f50af08589134291719afb6",
+   "after_sha256": "a10b02796816da00367cc3409eb43672a5646813cbf068a496a1771a1c2ba8a9",
+   "replacements": [
+    {
+     "before": "[\"yoy\",\"YoY\"],[\"ytd\",\"YTD\"]",
+     "after": "[\"yoy\",\"YoY\"],[\"yoyd\",\"Chg from yr ago\"],[\"pch\",\"% Chg\"],[\"chg\",\"Change\"],[\"ytd\",\"YTD\"]"
+    },
+    {
+     "before": "[\"range\",\"Range\"]];",
+     "after": "[\"range\",\"Range\"],[\"points\",\"Source points\"]];"
+    },
+    {
+     "before": "    var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;",
+     "after": "    if(window.JHChartTransforms&&window.JHChartTransforms.DEF[m]) return window.JHChartTransforms.change(closes,m); /* calendar-correct on every interval (2026-10-05) */\n    var n=BARS[m]||1, out3=[]; for(var i=n;i<closes.length;i++){ var then=closes[i-n].value; if(!then) continue; out3.push({time:closes[i].time,value:(closes[i].value/then-1)*100}); } return out3;"
+    },
+    {
+     "before": "    if(observationId(active))return String(p);\n    p=Number(p);\n    if(!isFinite(p)) return \"\";",
+     "after": "    var diffMode=mode===\"chg\"||mode===\"yoyd\";\n    if(observationId(active)&&(mode===\"price\"||mode===\"vsspy\"))return String(p);\n    p=Number(p);\n    if(!isFinite(p)) return \"\";\n    if(diffMode) return (p>0?\"+\":\"\")+(Math.abs(p)>=1000?fmt(p):String(+p.toPrecision(8)));"
+    },
+    {
+     "before": "      var h=chart.addHistogramSeries({ priceFormat:{type:\"percent\"} });\n      h.setData((pct||[]).map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));\n      series.push(h); mainSeries=h;",
+     "after": "      var chgFmt={type:\"custom\",formatter:rightPriceFormatter,minMove:0.0001};\n      var h=chart.addHistogramSeries({ priceFormat:chgFmt });\n      h.setData((pct||[]).map(function(p){ return {time:p.time,value:p.value,color:p.value>=0?UP:DN}; }));\n      series.push(h); mainSeries=h;"
+    },
+    {
+     "before": "else if(kind===\"line\"){ c=chart.addLineSeries(lineKindOpts()); c.setData(closePts()); }",
+     "after": "else if(kind===\"line\"||kind===\"points\"){ c=chart.addLineSeries(lineKindOpts(kind===\"points\"?{lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:2}:null)); c.setData(closePts()); }"
+    },
+    {
+     "before": "  function paintObservations(d,saved){\n    chart.priceScale(\"right\").applyOptions({mode:0,scaleMargins:{top:0.06,bottom:0.04}});\n    mainSeries=chart.addLineSeries({color:ACC,lineWidth:2,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,title:\"\",priceFormat:{type:\"custom\",formatter:function(x){return String(x);}},lastValueVisible:true,priceLineVisible:false});\n    mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);\n    bindObservationAxis(chart,mainSeries,d);",
+     "after": "  function paintObservations(d,saved){\n    /* 2026-10-05: macro/warehouse observations honour the chart type, scale and change mode.\n       Line = accepted observations joined in order, broken (whitespace) at rejected source records; candles = open at the\n       prior period's value; change modes are computed from the plotted observations with exact calendar bases only. */\n    var TX=window.JHChartTransforms, obsFrame=barEvidence.get(d), obsEv=obsFrame&&obsFrame.observations;\n    var chgMode=mode!==\"price\"&&mode!==\"vsspy\"&&(TX&&TX.DEF[mode]||mode===\"ytd\"||mode===\"fromhigh\"||mode===\"fromlow\");\n    var sm=rightScaleMode(); if(sm===1&&d.some(function(b){return !(b.close>0);}))sm=0;\n    chart.priceScale(\"right\").applyOptions({mode:chgMode?0:sm,scaleMargins:{top:0.06,bottom:0.04}});\n    var exactFmt={type:\"custom\",formatter:function(x){return String(x);}}, few=d.length<=120;\n    var CANDLE={candles:1,hollow:1,bars:1,heikin:1,volcandle:1,renko:1,linebreak:1,pnf:1,range:1,hlc:0};\n    obsDisplay=\"\";\n    if(chgMode){\n      var cpts=TX&&TX.DEF[mode]?TX.change(d.map(function(b){return {time:b.time,value:b.close};}),mode):(computeChange(d,mode)||[]);\n      var cfmt={type:\"custom\",formatter:rightPriceFormatter,minMove:0.0001}, clab=(CHG.filter(function(t){return t[0]===mode;})[0]||[0,mode])[1];\n      mainSeries=kind===\"columns\"?chart.addHistogramSeries({priceFormat:cfmt,lastValueVisible:true,priceLineVisible:false}):chart.addLineSeries({color:ACC,lineWidth:2,pointMarkersVisible:cpts.length<=120,pointMarkersRadius:2.5,title:\"\",priceFormat:cfmt,lastValueVisible:true,priceLineVisible:false});\n      mainSeries.setData(cpts.map(function(q){return kind===\"columns\"?{time:q.time,value:q.value,color:q.value>=0?UP:DN}:{time:q.time,value:q.value};}));series.push(mainSeries);\n      try{mainSeries.createPriceLine({price:0,color:\"rgba(128,128,128,.55)\",lineWidth:1,lineStyle:2,axisLabelVisible:false});}catch(eZ){}\n      chart.applyOptions({localization:{priceFormatter:rightPriceFormatter}});\n      obsDisplay=clab+\" \u00b7 computed from the plotted source observations \u00b7 \"+cpts.length+\" points \u00b7 periods without an exact comparison base are omitted\";\n      if(!cpts.length)toast(clab+\" needs a comparable earlier period; none exists at this series' frequency\");\n    } else if(CANDLE[kind]){\n      var cb=TX?TX.candles(d):d, rows=kind===\"heikin\"||kind===\"renko\"||kind===\"linebreak\"||kind===\"pnf\"||kind===\"range\"?displayBars(cb):cb;\n      mainSeries=kind===\"bars\"?chart.addBarSeries({upColor:UP,downColor:DN,thinBars:true,openVisible:true,lastValueVisible:true,priceLineVisible:false,title:\"\",priceFormat:exactFmt}):\n        chart.addCandlestickSeries({upColor:kind===\"hollow\"?pal().bg:UP,downColor:DN,borderVisible:true,borderUpColor:UP,borderDownColor:DN,wickUpColor:UP,wickDownColor:DN,lastValueVisible:true,priceLineVisible:false,title:\"\",priceFormat:exactFmt});\n      mainSeries.setData(rows);series.push(mainSeries);\n      bindObservationAxis(chart,mainSeries,d);\n      obsDisplay=\"Candles \u00b7 open = prior period's value, close = this period's value, high/low = extremes within the period\";\n    } else if(kind===\"points\"){\n      mainSeries=chart.addLineSeries({color:ACC,lineWidth:2,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,title:\"\",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});\n      mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);\n      bindObservationAxis(chart,mainSeries,d);\n    } else if(kind===\"columns\"){\n      mainSeries=chart.addHistogramSeries({color:ACC,priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});\n      mainSeries.setData(d.map(function(b){return {time:b.time,value:b.close};}));series.push(mainSeries);\n      bindObservationAxis(chart,mainSeries,d);\n    } else {\n      var lp=TX?TX.gapLine(d,obsEv):d.map(function(b){return {time:b.time,value:b.close};});\n      mainSeries=kind===\"area\"?chart.addAreaSeries({lineColor:ACC,lineWidth:2,topColor:\"rgba(41,98,255,.22)\",bottomColor:\"rgba(41,98,255,0)\",pointMarkersVisible:few,pointMarkersRadius:2.5,title:\"\",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false}):\n        chart.addLineSeries({color:ACC,lineWidth:2,lineType:kind===\"step\"?1:0,pointMarkersVisible:few,pointMarkersRadius:2.5,title:\"\",priceFormat:exactFmt,lastValueVisible:true,priceLineVisible:false});\n      mainSeries.setData(lp);series.push(mainSeries);\n      if(!few&&TX&&typeof mainSeries.setMarkers===\"function\"){ // a value isolated between two rejected records stays visible\n        var iso=[];for(var li=0;li<lp.length;li++){if(lp[li].value===undefined)continue;var pv=lp[li-1],nx=lp[li+1];if((!pv||pv.value===undefined)&&(!nx||nx.value===undefined)&&(pv||nx))iso.push({time:lp[li].time,position:\"inBar\",color:ACC,shape:\"circle\",size:0.4});}\n        if(iso.length)try{mainSeries.setMarkers(iso);}catch(eM){}\n      }\n      bindObservationAxis(chart,mainSeries,d);\n      obsDisplay=(kind===\"step\"?\"Step\":kind===\"area\"?\"Area\":\"Line\")+\" \u00b7 joins accepted observations in date order; breaks at rejected source records; no values are interpolated into the data\";\n    }"
+    },
+    {
+     "before": "    if(cd)cd.textContent=sourcePacket&&sourcePacket.provider===\"regionalfed\"&&/^regionalfed:cleveland-/i.test(String(sourcePacket.id||\"\"))?\"Source points \u00b7 publisher interpolation flagged\":\"Source points \u00b7 no interpolation\";",
+     "after": "    if(cd)cd.textContent=(obsDisplay?obsDisplay+\" \u00b7 \":\"Source points \u00b7 \")+(sourcePacket&&sourcePacket.provider===\"regionalfed\"&&/^regionalfed:cleveland-/i.test(String(sourcePacket.id||\"\"))?\"publisher interpolation flagged\":\"no interpolation\");"
+    },
+    {
+     "before": "  var observationAxes=new WeakMap();",
+     "after": "  var observationAxes=new WeakMap(), obsDisplay=\"\";"
+    },
+    {
+     "before": "    if(observationId(active)){kindLab=\"Source points\";scLab=\"Linear\";mdLab=\"Scalar\";}",
+     "after": "    if(observationId(active)&&mode===\"price\")mdLab=\"Level\";"
+    },
+    {
+     "before": "    [\"btn-kind\",\"btn-md\",\"btn-sc\"].forEach(function(id){var button=document.getElementById(id);if(button)button.disabled=observationId(active);});",
+     "after": "    [\"btn-kind\",\"btn-md\",\"btn-sc\"].forEach(function(id){var button=document.getElementById(id);if(button)button.disabled=false;}); /* macro series: every type, scale and change mode (2026-10-05) */"
+    },
+    {
+     "before": "      miniChart.addLineSeries({color:ACC,lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:2,lastValueVisible:false,priceLineVisible:false}):",
+     "after": "      miniChart.addLineSeries({color:ACC,lineWidth:1,lastValueVisible:false,priceLineVisible:false}):"
+    },
+    {
+     "before": "var scalar=refs[i].addLineSeries({color:ACC,title:sym+\" \u00b7 source points\",lineVisible:false,pointMarkersVisible:true,pointMarkersRadius:3,priceLineVisible:false,",
+     "after": "var scalar=refs[i].addLineSeries({color:ACC,title:sym,lineWidth:2,pointMarkersVisible:d.length<=120,pointMarkersRadius:2.5,priceLineVisible:false,"
+    },
+    {
+     "before": "  window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };",
+     "after": "  window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };\n  window.jhSetMode=function(m){ if(!CHG.some(function(t){return t[0]===m;})) return false; mode=m; renderTf(); if(lastBars.length) paint(lastBars); return true; };\n  window.jhGetView=function(){ return {symbol:active,tf:tf,kind:kind,mode:mode,scale:scaleMode}; };"
+    }
+   ]
+  },
+  "chart.html": {
+   "before_path": "tests/fixtures/chart-macro-line/chart.html.before.txt",
+   "before_sha256": "76619f01bfc9c2d7faf1acd0fdaa1da90ebb4450692343c7df5b94529b6ae0b8",
+   "after_sha256": "4974b3f6578aa3861bed15c71d959771f495808ec7478209a5269502090f1179",
+   "replacements": [
+    {
+     "before": "<script src=\"/jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch=watchlist-transaction-v1\"></script>",
+     "after": "<script src=\"/jh-chart-transforms.js?v=20261005-tx1\"></script><!-- calendar change modes + macro line/candle builders, loaded before the engine (2026-10-05) -->\n<script src=\"/jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch=watchlist-transaction-v1&macro=20261005\"></script>"
+    },
+    {
+     "before": "<script src=\"/jh-tv-watchlist.js?v=20261005-wl3\"></script>\n</body>",
+     "after": "<script src=\"/jh-tv-watchlist.js?v=20261005-wl3\"></script>\n<!-- Auto-hide full-page workspace + CSV/JSON import, 2026-10-05 -->\n<script src=\"/jh-chart-autohide.js?v=20261005-ah1\"></script>\n<script src=\"/jh-chart-import.js?v=20261005-im1\"></script>\n</body>"
+    }
+   ]
+  }
+ }
+}
