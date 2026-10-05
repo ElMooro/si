@@ -105,8 +105,7 @@ a{color:inherit;text-decoration:none}
 .bar .sep{width:1px;height:16px;background:var(--line);margin:0 6px;flex:none}
 .bar .drop{padding:3px 8px}
 #chgbar{display:none}
-.quote{display:flex;gap:8px;align-items:center;min-height:32px;height:auto;padding:4px 12px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;overflow:visible;flex-wrap:wrap;color:var(--mut);background:var(--bg);flex:none;min-width:0;overflow-wrap:anywhere}
-.quote>*{min-width:0;max-width:100%}
+.quote{display:flex;gap:8px;align-items:center;min-height:32px;height:auto;padding:4px 12px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:12px;overflow:visible;flex-wrap:wrap;color:var(--mut);background:var(--bg);flex:none}
 .quote b{color:var(--fg);font-weight:600}
 .quote .last{font-size:16px;font-weight:600;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 #tape{flex:none;height:148px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg);font-family:"IBM Plex Mono",monospace;font-size:10px;min-height:148px}

@@ -1,0 +1,65 @@
+{
+  "status": "candidate_not_deployed",
+  "review_date": "2026-10-05",
+  "upstream_vendor_equivalence_verified": false,
+  "point_in_time_vintages_verified": false,
+  "calls_eligible": false,
+  "sizing_eligible": false,
+  "deferred": {
+    "ECONOMICS:USNHSMM": "Vendor monthly-percent description reviewed, but current Census catalogue has levels and separate sampling errors. No unsupported level-to-growth alias or manufactured provider growth.",
+    "ECONOMICS:USRCNSMSPND": "Official vendor metadata identifies BEA real consumer spending QoQ, quarterly percent. It is not Census residential construction spending; excluded from Census mapping.",
+    "ECONOMICS:USRI": "Vendor metadata identifies proprietary Redbook weekly same-store-sales growth. Not a Census retail-inventory series.",
+    "ECONOMICS:USWI": "Census wholesale inventory percent series, requires MWTS source review outside the six current datasets.",
+    "ECONOMICS:USBI": "Census total business inventory monthly percent changes, requires manufacturers/retailers/wholesalers aggregate source review outside the current six datasets."
+  },
+  "source_documentation": [
+    "https://www.census.gov/econ_datasets/",
+    "https://www.census.gov/construction/c30/at_a_glance.html",
+    "https://www.census.gov/economic-indicators/housing_starts"
+  ],
+  "alternatives": {
+    "ECONOMICS:USRSMM": {
+      "alternative": "census:marts:MPCSM:44X72:yes:US",
+      "vendor_metadata": "https://tr.tradingview.com/symbols/ECONOMICS-USRSMM/",
+      "vendor_definition_reviewed": "United States retail sales month-over-month, monthly, percent, Census Bureau",
+      "source_definition": "Census advance retail trade and food services, published monthly percentage change, seasonally adjusted, U.S. total",
+      "qualification": "Census alternative using published changes, not a calculated growth rate. TradingView revision vintage and exact value equivalence remain unverified."
+    },
+    "ECONOMICS:USRSEA": {
+      "alternative": "census:marts:MPCSM:44Y72:yes:US",
+      "vendor_metadata": "https://www.tradingview.com/symbols/ECONOMICS-USRSEA/",
+      "vendor_definition_reviewed": "United States retail sales excluding autos, monthly, percent, Census Bureau",
+      "source_definition": "Census advance retail trade and food services excluding autos, published monthly percentage change, seasonally adjusted, U.S. total",
+      "qualification": "Census alternative; exact vendor revision vintage and methodology equivalence remain unverified. The reviewed English vendor definition supersedes an inconsistent translated related-indicator label; no inferred inventory route."
+    },
+    "ECONOMICS:USCONSTS": {
+      "alternative": "census:vip:MPCT:XXXX:yes:US",
+      "vendor_metadata": "https://www.tradingview.com/symbols/ECONOMICS-USCONSTS/",
+      "vendor_definition_reviewed": "United States construction spending, monthly, percent, Census Bureau",
+      "source_definition": "Total construction, published monthly percentage change, seasonally adjusted, U.S. total",
+      "qualification": "Census percent-change alternative. This request does not select the dollar level or the residential-only category 00XX. Exact vendor equivalence remains unverified."
+    },
+    "ECONOMICS:USHST": {
+      "alternative": "census:resconst:TOTAL:ASTARTS:yes:US",
+      "vendor_metadata": "https://es.tradingview.com/symbols/ECONOMICS-USHST/",
+      "vendor_definition_reviewed": "United States housing starts, monthly, units, Census Bureau",
+      "source_definition": "Annual rate for privately owned housing units started, total units, seasonally adjusted, United States; source values in thousands of units",
+      "qualification": "Explicit Census alternative in thousands of units at a seasonally adjusted annual rate. Do not relabel as individual units or unadjusted monthly starts. Exact vendor equivalence remains unverified."
+    },
+    "ECONOMICS:USNHS": {
+      "alternative": "census:ressales:TOTAL:ASOLD:yes:US",
+      "vendor_metadata": "https://www.tradingview.com/symbols/ECONOMICS-USNHS/",
+      "vendor_definition_reviewed": "United States new residential sales, monthly, units, Census Bureau. Unit and frequency visible in current metadata read.",
+      "source_definition": "New single-family houses sold, seasonally adjusted annual rate, U.S. total; thousands of units",
+      "qualification": "Explicit Census source alternative retains thousands of units at a seasonally adjusted annual rate; vendor equivalence, revision vintage and exact scaling remain unverified."
+    },
+    "ECONOMICS:USRIEA": {
+      "alternative": "census:mrts:MPCIM:4400A:yes:US",
+      "vendor_metadata": "https://www.tradingview.com/symbols/ECONOMICS-USRIEA/",
+      "vendor_definition_reviewed": "United States retail inventories excluding autos, Census Bureau, monthly percent",
+      "source_definition": "Monthly Retail Trade inventory monthly percentage change, category 4400A Retail Trade ex Auto, seasonally adjusted, U.S. total",
+      "qualification": "Explicit Census published monthly-change alternative, not inventory dollar levels. Advance versus revised publication vintage and exact vendor equivalence remain unverified."
+    }
+  },
+  "source_release": "04025f0ef645aef92f9d1106ea518288ca0cd660"
+}

@@ -20,7 +20,7 @@ test('Census units, sampling errors, annual-rate flags and missing series remain
 });
 test('preceding complete files and peer provider edits remain byte reconstructable',()=>{
  const {normalize,transition}=require('./helpers/chart-census-preservation.cjs'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
- for(const [file,row] of Object.entries(transition.changes)){const raw=require("./helpers/chart-census-watchlist-preservation.cjs").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
 });
 test('long scalar names are contained and non-production OECD definitions have an accurate label',()=>{
  assert.match(read('chart.html'),/\.tv-symid\{[^}]*min-width:0[^}]*text-overflow:ellipsis/);assert.match(read('jh-chart-tvwatch.js'),/OECD reviewed-series route/);assert.doesNotMatch(read('jh-chart-tvwatch.js'),/OECD production-history alternative/);

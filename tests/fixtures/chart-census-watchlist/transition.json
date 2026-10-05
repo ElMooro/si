@@ -1,0 +1,121 @@
+{
+  "base": "26c11cb5dd40e050977f43b4784018f4256b27f9",
+  "changes": {
+    "jh-chart-tvwatch.js": {
+      "before_path": "tests/fixtures/chart-census-watchlist/jh-chart-tvwatch.js.before.txt",
+      "before_sha256": "b3e65946af643a64c569a88e9119ff7512fd3e7b2e0b5216bc5d48a3915e2fd5",
+      "replacements": [
+        {
+          "before": "ECONOMICS:USMPRMM|oecd:OECD.SDD.STES,DSD_STES@DF_INDSERV,4.3:USA.M.PRVM.IX.C.Y._Z._Z.N:G1",
+          "after": "ECONOMICS:USMPRMM|oecd:OECD.SDD.STES,DSD_STES@DF_INDSERV,4.3:USA.M.PRVM.IX.C.Y._Z._Z.N:G1\\nECONOMICS:USCONSTS|census:vip:MPCT:XXXX:yes:US\\nECONOMICS:USHST|census:resconst:TOTAL:ASTARTS:yes:US\\nECONOMICS:USNHS|census:ressales:TOTAL:ASOLD:yes:US\\nECONOMICS:USRIEA|census:mrts:MPCIM:4400A:yes:US\\nECONOMICS:USRSEA|census:marts:MPCSM:44Y72:yes:US\\nECONOMICS:USRSMM|census:marts:MPCSM:44X72:yes:US"
+        },
+        {
+          "before": "      if (/^oecd:/i.test(route.handoff || \"\")) route.reason =",
+          "after": "      if (/^census:/i.test(route.handoff || \"\")) route.reason = \"Possible proxy or source substitution; equivalence unverified. Census published-measurement alternative. The source packet identifies its exact category, seasonal adjustment, geography, units and reference period. Percentage changes are published by Census; housing annual rates remain in thousands of units. Advance and revised publication vintages are not interchangeable. Full vendor history and release-time vintages remain unverified.\";\n      if (/^oecd:/i.test(route.handoff || \"\")) route.reason ="
+        },
+        {
+          "before": "/^(FRED|WORLDBANK|BIS|BISFX|OECD|CFTC):/i",
+          "after": "/^(FRED|WORLDBANK|BIS|BISFX|OECD|CENSUS|CFTC):/i"
+        },
+        {
+          "before": "if (e === \"OECD\") return \"Macro\";",
+          "after": "if (e === \"OECD\" || e === \"CENSUS\") return \"Macro\";"
+        }
+      ],
+      "after_sha256": "efa886b6b42f168a47588449fcea9651b8dc8ea577641e4f96ecafd6960e72ef"
+    },
+    "chart.html": {
+      "before_path": "tests/fixtures/chart-census-watchlist/chart.html.before.txt",
+      "before_sha256": "85e2ee1d4147f1b37e86764dd5736054d7e7f4de302c4aa4b6c2ec6950e1efc9",
+      "replacements": [
+        {
+          "before": ".quote{display:flex;gap:8px;align-items:center;min-height:32px;height:auto;padding:4px 12px;border-bottom:1px solid var(--line);font-family:\"IBM Plex Mono\",monospace;font-size:12px;overflow:visible;flex-wrap:wrap;color:var(--mut);background:var(--bg);flex:none}",
+          "after": ".quote{display:flex;gap:8px;align-items:center;min-height:32px;height:auto;padding:4px 12px;border-bottom:1px solid var(--line);font-family:\"IBM Plex Mono\",monospace;font-size:12px;overflow:visible;flex-wrap:wrap;color:var(--mut);background:var(--bg);flex:none;min-width:0;overflow-wrap:anywhere}\n.quote>*{min-width:0;max-width:100%}"
+        }
+      ],
+      "after_sha256": "cc06165673a9aaff668d11896811ebe09c9f51d75dd729d61e59faeaf83b2d7d"
+    },
+    "tests/watchlist-identity.test.js": {
+      "before_path": "tests/fixtures/chart-census-watchlist/tests__watchlist-identity.test.js.before.txt",
+      "before_sha256": "90daf012a75049609f21cbe72f6fd0ae69fe1b46fe3327b0eeec79c8e4fde595",
+      "replacements": [
+        {
+          "before": "assert.equal(providerEntries.length,839);",
+          "after": "assert.equal(providerEntries.length,845);"
+        },
+        {
+          "before": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-oecd-source-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))",
+          "after": "...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-oecd-source-review.json\")).alternatives).map(([id,d])=>[id,d.alternative])),...Object.fromEntries(Object.entries(JSON.parse(read(\"docs/audit/2026-10-04/chart-census-watchlist-source-review.json\")).alternatives).map(([id,d])=>[id,d.alternative]))"
+        }
+      ],
+      "after_sha256": "78a51613482d0b779dc9ecdbfeaca13586ffd14b5e0452891ffb7c05995fb855"
+    },
+    "tests/helpers/chart-census-preservation.cjs": {
+      "before_path": "tests/fixtures/chart-census-watchlist/tests__helpers__chart-census-preservation.cjs.before.txt",
+      "before_sha256": "19a6d25b5a32381c111c58bb0e044c3bc964d44cc45578c719c51323efc775a1",
+      "replacements": [
+        {
+          "before": "function normalize(raw,file){const row=",
+          "after": "function normalize(raw,file){raw=require(\"./chart-census-watchlist-preservation.cjs\").normalize(raw,file);const row="
+        }
+      ],
+      "after_sha256": "c0fb202dc7b3d0e045a82b10e51ad327682d4ab4654fc4c84ffd7df11bb43896"
+    },
+    "tests/chart_census_preservation.py": {
+      "before_path": "tests/fixtures/chart-census-watchlist/tests__chart_census_preservation.py.before.txt",
+      "before_sha256": "37f296195df47ff3060bce1ca92812ae9ff6cdde613161f204e4a7d7aacbc265",
+      "replacements": [
+        {
+          "before": "def normalize(file,raw):\n",
+          "after": "def normalize(file,raw):\n    from chart_census_watchlist_preservation import normalize as newer\n    raw=newer(file,raw)\n"
+        }
+      ],
+      "after_sha256": "5f790736672e9877ae2c819dfd49013727ade53173954f37bf8c256354f20758"
+    },
+    "tests/chart-census.test.js": {
+      "before_path": "tests/fixtures/chart-census-watchlist/tests__chart-census.test.js.before.txt",
+      "before_sha256": "b90cbcd085d17b58561825a3f9e47ede265223959b586b45b85fd253d44444d5",
+      "replacements": [
+        {
+          "before": "const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);",
+          "after": "const raw=require(\"./helpers/chart-census-watchlist-preservation.cjs\").normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);"
+        }
+      ],
+      "after_sha256": "be8be1c2900fcd279cdf18e0649e7ef1d4a585b292b33185a8d99e5ad8dbd021"
+    },
+    "jh-chart-engine.js": {
+      "before_path": "tests/fixtures/chart-census-watchlist/jh-chart-engine.js.before.txt",
+      "before_sha256": "00a5b3e1a22395ae36a776844ac0ca1509cc4c21745c649d98289997b3412594",
+      "replacements": [
+        {
+          "before": "    var q=document.getElementById(\"q\");\n    if(q&&!q.dataset.bound){\n      q.oninput=function(){ filter=q.value; renderHits(); renderList(); };\n      q.onkeydown=function(e){ if(e.key===\"Enter\"&&q.value.trim()){\n        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {\n          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());\n          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=\"\"; filter=\"\"; loadDraw(); renderTabs(); renderList(); load(); }\n          else document.getElementById(\"st\").textContent=\"CFTC definition unavailable; select a reviewed report, contract and field\";\n          return;\n        }\n        var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=\"\"; filter=\"\"; loadDraw(); renderTabs(); renderList(); load(); } };\n      q.dataset.bound=\"1\";\n    }\n",
+          "after": "    bindChartInput();\n"
+        },
+        {
+          "before": "  function renderList(){",
+          "after": "  function bindChartInput(){\n    var q=document.getElementById(\"q\");\n    if(q&&!q.dataset.bound){\n      q.oninput=function(){ filter=q.value; renderHits(); renderList(); };\n      q.onkeydown=function(e){ if(e.key===\"Enter\"&&q.value.trim()){\n        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {\n          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());\n          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=\"\"; filter=\"\"; loadDraw(); renderTabs(); renderList(); load(); }\n          else document.getElementById(\"st\").textContent=\"CFTC definition unavailable; select a reviewed report, contract and field\";\n          return;\n        }\n        var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=\"\"; filter=\"\"; loadDraw(); renderTabs(); renderList(); load(); } };\n      q.dataset.bound=\"1\";\n    }\n  }\n  function renderList(){"
+        },
+        {
+          "before": "  loadLists().then(function(){ renderList(); fillStack(); });",
+          "after": "  // Row navigation is usable before the remote list catalogue finishes loading.\n  bindChartInput();\n  loadLists().then(function(){ renderList(); fillStack(); });"
+        },
+        {
+          "before": "  window.jhWatchlistOpen=function(s){goSymbol(s);};",
+          "after": "  // The asynchronously loaded watchlist may already own qualified navigation.\n  if(typeof window.jhWatchlistOpen!==\"function\") window.jhWatchlistOpen=function(s){goSymbol(s);};"
+        }
+      ],
+      "after_sha256": "ab57d9c0b4827d7350e86a94a7074cbc5bdc088402e795dd8378113cd29e98f3"
+    },
+    "tests/chart-html-labels.test.js": {
+      "before_path": "tests/fixtures/chart-census-watchlist/tests__chart-html-labels.test.js.before.txt",
+      "before_sha256": "b830e8315cd768c82993ea6a19b9678dd2b3ac4fa5dbb9e644ed7af685f70a6b",
+      "after_sha256": "597e2dbf6897a8a936f857465d4005dd94de8bf2f0f71cef449d5e8370d85d5d",
+      "replacements": [
+        {
+          "before": "['escHtml','renderTabs'",
+          "after": "['escHtml',...(negative?[]:['bindChartInput']),'renderTabs'"
+        }
+      ]
+    }
+  }
+}

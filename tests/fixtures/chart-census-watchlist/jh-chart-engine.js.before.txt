@@ -6136,21 +6136,6 @@ else if(o.id==="rvol"){
       });
     }
   }
-  function bindChartInput(){
-    var q=document.getElementById("q");
-    if(q&&!q.dataset.bound){
-      q.oninput=function(){ filter=q.value; renderHits(); renderList(); };
-      q.onkeydown=function(e){ if(e.key==="Enter"&&q.value.trim()){
-        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {
-          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());
-          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); }
-          else document.getElementById("st").textContent="CFTC definition unavailable; select a reviewed report, contract and field";
-          return;
-        }
-        var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); } };
-      q.dataset.bound="1";
-    }
-  }
   function renderList(){
     var sel=document.getElementById("list");
     var cur=lists.find(function(x){return x.id===listId;})||lists[0]||{id:"",name:"Watchlist",symbols:[],n:0};
@@ -6191,7 +6176,19 @@ else if(o.id==="rvol"){
         renderList();
       };
     });
-    bindChartInput();
+    var q=document.getElementById("q");
+    if(q&&!q.dataset.bound){
+      q.oninput=function(){ filter=q.value; renderHits(); renderList(); };
+      q.onkeydown=function(e){ if(e.key==="Enter"&&q.value.trim()){
+        if (/^(COT[23]?|cftc):/i.test(q.value.trim())) {
+          var cot = window.JHChartCFTC && window.JHChartCFTC.resolve(q.value.trim());
+          if (cot) { if(TABS.indexOf(cot.id)<0) TABS.push(cot.id); active=cot.id; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); }
+          else document.getElementById("st").textContent="CFTC definition unavailable; select a reviewed report, contract and field";
+          return;
+        }
+        var s=q.value.trim().toUpperCase(); if(TABS.indexOf(s)<0) TABS.push(s); active=s; q.value=""; filter=""; loadDraw(); renderTabs(); renderList(); load(); } };
+      q.dataset.bound="1";
+    }
     var paste=document.getElementById("paste");
     if(paste&&!paste.dataset.bound){
       paste.onkeydown=async function(e){
@@ -7192,8 +7189,7 @@ else if(o.id==="rvol"){
   window.jhOpenCmp=openCmp;
   window.jhOpenDataTypeMenu=openDataType;
   window.jhGoSymbol=goSymbol;
-  // The asynchronously loaded watchlist may already own qualified navigation.
-  if(typeof window.jhWatchlistOpen!=="function") window.jhWatchlistOpen=function(s){goSymbol(s);};
+  window.jhWatchlistOpen=function(s){goSymbol(s);};
   window.jhQx={tickSize:tickSize,tickFromBars:tickFromBars,tickPrec:tickPrec,roundTick:roundTick,roundBar:roundBar,roundBars:roundBars,pxFormat:pxFormat,hollowPaint:hollowPaint,volCandlePaint:volCandlePaint,rvolAt:rvolAt,crossedAlert:crossedAlert,retCal:retCal,barsFitTf:barsFitTf,escHtml:escHtml,medianGap:medianGap,expectedGap:expectedGap,safeHref:safeHref,retsByTime:retsByTime,alignedRets:alignedRets,isCryptoTape:isCryptoTape};
   window.jhFmtXs=fmtXs;
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
@@ -7211,8 +7207,6 @@ else if(o.id==="rvol"){
   if(window.jhWatchSet) window.jhWatchSet(false);
   ensureCqOsc();
   if(layout>1) setLayout(layout);
-  // Row navigation is usable before the remote list catalogue finishes loading.
-  bindChartInput();
   loadLists().then(function(){ renderList(); fillStack(); });
   loadIntel(); loadNews();
   TABS.forEach(function(s){ lastPx(s).then(function(px){ if(px){ quotes[s]=px; renderTabs(); } }); });
