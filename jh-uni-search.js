@@ -177,6 +177,197 @@
     } catch (e) { return []; }
   }
 
+
+  // ------------------------------------------------------------------ search assist: aliases, ticker variants, watchlist index, typo correction
+  // Every data name is reachable under the names people actually type: "cpi" → consumer price index, "fed balance sheet" → WALCL,
+  // "btc-usd" / "BTC/USD" / "X:BTCUSD" → BTCUSD, "^VIX" → VIX. Words in a query are expanded independently and the alternates are
+  // searched in parallel with the original; results are merged (original first) and de-duplicated by id.
+  var ALIAS = {
+    "cpi": ["consumer price index"], "consumer price index": ["cpi"], "inflation": ["consumer price index", "cpi"], "hicp": ["harmonised index of consumer prices"],
+    "core cpi": ["cpi less food and energy", "CPILFESL"], "pce": ["personal consumption expenditures price index", "PCEPI"], "core pce": ["PCEPILFE"],
+    "ppi": ["producer price index"], "gdp": ["gross domestic product"], "gross domestic product": ["gdp"], "gnp": ["gross national product"],
+    "unemployment": ["unemployment rate", "UNRATE"], "jobless claims": ["initial claims", "ICSA"], "initial claims": ["ICSA"], "nfp": ["nonfarm payrolls", "PAYEMS"], "payrolls": ["nonfarm payrolls", "PAYEMS"],
+    "jolts": ["job openings"], "retail sales": ["RSAFS"], "industrial production": ["INDPRO"], "pmi": ["purchasing managers index"], "ism": ["ism manufacturing"],
+    "fed funds": ["federal funds effective rate", "DFF"], "fed funds rate": ["DFF", "EFFR"], "effr": ["effective federal funds rate"], "sofr": ["secured overnight financing rate"],
+    "fed balance sheet": ["WALCL", "total assets federal reserve"], "balance sheet": ["total assets"], "walcl": ["fed total assets"], "qe": ["WALCL"], "qt": ["WALCL"],
+    "reverse repo": ["RRPONTSYD", "overnight reverse repurchase"], "rrp": ["RRPONTSYD", "reverse repo"], "on rrp": ["RRPONTSYD"], "tga": ["treasury general account", "WTREGEN"],
+    "reserves": ["reserve balances", "WRESBAL"], "bank reserves": ["WRESBAL"], "net liquidity": ["WALCL", "WTREGEN", "RRPONTSYD"], "liquidity": ["net liquidity", "global liquidity"],
+    "m2": ["money supply m2", "M2SL"], "money supply": ["m2", "M2SL"], "m1": ["M1SL"], "monetary base": ["BOGMBASE"],
+    "10y": ["10 year treasury yield", "DGS10", "US10Y"], "10 year": ["DGS10", "US10Y"], "10yr": ["DGS10"], "2y": ["DGS2", "US02Y"], "2 year": ["DGS2"], "30y": ["DGS30", "US30Y"], "3m": ["DGS3MO"],
+    "yield curve": ["T10Y2Y", "T10Y3M"], "2s10s": ["T10Y2Y"], "term premium": ["THREEFYTP10", "ACM term premium"], "real yield": ["DFII10"], "tips": ["DFII10", "inflation indexed"],
+    "breakeven": ["T10YIE", "breakeven inflation"], "mortgage rate": ["MORTGAGE30US"], "mortgage": ["MORTGAGE30US"],
+    "hy spread": ["BAMLH0A0HYM2", "high yield option adjusted spread"], "high yield": ["BAMLH0A0HYM2", "HYG"], "junk": ["high yield", "HYG"], "ig spread": ["BAMLC0A0CM"], "credit spread": ["BAMLH0A0HYM2", "BAMLC0A0CM"],
+    "financial conditions": ["NFCI"], "nfci": ["chicago fed national financial conditions"], "stress index": ["STLFSI4", "financial stress"],
+    "dxy": ["dollar index", "TVC:DXY"], "dollar index": ["DXY", "DTWEXBGS"], "dollar": ["dollar index", "DXY"], "usd": ["dollar index"],
+    "gold": ["XAUUSD", "GLD", "GC1!"], "xau": ["gold"], "silver": ["XAGUSD", "SLV"], "oil": ["crude oil", "USOIL", "CL1!", "WTI"], "crude": ["crude oil", "WTI"], "wti": ["crude oil wti", "DCOILWTICO"], "brent": ["DCOILBRENTEU", "UKOIL"],
+    "natgas": ["natural gas", "NG1!"], "nat gas": ["natural gas"], "copper": ["HG1!", "copper"],
+    "btc": ["bitcoin", "BTCUSD"], "bitcoin": ["BTCUSD"], "eth": ["ethereum", "ETHUSD"], "ethereum": ["ETHUSD"], "sol": ["solana", "SOLUSD"], "stablecoin": ["stablecoins", "USDT", "USDC"], "crypto": ["bitcoin", "crypto total market cap"],
+    "spx": ["S&P 500", "SPY"], "s&p": ["S&P 500"], "s&p 500": ["SPX", "SPY"], "sp500": ["S&P 500", "SPY"], "es": ["ES1!", "S&P 500 futures"], "ndx": ["nasdaq 100", "QQQ"], "nasdaq": ["nasdaq composite", "QQQ"], "nq": ["NQ1!"],
+    "dow": ["dow jones industrial average", "DIA"], "djia": ["DIA"], "russell": ["russell 2000", "IWM"], "rut": ["russell 2000", "IWM"], "small caps": ["IWM", "russell 2000"],
+    "vix": ["volatility index", "CBOE volatility"], "vol": ["VIX"], "move": ["MOVE index", "treasury volatility"], "skew": ["CBOE SKEW"],
+    "cot": ["commitments of traders", "cftc"], "commitments of traders": ["cftc"], "positioning": ["commitments of traders"],
+    "housing starts": ["HOUST"], "case shiller": ["CSUSHPINSA", "home price index"], "home prices": ["CSUSHPINSA", "house price index"], "house prices": ["house price index"],
+    "consumer sentiment": ["UMCSENT", "michigan sentiment"], "sentiment": ["consumer sentiment"], "ecb": ["european central bank"], "boj": ["bank of japan"], "pboc": ["people's bank of china"], "boe": ["bank of england"],
+    "euro": ["EURUSD"], "yen": ["USDJPY"], "pound": ["GBPUSD"], "yuan": ["USDCNY"], "eur usd": ["EURUSD"], "usd jpy": ["USDJPY"],
+    "uk": ["united kingdom"], "us": ["united states"], "usa": ["united states"], "eu": ["euro area"], "eurozone": ["euro area"], "ez": ["euro area"], "japan": ["japan"], "china": ["china"]
+  };
+  var YAHOO = { "^GSPC": "SPX", "^IXIC": "IXIC", "^NDX": "NDX", "^DJI": "DJI", "^RUT": "RUT", "^VIX": "VIX", "^TNX": "US10Y", "DX-Y.NYB": "DXY", "GC=F": "GOLD", "SI=F": "SILVER", "CL=F": "USOIL", "BZ=F": "UKOIL", "NG=F": "NG1!", "HG=F": "HG1!", "ES=F": "ES1!", "NQ=F": "NQ1!" };
+  function tickerVariants(q) {
+    var Q = String(q || "").trim().toUpperCase(), v = [];
+    if (!Q || Q.length > 40) return v;
+    function add(x) { x = String(x || "").trim(); if (x && x !== Q && v.indexOf(x) < 0) v.push(x); }
+    if (YAHOO[Q]) add(YAHOO[Q]);
+    var bare = Q.indexOf(":") > 0 ? Q.split(":").pop() : Q;
+    if (bare !== Q) add(bare);
+    var m = bare.match(/^([A-Z0-9]{2,6})\s*[-\/ _]\s*([A-Z]{3,4})$/); if (m) add(m[1] + m[2]);           // BTC-USD, BTC/USD, EUR USD
+    if (/=X$/.test(bare)) add(bare.replace(/=X$/, ""));                                                 // EURUSD=X
+    if (/^\^/.test(bare)) add(bare.slice(1));                                                           // ^VIX
+    if (/^[A-Z]{1,5}-[A-Z]$/.test(bare)) add(bare.replace("-", "."));                                    // BRK-B → BRK.B
+    if (/^[A-Z]{1,5}\.[A-Z]$/.test(bare)) add(bare.replace(".", "-"));
+    if (/^X:/.test(Q)) add(Q.slice(2));
+    return v.slice(0, 3);
+  }
+  function aliasVariants(q) {
+    var low = String(q || "").toLowerCase().trim().replace(/\s+/g, " "), out = [];
+    if (!low) return out;
+    function add(x) { if (x && x.toLowerCase() !== low && out.indexOf(x) < 0) out.push(x); }
+    (ALIAS[low] || []).forEach(add);
+    // phrase replacement inside longer queries ("euro area cpi" → "euro area consumer price index")
+    var keys = Object.keys(ALIAS).filter(function (k) { return k.length >= 2 && low !== k && (" " + low + " ").indexOf(" " + k + " ") >= 0; });
+    keys.sort(function (a, b) { return b.length - a.length; });
+    keys.slice(0, 2).forEach(function (k) {
+      var rep = ALIAS[k].filter(function (x) { return /[a-z]/.test(x) && x.indexOf(" ") > 0 || /^[a-z ]+$/.test(x); })[0];
+      if (rep) add((" " + low + " ").replace(" " + k + " ", " " + rep + " ").trim());
+    });
+    return out.slice(0, 3);
+  }
+  function expandQuery(q) { return tickerVariants(q).concat(aliasVariants(q)).slice(0, 4); }
+
+  // Watchlist index — every symbol in every list (TradingView imports + lists created here), with its name and the lists it sits in.
+  var WLX = null, wlxLoading = null, wlxVer = -1;
+  function loadNames() {
+    if (root.JH_WL_NAMES) return Promise.resolve(root.JH_WL_NAMES);
+    if (loadNames.p) return loadNames.p;
+    loadNames.p = new Promise(function (res) {
+      var s = doc.createElement("script"); s.src = "/jh-watchlist-names.js?v=20261005-n1"; s.async = true;
+      s.onload = function () { res(root.JH_WL_NAMES || {}); }; s.onerror = function () { res({}); };
+      doc.head.appendChild(s);
+    });
+    return loadNames.p;
+  }
+  function buildWLX() {
+    var names = root.JH_WL_NAMES || {}, map = {}, D = null;
+    try { D = root.JHTvWatchlist && root.JHTvWatchlist._data ? root.JHTvWatchlist._data() : null; } catch (e) {}
+    function put(id, list) {
+      if (!id || id.indexOf("###") === 0) return;
+      var k = id.toUpperCase(), e = map[k];
+      if (!e) {
+        var nm = names[id] || names[k] || null, bare = /[()\/*+]/.test(id) ? id.replace(/[A-Z0-9_]+:/gi, "") : (id.indexOf(":") > 0 ? id.split(":").pop() : id);
+        e = map[k] = { id: id, U: k, B: bare.toUpperCase(), name: nm ? nm[0] : "", type: nm ? nm[1] : "", lists: [] };
+        e.N = e.name.toUpperCase();
+      }
+      if (list && e.lists.indexOf(list) < 0) e.lists.push(list);
+    }
+    if (D && D.lists) Object.keys(D.lists).forEach(function (lid) { var L = D.lists[lid]; (L.items || []).forEach(function (s) { put(s, L.name); }); });
+    if (D && D.flags) Object.keys(D.flags).forEach(function (s) { put(s, D.flags[s].charAt(0).toUpperCase() + D.flags[s].slice(1) + " list"); });
+    Object.keys(names).forEach(function (s) { put(s, null); });
+    WLX = Object.keys(map).map(function (k) { return map[k]; });
+    return WLX;
+  }
+  function loadWLX() {
+    if (WLX) return Promise.resolve(WLX);
+    if (wlxLoading) return wlxLoading;
+    wlxLoading = loadNames().then(buildWLX);
+    return wlxLoading;
+  }
+  root.addEventListener && root.addEventListener("jh-tvwl-changed", function () { if (root.JH_WL_NAMES) buildWLX(); });
+  function wordsOf(s) { return String(s || "").toUpperCase().split(/[^A-Z0-9&!.]+/).filter(Boolean); }
+  function localWatch(q, alts, limit) {
+    if (!WLX) return [];
+    var qs = [q].concat(alts || []).map(function (x) { return String(x).toUpperCase().trim(); }).filter(Boolean), out = [];
+    for (var i = 0; i < WLX.length; i++) {
+      var e = WLX[i], best = 0;
+      for (var j = 0; j < qs.length; j++) {
+        var Q = qs[j], bare = Q.indexOf(":") > 0 ? Q.split(":").pop() : Q, sc = 0, pen = j ? 40 : 0;
+        if (e.U === Q || e.B === bare) sc = 1000;
+        else if (e.B.indexOf(bare) === 0 && bare.length >= 2) sc = 600 - (e.B.length - bare.length) * 4;
+        else if (e.U.indexOf(Q) >= 0 && Q.length >= 3) sc = 380;
+        else if (e.N) {
+          var ws = wordsOf(Q);
+          if (ws.length && ws.every(function (w) { return e.N.indexOf(w) >= 0; })) sc = 300 + (e.N.indexOf(ws[0]) === 0 ? 40 : 0) - Math.min(80, e.N.length / 4);
+        }
+        if (!sc && e.lists.length && Q.length >= 3) { var L = e.lists.join(" | ").toUpperCase(); var w2 = wordsOf(Q); if (w2.every(function (w) { return L.indexOf(w) >= 0; })) sc = 120; }
+        sc = sc ? sc - pen : 0; if (sc > best) best = sc;
+      }
+      if (!best) continue;
+      if (e.lists.length) best += 25;
+      out.push({ sc: best, e: e });
+    }
+    out.sort(function (a, b) { return b.sc - a.sc; });
+    return out.slice(0, limit || 12).map(function (x) {
+      var e = x.e, ex = e.id.indexOf(":") > 0 && !/[()\/*+]/.test(e.id) ? e.id.split(":")[0] : "";
+      return { id: e.id, sym: /[()\/*+]/.test(e.id) ? e.id : e.B, name: e.name || e.id, kind: "instrument", type: e.type, src: ex || (e.type === "spread" ? "Spread" : "Watchlist"), provider: "watchlist", wl: e.lists.slice(0, 4), wlN: e.lists.length, exact: x.sc >= 1000 };
+    });
+  }
+  // Typo correction ("Did you mean"): bounded Damerau-Levenshtein over watchlist/instrument tickers and name words.
+  var VOCAB = null;
+  function vocab() {
+    if (VOCAB) return VOCAB;
+    var v = {};
+    (WLX || []).forEach(function (e) { v[e.B] = (v[e.B] || 0) + 3; wordsOf(e.name).forEach(function (w) { if (w.length >= 4) v[w] = (v[w] || 0) + 1; }); });
+    (INSTR || []).forEach(function (r) { if (r.pop > 0.2) v[r.U] = (v[r.U] || 0) + 2; });
+    Object.keys(ALIAS).forEach(function (k) { k.toUpperCase().split(" ").forEach(function (w) { if (w.length >= 3) v[w] = (v[w] || 0) + 4; }); });
+    ["CONSUMER", "PRICE", "INDEX", "EMPLOYMENT", "UNEMPLOYMENT", "TREASURY", "YIELD", "INFLATION", "LIQUIDITY", "BALANCE", "SHEET", "RESERVES", "MONEY", "SUPPLY", "PRODUCTION", "MANUFACTURING", "HOUSING", "MORTGAGE", "SPREAD", "VOLATILITY", "BITCOIN", "ETHEREUM", "DOLLAR", "EXCHANGE", "INTEREST", "FEDERAL", "EUROSTAT", "STATCAN", "WORLDBANK"].forEach(function (w) { v[w] = (v[w] || 0) + 5; });
+    VOCAB = Object.keys(v).map(function (w) { return [w, v[w]]; });
+    return VOCAB;
+  }
+  function dist(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var p = [], c = [], pp = [], i, j;
+    for (j = 0; j <= b.length; j++) p[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      c = [i]; var lo = i;
+      for (j = 1; j <= b.length; j++) {
+        var cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) c[j] = Math.min(c[j], pp[j - 2] + 1);
+        if (c[j] < lo) lo = c[j];
+      }
+      if (lo > max) return max + 1;
+      pp = p; p = c;
+    }
+    return p[b.length];
+  }
+  function correct(q) {
+    var words = String(q || "").toUpperCase().trim().split(/\s+/).filter(Boolean); if (!words.length) return null;
+    var V = vocab(), changed = false;
+    var fixed = words.map(function (w) {
+      if (w.length < 3 || /\d/.test(w) && w.length < 5) return w;
+      if (V.some(function (x) { return x[0] === w; })) return w;
+      var max = w.length >= 7 ? 2 : 1, best = null, bd = 9, bw = -1;
+      for (var i = 0; i < V.length; i++) {
+        var t = V[i][0]; if (Math.abs(t.length - w.length) > max || t[0] !== w[0] && max < 2) continue;
+        var d = dist(w, t, max); if (d <= max && (d < bd || d === bd && V[i][1] > bw)) { bd = d; best = t; bw = V[i][1]; }
+      }
+      if (best) { changed = true; return best; }
+      return w;
+    });
+    return changed ? fixed.join(" ").toLowerCase() : null;
+  }
+  // Query completions shown under the input while typing (alias phrases, watchlist names, tickers).
+  function completions(q) {
+    var low = String(q || "").toLowerCase().trim(); if (low.length < 2) return [];
+    var out = [], seen = {};
+    function add(s) { var k = s.toLowerCase(); if (seen[k] || k === low) return; seen[k] = 1; out.push(s); }
+    Object.keys(ALIAS).forEach(function (k) { if (k.indexOf(low) === 0) add(k); });
+    expandQuery(q).forEach(add);
+    if (WLX) {
+      var U = low.toUpperCase();
+      for (var i = 0; i < WLX.length && out.length < 14; i++) { var e = WLX[i]; if (e.lists.length && e.N && e.N.indexOf(U) === 0) add(e.name.length > 60 ? e.name.slice(0, 60) : e.name); }
+    }
+    return out.slice(0, 8);
+  }
+
   // ------------------------------------------------------------------ recents
   function recents() { try { var a = JSON.parse(root.localStorage.getItem(RECENT_KEY) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
   function remember(r) {
@@ -232,6 +423,12 @@
       "#jhus .us-clear{background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px}",
       "#jhus .us-chips{display:flex;gap:6px;padding:10px 20px 6px;overflow-x:auto;scrollbar-width:none;flex:0 0 auto}",
       "#jhus .us-chips::-webkit-scrollbar{display:none}",
+      "#jhus .us-sugg{display:flex;gap:6px;align-items:center;padding:8px 20px 0;overflow-x:auto;scrollbar-width:none;flex:0 0 auto;font-size:12px;color:#787b86;white-space:nowrap}",
+      "#jhus .us-sugg::-webkit-scrollbar{display:none}",
+      "#jhus .us-sl{flex:0 0 auto}#jhus .us-sl b{color:#d1d4dc}",
+      "#jhus .us-sg{flex:0 0 auto;background:none;border:1px solid #434651;color:#b2b5be;border-radius:14px;padding:3px 10px;cursor:pointer;font:inherit}",
+      "#jhus .us-sg:hover{border-color:#2962ff;color:#fff}#jhus .us-sg.dym{border-color:#2962ff;color:#90bfff}#jhus .us-sg mark{background:none;color:#2962ff;font-weight:600}",
+      "html[data-theme=light] #jhus .us-sg{color:#131722;border-color:#d1d4dc}html[data-theme=light] #jhus .us-sl b{color:#131722}",
       "#jhus .us-chip{flex:0 0 auto;border:1px solid var(--bd);background:transparent;color:var(--fg);border-radius:18px;padding:5px 12px;cursor:pointer;font-size:13px;white-space:nowrap}",
       "#jhus .us-chip:hover{background:var(--hov)}",
       "#jhus .us-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}",
@@ -287,6 +484,7 @@
       '<div class="us-in"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M11.5 11.5L16 16"/></svg>' +
       '<input id="jhus-in" type="text" autocomplete="off" spellcheck="false" placeholder="Symbol, ISIN, CUSIP, series name, dataset, provider…" aria-label="Search symbols and data">' +
       '<button class="us-clear" type="button" data-act="clear" aria-label="Clear">✕</button></div>' +
+      '<div class="us-sugg" aria-label="Suggestions"></div>' +
       '<div class="us-chips" role="tablist"></div>' +
       '<div class="us-fac"></div>' +
       '<div class="us-crumb"></div>' +
@@ -331,10 +529,12 @@
     var q = S.q.trim();
     if (!q) { G = null; renderHome(); return; }
     if (!INSTR) loadInstruments().then(function () { if (S.q.trim() === q && S.view === "search") renderLocalFirst(); });
+    if (!WLX) loadWLX().then(function () { if (S.q.trim() === q && S.view === "search") renderLocalFirst(); });
     var loc = localInstruments(q, 10);
     var cat = catalogHits(q);
-    if (!G || G.q !== q) G = { q: q, local: loc, server: [], tv: [], catalog: cat, done: false };
-    else { G.local = loc; G.catalog = cat; }
+    var wl = localWatch(q, expandQuery(q), 12);
+    if (!G || G.q !== q) G = { q: q, local: loc, server: [], alt: [], tv: [], catalog: cat, wl: wl, done: false };
+    else { G.local = loc; G.catalog = cat; G.wl = wl; }
     render();
   }
   function search() {
@@ -345,7 +545,8 @@
     var ctl = root.AbortController ? new AbortController() : null; S.ctl = ctl;
     var sig = ctl ? ctl.signal : undefined;
     S.loading = true; status("Searching every ticker, series, dataset and stored file…");
-    if (!G || G.q !== q) G = { q: q, local: localInstruments(q, 10), server: [], tv: [], catalog: catalogHits(q), done: false };
+    if (!G || G.q !== q) G = { q: q, local: localInstruments(q, 10), server: [], alt: [], tv: [], catalog: catalogHits(q), wl: localWatch(q, expandQuery(q), 12), done: false };
+    var alts = expandQuery(q); G.alts = alts;
     var kind = S.tab === "economy" || S.tab === "bonds" ? "series" : (S.tab === "datasets" || S.tab === "files") ? "dataset" : "";
     var a = symsearch(q, S.prov, kind, sig).then(function (d) {
       if (seq !== S.seq) return;
@@ -361,9 +562,30 @@
       if (seq !== S.seq) return;
       G.tv = arr.map(normTv); render();
     });
-    Promise.all([a, b]).then(function () {
+    // alternate phrasings / ticker spellings searched in parallel (aliases, BTC-USD → BTCUSD, ^VIX → VIX …)
+    var c = Promise.all(alts.map(function (alt) {
+      return symsearch(alt, S.prov, kind, sig).then(function (d) {
+        if (seq !== S.seq) return;
+        var rows = (d.rows || []).map(normServer); if (d.series_hits && d.series_hits.rows) rows = d.series_hits.rows.map(normServer).concat(rows);
+        rows.forEach(function (r) { r.via = alt; }); G.alt = G.alt.concat(rows.slice(0, 60)); render();
+      }).catch(function () {});
+    }));
+    Promise.all([a, b, c]).then(function () {
       if (seq !== S.seq) return;
-      S.loading = false; G.done = true; render();
+      S.loading = false; G.done = true;
+      // Nothing useful? Try the closest spelling ("Did you mean"), TradingView-style "Showing results for …".
+      var n = merged().length;
+      if (n < 3 && !S.prov && S.noFix !== q) {
+        var fix = correct(q);
+        if (fix && fix !== q.toLowerCase()) {
+          G.dym = fix;
+          if (n === 0) {
+            G.fixed = fix; G.wl = (G.wl || []).concat(localWatch(fix, expandQuery(fix), 12)); G.local = (G.local || []).concat(localInstruments(fix, 10));
+            return symsearch(fix, "", kind, sig).then(function (d) { if (seq !== S.seq) return; G.alt = G.alt.concat((d.rows || []).map(normServer)); render(); }).catch(function () { render(); });
+          }
+        }
+      }
+      render();
     }).catch(function () { if (seq === S.seq) { S.loading = false; render(); } });
   }
 
@@ -376,12 +598,16 @@
     var server = G.server || [];
     // 1. exact matches anywhere (symbol or id equals query) — "Best match"
     var exact = [];
-    server.concat(G.local || []).forEach(function (r) {
+    var alt = G.alt || [];
+    server = server.concat(alt);
+    server.concat(G.local || [], G.wl || []).forEach(function (r) {
       var s = String(r.sym || "").toUpperCase(), id = key(r);
       if (r.pinned || s === Q || id === Q || id.split(":").pop() === Q) exact.push(r);
     });
     exact.sort(function (a, b) { return (b.pinned ? 2 : 0) + (b.kind === "instrument" ? 1 : 0) - ((a.pinned ? 2 : 0) + (a.kind === "instrument" ? 1 : 0)); });
     exact.slice(0, 6).forEach(function (r) { push(r, "Best match"); });
+    // 1b. everything already in the user's watchlists (TradingView imports + lists made here)
+    (G.wl || []).forEach(function (r) { push(r, "In your watchlists"); });
     // 2. symbols (server order is authoritative; local fills gaps)
     server.filter(function (r) { return r.kind === "instrument"; }).forEach(function (r) { push(r, "Symbols"); });
     (G.local || []).forEach(function (r) { push(r, "Symbols"); });
@@ -409,6 +635,8 @@
     }
     if (r.kind === "file") { sub.push(r.key || ""); if (r.bytes) sub.push(fmtV(r.bytes) + "B"); }
     if (r.id !== r.sym && r.kind !== "file") sub.push(r.id);
+    if (r.wl && r.wl.length) sub.push("in " + r.wl.join(", ") + (r.wlN > r.wl.length ? " +" + (r.wlN - r.wl.length) + " more" : ""));
+    if (r.via) sub.push("matched “" + r.via + "”");
     var action = r.kind === "dataset" ? (r.browse_provider ? "provider ›" : "series ›") : r.kind === "file" ? "open file ↗" : t;
     var acts = "";
     if (r.kind !== "dataset" && r.kind !== "file") {
@@ -437,6 +665,7 @@
         S.facets.map(function (f) { return '<button type="button" class="us-f' + (S.prov === f.provider ? " on" : "") + '" data-prov="' + esc(f.provider) + '">' + esc(f.provider_name || f.provider) + "<b>" + fmtN(f.n) + "</b></button>"; }).join("");
     } else facEl.innerHTML = "";
     crumbEl.innerHTML = ""; box.querySelector(".us-dims").innerHTML = "";
+    renderSugg(q);
     var html = "", grp = "";
     ROWS.forEach(function (r, i) {
       if (r.grp !== grp && S.tab === "all") { grp = r.grp; html += '<div class="us-grp">' + esc(grp) + "</div>"; }
@@ -455,9 +684,18 @@
       (tot != null ? fmtN(tot) + " indexed matches" + (S.prov ? " in " + provLabel(S.prov) : " across " + (S.facets.length || "all") + " sources") + " · showing " + ROWS.length + (tot > 200 ? " best — refine words, pick a source or a tab to go deeper" : "") : (S.loading ? "Searching…" : "")) + (S.loading ? " · searching…" : ""));
     scrollSel();
   }
+  function renderSugg(q) {
+    var el = box.querySelector(".us-sugg"); if (!el) return;
+    var c = completions(q), h = "";
+    if (G && G.fixed) h += '<span class="us-sl">Showing results for <b>' + esc(G.fixed) + '</b> · <button type="button" class="us-sg" data-sug="' + esc(q) + '" data-exact="1">search “' + esc(q) + '” only</button></span>';
+    else if (G && G.dym) h += '<span class="us-sl">Did you mean</span><button type="button" class="us-sg dym" data-sug="' + esc(G.dym) + '">' + esc(G.dym) + "</button>";
+    if (c.length) h += '<span class="us-sl">' + (h ? "Also" : "Suggestions") + "</span>" + c.map(function (t) { return '<button type="button" class="us-sg" data-sug="' + esc(t) + '">' + hl(t, q) + "</button>"; }).join("");
+    el.innerHTML = h; el.style.display = h ? "" : "none";
+  }
   function provLabel(p) { var f = (S.facets || []).filter(function (x) { return x.provider === p; })[0]; return f ? (f.provider_name || p) : p; }
 
   function renderHome() {
+    var sgEl = box && box.querySelector(".us-sugg"); if (sgEl) { sgEl.innerHTML = ""; sgEl.style.display = "none"; }
     ROWS = recents().map(function (r) { r.grp = "Recent"; r.cls = classify(r); return r; });
     facEl.innerHTML = ""; crumbEl.innerHTML = ""; box.querySelector(".us-dims").innerHTML = "";
     var html = '<div class="us-grp">Browse the whole warehouse</div>' +
@@ -616,7 +854,7 @@
     if (!a || !box.contains(a)) return;
     if (a.hasAttribute("data-tab")) { S.tab = a.getAttribute("data-tab"); S.sel = 0; renderChips(); if (S.tab === "economy" || S.tab === "bonds" || S.tab === "datasets" || S.tab === "files") search(); else render(); inp.focus(); return; }
     if (a.hasAttribute("data-prov")) { S.prov = a.getAttribute("data-prov"); S.sel = 0; search(); render(); inp.focus(); return; }
-    if (a.hasAttribute("data-sug")) { inp.value = a.getAttribute("data-sug"); S.q = inp.value; renderLocalFirst(); search(); return; }
+    if (a.hasAttribute("data-sug")) { S.noFix = a.hasAttribute("data-exact") ? a.getAttribute("data-sug").trim() : ""; inp.value = a.getAttribute("data-sug"); S.q = inp.value; renderLocalFirst(); search(); return; }
     if (a.hasAttribute("data-dim")) { var v = a.getAttribute("data-dim"); S.dsChip = S.dsChip === v ? "" : v; box.querySelectorAll(".us-dims .us-f").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-dim") === S.dsChip); }); loadBrowse(true); return; }
     var act = a.getAttribute("data-act");
     if (act === "close") { close(); return; }
@@ -700,7 +938,7 @@
     inp.value = opts.q || ""; S.q = inp.value;
     box.classList.add("on");
     renderChips(); renderFoot();
-    loadInstruments();
+    loadInstruments(); loadWLX().then(function () { VOCAB = null; });
     if (S.q.trim()) { renderLocalFirst(); search(); } else renderHome();
     setTimeout(function () { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (e) {} }, 0);
   }
@@ -734,7 +972,8 @@
     setTimeout(loadInstruments, 1500);
     setTimeout(loadCoverage, 2500);
   }
-  root.JHUniSearch = { open: open, close: close, search: function (q) { open({ q: q }); }, classify: classify, _state: S, loadCoverage: loadCoverage };
+  root.JHUniSearch = { open: open, close: close, search: function (q) { open({ q: q }); }, classify: classify, _state: S, loadCoverage: loadCoverage,
+    expandQuery: expandQuery, correct: correct, completions: completions, localWatch: localWatch, loadWLX: loadWLX, _G: function () { return G; }, merged: function () { return merged(); } };
   root.jhOpenSearch = function (q, dest) { open({ q: q || "", dest: dest || "chart" }); };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
