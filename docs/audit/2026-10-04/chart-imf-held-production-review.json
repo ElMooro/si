@@ -1,0 +1,23 @@
+{
+  "created_at": "2026-10-05T05:03:25.396686+00:00",
+  "failed_id_not_retried": {
+    "id": "imf:PI:IND.IND.IX.A",
+    "url": "https://justhodl-data-proxy.raafouis.workers.dev/series?id=imf%3API%3AIND.IND.IX.A",
+    "at": "2026-10-05T04:53:57.814377+00:00",
+    "catalogue_sha256": "42602c214b3b629f8f1bb2e2db5d33bfca02e00042283f0cafefe4eaba385ffd",
+    "http_status": 200,
+    "packet_bytes": 1832,
+    "packet_sha256": "b66b6b6119293fb63418df9bd7711fbb6f1e802d6b5faa4118da9f8c558d2efb",
+    "status": "verification_failed",
+    "error": "AssertionError: "
+  },
+  "failed_packet_quality": {
+    "status": "unavailable",
+    "error": "IMF acquisition failed; shared daily claim retained",
+    "received_rows": 0,
+    "rejected_rows": 0
+  },
+  "other_flow_definitions": 4262,
+  "producer_http_refusals_separate": true,
+  "new_failure_stops": true
+}
