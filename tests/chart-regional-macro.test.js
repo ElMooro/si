@@ -33,6 +33,6 @@ test('unavailable history does not fall back to market candles or create zeros',
  const c=context(async url=>{calls++;assert.equal(new URL(url).pathname,'/series');return {ok:true,json:async()=>packet};});const p=await c.JHChartCatalog.klines(id);assert.equal(p.d.length,0);assert.equal(p.evidence.whole_packet,packet);const invalid=await c.JHChartCatalog.klines(id+':extra');assert.equal(invalid.d.length,0);assert.equal(calls,1);
 });
 test('all previous source bytes and original tests are exactly reconstructable; twins match',()=>{
- const {normalize,transition}=require('./helpers/chart-regional-macro-preservation.cjs');for(const [file,row] of Object.entries(transition.changes)){const raw=read(file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
+ const {normalize,transition}=require('./helpers/chart-regional-macro-preservation.cjs');for(const [file,row] of Object.entries(transition.changes)){const raw=require('./helpers/chart-unisearch-preservation.cjs').normalize(read(file),file);assert.equal(hash(raw),row.after_sha256,file);assert.equal(normalize(raw,file),read(row.before_path));assert.throws(()=>normalize(raw+'\n// unreviewed',file));}
  assert.equal(read('config/regional-fed-series.json'),read('aws/lambdas/justhodl-symdir/source/regional-fed-series.json'));
 });
