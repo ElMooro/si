@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(R,p),'utf8'),cat=JSON.parse(read('config/regional-fed-series.json')),review=JSON.parse(read('docs/audit/2026-10-04/chart-regional-fed-watchlist-review.json')),plain=v=>JSON.parse(JSON.stringify(v)),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 function context(fetch){const c={window:{},Set,Map,URLSearchParams,URL,TextDecoder,Uint8Array,AbortController,Blob,setTimeout,clearTimeout,fetch};c.window=c;for(const p of ['jh-watchlist-quotes.js','jh-observation-series.js','jh-observation-cache.js','jh-chart-catalog.js','jh-chart-provider-browser.js'])vm.runInNewContext(read(p),c);return c;}
 test('all 77 regional Fed definitions remain exact across reference comparisons and adjustments',()=>{
- const c=context();assert.equal(Object.keys(cat.series).length,644);assert.equal(Object.keys(cat.datasets).length,11);
+ const c=context();assert.equal(Object.keys(cat.series).length,658);assert.equal(Object.keys(cat.datasets).length,15);
  for(const d of Object.values(cat.series)){
   assert.equal(c.JHChartCatalog.chartId(d.id),d.id);assert.equal(c.JHChartCatalog.chartId(d.id.toUpperCase()),d.id);assert.equal(c.JHChartCatalog.isWarehouse(d.id),true);assert.equal(c.JHChartProviderBrowser.action({id:d.id,provider:'regionalfed',kind:'series',chartable:true}),'chart');assert.ok(c.JHWatchlistQuotes.resolve(d.id,{}).reason);
  }

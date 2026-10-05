@@ -1,0 +1,69 @@
+{
+  "stage": "candidate_not_deployed",
+  "alternatives": {
+    "ECONOMICS:USWEI": {
+      "alternative": "regionalfed:dallas-wei:current",
+      "label": "Weekly Economic Index \u00b7 current revised history",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USWEI/",
+      "source_definition": {
+        "id": "regionalfed:dallas-wei:current",
+        "dataset": "dallas-wei",
+        "source_key": "WEI",
+        "name": "Weekly Economic Index \u00b7 current revised history",
+        "provider_name": "Federal Reserve Bank of Dallas",
+        "unit": "WEI points, scaled to four-quarter GDP growth",
+        "freq": "W",
+        "measurement_kind": "weekly_economic_activity_index",
+        "comparison": "weekly reference, scaled to four-quarter GDP growth",
+        "seasonal_adjustment": "publisher-defined; components may differ",
+        "expectation_horizon_months": null,
+        "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+        "vintage": "Current revised history",
+        "equivalence_verified": false,
+        "publisher_vintage_date": null,
+        "period_precision": "week",
+        "chart_anchor": "publisher Saturday reference date; not publication time",
+        "reuse": {
+          "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+          "source_page": "https://www.dallasfed.org/research/wei",
+          "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+        }
+      },
+      "equivalence_verified": false
+    },
+    "ECONOMICS:USCPITM": {
+      "alternative": "regionalfed:cleveland-inflation-yoy:trimmedmeancpi",
+      "label": "16% trimmed-mean CPI \u00b7 published year-over-year percent change",
+      "vendor_definition_url": "https://www.tradingview.com/symbols/ECONOMICS-USCPITM/",
+      "source_definition": {
+        "id": "regionalfed:cleveland-inflation-yoy:trimmedmeancpi",
+        "dataset": "cleveland-inflation-yoy",
+        "source_key": "trimmedmeancpi",
+        "name": "16% trimmed-mean CPI \u00b7 published year-over-year percent change",
+        "provider_name": "Federal Reserve Bank of Cleveland",
+        "unit": "percent year-over-year change",
+        "freq": "M",
+        "measurement_kind": "published_year_over_year_inflation_change",
+        "comparison": "year_over_year",
+        "seasonal_adjustment": "seasonally adjusted monthly inputs",
+        "expectation_horizon_months": null,
+        "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. These are the publisher\u2019s chart values, not an annualization of a monthly rate. The complete chart response is retained. Its headline CPI and core CPI columns are not added as new aliases.",
+        "vintage": "Current revised source history; original release vintages unverified",
+        "equivalence_verified": false,
+        "reuse": {
+          "license": "CC BY-SA 4.0",
+          "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "attribution": "Federal Reserve Bank of Cleveland",
+          "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+          "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+        },
+        "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+      },
+      "equivalence_verified": false
+    }
+  },
+  "held_unresolved": {
+    "ECONOMICS:USCPIT": "Transportation CPI is not trimmed-mean inflation"
+  },
+  "qualification": "Exact published source series, source frequencies and non-price units; source substitution remains explicitly unqualified."
+}

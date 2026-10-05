@@ -2402,9 +2402,14 @@
     var periods=originals.map(function(r){return r.raw_period;}).filter(function(p,i,a){return a.indexOf(p)===i;}).sort();
     var sourcePeriods=periods.length?periods[0]+(periods.length>1?" → "+periods[periods.length-1]:""):"unavailable";
     var lastPeriod=originals.filter(function(r){return r.value===row.close;}).sort(function(a,b){return b.coordinate.time-a.coordinate.time;})[0];
+    var macroPacket=e.whole_packet,macroLabel="";
+    if(macroPacket&&macroPacket.provider==="regionalfed"&&/^regionalfed:(?:dallas-wei:|cleveland-)/i.test(String(macroPacket.id||""))){
+      macroLabel=String(macroPacket.name||macroPacket.id);
+      if(/^regionalfed:cleveland-/i.test(macroPacket.id))macroLabel+=" · Source: Federal Reserve Bank of Cleveland · CC BY-SA 4.0 · Publisher interpolation affects October/November 2025 underlying changes and related YoY windows";
+    }
     var sourceLabel=" · source periods "+sourcePeriods+" · last scalar from "+(lastPeriod?lastPeriod.raw_period:"unavailable");
     if(!full)return "Scalar · "+String(row.close)+" "+(e.unit||"unit unverified")+sourceLabel+" · display group "+new Date(row.time*1000).toISOString().slice(0,10);
-    return frame.symbol+" · "+String(row.close)+" · unit "+(e.unit||"unverified")+" · "+new Date(row.time*1000).toISOString().slice(0,10)+
+    return frame.symbol+(macroLabel?" · "+macroLabel:"")+" · "+String(row.close)+" · unit "+(e.unit||"unverified")+" · "+new Date(row.time*1000).toISOString().slice(0,10)+
       " UTC display coordinate"+sourceLabel+" · source frequency "+(e.source_frequency||"unverified")+" · market OHLC, trade volume and release time unavailable";
   }
   function observationAxisFormatter(d,seriesApi){
@@ -2443,7 +2448,8 @@
     lastVolShow=false;
     var vp=document.getElementById("vp");if(vp)vp.width=vp.width;
     ["quote","detail","legend","st","ohlc","dwin"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=observationText(d,null,id==="quote"||id==="detail");});
-    var cd=document.getElementById("cd");if(cd)cd.textContent="Source points · no interpolation";
+    var cd=document.getElementById("cd"),sourceFrame=barEvidence.get(d),sourcePacket=sourceFrame&&sourceFrame.observations&&sourceFrame.observations.whole_packet;
+    if(cd)cd.textContent=sourcePacket&&sourcePacket.provider==="regionalfed"&&/^regionalfed:cleveland-/i.test(String(sourcePacket.id||""))?"Source points · publisher interpolation flagged":"Source points · no interpolation";
     ["fin","over","season","trade","test","corr"].forEach(scalarPanel);
     paintMini(d);
     if(preserveView&&saved)chart.timeScale().setVisibleLogicalRange(saved);else chart.timeScale().fitContent();
@@ -6645,7 +6651,10 @@ else if(o.id==="rvol"){
   }
   function countdown(last){
     var el=document.getElementById("cd"); if(!el) return;
-    if(observationId(active)){el.textContent="Source observations; release time unavailable";return;}
+    if(observationId(active)){
+      var frame=barEvidence.get(lastBars),packet=frame&&frame.symbol===active&&frame.interval===tf&&frame.observations&&frame.observations.whole_packet;
+      el.textContent=packet&&packet.provider==="regionalfed"&&/^regionalfed:cleveland-/i.test(String(packet.id||""))?"Source observations · publisher interpolation flagged; release time unavailable":"Source observations; release time unavailable";return;
+    }
     var id=spec(tf)[0], sec= id==="1d"?86400: id==="1w"?604800: id==="1h"?3600: id==="1m"?60: id==="5m"?300: id==="15m"?900: id==="30m"?1800: id==="4h"?14400:86400;
     var end=last.time+sec, left=end-Math.floor(Date.now()/1000); if(left<0) left=0;
     var h=Math.floor(left/3600), m=Math.floor((left%3600)/60), s=left%60;

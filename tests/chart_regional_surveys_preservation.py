@@ -2,6 +2,8 @@ from pathlib import Path
 import hashlib,json
 R=Path(__file__).resolve().parents[1]
 def normalize(file,raw):
+    from chart_regional_macro_preservation import normalize as newer
+    raw=newer(file,raw)
     manifest=json.loads((R/'tests/fixtures/chart-regional-surveys/transition.json').read_bytes());t=manifest['changes'].get(file)
     if not t:return raw
     digest=lambda s:hashlib.sha256(s).hexdigest()

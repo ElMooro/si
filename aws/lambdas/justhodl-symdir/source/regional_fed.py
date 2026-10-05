@@ -5,6 +5,7 @@ from pathlib import Path
 import base64,csv,gzip,hashlib,json,re,urllib.request,urllib.error,zipfile,xml.etree.ElementTree as ET
 import regional_fed_parser as parser
 import regional_survey_parser as survey_parser
+import regional_macro_parser as macro_parser
 
 CONTRACT='regional-fed-reviewed-series.v1'
 CATALOGUE_RAW=Path(__file__).with_name('regional-fed-series.json').read_bytes()
@@ -28,7 +29,7 @@ def directory(dataset=None,q='',limit=50,offset=0):
     for d in CATALOGUE['series'].values():
         if dataset is not None and d['dataset']!=dataset:continue
         if not all(t in (d['id']+' '+d['name']+' '+d['provider_name']).casefold() for t in terms):continue
-        rows.append(dict(id=d['id'],provider='regionalfed',provider_name=d['provider_name'],kind='series',chartable=True,name=d['name'],unit=d['unit'],currency=None,freq='M',first=None,last=None,n=None,live_history_verified=False,contract=CONTRACT,definition_sha256=CATALOGUE_HASH,measurement_kind=d['measurement_kind']))
+        rows.append(dict(id=d['id'],provider='regionalfed',provider_name=d['provider_name'],kind='series',chartable=True,name=d['name'],unit=d['unit'],currency=None,freq=d['freq'],first=None,last=None,n=None,live_history_verified=False,contract=CONTRACT,definition_sha256=CATALOGUE_HASH,measurement_kind=d['measurement_kind']))
     return dict(provider='regionalfed',rows=rows[offset:offset+limit],total=len(rows),limit=limit,offset=offset,contract=CONTRACT,catalogue_scope='Exact source definitions; directory is not historical-coverage proof')
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -73,6 +74,9 @@ def _parse(dataset,blobs):
     if ds.get('format') in ('survey_csv','survey_xlsx'):
         if len(blobs)!=1:raise ValueError('Reviewed survey requires one complete original table')
         return survey_parser.parse(blobs[0],ds['table_schema'])
+    if ds.get('format') in ('cleveland_csv','dallas_wei_xlsx'):
+        if len(blobs)!=1:raise ValueError('Reviewed regional macro table requires one complete original response')
+        return macro_parser.parse(blobs[0],ds['table_schema'])
     raise ValueError('Unreviewed regional Fed dataset')
 
 def parse(dataset,blobs):
@@ -148,22 +152,26 @@ def packet(sid,blobs,receipts,acquired):
     d=definition(sid);dataset=d['dataset'];validate_receipts(dataset,receipts,blobs);records=parse(dataset,blobs)[d['source_key']]
     clock=datetime.fromisoformat(acquired)
     if clock.tzinfo is None or any(r['received_at']!=acquired for r in receipts):raise ValueError('Acquisition clock must match source receipts')
-    month=clock.astimezone(timezone.utc).strftime('%Y-%m')
+    frequency=d['freq']
+    if frequency not in ('M','W'):raise ValueError('Unreviewed regional Fed observation frequency')
+    cutoff=clock.astimezone(timezone.utc).strftime('%Y-%m-%d' if frequency=='W' else '%Y-%m')
     for r in records:
-        if r['period']>month:r.update(value=None,rejection='future_reference_month_at_receipt')
+        if r['period']>cutoff:r.update(value=None,rejection='future_reference_week_at_receipt' if frequency=='W' else 'future_reference_month_at_receipt')
+    if d.get('publisher_vintage_date') and d['publisher_vintage_date']>clock.astimezone(timezone.utc).date().isoformat():
+        for r in records:r.update(value=None,rejection='publisher_vintage_after_receipt')
     records.sort(key=lambda r:r['period']);obs=[[r['anchor'],r['value']] for r in records];n=sum(v is not None for _,v in obs);rejected=sum(r['rejection'] is not None for r in records);extract=encoded(records)
-    return {'contract':CONTRACT,'id':d['id'],'requested_id':sid,'provider':'regionalfed','provider_name':d['provider_name'],'name':d['name'],'unit':d['unit'],'currency':None,'freq':'M','definition':d,'definition_sha256':CATALOGUE_HASH,'dataset_definition':CATALOGUE['datasets'][dataset],'dataset_definition_sha256':dataset_hash(dataset),'source':receipts[-1]['url'],'source_receipts':receipts,'acquired_at':acquired,'source_published_at':None,'obs':obs,'n':n,'first':obs[0][0] if obs else None,'last':obs[-1][0] if obs else None,'last_valid':next((date for date,value in reversed(obs) if value is not None),None),
+    return {'contract':CONTRACT,'id':d['id'],'requested_id':sid,'provider':'regionalfed','provider_name':d['provider_name'],'name':d['name'],'unit':d['unit'],'currency':None,'freq':d['freq'],'definition':d,'definition_sha256':CATALOGUE_HASH,'dataset_definition':CATALOGUE['datasets'][dataset],'dataset_definition_sha256':dataset_hash(dataset),'source':receipts[-1]['url'],'source_receipts':receipts,'acquired_at':acquired,'source_published_at':None,'obs':obs,'n':n,'first':obs[0][0] if obs else None,'last':obs[-1][0] if obs else None,'last_valid':next((date for date,value in reversed(obs) if value is not None),None),
         'source_extract':{'scope':'Every original selected-series cell and reference period, including missingness and formula-cache flags; complete source response envelopes at retained receipt URLs','sha256':sha(extract),'bytes':len(extract),'body_encoding':'gzip+base64','body_base64':base64.b64encode(gzip.compress(extract,mtime=0)).decode()},
-        'measurement_evidence':{'columns':['source_row','original_reference_month','chart_anchor','value','original_numeric_lexeme','rejection','binary64_rounding'],'rows':[[r['ordinal'],r['period'],r['anchor'],r['value'],r['original_value'],r['rejection'],r['binary64_rounding']] for r in records]},
+        'measurement_evidence':{'columns':['source_row','original_reference_week' if frequency=='W' else 'original_reference_month','chart_anchor','value','original_numeric_lexeme','rejection','binary64_rounding'],'rows':[[r['ordinal'],r['period'],r['anchor'],r['value'],r['original_value'],r['rejection'],r['binary64_rounding']] for r in records]},
         'quality':{'status':'unavailable' if not n else 'partial' if rejected else 'observations','error':None,'received_rows':len(records),'rejected_rows':rejected,'plot_rounding_rows':sum(r['binary64_rounding'] for r in records),'cached_formula_rows':sum(r['cached_formula_value'] for r in records),'source_flag_counts':dict(Counter(flag for r in records for flag in r['source_flags']))},
-        'history':{'response_complete':True,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'latest_reference_month_verified':False,'release_clock_verified':False,'missing_dates_filled':False,'market_ohlc_qualified':False,'traded_volume_qualified':False,'intraday_quote':False,'period_precision':'month','chart_anchor':'first day of reference month; not publication time','measurement_kind':d['measurement_kind'],'interpretation':d['interpretation'],'vintage':d['vintage']},'equivalence_to_watchlist_provider_verified':False,'calls_eligible':False,'sizing_eligible':False}
+        'history':{'response_complete':True,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'latest_reference_month_verified':False,'release_clock_verified':False,'missing_dates_filled':False,'market_ohlc_qualified':False,'traded_volume_qualified':False,'intraday_quote':False,'period_precision':d.get('period_precision','month'),'chart_anchor':d.get('chart_anchor','first day of reference month; not publication time'),'measurement_kind':d['measurement_kind'],'interpretation':d['interpretation'],'vintage':d['vintage']},'equivalence_to_watchlist_provider_verified':False,'calls_eligible':False,'sizing_eligible':False}
 
 def fetch(sid,store,bucket,reader=None,now=None):
     d=definition(sid)
     try:
         blobs,receipts,acquired=snapshot(d['dataset'],store,bucket,reader,now);out=packet(sid,blobs,receipts,acquired)
     except (SourceUnavailable,ValueError,KeyError,TypeError,UnicodeError) as exc:
-        out={'contract':CONTRACT,'id':d['id'],'requested_id':sid,'provider':'regionalfed','provider_name':d['provider_name'],'name':d['name'],'unit':d['unit'],'currency':None,'freq':'M','definition':d,'definition_sha256':CATALOGUE_HASH,'source':CATALOGUE['datasets'][d['dataset']]['source_page'],'source_receipts':[],'obs':[],'n':0,'first':None,'last':None,'last_valid':None,'acquired_at':None,'quality':{'status':'unavailable','error':str(exc)[:200],'received_rows':0,'rejected_rows':0},'history':{'response_complete':False,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'market_ohlc_qualified':False,'traded_volume_qualified':False,'intraday_quote':False},'equivalence_to_watchlist_provider_verified':False,'calls_eligible':False,'sizing_eligible':False}
+        out={'contract':CONTRACT,'id':d['id'],'requested_id':sid,'provider':'regionalfed','provider_name':d['provider_name'],'name':d['name'],'unit':d['unit'],'currency':None,'freq':d['freq'],'definition':d,'definition_sha256':CATALOGUE_HASH,'source':CATALOGUE['datasets'][d['dataset']]['source_page'],'source_receipts':[],'obs':[],'n':0,'first':None,'last':None,'last_valid':None,'acquired_at':None,'quality':{'status':'unavailable','error':str(exc)[:200],'received_rows':0,'rejected_rows':0},'history':{'response_complete':False,'full_upstream_history_verified':False,'point_in_time_vintages_verified':False,'market_ohlc_qualified':False,'traded_volume_qualified':False,'intraday_quote':False},'equivalence_to_watchlist_provider_verified':False,'calls_eligible':False,'sizing_eligible':False}
     if len(encoded(out))>3900000:raise ValueError('Regional Fed evidence exceeds response budget; no partial packet returned')
     return out
 

@@ -5091,6 +5091,227 @@
         "sheet": "Indexes Seasonally Adjusted",
         "allow_numeric_excel_date": true
       }
+    },
+    "cleveland-mcpi-monthly": {
+      "id": "regionalfed:cleveland-mcpi-monthly",
+      "name": "Median CPI monthly measures",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "format": "cleveland_csv",
+      "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/mcpi_revised.csv?sc_lang=en",
+      "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+      "definition_receipts": [
+        {
+          "url": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+          "at": "2026-10-05T06:26:56.299073+00:00",
+          "http_status": 200,
+          "bytes": 162144,
+          "sha256": "8732803c53d437a783a94e358ad9004e38a5e37e558569bf43f9d8311921efca"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/mcpi_revised.csv?sc_lang=en",
+          "at": "2026-10-05T06:28:08.737770+00:00",
+          "http_status": 200,
+          "bytes": 14493,
+          "sha256": "47e806d9e9f876931f0d1f31737c6968bd65022662367e2b1298c1df963c0f99"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf",
+          "at": "2026-10-05T06:28:07.922511+00:00",
+          "http_status": 200,
+          "bytes": 101479,
+          "sha256": "ccb932d0087311338c562ab08cbe03c706917090b61798b460eba2d0d37d4196"
+        }
+      ],
+      "max_age_s": 86400,
+      "table_schema": {
+        "format": "cleveland_csv",
+        "columns": [
+          "date ",
+          "mcpi_monthly_chg",
+          "mcpi_ann_monthly_chg"
+        ],
+        "selected_columns": [
+          "mcpi_monthly_chg",
+          "mcpi_ann_monthly_chg"
+        ],
+        "date_format": "us_first",
+        "comparison": "monthly"
+      },
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      }
+    },
+    "cleveland-trim-monthly": {
+      "id": "regionalfed:cleveland-trim-monthly",
+      "name": "16% trimmed-mean CPI monthly measures",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "format": "cleveland_csv",
+      "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/trim_revised.csv?sc_lang=en",
+      "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+      "definition_receipts": [
+        {
+          "url": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+          "at": "2026-10-05T06:26:56.299073+00:00",
+          "http_status": 200,
+          "bytes": 162144,
+          "sha256": "8732803c53d437a783a94e358ad9004e38a5e37e558569bf43f9d8311921efca"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/trim_revised.csv?sc_lang=en",
+          "at": "2026-10-05T06:28:09.349034+00:00",
+          "http_status": 200,
+          "bytes": 17418,
+          "sha256": "4386ba518fc79ad27b513339f2f805e7b2a3e93fc66a38ec082394a54c1a2528"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf",
+          "at": "2026-10-05T06:28:07.922511+00:00",
+          "http_status": 200,
+          "bytes": 101479,
+          "sha256": "ccb932d0087311338c562ab08cbe03c706917090b61798b460eba2d0d37d4196"
+        }
+      ],
+      "max_age_s": 86400,
+      "table_schema": {
+        "format": "cleveland_csv",
+        "columns": [
+          "date ",
+          "trim_monthly_chg",
+          "trim_ann_monthly_chg"
+        ],
+        "selected_columns": [
+          "trim_monthly_chg",
+          "trim_ann_monthly_chg"
+        ],
+        "date_format": "us_first",
+        "comparison": "monthly"
+      },
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      }
+    },
+    "cleveland-inflation-yoy": {
+      "id": "regionalfed:cleveland-inflation-yoy",
+      "name": "Median and 16% trimmed-mean CPI, published year-over-year changes",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "format": "cleveland_csv",
+      "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/mediancpi_chartdata.csv?sc_lang=en",
+      "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+      "definition_receipts": [
+        {
+          "url": "https://www.clevelandfed.org/indicators-and-data/median-cpi",
+          "at": "2026-10-05T06:26:56.299073+00:00",
+          "http_status": 200,
+          "bytes": 162144,
+          "sha256": "8732803c53d437a783a94e358ad9004e38a5e37e558569bf43f9d8311921efca"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/files/webcharts/mediancpi/mediancpi_chartdata.csv?sc_lang=en",
+          "at": "2026-10-05T06:50:19.062317+00:00",
+          "http_status": 200,
+          "bytes": 4625,
+          "sha256": "52eb9980eaf4fbcff62a5a2f1c504da0b71b73e5589d722c20cfc4514afad4d6"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf",
+          "at": "2026-10-05T06:28:07.922511+00:00",
+          "http_status": 200,
+          "bytes": 101479,
+          "sha256": "ccb932d0087311338c562ab08cbe03c706917090b61798b460eba2d0d37d4196"
+        },
+        {
+          "url": "https://www.clevelandfed.org/-/media/files/highcharts/config/mediancpi/mediancpi_lp_config.js",
+          "at": "2026-10-05T06:50:20.127614+00:00",
+          "http_status": 200,
+          "bytes": 10063,
+          "sha256": "c70dcb01617dd515a9974443d61301c9bc3260fce4e15a18dc2facb9439f1bbb"
+        }
+      ],
+      "max_age_s": 86400,
+      "table_schema": {
+        "format": "cleveland_csv",
+        "columns": [
+          "date",
+          "mediancpi",
+          "trimmedmeancpi",
+          "cpi",
+          "corecpi"
+        ],
+        "selected_columns": [
+          "mediancpi",
+          "trimmedmeancpi"
+        ],
+        "date_format": "iso_first",
+        "comparison": "year_over_year"
+      },
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      }
+    },
+    "dallas-wei": {
+      "id": "regionalfed:dallas-wei",
+      "name": "Weekly Economic Index, current history and publisher-labelled vintages",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "format": "dallas_wei_xlsx",
+      "url": "https://www.dallasfed.org/-/media/documents/research/wei/weekly-economic-index.xlsx",
+      "source_page": "https://www.dallasfed.org/research/wei",
+      "definition_receipts": [
+        {
+          "url": "https://www.dallasfed.org/research/wei",
+          "at": "2026-10-05T06:26:55.351410+00:00",
+          "http_status": 200,
+          "bytes": 35973,
+          "sha256": "64fe77e677fe8706ca0f6c6bd14a2bf522c217171c4c6851ca0a5c691143e6d5"
+        },
+        {
+          "url": "https://www.dallasfed.org/-/media/documents/research/wei/weekly-economic-index.xlsx",
+          "at": "2026-10-05T06:32:02.296264+00:00",
+          "http_status": 200,
+          "bytes": 94462,
+          "sha256": "1e06f64651594825fe71f43aec8efd6e3a3567859ffe20b4517a3b6391f0c767"
+        },
+        {
+          "url": "https://www.dallasfed.org/research/wei/about",
+          "at": "2026-10-05T06:26:55.970187+00:00",
+          "http_status": 200,
+          "bytes": 40036,
+          "sha256": "840d4ff032a2173243fcf096f174eaabef22fe4718f6888125b2b04a0e3ace55"
+        }
+      ],
+      "max_age_s": 86400,
+      "table_schema": {
+        "format": "dallas_wei_xlsx",
+        "sheet": "2008-current",
+        "columns": [
+          "Date",
+          "WEI",
+          "WEI as of 9/25/2025",
+          "WEI as of 9/26/2024",
+          "WEI as of 9/28/2023",
+          "WEI as of 9/29/2022",
+          "WEI as of 1/25/2022",
+          "WEI as of 7/29/2021",
+          "WEI as of 7/28/2020"
+        ],
+        "reference_weekday": "Saturday"
+      },
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
     }
   },
   "series": {
@@ -17617,6 +17838,342 @@
       "definition_qualifications": [
         "This is a diffusion index, including fields named growth rate of orders, prices or capacity utilization; it is not the percentage growth or utilization level itself."
       ]
+    },
+    "regionalfed:cleveland-mcpi-monthly:fraction": {
+      "id": "regionalfed:cleveland-mcpi-monthly:fraction",
+      "dataset": "cleveland-mcpi-monthly",
+      "source_key": "mcpi_monthly_chg",
+      "name": "Median CPI · monthly change, decimal fraction",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "fractional monthly change",
+      "freq": "M",
+      "measurement_kind": "published_monthly_inflation_change",
+      "comparison": "monthly",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. Values are published directly. A decimal fraction of 0.01 denotes one percent. Annualized monthly percent change is a distinct source column and is not year-over-year inflation.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:cleveland-mcpi-monthly:annualized": {
+      "id": "regionalfed:cleveland-mcpi-monthly:annualized",
+      "dataset": "cleveland-mcpi-monthly",
+      "source_key": "mcpi_ann_monthly_chg",
+      "name": "Median CPI · annualized monthly percent change",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "percent annualized monthly change",
+      "freq": "M",
+      "measurement_kind": "published_monthly_inflation_change",
+      "comparison": "monthly",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. Values are published directly. A decimal fraction of 0.01 denotes one percent. Annualized monthly percent change is a distinct source column and is not year-over-year inflation.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:cleveland-trim-monthly:fraction": {
+      "id": "regionalfed:cleveland-trim-monthly:fraction",
+      "dataset": "cleveland-trim-monthly",
+      "source_key": "trim_monthly_chg",
+      "name": "16% trimmed-mean CPI · monthly change, decimal fraction",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "fractional monthly change",
+      "freq": "M",
+      "measurement_kind": "published_monthly_inflation_change",
+      "comparison": "monthly",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. Values are published directly. A decimal fraction of 0.01 denotes one percent. Annualized monthly percent change is a distinct source column and is not year-over-year inflation.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:cleveland-trim-monthly:annualized": {
+      "id": "regionalfed:cleveland-trim-monthly:annualized",
+      "dataset": "cleveland-trim-monthly",
+      "source_key": "trim_ann_monthly_chg",
+      "name": "16% trimmed-mean CPI · annualized monthly percent change",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "percent annualized monthly change",
+      "freq": "M",
+      "measurement_kind": "published_monthly_inflation_change",
+      "comparison": "monthly",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. Values are published directly. A decimal fraction of 0.01 denotes one percent. Annualized monthly percent change is a distinct source column and is not year-over-year inflation.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:cleveland-inflation-yoy:mediancpi": {
+      "id": "regionalfed:cleveland-inflation-yoy:mediancpi",
+      "dataset": "cleveland-inflation-yoy",
+      "source_key": "mediancpi",
+      "name": "Median CPI · published year-over-year percent change",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "percent year-over-year change",
+      "freq": "M",
+      "measurement_kind": "published_year_over_year_inflation_change",
+      "comparison": "year_over_year",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. These are the publisher’s chart values, not an annualization of a monthly rate. The complete chart response is retained. Its headline CPI and core CPI columns are not added as new aliases.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:cleveland-inflation-yoy:trimmedmeancpi": {
+      "id": "regionalfed:cleveland-inflation-yoy:trimmedmeancpi",
+      "dataset": "cleveland-inflation-yoy",
+      "source_key": "trimmedmeancpi",
+      "name": "16% trimmed-mean CPI · published year-over-year percent change",
+      "provider_name": "Federal Reserve Bank of Cleveland",
+      "unit": "percent year-over-year change",
+      "freq": "M",
+      "measurement_kind": "published_year_over_year_inflation_change",
+      "comparison": "year_over_year",
+      "seasonal_adjustment": "seasonally adjusted monthly inputs",
+      "expectation_horizon_months": null,
+      "interpretation": "The publisher interpolated the October and November 2025 monthly changes after the October CPI release was unavailable. Affected monthly changes and YoY windows are explicitly flagged. These are the publisher’s chart values, not an annualization of a monthly rate. The complete chart response is retained. Its headline CPI and core CPI columns are not added as new aliases.",
+      "vintage": "Current revised source history; original release vintages unverified",
+      "equivalence_verified": false,
+      "reuse": {
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": "Federal Reserve Bank of Cleveland",
+        "adaptation": "Original values preserved; reference-period anchors and machine-readable evidence added",
+        "source_page": "https://www.clevelandfed.org/indicators-and-data/median-cpi"
+      },
+      "source_interpolation_notice": "https://www.clevelandfed.org/-/media/project/clevelandfedtenant/clevelandfedsite/indicators-and-data/median-cpi/methodological-approach-interpolating-missing-october-2025-cpi-data.pdf"
+    },
+    "regionalfed:dallas-wei:current": {
+      "id": "regionalfed:dallas-wei:current",
+      "dataset": "dallas-wei",
+      "source_key": "WEI",
+      "name": "Weekly Economic Index · current revised history",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Current revised history",
+      "equivalence_verified": false,
+      "publisher_vintage_date": null,
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2025-09-25": {
+      "id": "regionalfed:dallas-wei:vintage-2025-09-25",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 9/25/2025",
+      "name": "Weekly Economic Index · publisher vintage 2025-09-25",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2025-09-25; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2025-09-25",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2024-09-26": {
+      "id": "regionalfed:dallas-wei:vintage-2024-09-26",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 9/26/2024",
+      "name": "Weekly Economic Index · publisher vintage 2024-09-26",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2024-09-26; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2024-09-26",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2023-09-28": {
+      "id": "regionalfed:dallas-wei:vintage-2023-09-28",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 9/28/2023",
+      "name": "Weekly Economic Index · publisher vintage 2023-09-28",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2023-09-28; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2023-09-28",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2022-09-29": {
+      "id": "regionalfed:dallas-wei:vintage-2022-09-29",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 9/29/2022",
+      "name": "Weekly Economic Index · publisher vintage 2022-09-29",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2022-09-29; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2022-09-29",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2022-01-25": {
+      "id": "regionalfed:dallas-wei:vintage-2022-01-25",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 1/25/2022",
+      "name": "Weekly Economic Index · publisher vintage 2022-01-25",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2022-01-25; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2022-01-25",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2021-07-29": {
+      "id": "regionalfed:dallas-wei:vintage-2021-07-29",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 7/29/2021",
+      "name": "Weekly Economic Index · publisher vintage 2021-07-29",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2021-07-29; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2021-07-29",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
+    },
+    "regionalfed:dallas-wei:vintage-2020-07-28": {
+      "id": "regionalfed:dallas-wei:vintage-2020-07-28",
+      "dataset": "dallas-wei",
+      "source_key": "WEI as of 7/28/2020",
+      "name": "Weekly Economic Index · publisher vintage 2020-07-28",
+      "provider_name": "Federal Reserve Bank of Dallas",
+      "unit": "WEI points, scaled to four-quarter GDP growth",
+      "freq": "W",
+      "measurement_kind": "weekly_economic_activity_index",
+      "comparison": "weekly reference, scaled to four-quarter GDP growth",
+      "seasonal_adjustment": "publisher-defined; components may differ",
+      "expectation_horizon_months": null,
+      "interpretation": "Research index of real economic activity from ten daily/weekly indicators. Its scale is related to four-quarter GDP growth; it is neither realized quarterly GDP nor a forecast. Source reference dates are Saturdays, not release timestamps. Current and labelled vintage columns remain distinct.",
+      "vintage": "Publisher-labelled as of 2020-07-28; independently verified publication clock unavailable",
+      "equivalence_verified": false,
+      "publisher_vintage_date": "2020-07-28",
+      "period_precision": "week",
+      "chart_anchor": "publisher Saturday reference date; not publication time",
+      "reuse": {
+        "attribution": "Lewis, Daniel J., Mertens, Karel, and Stock, James H., Weekly Economic Index",
+        "source_page": "https://www.dallasfed.org/research/wei",
+        "underlying_components": "Published WEI only; component provider data and redistribution entitlements are not inferred"
+      }
     }
   },
   "source_review": "Exact original 77 definitions preserved; 567 additional public regional survey definitions prepared. Full source, tests, deployment and live coverage remain subject to separate acceptance.",

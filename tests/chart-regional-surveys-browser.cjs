@@ -13,7 +13,7 @@ function directory(u){const dataset=u.searchParams.get('ds').split(':')[1],terms
   if(u.pathname==='/chart.html')return send(html,'text/html');if(u.pathname==='/fixture-library.js')return send(read(path.join(R,'tests/fixtures/chart-observations/vendor/lightweight-charts-4.2.3.js.txt')),'application/javascript');
   if(scripts.includes(u.pathname.slice(1))||u.pathname==='/jh-chart-tvwatch.js')return send(read(path.join(R,u.pathname.slice(1))),'application/javascript');
   if(u.pathname==='/data/provider-catalog.json')return send(catalogue);
-  if(u.pathname==='/explorer'){assert.equal(u.searchParams.get('provider'),'regionalfed');return send({provider:'regionalfed',offset:0,total:11,rows:Object.values(cat.datasets).map(d=>({id:d.id,provider:'regionalfed',kind:'dataset',name:d.name}))});}
+  if(u.pathname==='/explorer'){assert.equal(u.searchParams.get('provider'),'regionalfed');return send({provider:'regionalfed',offset:0,total:15,rows:Object.values(cat.datasets).map(d=>({id:d.id,provider:'regionalfed',kind:'dataset',name:d.name}))});}
   if(u.pathname==='/browse'){assert.ok(Object.values(cat.datasets).some(d=>d.id===u.searchParams.get('ds')));return rejected?send({},'application/json',403):send(directory(u));}
   if(u.pathname==='/series'){const id=u.searchParams.get('id'),key=targets.find(x=>x.toLowerCase()===id.toLowerCase());assert.ok(key,'Only selected exact series');return send(read(path.join(process.env.JH_REGIONAL_SURVEYS_HISTORY_ROOT,hash(key.toLowerCase())+'.json')));}
   if(u.pathname==='/data/tv-watchlists.json')return send({lists:[{id:'regional-fed-fixture',name:'Invented list',symbols:['SPY']}]});
