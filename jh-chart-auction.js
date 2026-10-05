@@ -153,6 +153,9 @@
     try { el = chart.chartElement(); } catch (e) {}
     if (!el) return;
     var host = el.querySelector(".jh-desk");
+    // 2026-10-05: AVWAP / volume profile / session levels need traded volume; scalar macro series and files have none,
+    // so the chips are withheld there instead of covering the observation readout.
+    if (!d.some(function (b) { return b && b.volume > 0; })) { if (host) host.remove(); return; }
     if (!host) {
       host = document.createElement("div");
       host.className = "jh-desk";

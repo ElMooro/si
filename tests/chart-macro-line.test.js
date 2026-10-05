@@ -14,6 +14,10 @@ test('calendar change modes use exact calendar bases and omit periods without on
  const mom=X.change(m,'mom');assert.ok(!mom.some(p=>p.time===T('2021-04-01')),'no prior month for the month after the gap');
  const d=X.change(m,'yoyd');assert.equal(d[0].value,12);
 });
+test('weekly YoY compares the same week 52 weeks earlier (FRED convention)',()=>{
+ const X=load('jh-chart-transforms.js').JHChartTransforms,w=[];for(let t=T('2025-09-06');t<=T('2026-09-26');t+=7*86400)w.push({time:t,value:t===T('2025-09-27')?225000:t===T('2026-09-26')?197000:210000});
+ const r=X.change(w,'yoy'),last=r[r.length-1];assert.equal(last.base_time,T('2025-09-27'));assert.ok(Math.abs(last.value-(197000/225000-1)*100)<1e-9);
+});
 test('macro candles open at the prior observation and never invent highs or lows',()=>{
  const X=load('jh-chart-transforms.js').JHChartTransforms;
  const c=X.candles([{time:1,close:5},{time:2,close:7},{time:3,close:6}]);

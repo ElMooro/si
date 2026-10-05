@@ -2533,7 +2533,7 @@
     lastPatPack=null; lastSdPack=null; lastSrPack=null;
     lastFvgPack=null; lastEqhPack=null; lastGSess=null; lastSeps=null; lastOrLv=null; lastOrPack=null; lastAdr=null; lastSweepPack=null; lastObPack=null; lastHvnPack=null;
     lastVsSpx=null;
-    if(evidence && evidence.observations && evidence.symbol===active && evidence.interval===tf){paintObservations(d,saved);return;}
+    if(evidence && evidence.observations && evidence.symbol===active && evidence.interval===tf){paintObservations(d,saved);if(typeof writeState==="function")writeState();return;} /* macro symbols keep the address bar in sync (2026-10-05) */
     if(mode==="price"){
       var display=displayBars(d), c, pxF=pxFormat(display);
       function closePts(){ return display.map(function(b){ return {time:b.time,value:b.close}; }); }

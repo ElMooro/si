@@ -75,7 +75,19 @@
       }
       return out;
     }
-    // daily / weekly / intraday: value as of the same calendar time one period earlier, never older than the tolerance
+    if (def.months && g >= 5) {
+      // weekly data: the same week a year/quarter/month earlier (52/13/4 weeks back, the FRED convention), nearest
+      // observation within half a week; no base inside that window → the point is omitted
+      var back = { 12: 364, 3: 91, 1: 28 }[def.months] || Math.round(def.months * 30.44);
+      for (i = 0; i < pts.length; i++) {
+        var tw = pts[i].time - back * DAY, kw = asOf(pts, tw + 3.5 * DAY);
+        if (kw < 0 || kw >= i || Math.abs(pts[kw].time - tw) > 3.5 * DAY) continue;
+        var vw = delta(pts[i].value, pts[kw].value, def.pct);
+        if (vw !== null) out.push({ time: pts[i].time, value: vw, base_time: pts[kw].time });
+      }
+      return out;
+    }
+    // daily / intraday: value as of the same calendar time one period earlier, never older than the tolerance
     var tol = def.days ? Math.max(4, g * 1.5) * DAY : Math.max(7, g * 1.5) * DAY;
     for (i = 0; i < pts.length; i++) {
       var target = def.days ? pts[i].time - def.days * DAY : shiftMonths(pts[i].time, def.months);

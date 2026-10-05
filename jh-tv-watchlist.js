@@ -932,6 +932,8 @@
     railHook(); trackActive(); keys();
   }
 
+  // warm the ECONOMICS map shortly after load so the first click on a TradingView economics code charts immediately
+  setTimeout(function () { try { econMap(); } catch (e) {} }, 3000);
   root.JHTvWatchlist = {
     add: function (id) { var r = add(id); return r; },
     remove: function (id) { var L = cur(); if (!L) return; var i = L.items.findIndex(function (s) { return sameId(s, id); }); if (i >= 0) removeIdx([i]); },

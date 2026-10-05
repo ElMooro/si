@@ -36,8 +36,9 @@
       "html.jh-ah .jh-ah-hint{opacity:.0}html.jh-ah.jh-ah-hinting .jh-ah-hint{opacity:1}" +
       "#jh-ah-pin{position:absolute;right:8px;bottom:6px;z-index:6;background:var(--raised,#1e222d);border:1px solid var(--line,#2a2e39);color:var(--fg,#d1d4dc);border-radius:4px;font-size:12px;line-height:18px;padding:1px 6px;cursor:pointer}" +
       "#jh-ah-pin:hover{border-color:#2962ff}" +
-      "#jh-ah-unpin{position:fixed;z-index:29;top:4px;right:52px;display:none;background:var(--raised,#1e222d);border:1px solid var(--line,#2a2e39);color:var(--mut,#787b86);border-radius:4px;font-size:11px;padding:1px 6px;cursor:pointer}" +
-      "html:not(.jh-ah) #jh-ah-unpin.avail{display:block}";
+      "#jh-ah-unpin{position:static;flex:0 0 auto;margin:auto 6px;display:none;background:var(--raised,#1e222d);border:1px solid var(--line,#2a2e39);color:var(--mut,#787b86);border-radius:4px;font-size:11px;padding:1px 6px;cursor:pointer}" +
+      "html:not(.jh-ah) #jh-ah-unpin.avail{display:block}" +
+      "html:not(.jh-ah) .jh-ah-sheet{display:none}";
     doc.head.appendChild(st);
   }
   function el(id) { return doc.getElementById(id); }
@@ -120,7 +121,8 @@
       restore(); built = false;
     }
     var un = el("jh-ah-unpin");
-    if (!un) { un = doc.createElement("button"); un.id = "jh-ah-unpin"; un.type = "button"; un.title = "Full-page chart: hide toolbars until the mouse reaches an edge (Shift+H)"; un.textContent = "⤢ Full page"; un.onclick = function () { set(true); }; doc.body.appendChild(un); }
+    if (!un) { un = doc.createElement("button"); un.id = "jh-ah-unpin"; un.type = "button"; un.title = "Full-page chart: hide toolbars until the mouse reaches an edge (Shift+H)"; un.textContent = "⤢ Full page"; un.onclick = function () { set(true); }; }
+    var tb = el("tabbar"); if (tb && un.parentNode !== tb) tb.appendChild(un); else if (!tb && !un.parentNode) doc.body.appendChild(un);
     un.classList.add("avail");
     try { root.dispatchEvent(new Event("resize")); } catch (e) {}
     return on;
