@@ -61,6 +61,16 @@
       '<div class="sp-actions"><a class="sp-btn pri" href="/chart.html?s=' + encodeURIComponent(T) + '" style="display:inline-flex;align-items:center;text-decoration:none">Open chart</a>' + (p.website || f.website ? '<a class="sp-btn" href="' + esc(p.website || f.website) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;text-decoration:none">Website ↗</a>' : "") + "</div>";
   }
 
+  // the warehouse quote (the same one the chart tab strip shows) replaces the FMP profile price when it answers in time
+  function liveQuote() {
+    var ctl = window.AbortController ? new AbortController() : null; setTimeout(function () { if (ctl) ctl.abort(); }, 7000);
+    fetch(PROXY + "/quote?ids=" + encodeURIComponent(T), ctl ? { signal: ctl.signal } : undefined).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var q = d && d.quotes ? d.quotes[T] || d.quotes[Object.keys(d.quotes)[0]] : null, el = head.querySelector(".sp-px");
+      if (!q || !q.ok || !ok(q.last) || !el) return;
+      el.innerHTML = '<span class="p">' + (+q.last).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + '</span><span class="c">' + (ok(q.chg) ? sg(q.chg, (q.chg > 0 ? "+" : "") + (+q.chg).toFixed(2)) : "") + " " + (ok(q.chg_pct) ? sg(q.chg_pct, "(" + (q.chg_pct > 0 ? "+" : "") + (+q.chg_pct).toFixed(2) + "%)") : "") + '</span><div class="a">' + esc(q.unit || "USD") + " · as of " + esc(q.last_date || "") + (q.prev_date ? " vs " + esc(q.prev_date) : "") + " · JustHodl warehouse quote</div>";
+    }).catch(function () {});
+  }
+
   // ------------------------------------------------------------------ price chart (SVG, full history)
   function priceChart(host) {
     host.innerHTML = '<div class="sp-chart"><div class="sp-rng">' + ["1M", "6M", "YTD", "1Y", "5Y", "All"].map(function (r) { return '<button type="button" data-r="' + r + '"' + (r === "1Y" ? ' class="on"' : "") + ">" + r + "</button>"; }).join("") + '<span class="mu" style="margin-left:auto;font-size:12px" data-k="src"></span></div><div data-k="svg" class="mu" style="height:260px">Loading price history…</div><div class="sp-tip"></div></div>';
@@ -104,12 +114,17 @@
     var f = c.f || {}, p = c.p || {}, e = c.etfInfo || {};
     body.innerHTML = '<div data-k="chart"></div><h2>Key statistics <span data-k="asof"></span></h2><div class="sp-grid" data-k="stats"><div class="mu">Loading…</div></div><div data-k="more"></div>';
     priceChart(body.querySelector('[data-k="chart"]'));
-    Promise.all([fmp("ratios-ttm"), fmp("key-metrics-ttm"), fmp("shares-float"), c.isEtf ? null : fmp("grades-consensus")]).then(function (a) {
+    Promise.all([fmp("ratios-ttm"), fmp("key-metrics-ttm"), fmp("shares-float"), c.isEtf ? null : fmp("grades-consensus"), c.isEtf ? fmp("dividends") : null]).then(function (a) {
       var r = first(a[0]) || {}, k = first(a[1]) || {}, sf = first(a[2]) || {}, g = first(a[3]);
+      // funds: trailing-12-month distributions / price when the profile carries no yield
+      if (c.isEtf && f.dividendYield == null && Array.isArray(a[4]) && a[4].length && ok(p.price || f.price)) {
+        var cut = Date.now() - 365 * 864e5, ttm = a[4].filter(function (x) { return Date.parse(x.date) > cut; }).reduce(function (s0, x) { return s0 + (+x.dividend || 0); }, 0);
+        if (ttm > 0) f = Object.assign({}, f, { dividendYield: ttm / (p.price || f.price) });
+      }
       var rows = c.isEtf ? [
         ["AUM", big(e.assetsUnderManagement)], ["NAV", ok(e.nav) ? (+e.nav).toFixed(2) + " " + esc(e.navCurrency || "") : "—"], ["Expense ratio", ok(e.expenseRatio) ? (+e.expenseRatio).toFixed(2) + "%" : "—"],
         ["Holdings", cnt(e.holdingsCount)], ["Asset class", esc(e.assetClass || "—")], ["Inception", esc(e.inceptionDate || "—")],
-        ["Dividend yield", pctF(f.dividendYield)], ["P/E (holdings)", n2(f.pe)], ["Beta", n2(p.beta || f.beta)], ["52-week range", esc(p.range || (ok(f.yearLow) ? f.yearLow + "–" + f.yearHigh : "—"))], ["Avg volume", big(e.avgVolume || p.averageVolume, false)], ["Issuer", esc(e.etfCompany || "—")]
+        ["Dividend yield (TTM)", pctF(f.dividendYield)], ["P/E (holdings)", n2(f.pe)], ["Beta", n2(p.beta || f.beta)], ["52-week range", esc(p.range || (ok(f.yearLow) ? f.yearLow + "–" + f.yearHigh : "—"))], ["Avg volume", big(e.avgVolume || p.averageVolume, false)], ["Issuer", esc(e.etfCompany || "—")]
       ] : [
         ["Market cap", big(p.marketCap || f.marketCap)], ["P/E (TTM)", n2(r.priceToEarningsRatioTTM != null ? r.priceToEarningsRatioTTM : f.pe)], ["P/S (TTM)", n2(r.priceToSalesRatioTTM != null ? r.priceToSalesRatioTTM : f.ps)],
         ["PEG (TTM)", n2(r.priceToEarningsGrowthRatioTTM != null ? r.priceToEarningsGrowthRatioTTM : f.peg)], ["Forward PEG", n2(r.forwardPriceToEarningsGrowthRatioTTM)], ["Dividend yield", pctF(r.dividendYieldTTM != null ? r.dividendYieldTTM : f.dividendYield)],
@@ -246,8 +261,10 @@
         fmp("etf/asset-exposure").then(function (d) {
           var el2 = body.querySelector('[data-k="exp"]'); if (!el2) return;
           if (!Array.isArray(d) || !d.length) { el2.innerHTML = ""; return; }
-          d.sort(function (a, b) { return (b.marketValue || 0) - (a.marketValue || 0); });
-          el2.innerHTML = "<h2>All ETFs holding " + esc(T) + " <span>" + d.length.toLocaleString() + ' funds · Financial Modeling Prep</span></h2><div class="sp-tw"><table><tr><th>ETF</th><th>Weight in ETF</th><th>Shares</th><th>Market value</th></tr>' + d.slice(0, 300).map(function (r) { return '<tr><td><a href="?s=' + encodeURIComponent(r.symbol) + '">' + esc(r.symbol) + "</a></td><td>" + n2(r.weightPercentage, "%") + "</td><td>" + cnt(r.sharesNumber) + "</td><td>" + big(r.marketValue) + "</td></tr>"; }).join("") + "</table></div>";
+          // market values are in each fund's own currency, so US-listed funds (USD) are ranked by value and foreign listings by shares
+          var us = d.filter(function (r) { return r.symbol && r.symbol.indexOf(".") < 0; }).sort(function (a, b) { return (b.marketValue || 0) - (a.marketValue || 0); });
+          var fx = d.filter(function (r) { return r.symbol && r.symbol.indexOf(".") >= 0; }).sort(function (a, b) { return (b.sharesNumber || 0) - (a.sharesNumber || 0); });
+          el2.innerHTML = "<h2>ETFs holding " + esc(T) + " <span>" + d.length.toLocaleString() + " funds worldwide · " + us.length.toLocaleString() + ' US-listed · Financial Modeling Prep</span></h2><div class="sp-two"><div class="sp-tw"><table><tr><th>US-listed ETF</th><th>Weight</th><th>Shares</th><th>Value (USD)</th></tr>' + us.slice(0, 250).map(function (r) { return '<tr><td><a href="?s=' + encodeURIComponent(r.symbol) + '">' + esc(r.symbol) + "</a></td><td>" + n2(r.weightPercentage, "%") + "</td><td>" + cnt(r.sharesNumber) + "</td><td>" + big(r.marketValue) + "</td></tr>"; }).join("") + '</table></div><div class="sp-tw"><table><tr><th>Listed outside the US</th><th>Weight</th><th>Shares</th></tr>' + fx.slice(0, 250).map(function (r) { return "<tr><td>" + esc(r.symbol) + "</td><td>" + n2(r.weightPercentage, "%") + "</td><td>" + cnt(r.sharesNumber) + "</td></tr>"; }).join("") + "</table></div></div>";
         });
       }
       if (!el.innerHTML && !body.querySelector('[data-k="inst"]').innerHTML && !(row && row.etf)) el.innerHTML = '<p class="mu">No ownership data for ' + esc(T) + ".</p>";
@@ -295,6 +312,7 @@
   }
   core().then(function (c) {
     renderHead(c);
+    liveQuote();
     TABS = [["overview", "Overview", overview]];
     if (!c.isEtf) TABS.push(["financials", "Financials", financials]);
     if (c.isEtf) TABS.push(["holdings", "Holdings", holdings]);

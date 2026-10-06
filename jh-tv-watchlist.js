@@ -217,7 +217,7 @@
     while (bqRun < 2 && BQ.length) {
       var id = BQ.shift(); bqRun++;
       (function (id) {
-        var m = mapped(id), sym = m ? m.id : (root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(id) ? id : chartTarget(id)), done = false;
+        var m = mapped(id), done = false, cands = barCands(id, m);
         var to = setTimeout(function () { fin(null, "timed out"); }, 45000);
         function fin(bars, err) {
           if (done) return; done = true; clearTimeout(to); bqRun--;
@@ -226,10 +226,26 @@
           else { Q[id] = { ok: false, error: err || "no data yet" }; if (BQN[id] < 3) setTimeout(function () { barQuote(id, Q[id]); }, 60000 * BQN[id]); }
           QT[id] = Date.now(); paintQuotes([id]); bqPump();
         }
-        try { Promise.resolve(root.jhKlines(sym, "1d")).then(function (r) { fin(Array.isArray(r) ? r : r && (r.bars || r.data) || null); }, function (e) { fin(null, String(e && e.message || e)); }); }
-        catch (e) { fin(null, String(e && e.message || e)); }
+        (function next(i) {
+          if (done) return;
+          if (i >= cands.length) { fin(null, "no bars under " + cands.join(", ")); return; }
+          var p; try { p = Promise.resolve(root.jhKlines(cands[i], "1d")); } catch (e) { p = Promise.reject(e); }
+          p.then(function (r) { var b = Array.isArray(r) ? r : r && (r.bars || r.data) || null; if (b && b.length) fin(b); else next(i + 1); }, function () { next(i + 1); });
+        })(0);
       })(id);
     }
+  }
+  // the names the chart itself resolves for a TradingView id: US listings without the exchange, the id as given,
+  // the bare symbol (TVC:DXY → DXY), and continuous futures in Yahoo form (COMEX:GC1! → GC=F)
+  function barCands(id, m) {
+    if (m) return [m.id];
+    if (root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(id)) return [id];
+    var out = [], t = chartTarget(id), bare = id.indexOf(":") > 0 ? id.split(":").pop() : id;
+    function add(x) { if (x && out.indexOf(x) < 0) out.push(x); }
+    if (t !== id) add(t);
+    add(id); add(bare);
+    if (/\d*!$/.test(bare)) add(bare.replace(/\d*!$/, "") + "=F");
+    return out;
   }
   function fromBars(id, bars) {
     var b = bars.filter(function (x) { return x && x.time != null && isFinite(+x.close); }); if (!b.length) return null;
@@ -437,7 +453,9 @@
       running++;
       (function (b) {
         var qb = b.map(function (id) { var m = mapped(id); return m ? m.id : id; });
-        root.fetch(PROXY + "/quote?ids=" + encodeURIComponent(qb.join(","))).then(function (r) { return r.ok ? r.json() : { quotes: {} }; }).catch(function () { return { quotes: {} }; }).then(function (d) {
+        // the warehouse quote can stall on provider-denied feeds; give up after 9 s and quote from chart bars instead
+        var ctl = root.AbortController ? new AbortController() : null, qto = setTimeout(function () { if (ctl) ctl.abort(); }, 9000);
+        root.fetch(PROXY + "/quote?ids=" + encodeURIComponent(qb.join(",")), ctl ? { signal: ctl.signal } : undefined).then(function (r) { clearTimeout(qto); return r; }).then(function (r) { return r.ok ? r.json() : { quotes: {} }; }).catch(function () { return { quotes: {} }; }).then(function (d) {
           var qs = d.quotes || {};
           b.forEach(function (id) {
             var mm = mapped(id), qid = mm ? mm.id : id;
