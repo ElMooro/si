@@ -58,10 +58,18 @@
   // ------------------------------------------------------------------ store
   var D = null;
   function blank() {
-    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false };
+    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false, alias: {}, stars: [], updated: 0 };
+  }
+  // account-scoped cache: the signed-in account keeps its own copy in this browser; signed out uses the device copy
+  var acctUid = null, applying = false, pushT = 0;
+  function storeKey() { return acctUid ? KEY + ":" + acctUid : KEY; }
+  function fill(x) {
+    if (!x || x.v !== 1 || typeof x.lists !== "object") x = blank();
+    var b = blank(); Object.keys(b).forEach(function (k) { if (x[k] === undefined) x[k] = b[k]; });
+    return x;
   }
   function load() {
-    try { D = JSON.parse(root.localStorage.getItem(KEY) || "null"); } catch (e) { D = null; }
+    try { D = JSON.parse(root.localStorage.getItem(storeKey()) || "null"); } catch (e) { D = null; }
     if (!D || D.v !== 1 || typeof D.lists !== "object") D = blank();
     var b = blank(); Object.keys(b).forEach(function (k) { if (D[k] === undefined) D[k] = b[k]; });
     return D;
@@ -69,8 +77,10 @@
   var saveT = 0;
   function save() {
     clearTimeout(saveT);
+    if (!applying) D.updated = Date.now();
     saveT = setTimeout(function () {
-      try { root.localStorage.setItem(KEY, JSON.stringify(D)); }
+      if (acctUid && !applying) schedulePush();
+      try { root.localStorage.setItem(storeKey(), JSON.stringify(D)); }
       catch (e) { toast("Watchlist storage is full — export lists to keep a copy"); }
       try { root.dispatchEvent(new CustomEvent("jh-tvwl-changed")); } catch (e) {}
     }, 120);
@@ -83,6 +93,248 @@
     if (opts.front) D.order.unshift(id); else D.order.push(id);
     return id;
   }
+  // ------------------------------------------------------------------ account sync (jh-account-sync.js)
+  function S() { return root.JHAccountSync || null; }
+  function schedulePush() {
+    clearTimeout(pushT);
+    pushT = setTimeout(function () {
+      var A = S(); if (!A || !acctUid || !A.user() || A.user().id !== acctUid) return;
+      A.put("chart-watchlist", D, D.updated).catch(function (e) { toast("Could not save to your account: " + e.message); });
+      paintAcct();
+    }, 1500);
+  }
+  function applyDoc(x) {
+    applying = true; D = fill(x); sel = {}; anchor = null;
+    try { root.localStorage.setItem(storeKey(), JSON.stringify(D)); } catch (e) {}
+    applying = false; QT = {}; render();
+    try { root.dispatchEvent(new CustomEvent("jh-tvwl-changed")); } catch (e) {}
+  }
+  function onAccount(u) {
+    var uid = u && u.id ? u.id : null;
+    if (uid === acctUid) { paintAcct(); return; }
+    var device = D;
+    acctUid = uid;
+    if (!uid) { var dv = null; try { dv = JSON.parse(root.localStorage.getItem(KEY) || "null"); } catch (e) {} applyDoc(dv || device); paintAcct(); return; }
+    var cached = null; try { cached = JSON.parse(root.localStorage.getItem(storeKey()) || "null"); } catch (e) {}
+    S().get("chart-watchlist").then(function (r) {
+      if (acctUid !== uid) return;
+      var cloud = r && r.doc && r.doc.v === 1 ? r.doc : null, cu = (r && r.updated_at) || (cloud && cloud.updated) || 0;
+      if (cloud && (!cached || cu >= (cached.updated || 0))) { applyDoc(cloud); toast("Watchlists loaded from your account"); }
+      else {
+        // first sign-in on this account (or a newer edit made here): this browser's lists become the account's lists
+        applyDoc(cached || device);
+        S().put("chart-watchlist", D, D.updated || Date.now()).then(function () { toast(cloud ? "Saved your latest edits to your account" : "Your watchlists are now saved to your account"); paintAcct(); });
+      }
+      paintAcct();
+    }).catch(function (e) { toast("Account sync unavailable: " + e.message); applyDoc(cached || device); paintAcct(); });
+  }
+  function paintAcct() {
+    var b = panel && panel.querySelector('[data-a="acct"]'); if (!b) return;
+    var A = S(), u = A && A.user(), st = A ? A.status() : { state: "local" };
+    b.classList.toggle("on", !!u);
+    b.title = u ? "Saved to " + (u.email || "your account") + (st.state === "error" ? " — last save failed: " + st.error : st.state === "saving" ? " — saving…" : "") : "Sign in to keep watchlists, names, colour tags and files in your account";
+  }
+  function acctMenu(btn) {
+    var r = btn.getBoundingClientRect(), A = S(), u = A && A.user(), st = A ? A.status() : {};
+    var html = u
+      ? '<div class="lab">Account</div><div style="padding:2px 14px 8px;font-size:12px">' + esc(u.email || u.id) + '<br><span style="color:#787b86">' + (st.state === "error" ? "Last save failed: " + esc(st.error) : "Watchlists, names, colour tags, favourites and imported files are saved to this account" + (st.at ? " · " + new Date(st.at).toLocaleTimeString() : "")) + "</span></div><hr>" +
+        '<button data-m="sync">Save now</button><button data-m="pull">Reload from account</button><hr><button data-m="out">Sign out</button>'
+      : '<div style="padding:6px 14px 8px;font-size:12px;max-width:260px">Lists, renamed symbols, colour tags and imported files are kept in this browser only. Sign in to save them to your JustHodl account and see them on every device.</div><button data-m="in">Sign in…</button>';
+    menu(r.right - 260, r.bottom + 4, html, function (m) {
+      if (m === "in") A ? A.signIn() : toast("Sign-in is loading…");
+      if (m === "out") A.signOut();
+      if (m === "sync") { A.put("chart-watchlist", D, D.updated || Date.now()).then(function () { toast("Saved to your account"); A.syncFiles(); }, function (e) { toast("Save failed: " + e.message); }); }
+      if (m === "pull") { A.get("chart-watchlist").then(function (x) { if (x && x.doc) { applyDoc(x.doc); toast("Reloaded from your account"); } else toast("Nothing saved in the account yet"); }); }
+    });
+  }
+  function aliasOf(id) { return (D.alias && id && D.alias[String(id).toUpperCase()]) || ""; }
+  function disp(id) { return aliasOf(id) || short(id); }
+  var INFO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>';
+  // Stocks and funds get the overview page; macro series, spreads, futures and FX do not.
+  function infoTarget(id) {
+    id = String(id || "");
+    if (!id || isSec(id) || (root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(id))) return null;
+    var t = chartTarget(id);
+    if (t !== id) return t;
+    var nm = (root.JH_WL_NAMES || {})[id];
+    if (/^[A-Z]{1,5}([.\-][A-Z])?$/.test(id) && (!nm || /^(stock|fund|dr)$/.test(nm[1]))) return id;
+    return null;
+  }
+  function openInfo(id) { var t = infoTarget(id); if (t) root.open("/symbol.html?s=" + encodeURIComponent(t), "_blank", "noopener"); }
+  function listName(id) { var l = D.lists[id]; return l ? l.name : /^flag:/.test(id) ? id.charAt(5).toUpperCase() + id.slice(6) + " list" : id; }
+  function toggleStar(id) {
+    if (!id) return;
+    var i = D.stars.indexOf(id);
+    if (i >= 0) D.stars.splice(i, 1); else D.stars.push(id);
+    save(); render(); toast(i >= 0 ? "Removed " + listName(id) + " from favourites" : "Added " + listName(id) + " to favourites");
+  }
+  function paintExpress() {
+    var bar = panel && panel.querySelector(".wl-exp"); if (!bar) return;
+    D.stars = D.stars.filter(function (id) { return D.lists[id] || /^flag:/.test(id); });
+    bar.innerHTML = D.stars.map(function (id) {
+      var fc = /^flag:/.test(id) ? FLAG_HEX[id.slice(5)] : (D.lists[id] && D.lists[id].flag ? FLAG_HEX[D.lists[id].flag] : null);
+      return '<button type="button" role="tab" data-a="exp" data-id="' + esc(id) + '" class="' + (id === D.active ? "on" : "") + '" aria-selected="' + (id === D.active) + '" title="' + esc(listName(id)) + '">' + (fc ? '<i style="background:' + fc + '"></i>' : "") + esc(listName(id)) + "</button>";
+    }).join("");
+  }
+  // Preferred names: shown everywhere in the watchlist and searchable, while the row keeps pulling the original data id.
+  function setAlias(id, name) {
+    var k = String(id || "").toUpperCase(); if (!k) return;
+    name = String(name || "").trim().slice(0, 80);
+    if (name && name.toUpperCase() !== short(id).toUpperCase()) D.alias[k] = name; else delete D.alias[k];
+    save(); render();
+    try { root.dispatchEvent(new CustomEvent("jh-tvwl-changed")); } catch (e) {}
+  }
+  function editSym(id) {
+    if (!id) return;
+    var cur0 = aliasOf(id), fl0 = D.flags[id] || "", nm = (Q[id] && Q[id].name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "";
+    dlg("Rename & colour tag", '<div class="ed" style="padding:4px 20px 18px">' +
+      '<label for="jhwl-al">Your name for this symbol</label><input id="jhwl-al" type="text" maxlength="80" value="' + esc(cur0) + '" placeholder="' + esc(short(id)) + '" style="width:100%;box-sizing:border-box">' +
+      '<label>Colour tag</label><div class="sw"><i data-c="" class="' + (!fl0 ? "on" : "") + '" style="background:#363a45" title="No tag">×</i>' + FLAGS.map(function (f) { return '<i data-c="' + f[0] + '" class="' + (fl0 === f[0] ? "on" : "") + '" style="background:' + f[1] + '" title="' + f[0] + '"></i>'; }).join("") + "</div>" +
+      '<div class="src">Data is still pulled from <b>' + esc(id) + "</b>" + (nm ? " — " + esc(nm) : "") + ". The name is used in this watchlist, the details panel and symbol search.</div>" +
+      '<div class="ft" style="padding:14px 0 0"><button type="button" data-save>Save</button><button type="button" class="sec" data-reset>Use original name</button></div></div>',
+      function (d, close) {
+        var inp = d.querySelector("#jhwl-al"), fl = fl0;
+        d.querySelector(".sw").onclick = function (e) { var i = e.target.closest("[data-c]"); if (!i) return; fl = i.getAttribute("data-c"); d.querySelectorAll(".sw i").forEach(function (x) { x.classList.toggle("on", x === i); }); };
+        function done(alias) { if (fl) D.flags[id] = fl; else delete D.flags[id]; if (fl) D.lastFlag = fl; setAlias(id, alias); close(); toast(alias ? "Saved — search \u201c" + alias + "\u201d to find " + short(id) : "Using the original name"); }
+        d.querySelector("[data-save]").onclick = function () { done(inp.value); };
+        d.querySelector("[data-reset]").onclick = function () { done(""); };
+        inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); done(inp.value); } });
+        inp.focus(); inp.select();
+      });
+  }
+
+  // Symbols the warehouse /quote cannot price (e.g. TradingView-only feeds) are quoted from the same bars the chart draws,
+  // so the row shows the number the chart shows. Long histories can take a while; the row shows … until they arrive.
+  var BQ = [], bqRun = 0, BQN = {};
+  function barQuote(id, failed) {
+    if (typeof root.jhKlines !== "function" || /^FILE[:\-]/i.test(id)) return;
+    var n = BQN[id] = (BQN[id] || 0) + 1; if (n > 3) return;
+    Q[id] = { ok: false, pending: true, error: failed && failed.error };
+    if (BQ.indexOf(id) < 0) BQ.push(id);
+    bqPump();
+  }
+  function bqPump() {
+    while (bqRun < 2 && BQ.length) {
+      var id = BQ.shift(); bqRun++;
+      (function (id) {
+        var m = mapped(id), sym = m ? m.id : (root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(id) ? id : chartTarget(id)), done = false;
+        var to = setTimeout(function () { fin(null, "timed out"); }, 45000);
+        function fin(bars, err) {
+          if (done) return; done = true; clearTimeout(to); bqRun--;
+          var q = bars && bars.length ? fromBars(id, bars) : null;
+          if (q) { if (m) q = mappedQuote(q, m); Q[id] = q; delete BQN[id]; }
+          else { Q[id] = { ok: false, error: err || "no data yet" }; if (BQN[id] < 3) setTimeout(function () { barQuote(id, Q[id]); }, 60000 * BQN[id]); }
+          QT[id] = Date.now(); paintQuotes([id]); bqPump();
+        }
+        try { Promise.resolve(root.jhKlines(sym, "1d")).then(function (r) { fin(Array.isArray(r) ? r : r && (r.bars || r.data) || null); }, function (e) { fin(null, String(e && e.message || e)); }); }
+        catch (e) { fin(null, String(e && e.message || e)); }
+      })(id);
+    }
+  }
+  function fromBars(id, bars) {
+    var b = bars.filter(function (x) { return x && x.time != null && isFinite(+x.close); }); if (!b.length) return null;
+    var L = b[b.length - 1], P = b.length > 1 ? b[b.length - 2] : null;
+    function day(t) { return new Date((typeof t === "number" ? t : Date.parse(t) / 1000) * 1000).toISOString().slice(0, 10); }
+    function ts(t) { return typeof t === "number" ? t : Date.parse(t) / 1000; }
+    function back(days) { var t = ts(L.time) - days * 86400; for (var i = b.length - 1; i >= 0; i--) if (ts(b[i].time) <= t) return b[i].close ? (L.close / b[i].close - 1) * 100 : null; return null; }
+    var gap = b.length > 2 ? (ts(L.time) - ts(b[0].time)) / (b.length - 1) / 86400 : 1;
+    return { ok: true, id: id, name: ((root.JH_WL_NAMES || {})[id] || [])[0] || "", last: +L.close, prev: P ? +P.close : null,
+      chg: P ? L.close - P.close : null, chg_pct: P && P.close ? (L.close / P.close - 1) * 100 : null,
+      mom_pct: back(30), qoq_pct: back(91), yoy_pct: back(365), last_date: day(L.time), prev_date: P ? day(P.time) : null,
+      first: day(b[0].time), n: b.length, freq: gap < 1.6 ? "D" : gap < 8 ? "W" : gap < 40 ? "M" : gap < 120 ? "Q" : "A",
+      spark: b.slice(-40).map(function (x) { return +x.close; }), source: "chart bars" };
+  }
+
+  // ------------------------------------------------------------------ insights under the symbol (flows, fund changes, valuation)
+  var INS = {};
+  function getJ(u) { return root.fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  function shardOf(t) { return (String(t).toUpperCase() + "__").slice(0, 2).replace(/[^A-Z0-9]/g, "_"); }
+  function money(v) { if (v == null || !isFinite(v)) return "—"; var a = Math.abs(v), s = v < 0 ? "−" : v > 0 ? "+" : ""; return s + "$" + (a >= 1e12 ? (a / 1e12).toFixed(2) + "T" : a >= 1e9 ? (a / 1e9).toFixed(2) + "B" : a >= 1e6 ? (a / 1e6).toFixed(1) + "M" : a >= 1e3 ? (a / 1e3).toFixed(0) + "K" : a.toFixed(0)); }
+  function big(v) { if (v == null || !isFinite(v)) return "—"; var a = Math.abs(v); return "$" + (a >= 1e12 ? (v / 1e12).toFixed(2) + "T" : a >= 1e9 ? (v / 1e9).toFixed(2) + "B" : a >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.round(v).toLocaleString("en-US")); }
+  function num2(v, suf) { return v == null || !isFinite(v) ? "—" : (+v).toFixed(2) + (suf || ""); }
+  function sgnPct(v, dp) { if (v == null || !isFinite(v)) return "—"; return '<span class="' + (v > 0 ? "up" : v < 0 ? "dn" : "") + '">' + (v > 0 ? "+" : "") + v.toFixed(dp == null ? 2 : dp) + "%</span>"; }
+  function cnt(n) { return Number(n || 0).toLocaleString("en-US"); }
+  function lastCompleteQuarter() {
+    // 13F reports are due 45 days after quarter end; use the latest quarter whose deadline has passed
+    var d = new Date(Date.now() - 46 * 864e5), q = Math.floor(d.getUTCMonth() / 3), y = d.getUTCFullYear();
+    q -= 1; if (q < 0) { q = 3; y--; }
+    return { year: y, quarter: q + 1 };
+  }
+  function flowSum(fh, days) {
+    if (!fh || !fh.d || !fh.f || !fh.d.length) return null;
+    var end = Date.parse(fh.d[fh.d.length - 1]), from = end - days * 864e5, s = 0, n = 0;
+    for (var i = fh.d.length - 1; i >= 0 && Date.parse(fh.d[i]) > from; i--) { if (isFinite(fh.f[i])) { s += +fh.f[i]; n++; } }
+    return n ? s : null;
+  }
+  function ytdSum(fh) {
+    if (!fh || !fh.d || !fh.d.length) return null;
+    var y = fh.d[fh.d.length - 1].slice(0, 4), s = 0, n = 0;
+    for (var i = fh.d.length - 1; i >= 0 && fh.d[i].slice(0, 4) === y; i--) if (isFinite(fh.f[i])) { s += +fh.f[i]; n++; }
+    return n ? s : null;
+  }
+  function loadInsights(id, el) {
+    var t = infoTarget(id); if (!t) return;
+    var c = INS[t];
+    if (c && c.html) { el.innerHTML = c.html; return; }
+    if (!c) {
+      var qq = lastCompleteQuarter();
+      c = INS[t] = { p: Promise.all([
+        getJ(PROXY + "/fundamentals?ticker=" + encodeURIComponent(t)),
+        getJ(PROXY + "/data/watchlist-insights/etf/" + encodeURIComponent(t) + ".json"),
+        getJ(PROXY + "/data/etf-flow-hist/" + encodeURIComponent(t) + ".json"),
+        getJ(PROXY + "/data/watchlist-insights/stock/" + shardOf(t) + ".json"),
+        getJ(PROXY + "/fmp?ep=institutional-ownership/symbol-positions-summary&symbol=" + encodeURIComponent(t) + "&year=" + qq.year + "&quarter=" + qq.quarter)
+      ]).then(function (a) { c.html = insightsHtml(t, a[0], a[1], a[2], a[3] && a[3].rows ? a[3].rows[t] : null, a[3] && a[3].managers, a[4] && a[4].data && a[4].data[0], qq); return c.html; }) };
+    }
+    c.p.then(function (h) { if (el.isConnected) el.innerHTML = h; else { var e2 = det && det.querySelector('.wl-ins[data-ins]'); if (e2 && infoTarget(e2.getAttribute("data-ins")) === t) e2.innerHTML = h; } });
+  }
+  function insightsHtml(t, f, etf, fh, st, managers, inst, qq) {
+    var h = "", isEtf = !!(etf || (f && (f.isEtf || f.isFund)) || fh);
+    var link = '<a href="/symbol.html?s=' + encodeURIComponent(t) + '" target="_blank" rel="noopener">Full overview ↗</a>';
+    if (fh && fh.d && fh.d.length) {
+      h += '<h4>ETF flows <span>as of ' + esc(fh.asof || fh.d[fh.d.length - 1]) + "</span></h4><div class=\"g\">" +
+        [["1D", flowSum(fh, 1)], ["1W", flowSum(fh, 7)], ["1M", flowSum(fh, 30)], ["3M", flowSum(fh, 91)], ["YTD", ytdSum(fh)], ["1Y", flowSum(fh, 365)]].map(function (x) {
+          return "<div><small>" + x[0] + '</small><b class="' + (x[1] > 0 ? "up" : x[1] < 0 ? "dn" : "") + '">' + money(x[1]) + "</b></div>";
+        }).join("") + "</div>";
+    } else if (isEtf) h += '<div class="mu">No daily flow history for ' + esc(t) + " in the flows desk (it covers 117 ETFs).</div>";
+    if (etf) {
+      var pe = (etf.prior_effective || [])[0], ef = (etf.effective || [])[0];
+      h += "<h4>Holdings changes <span>" + esc(pe || "?") + " → " + esc(ef || "?") + "</span></h4>" +
+        '<div class="ln"><span class="up">+' + (etf.added || []).length + " added</span> · <span class=\"dn\">−" + (etf.removed || []).length + " removed</span> · " + cnt(etf.increased) + " increased · " + cnt(etf.decreased) + " decreased · " + cnt(etf.constituents) + " holdings</div>" +
+        ((etf.added || []).length ? '<div class="mu">Added: ' + etf.added.slice(0, 8).map(function (x) { return esc(x[0] || x[1]); }).join(", ") + "</div>" : "") +
+        ((etf.removed || []).length ? '<div class="mu">Removed: ' + etf.removed.slice(0, 8).map(function (x) { return esc(x[0] || x[1]); }).join(", ") + "</div>" : "") +
+        ((etf.holdings || []).length ? '<div class="mu">Top: ' + etf.holdings.slice(0, 5).map(function (x) { return esc(x[0] || x[1]) + " " + (x[2] != null ? (+x[2]).toFixed(2) + "%" : ""); }).join(" · ") + "</div>" : "");
+    }
+    if (st && st.etf && !etf) {
+      var e = st.etf, chg = e.sh_prior > 0 ? (e.sh_cur / e.sh_prior - 1) * 100 : null;
+      h += "<h4>ETF holders — last ~30 days <span>constituent snapshots</span></h4>" +
+        '<div class="ln">Held by ' + cnt(e.n_held) + " tracked ETFs · shares held " + sgnPct(chg) + " · " + cnt(e.up) + " ↑ " + cnt(e.down) + " ↓</div>" +
+        ((e.added || []).length ? '<div class="mu"><span class="up">Added by</span> ' + e.added.slice(0, 8).map(function (x) { return esc(x[0]); }).join(", ") + "</div>" : "") +
+        ((e.removed || []).length ? '<div class="mu"><span class="dn">Removed by</span> ' + e.removed.slice(0, 8).map(function (x) { return esc(x[0]); }).join(", ") + "</div>" : "");
+    }
+    if (inst && !isEtf) {
+      var shc = inst.lastNumberOf13Fshares ? inst.numberOf13FsharesChange / inst.lastNumberOf13Fshares * 100 : null;
+      h += "<h4>Big funds — Q" + qq.quarter + " " + qq.year + " 13F <span>all filers · quarter ended " + esc(inst.date || "") + "</span></h4>" +
+        '<div class="ln">Shares held by institutions ' + sgnPct(shc) + " · ownership " + num2(inst.ownershipPercent, "%") + " (" + (inst.ownershipPercentChange > 0 ? "+" : "") + num2(inst.ownershipPercentChange, " pp") + ")</div>" +
+        '<div class="mu">' + cnt(inst.investorsHolding) + " holders (" + (inst.investorsHoldingChange > 0 ? "+" : "") + cnt(inst.investorsHoldingChange) + ") · " + cnt(inst.newPositions) + " new · " + cnt(inst.increasedPositions) + " added · " + cnt(inst.reducedPositions) + " trimmed · " + cnt(inst.closedPositions) + " exited</div>";
+    }
+    if (st && st.f13 && st.f13.rows && st.f13.rows.length) {
+      var R = st.f13.rows, cur1 = 0, pri = 0, k = { inc: 0, dec: 0, nw: 0, ex: 0 };
+      R.forEach(function (r) { cur1 += +r[2] || 0; pri += +r[5] || 0; if (/increased/.test(r[1])) k.inc++; else if (/decreased/.test(r[1])) k.dec++; else if (/^newly/.test(r[1])) k.nw++; else if (/^not_present/.test(r[1])) k.ex++; });
+      h += "<h4>Tracked managers <span>" + R.length + " of " + ((managers || []).length || 15) + " · " + esc(st.f13.period || "") + "</span></h4>" +
+        '<div class="ln">Net shares ' + sgnPct(pri ? (cur1 / pri - 1) * 100 : null) + " · " + k.inc + " increased · " + k.dec + " decreased · " + k.nw + " new · " + k.ex + " exited</div>" +
+        '<div class="mu">' + R.slice().sort(function (a, b) { return Math.abs(b[3]) - Math.abs(a[3]); }).slice(0, 4).map(function (r) { return esc(r[0]) + " " + (r[3] > 0 ? '<span class="up">+' : r[3] < 0 ? '<span class="dn">' : "<span>") + Math.round(r[3]).toLocaleString("en-US") + "</span>"; }).join(" · ") + "</div>";
+    }
+    if (f && !f.error) {
+      h += "<h4>Valuation <span>" + esc(f.exchange || "") + "</span></h4><div class=\"g\">" +
+        [[isEtf ? "AUM / Mkt cap" : "Mkt cap", big(f.marketCap)], ["P/E", num2(f.pe)], ["P/S", num2(f.ps)], ["PEG", num2(f.peg)], ["Div yield", f.dividendYield == null ? "—" : (f.dividendYield * 100).toFixed(2) + "%"], [isEtf ? "Beta" : "EV/EBITDA", isEtf ? num2(f.beta) : num2(f.evToEbitda)]].map(function (x) {
+          return "<div><small>" + x[0] + "</small><b>" + x[1] + "</b></div>";
+        }).join("") + "</div>";
+    }
+    if (!h) return '<div class="mu">No flow, fund-holding or valuation data for ' + esc(t) + ". " + link + "</div>";
+    return h + '<div class="mu" style="margin-top:4px">' + link + "</div>";
+  }
+
   function cur() {
     if (D.active && /^flag:/.test(D.active)) {
       var col = D.active.slice(5);
@@ -192,6 +444,7 @@
             var q = qs[qid]; if (!q) { var k = Object.keys(qs).filter(function (x) { return sameId(x, qid); })[0]; q = k ? qs[k] : null; }
             if (mm && q) q = mappedQuote(q, mm);
             Q[id] = q || { ok: false, error: "no quote" }; QT[id] = Date.now(); delete inflight[id];
+            if (!Q[id].ok) barQuote(id, Q[id]);
           });
           running--; paintQuotes(b); pump();
         });
@@ -239,6 +492,22 @@
       "#jhwl .wl-x{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:0;border-radius:3px;background:var(--bg2);color:var(--mut);cursor:pointer;display:none;font-size:14px;line-height:1}",
       "#jhwl .wl-row:hover .wl-x{display:block}",
       "#jhwl .wl-x:hover{color:var(--fg);background:var(--bd)}",
+      // 2026-10-06: favourites bar, account button, info icon, renamed symbols, insights strip, rename dialog
+      "#jhwl .wl-star{font-size:15px;color:var(--mut)}#jhwl .wl-star.on{color:#f7b500}",
+      "#jhwl .wl-acct svg{width:17px;height:17px}#jhwl .wl-acct.on{color:#2962ff}",
+      "#jhwl .wl-exp{display:flex;gap:4px;padding:4px 8px;border-bottom:1px solid var(--bd);overflow-x:auto;scrollbar-width:none;flex:0 0 auto}#jhwl .wl-exp:empty{display:none}#jhwl .wl-exp::-webkit-scrollbar{display:none}",
+      "#jhwl .wl-exp button{flex:0 0 auto;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;height:24px;padding:0 9px;border:1px solid var(--bd);border-radius:12px;background:none;color:var(--fg);font:12px/22px inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px}",
+      "#jhwl .wl-exp button:hover{background:var(--hov)}#jhwl .wl-exp button.on{background:var(--blue);border-color:var(--blue);color:#fff}#jhwl .wl-exp i{width:8px;height:8px;border-radius:2px;flex:0 0 8px}",
+      "#jhwl .wl-info{position:absolute;right:26px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:0;border-radius:50%;background:var(--bg2);color:var(--mut);cursor:pointer;display:none;padding:0;line-height:0}",
+      "#jhwl .wl-info svg{width:14px;height:14px}#jhwl .wl-row:hover .wl-info{display:inline-flex;align-items:center;justify-content:center}#jhwl .wl-info:hover{color:var(--blue);background:var(--bd)}",
+      "#jhwl .wl-tk b.al{font-weight:600}#jhwl .wl-tk b em{font-style:normal;color:var(--mut);font-weight:400;font-size:11px;margin-left:4px}",
+      "#jhwl .wl-ins{border:1px solid var(--bd);border-radius:6px;padding:7px 8px;margin:6px 0 8px;font-size:12px}",
+      "#jhwl .wl-ins h4{margin:0 0 4px;font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;gap:6px}#jhwl .wl-ins h4 span{font-weight:400;text-transform:none;letter-spacing:0}",
+      "#jhwl .wl-ins .g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px;margin-bottom:6px}#jhwl .wl-ins .g div{min-width:0}#jhwl .wl-ins .g small{display:block;color:var(--mut);font-size:10px}#jhwl .wl-ins .g b{font-weight:500;white-space:nowrap}",
+      "#jhwl .wl-ins .ln{color:var(--fg);margin:2px 0;line-height:1.35}#jhwl .wl-ins .mu{color:var(--mut);font-size:11px}#jhwl .wl-ins a{color:var(--blue);text-decoration:none}#jhwl .wl-ins a:hover{text-decoration:underline}",
+      "#jhwl .wl-det h3 a.nfo{margin-left:auto;color:var(--mut);display:inline-flex}#jhwl .wl-det h3 a.nfo:hover{color:var(--blue)}#jhwl .wl-det h3 a.nfo svg{width:16px;height:16px}",
+      "#jhwl-dlg .ed label{display:block;color:#787b86;font-size:12px;margin:10px 0 4px}#jhwl-dlg .ed .sw{display:flex;gap:8px;flex-wrap:wrap}#jhwl-dlg .ed .sw i{width:22px;height:22px;border-radius:4px;cursor:pointer;border:2px solid transparent;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;color:#fff}#jhwl-dlg .ed .sw i.on{border-color:#d1d4dc}",
+      "#jhwl-dlg .ed .src{font-size:12px;color:#787b86;margin-top:10px;word-break:break-all}#jhwl-dlg .li .st{background:none;border:0;color:#787b86;cursor:pointer;font-size:15px;padding:0 6px}#jhwl-dlg .li .st.on{color:#f7b500}",
       "#jhwl .wl-sec{display:flex;align-items:center;gap:6px;height:28px;padding:0 8px 0 8px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);cursor:pointer;position:relative;border-top:1px solid var(--bd)}",
       "#jhwl .wl-sec:hover{background:var(--hov);color:var(--fg)}",
       "#jhwl .wl-sec i{font-style:normal;display:inline-block;transition:transform .12s;width:10px}",
@@ -319,8 +588,11 @@
     panel = doc.createElement("div"); panel.id = "jhwl";
     panel.innerHTML =
       '<div class="wl-top"><button type="button" class="wl-name" data-a="listmenu" aria-haspopup="menu" title="Watchlist menu"><span></span><i>▼</i></button>' +
+      '<button type="button" class="wl-ib wl-star" data-a="star" title="Add this list to favourites" aria-label="Favourite list" aria-pressed="false">☆</button>' +
       '<button type="button" class="wl-ib" data-a="add" title="Add symbol" aria-label="Add symbol">+</button>' +
+      '<button type="button" class="wl-ib wl-acct" data-a="acct" title="Account" aria-label="Account and sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>' +
       '<button type="button" class="wl-ib" data-a="settings" title="Columns & view settings" aria-label="Watchlist settings">⋯</button></div>' +
+      '<div class="wl-exp" role="tablist" aria-label="Favourite watchlists"></div>' +
       '<div class="wl-cols" role="row"></div>' +
       '<div class="wl-body" tabindex="0" role="listbox" aria-label="Watchlist symbols" aria-multiselectable="true"></div>' +
       '<div class="wl-split" title="Drag to resize details"></div>' +
@@ -360,7 +632,7 @@
     return view;
   }
   function sortVal(id, c) {
-    if (c === "sym") return short(id).toUpperCase();
+    if (c === "sym") return disp(id).toUpperCase();
     var q = Q[id]; if (!q || !q.ok) return null;
     return { last: q.last, chg: q.chg, chgp: q.chg_pct, m1: q.mom_pct, m3: q.qoq_pct, y1: q.yoy_pct, date: q.last_date }[c];
   }
@@ -368,7 +640,7 @@
     var q = Q[id] || null, ok = q && q.ok;
     return colsOn().map(function (c) {
       var k = c[0], v, cl = "";
-      if (!ok) return '<span class="wl-c na" data-k="' + k + '"' + (q && q.error ? ' title="' + esc(q.error) + '"' : "") + ">" + (k === "spark" ? "" : (q ? "—" : "…")) + "</span>";
+      if (!ok) return '<span class="wl-c na" data-k="' + k + '"' + (q && q.error ? ' title="' + esc(q.pending ? "Loading the full history the chart uses…" : q.error) + '"' : "") + ">" + (k === "spark" ? "" : (q && !q.pending ? "—" : "…")) + "</span>";
       if (k === "last") v = fmt(q.last);
       else if (k === "chg") { v = (q.chg > 0 ? "+" : "") + fmt(q.chg); cl = sgn(q.chg); }
       else if (k === "chgp") { v = pct(q.chg_pct); cl = sgn(q.chg_pct); }
@@ -391,14 +663,14 @@
     if (r.sec) {
       return '<div class="wl-sec' + (r.col ? " col" : "") + '" data-vi="' + vi + '" data-sec="' + esc(r.title) + '" draggable="true"><i>▾</i>' + esc(r.title) + " <em>" + r.n + '</em><button type="button" class="wl-x" data-a="delsec" title="Remove section (keep symbols)">×</button></div>';
     }
-    var id = r.id, fl = D.flags[id], q = Q[id], s = short(id);
-    var name = q && q.name ? q.name : "";
+    var id = r.id, fl = D.flags[id], q = Q[id], s = short(id), al = aliasOf(id);
+    var name = q && q.name ? q.name : ((root.JH_WL_NAMES || {})[id] || [])[0] || "";
     var cls = "wl-row" + (D.desc ? " desc" : "") + (sel[r.idx] ? " sel" : "") + (sameId(id, activeSym) || sameId(short(id), activeSym) ? " act" : "") + (vi === focusIdx ? " foc" : "");
-    return '<div class="' + cls + '" data-vi="' + vi + '" data-id="' + esc(id) + '" role="option" aria-selected="' + (!!sel[r.idx]) + '" draggable="' + (!(D.sort.col && D.sort.dir)) + '" title="' + esc(id + (name ? " — " + name : "")) + '" style="grid-template-columns:' + gridTpl() + '">' +
+    return '<div class="' + cls + '" data-vi="' + vi + '" data-id="' + esc(id) + '" role="option" aria-selected="' + (!!sel[r.idx]) + '" draggable="' + (!(D.sort.col && D.sort.dir)) + '" title="' + esc((al ? al + " · " : "") + id + (name ? " — " + name : "") + "\nDouble-click to rename or colour-tag") + '" style="grid-template-columns:' + gridTpl() + '">' +
       '<span class="wl-sym"><i class="wl-flag" data-a="flag"' + (fl ? ' data-c="' + fl + '" style="background:' + FLAG_HEX[fl] + '"' : "") + ' title="Flag"></i>' +
       '<i class="wl-logo" style="background:' + hashC(s) + '">' + esc(s.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?") + "</i>" +
-      '<span class="wl-tk"><b>' + esc(s) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "") + "</span></span>" +
-      cells(id) + '<button type="button" class="wl-x" data-a="rm" title="Remove from watchlist" aria-label="Remove ' + esc(s) + '">×</button></div>';
+      '<span class="wl-tk">' + (al ? '<b class="al">' + esc(al) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : "<b>" + esc(s) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
+      cells(id) + (infoTarget(id) ? '<button type="button" class="wl-info" data-a="info" title="Symbol overview: key stats, financials, holdings, ownership" aria-label="Overview of ' + esc(s) + '">' + INFO_SVG + "</button>" : "") + '<button type="button" class="wl-x" data-a="rm" title="Remove from watchlist" aria-label="Remove ' + esc(s) + '">×</button></div>';
   }
   function render() {
     if (!panel) return;
@@ -406,6 +678,10 @@
     panel.querySelector(".wl-name span").textContent = L ? L.name : "Watchlist";
     var fl = L && L.flag ? FLAG_HEX[L.flag] : null;
     panel.querySelector(".wl-name").style.color = fl || "";
+    var stb = panel.querySelector('[data-a="star"]'), starred = D.stars.indexOf(D.active) >= 0;
+    stb.textContent = starred ? "★" : "☆"; stb.classList.toggle("on", starred); stb.setAttribute("aria-pressed", String(starred));
+    stb.title = starred ? "Remove this list from favourites" : "Add this list to favourites (shows in the bar below)";
+    paintExpress(); paintAcct();
     // header
     var sc = D.sort.col, dir = D.sort.dir;
     function h(k, lab) { return '<span data-sort="' + k + '" class="' + (sc === k && dir ? "s" : "") + '">' + lab + (sc === k && dir ? (dir > 0 ? " ▲" : " ▼") : "") + "</span>"; }
@@ -427,7 +703,7 @@
         var x = row.querySelector(".wl-x");
         Array.prototype.slice.call(tmp.children).forEach(function (c) { row.insertBefore(c, x); });
         var q = Q[id]; if (q && q.name) row.title = id + " — " + q.name;
-        if (D.desc && q && q.name) { var sm = row.querySelector(".wl-tk small"); if (sm) sm.textContent = q.name; }
+        if (D.desc && q && q.name) { var sm = row.querySelector(".wl-tk small"); if (sm) sm.textContent = aliasOf(id) ? short(id) + " · " + q.name : q.name; }
       });
       if (sameId(id, detId())) renderDetails();
     });
@@ -461,19 +737,22 @@
     var q = Q[id]; if (!q) { requestQuotes([id]); }
     var s = short(id), ok = q && q.ok;
     det.innerHTML =
-      '<h3><i class="wl-logo" style="background:' + hashC(s) + ';width:24px;height:24px;flex:0 0 24px;font-size:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal">' + esc(s.charAt(0).toUpperCase()) + "</i>" + esc(s) + (D.flags[id] ? '<i style="width:10px;height:10px;border-radius:2px;background:' + FLAG_HEX[D.flags[id]] + '"></i>' : "") + "</h3>" +
-      '<div class="nm" title="' + esc(id) + '">' + esc((ok && q.name) || id) + "</div>" +
+      '<h3><i class="wl-logo" style="background:' + hashC(s) + ';width:24px;height:24px;flex:0 0 24px;font-size:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal">' + esc(s.charAt(0).toUpperCase()) + "</i>" + esc(disp(id)) + (aliasOf(id) ? ' <span style="color:var(--mut);font-weight:400;font-size:12px">' + esc(s) + "</span>" : "") + (D.flags[id] ? '<i style="width:10px;height:10px;border-radius:2px;background:' + FLAG_HEX[D.flags[id]] + '"></i>' : "") +
+        (infoTarget(id) ? '<a class="nfo" href="/symbol.html?s=' + encodeURIComponent(infoTarget(id)) + '" target="_blank" rel="noopener" title="Full overview: key stats, financials, holdings, ownership, flows">' + INFO_SVG + "</a>" : "") + "</h3>" +
+      '<div class="nm" title="' + esc(id) + '">' + esc((ok && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || id) + "</div>" +
+      (infoTarget(id) ? '<div class="wl-ins" data-ins="' + esc(id) + '">' + (INS[infoTarget(id)] && INS[infoTarget(id)].html || '<div class="mu">Loading flows, fund changes and valuation…</div>') + "</div>" : "") +
       (q && q.mapped ? '<div class="asof" style="color:#f0b90b">Mapped equivalent: ' + esc(q.mapped.id) + (q.mapped.mode && q.mapped.mode !== "price" ? " shown as " + esc({ yoy: "% change from year ago", mom: "% change from prior month", qoq: "% change from prior quarter", chg: "change from prior period" }[q.mapped.mode] || q.mapped.mode) : "") + " · " + esc(q.mapped.basis || "") + " · TradingView feed not available</div>" : "") +
       (ok ? '<div><span class="px">' + fmt(q.last) + '</span><span class="ch ' + sgn(q.chg) + '">' + (q.chg > 0 ? "+" : "") + fmt(q.chg) + " (" + pct(q.chg_pct) + ")</span>" + (q.unit ? ' <span style="color:var(--mut)">' + esc(q.unit) + "</span>" : "") + "</div>" +
         '<div class="asof">As of ' + esc(q.last_date || "?") + (q.freq ? " · " + esc(q.freq) : "") + (q.prev_date ? " · prev " + esc(q.prev_date) : "") + "</div>" +
         (Array.isArray(q.spark) ? '<div>' + spark(q.spark, Math.max(120, (panel.clientWidth || 300) - 28), 46) + "</div>" : "") +
         '<div class="perf"><div><small>1D</small><span class="' + sgn(q.chg_pct) + '">' + pct(q.chg_pct) + '</span></div><div><small>1M</small><span class="' + sgn(q.mom_pct) + '">' + pct(q.mom_pct) + '</span></div><div><small>3M</small><span class="' + sgn(q.qoq_pct) + '">' + pct(q.qoq_pct) + '</span></div><div><small>1Y</small><span class="' + sgn(q.yoy_pct) + '">' + pct(q.yoy_pct) + "</span></div></div>" +
         '<div class="kv"><span>Symbol</span><span>' + esc(id) + "</span><span>History</span><span>" + esc(q.first || "?") + " → " + esc(q.last_date || "?") + (q.n ? " · " + Number(q.n).toLocaleString("en-US") + " obs" : "") + "</span></div>"
-        : '<div class="asof">' + (q ? "No quote from the warehouse for this symbol" + (q.error ? ": " + esc(String(q.error).split("(")[0].slice(0, 140)) : "") : "Loading quote…") + "</div>" +
+        : '<div class="asof">' + (q && q.pending ? "Loading the full history the chart uses…" : q ? "No quote from the warehouse for this symbol" + (q.error ? ": " + esc(String(q.error).split("(")[0].slice(0, 140)) : "") : "Loading quote…") + "</div>" +
           (q ? '<div class="alts" data-for="' + esc(id) + '"><div class="asof">Looking for the same data under other names…</div></div>' : "")) +
-      '<div class="acts"><button type="button" data-a="dchart">Chart</button><button type="button" data-a="dcompare">Compare</button><button type="button" data-a="dflag">Flag</button>' + (cur() && cur().items.indexOf(id) >= 0 ? '<button type="button" data-a="drm">Remove</button>' : '<button type="button" data-a="dadd">+ Add</button>') + "</div>";
+      '<div class="acts"><button type="button" data-a="dchart">Chart</button><button type="button" data-a="dcompare">Compare</button><button type="button" data-a="dflag">Flag</button><button type="button" data-a="dren">Rename</button>' + (cur() && cur().items.indexOf(id) >= 0 ? '<button type="button" data-a="drm">Remove</button>' : '<button type="button" data-a="dadd">+ Add</button>') + "</div>";
     det.setAttribute("data-id", id);
-    var altEl = det.querySelector(".alts"); if (altEl) loadAlts(id, (q && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "", altEl);
+    var insEl = det.querySelector(".wl-ins"); if (insEl) loadInsights(id, insEl);
+    var altEl = det.querySelector(".alts"); if (altEl && !(q && q.pending)) loadAlts(id, (q && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "", altEl);
   }
 
   // Same data under other names: the warehouse's own alternatives first, then a name search across every provider.
@@ -595,7 +874,10 @@
   function listMenu(btn) {
     var r = btn.getBoundingClientRect(), L = cur();
     var rec = D.recent.filter(function (id) { return id !== D.active && (D.lists[id] || /^flag:/.test(id)); }).slice(0, 5);
+    var fav = D.stars.indexOf(D.active) >= 0;
     var html =
+      '<button data-m="fav">' + (fav ? "★ Remove from favourites" : "☆ Add to favourites") + "</button>" +
+      (D.stars.length ? '<div class="lab">Favourites</div>' + D.stars.filter(function (id) { return D.lists[id] || /^flag:/.test(id); }).map(function (id) { return '<button data-m="go" data-id="' + esc(id) + '">★ ' + esc(listName(id)) + "</button>"; }).join("") : "") + "<hr>" +
       (L && !L.flag ? '<button data-m="addsec">Add section</button><hr>' : "") +
       '<button data-m="share">Copy list to clipboard</button>' +
       (L && !L.flag ? '<button data-m="copy">Make a copy…</button><button data-m="rename">Rename…</button>' : "") +
@@ -611,6 +893,7 @@
     menu(r.left, r.bottom + 4, html, function (m, b) {
       var L = cur();
       if (m === "go") setActive(b.getAttribute("data-id"));
+      else if (m === "fav") toggleStar(D.active);
       else if (m === "addsec") { var n = root.prompt("Section name", "NEW SECTION"); if (n) { L.items.unshift("###" + n.trim().toUpperCase()); save(); render(); } }
       else if (m === "share") { var t = exportText(L); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast("Copied " + L.items.filter(function (s) { return !isSec(s); }).length + " symbols"); }, function () { root.prompt("Copy the list", t); }); }
       else if (m === "copy") { var n2 = root.prompt("Name of the copy", L.name + " (copy)"); if (n2) { var id = addList(n2, L.items, { front: true }); setActive(id); } }
@@ -673,6 +956,7 @@
     if (!sel[r.idx]) { sel = {}; sel[r.idx] = true; anchor = r.idx; render(); }
     var idxs = selectedIdx(), n = idxs.length, others = D.order.filter(function (id) { return id !== D.active; });
     var html = '<button data-m="chart">Open chart<kbd>↵</kbd></button><button data-m="compare">Add to compare</button>' +
+      '<button data-m="edit">Rename & colour tag…<kbd>F2</kbd></button>' + (infoTarget(r.id) ? '<button data-m="info">Symbol overview ↗</button>' : "") +
       '<div class="lab">Flag</div><div class="flags">' + FLAGS.map(function (f) { return '<i data-m="flag" data-c="' + f[0] + '" class="' + (D.flags[r.id] === f[0] ? "on" : "") + '" style="background:' + f[1] + '" title="' + f[0] + '"></i>'; }).join("") + '</div><button data-m="unflag">Remove flag</button><hr>' +
       (cur().flag ? "" : '<button data-m="secabove">Add section above</button><button data-m="top">Move to top</button><button data-m="bottom">Move to bottom</button>') +
       '<button data-m="copyto">Add ' + (n > 1 ? n + " symbols" : "to another list") + "…</button>" +
@@ -681,6 +965,8 @@
     menu(x, y, html, function (m, b) {
       var L = cur(), ids = idxs.map(function (i) { return L.items[i]; });
       if (m === "chart") goChart(r.id);
+      else if (m === "edit") editSym(r.id);
+      else if (m === "info") openInfo(r.id);
       else if (m === "compare") ids.forEach(function (id) { if (root.jhAddCompare) root.jhAddCompare(id); else if (root.jhGoSymbol) root.jhGoSymbol(id, "compare"); });
       else if (m === "flag") { ids.forEach(function (id) { D.flags[id] = b.getAttribute("data-c"); }); save(); render(); }
       else if (m === "unflag") { ids.forEach(function (id) { delete D.flags[id]; }); save(); render(); }
@@ -734,13 +1020,14 @@
           });
           if (f >= items.length) f = Math.max(0, items.length - 1);
           ls.innerHTML = items.slice(0, 1500).map(function (it, i) {
-            return '<div class="li' + (i === f ? " f" : "") + '" data-i="' + i + '">' + (it.sw ? '<i class="sw" style="background:' + it.sw + '"></i>' : "") + '<span class="n' + (it.id === D.active ? " on" : "") + '">' + esc(it.name) + "</span><small>" + it.n + (it.origin === "tradingview" ? " · TV" : "") + "</small>" + (!it.sw && !pickMode ? '<button type="button" class="del" data-del="' + esc(it.id) + '" title="Delete list">🗑</button>' : "") + "</div>";
+            return '<div class="li' + (i === f ? " f" : "") + '" data-i="' + i + '">' + (it.sw ? '<i class="sw" style="background:' + it.sw + '"></i>' : "") + '<span class="n' + (it.id === D.active ? " on" : "") + '">' + esc(it.name) + "</span><small>" + it.n + (it.origin === "tradingview" ? " · TV" : "") + "</small>" + (!pickMode ? '<button type="button" class="st' + (D.stars.indexOf(it.id) >= 0 ? " on" : "") + '" data-star="' + esc(it.id) + '" title="' + (D.stars.indexOf(it.id) >= 0 ? "Remove from favourites" : "Add to favourites") + '">' + (D.stars.indexOf(it.id) >= 0 ? "★" : "☆") + "</button>" : "") + (!it.sw && !pickMode ? '<button type="button" class="del" data-del="' + esc(it.id) + '" title="Delete list">🗑</button>' : "") + "</div>";
           }).join("") || '<div class="li"><span class="n" style="color:#787b86">No lists match</span></div>';
         }
         function choose(it) { if (!it) return; close(); if (pickMode) onPick(it.id); else setActive(it.id); }
         inp.oninput = function () { f = 0; draw(); };
         d.querySelector(".tabs").onclick = function (e) { var b = e.target.closest("[data-t]"); if (!b) return; tab = b.getAttribute("data-t"); d.querySelectorAll(".tabs button").forEach(function (x) { x.classList.toggle("on", x === b); }); f = 0; draw(); };
         ls.onclick = function (e) {
+          var stb = e.target.closest("[data-star]"); if (stb) { e.stopPropagation(); toggleStar(stb.getAttribute("data-star")); draw(); return; }
           var del = e.target.closest("[data-del]"); if (del) { e.stopPropagation(); deleteList(del.getAttribute("data-del")); draw(); return; }
           var li = e.target.closest("[data-i]"); if (li) choose(items[+li.getAttribute("data-i")]);
         };
@@ -764,6 +1051,11 @@
       if (act === "listmenu") { listMenu(a); return; }
       if (act === "add") { openAdd(); return; }
       if (act === "settings") { settingsMenu(a); return; }
+      if (act === "star") { toggleStar(D.active); return; }
+      if (act === "acct") { acctMenu(a); return; }
+      if (act === "exp") { setActive(a.getAttribute("data-id")); return; }
+      if (act === "dren") { editSym(det.getAttribute("data-id")); return; }
+      if (act === "info") { e.stopPropagation(); var rw = a.closest(".wl-row"); if (rw) openInfo(rw.getAttribute("data-id")); return; }
       if (act === "dchart") { goChart(det.getAttribute("data-id")); return; }
       if (act === "dcompare") { var did = det.getAttribute("data-id"); if (root.jhAddCompare) root.jhAddCompare(did); return; }
       if (act === "dflag") { var r0 = a.getBoundingClientRect(); flagMenu(r0.left, r0.bottom + 4, det.getAttribute("data-id")); return; }
@@ -811,6 +1103,7 @@
     panel.addEventListener("dblclick", function (e) {
       var row = rowFromEvent(e); if (!row) return; var r = view[+row.getAttribute("data-vi")];
       if (r && r.sec) { var n = root.prompt("Rename section", r.title); if (n) { cur().items[r.idx] = "###" + n.trim().toUpperCase(); save(); render(); } }
+      else if (r && !e.target.closest("[data-a]")) editSym(r.id);
     });
     panel.addEventListener("contextmenu", function (e) {
       var fl = e.target.closest(".wl-flag");
@@ -822,6 +1115,7 @@
     });
     body.addEventListener("keydown", function (e) {
       var k = e.key;
+      if (k === "F2" && view[focusIdx] && !view[focusIdx].sec) { e.preventDefault(); editSym(view[focusIdx].id); return; }
       if (["ArrowDown", "ArrowUp", "Delete", "Backspace", "Enter", "Home", "End"].indexOf(k) < 0 && !(k === "a" && (e.ctrlKey || e.metaKey))) return;
       e.preventDefault(); e.stopPropagation();
       if (k === "a") { sel = {}; view.forEach(function (r) { if (!r.sec) sel[r.idx] = true; }); render(); return; }
@@ -930,6 +1224,10 @@
       seed().then(function () { render(); });
     })();
     railHook(); trackActive(); keys();
+    (function hookAcct(n) {
+      if (root.JHAccountSync) { root.JHAccountSync.onChange(function (u) { onAccount(u); }); var u0 = root.JHAccountSync.user(); if (u0) onAccount(u0); return; }
+      if (n < 80) setTimeout(function () { hookAcct(n + 1); }, 250);
+    })(0);
   }
 
   // warm the ECONOMICS map shortly after load so the first click on a TradingView economics code charts immediately
@@ -944,6 +1242,9 @@
     open: function (id) { setActive(id); },
     show: function () { var w = doc.getElementById("watch"); if (w) w.classList.add("jhwl-on"); if (root.jhWatchSet) root.jhWatchSet(true); },
     _data: function () { return D; },
+    alias: function (id) { return aliasOf(id); },
+    setAlias: function (id, name) { setAlias(id, name); },
+    stars: function () { return D.stars.slice(); },
     render: function () { render(); }
   };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot); else boot();

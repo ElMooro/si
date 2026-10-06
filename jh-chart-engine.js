@@ -7254,6 +7254,8 @@ else if(o.id==="rvol"){
   window.jhSetKind=function(k){ if(!k) return; kind=k; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetMode=function(m){ if(!CHG.some(function(t){return t[0]===m;})) return false; mode=m; renderTf(); if(lastBars.length) paint(lastBars); return true; };
   window.jhGetView=function(){ return {symbol:active,tf:tf,kind:kind,mode:mode,scale:scaleMode}; };
+  /* watchlist quotes for symbols the warehouse quote endpoint cannot price: the same bar resolver the chart draws with (2026-10-06) */
+  window.jhKlines=function(sym,tfId){ return klines(String(sym||""), tfId||"1d", true); };
   window.jhSetScale=function(m){ scaleMode=+m||0; renderTf(); if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSetTf=function(t){ if(!t) return; tf=t; renderTf(); load(); };
   window.jhSetLayout=function(n){ setLayout(n); renderTf(); };

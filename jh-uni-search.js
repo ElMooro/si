@@ -266,6 +266,8 @@
         e = map[k] = { id: id, U: k, B: bare.toUpperCase(), name: nm ? nm[0] : "", type: nm ? nm[1] : "", lists: [] };
         e.N = e.name.toUpperCase();
       }
+      var al = D && D.alias ? D.alias[k] : ""; // the user's preferred name for this symbol (watchlist "Rename")
+      if (al) { e.alias = al; e.A = al.toUpperCase(); }
       if (list && e.lists.indexOf(list) < 0) e.lists.push(list);
     }
     if (D && D.lists) Object.keys(D.lists).forEach(function (lid) { var L = D.lists[lid]; (L.items || []).forEach(function (s) { put(s, L.name); }); });
@@ -291,7 +293,10 @@
       var e = WLX[i], best = 0;
       for (var j = 0; j < qs.length; j++) {
         var Q = qs[j], bare = Q.indexOf(":") > 0 ? Q.split(":").pop() : Q, sc = 0, pen = j ? 40 : 0;
-        if (e.U === Q || e.B === bare) sc = 1000;
+        if (e.A && (e.A === Q)) sc = 1200;
+        else if (e.A && e.A.indexOf(Q) === 0 && Q.length >= 2) sc = 1050 - (e.A.length - Q.length);
+        else if (e.A && Q.length >= 2 && wordsOf(Q).every(function (w) { return e.A.indexOf(w) >= 0; })) sc = 950;
+        else if (e.U === Q || e.B === bare) sc = 1000;
         else if (e.B.indexOf(bare) === 0 && bare.length >= 2) sc = 600 - (e.B.length - bare.length) * 4;
         else if (e.U.indexOf(Q) >= 0 && Q.length >= 3) sc = 380;
         else if (e.N) {
@@ -308,7 +313,7 @@
     out.sort(function (a, b) { return b.sc - a.sc; });
     return out.slice(0, limit || 12).map(function (x) {
       var e = x.e, ex = e.id.indexOf(":") > 0 && !/[()\/*+]/.test(e.id) ? e.id.split(":")[0] : "";
-      return { id: e.id, sym: /[()\/*+]/.test(e.id) ? e.id : e.B, name: e.name || e.id, kind: "instrument", type: e.type, src: ex || (e.type === "spread" ? "Spread" : "Watchlist"), provider: "watchlist", wl: e.lists.slice(0, 4), wlN: e.lists.length, exact: x.sc >= 1000 };
+      return { id: e.id, sym: /[()\/*+]/.test(e.id) ? e.id : e.B, name: e.alias ? e.alias + " — " + (e.name || e.id) : e.name || e.id, alias: e.alias || "", pinned: !!(e.A && x.sc >= 940), kind: "instrument", type: e.type, src: ex || (e.type === "spread" ? "Spread" : "Watchlist"), provider: "watchlist", wl: e.lists.slice(0, 4), wlN: e.lists.length, exact: x.sc >= 1000 };
     });
   }
   // Typo correction ("Did you mean"): bounded Damerau-Levenshtein over watchlist/instrument tickers and name words.
@@ -365,6 +370,7 @@
     expandQuery(q).forEach(add);
     if (WLX) {
       var U = low.toUpperCase();
+      for (var a = 0; a < WLX.length && out.length < 8; a++) { if (WLX[a].A && WLX[a].A.indexOf(U) === 0) add(WLX[a].alias); }
       for (var i = 0; i < WLX.length && out.length < 14; i++) { var e = WLX[i]; if (e.lists.length && e.N && e.N.indexOf(U) === 0) add(e.name.length > 60 ? e.name.slice(0, 60) : e.name); }
     }
     return out.slice(0, 8);

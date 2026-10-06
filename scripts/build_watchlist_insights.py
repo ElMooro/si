@@ -104,7 +104,7 @@ def main():
     def S(tk, name=None, cusip=None):
         s = stocks.get(tk)
         if not s:
-            s = stocks[tk] = {"name": name or "", "cusip": cusip, "etf": {"held": [], "added": [], "removed": [], "up": 0, "down": 0}}
+            s = stocks[tk] = {"name": name or "", "cusip": cusip, "etf": {"held": [], "added": [], "removed": [], "up": 0, "down": 0, "sh_cur": 0.0, "sh_prior": 0.0, "pairs": 0}}
         if name and not s["name"]:
             s["name"] = name
         if cusip and not s.get("cusip"):
@@ -132,7 +132,7 @@ def main():
                     r["pct"] = None if r["w"] is None else round(r["w"] * scale, 6)
             eff = sorted((f["current"].get("effective_dates") or {}).keys())
             peff = sorted(((f.get("prior") or {}).get("effective_dates") or {}).keys())
-            added, removed, up, down = [], [], [], []
+            added, removed, up, down, same = [], [], [], [], []
             for c in cmp_rows:
                 st = c.get("status")
                 if st == "observed_only_in_current":
@@ -146,9 +146,9 @@ def main():
                 elif st == "observed_in_both":
                     ch = dec(c.get("shares_held_change_raw_decimal"))
                     r = next((byid_c[i] for i in c.get("current_rows") or [] if i in byid_c), None)
-                    if r is not None and ch:
+                    if r is not None and ch is not None:
                         b = row_brief(r); b["chg"] = ch
-                        (up if ch > 0 else down).append(b)
+                        (up if ch > 0 else down if ch < 0 else same).append(b)
             ac = {}
             for r in cur:
                 k = r["ac"] or "Unreported"
@@ -180,16 +180,22 @@ def main():
                 S(r["t"], r["n"], r["cusip"])["etf"]["held"].append([tk, r["pct"], r["sh"], when])
             for r in added:
                 if r["t"]:
-                    S(r["t"], r["n"], r["cusip"])["etf"]["added"].append([tk, None if r["w"] is None else round(r["w"] * scale, 6), when])
+                    e = S(r["t"], r["n"], r["cusip"])["etf"]
+                    e["added"].append([tk, None if r["w"] is None else round(r["w"] * scale, 6), when])
+                    if r["sh"]:
+                        e["sh_cur"] += r["sh"]; e["pairs"] += 1
             for r in removed:
                 if r["t"]:
-                    S(r["t"], r["n"], r["cusip"])["etf"]["removed"].append([tk, peff[-1] if peff else None])
-            for r in up:
-                if r["t"]:
-                    S(r["t"])["etf"]["up"] += 1
-            for r in down:
-                if r["t"]:
-                    S(r["t"])["etf"]["down"] += 1
+                    e = S(r["t"], r["n"], r["cusip"])["etf"]
+                    e["removed"].append([tk, peff[-1] if peff else None])
+                    if r["sh"]:
+                        e["sh_prior"] += r["sh"]; e["pairs"] += 1
+            for r in up + down + same:
+                if r["t"] and r["sh"] is not None:
+                    e = S(r["t"])["etf"]
+                    if r["chg"]:
+                        e["up" if r["chg"] > 0 else "down"] += 1
+                    e["sh_cur"] += r["sh"]; e["sh_prior"] += r["sh"] - r["chg"]; e["pairs"] += 1
     print("ETFs built", n_etf, "constituent tickers", len(stocks), round(time.time() - t0), "s")
 
     # ---- 13F large managers
