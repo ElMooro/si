@@ -258,7 +258,7 @@
   var lastGoodTf="1d", loadGen=0;
   var drawings=[], undo=[], redo=[], tool="cursor", magnet=true, pending=null, objOpen=false, vpOn=true;
   var stayTool=false, hideDraw=false, lockDraw=false, drawColor=ACC, drawW=1;
-  var wtab="list", wsub="watch", watchOpen=false, layout=1, gridOn=true, watermark=false, invert=false, hiLo=true, crossMode=1;
+  var wtab="list", wsub="watch", watchOpen=false, layout=1, gridOn=true, watermark=true, invert=false, hiLo=true, crossMode=1;
   var tzOff=0, tzName="UTC", notes={}, flags={}, finCache={}, ssTab="all", ssSel=-1, ssChoice="", ssRows=[], ssProv="", ssFacets=[];
   var replay={on:false,i:0,speed:1,timer:null,full:[]};
   var alerts=[], news=[], toastT=null, selDraw=null, paneCharts=[], paneSyms=[];
