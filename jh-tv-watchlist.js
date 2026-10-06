@@ -1505,6 +1505,9 @@
     D.notesImported = true; if (nImp) save();
   }
   function boot() {
+    // the big faint symbol name behind the chart (#wm, drawn by jh-chart-engine.js) is hidden on request (2026-10-06);
+    // done here because the engine and chart.html are byte-preserved by their review fixtures
+    try { if (!doc.getElementById("jh-no-wm")) { var st = doc.createElement("style"); st.id = "jh-no-wm"; st.textContent = "#wm{display:none!important}"; (doc.head || doc.documentElement).appendChild(st); } } catch (e) {}
     load();
     importLegacyNotes();
     var tries = 0;
