@@ -35,6 +35,13 @@ class T(unittest.TestCase):
         s = {"2026-10-02": {"AAPL": {"o": 333, "h": 335, "l": 330, "c": 333.69, "v": 1}}}
         self.assertEqual(m.plan_append(BANK, s, "AAPL"), ([], "current"))
 
+    def test_never_leaves_a_hole(self):
+        s = {"2026-10-07": {"AAPL": {"o": 333, "h": 335, "l": 330, "c": 334, "v": 1}}}
+        rows, why = m.plan_append(BANK, s, "AAPL", earliest="2026-10-07")   # Oct 5-6 never fetched
+        self.assertEqual(rows, []); self.assertTrue(why.startswith("gap"))
+        rows, why = m.plan_append(BANK, s, "AAPL", earliest="2026-10-05")   # fetched; no rows = holiday/halt
+        self.assertEqual(why, "append 1")
+
 
 if __name__ == "__main__":
     unittest.main()

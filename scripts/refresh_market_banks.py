@@ -67,7 +67,7 @@ def polygon_row(day, r):
     return row if valid_bar(row) else None
 
 
-def plan_append(doc, sessions, ticker):
+def plan_append(doc, sessions, ticker, earliest=None):
     """New rows for one bank: sessions after its last bar, identity-guarded. Returns (rows, reason)."""
     bars = doc.get("bars") or []
     if not bars:
@@ -86,6 +86,15 @@ def plan_append(doc, sessions, ticker):
             rows.append(row)
     if not rows:
         return [], "current" if last_day >= max(sessions or [""]) else "no polygon rows"
+    # never leave a hole: every weekday between the bank's last bar and the first new row must have been fetched
+    # (a fetched weekday with no row is a holiday or a halt, not a hole)
+    if earliest:
+        first_day = datetime.fromtimestamp(rows[0][0], tz=NY).date()
+        d = datetime.strptime(last_day, "%Y-%m-%d").date() + timedelta(days=1)
+        while d < first_day:
+            if d.weekday() < 5 and d.strftime("%Y-%m-%d") < earliest:
+                return [], "gap: sessions before %s not fetched (raise --days)" % earliest
+            d += timedelta(days=1)
     ratio = rows[0][4] / last_close if last_close else 0
     if not 0.6 <= ratio <= 1.6:
         return [], "identity guard: close %.4g vs bank %.4g" % (rows[0][4], last_close)
@@ -124,9 +133,18 @@ def refresh_series_cache(s3, sym, t, bkey, rows, label, dry_run=False):
             c = json.loads(s3.get_object(Bucket=BUCKET, Key=ck)["Body"].read())
         except Exception:  # noqa: BLE001
             continue
-        if not str(c.get("source") or "").endswith(bkey) or not isinstance(c.get("obs"), list):
+        if not isinstance(c.get("obs"), list) or not c["obs"]:
             continue
-        last = c["obs"][-1][0] if c["obs"] else ""
+        last = c["obs"][-1][0]
+        if not str(c.get("source") or "").endswith(bkey):
+            # an entry from another route: only when it is the same instrument (its last close equals the bank's)
+            same = [r for r in rows if datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d") == last]
+            try:
+                lc = float(c["obs"][-1][1])
+            except (TypeError, ValueError):
+                continue
+            if not same or not lc or abs(same[0][4] / lc - 1) > 0.005 or c.get("freq") not in (None, "D"):
+                continue
         add = [r for r in rows if datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d") > last]
         if not add:
             continue
@@ -149,7 +167,7 @@ def refresh_series_cache(s3, sym, t, bkey, rows, label, dry_run=False):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--days", type=int, default=7)
+    ap.add_argument("--days", type=int, default=25)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only", default="")
     ap.add_argument("--report", default="market-bank-refresh.json")
@@ -161,7 +179,9 @@ def main():
 
     now_ny = datetime.now(NY)
     sessions = {}
-    for day in trading_days(a.days):
+    attempted = trading_days(a.days)
+    earliest = min(attempted)
+    for day in attempted:
         # today's session only once it has closed (grouped-daily is final after the close)
         if day == now_ny.strftime("%Y-%m-%d") and (now_ny.hour, now_ny.minute) < (16, 20):
             continue
@@ -183,7 +203,23 @@ def main():
     report = {"started": datetime.now(timezone.utc).isoformat(timespec="seconds"), "sessions": sorted(sessions),
               "source": "polygon grouped-daily (adjusted=true), APR-0001 provider", "updated": {}, "skipped": {}}
     updates = {}
-    for sym, meta in sorted((idx.get("symbols") or {}).items()):
+    todo = sorted((idx.get("symbols") or {}).items())
+    # banks present in the universe folder but missing from the index (they still feed /quote via the series cache)
+    known = {((m or {}).get("key") or "") for _, m in todo}
+    orphan_keys = set()
+    pg = s3.get_paginator("list_objects_v2")
+    for page in pg.paginate(Bucket=BUCKET, Prefix="data/warm/tv-bars/universe/"):
+        for o in page.get("Contents") or []:
+            k = o["Key"]
+            if k.endswith(".json.gz") and k not in known:
+                nm = k.rsplit("/", 1)[1][:-8]
+                if "__" in nm:
+                    sym0 = nm.replace("__", ":", 1)
+                    if us_ticker(sym0) and not any(x == sym0 for x, _ in todo):
+                        todo.append((sym0, {"key": k}))
+                        orphan_keys.add(sym0)
+    report["orphans"] = sorted(orphan_keys)
+    for sym, meta in todo:
         if only and sym not in only:
             continue
         t = us_ticker(sym)
@@ -192,11 +228,11 @@ def main():
         bkey = (meta or {}).get("key") or "data/warm/tv-bars/universe/%s.json.gz" % re.sub(r"[^A-Za-z0-9_.\-!]", "__", sym)
         try:
             doc = read_bank(s3, BUCKET, bkey)
-            rows, why = plan_append(doc, sessions, t)
+            rows, why = plan_append(doc, sessions, t, earliest)
             if not rows:
                 report["skipped"][sym] = why
                 try:   # bank already current (e.g. an earlier run): still bring a lagging series cache up to it
-                    cs = refresh_series_cache(s3, sym, t, bkey, (doc.get("bars") or [])[-10:], "bank:" + str(doc.get("last_date")), a.dry_run)
+                    cs = refresh_series_cache(s3, sym, t, bkey, (doc.get("bars") or []), "bank:" + str(doc.get("last_date")), a.dry_run)
                     if cs:
                         report.setdefault("cache_caught_up", {})[sym] = cs
                 except Exception:  # noqa: BLE001
@@ -207,10 +243,11 @@ def main():
             if not a.dry_run:
                 s3.put_object(Bucket=BUCKET, Key=bkey, Body=gzip.compress(json.dumps(new).encode()),
                               ContentType="application/gzip", CacheControl="public, max-age=900")
-            updates[sym] = {"key": bkey, "n": new["n"], "first": new["first_date"], "last": new["last_date"], "as_of": new["as_of"]}
+            if sym not in orphan_keys:
+                updates[sym] = {"key": bkey, "n": new["n"], "first": new["first_date"], "last": new["last_date"], "as_of": new["as_of"]}
             report["updated"][sym] = {"added": len(rows), "last": new["last_date"], "close": rows[-1][4]}
             try:
-                cs = refresh_series_cache(s3, sym, t, bkey, (new.get("bars") or rows)[-10:], "polygon-grouped-daily:" + new["last_date"], a.dry_run)
+                cs = refresh_series_cache(s3, sym, t, bkey, (new.get("bars") or rows), "polygon-grouped-daily:" + new["last_date"], a.dry_run)
                 if cs:
                     report["updated"][sym]["series_cache"] = cs
             except Exception as e:  # noqa: BLE001
