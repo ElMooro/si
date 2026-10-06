@@ -2,11 +2,10 @@ from pathlib import Path
 import hashlib,json
 R=Path(__file__).resolve().parents[2]
 def normalize(raw,file):
-    t=json.loads((R/'tests/fixtures/worker-oecd-path/transition.json').read_bytes())['entries'][file]
+    t=json.loads((R/'tests/fixtures/worker-userstore/transition.json').read_bytes())['entries'].get(file)
+    if not t:
+        return raw
     digest=lambda s:hashlib.sha256(s.encode()).hexdigest()
-    if file=='cloudflare/workers/justhodl-data-proxy/src/index.js' and digest(raw)!=t['after_sha256']:
-        from worker_userstore_preservation import normalize as _userstore
-        raw=_userstore(raw,file)
     assert digest(raw)==t['after_sha256']
     for e in reversed(t['replacements']):
         assert raw.count(e['after'])==1

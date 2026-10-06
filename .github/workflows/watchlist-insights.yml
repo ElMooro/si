@@ -1,0 +1,55 @@
+name: Watchlist insights
+
+# Compact per-symbol ETF-composition / constituent-change / 13F-manager files for the chart watchlist
+# details pane and /symbol.html. Built only from published research artifacts (scripts/build_watchlist_insights.py)
+# and uploaded under data/watchlist-insights/ in the live bucket (served at https://justhodl.ai/data/...).
+on:
+  schedule:
+    - cron: '35 23 * * *'   # after the daily ETF constituent research run (~22:50 UTC)
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/build_watchlist_insights.py'
+      - '.github/workflows/watchlist-insights.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watchlist-insights
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: python3 scripts/build_watchlist_insights.py out
+      - name: Sanity check
+        run: |
+          python3 - <<'PY'
+          import json, os
+          idx = json.load(open('out/index.json'))
+          assert idx['etfs'] >= 100, idx['etfs']
+          assert idx['constituent_tickers'] >= 5000, idx['constituent_tickers']
+          spy = json.load(open('out/etf/SPY.json'))
+          assert spy['constituents'] >= 400
+          print('etfs', idx['etfs'], 'tickers', idx['constituent_tickers'], 'files', sum(len(f) for _, _, f in os.walk('out')))
+          PY
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Upload
+        run: |
+          aws s3 sync out/ s3://justhodl-dashboard-live/data/watchlist-insights/ \
+            --content-type application/json --cache-control "public, max-age=3600" --only-show-errors
+          aws s3 cp out/index.json s3://justhodl-dashboard-live/data/watchlist-insights/index.json \
+            --content-type application/json --cache-control "public, max-age=600"
+          echo "### Watchlist insights uploaded" >> $GITHUB_STEP_SUMMARY
+          python3 -c "import json;i=json.load(open('out/index.json'));print('ETFs',i['etfs'],'tickers',i['constituent_tickers'],'13F period',i['f13_period'])" >> $GITHUB_STEP_SUMMARY

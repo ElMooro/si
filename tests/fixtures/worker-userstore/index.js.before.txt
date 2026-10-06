@@ -1139,47 +1139,6 @@ export default {
       return who ? who.uid : null;
     }
 
-    // ── /userstore/<kind> — per-account chart state (2026-10-06) ──────────────
-    // GET  /userstore/chart-watchlist            → {doc, updated_at} | {doc:null}
-    // PUT  /userstore/chart-watchlist            ← {doc, updated_at}  (≤ 3 MB)
-    // GET  /userstore/chart-files                → index of imported files
-    // PUT  /userstore/chart-files                ← index (≤ 300 KB)
-    // GET  /userstore/chart-file?id=<id>         → one imported file (rows)
-    // PUT  /userstore/chart-file?id=<id>         ← file (≤ 6 MB) or {"delete":true}
-    // The account id comes only from the verified Supabase bearer token; no path or body identity is read.
-    if (url.pathname.startsWith("/userstore/")) {
-      const kind = url.pathname.slice("/userstore/".length);
-      const LIMITS = { "chart-watchlist": 3000000, "chart-files": 300000, "chart-file": 6000000 };
-      if (!LIMITS[kind]) return jsonResp({ error: "unknown store" }, 404);
-      if (request.method !== "GET" && request.method !== "PUT") return jsonResp({ error: "method not allowed" }, 405);
-      if (!env.USER_DATA) return jsonResp({ error: "user store unavailable" }, 503);
-      const storeUid = await verifySupabaseUser();
-      if (!storeUid) return jsonResp({ error: "auth required" }, 401);
-      let key = "userstore:" + storeUid + ":" + kind;
-      if (kind === "chart-file") {
-        const fid = String(url.searchParams.get("id") || "");
-        if (!/^[A-Za-z0-9_.:-]{1,80}$/.test(fid)) return jsonResp({ error: "invalid file id" }, 400);
-        key += ":" + fid;
-      }
-      const priv = { "Content-Type": "application/json", "Cache-Control": "private, no-store", Vary: "Authorization", ...corsHeaders() };
-      if (request.method === "GET") {
-        const raw = await env.USER_DATA.get(key);
-        return new Response(raw || JSON.stringify({ doc: null }), { status: 200, headers: priv });
-      }
-      const raw = await boundedBody(request, LIMITS[kind]);
-      if (raw === null) return jsonResp({ error: "payload too large", limit: LIMITS[kind] }, 413);
-      let body; try { body = JSON.parse(raw); } catch (_) { return jsonResp({ error: "invalid json" }, 400); }
-      if (!body || typeof body !== "object" || Array.isArray(body)) return jsonResp({ error: "store body must be an object" }, 400);
-      if (kind === "chart-file" && body.delete === true) {
-        await env.USER_DATA.delete(key);
-        return new Response(JSON.stringify({ ok: true, deleted: true }), { headers: priv });
-      }
-      if (!("doc" in body)) return jsonResp({ error: "send {doc, updated_at}" }, 400);
-      const stamp = Number(body.updated_at) || Date.now();
-      await env.USER_DATA.put(key, JSON.stringify({ doc: body.doc, updated_at: stamp, saved_at: Date.now() }));
-      return new Response(JSON.stringify({ ok: true, updated_at: stamp, bytes: raw.length }), { headers: priv });
-    }
-
     // GET /workspace/home — load the signed-in user's home workspace.
     // PUT /workspace/home — replace it atomically (JSON, 500KB maximum).
     // The user id is derived exclusively from a verified Supabase Bearer token;
@@ -2141,50 +2100,6 @@ export default {
       }
     }
 
-    // GET /fmp?ep=<allowlisted>&symbol=AAPL[&period=annual|quarter][&limit=N][&year=&quarter=]
-    // Read-through for the symbol page; only the endpoints listed here, symbol validated, 6h edge cache.
-    if (url.pathname === "/fmp") {
-      const EPS = {
-        "income-statement": 1, "balance-sheet-statement": 1, "cash-flow-statement": 1, "ratios": 1, "key-metrics": 1,
-        "profile": 0, "etf/info": 0, "etf/holdings": 0, "etf/sector-weightings": 0, "etf/country-weightings": 0,
-        "etf/asset-exposure": 0, "dividends": 0, "institutional-ownership/symbol-positions-summary": 2,
-        "shares-float": 0, "grades-consensus": 0, "ratios-ttm": 0, "key-metrics-ttm": 0, "earnings": 0,
-      };
-      const ep = String(url.searchParams.get("ep") || "");
-      const sym = String(url.searchParams.get("symbol") || "").trim().toUpperCase();
-      if (!(ep in EPS)) return jsonResp({ error: "endpoint not allowed" }, 400);
-      if (!/^[A-Z0-9.\-^]{1,15}$/.test(sym)) return jsonResp({ error: "invalid symbol" }, 400);
-      const qs = new URLSearchParams({ symbol: sym });
-      if (EPS[ep] === 1) {
-        const per = url.searchParams.get("period") === "quarter" ? "quarter" : "annual";
-        qs.set("period", per); qs.set("limit", String(Math.max(1, Math.min(40, Number(url.searchParams.get("limit")) || 10))));
-      }
-      if (EPS[ep] === 2) {
-        const y = Number(url.searchParams.get("year")), q = Number(url.searchParams.get("quarter"));
-        if (y >= 2000 && y <= 2100) qs.set("year", String(y));
-        if (q >= 1 && q <= 4) qs.set("quarter", String(q));
-      }
-      if (ep === "earnings") qs.set("limit", "12");
-      const ck = new Request("https://fmp.cache/" + ep + "?" + qs.toString(), { method: "GET" });
-      const cache = caches.default;
-      const hit = await cache.match(ck);
-      if (hit) return new Response(await hit.text(), { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
-      qs.set("apikey", env.FMP_KEY || "");
-      let status = 502, text = "";
-      try {
-        const r = await fetch("https://financialmodelingprep.com/stable/" + ep + "?" + qs.toString(), { cf: { cacheTtl: 3600 } });
-        status = r.status; text = await r.text();
-      } catch (e) { return jsonResp({ error: "provider fetch failed", detail: String(e).slice(0, 120) }, 502); }
-      let data = null; try { data = JSON.parse(text); } catch (_) {}
-      if (status !== 200 || data === null) {
-        const msg = (data && (data["Error Message"] || data.error || data.message)) || text.slice(0, 160);
-        return jsonResp({ error: "provider " + status, detail: String(msg).replace(/apikey=[^&\s"]+/gi, "apikey=***").slice(0, 200), ep, symbol: sym }, status === 200 ? 502 : (status >= 400 && status < 500 ? 424 : 502));
-      }
-      const out = JSON.stringify({ ep, symbol: sym, source: "Financial Modeling Prep /stable/" + ep, fetched_at: new Date().toISOString(), data });
-      ctx.waitUntil(cache.put(ck, new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=21600" } })));
-      return new Response(out, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600", "X-Cache": "MISS", ...corsHeaders() } });
-    }
-
     if (url.pathname === "/fundamentals") {
       // GET /fundamentals?ticker=AAPL → key quote + profile + ratios snapshot (FMP)
       const ticker = (url.searchParams.get("ticker") || "").trim().toUpperCase();
@@ -2193,7 +2108,7 @@ export default {
           { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } });
       }
       const fmpKey = env.FMP_KEY || "";   /* audit 2026-09-08 INST-06: Worker secret from SSM, no literal */
-      const fKey = new Request(`https://fund.cache/v2/${ticker}`, { method: "GET" });
+      const fKey = new Request(`https://fund.cache/${ticker}`, { method: "GET" });
       const fc = caches.default;
       const hit = await fc.match(fKey);
       if (hit) { const b = await hit.text(); return new Response(b, { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } }); }
@@ -2226,12 +2141,6 @@ export default {
           debtToEquity: pick("debtToEquityRatioTTM", "debtEquityRatioTTM"),
           currentRatio: pick("currentRatioTTM"), grossMargin: pick("grossProfitMarginTTM"),
           opMargin: pick("operatingProfitMarginTTM"), fcfYield: pick("freeCashFlowYieldTTM"),
-          peg: pick("priceToEarningsGrowthRatioTTM", "pegRatioTTM", "forwardPriceToEarningsGrowthRatioTTM"),
-          evToEbitda: pick("enterpriseValueMultipleTTM", "evToEBITDATTM"), evToSales: pick("evToSalesTTM"),
-          cusip: prof.cusip || null, isin: prof.isin || null, isEtf: !!prof.isEtf, isFund: !!prof.isFund,
-          image: prof.image || null, website: prof.website || null, ipoDate: prof.ipoDate || null,
-          lastDividend: prof.lastDividend != null ? prof.lastDividend : (prof.lastDiv != null ? prof.lastDiv : null),
-          sharesOutstanding: quote.sharesOutstanding || null, employees: prof.fullTimeEmployees || null,
           estimates: (Array.isArray(est) ? est : []).slice(0, 3).map(e => ({
             year: (e.date || "").slice(0, 4), revenueAvg: e.revenueAvg || e.estimatedRevenueAvg,
             epsAvg: e.epsAvg || e.estimatedEpsAvg })),
