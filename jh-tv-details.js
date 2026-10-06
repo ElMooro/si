@@ -20,7 +20,7 @@
   function big(v, cur) { if (!ok(v)) return "—"; v = +v; var a = Math.abs(v), s = v < 0 ? "−" : ""; return s + (cur ? "$" : "") + (a >= 1e12 ? (a / 1e12).toFixed(2) + " T" : a >= 1e9 ? (a / 1e9).toFixed(2) + " B" : a >= 1e6 ? (a / 1e6).toFixed(2) + " M" : a >= 1e3 ? (a / 1e3).toFixed(2) + " K" : a.toFixed(2)); }
   function num(v, dp) { if (!ok(v)) return "—"; v = +v; var a = Math.abs(v); dp = dp != null ? dp : a >= 1000 ? 2 : a >= 1 ? 2 : a >= 0.01 ? 4 : 8; return v.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
   function pc(v, dp) { return ok(v) ? (v > 0 ? "+" : "") + (+v).toFixed(dp == null ? 2 : dp) + "%" : "—"; }
-  function cls(v) { return v > 0 ? "up" : v < 0 ? "dn" : ""; }
+  function cls(v) { return v > 0 ? "tvd-up" : v < 0 ? "tvd-dn" : ""; }
   function day(t) { return new Date((typeof t === "number" ? t : Date.parse(t) / 1000) * 1000).toISOString().slice(0, 10); }
   function ts(t) { return typeof t === "number" ? t : Date.parse(t) / 1000; }
   function fdate(s) { if (!s) return "—"; var d = new Date(String(s).slice(0, 10) + "T12:00:00Z"); return isNaN(d) ? esc(s) : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }); }
@@ -31,44 +31,44 @@
     var s = document.createElement("style"); s.id = "jh-tvd-css";
     s.textContent = [
       "#jhwl .tvd{font-size:13px;color:var(--fg)}",
-      "#jhwl .tvd .hd{display:flex;align-items:center;gap:8px;margin:0 0 6px}",
-      "#jhwl .tvd .hd .lg{width:24px;height:24px;flex:0 0 24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;overflow:hidden;background:#2a2e39}",
-      "#jhwl .tvd .hd .lg img{width:100%;height:100%;object-fit:cover;background:#fff}",
-      "#jhwl .tvd .hd b{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-      "#jhwl .tvd .hd .ic{margin-left:auto;display:flex;gap:2px}",
-      "#jhwl .tvd .hd .ic a,#jhwl .tvd .hd .ic button{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--mut);background:none;border:0;cursor:pointer;text-decoration:none}",
-      "#jhwl .tvd .hd .ic a:hover,#jhwl .tvd .hd .ic button:hover{background:var(--bg2);color:var(--fg)}",
-      "#jhwl .tvd .hd .ic svg{width:17px;height:17px}",
-      "#jhwl .tvd .mn{position:absolute;right:12px;z-index:5;background:var(--bg);border:1px solid var(--bd);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.4);padding:4px 0;min-width:180px}",
-      "#jhwl .tvd .mn button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--fg);padding:7px 14px;cursor:pointer;font-size:13px}",
-      "#jhwl .tvd .mn button:hover{background:var(--bg2)}",
-      "#jhwl .tvd .nm2{font-size:13px;line-height:1.35}#jhwl .tvd .nm2 a{color:var(--fg);text-decoration:none}#jhwl .tvd .nm2 a:hover{color:var(--blue)}",
-      "#jhwl .tvd .nm2 .ex{color:var(--mut)}#jhwl .tvd .sub{color:var(--mut);font-size:12px;margin:1px 0 8px}",
-      "#jhwl .tvd .pr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}#jhwl .tvd .pr .p{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}",
-      "#jhwl .tvd .pr .u{font-size:11px;color:var(--mut)}#jhwl .tvd .pr .c{font-size:15px;font-variant-numeric:tabular-nums}",
-      "#jhwl .tvd .st{font-size:12px;color:var(--mut);margin:2px 0 10px;display:flex;align-items:center;gap:5px}#jhwl .tvd .st i{width:7px;height:7px;border-radius:50%;background:#787b86;display:inline-block}",
-      "#jhwl .tvd .st.open i{background:#089981}#jhwl .tvd .st.ext i{background:#f0b90b}#jhwl .tvd .st.closed i{background:#787b86}",
-      "#jhwl .tvd .rg{margin:6px 0 12px}#jhwl .tvd .rg .l{display:flex;justify-content:space-between;font-size:12px;font-variant-numeric:tabular-nums}",
-      "#jhwl .tvd .rg .l span:nth-child(2){color:var(--mut);font-size:10px;letter-spacing:.06em;text-transform:uppercase}",
-      "#jhwl .tvd .rg .b{position:relative;height:4px;background:var(--bd);border-radius:2px;margin:6px 0 2px}#jhwl .tvd .rg .b em{position:absolute;top:0;bottom:0;background:#089981;border-radius:2px}",
-      "#jhwl .tvd .rg .b s{position:absolute;top:6px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:6px solid var(--fg);transform:translateX(-5px)}",
+      "#jhwl .tvd .tvd-hd{display:flex;align-items:center;gap:8px;margin:0 0 6px}",
+      "#jhwl .tvd .tvd-hd .tvd-lg{width:24px;height:24px;flex:0 0 24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;overflow:hidden;background:#2a2e39}",
+      "#jhwl .tvd .tvd-hd .tvd-lg img{width:100%;height:100%;object-fit:cover;background:#fff}",
+      "#jhwl .tvd .tvd-hd b{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#jhwl .tvd .tvd-hd .tvd-ic{margin-left:auto;display:flex;gap:2px}",
+      "#jhwl .tvd .tvd-hd .tvd-ic a,#jhwl .tvd .tvd-hd .tvd-ic button{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--mut);background:none;border:0;cursor:pointer;text-decoration:none}",
+      "#jhwl .tvd .tvd-hd .tvd-ic a:hover,#jhwl .tvd .tvd-hd .tvd-ic button:hover{background:var(--bg2);color:var(--fg)}",
+      "#jhwl .tvd .tvd-hd .tvd-ic svg{width:17px;height:17px}",
+      "#jhwl .tvd .tvd-mn{position:absolute;right:12px;z-index:5;background:var(--bg);border:1px solid var(--bd);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.4);padding:4px 0;min-width:180px}",
+      "#jhwl .tvd .tvd-mn button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--fg);padding:7px 14px;cursor:pointer;font-size:13px}",
+      "#jhwl .tvd .tvd-mn button:hover{background:var(--bg2)}",
+      "#jhwl .tvd .tvd-nm2{font-size:13px;line-height:1.35}#jhwl .tvd .tvd-nm2 a{color:var(--fg);text-decoration:none}#jhwl .tvd .tvd-nm2 a:hover{color:var(--blue)}",
+      "#jhwl .tvd .tvd-nm2 .tvd-ex{color:var(--mut)}#jhwl .tvd .tvd-sub{color:var(--mut);font-size:12px;margin:1px 0 8px}",
+      "#jhwl .tvd .tvd-pr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}#jhwl .tvd .tvd-pr .tvd-p{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}",
+      "#jhwl .tvd .tvd-pr .tvd-u{font-size:11px;color:var(--mut)}#jhwl .tvd .tvd-pr .tvd-c{font-size:15px;font-variant-numeric:tabular-nums}",
+      "#jhwl .tvd .tvd-st{font-size:12px;color:var(--mut);margin:2px 0 10px;display:flex;align-items:center;gap:5px}#jhwl .tvd .tvd-st i{width:7px;height:7px;border-radius:50%;background:#787b86;display:inline-block}",
+      "#jhwl .tvd .tvd-st.tvd-open i{background:#089981}#jhwl .tvd .tvd-st.tvd-ext i{background:#f0b90b}#jhwl .tvd .tvd-st.tvd-closed i{background:#787b86}",
+      "#jhwl .tvd .tvd-rg{margin:6px 0 12px}#jhwl .tvd .tvd-rg .tvd-l{display:flex;justify-content:space-between;font-size:12px;font-variant-numeric:tabular-nums}",
+      "#jhwl .tvd .tvd-rg .tvd-l span:nth-child(2){color:var(--mut);font-size:10px;letter-spacing:.06em;text-transform:uppercase}",
+      "#jhwl .tvd .tvd-rg .tvd-b{position:relative;height:4px;background:var(--bd);border-radius:2px;margin:6px 0 2px}#jhwl .tvd .tvd-rg .tvd-b em{position:absolute;top:0;bottom:0;background:#089981;border-radius:2px}",
+      "#jhwl .tvd .tvd-rg .tvd-b s{position:absolute;top:6px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:6px solid var(--fg);transform:translateX(-5px)}",
       "#jhwl .tvd h4{font-size:14px;font-weight:600;margin:16px 0 8px;display:flex;align-items:center;gap:8px}#jhwl .tvd h4 small{margin-left:auto;font-weight:400;color:var(--mut);font-size:11px}",
-      "#jhwl .tvd .tg{margin-left:auto;display:inline-flex;gap:8px}#jhwl .tvd .tg button{background:none;border:0;color:var(--mut);cursor:pointer;font-size:12px;padding:0}#jhwl .tvd .tg button.on{color:var(--blue);text-decoration:underline;text-underline-offset:4px}",
-      "#jhwl .tvd .kf{background:linear-gradient(135deg,rgba(41,98,255,.12),rgba(156,39,176,.10));border:1px solid rgba(41,98,255,.25);border-radius:6px;padding:9px 10px;margin:4px 0 6px;font-size:12px;line-height:1.45}",
-      "#jhwl .tvd .kf b{display:block;font-size:12px;margin-bottom:3px}#jhwl .tvd .kf a{color:var(--mut);text-decoration:none;font-size:12px}#jhwl .tvd .kf a:hover{color:var(--blue)}",
-      "#jhwl .tvd .ks{display:grid;grid-template-columns:1fr auto;gap:7px 10px;font-size:13px}#jhwl .tvd .ks span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums;font-weight:500}",
-      "#jhwl .tvd .ks.more{margin-top:7px}#jhwl .tvd .chev{display:flex;justify-content:center;margin:6px 0}#jhwl .tvd .chev button{background:var(--bg2);border:0;border-radius:12px;color:var(--mut);cursor:pointer;width:34px;height:20px}",
-      "#jhwl .tvd .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#jhwl .tvd .tiles div{border-radius:4px;padding:6px 4px;text-align:center;background:var(--bg2)}",
-      "#jhwl .tvd .tiles div b{display:block;font-size:13px;font-weight:600}#jhwl .tvd .tiles div small{font-size:11px;color:var(--fg);opacity:.85}",
-      "#jhwl .tvd .tiles div.up{background:rgba(8,153,129,.22)}#jhwl .tvd .tiles div.up b{color:#22ab94}#jhwl .tvd .tiles div.dn{background:rgba(242,54,69,.20)}#jhwl .tvd .tiles div.dn b{color:#f7525f}",
-      "#jhwl .tvd .pill{display:flex;justify-content:center;margin:10px 0 2px}#jhwl .tvd .pill button,#jhwl .tvd .pill a{background:var(--bg2);border:0;border-radius:14px;color:var(--fg);padding:5px 14px;font-size:12px;cursor:pointer;text-decoration:none}",
-      "#jhwl .tvd .pill button:hover,#jhwl .tvd .pill a:hover{background:var(--bd)}",
-      "#jhwl .tvd .dn2{display:flex;justify-content:center;margin:4px 0 8px}#jhwl .tvd .lst{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:13px}",
-      "#jhwl .tvd .lst span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}#jhwl .tvd .lst i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}",
-      "#jhwl .tvd .gauge{display:flex;flex-direction:column;align-items:center}#jhwl .tvd .gauge b{font-size:17px;margin-top:-6px}",
-      "#jhwl .tvd .tdet{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:12px}#jhwl .tvd .tdet div{background:var(--bg2);border-radius:4px;padding:6px 8px}",
-      "#jhwl .tvd svg text{font-family:inherit}#jhwl .tvd .leg{display:flex;justify-content:center;gap:12px;font-size:11px;color:var(--mut);margin-top:2px}#jhwl .tvd .leg i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}",
-      "#jhwl .tvd .mu{color:var(--mut);font-size:12px}#jhwl .tvd .up{color:#22ab94}#jhwl .tvd .dn{color:#f7525f}"
+      "#jhwl .tvd .tvd-tg{margin-left:auto;display:inline-flex;gap:8px}#jhwl .tvd .tvd-tg button{background:none;border:0;color:var(--mut);cursor:pointer;font-size:12px;padding:0}#jhwl .tvd .tvd-tg button.on{color:var(--blue);text-decoration:underline;text-underline-offset:4px}",
+      "#jhwl .tvd .tvd-kf{background:linear-gradient(135deg,rgba(41,98,255,.12),rgba(156,39,176,.10));border:1px solid rgba(41,98,255,.25);border-radius:6px;padding:9px 10px;margin:4px 0 6px;font-size:12px;line-height:1.45}",
+      "#jhwl .tvd .tvd-kf b{display:block;font-size:12px;margin-bottom:3px}#jhwl .tvd .tvd-kf a{color:var(--mut);text-decoration:none;font-size:12px}#jhwl .tvd .tvd-kf a:hover{color:var(--blue)}",
+      "#jhwl .tvd .tvd-ks{display:grid;grid-template-columns:1fr auto;gap:7px 10px;font-size:13px}#jhwl .tvd .tvd-ks span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums;font-weight:500}",
+      "#jhwl .tvd .tvd-ks.tvd-more{margin-top:7px}#jhwl .tvd .tvd-chev{display:flex;justify-content:center;margin:6px 0}#jhwl .tvd .tvd-chev button{background:var(--bg2);border:0;border-radius:12px;color:var(--mut);cursor:pointer;width:34px;height:20px}",
+      "#jhwl .tvd .tvd-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#jhwl .tvd .tvd-tiles div{border-radius:4px;padding:6px 4px;text-align:center;background:var(--bg2)}",
+      "#jhwl .tvd .tvd-tiles div b{display:block;font-size:13px;font-weight:600}#jhwl .tvd .tvd-tiles div small{font-size:11px;color:var(--fg);opacity:.85}",
+      "#jhwl .tvd .tvd-tiles div.tvd-up{background:rgba(8,153,129,.22)}#jhwl .tvd .tvd-tiles div.tvd-up b{color:#22ab94}#jhwl .tvd .tvd-tiles div.tvd-dn{background:rgba(242,54,69,.20)}#jhwl .tvd .tvd-tiles div.tvd-dn b{color:#f7525f}",
+      "#jhwl .tvd .tvd-pill{display:flex;justify-content:center;margin:10px 0 2px}#jhwl .tvd .tvd-pill button,#jhwl .tvd .tvd-pill a{background:var(--bg2);border:0;border-radius:14px;color:var(--fg);padding:5px 14px;font-size:12px;cursor:pointer;text-decoration:none}",
+      "#jhwl .tvd .tvd-pill button:hover,#jhwl .tvd .tvd-pill a:hover{background:var(--bd)}",
+      "#jhwl .tvd .tvd-dn2{display:flex;justify-content:center;margin:4px 0 8px}#jhwl .tvd .tvd-lst{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:13px}",
+      "#jhwl .tvd .tvd-lst span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}#jhwl .tvd .tvd-lst i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}",
+      "#jhwl .tvd .tvd-gauge{display:flex;flex-direction:column;align-items:center}#jhwl .tvd .tvd-gauge b{font-size:17px;margin-top:-6px}",
+      "#jhwl .tvd .tvd-tdet{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:12px}#jhwl .tvd .tvd-tdet div{background:var(--bg2);border-radius:4px;padding:6px 8px}",
+      "#jhwl .tvd svg text{font-family:inherit}#jhwl .tvd .tvd-leg{display:flex;justify-content:center;gap:12px;font-size:11px;color:var(--mut);margin-top:2px}#jhwl .tvd .tvd-leg i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}",
+      "#jhwl .tvd .tvd-mu{color:var(--mut);font-size:12px}#jhwl .tvd .tvd-up{color:#22ab94}#jhwl .tvd .tvd-dn{color:#f7525f}"
     ].join("");
     document.head.appendChild(s);
   }
@@ -196,9 +196,9 @@
     el.setAttribute("data-tvd", x.id);
     var ses = T ? usSession() : null;
     var stale = okq && q.last_date && (Date.now() - Date.parse(q.last_date + "T23:59:59Z")) > 4 * 864e5;
-    var price = okq ? '<div class="pr"><span class="p">' + num(q.last) + '</span><span class="u">' + esc(q.unit && q.unit.length < 8 ? q.unit : T ? "USD" : "") + '</span><span class="c ' + cls(q.chg) + '">' + (q.chg != null ? (q.chg > 0 ? "+" : "") + num(q.chg) : "") + " " + pc(q.chg_pct) + "</span></div>" +
-      '<div class="st ' + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>"
-      : '<div class="mu" style="margin:6px 0 10px">' + (q && q.pending ? "Loading the full history the chart uses…" : q && q.error ? "No quote from the warehouse for this symbol: " + esc(String(q.error).split("(")[0].slice(0, 140)) : "Loading quote…") + "</div>";
+    var price = okq ? '<div class="tvd-pr"><span class="tvd-p">' + num(q.last) + '</span><span class="tvd-u">' + esc(q.unit && q.unit.length < 8 ? q.unit : T ? "USD" : "") + '</span><span class="tvd-c ' + cls(q.chg) + '">' + (q.chg != null ? (q.chg > 0 ? "+" : "") + num(q.chg) : "") + " " + pc(q.chg_pct) + "</span></div>" +
+      '<div class="tvd-st ' + "tvd-" + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>"
+      : '<div class="tvd-mu" style="margin:6px 0 10px">' + (q && q.pending ? "Loading the full history the chart uses…" : q && q.error ? "No quote from the warehouse for this symbol: " + esc(String(q.error).split("(")[0].slice(0, 140)) : "Loading quote…") + "</div>";
     var ICON = {
       grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
@@ -207,12 +207,12 @@
     };
     var page = T ? "/symbol.html?s=" + encodeURIComponent(T) : null;
     el.innerHTML = '<div class="tvd">' +
-      '<div class="hd"><span class="lg" style="background:' + esc(x.color || "#2a2e39") + '">' + (T ? '<img alt="" src="https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(T) + '.png" onerror="this.remove()">' : "") + esc(String(x.sym || "?").charAt(0).toUpperCase()) + "</span><b title=\"" + esc(x.id) + '">' + esc(x.alias || x.sym) + "</b>" +
-        '<span class="ic">' + (page ? '<a href="' + page + '" target="_blank" rel="noopener" title="Open the full symbol page: financials, holdings, ownership, flows">' + ICON.grid + "</a>" : "") +
+      '<div class="tvd-hd"><span class="tvd-lg" style="background:' + esc(x.color || "#2a2e39") + '">' + (T ? '<img alt="" src="https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(T) + '.png" onerror="this.remove()">' : "") + esc(String(x.sym || "?").charAt(0).toUpperCase()) + "</span><b title=\"" + esc(x.id) + '">' + esc(x.alias || x.sym) + "</b>" +
+        '<span class="tvd-ic">' + (page ? '<a href="' + page + '" target="_blank" rel="noopener" title="Open the full symbol page: financials, holdings, ownership, flows">' + ICON.grid + "</a>" : "") +
         '<button type="button" data-tvd="rename" title="Rename & colour tag">' + ICON.edit + '</button><button type="button" data-tvd="menu" title="More" aria-haspopup="menu">' + ICON.dots + "</button></span></div>" +
       '<div class="tvd-mn" hidden></div>' +
-      '<div class="nm2" data-k="name">' + (page ? '<a href="' + page + '" target="_blank" rel="noopener">' + esc(x.name || x.id) + " " + ICON.ext + "</a>" : esc(x.name || x.id)) + (x.alias ? ' <span class="ex">(' + esc(x.sym) + ")</span>" : "") + '<span class="ex" data-k="exch"></span></div>' +
-      '<div class="sub" data-k="sub">' + esc(x.id) + "</div>" +
+      '<div class="tvd-nm2" data-k="name">' + (page ? '<a href="' + page + '" target="_blank" rel="noopener">' + esc(x.name || x.id) + " " + ICON.ext + "</a>" : esc(x.name || x.id)) + (x.alias ? ' <span class="tvd-ex">(' + esc(x.sym) + ")</span>" : "") + '<span class="tvd-ex" data-k="exch"></span></div>' +
+      '<div class="tvd-sub" data-k="sub">' + esc(x.id) + "</div>" +
       price +
       '<div data-k="ranges"></div>' +
       (x.insights ? '<div class="wl-ins" data-ins="' + esc(x.id) + '">' + x.insights + "</div>" : "") +
@@ -256,7 +256,7 @@
       var dl = +(L.low != null ? L.low : L.close), dh = +(L.high != null ? L.high : L.close), last = okq ? +q.last : +L.close;
       function bar(lo, hi, lbl, fill) {
         var f = hi > lo ? Math.max(0, Math.min(1, (last - lo) / (hi - lo))) : 0.5;
-        return '<div class="rg"><div class="l"><span>' + num(lo) + "</span><span>" + lbl + "</span><span>" + num(hi) + '</span></div><div class="b">' + (fill ? '<em style="left:0;width:' + (f * 100).toFixed(1) + '%"></em>' : "") + '<s style="left:' + (f * 100).toFixed(1) + '%"></s></div></div>';
+        return '<div class="tvd-rg"><div class="tvd-l"><span>' + num(lo) + "</span><span>" + lbl + "</span><span>" + num(hi) + '</span></div><div class="tvd-b">' + (fill ? '<em style="left:0;width:' + (f * 100).toFixed(1) + '%"></em>' : "") + '<s style="left:' + (f * 100).toFixed(1) + '%"></s></div></div>';
       }
       var hasDay = L.high != null && L.low != null && dh > dl;
       slot("ranges").innerHTML = (hasDay ? bar(dl, dh, (T ? "Day's range" : "Latest bar range") + " · " + fdate(day(L.time)), true) : "") + (y1.length > 20 ? bar(lo52, hi52, "52wk range", false) : "");
@@ -266,30 +266,30 @@
         if (!alive()) return;
         var keys = etf ? ["1M", "3M", "YTD", "1Y", "3Y", "5Y"] : ["1W", "1M", "3M", "6M", "YTD", "1Y"];
         var span = { "1M": 30.4, "3M": 91.3, "YTD": "YTD", "1Y": 365.25, "3Y": 1095.75, "5Y": 1826.25 };
-        function tiles(tot, divs) { return '<div class="tiles">' + keys.map(function (k) { var v = tot ? totalRet(b, divs, span[k]) : pf[k]; return '<div class="' + cls(v) + '"><b>' + (ok(v) ? (+v).toFixed(2) + "%" : "—") + "</b><small>" + k + "</small></div>"; }).join("") + "</div>"; }
+        function tiles(tot, divs) { return '<div class="tvd-tiles">' + keys.map(function (k) { var v = tot ? totalRet(b, divs, span[k]) : pf[k]; return '<div class="' + cls(v) + '"><b>' + (ok(v) ? (+v).toFixed(2) + "%" : "—") + "</b><small>" + k + "</small></div>"; }).join("") + "</div>"; }
         var host = slot("perf");
-        host.innerHTML = "<h4>" + (etf ? "Returns" : "Performance") + (etf ? '<span class="tg"><button type="button" data-ret="p" class="on">Price</button><button type="button" data-ret="t">Total</button></span>' : "") + "</h4>" + tiles(false);
-        if (etf) host.querySelector(".tg").onclick = function (e) {
+        host.innerHTML = "<h4>" + (etf ? "Returns" : "Performance") + (etf ? '<span class="tvd-tg"><button type="button" data-ret="p" class="on">Price</button><button type="button" data-ret="t">Total</button></span>' : "") + "</h4>" + tiles(false);
+        if (etf) host.querySelector(".tvd-tg").onclick = function (e) {
           var t = e.target.closest("[data-ret]"); if (!t) return;
           host.querySelectorAll("[data-ret]").forEach(function (z) { z.classList.toggle("on", z === t); });
           var tot = t.getAttribute("data-ret") === "t";
-          divP.then(function (dv) { if (!alive()) return; host.querySelector(".tiles").outerHTML = tiles(tot, dv); });
+          divP.then(function (dv) { if (!alive()) return; host.querySelector(".tvd-tiles").outerHTML = tiles(tot, dv); });
         };
       });
       // technicals
       var tr = technicals(b);
       if (tr) {
         var tH = slot("tech");
-        tH.innerHTML = '<h4>Technicals<small>daily · ' + (tr.ma.length + tr.os.length) + " indicators</small></h4>" + '<div class="gauge">' + gauge(tr.all) + "<b>" + label(tr.all) + '</b></div><div class="pill"><button type="button" data-tvd="techmore">More technicals</button></div><div class="tdx" hidden></div>';
+        tH.innerHTML = '<h4>Technicals<small>daily · ' + (tr.ma.length + tr.os.length) + " indicators</small></h4>" + '<div class="tvd-gauge">' + gauge(tr.all) + "<b>" + label(tr.all) + '</b></div><div class="tvd-pill"><button type="button" data-tvd="techmore">More technicals</button></div><div class="tvd-tdx" hidden></div>';
         tH.querySelector('[data-tvd="techmore"]').onclick = function (e) {
-          e.stopPropagation(); var d = tH.querySelector(".tdx");
+          e.stopPropagation(); var d = tH.querySelector(".tvd-tdx");
           if (!d.hidden) { d.hidden = true; return; }
           function cnt(a, s) { return a.filter(function (z) { return z[1] === s; }).length; }
-          function row(z) { return "<div><span>" + esc(z[0]) + '</span><span style="float:right" class="' + (z[1] > 0 ? "up" : z[1] < 0 ? "dn" : "mu") + '">' + (z[1] > 0 ? "Buy" : z[1] < 0 ? "Sell" : "Neutral") + "</span></div>"; }
+          function row(z) { return "<div><span>" + esc(z[0]) + '</span><span style="float:right" class="' + (z[1] > 0 ? "tvd-up" : z[1] < 0 ? "tvd-dn" : "tvd-mu") + '">' + (z[1] > 0 ? "Buy" : z[1] < 0 ? "Sell" : "Neutral") + "</span></div>"; }
           d.hidden = false;
-          d.innerHTML = '<div class="tdet"><div><b>Oscillators: ' + label(tr.ro) + '</b><br><span class="mu">Sell ' + cnt(tr.os, -1) + " · Neutral " + cnt(tr.os, 0) + " · Buy " + cnt(tr.os, 1) + '</span></div><div><b>Moving averages: ' + label(tr.rm) + '</b><br><span class="mu">Sell ' + cnt(tr.ma, -1) + " · Neutral " + cnt(tr.ma, 0) + " · Buy " + cnt(tr.ma, 1) + "</span></div></div>" +
-            '<div class="tdet">' + tr.os.map(row).join("") + tr.ma.map(row).join("") + "</div>" +
-            '<p class="mu" style="margin:6px 0 0">Same rules as TradingView\'s technical rating, computed here from the daily bars the chart draws. A rating is not a recommendation.</p>';
+          d.innerHTML = '<div class="tvd-tdet"><div><b>Oscillators: ' + label(tr.ro) + '</b><br><span class="tvd-mu">Sell ' + cnt(tr.os, -1) + " · Neutral " + cnt(tr.os, 0) + " · Buy " + cnt(tr.os, 1) + '</span></div><div><b>Moving averages: ' + label(tr.rm) + '</b><br><span class="tvd-mu">Sell ' + cnt(tr.ma, -1) + " · Neutral " + cnt(tr.ma, 0) + " · Buy " + cnt(tr.ma, 1) + "</span></div></div>" +
+            '<div class="tvd-tdet">' + tr.os.map(row).join("") + tr.ma.map(row).join("") + "</div>" +
+            '<p class="tvd-mu" style="margin:6px 0 0">Same rules as TradingView\'s technical rating, computed here from the daily bars the chart draws. A rating is not a recommendation.</p>';
         };
       }
       // seasonals: cumulative % from each year's start, last three calendar years
@@ -303,9 +303,9 @@
       if (ser.length) {
         var mo = [["Jan", 0], ["Mar", 59 / 365], ["May", 120 / 365], ["Jul", 181 / 365], ["Sep", 243 / 365], ["Nov", 304 / 365]];
         slot("seas").innerHTML = "<h4>Seasonals<small>% from each year's start</small></h4>" + linesSvg(ser.slice().reverse(), 300, 130, { xlabels: mo.map(function (m) { return [m[1], m[0]]; }), vgrid: true, fmt: function (v) { return v.toFixed(0) + "%"; } }) +
-          '<div class="leg">' + ser.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + s.y + "</span>"; }).join("") + '</div><div class="pill"><button type="button" data-tvd="seasonals">More seasonals</button></div>';
+          '<div class="tvd-leg">' + ser.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + s.y + "</span>"; }).join("") + '</div><div class="tvd-pill"><button type="button" data-tvd="seasonals">More seasonals</button></div>';
       }
-      if (!T) slot("extra").innerHTML = '<div class="ks" style="margin-top:14px"><span>Symbol</span><span>' + esc(x.id) + "</span><span>History</span><span>" + fdate(day(b[0].time)) + " → " + fdate(day(L.time)) + "</span><span>Observations</span><span>" + b.length.toLocaleString("en-US") + "</span></div>";
+      if (!T) slot("extra").innerHTML = '<div class="tvd-ks" style="margin-top:14px"><span>Symbol</span><span>' + esc(x.id) + "</span><span>History</span><span>" + fdate(day(b[0].time)) + " → " + fdate(day(L.time)) + "</span><span>Observations</span><span>" + b.length.toLocaleString("en-US") + "</span></div>";
     });
 
     if (!T) return;
@@ -319,13 +319,13 @@
       slot("sub").textContent = etf ? [ei && ei.assetClass ? ei.assetClass + " ETF" : "ETF", ei && ei.etfCompany].filter(Boolean).join(" • ") : [p.sector, p.industry].filter(Boolean).join(" • ") || x.id;
       // key facts
       var desc = String((ei && ei.description) || p.description || "").trim();
-      if (desc) { var short = desc.length > 260 ? desc.slice(0, 250).replace(/\s+\S*$/, "") + "…" : desc; slot("facts").innerHTML = '<div class="kf"><b>✦ Key facts</b>' + esc(short) + (page ? '<br><a href="' + page + '" target="_blank" rel="noopener">Keep reading ›</a>' : "") + "</div>"; }
+      if (desc) { var short = desc.length > 260 ? desc.slice(0, 250).replace(/\s+\S*$/, "") + "…" : desc; slot("facts").innerHTML = '<div class="tvd-kf"><b>✦ Key facts</b>' + esc(short) + (page ? '<br><a href="' + page + '" target="_blank" rel="noopener">Keep reading ›</a>' : "") + "</div>"; }
       // key stats
       var now = Date.now(), nxt = E.filter(function (e) { return e.epsActual == null && Date.parse(e.date) >= now - 864e5; }).sort(function (x1, x2) { return Date.parse(x1.date) - Date.parse(x2.date); })[0];
       var inDays = nxt ? Math.max(0, Math.round((Date.parse(nxt.date + "T12:00:00Z") - now) / 864e5)) : null;
       var dy = ok(r.dividendYieldTTM) ? r.dividendYieldTTM * 100 : null;
       var rows = [];
-      if (!etf) rows.push(["Next earnings report", nxt ? (inDays === 0 ? "Today" : "In " + inDays + " day" + (inDays === 1 ? "" : "s")) + ' <span class="mu">(' + fdate(nxt.date) + ")</span>" : "—"]);
+      if (!etf) rows.push(["Next earnings report", nxt ? (inDays === 0 ? "Today" : "In " + inDays + " day" + (inDays === 1 ? "" : "s")) + ' <span class="tvd-mu">(' + fdate(nxt.date) + ")</span>" : "—"]);
       rows.push(["Volume", big(p.volume)], ["Average Volume (30D)", big(p.averageVolume || (ei && ei.avgVolume))]);
       rows.push(etf ? ["AUM", big(ei && ei.assetsUnderManagement, true)] : ["Market capitalization", big(p.marketCap, true)]);
       var more = etf ? [["Expense ratio", ei && ok(ei.expenseRatio) ? (+ei.expenseRatio).toFixed(2) + "%" : "—"], ["NAV", ei && ok(ei.nav) ? num(ei.nav) + " " + esc(ei.navCurrency || "") : "—"], ["Holdings", ei && ok(ei.holdingsCount) ? cnt(ei.holdingsCount) : "—"], ["Inception date", ei ? fdate(ei.inceptionDate) : "—"], ["Issuer", ei ? esc(ei.etfCompany || "—") : "—"], ["Beta", ok(p.beta) && p.beta ? n2(p.beta) : "—"]]
@@ -333,9 +333,9 @@
       function cnt(v) { return Math.round(+v).toLocaleString("en-US"); }
       function n2(v) { return ok(v) ? (+v).toFixed(2) : "—"; }
       var sH = slot("stats");
-      sH.innerHTML = "<h4>Key stats</h4>" + '<div class="ks" data-k="ks1">' + rows.map(function (z) { return "<span>" + z[0] + "</span><span>" + z[1] + "</span>"; }).join("") + "<span>Dividend yield (indicated)</span><span data-k=\"dy\">" + (dy != null ? dy.toFixed(2) + "%" : "—") + "</span></div>" +
-        '<div class="ks more" hidden>' + more.map(function (z) { return "<span>" + z[0] + "</span><span>" + z[1] + "</span>"; }).join("") + '</div><div class="chev"><button type="button" aria-label="More key stats" title="More key stats">⌄</button></div>';
-      sH.querySelector(".chev button").onclick = function (e) { e.stopPropagation(); var m = sH.querySelector(".ks.more"); m.hidden = !m.hidden; this.textContent = m.hidden ? "⌄" : "⌃"; };
+      sH.innerHTML = "<h4>Key stats</h4>" + '<div class="tvd-ks" data-k="ks1">' + rows.map(function (z) { return "<span>" + z[0] + "</span><span>" + z[1] + "</span>"; }).join("") + "<span>Dividend yield (indicated)</span><span data-k=\"dy\">" + (dy != null ? dy.toFixed(2) + "%" : "—") + "</span></div>" +
+        '<div class="tvd-ks tvd-more" hidden>' + more.map(function (z) { return "<span>" + z[0] + "</span><span>" + z[1] + "</span>"; }).join("") + '</div><div class="tvd-chev"><button type="button" aria-label="More key stats" title="More key stats">⌄</button></div>';
+      sH.querySelector(".tvd-chev button").onclick = function (e) { e.stopPropagation(); var m = sH.querySelector(".tvd-ks.tvd-more"); m.hidden = !m.hidden; this.textContent = m.hidden ? "⌄" : "⌃"; };
       // ETF yield when the ratios feed carries none: trailing distributions / price
       if (dy == null) divP.then(function (dv) {
         if (!alive() || !dv.length || !ok(p.price)) return; var cut = Date.now() - 365 * 864e5, s = 0;
@@ -348,9 +348,9 @@
         var sec = (Array.isArray(w[0]) ? w[0] : []).map(function (s) { return [s.sector, pctNum(s.weightPercentage)]; }).filter(function (s) { return s[1] > 0; }).sort(function (a1, a2) { return a2[1] - a1[1]; });
         var reg = {}, tot = 0; (Array.isArray(w[1]) ? w[1] : []).forEach(function (c) { var v = pctNum(c.weightPercentage); if (!(v > 0)) return; var g = regionOf(c.country) || "Other / unclassified"; reg[g] = (reg[g] || 0) + v; tot += v; });
         var h = "";
-        if (sec.length) h += "<h4>Sector breakdown</h4>" + '<div class="dn2">' + donut(sec.map(function (s, i) { return [s[0], s[1], PAL[i % PAL.length]]; })) + '</div><div class="lst">' + sec.slice(0, 10).map(function (s, i) { return '<span><i style="background:' + PAL[i % PAL.length] + '"></i>' + esc(s[0]) + "</span><span>" + s[1].toFixed(2) + "%</span>"; }).join("") + "</div>";
-        if (tot) h += "<h4>Stock breakdown by region</h4>" + '<div class="lst">' + ["North America", "Asia", "Latin America", "Europe", "Africa", "Middle East", "Oceania", "Other / unclassified"].filter(function (g) { return g !== "Other / unclassified" || reg[g]; }).map(function (g) { return "<span>" + g + "</span><span>" + ((reg[g] || 0) / tot * 100).toFixed(2) + "%</span>"; }).join("") + "</div>";
-        if (h) slot("expo").innerHTML = h + (page ? '<div class="pill"><a href="' + page + '&tab=holdings" target="_blank" rel="noopener">More about fund</a></div>' : "");
+        if (sec.length) h += "<h4>Sector breakdown</h4>" + '<div class="tvd-dn2">' + donut(sec.map(function (s, i) { return [s[0], s[1], PAL[i % PAL.length]]; })) + '</div><div class="tvd-lst">' + sec.slice(0, 10).map(function (s, i) { return '<span><i style="background:' + PAL[i % PAL.length] + '"></i>' + esc(s[0]) + "</span><span>" + s[1].toFixed(2) + "%</span>"; }).join("") + "</div>";
+        if (tot) h += "<h4>Stock breakdown by region</h4>" + '<div class="tvd-lst">' + ["North America", "Asia", "Latin America", "Europe", "Africa", "Middle East", "Oceania", "Other / unclassified"].filter(function (g) { return g !== "Other / unclassified" || reg[g]; }).map(function (g) { return "<span>" + g + "</span><span>" + ((reg[g] || 0) / tot * 100).toFixed(2) + "%</span>"; }).join("") + "</div>";
+        if (h) slot("expo").innerHTML = h + (page ? '<div class="tvd-pill"><a href="' + page + '&tab=holdings" target="_blank" rel="noopener">More about fund</a></div>' : "");
       });
       // earnings: last four reported quarters + the next estimate
       if (!etf && E.length) fmp("income-statement", T, "&period=quarter&limit=12").then(function (iq) {
@@ -373,7 +373,7 @@
           if (ok(e.epsEstimated)) g += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(e.epsEstimated).toFixed(1) + '" r="6" fill="none" stroke="var(--mut)" stroke-width="1.5"><title>Estimate ' + (+e.epsEstimated).toFixed(2) + "</title></circle>";
           if (ok(e.epsActual)) g += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(e.epsActual).toFixed(1) + '" r="6" fill="' + (!ok(e.epsEstimated) || e.epsActual >= e.epsEstimated ? "#089981" : "#f23645") + '"><title>Reported ' + (+e.epsActual).toFixed(2) + (ok(e.epsEstimated) ? " vs est. " + (+e.epsEstimated).toFixed(2) : "") + " · " + esc(e.date) + "</title></circle>";
         });
-        slot("earn").innerHTML = "<h4>Earnings<small>EPS per share" + (inDays != null ? " · next in " + inDays + " days" : "") + '</small></h4><svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" aria-hidden="true">' + g + '</svg><div class="leg"><span><i style="background:#089981"></i>Actual (beat)</span><span><i style="background:#f23645"></i>Actual (miss)</span><span><i style="border:1.5px solid var(--mut);width:5px;height:5px"></i>Estimate</span></div>' + (page ? '<div class="pill"><a href="' + page + '&tab=earnings" target="_blank" rel="noopener">More info</a></div>' : "");
+        slot("earn").innerHTML = "<h4>Earnings<small>EPS per share" + (inDays != null ? " · next in " + inDays + " days" : "") + '</small></h4><svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" aria-hidden="true">' + g + '</svg><div class="tvd-leg"><span><i style="background:#089981"></i>Actual (beat)</span><span><i style="background:#f23645"></i>Actual (miss)</span><span><i style="border:1.5px solid var(--mut);width:5px;height:5px"></i>Estimate</span></div>' + (page ? '<div class="tvd-pill"><a href="' + page + '&tab=earnings" target="_blank" rel="noopener">More info</a></div>' : "");
       });
       // dividends
       divP.then(function (dv) {
@@ -381,9 +381,9 @@
         var d0 = dv[0], pr = ok(r.dividendPayoutRatioTTM) ? r.dividendPayoutRatioTTM * 100 : null, cut = Date.now() - 365 * 864e5, ttm = 0;
         dv.forEach(function (d) { if (Date.parse(d.date) > cut && ok(d.dividend)) ttm += +d.dividend; });
         var yld = dy != null ? dy : ttm && ok(p.price) ? ttm / p.price * 100 : null;
-        slot("divs").innerHTML = "<h4>Dividends</h4>" + (pr != null ? '<div class="dn2">' + donut([["Payout", Math.min(100, Math.max(0, pr)), "#2962ff"], ["Retained", Math.max(0, 100 - pr), "transparent"]], pr.toFixed(2) + "%", 110) + '</div><div class="mu" style="text-align:center;margin:-2px 0 8px"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2962ff;margin-right:5px"></i>Payout ratio (TTM)</div>' : "") +
-          '<div class="ks"><span>Dividend yield TTM</span><span>' + (yld != null ? yld.toFixed(2) + "%" : "—") + "</span><span>Last payment</span><span>" + (ok(d0.dividend) ? (+d0.dividend).toFixed(d0.dividend < 0.1 ? 4 : 2) : "—") + "</span><span>Last ex-dividend date</span><span>" + fdate(d0.date) + "</span><span>Last payment date</span><span>" + fdate(d0.paymentDate) + "</span>" + (d0.frequency ? "<span>Frequency</span><span>" + esc(d0.frequency) + "</span>" : "") + "</div>" +
-          (page ? '<div class="pill"><a href="' + page + '&tab=dividends" target="_blank" rel="noopener">More info</a></div>' : "");
+        slot("divs").innerHTML = "<h4>Dividends</h4>" + (pr != null ? '<div class="tvd-dn2">' + donut([["Payout", Math.min(100, Math.max(0, pr)), "#2962ff"], ["Retained", Math.max(0, 100 - pr), "transparent"]], pr.toFixed(2) + "%", 110) + '</div><div class="tvd-mu" style="text-align:center;margin:-2px 0 8px"><i style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2962ff;margin-right:5px"></i>Payout ratio (TTM)</div>' : "") +
+          '<div class="tvd-ks"><span>Dividend yield TTM</span><span>' + (yld != null ? yld.toFixed(2) + "%" : "—") + "</span><span>Last payment</span><span>" + (ok(d0.dividend) ? (+d0.dividend).toFixed(d0.dividend < 0.1 ? 4 : 2) : "—") + "</span><span>Last ex-dividend date</span><span>" + fdate(d0.date) + "</span><span>Last payment date</span><span>" + fdate(d0.paymentDate) + "</span>" + (d0.frequency ? "<span>Frequency</span><span>" + esc(d0.frequency) + "</span>" : "") + "</div>" +
+          (page ? '<div class="tvd-pill"><a href="' + page + '&tab=dividends" target="_blank" rel="noopener">More info</a></div>' : "");
       });
       // income statement: revenue and net income bars, net margin line
       if (!etf) {
@@ -407,10 +407,10 @@
               if (ok(mg[i])) line += (line ? "L" : "M") + (x0 + gw / 2).toFixed(1) + " " + Ym(mg[i]).toFixed(1);
             });
             g += '<path d="' + line + '" stroke="#ff9800" stroke-width="1.6" fill="none"/>' + d.map(function (s, i) { return ok(mg[i]) ? '<circle cx="' + (40 + i * gw + gw / 2).toFixed(1) + '" cy="' + Ym(mg[i]).toFixed(1) + '" r="2.4" fill="#ff9800"><title>Net margin ' + mg[i].toFixed(2) + "%</title></circle>" : ""; }).join("");
-            iH.innerHTML = '<h4>Income statement<span class="tg"><button type="button" data-per="annual"' + (per === "annual" ? ' class="on"' : "") + '>Annual</button><button type="button" data-per="quarter"' + (per === "quarter" ? ' class="on"' : "") + ">Quarterly</button></span></h4>" +
-              '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" aria-hidden="true">' + g + '</svg><div class="leg"><span><i style="background:#2962ff"></i>Revenue</span><span><i style="background:#00bcd4"></i>Net income</span><span><i style="background:#ff9800"></i>Net margin %</span></div>' +
-              (page ? '<div class="pill"><a href="' + page + '&tab=financials" target="_blank" rel="noopener">More financials</a></div>' : "");
-            iH.querySelector(".tg").onclick = function (e) { var t = e.target.closest("[data-per]"); if (!t) return; e.stopPropagation(); per = t.getAttribute("data-per"); drawInc(); };
+            iH.innerHTML = '<h4>Income statement<span class="tvd-tg"><button type="button" data-per="annual"' + (per === "annual" ? ' class="on"' : "") + '>Annual</button><button type="button" data-per="quarter"' + (per === "quarter" ? ' class="on"' : "") + ">Quarterly</button></span></h4>" +
+              '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" aria-hidden="true">' + g + '</svg><div class="tvd-leg"><span><i style="background:#2962ff"></i>Revenue</span><span><i style="background:#00bcd4"></i>Net income</span><span><i style="background:#ff9800"></i>Net margin %</span></div>' +
+              (page ? '<div class="tvd-pill"><a href="' + page + '&tab=financials" target="_blank" rel="noopener">More financials</a></div>' : "");
+            iH.querySelector(".tvd-tg").onclick = function (e) { var t = e.target.closest("[data-per]"); if (!t) return; e.stopPropagation(); per = t.getAttribute("data-per"); drawInc(); };
           });
         };
         drawInc();
