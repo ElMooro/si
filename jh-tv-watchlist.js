@@ -206,6 +206,20 @@
   // Symbols the warehouse /quote cannot price (e.g. TradingView-only feeds) are quoted from the same bars the chart draws,
   // so the row shows the number the chart shows. Long histories can take a while; the row shows … until they arrive.
   var BQ = [], bqRun = 0, BQN = {};
+  // chart routes learnt when a row is opened (the chart's own handoff, e.g. EUREX:FMOG1! → the series it actually draws)
+  var RTK = "jh-tvwl-route-v1", RT = {};
+  try { RT = JSON.parse(localStorage.getItem(RTK) || "{}") || {}; } catch (e) { RT = {}; }
+  function learnRoute(id) {
+    var n = 0, t = setInterval(function () {
+      var h = root.jhWatchlistHandoff;
+      if (h && h.requested === id && h.handoff) {
+        clearInterval(t);
+        if (h.handoff !== id && RT[id] !== h.handoff) { RT[id] = h.handoff; try { localStorage.setItem(RTK, JSON.stringify(RT)); } catch (e) {} }
+        if (!(Q[id] && Q[id].ok)) { BQN[id] = 0; barQuote(id); }
+      } else if (++n > 30) clearInterval(t);
+    }, 500);
+  }
+  function isExprId(x) { try { return !!(root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(x)); } catch (e) { return false; } }
   function barQuote(id, failed) {
     if (typeof root.jhKlines !== "function" || /^FILE[:\-]/i.test(id)) return;
     var n = BQN[id] = (BQN[id] || 0) + 1; if (n > 3) return;
@@ -229,8 +243,8 @@
         (function next(i) {
           if (done) return;
           if (i >= cands.length) { fin(null, "no bars under " + cands.join(", ")); return; }
-          var p; try { p = Promise.resolve(root.jhKlines(cands[i], "1d")); } catch (e) { p = Promise.reject(e); }
-          p.then(function (r) { var b = Array.isArray(r) ? r : r && (r.bars || r.data) || null; if (b && b.length) fin(b); else next(i + 1); }, function () { next(i + 1); });
+          var p; try { p = Promise.resolve(isExprId(cands[i]) ? root.JHChartExpr.evaluate(cands[i]) : root.jhKlines(cands[i], "1d")); } catch (e) { p = Promise.reject(e); }
+          p.then(function (r) { var b = Array.isArray(r) ? r : r && (r.bars || r.data || r.d) || null; if (b && b.length) fin(b); else next(i + 1); }, function () { next(i + 1); });
         })(0);
       })(id);
     }
@@ -239,9 +253,11 @@
   // the bare symbol (TVC:DXY → DXY), and continuous futures in Yahoo form (COMEX:GC1! → GC=F)
   function barCands(id, m) {
     if (m) return [m.id];
-    if (root.JHChartExpr && root.JHChartExpr.isExpr && root.JHChartExpr.isExpr(id)) return [id];
-    var out = [], t = chartTarget(id), bare = id.indexOf(":") > 0 ? id.split(":").pop() : id;
+    var out = [];
     function add(x) { if (x && out.indexOf(x) < 0) out.push(x); }
+    if (RT[id]) add(RT[id]);
+    if (isExprId(id)) { add(id); return out; }
+    var t = chartTarget(id), bare = id.indexOf(":") > 0 ? id.split(":").pop() : id;
     if (t !== id) add(t);
     add(id); add(bare);
     if (/\d*!$/.test(bare)) add(bare.replace(/\d*!$/, "") + "=F");
@@ -851,7 +867,7 @@
   }
   function goChart(id) {
     activeSym = id; navAt = Date.now();
-    route(id);
+    route(id); learnRoute(id);
     if (!body) return;
     body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); });
     var row = body.querySelector('.wl-row[data-id="' + cssEsc(id) + '"]'); if (row) row.classList.add("act");
