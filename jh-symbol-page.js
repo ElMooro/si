@@ -261,9 +261,9 @@
         fmp("etf/asset-exposure").then(function (d) {
           var el2 = body.querySelector('[data-k="exp"]'); if (!el2) return;
           if (!Array.isArray(d) || !d.length) { el2.innerHTML = ""; return; }
-          // market values are in each fund's own currency, so US-listed funds (USD) are ranked by value and foreign listings by shares
+          // market values are in each fund's own currency, so US-listed funds (USD) are ranked by value and foreign listings by portfolio weight
           var us = d.filter(function (r) { return r.symbol && r.symbol.indexOf(".") < 0; }).sort(function (a, b) { return (b.marketValue || 0) - (a.marketValue || 0); });
-          var fx = d.filter(function (r) { return r.symbol && r.symbol.indexOf(".") >= 0; }).sort(function (a, b) { return (b.sharesNumber || 0) - (a.sharesNumber || 0); });
+          var fx = d.filter(function (r) { return r.symbol && r.symbol.indexOf(".") >= 0; }).sort(function (a, b) { return (b.weightPercentage || 0) - (a.weightPercentage || 0); });
           el2.innerHTML = "<h2>ETFs holding " + esc(T) + " <span>" + d.length.toLocaleString() + " funds worldwide · " + us.length.toLocaleString() + ' US-listed · Financial Modeling Prep</span></h2><div class="sp-two"><div class="sp-tw"><table><tr><th>US-listed ETF</th><th>Weight</th><th>Shares</th><th>Value (USD)</th></tr>' + us.slice(0, 250).map(function (r) { return '<tr><td><a href="?s=' + encodeURIComponent(r.symbol) + '">' + esc(r.symbol) + "</a></td><td>" + n2(r.weightPercentage, "%") + "</td><td>" + cnt(r.sharesNumber) + "</td><td>" + big(r.marketValue) + "</td></tr>"; }).join("") + '</table></div><div class="sp-tw"><table><tr><th>Listed outside the US</th><th>Weight</th><th>Shares</th></tr>' + fx.slice(0, 250).map(function (r) { return "<tr><td>" + esc(r.symbol) + "</td><td>" + n2(r.weightPercentage, "%") + "</td><td>" + cnt(r.sharesNumber) + "</td></tr>"; }).join("") + "</table></div></div>";
         });
       }
