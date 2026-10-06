@@ -1,12 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "98b9b3c7ee10d7713bdd91780bf2e13bb8c7fbf9",
-  "observed_at": "2026-10-06T16:16:42.557573+00:00",
+  "observed_at": "2026-10-06T16:27:36.156877+00:00",
   "ok": false,
   "routes_checked": 600,
   "verified_routes": 599,
   "failed_routes": [
-    "comeback.html"
+    "starmine.html"
   ],
   "source_equivalent_builds": {
     "98b9b3c7ee10d7713bdd91780bf2e13bb8c7fbf9": true
@@ -1160,12 +1160,13 @@
     },
     {
       "route": "comeback.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "98b9b3c7ee10d7713bdd91780bf2e13bb8c7fbf9",
+      "inspector_present": true,
+      "bytes_read": 16212,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "commodities/index.html",
@@ -5209,13 +5210,12 @@
     },
     {
       "route": "starmine.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "98b9b3c7ee10d7713bdd91780bf2e13bb8c7fbf9",
-      "inspector_present": true,
-      "bytes_read": 21740,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "RemoteDisconnected",
+      "product_source_matches_release": false
     },
     {
       "route": "statement-research.html",
@@ -6019,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37493395199,
+  "deployment_run_id": 37494894463,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-06T16:16:42.566523+00:00"
+  "check_finished_at": "2026-10-06T16:27:36.165795+00:00"
 }
