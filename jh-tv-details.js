@@ -190,16 +190,27 @@
   }
 
   // ------------------------------------------------------------------ render
+  // price header (re-painted in place on every live tick by update())
+  function pxHtml(q, T) {
+    var okq = q && q.ok, ses = T ? usSession() : null;
+    var stale = okq && !q.live && q.last_date && (Date.now() - Date.parse(q.last_date + "T23:59:59Z")) > 4 * 864e5;
+    var liveTxt = okq && q.live ? " · live " + (function () { try { return new Date(q.live_ts).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return ""; } })() : "";
+    return okq ? '<div class="tvd-pr"><span class="tvd-p">' + num(q.last) + '</span><span class="tvd-u">' + esc(q.unit && q.unit.length < 8 ? q.unit : T ? "USD" : "") + '</span><span class="tvd-c ' + cls(q.chg) + '">' + (q.chg != null ? (q.chg > 0 ? "+" : "") + num(q.chg) : "") + " " + pc(q.chg_pct) + "</span></div>" +
+      '<div class="tvd-st ' + "tvd-" + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.live ? '<span title="' + esc(q.live_src || "") + (q.bar_last_date ? " · stored daily history through " + esc(q.bar_last_date) : "") + '">' + esc(liveTxt) + "</span>" : q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>"
+      : '<div class="tvd-mu" style="margin:6px 0 10px">' + (q && q.pending ? "Loading the full history the chart uses…" : q && q.error ? "No quote from the warehouse for this symbol: " + esc(String(q.error).split("(")[0].slice(0, 140)) : "Loading quote…") + "</div>";
+  }
+  function update(el, q) {
+    var px = el.querySelector('.tvd [data-k="px"]'); if (!px) return false;
+    px.innerHTML = pxHtml(q, el._tvdT);
+    if (el._tvdRanges) el._tvdRanges(q);
+    return true;
+  }
   var SEQ = 0;
   function render(el, x) {
     css();
     var seq = ++SEQ, T = x.info, q = x.q || {}, okq = q && q.ok;
-    el.setAttribute("data-tvd", x.id);
-    var ses = T ? usSession() : null;
-    var stale = okq && q.last_date && (Date.now() - Date.parse(q.last_date + "T23:59:59Z")) > 4 * 864e5;
-    var price = okq ? '<div class="tvd-pr"><span class="tvd-p">' + num(q.last) + '</span><span class="tvd-u">' + esc(q.unit && q.unit.length < 8 ? q.unit : T ? "USD" : "") + '</span><span class="tvd-c ' + cls(q.chg) + '">' + (q.chg != null ? (q.chg > 0 ? "+" : "") + num(q.chg) : "") + " " + pc(q.chg_pct) + "</span></div>" +
-      '<div class="tvd-st ' + "tvd-" + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>"
-      : '<div class="tvd-mu" style="margin:6px 0 10px">' + (q && q.pending ? "Loading the full history the chart uses…" : q && q.error ? "No quote from the warehouse for this symbol: " + esc(String(q.error).split("(")[0].slice(0, 140)) : "Loading quote…") + "</div>";
+    el.setAttribute("data-tvd", x.id); el._tvdT = T; el._tvdRanges = null;
+    var price = pxHtml(q, T);
     var ICON = {
       grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
@@ -214,7 +225,7 @@
       '<div class="tvd-mn" hidden></div>' +
       '<div class="tvd-nm2" data-k="name">' + (page ? '<a href="' + page + '" target="_blank" rel="noopener">' + esc(x.name || x.id) + " " + ICON.ext + "</a>" : esc(x.name || x.id)) + (x.alias ? ' <span class="tvd-ex">(' + esc(x.sym) + ")</span>" : "") + '<span class="tvd-ex" data-k="exch"></span></div>' +
       '<div class="tvd-sub" data-k="sub">' + esc(x.id) + "</div>" +
-      price +
+      '<div data-k="px">' + price + "</div>" +
       '<div data-k="ranges"></div>' +
       (x.insights ? '<div class="wl-ins" data-ins="' + esc(x.id) + '">' + x.insights + "</div>" : "") +
       '<div data-k="facts"></div><div data-k="stats"></div><div data-k="perf"></div><div data-k="expo"></div><div data-k="tech"></div>' +
@@ -252,15 +263,26 @@
       if (!alive()) return;
       b = (b || []).filter(function (r) { return r && r.time != null && ok(r.close); });
       if (!b.length) return;
-      var L = b[b.length - 1], lt = ts(L.time), y1 = b.filter(function (r) { return ts(r.time) > lt - 365.25 * 86400; });
-      var lo52 = Math.min.apply(null, y1.map(function (r) { return +(r.low != null ? r.low : r.close); })), hi52 = Math.max.apply(null, y1.map(function (r) { return +(r.high != null ? r.high : r.close); }));
-      var dl = +(L.low != null ? L.low : L.close), dh = +(L.high != null ? L.high : L.close), last = okq ? +q.last : +L.close;
+      var L0 = b[b.length - 1], lt = ts(L0.time), y1 = b.filter(function (r) { return ts(r.time) > lt - 365.25 * 86400; });
+      var lo52b = Math.min.apply(null, y1.map(function (r) { return +(r.low != null ? r.low : r.close); })), hi52b = Math.max.apply(null, y1.map(function (r) { return +(r.high != null ? r.high : r.close); }));
+      var last = okq ? +q.last : +L0.close;
+      function ranges(q) {
+      var okq = q && q.ok, L = L0, lo52 = lo52b, hi52 = hi52b;
+      var dl = +(L.low != null ? L.low : L.close), dh = +(L.high != null ? L.high : L.close), last = okq ? +q.last : +L.close, dLbl = fdate(day(L.time));
+      // live session: today's range from the snapshot, and the 52-week range includes today
+      if (okq && q.live && q.day && q.day.h > 0 && q.day.l > 0 && q.day.h >= q.day.l) {
+        dl = +q.day.l; dh = +q.day.h; dLbl = fdate(q.last_date);
+        L = { time: L.time, high: dh, low: dl, close: last };
+      }
       function bar(lo, hi, lbl, fill) {
         var f = hi > lo ? Math.max(0, Math.min(1, (last - lo) / (hi - lo))) : 0.5;
         return '<div class="tvd-rg"><div class="tvd-l"><span>' + num(lo) + "</span><span>" + lbl + "</span><span>" + num(hi) + '</span></div><div class="tvd-b">' + (fill ? '<em style="left:0;width:' + (f * 100).toFixed(1) + '%"></em>' : "") + '<s style="left:' + (f * 100).toFixed(1) + '%"></s></div></div>';
       }
+      if (okq && q.live) { lo52 = Math.min(lo52, dl); hi52 = Math.max(hi52, dh); }
       var hasDay = L.high != null && L.low != null && dh > dl;
-      slot("ranges").innerHTML = (hasDay ? bar(dl, dh, (T ? "Day's range" : "Latest bar range") + " · " + fdate(day(L.time)), true) : "") + (y1.length > 20 ? bar(lo52, hi52, "52wk range", false) : "");
+      var rs = slot("ranges"); if (rs) rs.innerHTML = (hasDay ? bar(dl, dh, (T ? "Day's range" : "Latest bar range") + " · " + dLbl, true) : "") + (y1.length > 20 ? bar(lo52, hi52, "52wk range", false) : "");
+      }
+      ranges(q); el._tvdRanges = ranges;
       // performance / returns
       var pf = perf(b, last);
       isEtfP.then(function (etf) {
@@ -327,7 +349,7 @@
       var dy = ok(r.dividendYieldTTM) ? r.dividendYieldTTM * 100 : null;
       var rows = [];
       if (!etf) rows.push(["Next earnings report", nxt ? (inDays === 0 ? "Today" : "In " + inDays + " day" + (inDays === 1 ? "" : "s")) + ' <span class="tvd-mu">(' + fdate(nxt.date) + ")</span>" : "—"]);
-      rows.push(["Volume", big(p.volume)], ["Average Volume (30D)", big(p.averageVolume || (ei && ei.avgVolume))]);
+      rows.push(["Volume", big(okq && q.live && q.day && q.day.v ? q.day.v : p.volume)], ["Average Volume (30D)", big(p.averageVolume || (ei && ei.avgVolume))]);
       rows.push(etf ? ["AUM", big(ei && ei.assetsUnderManagement, true)] : ["Market capitalization", big(p.marketCap, true)]);
       var more = etf ? [["Expense ratio", ei && ok(ei.expenseRatio) ? (+ei.expenseRatio).toFixed(2) + "%" : "—"], ["NAV", ei && ok(ei.nav) ? num(ei.nav) + " " + esc(ei.navCurrency || "") : "—"], ["Holdings", ei && ok(ei.holdingsCount) ? cnt(ei.holdingsCount) : "—"], ["Inception date", ei ? fdate(ei.inceptionDate) : "—"], ["Issuer", ei ? esc(ei.etfCompany || "—") : "—"], ["Beta", ok(p.beta) && p.beta ? n2(p.beta) : "—"]]
         : [["P/E (TTM)", n2(r.priceToEarningsRatioTTM)], ["P/S (TTM)", n2(r.priceToSalesRatioTTM)], ["PEG (TTM)", n2(r.priceToEarningsGrowthRatioTTM)], ["EPS (TTM)", n2(r.netIncomePerShareTTM)], ["EV/EBITDA", n2(k.evToEBITDATTM)], ["Beta (1Y)", n2(p.beta)], ["Free float", ok(sf.floatShares) ? big(sf.floatShares) : "—"], ["Employees", ok(p.fullTimeEmployees) ? cnt(p.fullTimeEmployees) : "—"]];
@@ -419,5 +441,5 @@
     });
   }
 
-  root.JHTvDetails = { render: render, technicals: technicals, perf: perf, usSession: usSession };
+  root.JHTvDetails = { render: render, update: update, technicals: technicals, perf: perf, usSession: usSession };
 })(typeof window !== "undefined" ? window : globalThis);

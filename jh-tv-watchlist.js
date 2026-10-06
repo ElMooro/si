@@ -12,7 +12,7 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   // TradingView-style details card lives in its own file; loaded once, the panel re-renders when it arrives
   if (!root.JHTvDetails && doc && doc.head) {
-    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006c"; tvd.async = true;
+    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006d"; tvd.async = true;
     tvd.onload = function () { try { if (det) { det._sig = null; renderDetails(); } } catch (e) {} };
     doc.head.appendChild(tvd);
   }
@@ -64,7 +64,7 @@
   // ------------------------------------------------------------------ store
   var D = null;
   function blank() {
-    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false, alias: {}, stars: [], updated: 0 };
+    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false, alias: {}, stars: [], notes: {}, updated: 0 };
   }
   // account-scoped cache: the signed-in account keeps its own copy in this browser; signed out uses the device copy
   var acctUid = null, applying = false, pushT = 0;
@@ -125,10 +125,14 @@
     S().get("chart-watchlist").then(function (r) {
       if (acctUid !== uid) return;
       var cloud = r && r.doc && r.doc.v === 1 ? r.doc : null, cu = (r && r.updated_at) || (cloud && cloud.updated) || 0;
-      if (cloud && (!cached || cu >= (cached.updated || 0))) { applyDoc(cloud); toast("Watchlists loaded from your account"); }
+      // notes are merged note-by-note from both copies (a note written on either side is never dropped)
+      var mergedN = mergeNotes(cloud && cloud.notes, (cached || device || {}).notes), notesDiffer = cloud && JSON.stringify(mergedN) !== JSON.stringify(cloud.notes || {});
+      if (cloud) cloud.notes = mergedN;
+      if (cloud && (!cached || cu >= (cached.updated || 0))) { applyDoc(cloud); toast("Watchlists loaded from your account"); if (notesDiffer) { D.updated = Date.now(); S().put("chart-watchlist", D, D.updated); } }
       else {
         // first sign-in on this account (or a newer edit made here): this browser's lists become the account's lists
-        applyDoc(cached || device);
+        var base = cached || device; base.notes = mergeNotes(base.notes, cloud && cloud.notes);
+        applyDoc(base);
         S().put("chart-watchlist", D, D.updated || Date.now()).then(function () { toast(cloud ? "Saved your latest edits to your account" : "Your watchlists are now saved to your account"); paintAcct(); });
       }
       paintAcct();
@@ -150,7 +154,7 @@
       if (m === "in") A ? A.signIn() : toast("Sign-in is loading…");
       if (m === "out") A.signOut();
       if (m === "sync") { A.put("chart-watchlist", D, D.updated || Date.now()).then(function () { toast("Saved to your account"); A.syncFiles(); }, function (e) { toast("Save failed: " + e.message); }); }
-      if (m === "pull") { A.get("chart-watchlist").then(function (x) { if (x && x.doc) { applyDoc(x.doc); toast("Reloaded from your account"); } else toast("Nothing saved in the account yet"); }); }
+      if (m === "pull") { A.get("chart-watchlist").then(function (x) { if (x && x.doc) { x.doc.notes = mergeNotes(x.doc.notes, D.notes); applyDoc(x.doc); toast("Reloaded from your account"); } else toast("Nothing saved in the account yet"); }); }
     });
   }
   function aliasOf(id) { return (D.alias && id && D.alias[String(id).toUpperCase()]) || ""; }
@@ -502,10 +506,159 @@
             Q[id] = q || { ok: false, error: "no quote" }; QT[id] = Date.now(); delete inflight[id];
             if (!Q[id].ok) barQuote(id, Q[id]);
           });
+          b.forEach(applyLive);
           running--; paintQuotes(b); pump();
+          liveQuotes(b);
         });
       })(batch);
     }
+  }
+  // ------------------------------------------------------------------ notes (TradingView "Notes": any symbol, dated, editable)
+  // Stored in the watchlist document (D.notes) so they are kept in this browser and, when signed in, in the account
+  // with the lists. Shape: D.notes[KEY] = [{ id, d: "YYYY-MM-DD", at: created ms, u: updated ms, text, del? }].
+  // Deletes keep a tombstone so a second device cannot resurrect them; mergeNotes() joins two copies note by note.
+  function noteKey(id) { return String(infoTarget(id) || id || "").toUpperCase(); }
+  function todayNY() { try { return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); } catch (e) { return new Date().toISOString().slice(0, 10); } }
+  function notesOf(id) { var a = (D.notes || {})[noteKey(id)] || []; return a.filter(function (n) { return !n.del; }).sort(function (x, y) { return x.d < y.d ? 1 : x.d > y.d ? -1 : y.at - x.at; }); }
+  function mergeNotes(a, b) {
+    var out = {}, keys = {};
+    [a || {}, b || {}].forEach(function (src) { Object.keys(src).forEach(function (k) { keys[k] = 1; }); });
+    Object.keys(keys).forEach(function (k) {
+      var by = {};
+      ((a || {})[k] || []).concat(((b || {})[k]) || []).forEach(function (n) { if (n && n.id && (!by[n.id] || (n.u || 0) > (by[n.id].u || 0))) by[n.id] = n; });
+      var arr = Object.keys(by).map(function (i) { return by[i]; });
+      if (arr.length) out[k] = arr;
+    });
+    return out;
+  }
+  function fmtNoteDate(d) { try { return new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }); } catch (e) { return d; } }
+  function fmtNoteTime(ms) { try { return new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); } catch (e) { return ""; } }
+  function noteText(t) { return esc(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, "<br>"); }
+  function saveNote(id, noteId, d, text) {
+    var k = noteKey(id), now = Date.now(); D.notes = D.notes || {}; var arr = D.notes[k] = D.notes[k] || [];
+    text = String(text || "").replace(/\s+$/, "");
+    var n = noteId ? arr.filter(function (x) { return x.id === noteId; })[0] : null;
+    if (!text) { if (n) { n.del = true; n.text = ""; n.u = now; } }
+    else if (n) { n.text = text.slice(0, 20000); n.d = d || n.d; n.u = now; }
+    else arr.push({ id: "n" + now.toString(36) + Math.random().toString(36).slice(2, 6), d: d || todayNY(), at: now, u: now, text: text.slice(0, 20000), sym: id });
+    save(); paintNoteTags(id);
+  }
+  function delNote(id, noteId) { var arr = (D.notes || {})[noteKey(id)] || []; arr.forEach(function (x) { if (x.id === noteId) { x.del = true; x.text = ""; x.u = Date.now(); } }); save(); paintNoteTags(id); }
+  function noteTag(id) {
+    var n = notesOf(id).length; if (!n) return "";
+    return '<sup class="wl-ntag" title="' + n + " note" + (n > 1 ? "s" : "") + " · latest " + esc(fmtNoteDate(notesOf(id)[0].d)) + '">' + NOTE_SVG + "</sup>";
+  }
+  var NOTE_SVG = '<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2.5h7l3 3v8H3z"/><path d="M5.5 7h5M5.5 9.5h5M5.5 12h3"/></svg>';
+  function paintNoteTags(id) {
+    if (!body) return;
+    var k = noteKey(id);
+    body.querySelectorAll(".wl-row").forEach(function (row) {
+      var rid = row.getAttribute("data-id"); if (!rid || noteKey(rid) !== k) return;
+      var tb = row.querySelector(".wl-tk b"); if (!tb) return;
+      var o = tb.querySelector(".wl-ntag"); if (o) o.remove();
+      var t = noteTag(rid); if (t) tb.insertAdjacentHTML("beforeend", t);
+    });
+  }
+  function notesCard(id, editing) {
+    var ns = notesOf(id), html = "", lastD = null;
+    ns.forEach(function (n) {
+      if (n.d !== lastD) { html += '<div class="nt-d">' + esc(fmtNoteDate(n.d)) + "</div>"; lastD = n.d; }
+      if (editing === n.id) { html += editorHtml(n); return; }
+      html += '<div class="nt-i" data-note="' + esc(n.id) + '"><div class="nt-t">' + noteText(n.text) + '</div><div class="nt-m"><span>' + esc(fmtNoteTime(n.at)) + (n.u && n.u - n.at > 60000 ? " · edited " + esc(new Date(n.u).toLocaleDateString("en-US", { month: "short", day: "numeric" })) : "") + '</span><button type="button" data-na="edit" title="Edit note">Edit</button><button type="button" data-na="del" title="Delete note">Delete</button></div></div>';
+    });
+    var total = Object.keys(D.notes || {}).reduce(function (s, k) { return s + D.notes[k].filter(function (n) { return !n.del; }).length; }, 0);
+    return '<div class="nt-h"><b>Notes</b><span class="nt-c">' + (ns.length ? ns.length : "") + '</span><button type="button" data-na="new" title="Write a note about ' + esc(short(id)) + '">+ Add note</button>' + (total ? '<button type="button" data-na="all" title="Every note on every symbol">All notes (' + total + ")</button>" : "") + "</div>" +
+      (editing === "new" ? editorHtml(null) : "") + (html || (editing === "new" ? "" : '<div class="nt-e">No notes on ' + esc(short(id)) + " yet. Notes are saved by date" + (acctUid ? " to your account" : " in this browser (sign in to keep them in your account)") + ".</div>"));
+  }
+  function editorHtml(n) {
+    return '<div class="nt-ed" data-note="' + esc(n ? n.id : "") + '"><textarea rows="4" placeholder="Write a note… (Ctrl+Enter to save)" aria-label="Note text">' + esc(n ? n.text : "") + '</textarea><div class="nt-r"><label>Date <input type="date" value="' + esc(n ? n.d : todayNY()) + '" max="2100-12-31"></label><span style="flex:1"></span><button type="button" data-na="cancel">Cancel</button><button type="button" data-na="save" class="pri">Save</button></div></div>';
+  }
+  function mountNotes(id) {
+    if (!det || !id) return;
+    var host = det.querySelector(".wl-notes");
+    if (!host) {
+      host = doc.createElement("div"); host.className = "wl-notes";
+      var anchorEl = det.querySelector('.tvd [data-k="facts"]') || det.querySelector(".acts");
+      if (anchorEl) anchorEl.parentNode.insertBefore(host, anchorEl); else det.appendChild(host);
+      ["keydown", "keypress", "keyup"].forEach(function (ev) { host.addEventListener(ev, function (e) { e.stopPropagation(); if (ev === "keydown" && e.key === "Enter" && (e.ctrlKey || e.metaKey)) { var sb = host.querySelector('[data-na="save"]'); if (sb) sb.click(); } if (ev === "keydown" && e.key === "Escape") { var cb = host.querySelector('[data-na="cancel"]'); if (cb) cb.click(); } }); });
+      host.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-na]"); if (!b) return; e.stopPropagation();
+        var a = b.getAttribute("data-na"), sid = host.getAttribute("data-for"), item = b.closest("[data-note]"), nid = item && item.getAttribute("data-note");
+        if (a === "new") { host.innerHTML = notesCard(sid, "new"); focusEd(); }
+        else if (a === "edit") { host.innerHTML = notesCard(sid, nid); focusEd(); }
+        else if (a === "cancel") host.innerHTML = notesCard(sid);
+        else if (a === "save") { var ed = b.closest(".nt-ed"), ta = ed.querySelector("textarea"), dt = ed.querySelector("input[type=date]"); var dv = /^\d{4}-\d{2}-\d{2}$/.test(dt.value) ? dt.value : todayNY(); saveNote(sid, ed.getAttribute("data-note") || null, dv, ta.value); host.innerHTML = notesCard(sid); toast(ta.value.trim() ? "Note saved" + (acctUid ? " to your account" : "") : "Empty note removed"); }
+        else if (a === "del") { if (root.confirm("Delete this note?")) { delNote(sid, nid); host.innerHTML = notesCard(sid); toast("Note deleted"); } }
+        else if (a === "all") allNotes();
+      });
+    }
+    function focusEd() { var t = host.querySelector("textarea"); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }
+    if (host.getAttribute("data-for") === id && host.querySelector(".nt-ed")) return;   // never wipe a note being written
+    host.setAttribute("data-for", id); host.innerHTML = notesCard(id);
+  }
+  function allNotes() {
+    var rows = [];
+    Object.keys(D.notes || {}).forEach(function (k) { D.notes[k].forEach(function (n) { if (!n.del) rows.push({ k: k, n: n }); }); });
+    rows.sort(function (a, b) { return a.n.d < b.n.d ? 1 : a.n.d > b.n.d ? -1 : b.n.at - a.n.at; });
+    dlg("All notes", '<input type="text" placeholder="Search notes or symbols" aria-label="Search notes"><div class="ls nt-all"></div><div class="ft"><button type="button" data-exp>Export (Markdown)</button><button type="button" class="sec" data-csv>Export (CSV)</button></div>', function (d, close) {
+      var inp = d.querySelector("input"), ls = d.querySelector(".ls");
+      function draw() {
+        var q = inp.value.trim().toLowerCase(), last = null, h = "";
+        rows.filter(function (r) { return !q || r.k.toLowerCase().indexOf(q) >= 0 || r.n.text.toLowerCase().indexOf(q) >= 0 || (aliasOf(r.n.sym || r.k) || "").toLowerCase().indexOf(q) >= 0; }).forEach(function (r) {
+          if (r.n.d !== last) { h += '<div class="nt-d">' + esc(fmtNoteDate(r.n.d)) + "</div>"; last = r.n.d; }
+          h += '<div class="nt-i nt-x" data-sym="' + esc(r.n.sym || r.k) + '"><b>' + esc(aliasOf(r.n.sym || r.k) || r.k) + '</b><div class="nt-t">' + noteText(r.n.text.length > 600 ? r.n.text.slice(0, 600) + "…" : r.n.text) + "</div></div>";
+        });
+        ls.innerHTML = h || '<div class="nt-e">' + (rows.length ? "No note matches." : "No notes yet. Select a symbol and use + Add note in its details.") + "</div>";
+      }
+      inp.oninput = draw; draw(); inp.focus();
+      ls.onclick = function (e) { var it = e.target.closest(".nt-x"); if (!it || e.target.closest("a")) return; var sid = it.getAttribute("data-sym"); close(); activeSym = sid; D.details = true; goChart(sid); renderDetails(); };
+      function dl(name, text, type) { var a = doc.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name; doc.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+      d.querySelector("[data-exp]").onclick = function () { var last = null, out = "# JustHodl notes\n"; rows.forEach(function (r) { if (r.n.d !== last) { out += "\n## " + r.n.d + "\n"; last = r.n.d; } out += "\n**" + r.k + "**\n\n" + r.n.text + "\n"; }); dl("justhodl-notes-" + todayNY() + ".md", out, "text/markdown"); };
+      d.querySelector("[data-csv]").onclick = function () { var q = function (s) { return '"' + String(s).replace(/"/g, '""') + '"'; }; dl("justhodl-notes-" + todayNY() + ".csv", "date,symbol,created,updated,note\n" + rows.map(function (r) { return [r.n.d, r.k, new Date(r.n.at).toISOString(), new Date(r.n.u || r.n.at).toISOString(), r.n.text].map(q).join(","); }).join("\n"), "text/csv"); };
+    });
+  }
+  // ------------------------------------------------------------------ live session quotes (US stocks & ETFs)
+  // The warehouse quote is the newest stored daily bar; during and after the session the price comes from the
+  // licensed Polygon snapshot behind PROXY /quotes (the same feed the site's quote strips use), refreshed every 30 s
+  // while the watchlist is on screen. The stored history is untouched; the card states both.
+  var LIVE = {}, LIVEQ = {}, liveTimer = null;
+  function liveTicker(id) {
+    var m = /^(?:(?:US|NASDAQ|NYSE|AMEX|ARCA|NYSEARCA|BATS|CBOE|OTC):)?([A-Z][A-Z0-9]{0,5}(?:\.[A-Z])?)$/.exec(String(id || "").toUpperCase());
+    if (!m) return null;
+    if (id.indexOf(":") < 0) { var nm = (root.JH_WL_NAMES || {})[id]; if (nm && !/^(stock|fund|dr)$/.test(nm[1])) return null; }
+    return m[1];
+  }
+  function nyDate(ms) { try { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/New_York" }); } catch (e) { return new Date(ms).toISOString().slice(0, 10); } }
+  function applyLive(id) {
+    var t = liveTicker(id), s = t && LIVE[t], q = Q[id];
+    if (!s || !(s.price > 0)) return false;
+    var o = {}; if (q && q.ok) for (var k in q) o[k] = q[k];
+    if (o.mapped) return false;   // transformed economics rows keep their own basis
+    o.ok = true; o.live = true; o.bar_last_date = q && q.ok ? (q.bar_last_date || q.last_date) : null;
+    o.last = s.price; o.prev = s.prevClose || o.prev; o.chg = s.change; o.chg_pct = s.changePct;
+    o.day = { o: s.open, h: s.high, l: s.low, v: s.volume }; o.live_ts = s.ts;
+    o.last_date = s.volume > 0 ? nyDate(s.ts) : (o.last_date || nyDate(s.ts));
+    o.live_src = "Polygon snapshot via JustHodl proxy (may lag the tape by up to 15 min)";
+    if (!o.name && q && q.name) o.name = q.name;
+    Q[id] = o; return true;
+  }
+  function liveQuotes(ids, force) {
+    var want = {};
+    ids.forEach(function (id) { var t = liveTicker(id); if (t && (force || !LIVEQ[t] || Date.now() - LIVEQ[t] > 30000)) (want[t] = want[t] || []).push(id); });
+    var ts = Object.keys(want); if (!ts.length) return;
+    for (var i = 0; i < ts.length; i += 50) (function (chunk) {
+      chunk.forEach(function (t) { LIVEQ[t] = Date.now(); });
+      root.fetch(PROXY + "/quotes?tickers=" + encodeURIComponent(chunk.join(","))).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (d) {
+        var got = (d && d.tickers) || {}, now = (d && d.ts) || Date.now(), changed = [];
+        chunk.forEach(function (t) { if (got[t]) { got[t].ts = now; LIVE[t] = got[t]; want[t].forEach(function (id) { if (applyLive(id)) changed.push(id); }); } });
+        if (changed.length) paintQuotes(changed);
+      });
+    })(ts.slice(i, i + 50));
+  }
+  function liveTick() {
+    if (!panel || doc.hidden || !panel.offsetParent) return;
+    var ids = view.filter(function (r) { return !r.sec && liveTicker(r.id); }).map(function (r) { return r.id; }).slice(0, 300);
+    if (ids.length) liveQuotes(ids);
   }
 
   // ------------------------------------------------------------------ DOM
@@ -560,6 +713,19 @@
       "#jhwl .wl-tk b{display:flex!important;align-items:center;gap:4px}#jhwl .wl-tk b .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}",
       "#jhwl .wl-ed{flex:0 0 auto;width:11px;height:11px;color:#f0b90b;display:inline-flex}#jhwl .wl-ed svg{width:11px;height:11px}",
       "#jhwl .wl-tk sup{flex:0 0 auto;font-size:9px;color:#f0b90b;font-weight:600;vertical-align:super;margin-left:1px}",
+      "#jhwl .wl-tk sup.wl-ntag{color:var(--mut);margin-left:3px;display:inline-flex}#jhwl .wl-row:hover sup.wl-ntag{color:var(--fg)}",
+      "#jhwl .wl-notes{margin:4px 0 14px;padding:10px 0 4px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);user-select:text}",
+      "#jhwl .wl-notes .nt-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#jhwl .wl-notes .nt-h b{font-size:14px}#jhwl .wl-notes .nt-c{color:var(--mut);font-size:12px;flex:1}",
+      "#jhwl .wl-notes .nt-h button,#jhwl .wl-notes .nt-m button,#jhwl .wl-notes .nt-r button{background:none;border:1px solid var(--bd);color:var(--fg);border-radius:4px;padding:3px 8px;font:inherit;font-size:12px;cursor:pointer}",
+      "#jhwl .wl-notes .nt-h button:hover,#jhwl .wl-notes .nt-m button:hover,#jhwl .wl-notes .nt-r button:hover{background:var(--hov)}#jhwl .wl-notes button.pri{background:var(--blue);border-color:var(--blue);color:#fff}",
+      "#jhwl .wl-notes .nt-d,#jhwl-dlg .nt-d{color:var(--mut,#787b86);font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px}",
+      "#jhwl .wl-notes .nt-i{background:var(--bg2);border-radius:6px;padding:8px 10px;margin:0 0 6px}#jhwl .wl-notes .nt-t,#jhwl-dlg .nt-t{font-size:13px;line-height:1.45;word-wrap:break-word;overflow-wrap:anywhere}",
+      "#jhwl .wl-notes .nt-t a,#jhwl-dlg .nt-t a{color:#5b8cff}#jhwl .wl-notes .nt-m{display:flex;gap:6px;align-items:center;margin-top:6px;color:var(--mut);font-size:11px}#jhwl .wl-notes .nt-m span{flex:1}",
+      "#jhwl .wl-notes .nt-m button{opacity:0;padding:1px 6px;font-size:11px}#jhwl .wl-notes .nt-i:hover .nt-m button,#jhwl .wl-notes .nt-i:focus-within .nt-m button{opacity:1}",
+      "#jhwl .wl-notes .nt-ed{margin:4px 0 8px}#jhwl .wl-notes textarea{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;background:var(--bg);color:var(--fg);border:1px solid var(--blue);border-radius:6px;padding:8px;font:13px/1.45 inherit;outline:0}",
+      "#jhwl .wl-notes .nt-r{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--mut)}#jhwl .wl-notes .nt-r input{background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:4px;padding:2px 4px;font:inherit;color-scheme:dark}",
+      "#jhwl .wl-notes .nt-e,#jhwl-dlg .nt-e{color:var(--mut,#787b86);font-size:12px;padding:4px 0 8px}",
+      "#jhwl-dlg .nt-all .nt-x{display:block;padding:8px 10px;border-radius:6px;cursor:pointer;margin-bottom:4px;background:rgba(255,255,255,.03)}#jhwl-dlg .nt-all .nt-x:hover{background:rgba(41,98,255,.15)}#jhwl-dlg .nt-all .nt-x b{display:block;margin-bottom:3px}",
       "#jhwl .wl-c em.tk{font-style:normal}#jhwl .wl-c em.tk.up{color:#22ab94}#jhwl .wl-c em.tk.dn{color:#f7525f}",
       "#jhwl .wl-exp{gap:6px!important;padding:6px 8px!important}#jhwl .wl-exp button.ci{width:22px;height:22px;max-width:none;padding:0;justify-content:center;border-radius:50%;font-size:11px;font-weight:600;position:relative}",
       "#jhwl .wl-exp button.ci i{position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;flex:none;border:1px solid var(--bg)}",
@@ -663,6 +829,7 @@
     w.appendChild(panel);
     w.classList.add("jhwl-on");
     body = panel.querySelector(".wl-body"); det = panel.querySelector(".wl-det"); hdr = panel.querySelector(".wl-cols");
+    if (!liveTimer) liveTimer = setInterval(liveTick, 30000);
     wire();
     return true;
   }
@@ -725,7 +892,7 @@
   var EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>';
   // "D" like TradingView's delayed-data mark: a market symbol whose newest daily bar is older than the last weekday session
   function delayTag(id) {
-    var q = Q[id]; if (!q || !q.ok || !q.last_date || !infoTarget(id)) return "";
+    var q = Q[id]; if (!q || !q.ok || !q.last_date || !infoTarget(id) || q.live) return "";
     var d = new Date(), k = 0; d.setUTCHours(12, 0, 0, 0);
     do { d.setUTCDate(d.getUTCDate() - 1); k++; } while ((d.getUTCDay() === 0 || d.getUTCDay() === 6) && k < 5);
     return q.last_date < d.toISOString().slice(0, 10) ? '<sup title="Delayed: newest bar is ' + esc(q.last_date) + '">D</sup>' : "";
@@ -748,7 +915,7 @@
     return '<div class="' + cls + '" data-vi="' + vi + '" data-id="' + esc(id) + '" role="option" aria-selected="' + (!!sel[r.idx]) + '" draggable="' + (!(D.sort.col && D.sort.dir)) + '" title="' + esc((al ? al + " · " : "") + id + (name ? " — " + name : "") + "\nDouble-click to rename or colour-tag") + '" style="grid-template-columns:' + gridTpl() + '">' +
       '<span class="wl-sym"><i class="wl-flag" data-a="flag"' + (fl ? ' data-c="' + fl + '" style="background:' + FLAG_HEX[fl] + '"' : "") + ' title="Flag"></i>' +
       '<i class="wl-logo" style="background:' + hashC(s) + '">' + esc(s.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?") + (infoTarget(id) ? '<img alt="" loading="lazy" src="https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(infoTarget(id)) + '.png" onerror="this.remove()">' : "") + "</i>" +
-      '<span class="wl-tk">' + (al ? '<b class="al"><span class="t">' + esc(al) + '</span><i class="wl-ed" title="Your name for ' + esc(id) + '">' + EDIT_SVG + "</i>" + delayTag(id) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : '<b><span class="t">' + esc(s) + "</span>" + delayTag(id) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
+      '<span class="wl-tk">' + (al ? '<b class="al"><span class="t">' + esc(al) + '</span><i class="wl-ed" title="Your name for ' + esc(id) + '">' + EDIT_SVG + "</i>" + delayTag(id) + noteTag(id) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : '<b><span class="t">' + esc(s) + "</span>" + delayTag(id) + noteTag(id) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
       cells(id) + (infoTarget(id) ? '<button type="button" class="wl-info" data-a="info" title="Symbol overview: key stats, financials, holdings, ownership" aria-label="Overview of ' + esc(s) + '">' + INFO_SVG + "</button>" : "") + '<button type="button" class="wl-x" data-a="rm" title="Remove from watchlist" aria-label="Remove ' + esc(s) + '">×</button></div>';
   }
   function render() {
@@ -782,7 +949,7 @@
         var x = row.querySelector(".wl-x");
         Array.prototype.slice.call(tmp.children).forEach(function (c) { row.insertBefore(c, x); });
         var q = Q[id]; if (q && q.name) row.title = id + " — " + q.name;
-        var tb = row.querySelector(".wl-tk b"); if (tb) { var od = tb.querySelector("sup"); if (od) od.remove(); var dt = delayTag(id); if (dt) tb.insertAdjacentHTML("beforeend", dt); }
+        var tb = row.querySelector(".wl-tk b"); if (tb) { tb.querySelectorAll("sup").forEach(function (o) { o.remove(); }); var dt = delayTag(id) + noteTag(id); if (dt) tb.insertAdjacentHTML("beforeend", dt); }
         if (D.desc && q && q.name) { var sm = row.querySelector(".wl-tk small"); if (sm) sm.textContent = aliasOf(id) ? short(id) + " · " + q.name : q.name; }
       });
       if (sameId(id, detId())) renderDetails();
@@ -818,9 +985,10 @@
     var s = short(id), ok = q && q.ok;
     if (root.JHTvDetails && typeof root.JHTvDetails.render === "function") {
       // TradingView-style details card (jh-tv-details.js); re-rendered only when the symbol, quote or alias changes
-      var it = infoTarget(id), sig = id + "|" + (q ? (q.ok ? q.last + "|" + q.chg + "|" + q.last_date : q.pending ? "p" : "e") : "n") + "|" + (aliasOf(id) || "") + "|" + (cur() ? cur().id : "");
+      var it = infoTarget(id), sig = id + "|" + (q ? (q.ok ? "ok" : q.pending ? "p" : "e") : "n") + "|" + (aliasOf(id) || "") + "|" + (cur() ? cur().id : "");
       det.setAttribute("data-id", id);
-      if (det._sig === sig && det.querySelector(".tvd")) return;
+      // same symbol, new price: repaint the header and ranges in place (keeps scroll position and any note being typed)
+      if (det._sig === sig && det.querySelector(".tvd")) { if (q && q.ok && typeof root.JHTvDetails.update === "function") root.JHTvDetails.update(det, q); return; }
       det._sig = sig;
       var inList = cur() && cur().items.indexOf(id) >= 0;
       root.JHTvDetails.render(det, {
@@ -838,6 +1006,7 @@
         '<div class="acts"><button type="button" data-a="dchart">Chart</button><button type="button" data-a="dcompare">Compare</button><button type="button" data-a="dflag">Flag</button><button type="button" data-a="dren">Rename</button>' + (inList ? '<button type="button" data-a="drm">Remove</button>' : '<button type="button" data-a="dadd">+ Add</button>') + "</div>");
       var insE = det.querySelector(".wl-ins"); if (insE) loadInsights(id, insE);
       var altE = det.querySelector(".alts"); if (altE) loadAlts(id, (q && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "", altE);
+      mountNotes(id);
       return;
     }
     det.innerHTML =
@@ -1060,7 +1229,7 @@
     if (!sel[r.idx]) { sel = {}; sel[r.idx] = true; anchor = r.idx; render(); }
     var idxs = selectedIdx(), n = idxs.length, others = D.order.filter(function (id) { return id !== D.active; });
     var html = '<button data-m="chart">Open chart<kbd>↵</kbd></button><button data-m="compare">Add to compare</button>' +
-      '<button data-m="edit">Rename & colour tag…<kbd>F2</kbd></button>' + (infoTarget(r.id) ? '<button data-m="info">Symbol overview ↗</button>' : "") +
+      '<button data-m="edit">Rename & colour tag…<kbd>F2</kbd></button>' + (infoTarget(r.id) ? '<button data-m="info">Symbol overview ↗</button>' : "") + '<button data-m="note">Add note…</button>' +
       '<div class="lab">Flag</div><div class="flags">' + FLAGS.map(function (f) { return '<i data-m="flag" data-c="' + f[0] + '" class="' + (D.flags[r.id] === f[0] ? "on" : "") + '" style="background:' + f[1] + '" title="' + f[0] + '"></i>'; }).join("") + '</div><button data-m="unflag">Remove flag</button><hr>' +
       (cur().flag ? "" : '<button data-m="secabove">Add section above</button><button data-m="top">Move to top</button><button data-m="bottom">Move to bottom</button>') +
       '<button data-m="copyto">Add ' + (n > 1 ? n + " symbols" : "to another list") + "…</button>" +
@@ -1071,6 +1240,7 @@
       if (m === "chart") goChart(r.id);
       else if (m === "edit") editSym(r.id);
       else if (m === "info") openInfo(r.id);
+      else if (m === "note") { activeSym = r.id; D.details = true; renderDetails(); var nh = det && det.querySelector(".wl-notes"); if (nh) { nh.innerHTML = notesCard(r.id, "new"); nh.scrollIntoView({ block: "nearest" }); var ta = nh.querySelector("textarea"); if (ta) ta.focus(); } }
       else if (m === "compare") ids.forEach(function (id) { if (root.jhAddCompare) root.jhAddCompare(id); else if (root.jhGoSymbol) root.jhGoSymbol(id, "compare"); });
       else if (m === "flag") { ids.forEach(function (id) { D.flags[id] = b.getAttribute("data-c"); }); save(); render(); }
       else if (m === "unflag") { ids.forEach(function (id) { delete D.flags[id]; }); save(); render(); }
@@ -1319,8 +1489,24 @@
     });
   }
 
+  // one-time, additive: notes written in the chart's older single-note box (localStorage "jh-chart-notes")
+  // become dated notes here; the old store is left untouched
+  function importLegacyNotes() {
+    if (D.notesImported) return;
+    var old = null; try { old = JSON.parse(root.localStorage.getItem("jh-chart-notes") || "null"); } catch (e) {}
+    D.notes = D.notes || {}; var nImp = 0;
+    Object.keys(old || {}).forEach(function (sym) {
+      var o = old[sym], t = o && typeof o === "object" ? o.text : typeof o === "string" ? o : ""; if (!t) return;
+      var k = noteKey(sym), lid = "legacy-" + sym; D.notes[k] = D.notes[k] || [];
+      if (D.notes[k].some(function (n) { return n.id === lid; })) return;
+      var at = Date.parse(String(o.at || "").replace(" ", "T") + "Z"); if (!(at > 0)) at = Date.now();
+      D.notes[k].push({ id: lid, d: new Date(at).toISOString().slice(0, 10), at: at, u: at, text: String(t).slice(0, 20000), sym: sym }); nImp++;
+    });
+    D.notesImported = true; if (nImp) save();
+  }
   function boot() {
     load();
+    importLegacyNotes();
     var tries = 0;
     (function tryMount() {
       if (!mount()) { if (++tries < 120) setTimeout(tryMount, 250); return; }
