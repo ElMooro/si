@@ -1,0 +1,58 @@
+name: Market bank refresh
+
+# Keeps the chart/watchlist US stock & ETF banks (data/warm/tv-bars/universe/) current after every session.
+# Appends only sessions newer than each bank's last bar, from Polygon grouped-daily (the APR-0001 provider
+# already used by justhodl-polygon-daily-snapshot). Does not contact TradingView or Yahoo, so the tv-bars
+# custody rule (no fallback after a TradingView refusal) is unchanged. See scripts/refresh_market_banks.py.
+on:
+  schedule:
+    - cron: '45 20 * * 1-5'   # 16:45 New York (EDT) -- after the close
+    - cron: '45 21 * * 1-5'   # 16:45 New York (EST) / second pass in EDT
+    - cron: '15 3 * * 2-6'    # overnight catch-up
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/refresh_market_banks.py'
+      - '.github/workflows/market-bank-refresh.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-bank-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit checks
+        run: python3 tests/deployment/test_market_bank_refresh.py
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Refresh banks
+        run: |
+          pip install -q boto3
+          python3 scripts/refresh_market_banks.py --days 8 --report market-bank-refresh.json
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open('market-bank-refresh.json'))
+          print('### Market bank refresh')
+          print('sessions:', ', '.join(r['sessions']))
+          print('\nupdated:', r['n_updated'], ' skipped:', r['n_skipped'])
+          for s, v in list(r['updated'].items())[:40]:
+              print('- %s +%d -> %s close %s' % (s, v['added'], v['last'], v['close']))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-bank-refresh
+          path: market-bank-refresh.json
+          if-no-files-found: ignore
