@@ -116,7 +116,8 @@ def refresh_series_cache(s3, sym, t, bkey, rows, label, dry_run=False):
     any other source are left alone."""
     import hashlib
     done = []
-    for sid in dict.fromkeys([sym, sym.upper(), t, t.upper(), "tv:" + sym]):
+    venues = [v + ":" + t.upper() for v in ("NYSE", "NASDAQ", "AMEX", "NYSEARCA", "ARCA", "BATS", "CBOE", "US")]
+    for sid in dict.fromkeys([sym, sym.upper(), t, t.upper(), "tv:" + sym] + venues):
         h = hashlib.sha1(sid.encode()).hexdigest()
         ck = "data/series-cache/%s/%s.json" % (h[:2], h)
         try:
