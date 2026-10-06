@@ -452,6 +452,8 @@
       "#jhus .us-status{padding:0 20px 6px;color:var(--mut);font-size:12px;min-height:16px}",
       "#jhus .us-list{flex:1;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--bd)}",
       "#jhus .us-grp{padding:10px 20px 4px;color:var(--mut);font-size:11px;letter-spacing:.06em;text-transform:uppercase}",
+      "#jhus .us-grp{display:flex;align-items:center;gap:8px}#jhus .us-ga{margin-left:auto;background:none;border:1px solid var(--bd,#363a45);border-radius:12px;color:var(--fg,#d1d4dc);font:600 11px/20px inherit;padding:0 10px;cursor:pointer;letter-spacing:0;text-transform:none}",
+      "#jhus .us-ga:hover{border-color:#2962ff;color:#fff;background:#2962ff}#jhus .us-ga.ok{border-color:#089981;color:#22ab94;background:none}",
       "#jhus .us-row{display:grid;grid-template-columns:28px minmax(120px,190px) 1fr auto auto;align-items:center;gap:12px;padding:7px 20px;cursor:pointer;border-bottom:1px solid transparent;min-height:40px}",
       "#jhus .us-row:hover{background:var(--hov)}",
       "#jhus .us-row.sel{background:var(--sel)}",
@@ -661,6 +663,8 @@
       acts = '<span class="us-act">' +
         '<button type="button" data-act="compare" title="Compare / overlay on chart" aria-label="Compare ' + esc(r.sym) + '">⇄</button>' +
         '<button type="button" data-act="add" class="' + (S.added[r.id] ? "ok" : "") + '" title="Add to watchlist" aria-label="Add ' + esc(r.sym) + ' to watchlist">' + (S.added[r.id] ? "✓" : "+") + "</button></span>";
+    } else if (r.kind === "dataset" && r.browse) {
+      acts = '<span class="us-act"><button type="button" data-act="addds" title="Add every series in this dataset' + (r.n ? " (" + fmtN(r.n) + ")" : "") + ' to your watchlist" aria-label="Add every series in ' + esc(r.name || r.sym) + '">+</button></span>';
     } else acts = '<span class="us-act"></span>';
     return '<div class="us-row' + (i === S.sel ? " sel" : "") + '" role="option" data-i="' + i + '" aria-selected="' + (i === S.sel) + '" title="' + esc(r.id) + '">' +
       logo(r.sym, r.provider || r.src) +
@@ -686,7 +690,11 @@
     renderSugg(q);
     var html = "", grp = "";
     ROWS.forEach(function (r, i) {
-      if (r.grp !== grp && S.tab === "all") { grp = r.grp; html += '<div class="us-grp">' + esc(grp) + "</div>"; }
+      if (r.grp !== grp && S.tab === "all") {
+        grp = r.grp;
+        var nAdd = ROWS.filter(function (x) { return x.grp === grp && addable(x); }).length;
+        html += '<div class="us-grp">' + esc(grp) + (nAdd > 1 ? '<button type="button" class="us-ga" data-act="addgrp" data-grp="' + esc(grp) + '" title="Add all ' + nAdd + " " + esc(grp.toLowerCase()) + ' results to your watchlist">+ Add all ' + nAdd + "</button>" : "") + "</div>";
+      }
       html += rowHtml(r, i);
     });
     if (!ROWS.length) {
@@ -816,7 +824,7 @@
     ROWS = S.rowsB.map(function (r) { r.cls = classify(r); if (r.last_value != null) r.src = (r.src || "") + " · last " + fmtV(r.last_value); return r; });
     var m = S.dsMatched != null ? S.dsMatched : ROWS.length;
     status(fmtN(m) + " matching series" + (S.dsTotal != null ? " of " + fmtN(S.dsTotal) + " in dataset" : "") + (S.dsTrunc ? " (large dataset: type codes or words to narrow)" : "") + " · showing " + ROWS.length + (S.dsHint ? " · " + S.dsHint : ""));
-    list.innerHTML = ROWS.map(rowHtml).join("") + (S.more ? '<button type="button" class="us-more" data-act="moreB">Load more</button>' : "") || '<div class="us-empty">No series match — try a country/frequency code or clear the filter.</div>';
+    list.innerHTML = (ROWS.length ? '<div class="us-grp">Series in ' + esc(S.dsName || S.ds) + '<button type="button" class="us-ga" data-act="addbrowse" title="Add every matching series in this dataset to your watchlist">+ Add all ' + fmtN(m) + "</button></div>" : "") + ROWS.map(rowHtml).join("") + (S.more ? '<button type="button" class="us-more" data-act="moreB">Load more</button>' : "") || '<div class="us-empty">No series match — try a country/frequency code or clear the filter.</div>';
     scrollSel();
   }
   function back() {
@@ -865,6 +873,36 @@
     if (btn) { btn.textContent = "✓"; btn.classList.add("ok"); }
     toast((ok === "dup" ? r.sym + " is already in " : "Added " + r.sym + " to ") + (root.JHTvWatchlist ? root.JHTvWatchlist.activeName() : "watchlist"));
   }
+  // ------------------------------------------------------------------ bulk add: a whole result group or every series of a dataset
+  function addable(r) { return r && r.id && r.kind !== "dataset" && r.kind !== "file" && r.kind !== "provider" && r.chartable !== false; }
+  function addAll(ids, what, btn) {
+    ids = ids.filter(Boolean); if (!ids.length) return;
+    if (ids.length > 300 && !root.confirm("Add " + ids.length + " symbols to " + (root.JHTvWatchlist ? root.JHTvWatchlist.activeName() : "the watchlist") + "?")) return;
+    var res;
+    if (root.JHTvWatchlist && typeof root.JHTvWatchlist.addMany === "function") res = root.JHTvWatchlist.addMany(ids);
+    else { ids.forEach(function (id) { if (root.JHTvWatchlist) root.JHTvWatchlist.add(id); }); res = { added: ids.length, dup: 0, list: root.JHTvWatchlist ? root.JHTvWatchlist.activeName() : "watchlist" }; }
+    ids.forEach(function (id) { S.added[id] = true; });
+    list.querySelectorAll('[data-act="add"]').forEach(function (b) { var rw = b.closest(".us-row"), r = rw && ROWS[+rw.getAttribute("data-i")]; if (r && S.added[r.id]) { b.textContent = "✓"; b.classList.add("ok"); } });
+    if (btn) { btn.textContent = "✓ Added " + res.added; btn.classList.add("ok"); }
+    toast("Added " + res.added + " from " + what + " to " + res.list + (res.dup ? " · " + res.dup + " already there" : ""));
+  }
+  function addDataset(ds, name, q, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = "…"; }
+    var ids = [], off = 0, CAP = 5000;
+    (function page() {
+      getJSON(PROXY + "/browse?ds=" + encodeURIComponent(ds) + "&q=" + encodeURIComponent(q || "") + "&limit=200&offset=" + off).then(function (d) {
+        var rows = d && d.rows || [];
+        rows.forEach(function (x) { if (x && x.id && x.chartable !== false) ids.push(x.id); });
+        off += rows.length;
+        var tot = d && (d.matched != null ? d.matched : d.total);
+        if (rows.length >= 200 && off < CAP && (tot == null || off < tot)) { if (btn) btn.textContent = off + "…"; page(); return; }
+        if (btn) btn.disabled = false;
+        if (!ids.length) { if (btn) btn.textContent = "+"; toast("No chartable series found in " + name); return; }
+        addAll(ids, name, btn);
+        if (btn && btn.textContent.indexOf("Added") < 0) btn.textContent = "✓";
+      }).catch(function (e) { if (btn) { btn.disabled = false; btn.textContent = "+"; } toast("Could not list " + name + ": " + (e && e.message || "error")); });
+    })();
+  }
   function toast(m) {
     var t = doc.getElementById("jhus-toast");
     if (!t) { t = doc.createElement("div"); t.id = "jhus-toast"; t.setAttribute("role", "status"); t.style.cssText = "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2a2e39;color:#fff;padding:8px 14px;border-radius:4px;font:13px sans-serif;z-index:10060;box-shadow:0 4px 18px rgba(0,0,0,.4);display:none"; doc.body.appendChild(t); }
@@ -885,8 +923,11 @@
     if (act === "moreB") { loadBrowse(false); return; }
     if (act === "moreP") { loadProvider(false); return; }
     if (act === "cover") { renderCoverage(); return; }
+    if (act === "addgrp") { e.stopPropagation(); var gname = a.getAttribute("data-grp"); addAll(ROWS.filter(function (x) { return x.grp === gname && addable(x); }).map(function (x) { return x.id; }), gname, a); return; }
+    if (act === "addbrowse") { e.stopPropagation(); addDataset(S.ds, S.dsName || S.ds, [S.q.trim(), S.dsChip].filter(Boolean).join(" "), a); return; }
     var row = a.classList.contains("us-row") ? a : a.closest(".us-row");
     if (!row) return;
+    if (act === "addds") { e.stopPropagation(); var rr = ROWS[+row.getAttribute("data-i")]; if (rr) addDataset(rr.id, rr.name || rr.sym, "", a); return; }
     var r = ROWS[+row.getAttribute("data-i")];
     if (act === "compare") { e.stopPropagation(); pick(r, "compare"); return; }
     if (act === "add") { e.stopPropagation(); addToWatch(r); return; }

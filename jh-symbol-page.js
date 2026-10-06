@@ -151,47 +151,160 @@
     });
   }
 
+  // ------------------------------------------------------------------ statements (TradingView "Financials → Statements" layout)
+  // rows: [key or [fallback keys], label, children]; values shown with the change vs the prior period beneath
   var ST = {
-    income: { ep: "income-statement", label: "Income statement", rows: [["revenue", "Revenue"], ["costOfRevenue", "Cost of revenue"], ["grossProfit", "Gross profit"], ["researchAndDevelopmentExpenses", "R&D"], ["sellingGeneralAndAdministrativeExpenses", "SG&A"], ["operatingExpenses", "Operating expenses"], ["operatingIncome", "Operating income"], ["ebitda", "EBITDA"], ["interestExpense", "Interest expense"], ["incomeBeforeTax", "Pre-tax income"], ["incomeTaxExpense", "Income tax"], ["netIncome", "Net income"], ["eps", "EPS", "x"], ["epsDiluted", "EPS diluted", "x"], ["weightedAverageShsOutDil", "Diluted shares", "n"]] },
-    balance: { ep: "balance-sheet-statement", label: "Balance sheet", rows: [["cashAndCashEquivalents", "Cash & equivalents"], ["shortTermInvestments", "Short-term investments"], ["netReceivables", "Receivables"], ["inventory", "Inventory"], ["totalCurrentAssets", "Total current assets"], ["propertyPlantEquipmentNet", "PP&E (net)"], ["goodwillAndIntangibleAssets", "Goodwill & intangibles"], ["longTermInvestments", "Long-term investments"], ["totalAssets", "Total assets"], ["accountPayables", "Accounts payable"], ["shortTermDebt", "Short-term debt"], ["totalCurrentLiabilities", "Total current liabilities"], ["longTermDebt", "Long-term debt"], ["totalLiabilities", "Total liabilities"], ["totalStockholdersEquity", "Shareholders' equity"], ["totalDebt", "Total debt"], ["netDebt", "Net debt"]] },
-    cash: { ep: "cash-flow-statement", label: "Cash flow", rows: [["netIncome", "Net income"], ["depreciationAndAmortization", "Depreciation & amortization"], ["stockBasedCompensation", "Stock-based compensation"], ["changeInWorkingCapital", "Change in working capital"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["freeCashFlow", "Free cash flow"], ["acquisitionsNet", "Acquisitions"], ["netCashProvidedByInvestingActivities", "Investing cash flow"], ["commonStockRepurchased", "Buybacks"], ["commonDividendsPaid", "Dividends paid"], ["netDebtIssuance", "Net debt issuance"], ["netCashProvidedByFinancingActivities", "Financing cash flow"], ["netChangeInCash", "Net change in cash"]] }
+    income: { ep: "income-statement", label: "Income statement", def: ["revenue", "netIncome"], rows: [
+      ["revenue", "Total revenue", [["costOfRevenue", "Cost of goods sold"]]],
+      ["grossProfit", "Gross profit"],
+      ["operatingExpenses", "Operating expenses (excl. COGS)", [["researchAndDevelopmentExpenses", "Research & development"], ["sellingGeneralAndAdministrativeExpenses", "Selling, general & admin"], ["otherExpenses", "Other operating expenses"]]],
+      ["operatingIncome", "Operating income"],
+      ["totalOtherIncomeExpensesNet", "Non-operating income, total", [["interestIncome", "Interest income"], ["interestExpense", "Interest expense"], ["nonOperatingIncomeExcludingInterest", "Other non-operating income"]]],
+      ["incomeBeforeTax", "Pretax income"],
+      ["incomeTaxExpense", "Taxes"],
+      ["netIncome", "Net income", [["netIncomeFromContinuingOperations", "From continuing operations"], ["netIncomeFromDiscontinuedOperations", "From discontinued operations"]]],
+      ["eps", "Basic EPS", null, "x"], ["epsDiluted", "Diluted EPS", null, "x"],
+      ["weightedAverageShsOut", "Average basic shares outstanding"], ["weightedAverageShsOutDil", "Diluted shares outstanding"],
+      ["ebitda", "EBITDA"], ["ebit", "EBIT"], ["depreciationAndAmortization", "Depreciation & amortization"]
+    ] },
+    balance: { ep: "balance-sheet-statement", label: "Balance sheet", def: ["totalAssets", "totalLiabilities"], rows: [
+      ["totalAssets", "Total assets", [
+        ["totalCurrentAssets", "Total current assets", [["cashAndShortTermInvestments", "Cash and short term investments"], ["netReceivables", "Total receivables, net"], ["inventory", "Total inventory"], ["prepaids", "Prepaid expenses"], ["otherCurrentAssets", "Other current assets"]]],
+        ["totalNonCurrentAssets", "Total non-current assets", [["propertyPlantEquipmentNet", "Net property, plant & equipment"], ["longTermInvestments", "Long term investments"], ["goodwillAndIntangibleAssets", "Goodwill & intangibles"], ["taxAssets", "Deferred tax assets"], ["otherNonCurrentAssets", "Other non-current assets"]]]]],
+      ["totalLiabilities", "Total liabilities", [
+        ["totalCurrentLiabilities", "Total current liabilities", [["accountPayables", "Accounts payable"], ["shortTermDebt", "Short term debt"], ["deferredRevenue", "Deferred revenue"], ["taxPayables", "Income tax payable"], ["otherCurrentLiabilities", "Other current liabilities"]]],
+        ["totalNonCurrentLiabilities", "Total non-current liabilities", [["longTermDebt", "Long term debt"], ["deferredRevenueNonCurrent", "Deferred revenue (non-current)"], ["deferredTaxLiabilitiesNonCurrent", "Deferred tax liabilities"], ["otherNonCurrentLiabilities", "Other non-current liabilities"]]]]],
+      ["totalEquity", "Total equity", [["commonStock", "Common stock"], ["additionalPaidInCapital", "Additional paid-in capital"], ["retainedEarnings", "Retained earnings"], ["accumulatedOtherComprehensiveIncomeLoss", "Other comprehensive income"], ["treasuryStock", "Treasury stock"], ["minorityInterest", "Minority interest"]]],
+      ["totalLiabilitiesAndTotalEquity", "Total liabilities & shareholders' equities"],
+      ["totalDebt", "Total debt"], ["netDebt", "Net debt"]
+    ] },
+    cash: { ep: "cash-flow-statement", label: "Cash flow", def: ["operatingCashFlow", "freeCashFlow"], rows: [
+      ["operatingCashFlow", "Cash from operating activities", [["netIncome", "Net income"], ["depreciationAndAmortization", "Depreciation & amortization"], ["stockBasedCompensation", "Stock-based compensation"], ["deferredIncomeTax", "Deferred taxes"], ["changeInWorkingCapital", "Changes in working capital"], ["otherNonCashItems", "Other non-cash items"]]],
+      ["netCashProvidedByInvestingActivities", "Cash from investing activities", [["capitalExpenditure", "Capital expenditures"], ["acquisitionsNet", "Acquisitions, net"], ["purchasesOfInvestments", "Purchase of investments"], ["salesMaturitiesOfInvestments", "Sale/maturity of investments"], ["otherInvestingActivities", "Other investing activities"]]],
+      ["netCashProvidedByFinancingActivities", "Cash from financing activities", [["netDebtIssuance", "Issuance/retirement of debt, net"], ["commonStockRepurchased", "Repurchase of common stock"], ["commonStockIssuance", "Issuance of common stock"], ["netDividendsPaid", "Dividends paid"], ["otherFinancingActivities", "Other financing activities"]]],
+      ["netChangeInCash", "Net change in cash"],
+      ["freeCashFlow", "Free cash flow"]
+    ] }
   };
+  var COLORS = ["#2962ff", "#00bcd4", "#ff9800", "#e91e63", "#4caf50", "#9c27b0", "#ffeb3b", "#795548"];
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   function financials(c) {
     if (c.isEtf) { body.innerHTML = '<p class="mu">Funds do not file company financial statements. See Holdings for what ' + esc(T) + " owns.</p>"; return; }
-    var st = "income", per = "annual", all = false;
-    body.innerHTML = '<div><span class="sp-seg" data-k="st">' + Object.keys(ST).map(function (k) { return '<button type="button" data-v="' + k + '"' + (k === st ? ' class="on"' : "") + ">" + ST[k].label + "</button>"; }).join("") + '</span><span class="sp-seg" data-k="per"><button type="button" data-v="annual" class="on">Annual</button><button type="button" data-v="quarter">Quarterly</button></span><label class="mu" style="font-size:13px"><input type="checkbox" data-k="all"> Show every reported field</label></div><div data-k="chart"></div><div data-k="tbl" class="mu">Loading…</div>';
+    var st = "income", per = "annual", open = {}, pick = {}, all = false;
+    body.innerHTML = '<div data-k="chart" class="fs-chart"></div>' +
+      '<div class="fs-bar"><span class="fs-pills" data-k="st">' + Object.keys(ST).map(function (k) { return '<button type="button" data-v="' + k + '"' + (k === st ? ' class="on"' : "") + ">" + ST[k].label + "</button>"; }).join("") + '</span>' +
+      '<label class="mu fs-all"><input type="checkbox" data-k="all"> Every reported field</label><span class="sp-seg fs-per" data-k="per"><button type="button" data-v="annual" class="on">Annual</button><button type="button" data-v="quarter">Quarterly</button></span></div>' +
+      '<div data-k="tbl" class="mu">Loading…</div>';
+    var cols = [], cur = "USD";
+    function fmtV(v, kind) { return kind === "x" ? (ok(v) ? (+v).toFixed(2) : "—") : big(v, false); }
+    function head(x) { var d = new Date(String(x.date) + "T12:00:00Z"); return '<th><b>' + esc(per === "annual" ? String(x.fiscalYear || String(x.date).slice(0, 4)) : x.period + " '" + String(x.fiscalYear || "").slice(2)) + "</b><small>" + (isNaN(d) ? esc(x.date) : MON[d.getUTCMonth()] + " " + d.getUTCFullYear()) + "</small></th>"; }
+    function flat(rows, depth, parent, out) { (rows || []).forEach(function (r) { out.push({ k: r[0], label: r[1], kids: r[2], kind: r[3], depth: depth, parent: parent }); if (r[2] && open[st + ":" + r[0]]) flat(r[2], depth + 1, r[0], out); }); return out; }
+    function present(k) { return cols.some(function (x) { return ok(x[k]); }); }
+    function table() {
+      var S = ST[st], rows = all ? Object.keys(cols[cols.length - 1] || {}).filter(function (k) { return typeof cols[cols.length - 1][k] === "number"; }).map(function (k) { return { k: k, label: k.replace(/([A-Z])/g, " $1").replace(/^./, function (z) { return z.toUpperCase(); }), depth: 0 }; }) : flat(S.rows, 0, null, []).filter(function (r) { return present(r.k); });
+      var sel = pick[st] || (pick[st] = S.def.slice());
+      var h = '<div class="sp-tw fs-tw"><table class="fs"><thead><tr><th class="fs-m"><span>Metrics</span><small>Currency: ' + esc(cur) + "</small></th>" + cols.map(head).join("") + "</tr></thead><tbody>";
+      rows.forEach(function (r) {
+        var si = sel.indexOf(r.k), kidsP = r.kids && r.kids.some(function (z) { return present(z[0]); });
+        h += '<tr data-row="' + esc(r.k) + '" class="' + (si >= 0 ? "on" : "") + '"' + (si >= 0 ? ' style="--c:' + COLORS[si % COLORS.length] + '"' : "") + '><td class="fs-m" style="padding-left:' + (14 + r.depth * 18) + 'px">' + (kidsP ? '<button type="button" class="fs-tg" data-tg="' + esc(r.k) + '" aria-expanded="' + !!open[st + ":" + r.k] + '">' + (open[st + ":" + r.k] ? "⌄" : "›") + "</button>" : '<span class="fs-sp"></span>') + esc(r.label) + "</td>" +
+          cols.map(function (x, i) { var v = x[r.k], pv = i ? cols[i - 1][r.k] : null, g = ok(v) && ok(pv) && +pv !== 0 ? (v - pv) / Math.abs(pv) * 100 : null; return "<td><b>" + fmtV(v, r.kind) + "</b><small" + (g != null ? ' class="' + (g > 0 ? "up" : g < 0 ? "dn" : "") + '"' : "") + ">" + (g != null ? (g > 0 ? "+" : "") + g.toFixed(2) + "%" : i ? "—" : "") + "</small></td>"; }).join("") + "</tr>";
+      });
+      h += '</tbody></table></div><p class="sp-note">Reported figures in ' + esc(cur) + ", change versus the prior " + (per === "annual" ? "fiscal year" : "quarter") + ". Click a row to chart it (up to 8), › to expand its components. Source: Financial Modeling Prep (company filings" + (cols.length ? ", latest filed " + esc(cols[cols.length - 1].filingDate || cols[cols.length - 1].date) : "") + ").</p>";
+      body.querySelector('[data-k="tbl"]').innerHTML = h;
+      chart();
+    }
+    function chart() {
+      var sel = (pick[st] || []).filter(function (k) { return present(k); }), host = body.querySelector('[data-k="chart"]');
+      if (!sel.length || !cols.length) { host.innerHTML = ""; return; }
+      var W = 1100, H = 240, n = cols.length, mx = 0, mn = 0;
+      cols.forEach(function (x) { sel.forEach(function (k) { var v = +x[k] || 0; mx = Math.max(mx, v); mn = Math.min(mn, v); }); });
+      var rng = mx - mn || 1, gw = (W - 90) / n, bw = Math.min(26, gw / (sel.length + 1)), Y = function (v) { return 12 + (mx - v) / rng * (H - 44); };
+      var g = "", t;
+      for (t = 0; t <= 4; t++) { var v = mn + rng * t / 4; g += '<line x1="0" x2="' + (W - 80) + '" y1="' + Y(v).toFixed(1) + '" y2="' + Y(v).toFixed(1) + '" stroke="#2a2e39"/><text x="' + (W - 74) + '" y="' + (Y(v) + 4).toFixed(1) + '" fill="#787b86" font-size="11">' + big(v, false) + "</text>"; }
+      cols.forEach(function (x, i) {
+        sel.forEach(function (k, j) { var v = +x[k] || 0, y0 = Y(Math.max(0, v)), y1 = Y(Math.min(0, v)); g += '<rect x="' + (10 + i * gw + gw / 2 - bw * sel.length / 2 + j * bw).toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + Math.max(1, y1 - y0).toFixed(1) + '" fill="' + COLORS[(pick[st] || []).indexOf(k) % COLORS.length] + '" rx="1"><title>' + esc(labelOf(k)) + " " + big(v, false) + "</title></rect>"; });
+        g += '<text x="' + (10 + i * gw + gw / 2).toFixed(1) + '" y="' + (H - 8) + '" fill="#787b86" font-size="11" text-anchor="middle">' + esc(per === "annual" ? String(x.fiscalYear || String(x.date).slice(0, 4)) : x.period + " '" + String(x.fiscalYear || "").slice(2)) + "</text>";
+      });
+      host.innerHTML = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="selected statement rows">' + '<line x1="0" x2="' + (W - 80) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="#434651"/>' + g + '</svg><div class="fs-leg">' + sel.map(function (k) { return '<span><i style="background:' + COLORS[(pick[st] || []).indexOf(k) % COLORS.length] + '"></i>' + esc(labelOf(k)) + "</span>"; }).join("") + "</div>";
+    }
+    function labelOf(k) { var found = k; (function walk(rows) { (rows || []).forEach(function (r) { if (r[0] === k) found = r[1]; if (r[2]) walk(r[2]); }); })(ST[st].rows); return found; }
     function draw() {
       var S = ST[st], tb = body.querySelector('[data-k="tbl"]'); tb.innerHTML = '<p class="mu">Loading ' + S.label.toLowerCase() + "…</p>";
-      fmp(S.ep, "&period=" + per + "&limit=" + (per === "annual" ? 10 : 16)).then(function (d) {
+      fmp(S.ep, "&period=" + per + "&limit=" + (per === "annual" ? 15 : 20)).then(function (d) {
         if (!Array.isArray(d) || !d.length) { tb.innerHTML = '<p class="sp-err">No ' + S.label.toLowerCase() + " returned for " + esc(T) + ".</p>"; body.querySelector('[data-k="chart"]').innerHTML = ""; return; }
-        var cols = d.slice().reverse(), cur = d[0].reportedCurrency || "USD";
-        var rows = all ? Object.keys(d[0]).filter(function (k) { return typeof d[0][k] === "number"; }).map(function (k) { return [k, k.replace(/([A-Z])/g, " $1").replace(/^./, function (x) { return x.toUpperCase(); })]; }) : S.rows;
-        tb.innerHTML = '<div class="sp-tw"><table><tr><th>' + esc(cur) + "</th>" + cols.map(function (x) { return "<th>" + esc(per === "annual" ? "FY" + (x.fiscalYear || String(x.date).slice(0, 4)) : x.period + " " + (x.fiscalYear || "")) + '<br><span class="mu" style="font-weight:400">' + esc(x.date) + "</span></th>"; }).join("") + "</tr>" +
-          rows.map(function (r) { return "<tr><td>" + esc(r[1]) + "</td>" + cols.map(function (x, i) { var v = x[r[0]], pv = i ? cols[i - 1][r[0]] : null, g = ok(v) && ok(pv) && pv ? (v / pv - 1) * 100 : null; return '<td title="' + (g != null ? (g > 0 ? "+" : "") + g.toFixed(1) + "% vs prior" : "") + '">' + (r[2] === "x" ? n2(v) : r[2] === "n" ? big(v, false) : big(v, false)) + "</td>"; }).join("") + "</tr>"; }).join("") + "</table></div>" +
-          '<p class="sp-note">Reported figures, ' + esc(cur) + ". Filed " + esc(d[0].filingDate || "") + ". Source: Financial Modeling Prep (company filings).</p>";
-        var key = st === "income" ? [["revenue", "Revenue", "#2962ff"], ["netIncome", "Net income", "#089981"]] : st === "balance" ? [["totalAssets", "Assets", "#2962ff"], ["totalLiabilities", "Liabilities", "#f23645"]] : [["operatingCashFlow", "Operating CF", "#2962ff"], ["freeCashFlow", "Free CF", "#089981"]];
-        body.querySelector('[data-k="chart"]').innerHTML = bars(cols, key, per);
+        cols = d.slice().reverse(); cur = d[0].reportedCurrency || "USD"; table();
       });
     }
     body.addEventListener("click", function (e) {
-      var b = e.target.closest(".sp-seg button"); if (!b) return;
-      var seg = b.parentNode.getAttribute("data-k"); b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
-      if (seg === "st") st = b.getAttribute("data-v"); else per = b.getAttribute("data-v"); draw();
+      var tg = e.target.closest("[data-tg]");
+      if (tg) { var k = st + ":" + tg.getAttribute("data-tg"); open[k] = !open[k]; table(); return; }
+      var b = e.target.closest(".fs-pills button, .sp-seg button");
+      if (b) {
+        var seg = b.parentNode.getAttribute("data-k"); b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+        if (seg === "st") st = b.getAttribute("data-v"); else per = b.getAttribute("data-v"); draw(); return;
+      }
+      var tr = e.target.closest("tr[data-row]");
+      if (tr) { var rk = tr.getAttribute("data-row"), sel = pick[st] || (pick[st] = []), i = sel.indexOf(rk); if (i >= 0) sel.splice(i, 1); else if (sel.length < 8) sel.push(rk); table(); }
     });
-    body.querySelector('[data-k="all"]').onchange = function (e) { all = e.target.checked; draw(); };
+    body.querySelector('[data-k="all"]').onchange = function (e) { all = e.target.checked; table(); };
     draw();
   }
-  function bars(cols, key, per) {
-    var W = 1100, H = 200, n = cols.length, mx = 0, mn = 0;
-    cols.forEach(function (x) { key.forEach(function (k) { var v = +x[k[0]] || 0; mx = Math.max(mx, v); mn = Math.min(mn, v); }); });
-    var rng = mx - mn || 1, gw = (W - 20) / n, bw = Math.min(28, gw / (key.length + 1)), Y = function (v) { return 10 + (mx - v) / rng * (H - 40); };
-    var g = cols.map(function (x, i) {
-      return key.map(function (k, j) { var v = +x[k[0]] || 0, y0 = Y(Math.max(0, v)), y1 = Y(Math.min(0, v)); return '<rect x="' + (10 + i * gw + gw / 2 - bw * key.length / 2 + j * bw).toFixed(1) + '" y="' + y0.toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + Math.max(1, y1 - y0).toFixed(1) + '" fill="' + k[2] + '"><title>' + k[1] + " " + big(v) + "</title></rect>"; }).join("") +
-        '<text x="' + (10 + i * gw + gw / 2).toFixed(1) + '" y="' + (H - 6) + '" fill="#787b86" font-size="11" text-anchor="middle">' + esc(per === "annual" ? String(x.fiscalYear || String(x.date).slice(0, 4)) : x.period + "'" + String(x.fiscalYear || "").slice(2)) + "</text>";
-    }).join("");
-    return '<div class="sp-chart"><div class="mu" style="font-size:12px;margin:2px 4px 4px">' + key.map(function (k) { return '<span style="display:inline-block;width:10px;height:10px;background:' + k[2] + ';border-radius:2px;margin:0 4px 0 8px"></span>' + k[1]; }).join("") + '</div><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="statement chart"><line x1="0" x2="' + W + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="#363a45"/>' + g + "</svg></div>";
+  // ------------------------------------------------------------------ statistics (yearly ratios + TTM)
+  var STATS = [
+    ["Valuation", [["marketCap", "Market capitalization", "$"], ["enterpriseValue", "Enterprise value", "$"], ["priceToEarningsRatio", "Price to earnings ratio"], ["priceToSalesRatio", "Price to sales ratio"], ["priceToBookRatio", "Price to book ratio"], ["priceToFreeCashFlowRatio", "Price to free cash flow"], ["priceToEarningsGrowthRatio", "PEG ratio"], ["evToEBITDA", "EV / EBITDA"], ["evToSales", "EV / sales"]]],
+    ["Profitability", [["grossProfitMargin", "Gross margin", "%"], ["operatingProfitMargin", "Operating margin", "%"], ["ebitdaMargin", "EBITDA margin", "%"], ["netProfitMargin", "Net margin", "%"], ["returnOnEquity", "Return on equity", "%"], ["returnOnAssets", "Return on assets", "%"], ["returnOnInvestedCapital", "Return on invested capital", "%"]]],
+    ["Liquidity & solvency", [["currentRatio", "Current ratio"], ["quickRatio", "Quick ratio"], ["cashRatio", "Cash ratio"], ["debtToEquityRatio", "Debt to equity"], ["debtToAssetsRatio", "Debt to assets"], ["interestCoverageRatio", "Interest coverage"], ["netDebtToEBITDA", "Net debt / EBITDA"]]],
+    ["Efficiency & per share", [["assetTurnover", "Asset turnover"], ["inventoryTurnover", "Inventory turnover"], ["receivablesTurnover", "Receivables turnover"], ["revenuePerShare", "Revenue per share"], ["bookValuePerShare", "Book value per share"], ["freeCashFlowPerShare", "Free cash flow per share"], ["dividendPayoutRatio", "Dividend payout ratio", "%"], ["dividendYield", "Dividend yield", "%"]]]
+  ];
+  function statistics(c) {
+    var per = "annual";
+    body.innerHTML = '<div class="fs-bar"><span class="sp-seg fs-per" data-k="per" style="margin-left:auto"><button type="button" data-v="annual" class="on">Annual</button><button type="button" data-v="quarter">Quarterly</button></span></div><div data-k="tbl" class="mu">Loading…</div>';
+    function draw() {
+      var lim = per === "annual" ? 10 : 12;
+      Promise.all([fmp("ratios", "&period=" + per + "&limit=" + lim), fmp("key-metrics", "&period=" + per + "&limit=" + lim)]).then(function (a) {
+        var R = Array.isArray(a[0]) ? a[0] : [], K = Array.isArray(a[1]) ? a[1] : [], byDate = {};
+        R.concat(K).forEach(function (x) { var d = x.date; byDate[d] = Object.assign(byDate[d] || {}, x); });
+        var cols = Object.keys(byDate).sort().map(function (d) { return byDate[d]; });
+        if (!cols.length) { body.querySelector('[data-k="tbl"]').innerHTML = '<p class="sp-err">No statistics returned for ' + esc(T) + ".</p>"; return; }
+        function fv(v, u) { if (!ok(v)) return "—"; return u === "%" ? (v * 100).toFixed(2) + "%" : u === "$" ? big(v) : (+v).toFixed(2); }
+        var h = "";
+        STATS.forEach(function (g) {
+          var rows = g[1].filter(function (r) { return cols.some(function (x) { return ok(x[r[0]]); }); }); if (!rows.length) return;
+          h += "<h2>" + g[0] + '</h2><div class="sp-tw fs-tw"><table class="fs"><thead><tr><th class="fs-m">Metric</th>' + cols.map(function (x) { var d = new Date(x.date + "T12:00:00Z"); return "<th><b>" + esc(per === "annual" ? String(x.fiscalYear || x.date.slice(0, 4)) : x.period + " '" + String(x.fiscalYear || "").slice(2)) + "</b><small>" + MON[d.getUTCMonth()] + " " + d.getUTCFullYear() + "</small></th>"; }).join("") + "</tr></thead><tbody>" +
+            rows.map(function (r) { return '<tr><td class="fs-m" style="padding-left:14px">' + esc(r[1]) + "</td>" + cols.map(function (x) { return "<td><b>" + fv(x[r[0]], r[2]) + "</b></td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+        });
+        body.querySelector('[data-k="tbl"]').innerHTML = h + '<p class="sp-note">Ratios and key metrics per reported period. Source: Financial Modeling Prep.</p>';
+      });
+    }
+    body.addEventListener("click", function (e) { var b = e.target.closest(".sp-seg button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); per = b.getAttribute("data-v"); draw(); });
+    draw();
   }
-
+  // ------------------------------------------------------------------ segments (revenue by product and by region)
+  function segments(c) {
+    var per = "annual";
+    body.innerHTML = '<div class="fs-bar"><span class="sp-seg fs-per" data-k="per" style="margin-left:auto"><button type="button" data-v="annual" class="on">Annual</button><button type="button" data-v="quarter">Quarterly</button></span></div><div data-k="tbl" class="mu">Loading…</div>';
+    function block(title, d) {
+      d = Array.isArray(d) ? d.slice().sort(function (a1, a2) { return String(a1.date).localeCompare(String(a2.date)); }) : [];
+      if (!d.length) return "";
+      var keys = {}; d.forEach(function (x) { Object.keys(x.data || {}).forEach(function (k) { keys[k] = (keys[k] || 0) + Math.abs(+x.data[k] || 0); }); });
+      var ks = Object.keys(keys).sort(function (a1, a2) { return keys[a2] - keys[a1]; });
+      var W = 1100, H = 220, n = d.length, mx = 0; d.forEach(function (x) { var s = 0; ks.forEach(function (k) { s += Math.max(0, +((x.data || {})[k]) || 0); }); mx = Math.max(mx, s); });
+      var gw = (W - 90) / n, bw = Math.min(46, gw * 0.6), Y = function (v) { return 10 + (1 - v / (mx || 1)) * (H - 40); }, g = "";
+      d.forEach(function (x, i) { var acc = 0; ks.forEach(function (k, j) { var v = Math.max(0, +((x.data || {})[k]) || 0); if (!v) return; g += '<rect x="' + (10 + i * gw + gw / 2 - bw / 2).toFixed(1) + '" y="' + Y(acc + v).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (Y(acc) - Y(acc + v)).toFixed(1) + '" fill="' + COLORS[j % COLORS.length] + '"><title>' + esc(k) + " " + big(v) + "</title></rect>"; acc += v; }); g += '<text x="' + (10 + i * gw + gw / 2).toFixed(1) + '" y="' + (H - 8) + '" fill="#787b86" font-size="11" text-anchor="middle">' + esc(per === "annual" ? String(x.fiscalYear || String(x.date).slice(0, 4)) : (x.period || "") + " '" + String(x.fiscalYear || "").slice(2)) + "</text>"; });
+      return "<h2>" + title + '</h2><div class="sp-chart"><svg viewBox="0 0 ' + W + " " + H + '">' + g + '</svg><div class="fs-leg">' + ks.map(function (k, j) { return '<span><i style="background:' + COLORS[j % COLORS.length] + '"></i>' + esc(k) + "</span>"; }).join("") + "</div></div>" +
+        '<div class="sp-tw fs-tw"><table class="fs"><thead><tr><th class="fs-m">Segment</th>' + d.map(function (x) { return "<th><b>" + esc(per === "annual" ? String(x.fiscalYear || String(x.date).slice(0, 4)) : (x.period || "") + " '" + String(x.fiscalYear || "").slice(2)) + "</b><small>" + esc(x.date) + "</small></th>"; }).join("") + "</tr></thead><tbody>" +
+        ks.map(function (k, j) { return '<tr><td class="fs-m" style="padding-left:14px"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:8px;background:' + COLORS[j % COLORS.length] + '"></i>' + esc(k) + "</td>" + d.map(function (x, i) { var v = (x.data || {})[k], pv = i ? (d[i - 1].data || {})[k] : null, gg = ok(v) && ok(pv) && +pv ? (v - pv) / Math.abs(pv) * 100 : null; return "<td><b>" + big(v) + "</b><small" + (gg != null ? ' class="' + (gg > 0 ? "up" : "dn") + '"' : "") + ">" + (gg != null ? (gg > 0 ? "+" : "") + gg.toFixed(2) + "%" : "") + "</small></td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+    }
+    function draw() {
+      var lim = per === "annual" ? 8 : 12;
+      Promise.all([fmp("revenue-product-segmentation", "&period=" + per + "&limit=" + lim), fmp("revenue-geographic-segmentation", "&period=" + per + "&limit=" + lim)]).then(function (a) {
+        var h = block("Revenue by business segment", a[0]) + block("Revenue by region", a[1]);
+        body.querySelector('[data-k="tbl"]').innerHTML = h ? h + '<p class="sp-note">Segment revenue as reported in filings. Source: Financial Modeling Prep.</p>' : '<p class="sp-note">No segment breakdown reported for ' + esc(T) + ".</p>";
+      });
+    }
+    body.addEventListener("click", function (e) { var b = e.target.closest(".sp-seg button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); per = b.getAttribute("data-v"); draw(); });
+    draw();
+  }
   function holdings(c) {
     if (!c.isEtf) { body.innerHTML = '<p class="mu">' + esc(T) + " is not a fund. See Ownership for the funds and ETFs that hold it.</p>"; return; }
     body.innerHTML = '<div data-k="chg"></div><div class="sp-two"><div><h2>Sectors</h2><div class="sp-card" data-k="sec"><span class="mu">Loading…</span></div></div><div><h2>Countries</h2><div class="sp-card" data-k="cty"><span class="mu">Loading…</span></div></div></div><h2>All holdings <span data-k="hasof"></span></h2><input class="sp-filter" type="search" placeholder="Filter holdings" aria-label="Filter holdings"><div data-k="tbl" class="mu">Loading…</div>';
@@ -314,12 +427,13 @@
     renderHead(c);
     liveQuote();
     TABS = [["overview", "Overview", overview]];
-    if (!c.isEtf) TABS.push(["financials", "Financials", financials]);
+    if (!c.isEtf) TABS.push(["financials", "Statements", financials], ["statistics", "Statistics", statistics]);
     if (c.isEtf) TABS.push(["holdings", "Holdings", holdings]);
     TABS.push(["ownership", c.isEtf ? "Ownership" : "Ownership & funds", ownership]);
     if (c.flows) TABS.push(["flows", "ETF flows", flows]);
     TABS.push(["dividends", "Dividends", dividends]);
     if (!c.isEtf) TABS.push(["earnings", "Earnings", earnings]);
+    if (!c.isEtf) TABS.push(["segments", "Segments", segments]);
     tabsEl.innerHTML = TABS.map(function (t) { return '<button type="button" role="tab" data-t="' + t[0] + '">' + t[1] + "</button>"; }).join("");
     tabsEl.onclick = function (e) { var b = e.target.closest("[data-t]"); if (b) setTab(b.getAttribute("data-t"), c); };
     setTab(qs.get("tab") || "overview", c);

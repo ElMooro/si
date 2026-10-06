@@ -10,6 +10,12 @@
   if (root.JHTvWatchlist) return;
   var doc = root.document;
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
+  // TradingView-style details card lives in its own file; loaded once, the panel re-renders when it arrives
+  if (!root.JHTvDetails && doc && doc.head) {
+    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006a"; tvd.async = true;
+    tvd.onload = function () { try { if (det) { det._sig = null; renderDetails(); } } catch (e) {} };
+    doc.head.appendChild(tvd);
+  }
   var KEY = "jh-tvwl-v1";
   var FLAGS = [["red", "#f23645"], ["blue", "#2962ff"], ["green", "#089981"], ["orange", "#ff9800"], ["purple", "#9c27b0"], ["cyan", "#00bcd4"], ["pink", "#e91e63"]];
   var FLAG_HEX = {}; FLAGS.forEach(function (f) { FLAG_HEX[f[0]] = f[1]; });
@@ -173,7 +179,9 @@
     D.stars = D.stars.filter(function (id) { return D.lists[id] || /^flag:/.test(id); });
     bar.innerHTML = D.stars.map(function (id) {
       var fc = /^flag:/.test(id) ? FLAG_HEX[id.slice(5)] : (D.lists[id] && D.lists[id].flag ? FLAG_HEX[D.lists[id].flag] : null);
-      return '<button type="button" role="tab" data-a="exp" data-id="' + esc(id) + '" class="' + (id === D.active ? "on" : "") + '" aria-selected="' + (id === D.active) + '" title="' + esc(listName(id)) + '">' + (fc ? '<i style="background:' + fc + '"></i>' : "") + esc(listName(id)) + "</button>";
+      // TradingView-style express bar: one lettered circle per favourite list, full name on hover
+      var ini = String(listName(id) || "?").replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?";
+      return '<button type="button" role="tab" data-a="exp" data-id="' + esc(id) + '" class="ci' + (id === D.active ? " on" : "") + '" aria-selected="' + (id === D.active) + '" aria-label="' + esc(listName(id)) + '" title="' + esc(listName(id)) + '">' + esc(ini) + (fc ? '<i style="background:' + fc + '"></i>' : "") + "</button>";
     }).join("");
   }
   // Preferred names: shown everywhere in the watchlist and searchable, while the row keeps pulling the original data id.
@@ -251,6 +259,20 @@
   }
   // the names the chart itself resolves for a TradingView id: US listings without the exchange, the id as given,
   // the bare symbol (TVC:DXY → DXY), and continuous futures in Yahoo form (COMEX:GC1! → GC=F)
+  var DB = {};
+  function detBars(id) {
+    var c = DB[id]; if (c && Date.now() - c.t < 300000) return c.p;
+    var m = mapped(id), cands = barCands(id, m);
+    var p = new Promise(function (res) {
+      (function next(i) {
+        if (i >= cands.length || typeof root.jhKlines !== "function") { res([]); return; }
+        var pr; try { pr = Promise.resolve(isExprId(cands[i]) ? root.JHChartExpr.evaluate(cands[i]) : root.jhKlines(cands[i], "1d")); } catch (e) { pr = Promise.reject(e); }
+        pr.then(function (r) { var b = Array.isArray(r) ? r : r && (r.bars || r.data || r.d) || null; if (b && b.length) res(b); else next(i + 1); }, function () { next(i + 1); });
+      })(0);
+    });
+    DB[id] = { t: Date.now(), p: p };
+    return p;
+  }
   function barCands(id, m) {
     if (m) return [m.id];
     var out = [];
@@ -534,6 +556,13 @@
       "#jhwl .wl-exp button:hover{background:var(--hov)}#jhwl .wl-exp button.on{background:var(--blue);border-color:var(--blue);color:#fff}#jhwl .wl-exp i{width:8px;height:8px;border-radius:2px;flex:0 0 8px}",
       "#jhwl .wl-info{position:absolute;right:26px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:0;border-radius:50%;background:var(--bg2);color:var(--mut);cursor:pointer;display:none;padding:0;line-height:0}",
       "#jhwl .wl-info svg{width:14px;height:14px}#jhwl .wl-row:hover .wl-info{display:inline-flex;align-items:center;justify-content:center}#jhwl .wl-info:hover{color:var(--blue);background:var(--bd)}",
+      "#jhwl .wl-logo{position:relative;overflow:hidden}#jhwl .wl-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#fff;border-radius:50%}",
+      "#jhwl .wl-tk b{display:flex!important;align-items:center;gap:4px}#jhwl .wl-tk b .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}",
+      "#jhwl .wl-ed{flex:0 0 auto;width:11px;height:11px;color:#f0b90b;display:inline-flex}#jhwl .wl-ed svg{width:11px;height:11px}",
+      "#jhwl .wl-tk sup{flex:0 0 auto;font-size:9px;color:#f0b90b;font-weight:600;vertical-align:super;margin-left:1px}",
+      "#jhwl .wl-c em.tk{font-style:normal}#jhwl .wl-c em.tk.up{color:#22ab94}#jhwl .wl-c em.tk.dn{color:#f7525f}",
+      "#jhwl .wl-exp{gap:6px!important;padding:6px 8px!important}#jhwl .wl-exp button.ci{width:22px;height:22px;max-width:none;padding:0;justify-content:center;border-radius:50%;font-size:11px;font-weight:600;position:relative}",
+      "#jhwl .wl-exp button.ci i{position:absolute;right:-1px;bottom:-1px;width:7px;height:7px;border-radius:50%;flex:none;border:1px solid var(--bg)}",
       "#jhwl .wl-tk b.al{font-weight:600}#jhwl .wl-tk b em{font-style:normal;color:var(--mut);font-weight:400;font-size:11px;margin-left:4px}",
       "#jhwl .wl-ins{border:1px solid var(--bd);border-radius:6px;padding:7px 8px;margin:6px 0 8px;font-size:12px}",
       "#jhwl .wl-ins h4{margin:0 0 4px;font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;gap:6px}#jhwl .wl-ins h4 span{font-weight:400;text-transform:none;letter-spacing:0}",
@@ -675,7 +704,7 @@
     return colsOn().map(function (c) {
       var k = c[0], v, cl = "";
       if (!ok) return '<span class="wl-c na" data-k="' + k + '"' + (q && q.error ? ' title="' + esc(q.pending ? "Loading the full history the chart uses…" : q.error) + '"' : "") + ">" + (k === "spark" ? "" : (q && !q.pending ? "—" : "…")) + "</span>";
-      if (k === "last") v = fmt(q.last);
+      if (k === "last") v = tickHtml(id, fmt(q.last), +q.last);
       else if (k === "chg") { v = (q.chg > 0 ? "+" : "") + fmt(q.chg); cl = sgn(q.chg); }
       else if (k === "chgp") { v = pct(q.chg_pct); cl = sgn(q.chg_pct); }
       else if (k === "m1") { v = pct(q.mom_pct); cl = sgn(q.mom_pct); }
@@ -693,6 +722,22 @@
     var col = arr[arr.length - 1] >= arr[0] ? "#089981" : "#f23645";
     return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><polyline fill="none" stroke="' + col + '" stroke-width="1.3" points="' + pts + '"/></svg>';
   }
+  var EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>';
+  // "D" like TradingView's delayed-data mark: a market symbol whose newest daily bar is older than the last weekday session
+  function delayTag(id) {
+    var q = Q[id]; if (!q || !q.ok || !q.last_date || !infoTarget(id)) return "";
+    var d = new Date(), k = 0; d.setUTCHours(12, 0, 0, 0);
+    do { d.setUTCDate(d.getUTCDate() - 1); k++; } while ((d.getUTCDay() === 0 || d.getUTCDay() === 6) && k < 5);
+    return q.last_date < d.toISOString().slice(0, 10) ? '<sup title="Delayed: newest bar is ' + esc(q.last_date) + '">D</sup>' : "";
+  }
+  // TradingView colours the digits that changed on the last tick
+  var TICK = {};
+  function tickHtml(id, v, last) {
+    var t = TICK[id];
+    if (!t) { TICK[id] = { s: v, n: last, i: -1, dir: "" }; return v; }
+    if (t.s !== v) { var i = 0; while (i < v.length && v[i] === t.s[i]) i++; TICK[id] = t = { s: v, n: last, i: i, dir: last > t.n ? "up" : last < t.n ? "dn" : "" }; }
+    return t.i >= 0 && t.dir ? esc(v.slice(0, t.i)) + '<em class="tk ' + t.dir + '">' + esc(v.slice(t.i)) + "</em>" : v;
+  }
   function rowHtml(r, vi) {
     if (r.sec) {
       return '<div class="wl-sec' + (r.col ? " col" : "") + '" data-vi="' + vi + '" data-sec="' + esc(r.title) + '" draggable="true"><i>▾</i>' + esc(r.title) + " <em>" + r.n + '</em><button type="button" class="wl-x" data-a="delsec" title="Remove section (keep symbols)">×</button></div>';
@@ -702,8 +747,8 @@
     var cls = "wl-row" + (D.desc ? " desc" : "") + (sel[r.idx] ? " sel" : "") + (sameId(id, activeSym) || sameId(short(id), activeSym) ? " act" : "") + (vi === focusIdx ? " foc" : "");
     return '<div class="' + cls + '" data-vi="' + vi + '" data-id="' + esc(id) + '" role="option" aria-selected="' + (!!sel[r.idx]) + '" draggable="' + (!(D.sort.col && D.sort.dir)) + '" title="' + esc((al ? al + " · " : "") + id + (name ? " — " + name : "") + "\nDouble-click to rename or colour-tag") + '" style="grid-template-columns:' + gridTpl() + '">' +
       '<span class="wl-sym"><i class="wl-flag" data-a="flag"' + (fl ? ' data-c="' + fl + '" style="background:' + FLAG_HEX[fl] + '"' : "") + ' title="Flag"></i>' +
-      '<i class="wl-logo" style="background:' + hashC(s) + '">' + esc(s.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?") + "</i>" +
-      '<span class="wl-tk">' + (al ? '<b class="al">' + esc(al) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : "<b>" + esc(s) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
+      '<i class="wl-logo" style="background:' + hashC(s) + '">' + esc(s.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?") + (infoTarget(id) ? '<img alt="" loading="lazy" src="https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(infoTarget(id)) + '.png" onerror="this.remove()">' : "") + "</i>" +
+      '<span class="wl-tk">' + (al ? '<b class="al"><span class="t">' + esc(al) + '</span><i class="wl-ed" title="Your name for ' + esc(id) + '">' + EDIT_SVG + "</i>" + delayTag(id) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : '<b><span class="t">' + esc(s) + "</span>" + delayTag(id) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
       cells(id) + (infoTarget(id) ? '<button type="button" class="wl-info" data-a="info" title="Symbol overview: key stats, financials, holdings, ownership" aria-label="Overview of ' + esc(s) + '">' + INFO_SVG + "</button>" : "") + '<button type="button" class="wl-x" data-a="rm" title="Remove from watchlist" aria-label="Remove ' + esc(s) + '">×</button></div>';
   }
   function render() {
@@ -737,6 +782,7 @@
         var x = row.querySelector(".wl-x");
         Array.prototype.slice.call(tmp.children).forEach(function (c) { row.insertBefore(c, x); });
         var q = Q[id]; if (q && q.name) row.title = id + " — " + q.name;
+        var tb = row.querySelector(".wl-tk b"); if (tb) { var od = tb.querySelector("sup"); if (od) od.remove(); var dt = delayTag(id); if (dt) tb.insertAdjacentHTML("beforeend", dt); }
         if (D.desc && q && q.name) { var sm = row.querySelector(".wl-tk small"); if (sm) sm.textContent = aliasOf(id) ? short(id) + " · " + q.name : q.name; }
       });
       if (sameId(id, detId())) renderDetails();
@@ -770,6 +816,30 @@
     var id = detId(); if (!id) { det.innerHTML = ""; return; }
     var q = Q[id]; if (!q) { requestQuotes([id]); }
     var s = short(id), ok = q && q.ok;
+    if (root.JHTvDetails && typeof root.JHTvDetails.render === "function") {
+      // TradingView-style details card (jh-tv-details.js); re-rendered only when the symbol, quote or alias changes
+      var it = infoTarget(id), sig = id + "|" + (q ? (q.ok ? q.last + "|" + q.chg + "|" + q.last_date : q.pending ? "p" : "e") : "n") + "|" + (aliasOf(id) || "") + "|" + (cur() ? cur().id : "");
+      det.setAttribute("data-id", id);
+      if (det._sig === sig && det.querySelector(".tvd")) return;
+      det._sig = sig;
+      var inList = cur() && cur().items.indexOf(id) >= 0;
+      root.JHTvDetails.render(det, {
+        id: id, sym: s, alias: aliasOf(id), color: hashC(s), q: q, info: it,
+        name: (ok && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || id,
+        insights: it ? (INS[it] && INS[it].html || '<div class="mu">Loading flows, fund changes and valuation…</div>') : "",
+        bars: function () { return detBars(id); },
+        act: {
+          chart: function () { goChart(id); }, compare: function () { if (root.jhAddCompare) root.jhAddCompare(id); },
+          rename: function () { editSym(id); }, flag: function () { var r0 = det.getBoundingClientRect(); flagMenu(r0.left + 12, r0.top + 40, id); },
+          remove: function () { var L0 = cur(), i0 = L0 ? L0.items.indexOf(id) : -1; if (i0 >= 0) removeIdx([i0]); }
+        }
+      });
+      det.insertAdjacentHTML("beforeend", (q && !ok && !q.pending ? '<div class="alts" data-for="' + esc(id) + '"><div class="asof">Looking for the same data under other names…</div></div>' : "") +
+        '<div class="acts"><button type="button" data-a="dchart">Chart</button><button type="button" data-a="dcompare">Compare</button><button type="button" data-a="dflag">Flag</button><button type="button" data-a="dren">Rename</button>' + (inList ? '<button type="button" data-a="drm">Remove</button>' : '<button type="button" data-a="dadd">+ Add</button>') + "</div>");
+      var insE = det.querySelector(".wl-ins"); if (insE) loadInsights(id, insE);
+      var altE = det.querySelector(".alts"); if (altE) loadAlts(id, (q && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || "", altE);
+      return;
+    }
     det.innerHTML =
       '<h3><i class="wl-logo" style="background:' + hashC(s) + ';width:24px;height:24px;flex:0 0 24px;font-size:12px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal">' + esc(s.charAt(0).toUpperCase()) + "</i>" + esc(disp(id)) + (aliasOf(id) ? ' <span style="color:var(--mut);font-weight:400;font-size:12px">' + esc(s) + "</span>" : "") + (D.flags[id] ? '<i style="width:10px;height:10px;border-radius:2px;background:' + FLAG_HEX[D.flags[id]] + '"></i>' : "") +
         (infoTarget(id) ? '<a class="nfo" href="/symbol.html?s=' + encodeURIComponent(infoTarget(id)) + '" target="_blank" rel="noopener" title="Full overview: key stats, financials, holdings, ownership, flows">' + INFO_SVG + "</a>" : "") + "</h3>" +
@@ -1268,6 +1338,20 @@
   setTimeout(function () { try { econMap(); } catch (e) {} }, 3000);
   root.JHTvWatchlist = {
     add: function (id) { var r = add(id); return r; },
+    // bulk add (search "+" on a category / dataset): one save and one render for the whole batch
+    addMany: function (ids) {
+      var L = cur();
+      if (!L) { var nid = addList("Watchlist", []); D.active = nid; L = cur(); }
+      var added = 0, dup = 0, seen = {};
+      (ids || []).forEach(function (x) {
+        var id = norm(x); if (!id || seen[id.toUpperCase()]) return; seen[id.toUpperCase()] = 1;
+        if (L.flag) { if (!D.flags[id]) { D.flags[id] = L.flag; added++; } else dup++; return; }
+        if (L.items.some(function (s) { return sameId(s, id); })) { dup++; return; }
+        L.items.push(id); added++;
+      });
+      if (added) { save(); render(); }
+      return { added: added, dup: dup, list: L.name };
+    },
     remove: function (id) { var L = cur(); if (!L) return; var i = L.items.findIndex(function (s) { return sameId(s, id); }); if (i >= 0) removeIdx([i]); },
     route: function (id) { activeSym = id; navAt = Date.now(); route(id); if (body) { body.querySelectorAll(".wl-row.act").forEach(function (r) { r.classList.remove("act"); }); renderDetails(); } },
     activeName: function () { var L = cur(); return L ? L.name : "watchlist"; },

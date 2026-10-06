@@ -63,3 +63,17 @@ tr:hover td{background:var(--bg2)}
 .sp-skel{color:var(--mut);padding:30px 0}
 input.sp-filter{height:30px;padding:0 10px;border-radius:6px;border:1px solid var(--bd);background:var(--bg2);color:var(--fg);font:inherit;width:240px;margin-bottom:10px}
 @media (max-width:760px){.sp-two{grid-template-columns:1fr}.sp-px{margin-left:0;text-align:left;width:100%}.sp-find input{width:140px}}
+/* statements — TradingView Financials layout */
+.fs-chart{margin:4px 0 14px}.fs-chart svg{width:100%;height:auto;display:block}
+.fs-leg{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;font-size:12px;color:var(--mut);margin:6px 0 2px}.fs-leg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.fs-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px}.fs-bar .fs-per{margin:0 0 0 auto}.fs-all{font-size:12px;display:inline-flex;gap:5px;align-items:center}
+.fs-pills{display:inline-flex;gap:8px}.fs-pills button{background:var(--bg3);border:0;border-radius:18px;color:var(--fg);padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+.fs-pills button.on{background:var(--hi);color:var(--bg)}.fs-pills button:hover:not(.on){background:var(--bd)}
+.fs-tw{max-height:none}table.fs{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+table.fs th,table.fs td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap;vertical-align:top}
+table.fs th b{display:block;font-weight:500;color:var(--fg)}table.fs th small,table.fs td small{display:block;font-size:11px;color:var(--mut);font-weight:400;margin-top:2px}
+table.fs td b{font-weight:500}table.fs .fs-m{text-align:left;position:sticky;left:0;background:var(--bg);z-index:1;min-width:250px;white-space:normal}
+table.fs th.fs-m span{display:block;color:var(--mut);font-weight:400}table.fs thead th{position:sticky;top:0;background:var(--bg);z-index:2}table.fs thead th.fs-m{z-index:3}
+table.fs tr[data-row]{cursor:pointer}table.fs tr[data-row]:hover td{background:var(--bg2)}
+table.fs tr.on td{background:rgba(41,98,255,.12)}table.fs tr.on td.fs-m{box-shadow:inset 3px 0 0 var(--c,#2962ff);background:#15203a}
+.fs-tg{background:none;border:0;color:var(--mut);cursor:pointer;width:18px;margin:0 4px 0 -4px;font-size:14px;padding:0}.fs-tg:hover{color:var(--fg)}.fs-sp{display:inline-block;width:18px}
