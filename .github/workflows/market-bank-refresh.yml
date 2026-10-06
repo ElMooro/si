@@ -40,7 +40,7 @@ jobs:
       - name: Refresh banks
         run: |
           pip install -q boto3
-          python3 scripts/refresh_market_banks.py --days 8 --report market-bank-refresh.json
+          python3 scripts/refresh_market_banks.py --days 30 --report market-bank-refresh.json
           python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           r = json.load(open('market-bank-refresh.json'))
