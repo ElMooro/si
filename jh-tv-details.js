@@ -1,3 +1,4 @@
+/* jh-reskin-skip */
 /* JustHodl — TradingView-style symbol details card for the chart watchlist.
  *
  * Rendered under the watchlist (jh-tv-watchlist.js calls JHTvDetails.render). Card order follows TradingView's

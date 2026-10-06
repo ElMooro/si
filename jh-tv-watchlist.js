@@ -12,7 +12,7 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   // TradingView-style details card lives in its own file; loaded once, the panel re-renders when it arrives
   if (!root.JHTvDetails && doc && doc.head) {
-    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006b"; tvd.async = true;
+    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006c"; tvd.async = true;
     tvd.onload = function () { try { if (det) { det._sig = null; renderDetails(); } } catch (e) {} };
     doc.head.appendChild(tvd);
   }
