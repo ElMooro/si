@@ -110,6 +110,42 @@ def fetch_grouped(day, key):
     return {x["T"]: x for x in (data.get("results") or []) if x.get("T")}
 
 
+def refresh_series_cache(s3, sym, t, bkey, rows, label, dry_run=False):
+    """The symbol directory serves /quote and /series from data/series-cache/ (up to 10 days old). Append the same
+    new bars to any cache entry built from this bank so quotes and charts move with the bank; entries built from
+    any other source are left alone."""
+    import hashlib
+    done = []
+    for sid in dict.fromkeys([sym, sym.upper(), t, t.upper(), "tv:" + sym]):
+        h = hashlib.sha1(sid.encode()).hexdigest()
+        ck = "data/series-cache/%s/%s.json" % (h[:2], h)
+        try:
+            c = json.loads(s3.get_object(Bucket=BUCKET, Key=ck)["Body"].read())
+        except Exception:  # noqa: BLE001
+            continue
+        if not str(c.get("source") or "").endswith(bkey) or not isinstance(c.get("obs"), list):
+            continue
+        last = c["obs"][-1][0] if c["obs"] else ""
+        add = [r for r in rows if datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d") > last]
+        if not add:
+            continue
+        for r in add:
+            d = datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d")
+            c["obs"].append([d, r[4]])
+            if isinstance(c.get("ohlc"), list):
+                c["ohlc"].append([d, r[1], r[2], r[3], r[4], r[5] if len(r) > 5 else None])
+            if isinstance(c.get("bar_sources"), list):
+                c["bar_sources"].append(label)
+        c["n"], c["last"] = len(c["obs"]), c["obs"][-1][0]
+        c["as_of"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        c["last_modified"] = c["as_of"]
+        if not dry_run:
+            s3.put_object(Bucket=BUCKET, Key=ck, Body=json.dumps(c).encode(), ContentType="application/json",
+                          CacheControl="public, max-age=1800")
+        done.append(sid)
+    return done
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=7)
@@ -158,6 +194,12 @@ def main():
             rows, why = plan_append(doc, sessions, t)
             if not rows:
                 report["skipped"][sym] = why
+                try:   # bank already current (e.g. an earlier run): still bring a lagging series cache up to it
+                    cs = refresh_series_cache(s3, sym, t, bkey, (doc.get("bars") or [])[-10:], "bank:" + str(doc.get("last_date")), a.dry_run)
+                    if cs:
+                        report.setdefault("cache_caught_up", {})[sym] = cs
+                except Exception:  # noqa: BLE001
+                    pass
                 continue
             new = merged_document(doc, rows, doc.get("symbol") or sym, doc.get("tv_symbol") or sym,
                                   "polygon-grouped-daily:" + datetime.fromtimestamp(rows[-1][0], tz=NY).strftime("%Y-%m-%d"))
@@ -166,6 +208,12 @@ def main():
                               ContentType="application/gzip", CacheControl="public, max-age=900")
             updates[sym] = {"key": bkey, "n": new["n"], "first": new["first_date"], "last": new["last_date"], "as_of": new["as_of"]}
             report["updated"][sym] = {"added": len(rows), "last": new["last_date"], "close": rows[-1][4]}
+            try:
+                cs = refresh_series_cache(s3, sym, t, bkey, (new.get("bars") or rows)[-10:], "polygon-grouped-daily:" + new["last_date"], a.dry_run)
+                if cs:
+                    report["updated"][sym]["series_cache"] = cs
+            except Exception as e:  # noqa: BLE001
+                report["updated"][sym]["series_cache_error"] = str(e)[:100]
         except Exception as e:  # noqa: BLE001
             report["skipped"][sym] = "error %s: %s" % (type(e).__name__, str(e)[:100])
     if updates and not a.dry_run:
