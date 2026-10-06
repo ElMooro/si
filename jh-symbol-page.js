@@ -210,7 +210,9 @@
           cols.map(function (x, i) { var v = x[r.k], pv = i ? cols[i - 1][r.k] : null, g = ok(v) && ok(pv) && +pv !== 0 ? (v - pv) / Math.abs(pv) * 100 : null; return "<td><b>" + fmtV(v, r.kind) + "</b><small" + (g != null ? ' class="' + (g > 0 ? "up" : g < 0 ? "dn" : "") + '"' : "") + ">" + (g != null ? (g > 0 ? "+" : "") + g.toFixed(2) + "%" : i ? "—" : "") + "</small></td>"; }).join("") + "</tr>";
       });
       h += '</tbody></table></div><p class="sp-note">Reported figures in ' + esc(cur) + ", change versus the prior " + (per === "annual" ? "fiscal year" : "quarter") + ". Click a row to chart it (up to 8), › to expand its components. Source: Financial Modeling Prep (company filings" + (cols.length ? ", latest filed " + esc(cols[cols.length - 1].filingDate || cols[cols.length - 1].date) : "") + ").</p>";
-      body.querySelector('[data-k="tbl"]').innerHTML = h;
+      var tbl = body.querySelector('[data-k="tbl"]'), keepX = tbl.querySelector(".fs-tw"), sx = keepX ? keepX.scrollLeft : -1;
+      tbl.innerHTML = h;
+      var tw = tbl.querySelector(".fs-tw"); if (tw) tw.scrollLeft = sx >= 0 && keepX && keepX.scrollWidth === tw.scrollWidth ? sx : tw.scrollWidth; // newest period in view, like TradingView
       chart();
     }
     function chart() {
@@ -274,6 +276,7 @@
             rows.map(function (r) { return '<tr><td class="fs-m" style="padding-left:14px">' + esc(r[1]) + "</td>" + cols.map(function (x) { return "<td><b>" + fv(x[r[0]], r[2]) + "</b></td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
         });
         body.querySelector('[data-k="tbl"]').innerHTML = h + '<p class="sp-note">Ratios and key metrics per reported period. Source: Financial Modeling Prep.</p>';
+        body.querySelectorAll(".fs-tw").forEach(function (tw) { tw.scrollLeft = tw.scrollWidth; });
       });
     }
     body.addEventListener("click", function (e) { var b = e.target.closest(".sp-seg button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); per = b.getAttribute("data-v"); draw(); });
@@ -300,6 +303,7 @@
       Promise.all([fmp("revenue-product-segmentation", "&period=" + per + "&limit=" + lim), fmp("revenue-geographic-segmentation", "&period=" + per + "&limit=" + lim)]).then(function (a) {
         var h = block("Revenue by business segment", a[0]) + block("Revenue by region", a[1]);
         body.querySelector('[data-k="tbl"]').innerHTML = h ? h + '<p class="sp-note">Segment revenue as reported in filings. Source: Financial Modeling Prep.</p>' : '<p class="sp-note">No segment breakdown reported for ' + esc(T) + ".</p>";
+        body.querySelectorAll(".fs-tw").forEach(function (tw) { tw.scrollLeft = tw.scrollWidth; });
       });
     }
     body.addEventListener("click", function (e) { var b = e.target.closest(".sp-seg button"); if (!b) return; b.parentNode.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); }); per = b.getAttribute("data-v"); draw(); });
