@@ -467,6 +467,7 @@
       "#jhus .us-meta .t{display:block;color:var(--fg)}",
       "#jhus .us-act{display:flex;gap:4px;opacity:.0}",
       "#jhus .us-row:hover .us-act,#jhus .us-row.sel .us-act{opacity:1}",
+      "#jhus .us-act:has([data-act=addds]){opacity:1}#jhus [data-act=addds]{border-color:#2962ff!important;color:#5b8cff!important}",
       "#jhus .us-act button{width:26px;height:26px;border-radius:4px;border:1px solid var(--bd);background:var(--bg);color:var(--fg);cursor:pointer;font-size:14px;line-height:1}",
       "#jhus .us-act button:hover{background:var(--blue);color:#fff;border-color:var(--blue)}",
       "#jhus .us-act button.ok{background:#089981;color:#fff;border-color:#089981}",
