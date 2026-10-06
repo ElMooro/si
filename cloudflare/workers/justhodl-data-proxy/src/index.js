@@ -2149,6 +2149,7 @@ export default {
         "profile": 0, "etf/info": 0, "etf/holdings": 0, "etf/sector-weightings": 0, "etf/country-weightings": 0,
         "etf/asset-exposure": 0, "dividends": 0, "institutional-ownership/symbol-positions-summary": 2,
         "shares-float": 0, "grades-consensus": 0, "ratios-ttm": 0, "key-metrics-ttm": 0, "earnings": 0,
+        "revenue-product-segmentation": 1, "revenue-geographic-segmentation": 1,
       };
       const ep = String(url.searchParams.get("ep") || "");
       const sym = String(url.searchParams.get("symbol") || "").trim().toUpperCase();
