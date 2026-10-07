@@ -1,0 +1,26 @@
+{
+  "aws/lambdas/justhodl-ticker-360/source/lambda_function.py": {
+    "before_sha256": "fa1810bffe1b4fe1a2c61f2529899043be296313d2f9f070cdb5e132701340ca",
+    "after_sha256": "ec31bd20e70375683ba76e664bb32033b29b8e2018217d2b3642bb57fadb885f",
+    "edits": [
+      [
+        "import boto3\n\nimport ticker_360\nfrom research_network_store import publish_network\n\nBUCKET = os.environ.get(\"S3_BUCKET\", \"justhodl-dashboard-live\")\n",
+        "import boto3\n\nimport ticker_360\nfrom ticker_360_batch import iter_enriched\nfrom research_network_store import publish_network\n\nBUCKET = os.environ.get(\"S3_BUCKET\", \"justhodl-dashboard-live\")\n"
+      ],
+      [
+        "    cache: dict = {}\n    tickers = ticker_360.universe(s3, cache=cache)\n    indexed = {}\n    for t in tickers:\n        try:\n            view = ticker_360.enrich(t, s3, cache=cache)\n        except Exception:  # noqa: BLE001\n            continue\n        conf = view.get(\"confluence\", {})\n        if conf.get(\"coverage_count\", 0) < MIN_COVERAGE:\n            continue\n",
+        "    cache: dict = {}\n    tickers = ticker_360.universe(s3, cache=cache)\n    indexed = {}\n    for t, view in iter_enriched(tickers, s3, cache=cache):\n        conf = view.get(\"confluence\", {})\n        if conf.get(\"coverage_count\", 0) < MIN_COVERAGE:\n            continue\n"
+      ]
+    ]
+  },
+  "tests/test_ticker_context_guard.py": {
+    "before_sha256": "f1da4cd1bf59e71cdba070cb230825fd2657f642e92542a6487e8f55ac283bef",
+    "after_sha256": "4ccd311eadcdaf9af1d8808bcfa3396e1a6cae938006cf8c7df922645709059a",
+    "edits": [
+      [
+        "  contexts={v['context'] for v in hub.SOURCES.values() if v['context']}\n  expected={'ticker_360','context_evidence_store'}|contexts\n  expected|={'research_network_store','research_network','research_network_registry','private_artifact','managed_secret'}\n  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)\n def test_existing_raw_inventory_and_per_ticker_selection_match_predecessor(self):\n  for kind in ('packet','tkr'):\n",
+        "  contexts={v['context'] for v in hub.SOURCES.values() if v['context']}\n  expected={'ticker_360','context_evidence_store'}|contexts\n  expected|={'research_network_store','research_network','research_network_registry','private_artifact','managed_secret'}\n  expected.add('ticker_360_batch')\n  self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)\n def test_existing_raw_inventory_and_per_ticker_selection_match_predecessor(self):\n  for kind in ('packet','tkr'):\n"
+      ]
+    ]
+  }
+}

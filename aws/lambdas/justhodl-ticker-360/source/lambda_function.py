@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 import boto3
 
 import ticker_360
+from ticker_360_batch import iter_enriched
 from research_network_store import publish_network
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -66,11 +67,7 @@ def lambda_handler(event, context):
     cache: dict = {}
     tickers = ticker_360.universe(s3, cache=cache)
     indexed = {}
-    for t in tickers:
-        try:
-            view = ticker_360.enrich(t, s3, cache=cache)
-        except Exception:  # noqa: BLE001
-            continue
+    for t, view in iter_enriched(tickers, s3, cache=cache):
         conf = view.get("confluence", {})
         if conf.get("coverage_count", 0) < MIN_COVERAGE:
             continue
