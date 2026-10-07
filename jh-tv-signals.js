@@ -24,7 +24,7 @@
   function num(v) { if (!ok(v)) return "—"; v = +v; return v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: Math.abs(v) < 1 ? 4 : 2 }); }
   function pc(v, dp) { return ok(v) ? (v > 0 ? "+" : "") + (+v).toFixed(dp == null ? 2 : dp) + "%" : "—"; }
   function money(v) { if (!ok(v)) return "—"; v = +v; var a = Math.abs(v), s = v < 0 ? "−" : v > 0 ? "+" : ""; return s + "$" + (a >= 1e9 ? (a / 1e9).toFixed(2) + "B" : a >= 1e6 ? (a / 1e6).toFixed(1) + "M" : a >= 1e3 ? (a / 1e3).toFixed(0) + "K" : a.toFixed(0)); }
-  function cnum(v) { if (!ok(v)) return "—"; v = Math.abs(+v); return v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(Math.round(v)); }
+  function cnum(v) { if (!ok(v)) return "—"; v = Math.abs(+v); return v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(Math.round(v)); }
   function cls(v) { return v > 0 ? "tvd-up" : v < 0 ? "tvd-dn" : ""; }
   function ts(t) { return typeof t === "number" ? t : Date.parse(t) / 1000; }
   function dayOf(t) { return new Date(ts(t) * 1000).toISOString().slice(0, 10); }
@@ -306,10 +306,10 @@
     var a = closes(sb, qs && qs[0]).c, b = eb ? closes(eb, qs && qs[1]).c : [], m = closes(mb, qs && qs[2]).c;
     return RSW.map(function (w) { var s = retN(a, w[1]), e = b.length ? retN(b, w[1]) : null, p = retN(m, w[1]); return { k: w[0], s: s, e: e, m: p, ve: s != null && e != null ? s - e : null, vm: s != null && p != null ? s - p : null }; });
   }
-  function rsHtml(rs, t, etf) {
+  function rsHtml(rs, t, etf, role) {
     var h = "<h4>Relative strength<small>total price return · " + (etf ? "vs " + esc(etf) + " and " : "vs ") + "SPY</small></h4>";
     var strong = rs.filter(function (r) { return r.vm != null && r.vm > 0; }).length;
-    h += '<div class="tvs-sum">' + esc(t) + " beat the S&amp;P 500 over <b>" + strong + " of 3</b> periods" + (etf ? ", and its industry ETF over <b>" + rs.filter(function (r) { return r.ve != null && r.ve > 0; }).length + " of 3</b>" : "") + ".</div>";
+    h += '<div class="tvs-sum">' + esc(t) + " beat the S&amp;P 500 over <b>" + strong + " of 3</b> periods" + (etf ? ", and " + esc(etf) + " (its " + (role || "industry") + " ETF) over <b>" + rs.filter(function (r) { return r.ve != null && r.ve > 0; }).length + " of 3</b>" : "") + ".</div>";
     h += "<table><tr><th>Period</th><th>" + esc(t) + "</th>" + (etf ? "<th>" + esc(etf) + "</th>" : "") + "<th>SPY</th>" + (etf ? "<th>vs " + esc(etf) + "</th>" : "") + "<th>vs SPY</th></tr>" + rs.map(function (r) {
       return "<tr><td>" + r.k + '</td><td class="' + cls(r.s) + '">' + pc(r.s, 1) + "</td>" + (etf ? '<td class="' + cls(r.e) + '">' + pc(r.e, 1) + "</td>" : "") + '<td class="' + cls(r.m) + '">' + pc(r.m, 1) + "</td>" + (etf ? '<td class="' + cls(r.ve) + '"><b>' + (r.ve == null ? "—" : (r.ve > 0 ? "+" : "") + r.ve.toFixed(1) + " pp") + "</b></td>" : "") + '<td class="' + cls(r.vm) + '"><b>' + (r.vm == null ? "—" : (r.vm > 0 ? "+" : "") + r.vm.toFixed(1) + " pp") + "</b></td></tr>";
     }).join("") + '</table><div class="tvs-mu" style="margin-top:4px">pp = percentage points of out- (+) or under- (−) performance over 21 / 63 / 126 sessions.</div>';
@@ -341,11 +341,11 @@
 
   // ------------------------------------------------------------------ scan record (screener columns + alerts)
   // A compact per-symbol summary, cached in localStorage for 6 hours.
-  var SCN = {}, SCAN_TTL = 6 * 3600e3;
+  var SCN = {}, SCAN_TTL = 3 * 3600e3;
   function scanCached(t) {
     t = String(t || "").toUpperCase();
     if (SCN[t] && SCN[t].v) return SCN[t].v;
-    try { var r = JSON.parse(localStorage.getItem("jh-scan:" + t) || "null"); if (r && Date.now() - r.at < SCAN_TTL) { SCN[t] = { v: r }; return r; } } catch (e) {}
+    try { var r = JSON.parse(localStorage.getItem("jh-scan2:" + t) || "null"); if (r && Date.now() - r.at < SCAN_TTL) { SCN[t] = { v: r }; return r; } } catch (e) {}
     return null;
   }
   function scan(t, barsFor) {
@@ -355,18 +355,21 @@
     var x = { barsFor: barsFor || function () { return []; } };
     var p = profile(t).then(function (pf) {
       var isEtf = !!(pf && (pf.isEtf || pf.isFund));
-      var etf = isEtf ? null : (etfsFor(pf)[0] || null);
-      return Promise.all([barsVia(x, t), isEtf ? null : insiders(t), etf ? flowHist(etf.t) : null, isEtf ? flowHist(t) : null, isEtf ? null : earnings(t)]).then(function (a) {
-        var bars = a[0] || [], tr = trend(bars, null), ins = a[1], fh = a[2] || a[3], er = earnInfo(a[4], bars);
+      var ef = isEtf ? [] : etfsFor(pf), etf = ef[0] || null;
+      // flows: the industry ETF when the flow desk covers it, else the sector ETF
+      var flowP = isEtf ? flowHist(t) : !ef.length ? Promise.resolve(null) : flowHist(ef[0].t).then(function (h) { if ((h && !h.stale) || !ef[1]) return { h: h, t: ef[0].t }; return flowHist(ef[1].t).then(function (h2) { return h2 && (!h || h.stale) ? { h: h2, t: ef[1].t } : { h: h, t: ef[0].t }; }); });
+      return Promise.all([barsVia(x, t), isEtf ? null : insiders(t), flowP, null, isEtf ? null : earnings(t)]).then(function (a) {
+        var bars = a[0] || [], tr = trend(bars, null), ins = a[1], fh = isEtf ? a[2] : a[2] && a[2].h, er = earnInfo(a[4], bars);
+        if (!isEtf && a[2] && a[2].h) etf = { t: a[2].t };
         var above = tr ? tr.rows.filter(function (r) { return r.v != null && r.above; }).length : null;
         var w = flowWin(fh, 5);
         var rec = { t: t, at: Date.now(), isEtf: isEtf, etf: etf ? etf.t : isEtf ? t : null,
           above: above, have: tr ? tr.rows.filter(function (r) { return r.v != null; }).length : null, last: tr ? tr.date : null,
           gx: tr && tr.golden && tr.golden.date ? { up: tr.golden.up, date: tr.golden.date, ago: tr.golden.ago } : null,
           ins: ins && !ins.error ? { net: (+ins.total_dollars_buy || 0) - (+ins.total_dollars_sell || 0), nb: +ins.n_buys || 0, ns: +ins.n_sells || 0, label: ins.signal_label || "", cluster: !!ins.cluster_detected, buyers: (ins.top_buyers || []).length } : null,
-          flow: w ? { v: w.v, pct: fh.aum ? w.v / fh.aum * 100 : null, asof: fh.asof } : null,
+          flow: w ? { v: w.v, pct: fh.aum ? w.v / fh.aum * 100 : null, asof: fh.asof, stale: !!fh.stale } : null,
           earn: er ? { next: er.next ? er.next.date : null, days: er.days, last: er.last ? er.last.date : null, react: er.react ? +er.react.pct.toFixed(2) : null } : null };
-        try { localStorage.setItem("jh-scan:" + t, JSON.stringify(rec)); } catch (e) {}
+        try { localStorage.setItem("jh-scan2:" + t, JSON.stringify(rec)); } catch (e) {}
         SCN[t] = { v: rec };
         return rec;
       });
@@ -398,7 +401,7 @@
       var rsEtf = isEtf ? null : (etfsFor(p)[0] || null);
       Promise.all([Promise.resolve(x.bars), rsEtf ? barsVia(x, rsEtf.t) : null, barsVia(x, "SPY")]).then(function (b) {
         if (!alive() || !b[0] || !b[0].length) return;
-        S("rs").innerHTML = rsHtml(rsCalc(b[0], b[1], b[2], [x.q]), x.sym || x.T, rsEtf && b[1] && b[1].length ? rsEtf.t : null);
+        S("rs").innerHTML = rsHtml(rsCalc(b[0], b[1], b[2], [x.q]), x.sym || x.T, rsEtf && b[1] && b[1].length ? rsEtf.t : null, rsEtf && rsEtf.role);
         if (!isEtf) earnings(x.T).then(function (r) { if (alive()) S("earn").innerHTML = earnHtml(earnInfo(r, b[0]), x.T); });
       });
       Promise.all([shortInt(x.T), floatOf(x.T), isEtf ? [] : instTrend(x.T)]).then(function (a) { if (alive() && ((a[0] && a[0].length) || (a[2] && a[2].length))) S("own").innerHTML = ownHtml(a[0], a[1], a[2], x.T); });

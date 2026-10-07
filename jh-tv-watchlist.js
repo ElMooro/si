@@ -20,7 +20,7 @@
   var sigReady = new Promise(function (res) {
     if (root.JHTvSignals) { res(root.JHTvSignals); return; }
     if (!doc || !doc.head) { res(null); return; }
-    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261007a"; sg.async = true;
+    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261007b"; sg.async = true;
     sg.onload = function () { res(root.JHTvSignals || null); }; sg.onerror = function () { res(null); };
     doc.head.appendChild(sg); setTimeout(function () { res(root.JHTvSignals || null); }, 6000);
   });
@@ -951,7 +951,7 @@
     var c = aCfg(); if (!c.on || !r || !inLists(id)) return;
     var s = short(id), ev = [];
     if (c.cross && r.gx && r.gx.ago != null && r.gx.ago <= 2) ev.push({ k: "x:" + r.t + ":" + r.gx.date + ":" + (r.gx.up ? 1 : 0), kind: r.gx.up ? "golden" : "death", msg: s + ": " + (r.gx.up ? "golden cross" : "death cross") + " — 50-day crossed " + (r.gx.up ? "above" : "below") + " the 200-day on " + shortDate(r.gx.date) });
-    if (c.ins && r.ins && r.ins.nb >= 2 && (r.ins.buyers >= 2 || r.ins.cluster || /CLUSTER_BUY/.test(r.ins.label))) ev.push({ k: "i:" + r.t + ":" + r.ins.nb, kind: "insider", msg: s + ": insider cluster buying — " + r.ins.nb + " open-market buys by " + Math.max(r.ins.buyers, 2) + "+ insiders in 90 days, net " + moneyS(r.ins.net) });
+    if (c.ins && r.ins && r.ins.nb >= 2 && r.ins.net > 0 && (r.ins.buyers >= 2 || /CLUSTER_BUY/.test(r.ins.label))) ev.push({ k: "i:" + r.t + ":" + r.ins.nb, kind: "insider", msg: s + ": insider cluster buying — " + r.ins.nb + " open-market buys by " + Math.max(r.ins.buyers, 2) + "+ insiders in 90 days, net " + moneyS(r.ins.net) });
     if (c.flow && r.flow && r.flow.v < 0 && ((r.flow.pct != null && r.flow.pct <= -c.flowPct) || r.flow.v <= -c.flowUsd * 1e6)) ev.push({ k: "f:" + r.etf + ":" + r.flow.asof, kind: "outflow", msg: (r.isEtf ? s : s + "'s industry ETF " + r.etf) + ": big weekly outflow " + moneyS(r.flow.v) + (r.flow.pct != null ? " (" + pct(r.flow.pct) + " of AUM)" : "") + " through " + shortDate(r.flow.asof) });
     if (!ev.length) return;
     var seen = aSeen(), log = aLog(), fresh = ev.filter(function (e) { return !seen[e.k]; });
