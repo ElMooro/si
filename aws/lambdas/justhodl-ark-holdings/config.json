@@ -7,7 +7,7 @@
   "timeout": 180,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Daily ARK Invest ETF holdings tracker. Diffs 6 ETFs (ARKK/ARKQ/ARKW/ARKF/ARKG/ARKX) day-over-day to detect NEW POSITIONS / ADDS / TRIMS / CLOSED. Cathie Wood smart-money positioning with same-day visibility (vs 45-day-lagged 13Fs). Emits ark.position_change.",
+  "description": "Daily ARK Invest holdings tracker for ARKK/ARKQ/ARKW/ARKF/ARKG/ARKX. Detects new positions, adds, trims and closures from daily holdings changes. Emits ark.position_change.",
   "schedule": {
     "rule_name": "ark-holdings-daily",
     "cron": "cron(0 6 * * ? *)",

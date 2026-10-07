@@ -7,7 +7,7 @@
   "timeout": 180,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Forward signal from Congressional lobbying disclosures. 4 signal layers: SPIKE (client recent vs baseline), CLUSTER (3+ peers same issue), NEW ENTRANT (first-time lobbyist), BILL TRACKER (H.R.XXXX/S.XXXX extraction). S3-cache + Quiver fallback. Emits lobbying.crowd_signal.",
+  "description": "Congressional lobbying disclosures: client spending spikes, peer issue clusters, new entrants and bill tracking (H.R.XXXX/S.XXXX). S3 cache with Quiver fallback. Emits lobbying.crowd_signal.",
   "schedule": {
     "rule_name": "lobbying-intel-daily",
     "cron": "cron(0 16 * * ? *)",

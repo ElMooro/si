@@ -5,6 +5,7 @@ from types import SimpleNamespace
 ROOT=Path(__file__).resolve().parents[4];sys.path.insert(0,str(ROOT/'aws/shared'))
 import plumbing_authority as authority
 import plumbing_research_catalog as catalog
+import ranker_numeric
 
 
 def tree(fn):return ast.parse((ROOT/'aws/lambdas'/('justhodl-'+fn)/'source/lambda_function.py').read_text(encoding='utf-8'))
@@ -56,9 +57,11 @@ class ConsumerBoundaries(unittest.TestCase):
             self.assertEqual(function('morning-intelligence',name,env)(),{'other':.7})
 
     def test_actual_ranker_loader_filters_scalar_ssm_names(self):
-        ssm=SimpleNamespace(get_parameters_by_path=lambda **kw:{'Parameters':[{'Name':'x/crisis_index_nfci','Value':'1.5'},{'Name':'x/other','Value':'.7'}]})
-        fn=function('master-ranker','load_calibration_weights',{'SSM':ssm,'CALIBRATION_SSM':'fixture'})
-        self.assertEqual(fn(),{'other':.7})
+        ssm=SimpleNamespace(get_parameters_by_path=lambda **kw:{'Parameters':[{'Name':'fixture/crisis_index_nfci','Value':'1.5'},{'Name':'fixture/other','Value':'.7'}]})
+        fn=function('master-ranker','load_calibration_weights',{'SSM':ssm,'CALIBRATION_SSM':'fixture','ranker_numeric':ranker_numeric})
+        weights=fn()
+        self.assertTrue(weights.diagnostics['available'])
+        self.assertEqual(weights,{'other':.7})
 
     def test_all_router_feed_readers_use_the_same_guard(self):
         nodes=[n for n in ast.walk(tree('ai-brief-router')) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='guard' and 'plumbing_authority' in ast.unparse(n.func)]
@@ -76,7 +79,9 @@ class ConsumerBoundaries(unittest.TestCase):
         self.assertEqual(result['statusCode'],200);self.assertEqual(calls,[((client,'justhodl-dashboard-live'),{'validation_only':False})])
 
     def test_both_macro_catalog_paths_preserve_every_existing_identity(self):
-        assignments=[n for n in ast.walk(tree('daily-report-v3')) if isinstance(n,ast.Assign) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Name) and n.value.func.id=='include_plumbing_series']
+        assignments=[n for n in ast.walk(tree('daily-report-v3')) if isinstance(n,ast.Assign) and any(
+            isinstance(call,ast.Call) and isinstance(call.func,ast.Name) and call.func.id=='include_plumbing_series'
+            for call in ast.walk(n.value))]
         self.assertEqual(len(assignments),2)
         for node in assignments:
             env={n.id:(lambda x:x) for n in ast.walk(node.value) if isinstance(n,ast.Name) and n.id.startswith('include_')}

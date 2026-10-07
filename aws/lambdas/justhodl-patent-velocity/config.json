@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "USPTO patent velocity tracker. R&D acceleration as 12-24mo leading indicator for product launches, M&A, pivots. PatentsView API free. Velocity (recent_90d vs trailing baseline) + new CPC category detection. Used by quant funds (Susquehanna, RBC, Two Sigma).",
+  "description": "USPTO patent velocity tracker using PatentsView. Compares recent 90-day activity with the trailing baseline and detects new CPC categories for research into R&D acceleration, product launches, M&A and pivots over 12-24 months.",
   "schedule": {
     "rule_name": "patent-velocity-daily",
     "cron": "cron(0 17 * * ? *)",
