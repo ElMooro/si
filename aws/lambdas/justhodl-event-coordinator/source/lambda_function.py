@@ -39,9 +39,12 @@ event_name                  → trigger_targets (list of Lambda names)
 DEDUPING + RATE LIMITING
 ════════════════════════
 EventBridge can deliver events multiple times within a few seconds. To
-avoid duplicate trigger storms, we maintain a tiny SSM-backed cache of
-recent triggers keyed by (event_name, payload_hash). Triggers within
-DEDUPE_WINDOW_SEC of the previous identical event are dropped.
+avoid duplicate trigger storms, a bounded warm-container cache records
+accepted targets and completed events. Failed targets remain retryable;
+the handler raises when Lambda has not accepted every requested invocation.
+Stable producer event IDs take precedence over EventBridge delivery IDs.
+This is at-least-once queue acceptance, not downstream processing proof:
+cold starts, cache expiry and ambiguous transport failures can duplicate work.
 
 For high-volume event sources (e.g. signal.fired), we batch: collect
 N events within a Lambda invocation and trigger downstream once.
@@ -293,27 +296,29 @@ ROUTES = {
 _dedupe_cache = {}   # in-memory only, scoped to a Lambda warm container
 
 
-def _payload_hash(event_name: str, detail: dict) -> str:
-    """Stable hash on (event_name, sorted detail keys). Ignores _emitted_at
-    so the same logical event isn't re-fired just because the timestamp differs.
-    """
+def _payload_hash(event_name: str, detail: dict, source=None, event_id=None) -> str:
+    """Scope dedupe to a producer and stable event, excluding emission time."""
     payload = {k: v for k, v in (detail or {}).items()
                 if not k.startswith("_")}
-    body = event_name + "|" + json.dumps(payload, sort_keys=True, default=str)
-    return hashlib.sha1(body.encode()).hexdigest()[:16]
+    stable_id = detail.get("_event_id") or event_id
+    body = json.dumps({"event": event_name, "source": source or detail.get("_source_engine"),
+                       "event_id": stable_id, "payload": payload}, sort_keys=True, default=str)
+    return hashlib.sha256(body.encode()).hexdigest()
 
 
-def is_duplicate(event_name: str, detail: dict) -> bool:
-    h = _payload_hash(event_name, detail)
+def delivery_state(event_name: str, detail: dict, source=None, event_id=None) -> dict:
+    """Only completed work is a duplicate; retain partial acceptance in this cache."""
+    h = _payload_hash(event_name, detail, source, event_id)
     now = time.time()
-    # Clean stale entries
     for k in list(_dedupe_cache.keys()):
-        if _dedupe_cache[k] < now - DEDUPE_WINDOW_SEC:
+        if _dedupe_cache[k]["at"] < now - DEDUPE_WINDOW_SEC:
             _dedupe_cache.pop(k, None)
-    if h in _dedupe_cache:
-        return True
-    _dedupe_cache[h] = now
-    return False
+    if h not in _dedupe_cache:
+        # Eviction may duplicate work, but must never turn a failure into success.
+        if len(_dedupe_cache) >= 4096:
+            _dedupe_cache.pop(min(_dedupe_cache, key=lambda key: _dedupe_cache[key]["at"]))
+        _dedupe_cache[h] = {"at": now, "accepted": set(), "complete": False}
+    return _dedupe_cache[h]
 
 
 # ─── Actions ────────────────────────────────────────────────────────────
@@ -333,7 +338,7 @@ def invoke_target(fn_name: str, event_name: str, detail: dict) -> dict:
             InvocationType="Event",   # async
             Payload=payload,
         )
-        return {"ok": True, "status": resp.get("StatusCode")}
+        return {"ok": resp.get("StatusCode") == 202, "status": resp.get("StatusCode")}
     except Exception as e:
         return {"ok": False, "err": f"{type(e).__name__}: {str(e)[:150]}"}
 
@@ -584,12 +589,6 @@ def handler(event, context):
     detail = event.get("detail") or {}
     source = event.get("source") or "?"
     
-    # Dedupe within DEDUPE_WINDOW_SEC for warm containers
-    if is_duplicate(event_name, detail):
-        return {"statusCode": 200,
-                "body": json.dumps({"ok": True, "deduped": True,
-                                      "event": event_name})}
-    
     route = ROUTES.get(event_name)
     if not route:
         # Unknown event — log + done
@@ -597,6 +596,12 @@ def handler(event, context):
         return {"statusCode": 200,
                 "body": json.dumps({"ok": True, "unrouted": True,
                                       "event": event_name})}
+
+    delivery = delivery_state(event_name, detail, source, event.get("id"))
+    if delivery["complete"]:
+        return {"statusCode": 200,
+                "body": json.dumps({"ok": True, "deduped": True,
+                                      "event": event_name, "delivery_basis": "async_queue_acceptance_only"})}
     
     # Execute routes
     result = {
@@ -607,8 +612,23 @@ def handler(event, context):
     }
     
     for fn in route.get("invoke") or []:
-        ir = invoke_target(fn, event_name, detail)
+        if fn in delivery["accepted"]:
+            ir = {"ok": True, "status": 202, "accepted_on_previous_attempt": True}
+        else:
+            ir = invoke_target(fn, event_name, detail)
+            if ir.get("ok") is True:
+                delivery["accepted"].add(fn)
         result["invokes"].append({"fn": fn, **ir})
+
+    failed = [item["fn"] for item in result["invokes"] if item.get("ok") is not True]
+    result["delivery_basis"] = "async_queue_acceptance_only"
+    if failed:
+        result["ok"] = False
+        if route.get("audit"):
+            write_audit(event_name, detail, result)
+        # Returning a statusCode, even 500, acknowledges an async Lambda event.
+        # Raise so the existing Lambda retry policy can deliver it again.
+        raise RuntimeError("Downstream invocation not accepted: " + ", ".join(failed))
     
     if route.get("notify"):
         # For engine.error, only Telegram-notify when source is in CRITICAL_ENGINES
@@ -642,6 +662,9 @@ def handler(event, context):
     
     if route.get("audit"):
         write_audit(event_name, detail, result)
+
+    delivery["complete"] = True
+    delivery["at"] = time.time()
     
     print(f"[coordinator] routed event={event_name} invokes={len(result['invokes'])}")
     return {
