@@ -14,6 +14,8 @@ def preceding_source(path, text=None):
     if not path.is_absolute(): path = ROOT / path
     relative = path.relative_to(ROOT).as_posix()
     text = path.read_text(encoding='utf-8') if text is None else text
+    from ticker_batch_preservation import preceding_source as before_batch
+    text = before_batch(path, text)
     plans = json.loads((ROOT/'tests/fixtures/research-network/transition.json').read_text(encoding='utf-8'))['sources']
     if relative not in plans: return text
     plan = plans[relative]

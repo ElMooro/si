@@ -1,0 +1,50 @@
+{
+  "diagnostic_run": 37665354418,
+  "baseline_commit": "df684637ec",
+  "results": {
+    "previous": {
+      "seconds": 688.399,
+      "bytes": 23445391,
+      "canonical_sha256": "bb1b4f3cb669c21bf024ea2620453f4f91d4f80f0c02429d16307043662da157",
+      "universe": 3145,
+      "indexed": 3145
+    },
+    "candidate": {
+      "seconds": 1.213,
+      "bytes": 23445389,
+      "canonical_sha256": "bb1b4f3cb669c21bf024ea2620453f4f91d4f80f0c02429d16307043662da157",
+      "universe": 3145,
+      "indexed": 3145
+    },
+    "network": {
+      "seconds": 11.757,
+      "publication_id": "b61585ce0bf6804f870958d27ca95cdb7d84cbf46ac7e517600be5d00adef2ab",
+      "entities": 6320,
+      "available_sources": 87
+    },
+    "complete_legacy_output_equal_except_elapsed_s": true,
+    "scope": "offline complete captured public inputs; not AWS runtime or private-account acceptance"
+  },
+  "full_handler_benchmark": {
+    "ok": true,
+    "out": "data/ticker-360.json",
+    "universe": 3145,
+    "indexed": 3145,
+    "bytes": 23445389,
+    "research_publication_id": "c66cec746c0249fa0c5a8e7b7f18242404f5531889628f02cc0d4d98018d79c2",
+    "research_entities": 6320,
+    "seconds": 15.437,
+    "peak_working_set_mib": 361.58,
+    "scope": "Offline full actual handler with captured public inputs and real network publisher; not AWS capacity proof"
+  },
+  "selected_tests": 110,
+  "deployment_static_tests": 1075,
+  "deployment_shell_tests": 15,
+  "source_sha256": {
+    "aws/shared/ticker_360.py": "46519cb54f5a2ce05b2d30357a8a1294badaaa5dbafaea60f23a5c56f5cb0291",
+    "aws/shared/ticker_360_batch.py": "80e0a128bac2f62cd5b5b7fbf31771a9060f93fa9fadbd86893bacb63b66fef0",
+    "aws/lambdas/justhodl-ticker-360/source/lambda_function.py": "ec31bd20e70375683ba76e664bb32033b29b8e2018217d2b3642bb57fadb885f"
+  },
+  "runtime_acceptance_complete": false,
+  "scope": "Complete captured public inputs, unavailable captures stay unavailable. No producer invocation or AWS runtime proof."
+}

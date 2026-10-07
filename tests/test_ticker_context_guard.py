@@ -105,6 +105,7 @@ class Preservation(unittest.TestCase):
   contexts={v['context'] for v in hub.SOURCES.values() if v['context']}
   expected={'ticker_360','context_evidence_store'}|contexts
   expected|={'research_network_store','research_network','research_network_registry','private_artifact','managed_secret'}
+  expected.add('ticker_360_batch')
   self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)
  def test_existing_raw_inventory_and_per_ticker_selection_match_predecessor(self):
   for kind in ('packet','tkr'):
