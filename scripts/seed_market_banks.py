@@ -150,6 +150,45 @@ def backfill_older(s3, t, fmp_key, dry_run, rep):
     return len(older) >= 4000   # FMP returns at most ~5000 rows per request: ask again for the next older block
 
 
+def resync_series_cache(s3, t, dry_run=False):
+    """The symbol directory caches /quote and /series results built from a bank (data/series-cache/, up to 10
+    days). After the bank gained older history, rebuild those entries from the bank so quotes and charts see the
+    full history at once. Only entries built from this very bank are touched."""
+    import hashlib
+    from market_history_integrity import read_bank
+    bkey = "data/warm/tv-bars/universe/US__%s.json.gz" % t
+    doc = read_bank(s3, BUCKET, bkey)
+    if not doc or not doc.get("bars"):
+        return []
+    done = []
+    venues = [v + ":" + t for v in ("NYSE", "NASDAQ", "AMEX", "NYSEARCA", "ARCA", "BATS", "CBOE", "US")]
+    for sid in dict.fromkeys([t, "US:" + t, "tv:US:" + t] + venues + ["tv:" + v for v in venues]):
+        h = hashlib.sha1(sid.encode()).hexdigest()
+        ck = "data/series-cache/%s/%s.json" % (h[:2], h)
+        try:
+            c = json.loads(s3.get_object(Bucket=BUCKET, Key=ck)["Body"].read())
+        except Exception:  # noqa: BLE001
+            continue
+        if not str(c.get("source") or "").endswith(bkey) or not isinstance(c.get("obs"), list):
+            continue
+        if c["obs"] and c["obs"][0][0] <= doc["first_date"] and len(c["obs"]) >= doc["n"]:
+            continue
+        day = lambda r: datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d")
+        c["obs"] = [[day(r), r[4]] for r in doc["bars"]]
+        if isinstance(c.get("ohlc"), list):
+            c["ohlc"] = [[day(r), r[1], r[2], r[3], r[4], r[5] if len(r) > 5 else None] for r in doc["bars"]]
+        if isinstance(c.get("bar_sources"), list):
+            c["bar_sources"] = list(doc.get("bar_sources") or [])
+        c["n"], c["last"] = len(c["obs"]), c["obs"][-1][0]
+        if "first" in c:
+            c["first"] = c["obs"][0][0]
+        c["as_of"] = c["last_modified"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        if not dry_run:
+            s3.put_object(Bucket=BUCKET, Key=ck, Body=json.dumps(c).encode(), ContentType="application/json", CacheControl="public, max-age=1800")
+        done.append(sid)
+    return done
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
@@ -201,6 +240,15 @@ def main():
                         break
             except Exception as e:  # noqa: BLE001
                 rep["older"][t] = "error %s: %s" % (type(e).__name__, str(e)[:120])
+    rep["cache_resynced"] = {}
+    for t in want:
+        if t in rep["created"] or str(rep["present"].get(t, "")).endswith("US__%s.json.gz" % t):
+            try:
+                d = resync_series_cache(s3, t, a.dry_run)
+                if d:
+                    rep["cache_resynced"][t] = d
+            except Exception as e:  # noqa: BLE001
+                rep["cache_resynced"][t] = "error %s" % type(e).__name__
     rep["finished"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     rep["n_created"], rep["n_present"], rep["n_skipped"] = len(rep["created"]), len(rep["present"]), len(rep["skipped"])
     json.dump(rep, open(a.report, "w"), indent=1)
