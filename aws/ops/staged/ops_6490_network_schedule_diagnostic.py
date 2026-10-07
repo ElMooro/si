@@ -30,9 +30,9 @@ def pages(method, key, **args):
     raise ValueError('inventory_bound_exceeded')
 
 
-def collect(events, scheduler, cloudwatch, now):
-    result = {fn: {'classic': [], 'scheduler': [], 'metrics': {}} for fn in FUNCTIONS}
-    for fn in FUNCTIONS:
+def collect(events, scheduler, cloudwatch, now, functions=FUNCTIONS):
+    result = {fn: {'classic': [], 'scheduler': [], 'metrics': {}} for fn in functions}
+    for fn in functions:
         names = set()
         for suffix in ('', ':$LATEST', ':live'):
             names.update(pages(events.list_rule_names_by_target, 'RuleNames', TargetArn=PREFIX + fn + suffix, Limit=100))
@@ -53,7 +53,7 @@ def collect(events, scheduler, cloudwatch, now):
             'expression': schedule.get('ScheduleExpression'), 'state': schedule.get('State'),
             'timezone': schedule.get('ScheduleExpressionTimezone'),
             'qualifier': arn[len(PREFIX + fn):] or 'unqualified'})
-    for fn in FUNCTIONS:
+    for fn in functions:
         for metric, stat in (('Invocations', 'Sum'), ('Errors', 'Sum'), ('Duration', 'Maximum')):
             packet = cloudwatch.get_metric_statistics(Namespace='AWS/Lambda', MetricName=metric,
                 Dimensions=[{'Name': 'FunctionName', 'Value': fn}], StartTime=now-timedelta(hours=24),
