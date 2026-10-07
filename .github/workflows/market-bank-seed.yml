@@ -1,0 +1,62 @@
+name: Market bank seed
+
+# Creates chart history banks for popular US ETFs that have none (KRE, XBI, XOP, ...). Never rewrites an
+# existing bank; the Market bank refresh job appends new sessions afterwards. Polygon daily aggregates only
+# (APR-0001 provider). See scripts/seed_market_banks.py.
+on:
+  schedule:
+    - cron: '30 4 * * 0'    # weekly, Sunday overnight -- picks up any newly listed popular fund
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/seed_market_banks.py'
+      - '.github/workflows/market-bank-seed.yml'
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Comma-separated tickers (blank = the popular ETF list)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-bank-refresh
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Seed missing banks
+        env:
+          ONLY: ${{ github.event.inputs.only }}
+        run: |
+          pip install -q boto3
+          python3 scripts/seed_market_banks.py --only "${ONLY}" --report market-bank-seed.json
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r = json.load(open('market-bank-seed.json'))
+          print('### Market bank seed\ncreated', r['n_created'], ' present', r['n_present'], ' skipped', r['n_skipped'])
+          for t, v in r['created'].items():
+              print('- %s %s bars %s -> %s' % (t, v['n'], v['first'], v['last']))
+          for t, v in r['skipped'].items():
+              print('- skipped %s: %s' % (t, v))
+          PY
+      - name: Catch up the new banks to the latest session
+        run: python3 scripts/refresh_market_banks.py --days 5 --report market-bank-refresh.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-bank-seed
+          path: market-bank-*.json
+          if-no-files-found: ignore
