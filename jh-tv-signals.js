@@ -214,6 +214,17 @@
     return h + '<div class="tvs-mu" style="margin-top:4px">Open-market purchases (P) and sales (S) from SEC EDGAR Form 4; grants, option exercises and gifts are excluded.</div>';
   }
 
+  // daily bars for an ETF / leader: the chart's own bars first; when they are missing or too short for the
+  // 300-day average, the proxy's Polygon daily aggregates (5 years)
+  function barsVia(x, sym) {
+    return Promise.resolve(x.barsFor(sym)).catch(function () { return []; }).then(function (b) {
+      if (Array.isArray(b) && b.length >= 320) return b;
+      return getJ(PROXY + "/ohlc?ticker=" + encodeURIComponent(sym) + "&span=day&days=2200").then(function (r) {
+        var pb = r && Array.isArray(r.bars) ? r.bars : [];
+        return pb.length > (b ? b.length : 0) ? pb : b || [];
+      });
+    });
+  }
   // ------------------------------------------------------------------ main
   function render(host, x) {
     css();
@@ -240,7 +251,7 @@
       var etfs = isEtf ? [] : etfsFor(p);
       if (etfs.length) {
         S("ind").innerHTML = "<h4>Industry & sector ETFs<small>" + esc([p && p.industry, p && p.sector].filter(Boolean).join(" · ")) + '</small></h4><div class="tvs-mu">Loading…</div>';
-        Promise.all([quotes(etfs.map(function (e) { return e.t; }))].concat(etfs.map(function (e) { return Promise.all([Promise.resolve(x.barsFor(e.t)).catch(function () { return []; }), flowHist(e.t)]); }))).then(function (a) {
+        Promise.all([quotes(etfs.map(function (e) { return e.t; }))].concat(etfs.map(function (e) { return Promise.all([barsVia(x, e.t), flowHist(e.t)]); }))).then(function (a) {
           if (!alive()) return;
           var qs = a[0];
           S("ind").innerHTML = "<h4>Industry & sector ETFs<small>" + esc([p && p.industry, p && p.sector].filter(Boolean).join(" · ")) + "</small></h4>" + etfs.map(function (e, i) {
@@ -267,7 +278,7 @@
         if (!alive() || !hold || !hold.length) return;
         var top = hold.slice(0, 6).map(function (h) { return { t: String(h[0]).toUpperCase().replace("/", "."), n: h[1], w: h[2] }; });
         S("lead").innerHTML = "<h4>Industry leaders<small>top holdings of " + esc(srcEtf) + '</small></h4><div class="tvs-mu">Loading…</div>';
-        Promise.all([quotes(top.map(function (l) { return l.t; }))].concat(top.map(function (l) { return Promise.all([Promise.resolve(x.barsFor(l.t)).catch(function () { return []; }), isEtf || true ? insiders(l.t) : null]); }))).then(function (a) {
+        Promise.all([quotes(top.map(function (l) { return l.t; }))].concat(top.map(function (l) { return Promise.all([barsVia(x, l.t), insiders(l.t)]); }))).then(function (a) {
           if (!alive()) return;
           var qs = a[0];
           S("lead").innerHTML = "<h4>Industry leaders<small>largest holdings of " + esc(srcEtf) + "</small></h4>" +
