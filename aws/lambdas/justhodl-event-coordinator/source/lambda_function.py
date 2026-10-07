@@ -20,8 +20,7 @@ event_name                  → trigger_targets (list of Lambda names)
   outcome.resolved              → calibrator (immediate re-calibration)
                                  + alpha-calibrator (skill weight refresh)
   
-  regime.changed                → master-ranker (refresh top tickers)
-                                 + alpha-compass (refresh landing payload)
+  regime.changed                → alpha-compass (refresh landing payload)
                                  + signal-board (re-aggregate posture)
                                  + Telegram: alert
   
@@ -96,6 +95,8 @@ CRITICAL_ENGINES = {
 
 # ─── Routing table ──────────────────────────────────────────────────────
 # {event_name: {invoke: [lambdas], notify: bool, write_audit: bool}}
+# Master Ranker refreshes only on its weekday 16:15 America/New_York schedule.
+# It reads the latest upstream publications on that run; events do not kick it.
 ROUTES = {
     "outcome.resolved": {
         "invoke":  ["justhodl-calibrator", "justhodl-alpha-calibrator"],
@@ -108,8 +109,7 @@ ROUTES = {
         "audit":   True,
     },
     "regime.changed": {
-        "invoke":  ["justhodl-master-ranker", "justhodl-alpha-compass",
-                     "justhodl-signal-board"],
+        "invoke":  ["justhodl-alpha-compass", "justhodl-signal-board"],
         "notify":  True,
         "audit":   True,
     },
@@ -215,7 +215,7 @@ ROUTES = {
     # Future intelligence composite — when forward-orders + rotation + buzz
     # ALL align on the same ticker, that's the strongest pre-pump signal.
     "future.signal.high_conviction": {
-        "invoke":  ["justhodl-alpha-compass", "justhodl-master-ranker"],
+        "invoke":  ["justhodl-alpha-compass"],
         "notify":  True,
         "audit":   True,
     },

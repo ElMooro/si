@@ -1,0 +1,7 @@
+{
+  "path": "aws/lambdas/justhodl-master-ranker/source/lambda_function.py",
+  "before_sha256": "d58bf6e664c2ef2d86a64135a6464457402ee672c3161346a786d2d551b80f86",
+  "after_sha256": "472562226f1fb5976ea0ba4b65bfb89dc1e4b4c7c9ec2a7f5df6a114df5b2b65",
+  "old": "  rate(1 hour) \u2014 same cadence as compound-aggregator. Runs 5min after the\n  hourly compound-aggregator to ensure fresh data.",
+  "new": "  Once each Monday\u2013Friday at 16:15 America/New_York (15 minutes after the\n  regular U.S. close). EventBridge Scheduler adjusts for daylight saving.\n  No routine event-coordinator kicks. Weekday holidays retain this schedule."
+}
