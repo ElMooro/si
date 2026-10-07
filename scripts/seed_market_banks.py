@@ -127,24 +127,27 @@ def backfill_older(s3, t, fmp_key, dry_run, rep):
     if not doc or not doc.get("bars"):
         return
     srcs = doc.get("bar_sources") or []
-    if not srcs or not str(srcs[0]).startswith("polygon-aggs") or str(doc.get("first_date")) < "2021-01-01":
-        return
+    if not srcs or not str(srcs[0]).startswith(("polygon-aggs", "fmp-eod-full")):
+        return False
     older, overlap = fmp_older(t, doc["first_date"], fmp_key)
-    if len(older) < 20:
-        rep["older"][t] = "no older FMP history"
-        return
+    if not older:
+        if t not in rep["older"]:
+            rep["older"][t] = "no older FMP history"
+        return False
     ours = {datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d"): r[4] for r in doc["bars"][:30]}
     gaps = sorted(abs(overlap[d] / ours[d] - 1) for d in ours if d in overlap and ours[d])
     if len(gaps) < 10 or gaps[len(gaps) // 2] > 0.005 or gaps[-1] > 0.02:
         rep["older"][t] = "providers disagree on overlap (%d sessions, median gap %s)" % (len(gaps), "%.4f" % gaps[len(gaps) // 2] if gaps else "n/a")
-        return
+        return False
     first_ts = doc["bars"][0][0]
     older = [r for r in older if r[0] < first_ts]
     new = merged_document(doc, older, doc.get("symbol"), doc.get("tv_symbol"), "fmp-eod-full:" + datetime.now(NY).strftime("%Y-%m-%d"))
     if not dry_run:
         s3.put_object(Bucket=BUCKET, Key=bkey, Body=gzip.compress(json.dumps(new).encode()), ContentType="application/gzip", CacheControl="public, max-age=900")
-    rep["older"][t] = {"added": len(older), "first": new.get("first_date"), "median_gap": round(gaps[len(gaps) // 2], 5)}
+    prev = rep["older"].get(t) if isinstance(rep["older"].get(t), dict) else {"added": 0}
+    rep["older"][t] = {"added": prev["added"] + len(older), "first": new.get("first_date"), "median_gap": round(gaps[len(gaps) // 2], 5)}
     print("older %s: +%d bars, now from %s" % (t, len(older), new.get("first_date")))
+    return len(older) >= 4000   # FMP returns at most ~5000 rows per request: ask again for the next older block
 
 
 def main():
@@ -191,8 +194,11 @@ def main():
     if fkey and not a.no_older:
         for t in want:
             try:
-                backfill_older(s3, t, fkey, a.dry_run, rep)
-                time.sleep(0.2)
+                for _ in range(6):
+                    more = backfill_older(s3, t, fkey, a.dry_run, rep)
+                    time.sleep(0.2)
+                    if not more:
+                        break
             except Exception as e:  # noqa: BLE001
                 rep["older"][t] = "error %s: %s" % (type(e).__name__, str(e)[:120])
     rep["finished"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
