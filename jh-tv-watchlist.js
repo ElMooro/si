@@ -656,7 +656,7 @@
     var o = {}; if (q && q.ok) for (var k in q) o[k] = q[k];
     if (o.mapped) return false;   // transformed economics rows keep their own basis
     var now = s.ts || Date.now(), phase = nyPhase(now), today = nyDate(now);
-    var ltTs = s.lastTradeTs || 0, sessDate = ltTs ? nyDate(ltTs) : (s.volume > 0 ? today : null);
+    var ltTs = s.lastTradeTs || s.updatedTs || 0, sessDate = ltTs ? nyDate(ltTs) : (s.volume > 0 ? today : null);
     var hasDay = s.volume > 0 && sessDate;
     var bankDate = q && q.ok ? (q.bar_last_date || q.last_date) : null;
     o.ok = true; o.bar_last_date = bankDate; o.ext = null;
