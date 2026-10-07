@@ -10,7 +10,7 @@
   "description": "Composite of 3 forward-looking signals (forward-orders + rotation-chain + buzz-velocity). 45/30/25 weighted with multi-signal bonus. Feeds bagger-engine and master-ranker.",
   "schedule": {
     "rule_name": "future-intel-2x-daily",
-    "cron": "cron(30 12,20 * * ? *)",
-    "description": "Future intelligence composite — 30 mins after each rotation-chain run"
+    "cron": "cron(40 16 * * ? *)",
+    "description": "Future intelligence composite — existing daily 16:40 UTC binding from the schedule manifest"
   }
 }
