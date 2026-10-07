@@ -72,10 +72,13 @@ WRITE_HINTS = ("put_object", "OUT_KEY", "OUTPUT_KEY", "OUT_PATH",
 def build_manifest(repo_root="."):
     """Scan all Lambda configs -> {output: {cadence_hours, cron, engine}}."""
     outputs, engines = {}, 0
+    scheduler_expressions = {}
+    named_output_declarations = {}
     for cfg_path in sorted(glob.glob(
             os.path.join(repo_root, "aws/lambdas/*/config.json"))):
         try:
-            cfg = json.load(open(cfg_path, encoding="utf-8"))
+            with open(cfg_path, encoding="utf-8") as stream:
+                cfg = json.load(stream)
         except Exception:
             continue
         engines += 1
@@ -88,22 +91,32 @@ def build_manifest(repo_root="."):
             cron = sched.strip()              # config stores the expr directly
         else:
             cron = None
+        if isinstance(cfg.get("eventbridge_scheduler"), dict):
+            scheduler_expressions[fn] = cfg["eventbridge_scheduler"].get("cron")
         cadence = cron_to_hours(cron)             # None when no schedule
         produced = set()
         src_dir = os.path.join(os.path.dirname(cfg_path), "source")
         for src in glob.glob(os.path.join(src_dir, "*.py")):
             try:
-                txt = open(src, encoding="utf-8", errors="ignore").read()
+                with open(src, encoding="utf-8", errors="ignore") as stream:
+                    txt = stream.read()
             except Exception:
                 continue
             for line in txt.splitlines():
-                hit = any(h in line for h in WRITE_HINTS)
+                scheduled_output = (re.match(r"\s*S3_KEY_OUT\s*=", line)
+                                    and (cron or scheduler_expressions.get(fn)))
+                hit = any(h in line for h in WRITE_HINTS) or scheduled_output
                 if not hit and re.search(
                         r"[A-Z][A-Z0-9_]{2,}\s*=\s*[\"']data/", line):
                     hit = True               # caps constant = an output key
                 if hit:
                     for m in re.findall(r'data/([a-zA-Z0-9_-]+)\.json', line):
                         produced.add(m)
+                        # A matching engine's explicit output declaration is
+                        # stronger than another source's literal Key= read.
+                        if scheduled_output and fn == "justhodl-" + m:
+                            named_output_declarations[m] = {
+                                "cadence_hours": cadence, "cron": cron, "engine": fn}
         for out in produced:
             prev = outputs.get(out)
             # on collision prefer a scheduled producer, then a name match
@@ -114,6 +127,15 @@ def build_manifest(repo_root="."):
             if better:
                 outputs[out] = {"cadence_hours": cadence, "cron": cron,
                                 "engine": fn}
+    outputs.update(named_output_declarations)
+    # Fill Scheduler cadence after resolving the legacy output-owner map. Using
+    # it in the heuristic above can reassign another engine's output merely
+    # because a source contains a read of that key. This is metadata enrichment,
+    # not a new producer-discovery policy. Classic declarations retain priority.
+    for item in outputs.values():
+        if not item["cron"] and scheduler_expressions.get(item["engine"]):
+            item["cron"] = scheduler_expressions[item["engine"]]
+            item["cadence_hours"] = cron_to_hours(item["cron"])
     return {"schema_version": "1.0", "engines_scanned": engines,
             "n_outputs": len(outputs), "outputs": outputs}
 

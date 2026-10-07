@@ -30,12 +30,26 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Build manifest from Lambda configs
-        run: python aws/tools/build_cadence_manifest.py
+        run: |
+          python -m unittest discover -s tests -p test_cadence_manifest.py
+          python aws/tools/build_cadence_manifest.py
 
       - name: Upload to S3
         run: |
           aws s3 cp cadence-manifest.json \
             s3://justhodl-dashboard-live/_health/cadence-manifest.json \
             --content-type application/json --cache-control "max-age=600"
+          aws s3 cp s3://justhodl-dashboard-live/_health/cadence-manifest.json \
+            "$RUNNER_TEMP/cadence-manifest-readback.json" --only-show-errors
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          expected = Path('cadence-manifest.json').read_bytes()
+          actual = (Path(os.environ['RUNNER_TEMP'])/'cadence-manifest-readback.json').read_bytes()
+          if actual != expected:
+              raise SystemExit('Cadence manifest readback differs from generated artifact')
+          print(json.dumps({'uploaded_sha256': hashlib.sha256(actual).hexdigest(),
+                            'master_ranker': json.loads(actual)['outputs']['master-ranker']}))
+          PY
           echo "### Cadence manifest updated" >> $GITHUB_STEP_SUMMARY
           python -c "import json;m=json.load(open('cadence-manifest.json'));print('Outputs mapped:',m['n_outputs'])" >> $GITHUB_STEP_SUMMARY
