@@ -9,7 +9,7 @@ import json
 import re
 from decimal import Decimal
 from private_artifact import public_source_allowed
-from research_network import CONTRACT, PERMISSIONS, canonical, compose, digest, ingest
+from research_network import CONTRACT, PERMISSIONS, canonical, compose, digest, ingest, stamp
 from research_network_registry import SOURCES, SUBSCRIPTIONS
 
 KEY = "data/research-network.json"
@@ -109,16 +109,56 @@ def immutable(s3, bucket, key, body, *, compressed=False):
             stream.close()
 
 
+def processing_receipt(consumer, sources, prior, prior_sha256, now):
+    """Only the owning output can attest to reading exact prior bytes.
+
+    A matching ID alone is not a content receipt. Preserve rejected metadata
+    for diagnosis without granting it processing or delivery authority.
+    """
+    if consumer == "portfolio-risk":
+        return {"status": "private_receipt_in_authenticated_risk_output"}
+    source_id = "prospective-outcomes" if consumer == "prospective-evaluator" else consumer
+    source = sources.get(source_id, {})
+    receipt = source.get("consumer_receipt")
+    if not isinstance(receipt, dict):
+        receipt = None
+    reasons = []
+    if receipt is None:
+        reasons.append("owning_source_receipt_missing")
+    else:
+        if receipt.get("consumer") != consumer:
+            reasons.append("consumer_identity_mismatch")
+        if receipt.get("status") != "available":
+            reasons.append("consumer_did_not_report_available")
+        if not prior.get("publication_id") or receipt.get("publication_id") != prior["publication_id"]:
+            reasons.append("previous_publication_id_mismatch")
+        if not prior_sha256 or receipt.get("source_sha256") != prior_sha256:
+            reasons.append("previous_publication_bytes_mismatch")
+        read_at, generated = stamp(receipt.get("read_at")), stamp(prior.get("generated_at"))
+        if read_at is None or generated is None or not generated <= read_at <= now:
+            reasons.append("processing_clock_invalid")
+    return {"status": "receipt_observed" if receipt else "no_receipt_observed",
+            "receipt_source_id": source_id, "receipt": receipt,
+            "receipt_observed_at": now.isoformat(),
+            "previous_publication_sha256": prior_sha256,
+            "processed_previous_publication": not reasons,
+            "verification_reasons": reasons,
+            "verification_basis": "owning_public_output; exact_previous_manifest_bytes; bounded_read_clock",
+            "trigger": "existing_schedule_or_event_route; network does not recursively invoke source engines"}
+
+
 def publish_network(s3, bucket, *, now=None, context=None):
+    live_clock = now is None
     now = now or datetime.now(timezone.utc)
     try:
-        prior, _, prior_etag = read(s3, bucket, KEY, 16 * 1024 * 1024)
+        prior, prior_raw, prior_etag = read(s3, bucket, KEY, 16 * 1024 * 1024)
         if prior.get("contract") != CONTRACT:
             raise ValueError("previous research network contract mismatch")
     except Exception as exc:
         if not missing(exc):
             raise
-        prior, prior_etag = {}, None
+        prior, prior_raw, prior_etag = {}, None, None
+    prior_sha256 = hashlib.sha256(prior_raw).hexdigest() if prior_raw is not None else None
     sources, observations = {}, []
     for sid, spec in SOURCES.items():
         if context is not None and context.get_remaining_time_in_millis() < 90000:
@@ -149,20 +189,12 @@ def publish_network(s3, bucket, *, now=None, context=None):
                               for m in (research_network, research_network_registry)}
     manifest["compiler"][Path(__file__).name] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     manifest["previous_publication_id"] = prior.get("publication_id")
-    manifest["consumer_processing"] = {}
-    for consumer in SUBSCRIPTIONS:
-        if consumer == "portfolio-risk":
-            manifest["consumer_processing"][consumer] = {"status": "private_receipt_in_authenticated_risk_output"}
-            continue
-        receipt = next((source["consumer_receipt"] for source in sources.values()
-                        if (source.get("consumer_receipt") or {}).get("consumer") == consumer), None)
-        manifest["consumer_processing"][consumer] = {
-            "status": "receipt_observed" if receipt else "no_receipt_observed",
-            "receipt": receipt,
-            "processed_previous_publication": bool(receipt and receipt.get('status') == 'available'
-                                                   and prior.get("publication_id")
-                                                   and receipt.get("publication_id") == prior.get("publication_id")),
-            "trigger": "existing_schedule; network events do not recursively invoke source engines"}
+    # A consumer can finish while we are collecting its output. Bound its
+    # clock at collection completion, not at the earlier publication start.
+    receipt_observed_at = datetime.now(timezone.utc) if live_clock else now
+    manifest["consumer_processing"] = {
+        consumer: processing_receipt(consumer, sources, prior, prior_sha256, receipt_observed_at)
+        for consumer in SUBSCRIPTIONS}
     manifest["publication_id"] = digest(manifest)
     pub = manifest["publication_id"]
     manifest["entity_states"] = {}
