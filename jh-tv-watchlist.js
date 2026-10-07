@@ -20,7 +20,7 @@
   var sigReady = new Promise(function (res) {
     if (root.JHTvSignals) { res(root.JHTvSignals); return; }
     if (!doc || !doc.head) { res(null); return; }
-    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261006c"; sg.async = true;
+    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261007a"; sg.async = true;
     sg.onload = function () { res(root.JHTvSignals || null); }; sg.onerror = function () { res(null); };
     doc.head.appendChild(sg); setTimeout(function () { res(root.JHTvSignals || null); }, 6000);
   });
@@ -29,7 +29,8 @@
   var FLAG_HEX = {}; FLAGS.forEach(function (f) { FLAG_HEX[f[0]] = f[1]; });
   var COLS = [
     ["last", "Last", true], ["chg", "Chg", true], ["chgp", "Chg%", true],
-    ["m1", "1M%", false], ["m3", "3M%", false], ["y1", "1Y%", false], ["date", "Date", false], ["spark", "Spark", false]
+    ["m1", "1M%", false], ["m3", "3M%", false], ["y1", "1Y%", false], ["date", "Date", false], ["spark", "Spark", false],
+    ["ma", "MAs", false], ["ins", "Insiders", false], ["flow", "Ind 1W", false], ["er", "Earnings", false]
   ];
 
   // ------------------------------------------------------------------ helpers
@@ -72,7 +73,7 @@
   // ------------------------------------------------------------------ store
   var D = null;
   function blank() {
-    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false, alias: {}, stars: [], notes: {}, updated: 0 };
+    return { v: 1, lists: {}, order: [], active: null, recent: [], flags: {}, cols: COLS.reduce(function (o, c) { o[c[0]] = c[2]; return o; }, {}), sort: { col: null, dir: 0 }, collapsed: {}, details: true, detH: 230, desc: false, seeded: false, alias: {}, stars: [], notes: {}, alertCfg: { on: true, cross: true, ins: true, flow: true, flowPct: 1, flowUsd: 500 }, updated: 0 };
   }
   // account-scoped cache: the signed-in account keeps its own copy in this browser; signed out uses the device copy
   var acctUid = null, applying = false, pushT = 0;
@@ -485,6 +486,7 @@
     return o;
   }
   function requestQuotes(ids) {
+    if (ids.length && (colsOn().some(function (c) { return SCAN_COLS[c[0]]; }) || aCfg().on)) needScan(ids);
     ids.forEach(function (id) { if (needQuote(id) && queue.indexOf(id) < 0) queue.push(id); });
     if (!EMAP && ids.some(function (id) { return /^ECONOMICS:/i.test(id); })) { econMap().then(pump); return; }
     pump();
@@ -755,6 +757,11 @@
       "#jhwl .wl-ed{flex:0 0 auto;width:11px;height:11px;color:#f0b90b;display:inline-flex}#jhwl .wl-ed svg{width:11px;height:11px}",
       "#jhwl .wl-tk sup{flex:0 0 auto;font-size:9px;color:#f0b90b;font-weight:600;vertical-align:super;margin-left:1px}",
       "#jhwl .wl-tk sup.wl-ntag{color:var(--mut);margin-left:3px;display:inline-flex}#jhwl .wl-row:hover sup.wl-ntag{color:var(--fg)}",
+      "#jhwl .wl-tk sup.wl-er{font-size:9px;font-weight:700;margin-left:4px;padding:0 3px;border-radius:3px;border:1px solid #f0b90b;color:#f0b90b;line-height:12px;vertical-align:2px}#jhwl .wl-tk sup.wl-er.soon{background:#f0b90b;color:#131722}",
+      "#jhwl .wl-c em.wl-gx{font-style:normal;font-size:9px;font-weight:700;margin-left:3px;padding:0 3px;border-radius:2px;background:#f0b90b;color:#131722}#jhwl .wl-c em.wl-gx.dn{background:#f23645;color:#fff}#jhwl .wl-c.soon{color:#f0b90b}",
+      "#jhwl .wl-bell svg{width:17px;height:17px}.jhwl-menu{max-height:86vh;overflow-y:auto}#jhwl .wl-bell{position:relative}#jhwl .wl-bell em{position:absolute;top:1px;right:0;font-style:normal;font-size:9px;font-weight:700;min-width:13px;height:13px;line-height:13px;border-radius:7px;background:#f23645;color:#fff;padding:0 3px;display:none}#jhwl .wl-bell.on em{display:block}",
+      ".jhwl-menu .wl-al{display:flex !important;gap:8px;align-items:flex-start;white-space:normal !important;text-align:left;line-height:1.35;max-width:330px}.jhwl-menu .wl-al span{flex:1}.jhwl-menu .wl-al small{display:block;color:#787b86;font-size:11px}.jhwl-menu .wl-al.new span{font-weight:600}",
+      ".jhwl-menu .wl-al i.k{flex:0 0 8px;height:8px;border-radius:50%;margin-top:5px;background:#787b86}.jhwl-menu .wl-al i.k.golden{background:#089981}.jhwl-menu .wl-al i.k.death,.jhwl-menu .wl-al i.k.outflow{background:#f23645}.jhwl-menu .wl-al i.k.insider{background:#2962ff}",
       "#jhwl .wl-notes{margin:4px 0 14px;padding:10px 0 4px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);user-select:text}",
       "#jhwl .wl-notes .nt-h{display:flex;align-items:center;gap:6px;margin-bottom:6px}#jhwl .wl-notes .nt-h b{font-size:14px}#jhwl .wl-notes .nt-c{color:var(--mut);font-size:12px;flex:1}",
       "#jhwl .wl-notes .nt-h button,#jhwl .wl-notes .nt-m button,#jhwl .wl-notes .nt-r button{background:none;border:1px solid var(--bd);color:var(--fg);border-radius:4px;padding:3px 8px;font:inherit;font-size:12px;cursor:pointer}",
@@ -846,7 +853,7 @@
   }
   function colsOn() { return COLS.filter(function (c) { return D.cols[c[0]]; }); }
   function gridTpl() {
-    var w = { last: "minmax(54px,1fr)", chg: "minmax(44px,.8fr)", chgp: "minmax(52px,.8fr)", m1: "minmax(48px,.7fr)", m3: "minmax(48px,.7fr)", y1: "minmax(48px,.7fr)", date: "minmax(62px,.8fr)", spark: "56px" };
+    var w = { last: "minmax(54px,1fr)", chg: "minmax(44px,.8fr)", chgp: "minmax(52px,.8fr)", m1: "minmax(48px,.7fr)", m3: "minmax(48px,.7fr)", y1: "minmax(48px,.7fr)", date: "minmax(62px,.8fr)", spark: "56px", ma: "minmax(40px,.6fr)", ins: "minmax(52px,.8fr)", flow: "minmax(50px,.7fr)", er: "minmax(46px,.7fr)" };
     return "minmax(84px,1.6fr) " + colsOn().map(function (c) { return w[c[0]]; }).join(" ");
   }
 
@@ -861,6 +868,7 @@
       '<button type="button" class="wl-ib wl-star" data-a="star" title="Add this list to favourites" aria-label="Favourite list" aria-pressed="false">☆</button>' +
       '<button type="button" class="wl-ib" data-a="add" title="Add symbol" aria-label="Add symbol">+</button>' +
       '<button type="button" class="wl-ib wl-acct" data-a="acct" title="Account" aria-label="Account and sync"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></button>' +
+      '<button type="button" class="wl-ib wl-bell" data-a="alerts" title="Signal alerts" aria-label="Signal alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><em></em></button>' +
       '<button type="button" class="wl-ib" data-a="settings" title="Columns & view settings" aria-label="Watchlist settings">⋯</button></div>' +
       '<div class="wl-exp" role="tablist" aria-label="Favourite watchlists"></div>' +
       '<div class="wl-cols" role="row"></div>' +
@@ -871,8 +879,129 @@
     w.classList.add("jhwl-on");
     body = panel.querySelector(".wl-body"); det = panel.querySelector(".wl-det"); hdr = panel.querySelector(".wl-cols");
     if (!liveTimer) liveTimer = setInterval(liveTick, 30000);
-    wire();
+    if (!alertTimer) { setTimeout(alertPass, 12000); alertTimer = setInterval(alertPass, 30 * 60000); }
+    wire(); paintBell();
     return true;
+  }
+
+  // ------------------------------------------------------------------ screener columns · earnings chip · signal alerts
+  // Per-symbol scan records come from jh-tv-signals.js (moving averages, Form 4, industry ETF flow, earnings),
+  // cached there for a few hours. Only visible rows are scanned, plus the whole list when it is sorted by a
+  // scan column or checked for alerts (capped).
+  var SCAN_COLS = { ma: 1, ins: 1, flow: 1, er: 1 }, SCQ = [], SCRUN = 0, SCWANT = {};
+  function scanOf(id) { var t = infoTarget(id), S0 = root.JHTvSignals; return t && S0 && S0.scanCached ? S0.scanCached(t) : null; }
+  function needScan(ids, force) {
+    ids.forEach(function (id) { if (!infoTarget(id) || SCWANT[id] || (!force && scanOf(id))) return; SCWANT[id] = 1; SCQ.push(id); });
+    pumpScan();
+  }
+  function pumpScan() {
+    sigReady.then(function (S0) {
+      if (!S0 || !S0.scan) return;
+      while (SCRUN < 3 && SCQ.length) {
+        var id = SCQ.shift(); SCRUN++;
+        (function (id) {
+          S0.scan(infoTarget(id), detBars).then(function (rec) { SCRUN--; delete SCWANT[id]; if (rec) { paintScan(id); checkAlerts(id, rec); } pumpScan(); },
+            function () { SCRUN--; delete SCWANT[id]; pumpScan(); });
+        })(id);
+      }
+    });
+  }
+  function moneyS(v) { if (v == null || !isFinite(v)) return "—"; var a = Math.abs(v), s = v < 0 ? "−" : v > 0 ? "+" : ""; return s + "$" + (a >= 1e9 ? (a / 1e9).toFixed(1) + "B" : a >= 1e6 ? (a / 1e6).toFixed(a >= 1e8 ? 0 : 1) + "M" : a >= 1e3 ? (a / 1e3).toFixed(0) + "K" : a.toFixed(0)); }
+  function shortDate(s) { if (!s) return ""; var d = new Date(s + "T12:00:00Z"); return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }); }
+  function scanCell(id, k) {
+    var r = scanOf(id);
+    if (!infoTarget(id)) return '<span class="wl-c na" data-k="' + k + '">—</span>';
+    if (!r) return '<span class="wl-c na" data-k="' + k + '" title="Scanning…">…</span>';
+    var v = "—", cl = "", tt = "";
+    if (k === "ma" && r.have) { v = r.above + "/" + r.have; cl = r.above >= r.have - 1 ? "up" : r.above <= 2 ? "dn" : ""; tt = "Above " + r.above + " of " + r.have + " moving averages (9–300 day)"; if (r.gx && r.gx.ago != null && r.gx.ago <= 10) { v += '<em class="wl-gx ' + (r.gx.up ? "up" : "dn") + '">' + (r.gx.up ? "GC" : "DC") + "</em>"; tt += " · " + (r.gx.up ? "golden" : "death") + " cross " + shortDate(r.gx.date); } }
+    else if (k === "ins") { if (r.isEtf) { v = ""; tt = "Funds have no Form 4 filings"; } else if (r.ins) { v = r.ins.net === 0 ? "0" : moneyS(r.ins.net); cl = sgn(r.ins.net); tt = r.ins.nb + " buys, " + r.ins.ns + " sales in 90 days (SEC Form 4)"; } }
+    else if (k === "flow" && r.flow) { v = r.flow.pct != null ? pct(r.flow.pct) : moneyS(r.flow.v); cl = sgn(r.flow.v); tt = (r.etf || "") + " last-week flow " + moneyS(r.flow.v) + (r.flow.pct != null ? " (" + pct(r.flow.pct) + " of AUM)" : "") + " · through " + r.flow.asof; }
+    else if (k === "er" && r.earn && r.earn.next) { v = shortDate(r.earn.next); cl = r.earn.days != null && r.earn.days <= 7 ? "soon" : ""; tt = "Next earnings " + r.earn.next + " (in " + r.earn.days + " days)" + (r.earn.react != null ? " · last report reaction " + pct(r.earn.react) : ""); }
+    return '<span class="wl-c ' + cl + '" data-k="' + k + '"' + (tt ? ' title="' + esc(tt) + '"' : "") + ">" + v + "</span>";
+  }
+  function erTag(id) {
+    var r = scanOf(id); if (!r || !r.earn || !r.earn.next || r.earn.days == null || r.earn.days > 30 || r.earn.days < 0) return "";
+    return '<sup class="wl-er' + (r.earn.days <= 7 ? " soon" : "") + '" title="Earnings ' + esc(shortDate(r.earn.next)) + " · in " + r.earn.days + " day" + (r.earn.days === 1 ? "" : "s") + (r.earn.react != null ? " · last report reaction " + pct(r.earn.react) : "") + '">E' + (r.earn.days <= 14 ? " " + r.earn.days + "d" : "") + "</sup>";
+  }
+  function paintScan(id) {
+    if (!panel) return;
+    body.querySelectorAll('.wl-row[data-id="' + cssEsc(id) + '"]').forEach(function (row) {
+      Object.keys(SCAN_COLS).forEach(function (k) { var c = row.querySelector('.wl-c[data-k="' + k + '"]'); if (c) { var t = doc.createElement("div"); t.innerHTML = scanCell(id, k); c.replaceWith(t.firstChild); } });
+      var tb = row.querySelector(".wl-tk b"); if (tb) { var o = tb.querySelector(".wl-er"); if (o) o.remove(); var e = erTag(id); if (e) tb.insertAdjacentHTML("beforeend", e); }
+    });
+    if (D.sort.col && SCAN_COLS[D.sort.col] && D.sort.dir) { clearTimeout(paintScan._t); paintScan._t = setTimeout(render, 600); }
+  }
+  function scanSort(id, c) {
+    var r = scanOf(id); if (!r) return null;
+    if (c === "ma") return r.have ? r.above + (r.gx && r.gx.up && r.gx.ago != null && r.gx.ago <= 10 ? 0.5 : 0) : null;
+    if (c === "ins") return r.ins ? r.ins.net : null;
+    if (c === "flow") return r.flow ? (r.flow.pct != null ? r.flow.pct : r.flow.v / 1e9) : null;
+    if (c === "er") return r.earn && r.earn.days != null ? -r.earn.days : null;   // high-first sort = soonest first
+    return null;
+  }
+  function scanList() { var L = cur(); if (!L) return; needScan(L.items.filter(function (s) { return !isSec(s); }).slice(0, 300)); }
+
+  // alerts: golden/death crosses (last 2 sessions), insider cluster buying, big weekly outflows from the industry ETF
+  var ALOG_KEY = "jh-tvwl-alerts", ASEEN_KEY = "jh-tvwl-alert-seen";
+  function aCfg() { var c = D.alertCfg || {}; return { on: c.on !== false, cross: c.cross !== false, ins: c.ins !== false, flow: c.flow !== false, flowPct: c.flowPct > 0 ? +c.flowPct : 1, flowUsd: c.flowUsd > 0 ? +c.flowUsd : 500 }; }
+  function aLog() { try { return JSON.parse(root.localStorage.getItem(ALOG_KEY) || "[]"); } catch (e) { return []; } }
+  function aSeen() { try { return JSON.parse(root.localStorage.getItem(ASEEN_KEY) || "{}"); } catch (e) { return {}; } }
+  function inLists(id) { return Object.keys(D.lists).some(function (k) { var L = D.lists[k]; return L && !L.flag && Array.isArray(L.items) && L.items.indexOf(id) >= 0; }); }
+  function checkAlerts(id, r) {
+    var c = aCfg(); if (!c.on || !r || !inLists(id)) return;
+    var s = short(id), ev = [];
+    if (c.cross && r.gx && r.gx.ago != null && r.gx.ago <= 2) ev.push({ k: "x:" + r.t + ":" + r.gx.date + ":" + (r.gx.up ? 1 : 0), kind: r.gx.up ? "golden" : "death", msg: s + ": " + (r.gx.up ? "golden cross" : "death cross") + " — 50-day crossed " + (r.gx.up ? "above" : "below") + " the 200-day on " + shortDate(r.gx.date) });
+    if (c.ins && r.ins && r.ins.nb >= 2 && (r.ins.buyers >= 2 || r.ins.cluster || /CLUSTER_BUY/.test(r.ins.label))) ev.push({ k: "i:" + r.t + ":" + r.ins.nb, kind: "insider", msg: s + ": insider cluster buying — " + r.ins.nb + " open-market buys by " + Math.max(r.ins.buyers, 2) + "+ insiders in 90 days, net " + moneyS(r.ins.net) });
+    if (c.flow && r.flow && r.flow.v < 0 && ((r.flow.pct != null && r.flow.pct <= -c.flowPct) || r.flow.v <= -c.flowUsd * 1e6)) ev.push({ k: "f:" + r.etf + ":" + r.flow.asof, kind: "outflow", msg: (r.isEtf ? s : s + "'s industry ETF " + r.etf) + ": big weekly outflow " + moneyS(r.flow.v) + (r.flow.pct != null ? " (" + pct(r.flow.pct) + " of AUM)" : "") + " through " + shortDate(r.flow.asof) });
+    if (!ev.length) return;
+    var seen = aSeen(), log = aLog(), fresh = ev.filter(function (e) { return !seen[e.k]; });
+    if (!fresh.length) return;
+    fresh.forEach(function (e) { seen[e.k] = Date.now(); log.unshift({ id: id, k: e.k, kind: e.kind, msg: e.msg, at: Date.now(), read: false }); });
+    try { root.localStorage.setItem(ASEEN_KEY, JSON.stringify(seen)); root.localStorage.setItem(ALOG_KEY, JSON.stringify(log.slice(0, 200))); } catch (e) {}
+    toast(fresh[0].msg + (fresh.length > 1 ? " (+" + (fresh.length - 1) + " more)" : ""));
+    try { if (root.Notification && Notification.permission === "granted") fresh.forEach(function (e) { new Notification("JustHodl watchlist alert", { body: e.msg, tag: e.k }); }); } catch (e) {}
+    paintBell();
+  }
+  function paintBell() {
+    if (!panel) return; var b = panel.querySelector('[data-a="alerts"]'); if (!b) return;
+    var n = aLog().filter(function (x) { return !x.read; }).length;
+    b.querySelector("em").textContent = n ? (n > 99 ? "99+" : String(n)) : ""; b.classList.toggle("on", n > 0);
+    b.title = n ? n + " new signal alert" + (n > 1 ? "s" : "") : "Signal alerts";
+  }
+  function alertsMenu(btn) {
+    var r = btn.getBoundingClientRect(), c = aCfg(), log = aLog();
+    function chk(on) { return '<span class="chk">' + (on ? "✓" : "") + "</span>"; }
+    var perm = root.Notification ? Notification.permission : "unsupported";
+    var html = '<div class="lab">Signal alerts · ' + (c.on ? "on" : "off") + "</div>" +
+      (log.length ? log.slice(0, 25).map(function (x, i) { return '<button data-m="go" data-i="' + i + '" class="wl-al' + (x.read ? "" : " new") + '" title="' + esc(x.msg) + '"><i class="k ' + esc(x.kind) + '"></i><span>' + esc(x.msg) + "<small>" + esc(new Date(x.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) + "</small></span></button>"; }).join("") : '<div class="lab" style="text-transform:none;letter-spacing:0">No alerts yet. Symbols in your lists are checked while this page is open.</div>') +
+      '<hr><button data-m="on">' + chk(c.on) + "Alerts on</button>" +
+      '<button data-m="cross">' + chk(c.cross) + "Golden / death crosses (50/200-day)</button>" +
+      '<button data-m="ins">' + chk(c.ins) + "Insider cluster buying</button>" +
+      '<button data-m="flow">' + chk(c.flow) + "Big weekly industry-ETF outflow (≥ " + c.flowPct + "% of AUM or $" + c.flowUsd + "M)</button>" +
+      '<button data-m="thr">Change outflow threshold…</button>' +
+      (perm === "default" ? '<button data-m="perm">Enable desktop notifications</button>' : perm === "granted" ? '<div class="lab" style="text-transform:none;letter-spacing:0">Desktop notifications enabled</div>' : "") +
+      '<button data-m="now">Check this list now</button>' + (log.length ? '<button data-m="clear">Clear alerts</button>' : "");
+    log.forEach(function (x) { x.read = true; }); try { root.localStorage.setItem(ALOG_KEY, JSON.stringify(log)); } catch (e) {}
+    paintBell();
+    function setC(k, v) { D.alertCfg = Object.assign({}, aCfg(), D.alertCfg || {}); D.alertCfg[k] = v; save(); }
+    menu(r.right - 330, r.bottom + 4, html, function (m, b) {
+      if (m === "go") { var x = log[+b.getAttribute("data-i")]; if (x) goChart(x.id); }
+      if (m === "on" || m === "cross" || m === "ins" || m === "flow") { setC(m, !aCfg()[m]); b.querySelector(".chk").textContent = aCfg()[m] ? "✓" : ""; return true; }
+      if (m === "thr") { var p = root.prompt("Alert when a week's outflow is at least this % of the ETF's assets:", String(c.flowPct)); if (p != null && +p > 0) setC("flowPct", +p); var u = root.prompt("…or at least this many US$ millions:", String(c.flowUsd)); if (u != null && +u > 0) setC("flowUsd", +u); }
+      if (m === "perm") { try { Notification.requestPermission().then(function (s) { toast(s === "granted" ? "Desktop notifications enabled" : "Desktop notifications not allowed"); }); } catch (e) {} }
+      if (m === "now") { var L = cur(); if (L) { needScan(L.items.filter(function (s) { return !isSec(s); }).slice(0, 300), true); toast("Checking " + Math.min(300, L.items.length) + " symbols…"); } }
+      if (m === "clear") { try { root.localStorage.setItem(ALOG_KEY, "[]"); } catch (e) {} paintBell(); }
+    });
+  }
+  // background pass over every list symbol (stocks / funds), every 30 minutes while the page is open
+  var alertTimer = 0;
+  function alertPass() {
+    if (!aCfg().on || !D || !D.lists) return;
+    var ids = [];
+    Object.keys(D.lists).forEach(function (k) { var L = D.lists[k]; if (L && !L.flag && Array.isArray(L.items)) L.items.forEach(function (s) { if (!isSec(s) && infoTarget(s) && ids.indexOf(s) < 0) ids.push(s); }); });
+    var S0 = root.JHTvSignals;
+    ids.slice(0, 250).forEach(function (id) { var r = scanOf(id); if (r) checkAlerts(id, r); });
+    needScan(ids.slice(0, 250));
   }
 
   // ------------------------------------------------------------------ rendering
@@ -904,6 +1033,7 @@
   }
   function sortVal(id, c) {
     if (c === "sym") return disp(id).toUpperCase();
+    if (SCAN_COLS[c]) return scanSort(id, c);
     var q = Q[id]; if (!q || !q.ok) return null;
     return { last: q.last, chg: q.chg, chgp: q.chg_pct, m1: q.mom_pct, m3: q.qoq_pct, y1: q.yoy_pct, date: q.last_date }[c];
   }
@@ -911,6 +1041,7 @@
     var q = Q[id] || null, ok = q && q.ok;
     return colsOn().map(function (c) {
       var k = c[0], v, cl = "";
+      if (SCAN_COLS[k]) return scanCell(id, k);
       if (!ok) return '<span class="wl-c na" data-k="' + k + '"' + (q && q.error ? ' title="' + esc(q.pending ? "Loading the full history the chart uses…" : q.error) + '"' : "") + ">" + (k === "spark" ? "" : (q && !q.pending ? "—" : "…")) + "</span>";
       if (k === "last") v = tickHtml(id, fmt(q.last), +q.last);
       else if (k === "chg") { v = (q.chg > 0 ? "+" : "") + fmt(q.chg); cl = sgn(q.chg); }
@@ -956,7 +1087,7 @@
     return '<div class="' + cls + '" data-vi="' + vi + '" data-id="' + esc(id) + '" role="option" aria-selected="' + (!!sel[r.idx]) + '" draggable="' + (!(D.sort.col && D.sort.dir)) + '" title="' + esc((al ? al + " · " : "") + id + (name ? " — " + name : "") + "\nDouble-click to rename or colour-tag") + '" style="grid-template-columns:' + gridTpl() + '">' +
       '<span class="wl-sym"><i class="wl-flag" data-a="flag"' + (fl ? ' data-c="' + fl + '" style="background:' + FLAG_HEX[fl] + '"' : "") + ' title="Flag"></i>' +
       '<i class="wl-logo" style="background:' + hashC(s) + '">' + esc(s.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase() || "?") + (infoTarget(id) ? '<img alt="" loading="lazy" src="https://images.financialmodelingprep.com/symbol/' + encodeURIComponent(infoTarget(id)) + '.png" onerror="this.remove()">' : "") + "</i>" +
-      '<span class="wl-tk">' + (al ? '<b class="al"><span class="t">' + esc(al) + '</span><i class="wl-ed" title="Your name for ' + esc(id) + '">' + EDIT_SVG + "</i>" + delayTag(id) + noteTag(id) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : '<b><span class="t">' + esc(s) + "</span>" + delayTag(id) + noteTag(id) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
+      '<span class="wl-tk">' + (al ? '<b class="al"><span class="t">' + esc(al) + '</span><i class="wl-ed" title="Your name for ' + esc(id) + '">' + EDIT_SVG + "</i>" + delayTag(id) + noteTag(id) + erTag(id) + "</b>" + (D.desc ? "<small>" + esc(s + (name ? " · " + name : "")) + "</small>" : "") : '<b><span class="t">' + esc(s) + "</span>" + delayTag(id) + noteTag(id) + erTag(id) + "</b>" + (D.desc ? "<small>" + esc(name || id) + "</small>" : "")) + "</span></span>" +
       cells(id) + (infoTarget(id) ? '<button type="button" class="wl-info" data-a="info" title="Symbol overview: key stats, financials, holdings, ownership" aria-label="Overview of ' + esc(s) + '">' + INFO_SVG + "</button>" : "") + '<button type="button" class="wl-x" data-a="rm" title="Remove from watchlist" aria-label="Remove ' + esc(s) + '">×</button></div>';
   }
   function render() {
@@ -990,7 +1121,7 @@
         var x = row.querySelector(".wl-x");
         Array.prototype.slice.call(tmp.children).forEach(function (c) { row.insertBefore(c, x); });
         var q = Q[id]; if (q && q.name) row.title = id + " — " + q.name;
-        var tb = row.querySelector(".wl-tk b"); if (tb) { tb.querySelectorAll("sup").forEach(function (o) { o.remove(); }); var dt = delayTag(id) + noteTag(id); if (dt) tb.insertAdjacentHTML("beforeend", dt); }
+        var tb = row.querySelector(".wl-tk b"); if (tb) { tb.querySelectorAll("sup").forEach(function (o) { o.remove(); }); var dt = delayTag(id) + noteTag(id) + erTag(id); if (dt) tb.insertAdjacentHTML("beforeend", dt); }
         if (D.desc && q && q.name) { var sm = row.querySelector(".wl-tk small"); if (sm) sm.textContent = aliasOf(id) ? short(id) + " · " + q.name : q.name; }
       });
       if (sameId(id, detId())) renderDetails();
@@ -1246,13 +1377,15 @@
     var html = '<div class="lab">Columns</div>' + COLS.map(function (c) { return '<button data-m="col" data-k="' + c[0] + '">' + chk(D.cols[c[0]]) + c[1] + "</button>"; }).join("") +
       '<hr><button data-m="desc">' + chk(D.desc) + "Show description</button>" +
       '<button data-m="det">' + chk(D.details) + "Show symbol details</button>" +
-      '<hr><div class="lab">Sort</div><button data-m="sort" data-k="sym">Symbol A→Z</button><button data-m="sort" data-k="chgp">Change % (high first)</button><button data-m="sort" data-k="none">Custom order</button>' +
+      '<hr><div class="lab">Sort</div><button data-m="sort" data-k="sym">Symbol A→Z</button><button data-m="sort" data-k="chgp">Change % (high first)</button>' +
+      '<button data-m="sort" data-k="ma">Above most moving averages</button><button data-m="sort" data-k="ins">Insider net buying (most first)</button><button data-m="sort" data-k="flow">Industry ETF 1W flow (inflows first)</button><button data-m="sort" data-k="er">Next earnings (soonest first)</button>' +
+      '<button data-m="sort" data-k="none">Custom order</button>' +
       '<hr><button data-m="refresh">Refresh quotes</button>';
     menu(r.right - 230, r.bottom + 4, html, function (m, b) {
-      if (m === "col") { var k = b.getAttribute("data-k"); D.cols[k] = !D.cols[k]; save(); render(); b.querySelector(".chk").textContent = D.cols[k] ? "✓" : ""; return true; }
+      if (m === "col") { var k = b.getAttribute("data-k"); D.cols[k] = !D.cols[k]; save(); render(); if (D.cols[k] && SCAN_COLS[k]) observe(); b.querySelector(".chk").textContent = D.cols[k] ? "✓" : ""; return true; }
       if (m === "desc") { D.desc = !D.desc; save(); render(); }
       if (m === "det") { D.details = !D.details; save(); render(); }
-      if (m === "sort") { var s = b.getAttribute("data-k"); D.sort = s === "none" ? { col: null, dir: 0 } : { col: s, dir: s === "sym" ? 1 : -1 }; save(); render(); }
+      if (m === "sort") { var s = b.getAttribute("data-k"); D.sort = s === "none" ? { col: null, dir: 0 } : { col: s, dir: s === "sym" ? 1 : -1 }; if (SCAN_COLS[s]) { D.cols[s] = true; scanList(); } save(); render(); }
       if (m === "refresh") { QT = {}; observe(); toast("Refreshing quotes…"); }
     });
   }
@@ -1366,6 +1499,7 @@
       if (act === "listmenu") { listMenu(a); return; }
       if (act === "add") { openAdd(); return; }
       if (act === "settings") { settingsMenu(a); return; }
+      if (act === "alerts") { alertsMenu(a); return; }
       if (act === "star") { toggleStar(D.active); return; }
       if (act === "acct") { acctMenu(a); return; }
       if (act === "exp") { setActive(a.getAttribute("data-id")); return; }
@@ -1388,6 +1522,7 @@
         if (D.sort.col !== k) D.sort = { col: k, dir: k === "sym" ? 1 : -1 };
         else if (D.sort.dir === (k === "sym" ? 1 : -1)) D.sort.dir = -D.sort.dir;
         else D.sort = { col: null, dir: 0 };
+        if (SCAN_COLS[k] && D.sort.dir) scanList();
         save(); render(); return;
       }
       var row = rowFromEvent(e); if (!row) return;
