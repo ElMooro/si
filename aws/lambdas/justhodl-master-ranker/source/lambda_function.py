@@ -46,8 +46,9 @@ OUTPUT
 
 SCHEDULE
 ────────
-  rate(1 hour) — same cadence as compound-aggregator. Runs 5min after the
-  hourly compound-aggregator to ensure fresh data.
+  Once each Monday–Friday at 16:15 America/New_York (15 minutes after the
+  regular U.S. close). EventBridge Scheduler adjusts for daylight saving.
+  No routine event-coordinator kicks. Weekday holidays retain this schedule.
 
 ZERO DETERIORATION
   * Pure consumer of existing S3 data — no other Lambda touched

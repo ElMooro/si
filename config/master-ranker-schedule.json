@@ -1,0 +1,14 @@
+{
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-master-ranker-weekday-close",
+    "group_name": "default",
+    "cron": "cron(15 16 ? * MON-FRI *)",
+    "timezone": "America/New_York",
+    "state": "ENABLED",
+    "flexible_time_window": {"Mode": "OFF"},
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "input": {},
+    "retry_policy": {"MaximumRetryAttempts": 2, "MaximumEventAgeInSeconds": 3600},
+    "description": "Master Ranker: Monday-Friday 16:15 New York, after regular U.S. close"
+  }
+}
