@@ -12,10 +12,18 @@
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   // TradingView-style details card lives in its own file; loaded once, the panel re-renders when it arrives
   if (!root.JHTvDetails && doc && doc.head) {
-    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006d"; tvd.async = true;
+    var tvd = doc.createElement("script"); tvd.src = "/jh-tv-details.js?v=20261006e"; tvd.async = true;
     tvd.onload = function () { try { if (det) { det._sig = null; renderDetails(); } } catch (e) {} };
     doc.head.appendChild(tvd);
   }
+  // extra details sections + joined ETF flow history (jh-tv-signals.js); the flow strip waits for it (max 6 s)
+  var sigReady = new Promise(function (res) {
+    if (root.JHTvSignals) { res(root.JHTvSignals); return; }
+    if (!doc || !doc.head) { res(null); return; }
+    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261006a"; sg.async = true;
+    sg.onload = function () { res(root.JHTvSignals || null); }; sg.onerror = function () { res(null); };
+    doc.head.appendChild(sg); setTimeout(function () { res(root.JHTvSignals || null); }, 6000);
+  });
   var KEY = "jh-tvwl-v1";
   var FLAGS = [["red", "#f23645"], ["blue", "#2962ff"], ["green", "#089981"], ["orange", "#ff9800"], ["purple", "#9c27b0"], ["cyan", "#00bcd4"], ["pink", "#e91e63"]];
   var FLAG_HEX = {}; FLAGS.forEach(function (f) { FLAG_HEX[f[0]] = f[1]; });
@@ -339,7 +347,7 @@
       c = INS[t] = { p: Promise.all([
         getJ(PROXY + "/fundamentals?ticker=" + encodeURIComponent(t)),
         getJ(PROXY + "/data/watchlist-insights/etf/" + encodeURIComponent(t) + ".json"),
-        getJ(PROXY + "/data/etf-flow-hist/" + encodeURIComponent(t) + ".json"),
+        sigReady.then(function (S0) { return S0 && S0.flowHist ? S0.flowHist(t).then(function (x) { return x || getJ(PROXY + "/data/etf-flow-hist/" + encodeURIComponent(t) + ".json"); }) : getJ(PROXY + "/data/etf-flow-hist/" + encodeURIComponent(t) + ".json"); }),
         getJ(PROXY + "/data/watchlist-insights/stock/" + shardOf(t) + ".json"),
         getJ(PROXY + "/fmp?ep=institutional-ownership/symbol-positions-summary&symbol=" + encodeURIComponent(t) + "&year=" + qq.year + "&quarter=" + qq.quarter)
       ]).then(function (a) { c.html = insightsHtml(t, a[0], a[1], a[2], a[3] && a[3].rows ? a[3].rows[t] : null, a[3] && a[3].managers, a[4] && a[4].data && a[4].data[0], qq); return c.html; }) };
@@ -629,16 +637,49 @@
     return m[1];
   }
   function nyDate(ms) { try { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "America/New_York" }); } catch (e) { return new Date(ms).toISOString().slice(0, 10); } }
+  // New York session phase: "pre" 04:00–09:30, "open" 09:30–16:00, "post" 16:00–20:00, else "closed" (weekends closed)
+  function nyPhase(ms) {
+    try {
+      var p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date(ms || Date.now()));
+      var g = {}; p.forEach(function (x) { g[x.type] = x.value; });
+      if (g.weekday === "Sat" || g.weekday === "Sun") return "closed";
+      var m = (+g.hour % 24) * 60 + (+g.minute);
+      return m >= 240 && m < 570 ? "pre" : m >= 570 && m < 960 ? "open" : m >= 960 && m < 1200 ? "post" : "closed";
+    } catch (e) { return "open"; }
+  }
+  function nyMinutes(ms) { try { var p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date(ms)); var g = {}; p.forEach(function (x) { g[x.type] = x.value; }); return (+g.hour % 24) * 60 + (+g.minute); } catch (e) { return 0; } }
+  // TradingView convention: the watchlist price is the regular-session price (live during the session, the
+  // official close after it); pre-/post-market trades are shown separately in the details card.
   function applyLive(id) {
     var t = liveTicker(id), s = t && LIVE[t], q = Q[id];
     if (!s || !(s.price > 0)) return false;
     var o = {}; if (q && q.ok) for (var k in q) o[k] = q[k];
     if (o.mapped) return false;   // transformed economics rows keep their own basis
-    o.ok = true; o.live = true; o.bar_last_date = q && q.ok ? (q.bar_last_date || q.last_date) : null;
-    o.last = s.price; o.prev = s.prevClose || o.prev; o.chg = s.change; o.chg_pct = s.changePct;
-    o.day = { o: s.open, h: s.high, l: s.low, v: s.volume }; o.live_ts = s.ts;
-    o.last_date = s.volume > 0 ? nyDate(s.ts) : (o.last_date || nyDate(s.ts));
+    var now = s.ts || Date.now(), phase = nyPhase(now), today = nyDate(now);
+    var ltTs = s.lastTradeTs || 0, sessDate = ltTs ? nyDate(ltTs) : (s.volume > 0 ? today : null);
+    var hasDay = s.volume > 0 && sessDate;
+    var bankDate = q && q.ok ? (q.bar_last_date || q.last_date) : null;
+    o.ok = true; o.bar_last_date = bankDate; o.ext = null;
     o.live_src = "Polygon snapshot via JustHodl proxy (may lag the tape by up to 15 min)";
+    if (phase === "open" && hasDay && sessDate === today) {
+      o.live = true; o.last = s.price; o.prev = s.prevClose || o.prev; o.chg = s.change; o.chg_pct = s.changePct;
+    } else if (hasDay) {
+      // session over: official close (the stored Polygon daily bar when it has today, else the snapshot's day close)
+      var reg = bankDate === sessDate && q && q.ok ? +q.last : s.dayClose > 0 ? +s.dayClose : null;
+      if (!(reg > 0)) reg = s.price;
+      o.live = true; o.last = reg; o.prev = s.prevClose || o.prev;
+      o.chg = o.prev ? reg - o.prev : s.change; o.chg_pct = o.prev ? (reg / o.prev - 1) * 100 : s.changePct;
+      if (ltTs && nyDate(ltTs) === sessDate && nyMinutes(ltTs) >= 960 && Math.abs(s.price - reg) > 1e-9) o.ext = { kind: "Post-market", px: s.price, chg: s.price - reg, pct: (s.price / reg - 1) * 100, ts: ltTs };
+      o.reg_src = bankDate === sessDate ? "official close (stored Polygon daily bar)" : "session close (Polygon snapshot day bar)";
+    } else {
+      // before the open (snapshot reset) or a weekend: keep the stored daily close; show pre-market trades apart
+      if (!(q && q.ok)) return false;
+      o.live = false;
+      if (phase === "pre" && ltTs && nyDate(ltTs) === today && nyMinutes(ltTs) >= 240 && +q.last > 0) o.ext = { kind: "Pre-market", px: s.price, chg: s.price - q.last, pct: (s.price / q.last - 1) * 100, ts: ltTs };
+      Q[id] = o; return !!o.ext;
+    }
+    o.day = { o: s.open, h: s.high, l: s.low, v: s.volume }; o.live_ts = ltTs || now;
+    o.last_date = sessDate || o.last_date;
     if (!o.name && q && q.name) o.name = q.name;
     Q[id] = o; return true;
   }
@@ -995,9 +1036,9 @@
         id: id, sym: s, alias: aliasOf(id), color: hashC(s), q: q, info: it,
         name: (ok && q.name) || ((root.JH_WL_NAMES || {})[id] || [])[0] || id,
         insights: it ? (INS[it] && INS[it].html || '<div class="mu">Loading flows, fund changes and valuation…</div>') : "",
-        bars: function () { return detBars(id); },
+        bars: function () { return detBars(id); }, barsFor: function (sym) { return detBars(sym); }, sigReady: sigReady,
         act: {
-          chart: function () { goChart(id); }, compare: function () { if (root.jhAddCompare) root.jhAddCompare(id); },
+          chart: function () { goChart(id); }, goto: function (sym) { goChart(sym); }, compare: function () { if (root.jhAddCompare) root.jhAddCompare(id); },
           rename: function () { editSym(id); }, flag: function () { var r0 = det.getBoundingClientRect(); flagMenu(r0.left + 12, r0.top + 40, id); },
           remove: function () { var L0 = cur(), i0 = L0 ? L0.items.indexOf(id) : -1; if (i0 >= 0) removeIdx([i0]); }
         }

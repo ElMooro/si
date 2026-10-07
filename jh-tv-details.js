@@ -48,6 +48,7 @@
       "#jhwl .tvd .tvd-pr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}#jhwl .tvd .tvd-pr .tvd-p{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}",
       "#jhwl .tvd .tvd-pr .tvd-u{font-size:11px;color:var(--mut)}#jhwl .tvd .tvd-pr .tvd-c{font-size:15px;font-variant-numeric:tabular-nums}",
       "#jhwl .tvd .tvd-st{font-size:12px;color:var(--mut);margin:2px 0 10px;display:flex;align-items:center;gap:5px}#jhwl .tvd .tvd-st i{width:7px;height:7px;border-radius:50%;background:#787b86;display:inline-block}",
+      "#jhwl .tvd .tvd-xt{font-size:12px;margin:-6px 0 10px;font-variant-numeric:tabular-nums}#jhwl .tvd .tvd-xt>span:first-child{color:var(--mut)}#jhwl .tvd .tvd-xt .tvd-mu{color:var(--mut);font-size:11px}",
       "#jhwl .tvd .tvd-st.tvd-open i{background:#089981}#jhwl .tvd .tvd-st.tvd-ext i{background:#f0b90b}#jhwl .tvd .tvd-st.tvd-closed i{background:#787b86}",
       "#jhwl .tvd .tvd-rg{margin:6px 0 12px}#jhwl .tvd .tvd-rg .tvd-l{display:flex;justify-content:space-between;font-size:12px;font-variant-numeric:tabular-nums}",
       "#jhwl .tvd .tvd-rg .tvd-l span:nth-child(2){color:var(--mut);font-size:10px;letter-spacing:.06em;text-transform:uppercase}",
@@ -194,9 +195,11 @@
   function pxHtml(q, T) {
     var okq = q && q.ok, ses = T ? usSession() : null;
     var stale = okq && !q.live && q.last_date && (Date.now() - Date.parse(q.last_date + "T23:59:59Z")) > 4 * 864e5;
-    var liveTxt = okq && q.live ? " · live " + (function () { try { return new Date(q.live_ts).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return ""; } })() : "";
+    var tfmt = function (ms) { try { return new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return ""; } };
+    var extH = okq && q.ext && ok(q.ext.px) ? '<div class="tvd-xt"><span>' + esc(q.ext.kind) + '</span> <b>' + num(q.ext.px) + '</b> <span class="' + cls(q.ext.chg) + '">' + (q.ext.chg > 0 ? "+" : "") + num(q.ext.chg) + " " + pc(q.ext.pct) + '</span> <span class="tvd-mu">' + tfmt(q.ext.ts) + "</span></div>" : "";
+    var liveTxt = okq && q.live && q.reg_src ? " · at close" : okq && q.live ? " · live " + (function () { try { return new Date(q.live_ts).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }) + " ET"; } catch (e) { return ""; } })() : "";
     return okq ? '<div class="tvd-pr"><span class="tvd-p">' + num(q.last) + '</span><span class="tvd-u">' + esc(q.unit && q.unit.length < 8 ? q.unit : T ? "USD" : "") + '</span><span class="tvd-c ' + cls(q.chg) + '">' + (q.chg != null ? (q.chg > 0 ? "+" : "") + num(q.chg) : "") + " " + pc(q.chg_pct) + "</span></div>" +
-      '<div class="tvd-st ' + "tvd-" + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.live ? '<span title="' + esc(q.live_src || "") + (q.bar_last_date ? " · stored daily history through " + esc(q.bar_last_date) : "") + '">' + esc(liveTxt) + "</span>" : q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>"
+      '<div class="tvd-st ' + "tvd-" + (ses ? ses[0] : "closed") + '"><i></i>' + (ses ? esc(ses[1]) + (q.live ? '<span title="' + esc((q.reg_src ? "Price is the " + q.reg_src + "; " : "") + (q.live_src || "")) + (q.bar_last_date ? " · stored daily history through " + esc(q.bar_last_date) : "") + '">' + esc(liveTxt) + "</span>" : q.last_date ? " · last bar " + fdate(q.last_date) : "") : "As of " + fdate(q.last_date) + (q.freq ? " · " + esc(q.freq) : "")) + (stale ? ' · <span title="The newest observation is more than four days old">delayed</span>' : "") + "</div>" + extH
       : '<div class="tvd-mu" style="margin:6px 0 10px">' + (q && q.pending ? "Loading the full history the chart uses…" : q && q.error ? "No quote from the warehouse for this symbol: " + esc(String(q.error).split("(")[0].slice(0, 140)) : "Loading quote…") + "</div>";
   }
   function update(el, q) {
@@ -228,6 +231,7 @@
       '<div data-k="px">' + price + "</div>" +
       '<div data-k="ranges"></div>' +
       (x.insights ? '<div class="wl-ins" data-ins="' + esc(x.id) + '">' + x.insights + "</div>" : "") +
+      '<div data-k="sig"></div>' +
       '<div data-k="facts"></div><div data-k="stats"></div><div data-k="perf"></div><div data-k="expo"></div><div data-k="tech"></div>' +
       '<div data-k="earn"></div><div data-k="divs"></div><div data-k="inc"></div><div data-k="seas"></div><div data-k="extra"></div>' +
       "</div>";
@@ -259,6 +263,11 @@
     var isEtfP = profP.then(function (p) { return !!(p && (p.isEtf || p.isFund)); });
     var divP = T ? fmp("dividends", T).then(function (d) { return Array.isArray(d) ? d : []; }) : Promise.resolve([]);
 
+    // moving averages / crosses, insiders, industry & sector ETFs, industry leaders (jh-tv-signals.js)
+    Promise.resolve(x.sigReady || null).then(function (S0) {
+      S0 = S0 || root.JHTvSignals; if (!S0 || !alive() || !slot("sig")) return;
+      try { S0.render(slot("sig"), { T: T, sym: x.alias || x.sym, q: q, bars: barsP, profile: profP, barsFor: x.barsFor || function () { return Promise.resolve([]); }, go: x.act && x.act.goto }); } catch (e) {}
+    });
     barsP.then(function (b) {
       if (!alive()) return;
       b = (b || []).filter(function (r) { return r && r.time != null && ok(r.close); });

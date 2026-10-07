@@ -1730,6 +1730,10 @@ export default {
             low: day.l || 0,
             open: day.o || 0,
             prevClose: prevClose,
+            // additive (2026-10-06): lets the watchlist show the session close separately from extended-hours trades
+            dayClose: day.c || 0,
+            lastTradeTs: lastTrade.t ? Math.round(lastTrade.t / 1e6) : 0,
+            updatedTs: t.updated ? Math.round(t.updated / 1e6) : 0,
           };
         }
         const respBody = JSON.stringify(out);
