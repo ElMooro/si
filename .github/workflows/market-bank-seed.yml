@@ -47,6 +47,8 @@ jobs:
           import json
           r = json.load(open('market-bank-seed.json'))
           print('### Market bank seed\ncreated', r['n_created'], ' present', r['n_present'], ' skipped', r['n_skipped'])
+          for t, v in r.get('older', {}).items():
+              print('- older history %s: %s' % (t, v))
           for t, v in r['created'].items():
               print('- %s %s bars %s -> %s' % (t, v['n'], v['first'], v['last']))
           for t, v in r['skipped'].items():

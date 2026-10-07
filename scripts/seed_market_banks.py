@@ -9,7 +9,8 @@ not exist; it never rewrites an existing one (refresh_market_banks.py appends ne
 Source: Polygon daily aggregates (adjusted=true), the same licensed provider and SSM key the approved
 justhodl-polygon-daily-snapshot (APR-0001) and the market bank refresh use. Every bar is labelled
 "polygon-aggs:<run date>". TradingView / Yahoo are not contacted, and the 2026-10-04 custody rule is unchanged.
-History depth is whatever the Polygon plan returns; the report records the first date per symbol.
+Polygon's plan returns about 5 years; older sessions are then prepended from FMP's split-adjusted daily
+history (labelled "fmp-eod-full:<date>") only when both providers agree on the overlapping sessions.
 
 Bank key: data/warm/tv-bars/universe/US__<T>.json.gz with symbol "US:<T>" -- the first key the symbol
 directory's warehouse lookup tries for a bare US ticker.
@@ -88,12 +89,71 @@ def polygon_history(t, key):
     return rows
 
 
+FMP_FULL = "https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=%s&from=%s&to=%s&apikey=%s"
+
+
+def fmp_older(t, first_day, key):
+    """Split-adjusted FMP daily bars from 1980 up to (not including) first_day, plus the 30 sessions after it
+    for the overlap check. Returns (older_rows, overlap {day: close})."""
+    import urllib.parse
+    from datetime import date, timedelta
+    end = (date.fromisoformat(first_day) + timedelta(days=45)).isoformat()
+    req = urllib.request.Request(FMP_FULL % (t, "1980-01-01", end, urllib.parse.quote(key)), headers={"User-Agent": "justhodl/1.0"})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        data = json.loads(r.read())
+    older, overlap, seen = [], {}, set()
+    for b in data if isinstance(data, list) else []:
+        day = str(b.get("date") or "")[:10]
+        try:
+            row = [session_ts(day), float(b["open"]), float(b["high"]), float(b["low"]), float(b["close"]),
+                   float(b["volume"]) if b.get("volume") is not None else None]
+        except (KeyError, TypeError, ValueError):
+            continue
+        if day >= first_day:
+            overlap[day] = row[4]
+        elif row[0] not in seen and valid_bar(row):
+            seen.add(row[0]); older.append(row)
+    older.sort(key=lambda x: x[0])
+    return older, overlap
+
+
+def backfill_older(s3, t, fmp_key, dry_run, rep):
+    """Polygon's plan returns ~5 years. Extend a seeded bank backwards with FMP daily history -- only when the
+    two providers agree on the overlapping sessions (median close gap <= 0.5%, every gap <= 2%), so a different
+    split adjustment or instrument is never spliced. Existing rows are untouched (strictly older rows only)."""
+    from market_history_integrity import read_bank
+    bkey = "data/warm/tv-bars/universe/US__%s.json.gz" % t
+    doc = read_bank(s3, BUCKET, bkey)
+    if not doc or not doc.get("bars"):
+        return
+    srcs = doc.get("bar_sources") or []
+    if not srcs or not str(srcs[0]).startswith("polygon-aggs") or str(doc.get("first_date")) < "2021-01-01":
+        return
+    older, overlap = fmp_older(t, doc["first_date"], fmp_key)
+    if len(older) < 20:
+        rep["older"][t] = "no older FMP history"
+        return
+    ours = {datetime.fromtimestamp(r[0], tz=NY).strftime("%Y-%m-%d"): r[4] for r in doc["bars"][:30]}
+    gaps = sorted(abs(overlap[d] / ours[d] - 1) for d in ours if d in overlap and ours[d])
+    if len(gaps) < 10 or gaps[len(gaps) // 2] > 0.005 or gaps[-1] > 0.02:
+        rep["older"][t] = "providers disagree on overlap (%d sessions, median gap %s)" % (len(gaps), "%.4f" % gaps[len(gaps) // 2] if gaps else "n/a")
+        return
+    first_ts = doc["bars"][0][0]
+    older = [r for r in older if r[0] < first_ts]
+    new = merged_document(doc, older, doc.get("symbol"), doc.get("tv_symbol"), "fmp-eod-full:" + datetime.now(NY).strftime("%Y-%m-%d"))
+    if not dry_run:
+        s3.put_object(Bucket=BUCKET, Key=bkey, Body=gzip.compress(json.dumps(new).encode()), ContentType="application/gzip", CacheControl="public, max-age=900")
+    rep["older"][t] = {"added": len(older), "first": new.get("first_date"), "median_gap": round(gaps[len(gaps) // 2], 5)}
+    print("older %s: +%d bars, now from %s" % (t, len(older), new.get("first_date")))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only", default="")
     ap.add_argument("--report", default="market-bank-seed.json")
     ap.add_argument("--min-bars", type=int, default=250)
+    ap.add_argument("--no-older", action="store_true", help="skip the FMP backfill of history older than Polygon's window")
     a = ap.parse_args()
     import boto3
     s3 = boto3.client("s3", region_name="us-east-1")
@@ -123,6 +183,18 @@ def main():
             print("created %s: %s bars %s -> %s" % (t, doc.get("n"), doc.get("first_date"), doc.get("last_date")))
         except Exception as e:  # noqa: BLE001
             rep["skipped"][t] = "error %s: %s" % (type(e).__name__, str(e)[:120])
+    rep["older"] = {}
+    try:
+        fkey = os.environ.get("FMP_API_KEY") or boto3.client("ssm", region_name="us-east-1").get_parameter(Name="/justhodl/fmp/api-key", WithDecryption=True)["Parameter"]["Value"]
+    except Exception as e:  # noqa: BLE001
+        fkey = None; rep["older_error"] = str(e)[:120]
+    if fkey and not a.no_older:
+        for t in want:
+            try:
+                backfill_older(s3, t, fkey, a.dry_run, rep)
+                time.sleep(0.2)
+            except Exception as e:  # noqa: BLE001
+                rep["older"][t] = "error %s: %s" % (type(e).__name__, str(e)[:120])
     rep["finished"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     rep["n_created"], rep["n_present"], rep["n_skipped"] = len(rep["created"]), len(rep["present"]), len(rep["skipped"])
     json.dump(rep, open(a.report, "w"), indent=1)
