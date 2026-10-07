@@ -1,12 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "de557dfe075f3250e57341169b4c67135151069c",
-  "observed_at": "2026-10-07T20:27:03.404485+00:00",
+  "observed_at": "2026-10-07T20:47:24.652448+00:00",
   "ok": false,
   "routes_checked": 600,
   "verified_routes": 599,
   "failed_routes": [
-    "vix-capitulation.html"
+    "industry-case.html"
   ],
   "source_equivalent_builds": {
     "de557dfe075f3250e57341169b4c67135151069c": true
@@ -3110,13 +3110,12 @@
     },
     {
       "route": "industry-case.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "de557dfe075f3250e57341169b4c67135151069c",
-      "inspector_present": true,
-      "bytes_read": 22195,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "industry-rotation.html",
@@ -5760,12 +5759,13 @@
     },
     {
       "route": "vix-capitulation.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "de557dfe075f3250e57341169b4c67135151069c",
+      "inspector_present": true,
+      "bytes_read": 26076,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "vix-curve.html",
@@ -6019,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37681074217,
+  "deployment_run_id": 37683963588,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-07T20:27:03.413274+00:00"
+  "check_finished_at": "2026-10-07T20:47:24.661126+00:00"
 }
