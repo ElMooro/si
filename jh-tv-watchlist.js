@@ -20,7 +20,7 @@
   var sigReady = new Promise(function (res) {
     if (root.JHTvSignals) { res(root.JHTvSignals); return; }
     if (!doc || !doc.head) { res(null); return; }
-    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261006b"; sg.async = true;
+    var sg = doc.createElement("script"); sg.src = "/jh-tv-signals.js?v=20261006c"; sg.async = true;
     sg.onload = function () { res(root.JHTvSignals || null); }; sg.onerror = function () { res(null); };
     doc.head.appendChild(sg); setTimeout(function () { res(root.JHTvSignals || null); }, 6000);
   });

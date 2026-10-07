@@ -63,7 +63,8 @@
     var b = (bars || []).filter(function (r) { return r && r.time != null && ok(r.close); });
     var c = b.map(function (r) { return +r.close; }), d = b.map(function (r) { return dayOf(r.time); });
     if (q && q.ok && q.live && ok(q.last) && q.last_date && c.length) {
-      if (q.last_date > d[d.length - 1]) { c.push(+q.last); d.push(q.last_date); }
+      if (q.last_date === "same") c[c.length - 1] = +q.last;
+      else if (q.last_date > d[d.length - 1]) { c.push(+q.last); d.push(q.last_date); }
       else if (q.last_date === d[d.length - 1]) c[c.length - 1] = +q.last;
     }
     return { c: c, d: d };
@@ -188,7 +189,27 @@
 
   // ------------------------------------------------------------------ insiders (SEC Form 4)
   var INS = {};
-  function insiders(t) { t = String(t).toUpperCase(); if (!INS[t]) INS[t] = root.fetch(INSIDERS + "?ticker=" + encodeURIComponent(t)).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); return INS[t]; }
+  // The Form 4 Lambda keeps a 24 h copy at edgar-insiders/<T>.json (read through the proxy). Its function URL sends
+  // a duplicated CORS header that browsers refuse, so when the copy is missing or old the Lambda is only poked
+  // (no-cors, response unread) to rebuild it, and the copy is read again.
+  function insCopy(t, bust) { return root.fetch(PROXY + "/edgar-insiders/" + encodeURIComponent(t) + ".json" + (bust ? "?r=" + Date.now() : "")).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+  function insiders(t) {
+    t = String(t).toUpperCase();
+    if (!INS[t]) INS[t] = insCopy(t).then(function (d) {
+      var age = d && d.generated_at ? Date.now() - Date.parse(d.generated_at) : Infinity;
+      if (d && age < 3 * 864e5) return d;
+      return root.fetch(INSIDERS + "?ticker=" + encodeURIComponent(t), { mode: "no-cors" }).catch(function () {}).then(function () { return insCopy(t, true); }).then(function (d2) { return d2 || d; });
+    });
+    return INS[t];
+  }
+  // TradingView convention for the price shown: live during the regular session, the session close after it
+  function phaseNY() { try { var p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date()); var g = {}; p.forEach(function (z) { g[z.type] = z.value; }); if (g.weekday === "Sat" || g.weekday === "Sun") return "closed"; var m = (+g.hour % 24) * 60 + (+g.minute); return m >= 570 && m < 960 ? "open" : "other"; } catch (e) { return "open"; } }
+  function regPx(lq) {
+    if (!lq || !ok(lq.price)) return null;
+    var px = phaseNY() === "open" || !(lq.dayClose > 0) || !(lq.volume > 0) ? +lq.price : +lq.dayClose;
+    var pv = +lq.prevClose || 0;
+    return { price: px, changePct: pv ? (px / pv - 1) * 100 : lq.changePct };
+  }
   var LBL = { ROUTINE_SELLING: "Routine selling", ACCELERATING_SELL: "Accelerating selling", INSIDER_BUYING: "Insider buying", STRONG_CLUSTER_BUY: "Cluster buying", BULLISH_INSIDER_BUY: "Significant insider buying", BEARISH_INSIDER_SELL: "Heavy insider selling", NEUTRAL: "Quiet", NO_ACTIVITY: "No activity" };
   function lbl(s) { return LBL[s] || String(s || "—").replace(/_/g, " ").toLowerCase().replace(/^./, function (c) { return c.toUpperCase(); }); }
   function insiderHtml(d, t) {
@@ -255,7 +276,7 @@
           if (!alive()) return;
           var qs = a[0];
           S("ind").innerHTML = "<h4>Industry & sector ETFs<small>" + esc([p && p.industry, p && p.sector].filter(Boolean).join(" · ")) + "</small></h4>" + etfs.map(function (e, i) {
-            var bars = a[i + 1][0], fh = a[i + 1][1], lq = qs[e.t], q2 = lq && ok(lq.price) ? { ok: true, live: true, last: lq.price, last_date: nyToday() } : null;
+            var bars = a[i + 1][0], fh = a[i + 1][1], lq = regPx(qs[e.t]), q2 = lq && ok(lq.price) ? { ok: true, live: true, last: lq.price, last_date: phaseNY() === "open" ? nyToday() : "same" } : null;
             var tr = trend(bars, q2);
             var w = [["Last week", flowWin(fh, 5)], ["Last month", flowWin(fh, 21)], ["Last quarter", flowWin(fh, 63)]];
             return '<div class="tvs-card"><div class="tvs-h"><a data-go="' + esc(e.t) + '" title="Open ' + esc(e.t) + ' on the chart">' + esc(e.t) + '</a><span class="tvs-mu">' + esc(e.why) + "</span>" +
@@ -283,8 +304,8 @@
           var qs = a[0];
           S("lead").innerHTML = "<h4>Industry leaders<small>largest holdings of " + esc(srcEtf) + "</small></h4>" +
             "<table><tr><th>Symbol</th><th>Price</th><th>1D</th><th>1M</th><th>50D/200D</th><th>Insiders 90d</th></tr>" + top.map(function (l, i) {
-              var bars = a[i + 1][0] || [], ins = a[i + 1][1], lq = qs[l.t];
-              var q2 = lq && ok(lq.price) ? { ok: true, live: true, last: lq.price, last_date: nyToday() } : null, tr = trend(bars, q2);
+              var bars = a[i + 1][0] || [], ins = a[i + 1][1], lq = regPx(qs[l.t]);
+              var q2 = lq && ok(lq.price) ? { ok: true, live: true, last: lq.price, last_date: phaseNY() === "open" ? nyToday() : "same" } : null, tr = trend(bars, q2);
               var c = closes(bars, q2).c, m1 = c.length > 22 ? (c[c.length - 1] / c[c.length - 22] - 1) * 100 : null;
               var r50 = tr && tr.rows.filter(function (r) { return r.m === 50; })[0], r200 = tr && tr.rows.filter(function (r) { return r.m === 200; })[0];
               var st = function (r) { return r && r.v != null ? '<span class="' + (r.above ? "tvd-up" : "tvd-dn") + '">' + (r.above ? "▲" : "▼") + "</span>" : "—"; };
