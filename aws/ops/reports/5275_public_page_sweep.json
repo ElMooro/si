@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "a17c4fcaddf9fac87fcc82cb7f7ab80f22880a0a",
-  "observed_at": "2026-10-07T09:05:54.743534+00:00",
-  "ok": false,
+  "observed_at": "2026-10-07T09:30:33.546683+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "global-cycle/index.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "a17c4fcaddf9fac87fcc82cb7f7ab80f22880a0a": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2740,12 +2738,13 @@
     },
     {
       "route": "global-cycle/index.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "a17c4fcaddf9fac87fcc82cb7f7ab80f22880a0a",
+      "inspector_present": true,
+      "bytes_read": 14394,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "global-flow-desk.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37597321141,
+  "deployment_run_id": 37600479323,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-07T09:05:54.752097+00:00"
+  "check_finished_at": "2026-10-07T09:30:33.555720+00:00"
 }
