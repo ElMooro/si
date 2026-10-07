@@ -142,21 +142,24 @@ def publish(event_name: str, detail: dict,
         return False
 
 
-def publish_many(events: list, bus_name: Optional[str] = None) -> dict:
-    """Batch publish (up to 10 events per call, EventBridge limit).
-    
-    Each event is a tuple (event_name, detail_dict) or
-    (event_name, detail_dict, source_engine).
+def publish_many(events: list, bus_name: Optional[str] = None, *, client=None) -> dict:
+    """Publish every input in batches of ten, returning an acknowledgement per input.
+
+    A transport exception or missing acknowledgement is NOT success. Callers can
+    retain only unacknowledged indices; EventBridge delivery is at least once.
+    Empty input does not contact AWS. Existing aggregate fields are preserved.
     """
+    results = []
+    if not events:
+        return {"ok": True, "n_failed": 0, "n_published": 0, "results": []}
     try:
-        import boto3
-        client = boto3.client("events", region_name=DEFAULT_REGION)
-        
-        # Build entries
+        if client is None:
+            import boto3
+            client = boto3.client("events", region_name=DEFAULT_REGION)
         default_source = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "unknown")\
                             .replace("justhodl-", "")
-        entries = []
-        for evt in events[:10]:   # EventBridge: max 10 entries per put
+        entries, indices = [], []
+        for index, evt in enumerate(events):
             if len(evt) == 3:
                 name, detail, src = evt
             else:
@@ -168,16 +171,28 @@ def publish_many(events: list, bus_name: Optional[str] = None) -> dict:
             entries.append({
                 "Source":       f"justhodl.{src}",
                 "DetailType":   name,
-                "Detail":       json.dumps(payload, default=str),
+                "Detail":       json.dumps(payload, default=str, allow_nan=False),
                 "EventBusName": bus_name or EVENT_BUS_NAME,
             })
-        
-        resp = client.put_events(Entries=entries)
-        return {
-            "ok": resp.get("FailedEntryCount", 0) == 0,
-            "n_failed": resp.get("FailedEntryCount", 0),
-            "n_published": len(entries) - resp.get("FailedEntryCount", 0),
-        }
+            indices.append(index)
+        for start in range(0, len(entries), 10):
+            batch = entries[start:start + 10]
+            try:
+                response = client.put_events(Entries=batch)
+                acknowledgements = response.get("Entries", [])
+                for offset in range(len(batch)):
+                    ack = acknowledgements[offset] if offset < len(acknowledgements) else {}
+                    accepted = bool(ack.get("EventId")) and not ack.get("ErrorCode")
+                    results.append({"index": indices[start + offset], "ok": accepted,
+                                    "event_id": ack.get("EventId") if accepted else None,
+                                    "error_code": None if accepted else ack.get("ErrorCode", "ACK_MISSING")})
+            except Exception as exc:
+                results.extend({"index": indices[start + offset], "ok": False,
+                                "event_id": None, "error_code": type(exc).__name__}
+                               for offset in range(len(batch)))
     except Exception as e:
-        print(f"[system_events] publish_many err: {type(e).__name__}: {str(e)[:200]}")
-        return {"ok": False, "err": str(e)[:200]}
+        results = [{"index": i, "ok": False, "event_id": None,
+                    "error_code": type(e).__name__} for i in range(len(events))]
+    published = sum(r["ok"] for r in results)
+    return {"ok": published == len(events), "n_failed": len(events) - published,
+            "n_published": published, "results": results}

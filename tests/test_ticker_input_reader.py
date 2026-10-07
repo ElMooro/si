@@ -79,7 +79,11 @@ class StrictTransport(unittest.TestCase):
   s=Storage({'data/good.json':raw(value),'data/bad.json':b'{"by_ticker":{"QAONLY":{"value":NaN}}}'})
   sources={k:{'key':'data/'+k+'.json','kind':'packet','context':None} for k in ('good','bad')};boto=types.ModuleType('boto3');boto.client=lambda *a,**k:s
   with patch.dict(sys.modules,{'boto3':boto,'ticker_360':hub}),patch.object(hub,'SOURCES',sources):
-   producer=load('strict_reader_producer',R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py');result=producer.lambda_handler({},None)
+   producer=load('strict_reader_producer',R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py')
+   # The legacy projection still has exactly its original reads/writes. The new
+   # publisher has independent complete-read and atomic-publication tests.
+   with patch.object(producer,'publish_network',return_value={'publication_id':'fixture','entity_count':1}) as network:
+    result=producer.lambda_handler({},None);network.assert_called_once_with(s,producer.BUCKET,context=None)
   self.assertTrue(result['ok']);self.assertEqual(len(s.writes),1);out=json.loads(s.writes[0]['Body']);self.assertEqual(out['tickers']['QAONLY']['domains']['good']['data'],{'value':0});self.assertEqual(set(out['tickers']['QAONLY']['domains']),{'good'});self.assertFalse(out['calls_eligible']);self.assertEqual(len(s.reads),2)
  def test_invalid_primary_and_valid_fallback_preserve_actual_origin_and_cache(self):
   value={'by_ticker':{'QAONLY':{'value':0}}};s=Storage({'data/primary.json':b'{"value":NaN}','data/fallback.json':raw(value)})
@@ -101,6 +105,7 @@ class PriorAssertions(unittest.TestCase):
   t=json.loads((D/'guard-test-transition.json').read_bytes());text=(D/'guard-test-before.py.txt').read_text(encoding='utf-8')
   self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),t['before_sha256'])
   for e in t['replacements']:self.assertEqual(text.count(e['before']),1);text=text.replace(e['before'],e['after'])
-  self.assertEqual(text,(R/t['path']).read_text(encoding='utf-8'));self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),t['after_sha256'])
+  from research_network_preservation import preceding_source
+  self.assertEqual(text,preceding_source(R/t['path']));self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),t['after_sha256'])
 
 if __name__=='__main__':unittest.main(verbosity=2)

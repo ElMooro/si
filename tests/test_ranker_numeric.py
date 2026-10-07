@@ -119,7 +119,11 @@ class Handler(unittest.TestCase):
                 self.assertEqual(writes,{})
                 raise
         self.assertEqual(result['statusCode'],200);self.assertEqual(events,[])
-        return writes[m.S3_KEY_OUT],writes[m.S3_KEY_OUT+'.prev'],reads
+        if not legacy:
+            # Suppressed runs now leave the existing checkpoint untouched; they
+            # cannot consume a transition that the live outbox still must emit.
+            self.assertNotIn(m.S3_KEY_OUT+'.prev',writes)
+        return writes[m.S3_KEY_OUT],writes.get(m.S3_KEY_OUT+'.prev',{'top_tickers':[]}),reads
     def test_whole_handler_preserves_valid_scores_overlays_rationale_and_order(self):
         idx={'QAONE':{'a':{'score':10}},'QATWO':{'compound':{'score':50,'n_systems':3}},'QAZERO':{'a':{'score':0}}}
         packets={'feeds':{'capital_flow':{'complexes':[{'pump_probability':80,'complex':'invented','ref_stocks':['QAONE']}]}},'data/accumulation-radar.json':{'tops':{'stocks':[{'ticker':'QAONE','flag':'LIKELY_TOP','divergence':'bearish'}]}},'data/beneish.json':{'red_flags':[{'ticker':'QAONE'}]}}

@@ -74,7 +74,9 @@ class Candidate(unittest.TestCase):
   sources={'short-interest':{'key':'guarded.json','context':'short_interest_context','kind':'packet'},'news-sentiment':{'key':'news.json','context':None,'kind':'packet'}}
   s3=Storage({'guarded.json':packet(),'news.json':packet()});boto=types.ModuleType('boto3');boto.client=lambda *a,**k:s3
   with patch.dict(sys.modules,{'boto3':boto,'ticker_360':hub}),patch.object(hub,'SOURCES',sources):
-   producer=load('candidate_producer',R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py');result=producer.lambda_handler({},None)
+   producer=load('candidate_producer',R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py')
+   with patch.object(producer,'publish_network',return_value={'publication_id':'fixture','entity_count':1}) as network:
+    result=producer.lambda_handler({},None);network.assert_called_once_with(s3,producer.BUCKET,context=None)
   self.assertTrue(result['ok']);self.assertEqual(len(s3.writes),1);published=json.loads(s3.writes[0]['Body']);row=published['tickers']['QAONLY'];self.assertEqual(row['coverage_count'],1);self.assertEqual(set(row['domains']),{'news-sentiment'});self.flags(published)
   data=row['domains']['news-sentiment'];self.flags(data);self.assertEqual(data['data'],packet()['by_ticker']['QAONLY']);self.assertEqual(data['as_of'],'2020-01-01');self.assertEqual(data['generated_at'],'2026-10-02T00:00:00Z')
   import ticker_coverage_context
@@ -86,6 +88,9 @@ class Preservation(unittest.TestCase):
   doc=json.loads((D/'transition.json').read_bytes())
   for kind,oldname in [('shared','shared-before.py.txt'),('producer','lambda-before.py.txt')]:
    t=doc[kind];raw=(R/t['path']).read_text(encoding='utf-8')
+   if kind=='producer':
+    from research_network_preservation import preceding_source
+    raw=preceding_source(t['path'],raw)
    if kind=='shared':
     from helpers.ticker_input_reader_preservation import normalize_shared
     raw=normalize_shared(raw)
@@ -99,6 +104,7 @@ class Preservation(unittest.TestCase):
   sources=release_package_evidence.shared_imports(R,[R/'aws/lambdas/justhodl-ticker-360/source/lambda_function.py'])
   contexts={v['context'] for v in hub.SOURCES.values() if v['context']}
   expected={'ticker_360','context_evidence_store'}|contexts
+  expected|={'research_network_store','research_network','research_network_registry','private_artifact','managed_secret'}
   self.assertEqual({p.stem for p in sources},expected);self.assertEqual(set(hub.CONTEXT_LOADERS),contexts)
  def test_existing_raw_inventory_and_per_ticker_selection_match_predecessor(self):
   for kind in ('packet','tkr'):

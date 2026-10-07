@@ -164,6 +164,8 @@ def run(context=None):
                        'scan_complete_in_this_run':not after and at_end,'request_budget':30,'provider_requests':request_count},
            'archive_checks':verifier.stats,'sizing_eligible':False,'promotion_eligible':False,
            'net_return_pct':None,'portfolio_pnl':None,'evidence_errors':errors}
+    from research_network_consumer import attach
+    attach(batch,s3,BUCKET,'prospective-evaluator')
     batch_ref=persist_once(s3,BUCKET,PREFIX+'evaluation-runs/'+digest(batch)+'.json',batch)
     publish_current(s3,BUCKET,SUMMARY,{**batch,'batch':batch_ref})
     publish_current(s3,BUCKET,STATE,{'generated_at':completed,'next_after':None if at_end else last,'batch':batch_ref})

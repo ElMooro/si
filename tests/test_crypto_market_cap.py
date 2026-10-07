@@ -112,7 +112,7 @@ class Consumers(unittest.TestCase):
         for p,rec in plan.items():
             raw=(D/('before/'+p+'.txt')).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),rec['predecessor_sha256']);s=raw.decode('utf-8')
             for a,b in rec['edits']:self.assertEqual(s.count(a),1);s=s.replace(a,b)
-            self.assertEqual(s,(R/p).read_text(encoding='utf-8'));self.assertEqual(hashlib.sha256(s.encode()).hexdigest(),rec['candidate_sha256'])
+            from research_network_preservation import preceding_source
+            self.assertEqual(s,preceding_source(R/p));self.assertEqual(hashlib.sha256(s.encode()).hexdigest(),rec['candidate_sha256'])
 
 if __name__=='__main__':unittest.main(verbosity=2)
-

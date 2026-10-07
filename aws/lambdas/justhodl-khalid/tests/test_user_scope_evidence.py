@@ -108,7 +108,8 @@ def test_scope_katlin_native_mcap_research_clock_and_conflicts():
 
 def test_scope_whole_output_and_legacy_qualification_byte_parity():
     import lambda_function as candidate
-    text=(SOURCE/'lambda_function.py').read_text();assert text.count(LINE)==1
+    from network_preservation import without_network
+    text=without_network((SOURCE/'lambda_function.py').read_text(encoding='utf-8'));assert text.count(LINE)==1
     original=text.replace(LINE,'')
     assert hashlib.sha256(original.encode()).hexdigest()=='9abcfd7c7afeebc26c3e7e0f3850933fd2a7ccca3a83ceadd7662d88a223507a'
     module=types.ModuleType('pre_scope');module.__file__=str(SOURCE/'lambda_function.py');exec(compile(original,module.__file__,'exec'),module.__dict__)

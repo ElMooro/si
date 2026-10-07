@@ -70,6 +70,9 @@ def test_scoring_every_preexisting_statement_and_decision_preserved():
 def test_full_handler_parity_only_additive_publication():
     import lambda_function as candidate
     text = (SOURCE / "lambda_function.py").read_text(encoding="utf-8")
+    network = '    from research_network_consumer import attach\n    attach(payload, S3, BUCKET, "khalid")\n'
+    assert text.count(network) == 1
+    text = text.replace(network, '')
     text = text.replace("from qualification import publish_qualification\n", "").replace("    publish_qualification(output, ranked)\n", "")
     text = text.replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n', "")
     text = text.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")

@@ -104,6 +104,8 @@ def test_full_output_decision_parity_against_preintegration_handler():
     baseline_text=baseline_text.replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n', "")
     baseline_text=baseline_text.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")
     import hashlib
+    from network_preservation import without_network
+    baseline_text=without_network(baseline_text)
     assert hashlib.sha256(baseline_text.encode()).hexdigest() == 'e399a30dcfbb4526317d88836539e15a2b0a574d5d1d4f4c14ea3cf8a71adc04'
     module=types.ModuleType('pre_provider_evidence');module.__file__=str(SOURCE/'lambda_function.py')
     exec(compile(baseline_text,module.__file__,'exec'),module.__dict__)

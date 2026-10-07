@@ -1002,6 +1002,8 @@ def lambda_handler(event=None, context=None):
                              "cheap; read the class. Playbook layer: Rule-of-40 (growth+FCF margin) on both layers; SBC%-of-rev with FCF-after-SBC (SBC>=15% docks quality); operating leverage (GP growth vs revenue growth, bonus when positive); capex pass-through soft-flag (growing + capex>30%rev + FCF<0 = AI-spender pattern); semi cycle inversion on 18 S&P semis (low P/E at own-history peak margins = PEAK-CYCLE trap note; depressed margins + high/neg P/E = TROUGH candidate); formula21 badge = strict cheap-AI screen (20%+ growth, 50%+ GM, P/S<5 (<8 if 40%+), FCF+, dilution<5%, chart>=6, no hard flags). UNDERLOOKED board: per-industry top-10 by underlooked score = smallness(20) + low-attention turnover dv/mcap(25) + fundamental strength growth+quality+survival(35) + value pillar(10) + basing chart -35..-5% off-hi(10); hard-flagged names excluded. Score>=75 with no hard flags logs "
                              "hp_score (UP, 63d) to the graded loop. Research, not advice.")}
     clean = json.loads(json.dumps(out, default=str), parse_constant=lambda c: None)
+    from research_network_consumer import attach
+    attach(clean, S3, BUCKET, "stock-valuations")
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(clean).encode(),
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[valuations] sp={len(sp_table)} hp={len(hp_out)} serious={len(serious)} "

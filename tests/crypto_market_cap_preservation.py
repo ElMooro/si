@@ -4,6 +4,8 @@ import hashlib,json
 R=Path(__file__).resolve().parents[1]
 def preceding_source(path):
  path=Path(path);p=path.relative_to(R).as_posix();raw=path.read_bytes();plans=json.loads((R/'tests/fixtures/crypto-market-cap/edits.json').read_bytes())
+ from research_network_preservation import preceding_source as before_network
+ raw=before_network(path).encode('utf-8')
  if p not in plans:
   # New sentiment consumers have a later complete predecessor, independently
   # checked before older unrelated-function assertions are applied.

@@ -320,6 +320,8 @@ def _run_private(event, context):
     payload['replay'] = retain_bundle(bundle)
     payload['alerts_sent'] = 0
     payload['notification_policy'] = 'No automatic messages from this research risk model'
+    from research_network_consumer import attach
+    attach(payload, s3, S3_BUCKET, 'portfolio-risk', positions=snapshot.get('positions'))
     publication = publish_risk(payload, attempt)
     # Invoke response contains no holdings, account balances or model values.
     return {'statusCode': 200, 'body': json.dumps({'success': publication['published'], 'schema_version': VERSION,

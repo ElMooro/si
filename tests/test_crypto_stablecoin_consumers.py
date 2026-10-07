@@ -24,7 +24,8 @@ def retained():
 class Consumers(unittest.TestCase):
  def test_financial_functions_and_unrelated_code_remain_complete(self):
   target='aws/lambdas/justhodl-financial-secretary/source/lambda_function.py'
-  before=ast.parse((R/'tests/fixtures/crypto-stablecoin-stocks/before'/(target+'.txt')).read_bytes());after=ast.parse((R/target).read_bytes())
+  from research_network_preservation import preceding_source
+  before=ast.parse((R/'tests/fixtures/crypto-stablecoin-stocks/before'/(target+'.txt')).read_bytes());after=ast.parse(preceding_source(R/target))
   def untouched(tree):return ast.dump(ast.Module(body=[n for n in tree.body if not isinstance(n,ast.FunctionDef) or n.name not in {'fetch_tier2','build_email_html'}],type_ignores=[]))
   self.assertEqual(untouched(before),untouched(after))
   self.assertEqual([n.name for n in before.body if isinstance(n,ast.FunctionDef)],[n.name for n in after.body if isinstance(n,ast.FunctionDef)])
@@ -57,7 +58,8 @@ class Consumers(unittest.TestCase):
   for path,plan in plans.items():
    raw=(fixture/'before'/(path+'.txt')).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),plan['predecessor_sha256']);text=raw.decode('utf-8')
    for old,new in plan['edits']:self.assertEqual(text.count(old),1,path);text=text.replace(old,new)
-   self.assertEqual(text.encode(),(R/path).read_bytes(),path);self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),plan['candidate_sha256'])
+   from research_network_preservation import preceding_source
+   self.assertEqual(text,preceding_source(R/path),path);self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),plan['candidate_sha256'])
  def test_financial_html_keeps_stock_count_separate_from_flow_and_handles_legacy(self):
   support=runpy.run_path(str(R/'aws/lambdas/justhodl-financial-secretary/tests/run_tests.py'))
   valid=model.context(retained()[0])

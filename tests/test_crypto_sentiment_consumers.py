@@ -83,7 +83,8 @@ class Consumers(unittest.TestCase):
   for path,plan in plans.items():
    raw=(fixture/'before'/(path+'.txt')).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),plan['predecessor_sha256']);text=raw.decode('utf-8')
    for old,new in plan['edits']:self.assertEqual(text.count(old),1,path);text=text.replace(old,new)
-   self.assertEqual(text.encode(),(R/path).read_bytes(),path);self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),plan['candidate_sha256'])
+   from research_network_preservation import preceding_source
+   self.assertEqual(text,preceding_source(R/path),path);self.assertEqual(hashlib.sha256(text.encode()).hexdigest(),plan['candidate_sha256'])
  def test_financial_html_uses_checked_context_instead_of_legacy_scalar(self):
   support=runpy.run_path(str(R/'aws/lambdas/justhodl-financial-secretary/tests/run_tests.py'))
   good=model.context(retained()[0])

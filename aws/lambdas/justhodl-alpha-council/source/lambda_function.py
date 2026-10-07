@@ -382,6 +382,8 @@ def lambda_handler(event=None, context=None):
            "note": ("the council logs its own calls as "
                     "eng:alpha-council -- it must earn its row "
                     "on the leaderboard like everyone else")}
+    from research_network_consumer import attach
+    attach(out, s3, B, "alpha-council")
     s3.put_object(Bucket=B, Key=OUT,
                   Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json",

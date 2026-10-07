@@ -172,6 +172,20 @@ def cap_within(shares, n):
     return s
 
 
+def position_identity(value):
+    """Pair legs may be provider objects; never stringify an object as a ticker."""
+    import re
+    row = value if isinstance(value, dict) else {"symbol": value}
+    symbol = row.get("symbol", row.get("ticker"))
+    if not isinstance(symbol, str):
+        return None
+    symbol = symbol.strip().upper()
+    if not re.fullmatch(r"[A-Z0-9][A-Z0-9.^:/-]{0,24}", symbol):
+        return None
+    return {"symbol": symbol, "name": row.get("name") or symbol,
+            "price": num(row.get("price"), None)}
+
+
 def extract_desk(desk_key, spec):
     """Pull a desk's raw positions: list of dicts with symbol/side/score.
 
@@ -190,20 +204,18 @@ def extract_desk(desk_key, spec):
             for r in rows:
                 if not isinstance(r, dict):
                     continue
-                lg = r.get(spec["long_field"])
-                sg = r.get(spec["short_field"])
+                lg = position_identity(r.get(spec["long_field"]))
+                sg = position_identity(r.get(spec["short_field"]))
                 sc = pos_score(r.get(spec["score"]))
                 sec = r.get(spec.get("sector")) or "Unknown"
                 if lg:
-                    out.append({"symbol": str(lg).upper().strip(),
-                                "name": str(lg).upper().strip(),
-                                "sector": sec, "price": None,
+                    out.append({**lg,
+                                "sector": sec,
                                 "side": 1, "raw_score": sc,
                                 "pair_leg": True})
                 if sg:
-                    out.append({"symbol": str(sg).upper().strip(),
-                                "name": str(sg).upper().strip(),
-                                "sector": sec, "price": None,
+                    out.append({**sg,
+                                "sector": sec,
                                 "side": -1, "raw_score": sc,
                                 "pair_leg": True})
             continue
@@ -217,9 +229,10 @@ def extract_desk(desk_key, spec):
         for r in items:
             if not isinstance(r, dict):
                 continue
-            sym = r.get(spec["sym"])
-            if not sym:
+            ident = position_identity(r.get(spec["sym"]))
+            if not ident:
                 continue
+            sym = ident['symbol']
             if mode == "DIRECTION":
                 d = str(r.get(spec.get("direction_field", "direction"),
                               "")).lower()
