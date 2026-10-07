@@ -179,5 +179,22 @@ class SourceGuardTests(unittest.TestCase):
                 m.release_guard(aws, aws)
 
 
+class DeclaredScheduleTests(unittest.TestCase):
+    def test_engine_config_preserves_established_cadence_without_resource_overrides(self):
+        config = json.loads((ROOT/'aws/lambdas/justhodl-master-ranker/config.json').read_text(encoding='utf-8'))
+        self.assertEqual(config, {'eventbridge_scheduler': m.SPEC})
+
+    def test_deploy_guard_accepts_established_schedule_and_rejects_drift(self):
+        from types import SimpleNamespace
+        from check_existing_schedule import check, ScheduleMismatch
+        config = json.loads((ROOT/'aws/lambdas/justhodl-master-ranker/config.json').read_text(encoding='utf-8'))
+        current = m.desired()
+        aws = SimpleNamespace(get_schedule=lambda **kw:copy.deepcopy(current))
+        self.assertEqual(check(config, m.ARN, None, aws)['bindings_checked'], ['scheduler_existing_binding'])
+        current['ScheduleExpressionTimezone'] = 'UTC'
+        with self.assertRaises(ScheduleMismatch):
+            check(config, m.ARN, None, aws)
+
+
 if __name__ == '__main__':
     unittest.main()
