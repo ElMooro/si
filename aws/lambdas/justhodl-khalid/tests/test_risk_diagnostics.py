@@ -53,7 +53,8 @@ def test_risk_diagnostics_strict_versions_sources_types_and_bounds():
 
 def test_risk_diagnostics_policy_and_entire_packet_parity():
     path=ROOT/'aws/lambdas/justhodl-khalid/source/lambda_function.py'
-    current=path.read_text();line='        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n'
+    from network_preservation import without_network
+    current=without_network(path.read_text(encoding='utf-8'));line='        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n'
     assert current.count(line)==1
     before=current.replace(line,'').replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', '')
     assert hashlib.sha256(before.encode()).hexdigest()=='08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798'
@@ -71,7 +72,8 @@ def test_risk_diagnostics_policy_and_entire_packet_parity():
 
 def test_numeric_diagnostics_never_suppress_base_publication():
     path=ROOT/'aws/lambdas/justhodl-khalid/source/lambda_function.py'
-    source=path.read_text().replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n','')
+    from network_preservation import without_network
+    source=without_network(path.read_text(encoding='utf-8')).replace('        "risk_authority_diagnostics": __import__("risk_diagnostics").project(risk_artifact),\n','')
     source=source.replace('    output["user_scope_evidence"] = __import__("user_scope_evidence").project(output, active_feeds)\n', "")
     assert hashlib.sha256(source.encode()).hexdigest()=='08ded7620ccfa5842113a57b481a515c021b47e4d50e00ee6bca7c2745f8b798'
     fn=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='build_output')

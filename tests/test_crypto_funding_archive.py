@@ -143,7 +143,8 @@ class Publication(unittest.TestCase):
   for path,plan in plans.items():
    raw=(d/('before/'+path+'.txt')).read_bytes();self.assertEqual(A['sha'](raw),plan['predecessor_sha256']);text=raw.decode('utf-8')
    for before,after in plan['edits']:self.assertEqual(text.count(before),1,path);text=text.replace(before,after)
-   self.assertEqual(text.encode(),(R/path).read_bytes(),path);self.assertEqual(A['sha'](text.encode()),plan['candidate_sha256'])
+   from research_network_preservation import preceding_source
+   self.assertEqual(text,preceding_source(R/path),path);self.assertEqual(A['sha'](text.encode()),plan['candidate_sha256'])
  def test_handler_passes_its_deadline_to_funding_collector(self):
   import ast
   tree=ast.parse((R/'aws/lambdas/justhodl-crypto-intel/source/lambda_function.py').read_text(encoding='utf-8'))
@@ -151,5 +152,4 @@ class Publication(unittest.TestCase):
   self.assertEqual(len(calls),1);self.assertEqual(len(calls[0].args),2);self.assertEqual(calls[0].args[1].id,'context')
 
 if __name__=='__main__':unittest.main(verbosity=2)
-
 

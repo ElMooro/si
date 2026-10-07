@@ -160,6 +160,8 @@ def validate_record(record):
 def register(client, bucket, source_projection, protocol_ref, collector_sha256, now=None):
     now = now or datetime.now(timezone.utc)
     if source_projection['eligibility_reasons']: return []
+    from research_network_prospective import registration_context, retain_context
+    network_context = registration_context(client, bucket, now)
     source = {k: source_projection[k] for k in ('source_key', 'source_bytes_sha256', 'source_generated_at',
                                                'source_received_at', 'quality_status', 'scope')}
     refs = []
@@ -185,7 +187,10 @@ def register(client, bucket, source_projection, protocol_ref, collector_sha256, 
             previous = validate_record(json.loads(obj['Body'].read()))
             if previous['forecast_id'] != fid: raise ValueError('existing forecast identity mismatch') from exc
             record, created = previous, False
+        network_ref = (retain_context(client, bucket, record, network_context, PREFIX) if created
+                       else {'status': 'existing_forecast_not_backfilled'})
         refs.append({'forecast_id': fid, 'key': key, 'sha256': digest(record), 'created': created,
+                     'research_context': network_ref,
                      'registered_at': record['registered_at'], 'symbol': observed['instrument']['symbol'],
                      'direction': observed['direction'], 'source_key': source['source_key']})
     return refs

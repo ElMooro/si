@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import boto3
 from risk_engine import age_hours, build_output, validate_output
+from research_network_consumer import attach
 
 BUCKET=os.environ.get("S3_BUCKET","justhodl-dashboard-live")
 OUT_KEY="data/khalid-risk.json"
@@ -47,5 +48,6 @@ def lambda_handler(event=None,context=None):
     validate_output(output)
     if validation_only:
         return {"statusCode":200,"body":json.dumps({"ok":True,"validation_only":True,"schema_version":output["schema_version"],"status":output["status"],"artifact_size_bytes":len(json.dumps(output,separators=(",",":"),allow_nan=False).encode())})}
+    attach(output,S3,BUCKET,"khalid-risk")
     _write(output)
     return {"statusCode":200,"body":json.dumps({"ok":True,"output":OUT_KEY,"status":output["status"],"mode":output["policy"]["mode"],"capital_decision":output["capital_decision"],"exposure_cap_pct":output["exposure_cap_pct"]})}

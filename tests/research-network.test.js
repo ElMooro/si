@@ -1,0 +1,7 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {validate,sourceURL,matches}=require('../jh-research-network.js');
+const pub='a'.repeat(64);
+function fixture(){return {contract:'research-network.v1',access:'PUBLIC_RESEARCH',publication_id:pub,snapshot_key:`data/research-network/publications/${pub}/manifest.json`,calls_eligible:false,forecast_qualified:false,sizing_eligible:false,execution_eligible:false,promotion_eligible:false,independent_investment_votes:0,entity_states:{'crypto:BTC':{symbol:'BTC'},'listed_security:BTC':{symbol:'BTC'},'listed_security:BRK.B':{symbol:'BRK.B'}}};}
+test('research qualification is strict',()=>{assert.equal(validate(fixture()).publication_id,pub);for(const value of [true,0,'false',null]){const d=fixture();d.sizing_eligible=value;assert.throws(()=>validate(d));}});
+test('only exact public network archive references are allowed',()=>{assert.ok(sourceURL(fixture().snapshot_key));for(const path of ['portfolio/snapshot.json','data/brain.json','https://evil.invalid','data/research-network/../brain.json','data/research-network/publications/'+pub+'/../../brain.json'])assert.equal(sourceURL(path),null);});
+test('same symbol in separate scopes is an explicit choice, share classes preserved',()=>{assert.equal(matches(fixture(),'btc').length,2);assert.deepEqual(matches(fixture(),'BRK-B'),[]);assert.deepEqual(matches(fixture(),'BRK.B'),['listed_security:BRK.B']);});

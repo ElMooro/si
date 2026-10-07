@@ -4,6 +4,8 @@ import hashlib,json
 R=Path(__file__).resolve().parents[1]
 D=R/'tests/fixtures/ranker-numeric'
 def prior_source(source):
+    from research_network_preservation import preceding_source
+    source=preceding_source('aws/lambdas/justhodl-master-ranker/source/lambda_function.py',source)
     transition=json.loads((D/'transition.json').read_bytes())
     assert hashlib.sha256(source.encode()).hexdigest()==transition['after_sha256']
     for change in reversed(transition['changes']):

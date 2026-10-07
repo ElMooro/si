@@ -6,6 +6,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 import boto3
 from fusion_engine import build_output,validate_output
+from research_network_consumer import attach
 
 BUCKET=os.environ.get("S3_BUCKET","justhodl-dashboard-live")
 OUT_KEY="data/engine-fusion.json"
@@ -24,5 +25,6 @@ def lambda_handler(event=None,context=None):
     for spec in REGISTRY["sources"]: feeds[spec["id"]],metas[spec["id"]]=_read(spec["artifact"])
     output=build_output(REGISTRY,SUBSCRIPTIONS,POLICY,SCHEMA,feeds,metas,datetime.now(timezone.utc)); validate_output(output,SCHEMA)
     if validation_only: return {"statusCode":200,"body":json.dumps({"ok":True,"validation_only":True,"schema_version":output["schema_version"],"status":output["status"],"active_packets":len(output["packets"]),"artifact_size_bytes":len(json.dumps(output,separators=(",",":"),allow_nan=False).encode())})}
+    attach(output,S3,BUCKET,"engine-fusion")
     S3.put_object(Bucket=BUCKET,Key=OUT_KEY,Body=json.dumps(output,separators=(",",":"),allow_nan=False).encode(),ContentType="application/json",CacheControl="public,max-age=60")
     return {"statusCode":200,"body":json.dumps({"ok":True,"output":OUT_KEY,"status":output["status"],"active_packets":len(output["packets"]),"disagreements":len(output["disagreements"]),"vetoes":len(output["vetoes"])})}

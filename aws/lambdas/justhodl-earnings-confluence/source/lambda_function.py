@@ -148,6 +148,8 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         print(f"[loop] {str(e)[:80]}")
 
+    from research_network_consumer import attach
+    attach(out, S3, BUCKET, "earnings-confluence")
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(out, default=str).encode(),
                   ContentType="application/json", CacheControl="public, max-age=3600")
     print(f"[earnings-confluence] bull_any={len(bull)} bull_multi={len(multi_bull)} "

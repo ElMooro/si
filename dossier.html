@@ -26,7 +26,7 @@ button,.lnk{background:var(--cy);color:#04121f;border:0;font:600 13px -apple-sys
 .ma{display:flex;gap:6px}.ma span{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:6px;border:1px solid var(--line)}
 .note{color:var(--fg3);font-size:10.5px;margin-top:7px;line-height:1.45}
 .load{color:var(--fg3);font-family:var(--mono);padding:30px;text-align:center}
-</style></head><body><div class="wrap">
+</style><link rel="stylesheet" href="/jh-research-network.css"></head><body><div class="wrap">
 <h1>🩻 STOCK X-RAY — THE INSTITUTIONAL DOSSIER</h1>
 <div class="sub" id="meta">Loading X-Ray card map…</div>
 <div class="srch">
@@ -37,6 +37,8 @@ button,.lnk{background:var(--cy);color:#04121f;border:0;font:600 13px -apple-sys
 </div>
 <div class="strip" id="boards"></div>
 <div id="app" class="load">Type a ticker and hit X-RAY.</div>
+<section id="research-network" aria-label="Connected research dossier"></section>
+<script src="/jh-research-network.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
 const F=v=>(v===null||v===undefined||v==='')?'—':v;
@@ -59,6 +61,7 @@ function pick(t){if(!t)return;document.getElementById('tk').value=t;show()}
 function legFind(doc,t){if(!doc)return null;const w=(n,d)=>{if(d>4||!n)return null;if(Array.isArray(n)){for(const x of n){const r=w(x,d+1);if(r)return r}}else if(typeof n==='object'){if((n.ticker===t||n.symbol===t))return n;if(n[t]&&typeof n[t]==='object')return n[t];for(const v of Object.values(n)){const r=w(v,d+1);if(r)return r}}return null};return w(doc,0)}
 function show(){
  const t=(document.getElementById('tk').value||'').toUpperCase().trim();
+ window.dispatchEvent(new CustomEvent('jh:dossier-symbol',{detail:t}));
  document.getElementById('cp').href='/chart-pro.html?symbol='+t;
  const app=document.getElementById('app');
  const c=(X&&X.cards||{})[t];

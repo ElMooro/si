@@ -1647,6 +1647,8 @@ def lambda_handler(event=None, context=None):
     out['capital_flow_exclusion'] = capital_context(_cf)
     # A retired join is unavailable, not a measured count of zero activity.
     out['join_hits']['capital_flow'] = None
+    from research_network_consumer import attach
+    attach(out, S3, BUCKET, "industry-rotation")
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY,
                   Body=json.dumps(out, separators=(",", ":")).encode(),
                   ContentType="application/json",

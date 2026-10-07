@@ -1472,6 +1472,8 @@ def run_full_scan():
             "news": "real-time (NewsAPI)",
         },
     }
+    from research_network_consumer import attach
+    attach(scan, s3, BUCKET, "financial-secretary")
     s3.put_object(Bucket=BUCKET, Key="data/secretary-latest.json",
                   Body=json.dumps(scan, default=str),
                   ContentType="application/json", CacheControl="max-age=300")

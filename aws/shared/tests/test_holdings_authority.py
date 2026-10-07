@@ -96,11 +96,23 @@ class Tests(unittest.TestCase):
         source = (ROOT/'aws/lambdas/justhodl-master-ranker/source/lambda_function.py').read_text(encoding='utf-8')
         tree = ast.parse(source)
         node = next(n for n in ast.walk(tree) if isinstance(n, ast.If) and 'suppress_events' in ast.unparse(n.test))
-        for event, expected in (({}, 2), ({'suppress_events': True}, 0), ({'suppress_events': False}, 2)):
-            calls = []; scope = {'event': event, 'tier_events': list(range(11)), 'publish_many': calls.append, 'emitted_tier_events': 0}
+        from event_outbox import advance
+        for event, expected in (({}, 1), ({'suppress_events': True}, 0), ({'suppress_events': False}, 1)):
+            calls = []; writes = []
+            def publish(events):
+                calls.append(events)
+                return {'results': [{'index':i,'ok':True} for i in range(len(events))]}
+            client=types.SimpleNamespace(put_object=lambda **kw: writes.append(kw) or {'ETag':'fixture'})
+            scope = {'event': event, 'tier_events': [('test', {'ticker':str(i)}) for i in range(11)],
+                     'publish_many': publish, 'advance':advance, 'S3':client, 'BUCKET':'fixture',
+                     'S3_KEY_OUT':'data/fixture.json', 'state':{}, 'state_etag':None,
+                     'payload':{'as_of':'2026-10-07T17:00:00Z'}, 'top_tickers':[]}
             exec(compile(ast.Module(body=[node], type_ignores=[]), '<actual event boundary>', 'exec'), scope)
             self.assertEqual(len(calls), expected)
-            self.assertEqual(scope['emitted_tier_events'], 0 if not expected else 11)
+            self.assertEqual(len(writes), 0 if not expected else 2)
+            if expected:
+                self.assertEqual(len(calls[0]),11)
+                self.assertEqual(json.loads(writes[-1]['Body'])['pending'],[])
 
 
 if __name__ == '__main__': unittest.main()

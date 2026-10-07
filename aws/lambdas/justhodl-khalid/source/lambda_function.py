@@ -1125,6 +1125,8 @@ def build_output(
 
 
 def _write(key: str, payload: dict) -> None:
+    from research_network_consumer import attach
+    attach(payload, S3, BUCKET, "khalid")
     S3.put_object(
         Bucket=BUCKET,
         Key=key,

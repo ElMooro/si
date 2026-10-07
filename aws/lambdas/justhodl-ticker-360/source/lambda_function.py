@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 import boto3
 
 import ticker_360
+from research_network_store import publish_network
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/ticker-360.json"
@@ -114,5 +115,10 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=body.encode(),
                   ContentType="application/json",
                   CacheControl="max-age=300")
+    # Keep the legacy index available if the richer publication fails. Its own
+    # immutable shards and conditional pointer prevent a partial network view.
+    network = publish_network(s3, BUCKET, context=context)
     return {"ok": True, "out": OUT_KEY, "universe": len(tickers),
-            "indexed": len(indexed), "bytes": len(body)}
+            "indexed": len(indexed), "bytes": len(body),
+            "research_publication_id": network["publication_id"],
+            "research_entities": network["entity_count"]}

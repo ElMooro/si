@@ -166,6 +166,9 @@ def lambda_handler(event=None, context=None):
     result["reliability_basis"]["per_engine"] = rel["basis"]
     result["reliability_basis"]["n_correlation_engines"] = len(corr or {})
     result["version"] = VERSION
+    from research_network_consumer import attach
+    # Separate contextual review from run_fusion and all capital decisions.
+    attach(result, s3.s3, s3.bucket, "jh-fusion")
     # phase 51 -- shadow comparison + graded ledger (fusion never feeds sizing; the truth layer grades it instead)
     conviction, _ = s3.get_json(CONVICTION_KEY)
     shadow = shadow_comparison(result, snapshot, conviction_doc=conviction, now=now)

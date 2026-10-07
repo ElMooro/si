@@ -374,6 +374,8 @@ def lambda_handler(event, context):
                       "fx_data_stale": oldest > 10},
         "errors": errors,
     }
+    from research_network_consumer import attach
+    attach(out, s3, S3_BUCKET, "fx-intelligence")
     body = json.dumps(out, default=str).encode()
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=body,
                   ContentType="application/json",

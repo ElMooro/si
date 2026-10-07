@@ -1612,6 +1612,8 @@ def lambda_handler(event, context):
     }
 
     payload["wl_research"] = __import__("wl_fusion").block(("CREDIT",))
+    from research_network_consumer import attach
+    attach(payload, S3, BUCKET, "master-ranker")
     body_bytes = json.dumps(payload, indent=2, default=str, allow_nan=False).encode("utf-8")
     S3.put_object(
         Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,
@@ -1629,14 +1631,11 @@ def lambda_handler(event, context):
     # independent systems agree).
     try:
         # Read previous run's ranked tickers to detect new tier crossings
-        prev_tier = {}
-        try:
-            prev_obj = S3.get_object(Bucket=BUCKET, Key=S3_KEY_OUT + ".prev")
-            prev_data = json.loads(prev_obj["Body"].read().decode("utf-8"))
-            for t in prev_data.get("top_tickers", []) or []:
-                prev_tier[t.get("ticker")] = t.get("n_systems", 0)
-        except Exception:
-            pass
+        from event_outbox import read_state, advance
+        state, state_etag = read_state(S3, BUCKET, S3_KEY_OUT + ".prev")
+        prev_data = state.get("checkpoint", state)  # migrate the existing checkpoint
+        prev_tier = {t.get("ticker"): t.get("n_systems", 0)
+                     for t in prev_data.get("top_tickers", []) or []}
         
         from system_events import publish_many
         tier_events = []
@@ -1663,27 +1662,16 @@ def lambda_handler(event, context):
                     "score":     t.get("score"),
                 }))
         
-        # Publish in 10-entry batches per EventBridge limit
-        emitted_tier_events = 0
+        # Persist the checkpoint AND pending events before publication. Suppressed
+        # validation runs must not consume transitions or retry the live outbox.
         if not (isinstance(event, dict) and event.get("suppress_events") is True):
-            for i in range(0, len(tier_events), 10):
-                publish_many(tier_events[i:i+10])
-                emitted_tier_events += len(tier_events[i:i+10])
-        
-        # Persist current state for next run's comparison
-        S3.put_object(
-            Bucket=BUCKET, Key=S3_KEY_OUT + ".prev",
-            Body=json.dumps({
-                "as_of":   payload["as_of"],
-                "top_tickers": [
-                    {"ticker": t.get("ticker"), "n_systems": t.get("n_systems")}
-                    for t in top_tickers
-                ],
-            }, default=str).encode("utf-8"),
-            ContentType="application/json",
-        )
-        if emitted_tier_events:
-            print(f"[master-ranker] emitted {emitted_tier_events} tier-up events")
+            delivery = advance(S3, BUCKET, S3_KEY_OUT + ".prev", state, state_etag,
+                               {"as_of": payload["as_of"], "top_tickers": [
+                                   {"ticker": t.get("ticker"), "n_systems": t.get("n_systems")}
+                                   for t in top_tickers]},
+                               [(name, detail, "master-ranker") for name, detail in tier_events],
+                               publish_many)
+            print(f"[master-ranker] event acceptance: {delivery}")
     except Exception as e:
         print(f"[master-ranker] event publish failed: {e}")
 
