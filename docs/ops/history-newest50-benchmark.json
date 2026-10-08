@@ -1,0 +1,1208 @@
+{
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "samples": 9,
+  "scope": "Complete _build_history_index including scan loop, aggregation, finalization and JSON serialization; fake zero-latency scan/S3, fixed wall clock. Compilation, fixture inputs and recording overhead excluded. Timestamp strings remain owned by prebuilt inputs; allocation peaks conservatively measure retained pointers/sort workspace, not freed string bodies, RSS or Lambda memory. Scales/orders are synthetic; actual counts/order and AWS duration/billing unmeasured.",
+  "results": [
+    {
+      "snapshots": 50,
+      "feeds": 1,
+      "order": "ascending",
+      "pages": 1,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.10096,
+          0.093644,
+          0.093326,
+          0.094327,
+          0.097053,
+          0.096482,
+          0.094458,
+          0.27105,
+          0.095077
+        ],
+        "heap": [
+          0.109581,
+          0.099319,
+          0.099693,
+          0.211735,
+          0.098931,
+          0.10106,
+          0.102739,
+          0.104203,
+          0.106051
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.095077,
+        "heap": 0.102739
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          4450,
+          4450,
+          4450
+        ],
+        "heap": [
+          4866,
+          4866,
+          4866
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 4450,
+        "heap": 4866
+      }
+    },
+    {
+      "snapshots": 50,
+      "feeds": 1,
+      "order": "descending",
+      "pages": 1,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.099971,
+          0.18138,
+          0.102787,
+          0.708414,
+          0.100558,
+          0.100269,
+          0.14183,
+          0.097148,
+          0.097811
+        ],
+        "heap": [
+          0.108119,
+          0.110223,
+          0.111626,
+          0.11084,
+          0.122708,
+          0.219363,
+          0.109718,
+          0.110782,
+          0.108257
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.100558,
+        "heap": 0.110782
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          4450,
+          4450,
+          4450
+        ],
+        "heap": [
+          4866,
+          4866,
+          4866
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 4450,
+        "heap": 4866
+      }
+    },
+    {
+      "snapshots": 50,
+      "feeds": 1,
+      "order": "shuffle",
+      "pages": 1,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.104652,
+          0.106634,
+          0.103541,
+          0.18179,
+          0.103473,
+          0.103516,
+          0.100784,
+          0.105654,
+          0.101785
+        ],
+        "heap": [
+          0.213056,
+          0.108686,
+          0.113014,
+          0.111881,
+          0.109864,
+          0.198559,
+          0.132526,
+          0.110531,
+          0.199648
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.103541,
+        "heap": 0.113014
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          4450,
+          4450,
+          4450
+        ],
+        "heap": [
+          4866,
+          4866,
+          4866
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 4450,
+        "heap": 4866
+      }
+    },
+    {
+      "snapshots": 50,
+      "feeds": 1,
+      "order": "ties",
+      "pages": 1,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.104796,
+          0.104126,
+          0.102225,
+          0.101373,
+          0.104869,
+          0.101253,
+          0.104394,
+          0.104835,
+          0.105468
+        ],
+        "heap": [
+          0.110923,
+          0.11356,
+          0.111925,
+          0.108886,
+          0.112374,
+          0.113236,
+          0.112381,
+          0.11406,
+          0.140141
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.104394,
+        "heap": 0.112381
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          4450,
+          4450,
+          4450
+        ],
+        "heap": [
+          4866,
+          4866,
+          4866
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 4450,
+        "heap": 4866
+      }
+    },
+    {
+      "snapshots": 500,
+      "feeds": 1,
+      "order": "ascending",
+      "pages": 10,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.458768,
+          0.382182,
+          0.416812,
+          0.382229,
+          0.387164,
+          0.390988,
+          0.481251,
+          0.503836,
+          0.421074
+        ],
+        "heap": [
+          0.48254,
+          0.522246,
+          0.478525,
+          0.485677,
+          0.483026,
+          0.526781,
+          0.503175,
+          0.558178,
+          0.482858
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.416812,
+        "heap": 0.485677
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          5336,
+          5336,
+          5336
+        ],
+        "heap": [
+          5058,
+          5058,
+          5058
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 5336,
+        "heap": 5058
+      }
+    },
+    {
+      "snapshots": 500,
+      "feeds": 1,
+      "order": "descending",
+      "pages": 10,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.376329,
+          0.377053,
+          0.457991,
+          0.451475,
+          0.823467,
+          0.471089,
+          0.409575,
+          0.366219,
+          0.411431
+        ],
+        "heap": [
+          0.459743,
+          0.440167,
+          0.439391,
+          0.447777,
+          0.407545,
+          0.405264,
+          0.401623,
+          0.429986,
+          0.408245
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.411431,
+        "heap": 0.429986
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          5336,
+          5336,
+          5336
+        ],
+        "heap": [
+          5058,
+          5058,
+          5058
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 5336,
+        "heap": 5058
+      }
+    },
+    {
+      "snapshots": 500,
+      "feeds": 1,
+      "order": "shuffle",
+      "pages": 10,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.507019,
+          0.611091,
+          0.929397,
+          0.57556,
+          0.543971,
+          0.495793,
+          0.514325,
+          0.642991,
+          0.546749
+        ],
+        "heap": [
+          0.485841,
+          0.484404,
+          0.515273,
+          0.516212,
+          0.636184,
+          0.561196,
+          0.472863,
+          0.527432,
+          0.47999
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.546749,
+        "heap": 0.515273
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          5336,
+          5336,
+          5336
+        ],
+        "heap": [
+          5058,
+          5058,
+          5058
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 5336,
+        "heap": 5058
+      }
+    },
+    {
+      "snapshots": 500,
+      "feeds": 1,
+      "order": "ties",
+      "pages": 10,
+      "cpu_ms_samples": {
+        "predecessor": [
+          0.72317,
+          0.449703,
+          0.591818,
+          0.444858,
+          0.585586,
+          1.051081,
+          0.506862,
+          0.460461,
+          0.585126
+        ],
+        "heap": [
+          0.779536,
+          0.470107,
+          0.432933,
+          2.637775,
+          0.434015,
+          0.471463,
+          0.592275,
+          0.427329,
+          0.460547
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 0.585126,
+        "heap": 0.470107
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          5336,
+          5336,
+          5336
+        ],
+        "heap": [
+          5056,
+          5056,
+          5056
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 5336,
+        "heap": 5056
+      }
+    },
+    {
+      "snapshots": 5000,
+      "feeds": 1,
+      "order": "ascending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          3.712753,
+          3.853825,
+          3.924352,
+          3.7749,
+          3.639152,
+          3.754133,
+          4.662745,
+          4.063816,
+          3.343311
+        ],
+        "heap": [
+          7.351273,
+          7.402383,
+          4.186605,
+          4.641786,
+          4.724484,
+          4.901215,
+          5.399621,
+          4.626361,
+          4.802032
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 3.7749,
+        "heap": 4.802032
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          43000,
+          43000,
+          43000
+        ],
+        "heap": [
+          5066,
+          5066,
+          5066
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 43000,
+        "heap": 5066
+      }
+    },
+    {
+      "snapshots": 5000,
+      "feeds": 1,
+      "order": "descending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          3.131345,
+          4.032548,
+          3.378139,
+          3.186675,
+          3.40719,
+          4.115478,
+          3.73579,
+          2.950598,
+          3.091307
+        ],
+        "heap": [
+          3.216052,
+          3.657527,
+          3.506201,
+          3.41529,
+          3.559182,
+          3.368198,
+          6.455239,
+          3.790477,
+          3.783564
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 3.378139,
+        "heap": 3.559182
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          43000,
+          43000,
+          43000
+        ],
+        "heap": [
+          5066,
+          5066,
+          5066
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 43000,
+        "heap": 5066
+      }
+    },
+    {
+      "snapshots": 5000,
+      "feeds": 1,
+      "order": "shuffle",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          5.212105,
+          4.998262,
+          5.178675,
+          5.943947,
+          5.099568,
+          4.991039,
+          5.120576,
+          5.699674,
+          4.891648
+        ],
+        "heap": [
+          4.551058,
+          4.389695,
+          4.375426,
+          6.943858,
+          4.974611,
+          4.678289,
+          4.493967,
+          4.424312,
+          4.281681
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 5.120576,
+        "heap": 4.493967
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          62440,
+          62440,
+          62440
+        ],
+        "heap": [
+          5066,
+          5066,
+          5066
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 62440,
+        "heap": 5066
+      }
+    },
+    {
+      "snapshots": 5000,
+      "feeds": 1,
+      "order": "ties",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          3.622971,
+          3.497051,
+          4.383291,
+          3.514827,
+          3.481299,
+          3.27513,
+          3.407732,
+          3.307342,
+          4.753114
+        ],
+        "heap": [
+          3.414866,
+          3.373647,
+          4.162808,
+          3.193159,
+          3.284275,
+          3.567082,
+          3.32205,
+          4.717271,
+          3.537589
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 3.497051,
+        "heap": 3.414866
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          60640,
+          60640,
+          60640
+        ],
+        "heap": [
+          5062,
+          5062,
+          5062
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 60640,
+        "heap": 5062
+      }
+    },
+    {
+      "snapshots": 50000,
+      "feeds": 1,
+      "order": "ascending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          32.625613,
+          33.808884,
+          31.693814,
+          39.980211,
+          33.018837,
+          31.2575,
+          31.074472,
+          31.667455,
+          35.191232
+        ],
+        "heap": [
+          41.367884,
+          44.500061,
+          41.242101,
+          43.347187,
+          43.880541,
+          41.33406,
+          42.500938,
+          44.244637,
+          45.86922
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 32.625613,
+        "heap": 43.347187
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          445496,
+          445496,
+          445496
+        ],
+        "heap": [
+          5072,
+          5072,
+          5072
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 445496,
+        "heap": 5072
+      }
+    },
+    {
+      "snapshots": 50000,
+      "feeds": 1,
+      "order": "descending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          30.527917,
+          31.006279,
+          30.508122,
+          34.363102,
+          29.29211,
+          31.317962,
+          34.06888,
+          31.022743,
+          30.05903
+        ],
+        "heap": [
+          31.874232,
+          32.699849,
+          37.828517,
+          36.062914,
+          31.870619,
+          32.785612,
+          36.40102,
+          36.426792,
+          35.096815
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 31.006279,
+        "heap": 35.096815
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          445496,
+          445496,
+          445496
+        ],
+        "heap": [
+          5072,
+          5072,
+          5072
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 445496,
+        "heap": 5072
+      }
+    },
+    {
+      "snapshots": 50000,
+      "feeds": 1,
+      "order": "shuffle",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          64.469412,
+          72.635579,
+          68.388816,
+          76.968069,
+          72.119481,
+          74.647626,
+          66.905468,
+          70.602623,
+          77.032612
+        ],
+        "heap": [
+          60.293028,
+          55.554519,
+          57.146217,
+          58.37659,
+          55.203994,
+          59.010338,
+          57.422752,
+          57.681076,
+          58.357692
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 72.119481,
+        "heap": 57.681076
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          644984,
+          644984,
+          644984
+        ],
+        "heap": [
+          5072,
+          5072,
+          5072
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 644984,
+        "heap": 5072
+      }
+    },
+    {
+      "snapshots": 50000,
+      "feeds": 1,
+      "order": "ties",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          34.12435,
+          36.63833,
+          35.562905,
+          32.051099,
+          37.419807,
+          35.365467,
+          35.88074,
+          35.529823,
+          33.422894
+        ],
+        "heap": [
+          39.688125,
+          33.632887,
+          35.353368,
+          37.705524,
+          41.286591,
+          36.144626,
+          33.08431,
+          38.141945,
+          32.679261
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 35.529823,
+        "heap": 36.144626
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          626840,
+          626840,
+          626840
+        ],
+        "heap": [
+          5066,
+          5066,
+          5066
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 626840,
+        "heap": 5066
+      }
+    },
+    {
+      "snapshots": 200000,
+      "feeds": 1,
+      "order": "ascending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          171.049218,
+          157.908396,
+          164.502202,
+          164.971144,
+          156.010496,
+          157.995715,
+          164.915166,
+          151.746784,
+          168.766096
+        ],
+        "heap": [
+          202.526858,
+          191.397898,
+          191.576644,
+          199.407026,
+          194.63589,
+          201.214802,
+          199.977186,
+          194.80865,
+          193.802976
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 164.502202,
+        "heap": 194.80865
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          1625176,
+          1625176,
+          1625176
+        ],
+        "heap": [
+          5078,
+          5078,
+          5078
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 1625176,
+        "heap": 5078
+      }
+    },
+    {
+      "snapshots": 200000,
+      "feeds": 1,
+      "order": "descending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          192.264155,
+          178.29689,
+          168.084223,
+          175.093363,
+          171.046921,
+          175.929074,
+          182.658745,
+          203.72778,
+          187.711459
+        ],
+        "heap": [
+          189.658311,
+          201.644332,
+          175.173884,
+          195.072125,
+          180.367241,
+          188.784932,
+          201.60062,
+          174.90523,
+          188.317849
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 178.29689,
+        "heap": 188.784932
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          1625176,
+          1625176,
+          1625176
+        ],
+        "heap": [
+          5078,
+          5078,
+          5078
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 1625176,
+        "heap": 5078
+      }
+    },
+    {
+      "snapshots": 200000,
+      "feeds": 1,
+      "order": "shuffle",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          461.682379,
+          430.097567,
+          427.834609,
+          443.708491,
+          440.361913,
+          423.444771,
+          470.380537,
+          459.273476,
+          506.620052
+        ],
+        "heap": [
+          349.147121,
+          354.819646,
+          373.794747,
+          439.761593,
+          452.017578,
+          415.235415,
+          361.391817,
+          364.116667,
+          434.824897
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 443.708491,
+        "heap": 373.794747
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          2424680,
+          2424680,
+          2424680
+        ],
+        "heap": [
+          5078,
+          5078,
+          5078
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 2424680,
+        "heap": 5078
+      }
+    },
+    {
+      "snapshots": 200000,
+      "feeds": 1,
+      "order": "ties",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          170.646148,
+          206.956717,
+          191.023249,
+          177.37821,
+          180.464482,
+          182.579461,
+          193.570608,
+          184.439168,
+          171.093483
+        ],
+        "heap": [
+          171.588327,
+          191.557745,
+          184.6739,
+          182.86994,
+          162.985511,
+          171.085315,
+          157.833154,
+          161.817068,
+          183.370514
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 182.579461,
+        "heap": 171.588327
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          2351984,
+          2351984,
+          2351984
+        ],
+        "heap": [
+          5070,
+          5070,
+          5070
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 2351984,
+        "heap": 5070
+      }
+    },
+    {
+      "snapshots": 45000,
+      "feeds": 45,
+      "order": "ascending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          28.623391,
+          29.186993,
+          31.877759,
+          30.839894,
+          29.173508,
+          31.858728,
+          32.522045,
+          28.498207,
+          31.462544
+        ],
+        "heap": [
+          40.074084,
+          38.460365,
+          37.924248,
+          36.982768,
+          43.340806,
+          44.522532,
+          38.263261,
+          37.36653,
+          38.936901
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 30.839894,
+        "heap": 38.460365
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          411459,
+          411907,
+          411907
+        ],
+        "heap": [
+          160767,
+          161279,
+          161279
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 411907,
+        "heap": 161279
+      }
+    },
+    {
+      "snapshots": 45000,
+      "feeds": 45,
+      "order": "descending",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          36.874901,
+          44.727641,
+          35.168971,
+          39.232825,
+          34.623259,
+          40.202372,
+          52.757853,
+          43.656545,
+          36.753589
+        ],
+        "heap": [
+          39.673023,
+          43.077178,
+          37.015512,
+          40.821787,
+          42.903214,
+          40.672132,
+          40.389076,
+          38.002569,
+          36.721087
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 39.232825,
+        "heap": 40.389076
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          411459,
+          411459,
+          411907
+        ],
+        "heap": [
+          160767,
+          160767,
+          161279
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 411459,
+        "heap": 160767
+      }
+    },
+    {
+      "snapshots": 45000,
+      "feeds": 45,
+      "order": "shuffle",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          78.039136,
+          81.018548,
+          84.036142,
+          84.087049,
+          80.866897,
+          83.572944,
+          79.017494,
+          78.364469,
+          82.026857
+        ],
+        "heap": [
+          86.942084,
+          75.567213,
+          79.239549,
+          77.037152,
+          80.912506,
+          79.593379,
+          84.182775,
+          74.540017,
+          78.536715
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 81.018548,
+        "heap": 79.239549
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          415027,
+          415027,
+          415475
+        ],
+        "heap": [
+          160767,
+          160767,
+          161279
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 415027,
+        "heap": 160767
+      }
+    },
+    {
+      "snapshots": 45000,
+      "feeds": 45,
+      "order": "ties",
+      "pages": 100,
+      "cpu_ms_samples": {
+        "predecessor": [
+          38.295769,
+          33.108582,
+          36.857934,
+          40.649715,
+          40.651682,
+          43.501866,
+          39.977019,
+          34.023986,
+          37.313568
+        ],
+        "heap": [
+          38.890547,
+          40.892355,
+          35.414085,
+          38.383023,
+          41.797336,
+          38.85626,
+          46.216228,
+          41.422855,
+          33.323204
+        ]
+      },
+      "cpu_ms_median": {
+        "predecessor": 38.295769,
+        "heap": 38.890547
+      },
+      "traced_peak_bytes_samples": {
+        "predecessor": [
+          414667,
+          414667,
+          415115
+        ],
+        "heap": [
+          160569,
+          160569,
+          161081
+        ]
+      },
+      "traced_peak_bytes_median": {
+        "predecessor": 414667,
+        "heap": 160569
+      }
+    }
+  ]
+}
