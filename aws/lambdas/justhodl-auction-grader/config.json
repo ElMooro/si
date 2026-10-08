@@ -1,6 +1,6 @@
 {
   "timeout": 60,
   "schedule": "cron(0 16 ? * MON-FRI *)",
-  "description": "Treasury auction A-F grader \u2014 reads auction-crisis-detector, scores 4 dimensions",
+  "description": "Treasury auction A-F grades projected from justhodl-auction-desk (one grade per auction across pages) + desk alert flags to Telegram",
   "memory": 256
 }

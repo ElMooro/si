@@ -7,6 +7,7 @@ from datetime import date
 import math
 import statistics
 from auction_reactions import safe
+from treasury_instruments import cohort_term
 import auction_buybacks
 
 CONTRACT = 'auction-participation-inputs.v1'
@@ -40,7 +41,7 @@ def cohort(row):
         return None
     if kind not in ('BILL', 'NOMINAL_COUPON', 'TIPS', 'FRN') or type(row.get('term')) is not str or not row['term'].strip() or type(row.get('reopening')) is not bool:
         return None
-    return kind, row['term'], row['reopening']
+    return kind, cohort_term(row), row['reopening']
 
 
 def shares(row):

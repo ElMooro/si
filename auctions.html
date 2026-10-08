@@ -346,6 +346,34 @@
   .rx-note { font-size:11.5px; color:var(--fg-3); margin-top:8px; line-height:1.55; }
   .mv { font-variant-numeric:tabular-nums; } .mv.pos { color:var(--green); } .mv.neg { color:var(--red); } .mv.flat { color:var(--fg-3); }
   .rx-cls { font-size:10px; color:var(--fg-3); }
+  .desk-alerts { background:var(--bg-card); border:1px solid rgba(245,158,11,.45); border-radius:10px; padding:10px 14px; margin:0 0 18px; }
+  .desk-alerts h4 { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--amber); margin:0 0 6px; }
+  .desk-alerts ul { margin:0; padding-left:0; list-style:none; display:grid; gap:4px; }
+  .desk-alerts li { font-size:12px; color:var(--fg-2); line-height:1.45; }
+  .desk-alerts li .d { color:var(--fg-3); font-size:10.5px; margin-right:6px; font-variant-numeric:tabular-nums; }
+  .desk-alerts li .sev { font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:1px 5px; border-radius:3px; margin-right:6px; }
+  .desk-alerts li .sev.watch { color:var(--amber); background:var(--amber-soft); } .desk-alerts li .sev.info { color:var(--fg-3); background:var(--bg-sunken); }
+  .desk-alerts .rules { font-size:10.5px; color:var(--fg-4); margin-top:6px; }
+  table.cmap td, table.cmap th { white-space:nowrap; }
+  .zcell { font-variant-numeric:tabular-nums; font-weight:600; padding:1px 6px; border-radius:4px; display:inline-block; min-width:44px; text-align:right; }
+  .zcell.p2 { color:var(--green); background:var(--green-soft); } .zcell.p1 { color:var(--green); } .zcell.n1 { color:var(--red); } .zcell.n2 { color:var(--red); background:var(--red-soft); } .zcell.flat { color:var(--fg-3); }
+  .zcell.inv.p2 { color:var(--red); background:var(--red-soft); } .zcell.inv.p1 { color:var(--red); } .zcell.inv.n1 { color:var(--green); } .zcell.inv.n2 { color:var(--green); background:var(--green-soft); }
+  .streak { display:inline-flex; gap:2px; }
+  .streak i { display:inline-grid; place-items:center; width:15px; height:15px; border-radius:3px; font-style:normal; font-size:9px; font-weight:800; background:var(--bg-sunken); color:var(--fg-3); }
+  .streak i.A, .streak i.B { color:var(--green); background:var(--green-soft); } .streak i.C { color:var(--amber); background:var(--amber-soft); } .streak i.D, .streak i.F { color:var(--red); background:var(--red-soft); }
+  .streak i.last { outline:1px solid var(--yellow); }
+  .op-metrics.second { margin-top:0; }
+  .op-m.na .v { color:var(--fg-4); font-weight:500; font-size:12px; }
+  .pctl { font-size:10px; color:var(--fg-3); } .pctl b { color:var(--fg-2); }
+  .op-read { font-size:12.5px; color:var(--fg-1); line-height:1.55; margin-top:8px; }
+  .op-read .m { color:var(--fg-2); }
+  .rx-collapsed { background:var(--bg-card); border:1px dashed var(--border-strong); border-radius:8px; padding:8px 12px; margin:0 0 18px; }
+  .crisis-row.current td { background:rgba(6,182,212,.07); font-weight:600; }
+  .crisis-row td.kind { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-3); }
+  details.legacy-fold { margin:0 0 14px; }
+  details.legacy-fold > summary { cursor:pointer; font-size:12px; color:var(--fg-3); padding:9px 12px; border:1px dashed var(--border-strong); border-radius:8px; background:var(--bg-card); list-style:none; }
+  details.legacy-fold > summary::before { content:"▸ "; color:var(--fg-4); } details.legacy-fold[open] > summary::before { content:"▾ "; }
+  details.legacy-fold[open] > summary { margin-bottom:10px; }
 </style>
 
 <div class="gx-overlay" id="gx-overlay" role="dialog" aria-modal="true" aria-labelledby="gx-title"><div class="gx"><button class="close" id="gx-close" type="button" aria-label="Close">×</button><h3 id="gx-title"></h3><div class="sub" id="gx-sub"></div><div id="gx-body"></div></div></div>
@@ -364,7 +392,14 @@
   <div class="desk-ai" id="desk-ai" hidden></div>
 </div>
 
-<div class="rx-grid">
+<div class="desk-alerts" id="desk-alerts" hidden></div>
+<section class="box" id="curve-map-box">
+  <div class="head"><h3>🗺 Curve demand map — latest auction per coupon tenor, graded against its own cohort</h3><span class="right" id="curve-map-meta"></span></div>
+  <div style="overflow-x:auto"><table class="cmap"><thead><tr><th>Tenor</th><th>Latest</th><th>Grade</th><th class="r">Score</th><th class="r" title="z vs trailing 4-12 same-cohort auctions">BTC z</th><th class="r">Indirect z</th><th class="r">Dealer z</th><th class="r" title="accepted ÷ tendered by primary dealers">Dealer fill</th><th class="r" title="high accepted yield minus median accepted yield">Stop−median</th><th class="r" title="par-curve change over the five sessions before the auction">Set-up 5s</th><th class="r" title="par-curve change prior close → auction-day close (constant-maturity tenor, not a WI tail)">Day move</th><th>Last 12 grades</th></tr></thead><tbody id="curve-map-body"></tbody></table></div>
+  <p class="desk-method" id="curve-map-note" style="padding:8px 14px 12px"></p>
+</section>
+<p class="desk-method rx-collapsed" id="rx-collapsed" hidden></p>
+<div class="rx-grid" id="rx-grid">
   <section class="box" style="margin:0">
     <div class="head"><h3>Cross-asset history — validation status</h3><span class="right" id="rx-meta"></span></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Based on</th><th class="r">Same day</th><th class="r">+1 day</th><th class="r">+5 days</th><th class="r">+20 days</th><th class="r">Validation</th></tr></thead><tbody id="rx-pred"><tr><td colspan="7"><div class="skel" style="height:40px"></div></td></tr></tbody></table></div>
@@ -409,8 +444,19 @@
   <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Security</th><th class="r">Size</th><th class="r">High</th><th class="r" title="Prior-close nominal par comparison; not a when-issued tail">Prior-close gap bp</th><th class="r">BTC</th><th class="r">z</th><th class="r">Indirect</th><th class="r">Dealer</th><th class="r">Direct</th><th class="r">AAH</th><th class="r">Grade</th></tr></thead><tbody id="desk-tape"></tbody></table></div>
 </section>
 
+<section class="box" id="crisis-box">
+  <div class="head"><h3>🚨 Crisis &amp; market-top fingerprints — how today's auctions compare with 2007-2008, 2011, 2020, 2022 and 2023</h3><span class="right" id="crisis-meta"></span></div>
+  <div class="body">
+    <div class="desk-stats" id="crisis-stats" style="grid-template-columns:repeat(4,minmax(0,1fr))"></div>
+    <svg class="desk-chart" id="crisis-chart" viewBox="0 0 720 210" preserveAspectRatio="none" role="img" aria-label="Monthly mean cohort z-score of coupon auctions since 2003 with crisis and market-top windows shaded" style="height:210px"></svg>
+    <div style="overflow-x:auto;margin-top:10px"><table class="cmap"><thead><tr><th>Window</th><th class="r">Auctions</th><th class="r">Bid-to-cover</th><th class="r">Indirect</th><th class="r">Dealers</th><th class="r" title="accepted ÷ tendered by primary dealers">Dealer fill</th><th class="r" title="mean of high accepted minus median accepted yield">Stop−median</th><th class="r" title="worst single auction in the window">Max stop−median</th><th class="r" title="mean cohort z of bid-to-cover at the time">BTC z</th><th class="r">Indirect z</th><th class="r">Dealer z</th><th class="r" title="share of auctions scoring below −0.4 (D/F territory)">Weak share</th><th class="r" title="root-mean-square distance from the current window across the scaled axes; smaller = more alike">Similarity</th></tr></thead><tbody id="crisis-body"></tbody></table></div>
+    <div class="desk-ai" id="crisis-read" style="margin-top:12px"></div>
+    <details class="op-plain" style="margin-top:10px"><summary>How to read this and what it cannot tell you</summary><ul id="crisis-caveats"></ul></details>
+  </div>
+</section>
+
 <section class="box">
-  <div class="head"><h3>📈 Comparable auction cohorts — bid-to-cover, up to 24 observations</h3><span class="right">same instrument, remaining term and reopening status · dashed = up to 12-point mean</span></div>
+  <div class="head"><h3>📈 Comparable auction cohorts — bid-to-cover, up to 24 observations</h3><span class="right">same instrument kind, term bucket (coupons by original term) and reopening status · dashed = up to 12-point mean</span></div>
   <div class="body"><div class="tenor-grid" id="tenor-grid"></div>
     <p class="desk-method" style="margin-top:12px" id="desk-method"></p>
   </div>
@@ -468,8 +514,15 @@
     }
     b.className = "desk-banner " + (v.risk_assets === "bullish" ? "bullish" : v.risk_assets === "bearish" ? "bearish" : v.risk_assets === "mixed" ? "mixed" : "");
     $("desk-fresh").textContent = `${fmtDate(v.date)} · engine ran ${ago(D.generated_at)} · newest auction ${D.freshness.newest_auction || "—"} · newest buyback ${D.freshness.newest_buyback || "—"}`;
-    $("desk-headline").textContent = v.headline;
+    const read = v.read || {};
+    $("desk-headline").textContent = read.headline || v.headline;
     $("desk-tags").innerHTML = measurementTags(v.tags).map(t => `<span class="desk-tag ${tagClass(t)}">${esc(t)}</span>`).join("");
+    const alerts = D.alerts || {}, items = Array.isArray(alerts.items) ? alerts.items : [];
+    const al = $("desk-alerts");
+    al.hidden = !items.length;
+    al.innerHTML = items.length ? `<h4>Watch flags · last ${esc(alerts.window_days || 14)} days · ${esc(alerts.n_watch ?? 0)} watch · ${items.length - (alerts.n_watch || 0)} info</h4><ul>${items.slice(0, 12).map(x =>
+        `<li><span class="d">${esc(x.date)}</span><span class="sev ${x.severity === "watch" ? "watch" : "info"}">${esc(x.severity)}</span>${esc(x.text)}</li>`).join("")}</ul>
+      <div class="rules">Rules: dealer share ≥ +2σ · indirect share ≤ −2σ · bid-to-cover ≤ −2σ vs the comparable cohort · three consecutive D/F in one tenor · stop ≥ 10bp above median · A/F grades. The when-issued tail rule (&gt;2bp on 10Y/30Y) is defined but has no quote feed, so it cannot fire. Descriptive flags, not trade signals.</div>` : "";
     const liq = v.liquidity, rates = v.rates, risk = v.risk_assets;
     $("desk-implications").innerHTML = [
       ["Treasury cash context", liq === "cash_management_context" ? "Buyback accepted par observed; settlement and financing offsets require separate measurement" : "Net liquidity effect not established", ""],
@@ -506,10 +559,27 @@
         <div class="op-m"><div class="l" title="${METRIC_HELP["Allotted at high"]}">Allotted at high</div><div class="v">${pct(a.allocation_pct, 1)}</div><div class="z ${zc(-(z.allocation || 0))}">${z.allocation == null ? "" : "z " + zs(z.allocation)}</div></div>
       </div>
       ${takeBar(a)}
-      <div class="op-verdict">${esc(a.verdict)}</div>
+      ${interpretationRow(a)}
+      <div class="op-read">${a.read && a.read.what_it_means ? esc(a.read.what_it_means) : esc(a.verdict)}</div>
+      ${a.read && a.read.what_it_means ? `<div class="op-imp">${esc(a.verdict)}</div>` : ""}
       ${imp ? `<div class="op-imp">Rates: <b class="${toneOf(imp.tone)}">${esc(imp.rates)}</b> · Risk assets: <b class="${toneOf(imp.tone)}">${esc(imp.risk)}</b></div>` : ""}
-      ${(a.explain || []).length ? `<details class="op-plain" open><summary>In plain English</summary><ul>${a.explain.map(l => `<li><b>${esc(l.metric)}</b> — ${esc(l.text)}</li>`).join("")}</ul></details>` : ""}
+      ${(a.explain || []).length ? `<details class="op-plain"><summary>In plain English — every number explained</summary><ul>${a.explain.map(l => `<li><b>${esc(l.metric)}</b> — ${esc(l.text)}</li>`).join("")}</ul></details>` : ""}
     </div>`;
+  }
+
+  const bp = v => v == null ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(1) + "bp";
+  const pctlNote = (p, key) => p && p.metrics && p.metrics[key] && p.metrics[key].percentile != null ? `<span class="pctl">p<b>${p.metrics[key].percentile}</b> of ${p.metrics[key].n} since ${(p.since || "").slice(0, 4)}</span>` : "";
+  function interpretationRow(a) {
+    const beh = a.behaviour || {}, hits = beh.hit_ratio_pct || {}, disp = beh.dispersion || {}, su = a.setup || {}, p = a.percentiles;
+    const hitTone = h => h == null ? "" : h <= 15 ? "pos" : h >= 35 ? "neg" : "";
+    const cells = [
+      { l: "Dealer fill", help: METRIC_HELP["Dealer fill"], v: hits.pd == null ? "—" : hits.pd.toFixed(0) + "%", z: hits.pd == null ? "tendered amount unavailable" : `of ${bn(a.pd_tendered)} bid · indirects filled ${hits.indirect == null ? "—" : hits.indirect.toFixed(0) + "%"}`, cls: hitTone(hits.pd), extra: pctlNote(p, "pd_hit_pct") },
+      { l: "Stop − median", help: METRIC_HELP["Stop − median"], v: bp(disp.high_minus_median_bp), z: disp.high_minus_median_bp == null ? "median accepted unavailable" : `high − low ${bp(disp.high_minus_low_bp)}`, cls: disp.high_minus_median_bp == null ? "" : disp.high_minus_median_bp >= 8 ? "neg" : "", extra: pctlNote(p, "high_minus_median_bp") },
+      { l: "Set-up (5 sessions)", help: METRIC_HELP["Set-up (5 sessions)"], v: bp(su.concession_bp), z: su.concession_bp == null ? esc(su.reason || "par curve unavailable") : `${esc(su.tenor)} par ${esc((su.dates || {}).five_sessions_before || "")} → ${esc((su.dates || {}).prior_close || "")}`, cls: "" },
+      { l: "Auction-day move", help: METRIC_HELP["Auction-day move"], v: su.reaction_bp == null ? (su.status === "partial" ? "pending" : "—") : bp(su.reaction_bp), z: su.reaction_bp == null ? (su.status === "partial" ? "auction-day par curve not yet published" : esc(su.reason || "")) : `next session ${bp(su.next_day_bp)} · par ${esc(su.tenor)}, not a WI tail`, cls: su.reaction_bp == null ? "" : su.reaction_bp < 0 ? "pos" : su.reaction_bp > 0 ? "neg" : "" },
+    ];
+    return `<div class="op-metrics second">${cells.map(c => `<div class="op-m ${c.v === "—" || c.v === "pending" ? "na" : ""}"><div class="l" title="${esc(c.help)}">${c.l}</div><div class="v">${c.v}</div><div class="z ${c.cls}">${c.z}</div>${c.extra || ""}</div>`).join("")}</div>
+      <div class="op-m na" style="margin:0 0 6px;border:1px dashed var(--border-strong);background:transparent"><div class="l" title="${esc(METRIC_HELP["WI tail"])}">When-issued tail</div><div class="v">not captured — no WI quote feed</div><div class="z">The prior-close gap above is market movement plus security difference, not the tail. ${a.results_pdf ? `Official results: <a href="https://www.treasurydirect.gov/auctions/announcements-data-results/" target="_blank" rel="noopener">${esc(a.results_pdf)}</a>` : ""}</div></div>`;
   }
 
   const METRIC_HELP = {
@@ -517,6 +587,11 @@
     "High yield": "The single yield every accepted bidder is filled at.",
     "Prior-close gap": "Auction yield minus the prior-close nominal par curve. Includes market movement and security differences; not a when-issued tail. TIPS, FRNs and unverified instruments have no nominal comparison. Excluded from the participation score.",
     "Bid-to-cover": "Dollars bid for every dollar sold. Higher = more demand.",
+    "Dealer fill": "Primary dealers' accepted ÷ tendered. Dealers must bid; a low fill means end investors outbid them, a high fill means dealers had to absorb the paper.",
+    "Stop − median": "High accepted yield minus the median accepted yield (bills: discount-rate basis). A wide gap means the last bids needed were far from the centre of demand.",
+    "Set-up (5 sessions)": "Change in the constant-maturity par yield over the five sessions before the auction. Positive = the sector cheapened (concession built) before supply.",
+    "Auction-day move": "Change in the constant-maturity par yield from the prior close to the auction-day close. Market movement around the result; it is not a when-issued tail.",
+    "WI tail": "High accepted yield minus the 1 pm when-issued quote. No WI quote feed is retained, so this is shown as not captured rather than approximated.",
     "Allotted at high": "Proration of bids at the stop: the share of bids at the highest accepted yield that was allotted. This is not the fraction of the whole auction sold and does not establish an auction failure.",
   };
 
@@ -618,7 +693,7 @@
   }
 
   function renderDays(D) {
-    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline)}</td><td>${measurementTags(v.tags).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted != null ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
+    $("days-table").innerHTML = (D.recent_days || []).slice(0, 15).map(v => `<tr><td class="tk">${fmtDate(v.date)}</td><td style="white-space:normal;min-width:260px">${esc(v.headline_short || v.headline)}${v.headline_short ? `<div class="rx-cls">${esc(v.headline)}</div>` : ""}</td><td>${measurementTags(v.tags).map(t => `<span class="pill desk-tag ${tagClass(t)}" style="margin:1px 3px 1px 0">${esc(t)}</span>`).join("")}</td><td class="r">${v.n_auctions}</td><td class="r">${v.buyback_accepted != null ? bn(v.buyback_accepted) : "—"}</td><td class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}"><span class="${v.risk_assets === "bullish" ? "pos" : v.risk_assets === "bearish" ? "neg" : "flat"}">${esc(v.risk_assets)}</span></td></tr>`).join("");
   }
 
   let tapeFilter = "All";
@@ -653,7 +728,11 @@
 
   function renderReactions(D) {
     const R = D.reactions || {};
-    const pred = R.price_lineage_verified === true ? R.prediction || [] : [];
+    const verified = R.price_lineage_verified === true;
+    $("rx-grid").hidden = !verified;
+    $("rx-collapsed").hidden = verified;
+    $("rx-collapsed").textContent = verified ? "" : "Cross-asset reaction history (S&P, Nasdaq, TLT, HYG, BTC, gold, silver after each auction day) is withheld until the price feed's original-response lineage is verified. The rows stay in the downloadable packet; nothing is shown as a forecast.";
+    const pred = verified ? R.prediction || [] : [];
     const f = v => v == null ? "—" : (v > 0 ? "+" : "") + v.toFixed(2) + "%";
     const cell = h => h && h.median != null ? `<span class="mv ${h.median > 0.05 ? "pos" : h.median < -0.05 ? "neg" : "flat"}">${f(h.median)}</span><div class="rx-hit">${h.hit}% up · n ${h.n}</div>` : "<span class=\"flat\">—</span>";
     const cls = (R.today_classes || []).map(c => (R.class_labels || {})[c] || c).join(" + ");
@@ -667,6 +746,69 @@
     $("rx-board").innerHTML = board.map(b => `<tr><td class="tk">${fmtDate(b.date)}</td><td style="white-space:normal;min-width:200px">${esc((b.labels || []).join(" + "))}${b.grades && b.grades.length ? ` <span class="rx-cls">grades ${b.grades.join("")}</span>` : ""}${b.buyback_accepted ? ` <span class="rx-cls">buyback ${bn(b.buyback_accepted)}</span>` : ""}<div class="rx-cls">${esc(b.headline || "")}</div></td>${["SPY","QQQ","TLT","HYG","BTC-USD","GLD","SLV","VNQ"].map(s => pair(b.moves || {}, s)).join("")}</tr>`).join("") || `<tr><td colspan="10" class="flat">${R.price_lineage_verified !== true ? "Historical price rows withheld pending original-response verification." : "No eligible historical sample."}</td></tr>`;
   }
 
+  const zcell = (z, inverse) => z == null ? '<span class="zcell flat">—</span>' : `<span class="zcell ${inverse ? "inv " : ""}${z >= 2 ? "p2" : z >= 0.5 ? "p1" : z <= -2 ? "n2" : z <= -0.5 ? "n1" : "flat"}">${(z > 0 ? "+" : "") + z.toFixed(1)}σ</span>`;
+  const streakHtml = (streak, last) => `<span class="streak">${(streak || []).map((p, i) => `<i class="${esc(p.grade)} ${i === streak.length - 1 ? "last" : ""}" title="${esc(p.d)} ${p.reopening ? "reopening" : "new issue"} ${esc(p.grade)}${p.score == null ? "" : " " + (p.score > 0 ? "+" : "") + p.score.toFixed(2)}">${p.grade === "n/a" ? "·" : esc(p.grade)}</i>`).join("")}</span>`;
+  function renderInterpretation(D) {
+    const M = D.curve_map || {}, rows = Array.isArray(M.rows) ? M.rows : [];
+    $("curve-map-meta").textContent = rows.length ? `${rows.length} coupon tenors · as of ${esc(M.as_of || D.generated_at || "")} · nominal coupons only` : "";
+    $("curve-map-body").innerHTML = rows.map(r => {
+      const su = r.setup || {}, sc = r.score;
+      return `<tr><td class="tk"><b>${esc(r.bucket)}</b></td><td style="white-space:nowrap">${fmtDate(r.auction_date)}<span class="rx-cls"> · ${r.reopening ? "reopen" : "new"}${r.btc != null ? " · BTC " + r.btc.toFixed(2) : ""}</span></td>
+        <td><b class="grade-pill ${esc(r.grade)}" data-gx="${esc(r.cusip)}|${esc(r.auction_date)}" title="Open the grade explainer">${esc(r.grade)}</b></td>
+        <td class="r" style="font-variant-numeric:tabular-nums">${sc == null ? "—" : (sc > 0 ? "+" : "") + sc.toFixed(2)}</td>
+        <td class="r">${zcell(r.z && r.z.btc)}</td><td class="r">${zcell(r.z && r.z.indirect)}</td><td class="r">${zcell(r.z && r.z.pd, true)}</td>
+        <td class="r">${r.pd_hit_pct == null ? "—" : r.pd_hit_pct.toFixed(0) + "%"}</td><td class="r">${bp(r.high_minus_median_bp)}</td>
+        <td class="r">${bp(su.concession_bp)}</td><td class="r">${su.reaction_bp == null ? (su.status === "partial" ? "<span class=\"flat\">pending</span>" : "—") : bp(su.reaction_bp)}</td>
+        <td>${streakHtml(r.streak)}${r.consecutive_weak >= 2 ? `<span class="rx-cls" style="color:var(--red);margin-left:6px">${r.consecutive_weak} weak in a row</span>` : ""}</td></tr>`;
+    }).join("") || `<tr><td colspan="12" class="flat">${esc(M.error || "Curve demand map unavailable in this snapshot.")}</td></tr>`;
+    $("curve-map-note").innerHTML = rows.length ? `Each row is the latest auction of that original term, graded against its own cohort (new issues and reopenings graded separately; the 12-grade streak pools both). Green/red z cells: ≥ ±0.5σ light, ≥ ±2σ strong; the dealer column is inverted because a higher dealer share is the weaker reading. Dealer fill and stop−median come from the official results; set-up and day move are constant-maturity par-curve changes, not when-issued tails. ${esc(M.scope || "")}` : "";
+    // crisis fingerprints
+    const C = D.crisis_fingerprints || {}, eps = Array.isArray(C.episodes) ? C.episodes : [], cur = C.current;
+    const f1 = (v, d = 1, suf = "") => v == null ? "—" : Number(v).toFixed(d) + suf;
+    $("crisis-meta").textContent = C.status === "complete" ? `coupon auctions · bank ${esc((C.baseline || {}).first || "")} → ${esc(C.as_of || "")} · descriptive similarity, not a probability` : "";
+    if (C.status !== "complete" || !cur) {
+      $("crisis-stats").innerHTML = ""; $("crisis-body").innerHTML = `<tr><td colspan="13" class="flat">${esc(C.error || C.reason || "Crisis fingerprint comparison unavailable in this snapshot; the full FiscalData bank must be captured with every field.")}</td></tr>`;
+      $("crisis-chart").innerHTML = ""; $("crisis-read").innerHTML = ""; $("crisis-caveats").innerHTML = ""; return;
+    }
+    const near = (C.nearest || [])[0];
+    const gfc = eps.find(e => e.id === "gfc_2008") || {}, base = C.baseline || {};
+    $("crisis-stats").innerHTML = [
+      ["Current 90-day window", `${cur.n_auctions} auctions`, `mean cohort score ${cur.mean_score == null ? "—" : (cur.mean_score > 0 ? "+" : "") + cur.mean_score.toFixed(2)} · ${f1(cur.share_weak_pct, 0, "%")} weak`],
+      ["Dealer fill now vs 2008", `${f1(cur.mean_pd_hit_pct, 0, "%")} vs ${f1(gfc.mean_pd_hit_pct, 0, "%")}`, "share of dealer bids that were filled; dealers absorbed far more in 2008"],
+      ["Stop − median now vs 2008", `${f1(cur.mean_high_minus_median_bp, 1, "bp")} vs ${f1(gfc.mean_high_minus_median_bp, 1, "bp")}`, `worst single auction: ${f1(cur.max_high_minus_median_bp, 1, "bp")} now · ${f1(gfc.max_high_minus_median_bp, 1, "bp")} in 2008`],
+      ["Closest window", near ? esc(near.label) : "—", near ? `distance ${near.distance} · ${esc(near.kind.replace(/_/g, " "))} · smaller = more alike` : "no comparable window"],
+    ].map(([l, v, n]) => `<div class="desk-stat"><div class="l">${l}</div><div class="v" style="font-size:15px">${v}</div><div class="n">${n}</div></div>`).join("");
+    const kindLabel = { crisis: "crisis", market_top: "market top", market_bottom: "market bottom", rates_stress: "rates stress", current: "now", baseline: "baseline" };
+    const trow = (e, cls) => `<tr class="crisis-row ${cls}"><td><b>${esc(e.label)}</b><div class="kind">${esc(kindLabel[e.kind] || e.kind)}${e.anchor ? " · " + esc(e.anchor) : ""}</div></td><td class="r">${e.n_auctions}</td><td class="r">${f1(e.mean_btc, 2)}</td><td class="r">${f1(e.mean_indirect_pct, 0, "%")}</td><td class="r">${f1(e.mean_pd_pct, 0, "%")}</td><td class="r">${f1(e.mean_pd_hit_pct, 0, "%")}</td><td class="r">${f1(e.mean_high_minus_median_bp, 1, "bp")}</td><td class="r">${f1(e.max_high_minus_median_bp, 1, "bp")}</td><td class="r">${zcell(e.mean_z_btc)}</td><td class="r">${zcell(e.mean_z_indirect)}</td><td class="r">${zcell(e.mean_z_pd, true)}</td><td class="r">${f1(e.share_weak_pct, 0, "%")}</td><td class="r">${e.kind === "current" ? "—" : e.distance_from_current == null ? '<span class="flat">n/a</span>' : e.distance_from_current.toFixed(2)}</td></tr>`;
+    $("crisis-body").innerHTML = trow(cur, "current") + eps.map(e => trow(e, "")).join("") + (base.n_auctions ? trow(base, "") : "");
+    // timeline chart
+    const T = Array.isArray(C.timeline) ? C.timeline.filter(p => p.mean_z_btc != null || p.mean_score != null) : [];
+    const svg = $("crisis-chart"); svg.innerHTML = "";
+    if (T.length > 12) {
+      const W = 720, H = 210, padL = 36, padR = 12, padT = 18, padB = 24, n = T.length;
+      const x = i => padL + i * (W - padL - padR) / Math.max(n - 1, 1);
+      const yMin = -2.5, yMax = 2.5, y = v => padT + (H - padT - padB) * (1 - (Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin));
+      const idx = m => { let best = -1; T.forEach((p, i) => { if (p.month <= m) best = i; }); return best; };
+      const bands = (C.episode_windows || []).map(w => { const a = idx(w.start.slice(0, 7)), b = idx(w.end.slice(0, 7)); if (a < 0 && b < 0) return ""; const x0 = x(Math.max(a, 0)), x1 = x(Math.max(b, 0)); const col = w.kind === "crisis" ? "rgba(239,68,68,.16)" : w.kind === "market_top" ? "rgba(245,158,11,.18)" : w.kind === "market_bottom" ? "rgba(34,197,94,.14)" : "rgba(167,139,250,.16)"; return `<rect x="${x0.toFixed(1)}" y="${padT}" width="${Math.max(3, x1 - x0).toFixed(1)}" height="${H - padT - padB}" fill="${col}"><title>${esc(w.label)} (${esc(w.start)} → ${esc(w.end)})</title></rect><text x="${(x0 + 2).toFixed(1)}" y="${padT + 9}" font-size="8" fill="#9aa7bd">${esc(w.label.split(" ")[0])}</text>`; }).join("");
+      const line = (key, color, width) => { let d = "", pen = false; T.forEach((p, i) => { if (p[key] == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + "," + y(p[key]).toFixed(1); pen = true; }); return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}"/>`; };
+      const ticks = [-2, -1, 0, 1, 2].map(v => `<line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W - padR}" y2="${y(v).toFixed(1)}" stroke="rgba(120,145,180,${v === 0 ? ".45" : ".15"})"/><text x="${padL - 4}" y="${(y(v) + 3).toFixed(1)}" font-size="9" fill="#6b7a92" text-anchor="end">${v > 0 ? "+" : ""}${v}σ</text>`).join("");
+      const years = T.map((p, i) => p.month.endsWith("-01") && +p.month.slice(0, 4) % 2 === 1 ? `<text x="${x(i).toFixed(1)}" y="${H - 8}" font-size="9" fill="#6b7a92" text-anchor="middle">${p.month.slice(0, 4)}</text>` : "").join("");
+      const last = T[n - 1];
+      svg.innerHTML = `${bands}${ticks}${line("mean_z_btc", "#6b7a92", 1)}${line("mean_score", "#06b6d4", 1.6)}${years}
+        <text x="${padL}" y="11" font-size="10" fill="#6b7a92">Monthly mean · <tspan fill="#06b6d4">cohort score (BTC + indirect − dealer)</tspan> · <tspan fill="#9aa7bd">bid-to-cover z alone (back to 2003)</tspan> · shaded: crisis (red), market top (amber), bottom (green), rates stress (purple)</text>
+        <circle cx="${x(n - 1).toFixed(1)}" cy="${y(last.mean_score != null ? last.mean_score : last.mean_z_btc).toFixed(1)}" r="3" fill="#06b6d4"><title>${esc(last.month)}: score ${last.mean_score == null ? "—" : last.mean_score.toFixed(2)}, BTC z ${last.mean_z_btc == null ? "—" : last.mean_z_btc.toFixed(2)}, ${last.n} auctions</title></circle>`;
+    }
+    // computed read
+    const covid = eps.find(e => e.id === "covid_2020") || {}, tops = eps.filter(e => e.kind === "market_top" && e.mean_z_btc != null);
+    const topMean = tops.length ? tops.reduce((s, e) => s + e.mean_z_btc, 0) / tops.length : null;
+    const readBits = [
+      ["What a crisis looked like in the auction tape", `In Sep–Dec 2008 coupon auctions still averaged ${f1(gfc.mean_btc, 2)} bid-to-cover (vs ${f1(base.mean_btc, 2)} since 2010): demand for Treasuries does not collapse in a crisis. What changed was who absorbed the paper and how ragged the bids were — dealers were filled on ${f1(gfc.mean_pd_hit_pct, 0, "%")} of their bids (${f1(cur.mean_pd_hit_pct, 0, "%")} now) and the stop cleared ${f1(gfc.mean_high_minus_median_bp, 1, "bp")} above the median on average, with the worst single auction at ${f1(gfc.max_high_minus_median_bp, 1, "bp")} (${f1(cur.max_high_minus_median_bp, 1, "bp")} now). March 2020 repeated the pattern: ${f1(covid.mean_high_minus_median_bp, 1, "bp")} dispersion and a ${f1(covid.share_weak_pct, 0, "%")} weak share.`],
+      ["What market tops looked like", `The 2007, 2020 and 2022 equity tops did not show up as weak coupon auctions: mean bid-to-cover z was ${topMean == null ? "—" : (topMean > 0 ? "+" : "") + topMean.toFixed(2)}σ in those windows, with normal dispersion. Auction demand is a rates-and-funding gauge, not an equity-top timer; treat any "auction says market top" claim with suspicion. The useful top-adjacent tell is a rising dealer fill while bid-to-cover stays normal — dealers warehousing supply the end buyers no longer want.`],
+      ["Where the current 90 days sit", `${cur.n_auctions} coupon auctions: bid-to-cover ${f1(cur.mean_btc, 2)}, dealer fill ${f1(cur.mean_pd_hit_pct, 0, "%")}, stop−median ${f1(cur.mean_high_minus_median_bp, 1, "bp")}, ${f1(cur.share_weak_pct, 0, "%")} of auctions in D/F territory. Closest documented window: ${near ? esc(near.label) + " (distance " + near.distance + ")" : "none"}. A small distance means the averages look alike; it does not mean the outcome will repeat.`],
+    ];
+    $("crisis-read").innerHTML = readBits.map(([h, p]) => `<div><h4>${h}</h4><p>${p}</p></div>`).join("");
+    $("crisis-caveats").innerHTML = (C.caveats || []).map(c => `<li>${esc(c)}</li>`).join("") + `<li><b>Distance method</b> — ${esc(C.distance_method || "")}</li><li><b>Field availability</b> — ${esc(C.field_availability || "")}</li>`;
+  }
   function findAuction(D, key) {
     const [cusip, date] = String(key).split("|");
     return (D.auctions || []).find(a => a.cusip === cusip && a.auction_date === date) || ((D.today || {}).auctions || []).find(a => a.cusip === cusip && a.auction_date === date);
@@ -680,7 +822,7 @@
     const parts = a.score_parts || [];
     const grades = ["F", "D", "C", "B", "A"];
     $("gx-title").innerHTML = `<span class="op-grade ${a.grade}" style="cursor:default">${esc(a.grade)}</span> ${esc(a.term)} ${esc(securityLabel(a))} · ${esc(a.auction_date)}`;
-    $("gx-sub").textContent = `${bn(a.total_accepted)} accepted · demand score ${a.demand_score == null ? "n/a" : (a.demand_score > 0 ? "+" : "") + a.demand_score.toFixed(2)} · compared with the last ${(a.trailing12 || {}).n || 0} ${a.term} ${securityLabel(a).toLowerCase()} auctions`;
+    $("gx-sub").textContent = `${bn(a.total_accepted)} accepted · demand score ${a.demand_score == null ? "n/a" : (a.demand_score > 0 ? "+" : "") + a.demand_score.toFixed(2)} · compared with the last ${(a.trailing12 || {}).n || 0} ${(a.quality || {}).cohort_term || a.term} ${securityLabel(a).toLowerCase()} auctions`;
     const table = parts.length ? `<table><thead><tr><th>What we measured</th><th class="r">vs usual (σ)</th><th class="r">weight</th><th class="r">points</th><th>why it counts</th></tr></thead><tbody>${parts.map(p => `<tr><td>${esc(p.metric)}</td><td class="r" data-label="Sigma">${zsig(p.z)}</td><td class="r" data-label="Weight">${p.weight > 0 ? "+" : ""}${p.weight}</td><td data-label="Points" class="r ${p.contribution > 0 ? "pos" : p.contribution < 0 ? "neg" : ""}">${p.contribution == null ? "—" : (p.contribution > 0 ? "+" : "") + p.contribution.toFixed(2)}</td><td style="white-space:normal">${esc(p.why)}</td></tr>`).join("")}</tbody></table>` : "<p>No trailing history for this tenor yet, so no grade.</p>";
     const scale = `<div class="scale">${grades.map(g => `<span class="${g === a.grade ? "on" : ""}">${g}${g === "A" ? " ≥ +1.0" : g === "B" ? " ≥ +0.4" : g === "C" ? " ≥ −0.4" : g === "D" ? " ≥ −1.0" : " < −1.0"}</span>`).join("")}</div>`;
     const plain = `<ul>${(a.explain || []).map(l => `<li><b>${esc(l.metric)}</b> — ${esc(l.text)}</li>`).join("")}</ul>`;
@@ -750,7 +892,7 @@
     const previousLink = Object.fromEntries(['href','hidden','download','textContent','title'].map(key => [key,link[key]]));
     try {
       renderRoot = draft;
-      renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D);
+      renderBanner(D); renderReactions(D); renderOps(D); renderBuybacks(D); renderCalendar(D); renderDays(D); renderTape(D); renderTenors(D); renderInterpretation(D);
       if (triggerDraft && typeof window.renderTriggers === 'function') window.renderTriggers(D,triggerDraft);
       renderRoot = null; draft.hidden = false; old.replaceWith(draft);
       if (triggerDraft) trigger.replaceWith(triggerDraft);
@@ -843,6 +985,7 @@
 
 
 <!-- ─────────── 6 CRISIS PATTERN INDICATORS ─────────── -->
+<details class="legacy-fold"><summary>Legacy detector heuristics — the 6 crisis patterns (descriptive thresholds; superseded by the cohort grades, curve map and fingerprints above)</summary>
 <section class="box">
   <div class="head">
     <h3>📊 The 6 crisis patterns — current state</h3>
@@ -855,6 +998,7 @@
     <div class="indicators" id="indicators"></div>
   </div>
 </section>
+</details>
 
 <!-- ─────────── LAST 14 DAYS TAPE ─────────── -->
 <section class="box">
@@ -876,6 +1020,7 @@
 </section>
 
 <!-- ─────────── CRISIS COMPARISON ─────────── -->
+<details class="legacy-fold"><summary>Legacy crisis anchors from PDFs — withheld until the historical rows are verified (the fingerprint section above is computed from the FiscalData bank instead)</summary>
 <section class="box">
   <div class="head">
     <h3>🏚️ Crisis comparison — today vs historical anchors</h3>
@@ -900,8 +1045,10 @@
     </table>
   </div>
 </section>
+</details>
 
 <!-- ─────────── BITCOIN REGIME OVERLAY ─────────── -->
+<details class="legacy-fold"><summary>Bitcoin relationship — validation pending; no timing or expected-return claim is published</summary>
 <section class="box">
   <div class="head">
     <h3>Bitcoin relationship — validation pending</h3>
@@ -937,8 +1084,10 @@
     <div class="btc-eras" id="btcBears"></div>
   </div>
 </section>
+</details>
 
 <!-- ─────────── RISK-ON FORWARD RETURNS ─────────── -->
+<details class="legacy-fold"><summary>Risk-on forward returns by auction regime — conditional estimates unavailable (no validated dataset)</summary>
 <section class="box">
   <div class="head">
     <h3>📈 Risk-on forward returns by auction regime</h3>
@@ -962,6 +1111,7 @@
     </table>
   </div>
 </section>
+</details>
 
 <!-- ─────────── PLAIN-ENGLISH MARKET IMPACT ─────────── -->
 <section class="box">

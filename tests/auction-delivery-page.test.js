@@ -9,7 +9,7 @@ function harness() {
   for(const id of ['desk-refresh','desk-delivery-status','desk-complete-packet','gx-overlay'])controls.set(id,{disabled:false,textContent:'',classList:{remove:()=>{}}});
   const scope={document:{getElementById:get},window:{__AUCTION_DESK:state.previous,renderTriggers:(d,target)=>target.rows.push(d.id)},$:get,
     renderRoot:null,tapeFilter:'All',loadGeneration:0,FEED:'fixture-full-packet',wireExplainer:()=>{},wireEvidence:()=>{},client:()=>state.client};
-  for(const name of ['renderBanner','renderReactions','renderOps','renderBuybacks','renderCalendar','renderDays','renderTape','renderTenors']) {
+  for(const name of ['renderBanner','renderReactions','renderOps','renderBuybacks','renderCalendar','renderDays','renderTape','renderTenors','renderInterpretation']) {
     scope[name]=d=>{phases.push(name);scope.renderRoot.rows.push(d.id+':'+name);};
   }
   state.released=[];
@@ -18,7 +18,7 @@ function harness() {
 }
 test('all sections render offscreen before one complete snapshot becomes current',async()=>{
   const h=harness(),old=h.state.shell;
-  await h.scope.load();assert.notEqual(h.state.shell,old);assert.equal(h.state.shell.rows.length,8);
+  await h.scope.load();assert.notEqual(h.state.shell,old);assert.equal(h.state.shell.rows.length,9);
   assert.deepEqual(old.rows,['whole previous snapshot']);assert.equal(h.scope.window.__AUCTION_DESK.id,'new');
   assert.equal(h.state.trigger.rows[0],'new');assert.equal(h.controls.get('desk-refresh').disabled,false);
 });

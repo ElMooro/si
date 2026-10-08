@@ -36,6 +36,7 @@ import gzip
 import io
 import auction_buybacks
 import auction_delivery_store
+import auction_interpretation
 import auction_participation
 import auction_reactions
 from auction_weighting import weighted_summary
@@ -61,7 +62,7 @@ try:
 except Exception:  # pragma: no cover
     crisis_scoring = None
 
-VERSION = "1.5.8"
+VERSION = "1.6.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/auction-desk.json"
 HIST_KEY = "data/warm/treasury-auctions/history.json.gz"
@@ -241,6 +242,13 @@ def _d(v):
     return str(v or "")[:10] or None
 
 
+def _first(*values):
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
 # ─────────────────────────── ingestion ───────────────────────────────
 def norm_td(r):
     """TreasuryDirect auctioned/announced row -> canonical record."""
@@ -259,10 +267,15 @@ def norm_td(r):
         "high_discount_rate": hdr, "high_discount_margin": _f(r.get("highDiscountMargin")), "interest_rate": _f(r.get("interestRate")),
         "btc": _f(r.get("bidToCoverRatio")),
         "pd": _f(r.get("primaryDealerAccepted")), "direct": _f(r.get("directBidderAccepted")), "indirect": _f(r.get("indirectBidderAccepted")),
+        "pd_tendered": _f(r.get("primaryDealerTendered")), "direct_tendered": _f(r.get("directBidderTendered")), "indirect_tendered": _f(r.get("indirectBidderTendered")),
         "total_accepted": _f(r.get("totalAccepted")), "total_tendered": _f(r.get("totalTendered")),
-        "competitive_accepted": _f(r.get("competitiveAccepted")), "noncompetitive_accepted": _f(r.get("noncompetitiveAccepted")),
+        "competitive_accepted": _f(r.get("competitiveAccepted")), "competitive_tendered": _f(r.get("competitiveTendered")), "noncompetitive_accepted": _f(r.get("noncompetitiveAccepted")),
+        # median / low on the same basis as high_yield (bills: investment rate; FRN: discount margin)
+        "median_yield": _first(_f(r.get("averageMedianYield")), _f(r.get("averageMedianDiscountMargin"))),
+        "low_yield": _first(_f(r.get("lowYield")), _f(r.get("lowDiscountMargin"))),
+        "median_discount_rate": _f(r.get("averageMedianDiscountRate")), "low_discount_rate": _f(r.get("lowDiscountRate")),
         "allocation_pct": _f(r.get("allocationPercentage")), "soma": _f(r.get("somaAccepted")),
-        "offering": _f(r.get("offeringAmount")), "src": "treasurydirect",
+        "offering": _f(r.get("offeringAmount")), "results_pdf": r.get("pdfFilenameCompetitiveResults") or None, "src": "treasurydirect",
     }
 
 
@@ -280,10 +293,14 @@ def norm_fd(r):
         "high_yield": hy if hy is not None else hir, "high_discount_rate": _f(r.get("high_discnt_rate")), "high_discount_margin": _f(r.get("high_discnt_margin")),
         "interest_rate": _f(r.get("int_rate")), "btc": _f(r.get("bid_to_cover_ratio")),
         "pd": _f(r.get("primary_dealer_accepted")), "direct": _f(r.get("direct_bidder_accepted")), "indirect": _f(r.get("indirect_bidder_accepted")),
+        "pd_tendered": _f(r.get("primary_dealer_tendered")), "direct_tendered": _f(r.get("direct_bidder_tendered")), "indirect_tendered": _f(r.get("indirect_bidder_tendered")),
         "total_accepted": _f(r.get("total_accepted")), "total_tendered": _f(r.get("total_tendered")),
-        "competitive_accepted": _f(r.get("comp_accepted")), "noncompetitive_accepted": _f(r.get("noncomp_accepted")),
+        "competitive_accepted": _f(r.get("comp_accepted")), "competitive_tendered": _f(r.get("comp_tendered")), "noncompetitive_accepted": _f(r.get("noncomp_accepted")),
+        "median_yield": _first(_f(r.get("avg_med_yield")), _f(r.get("avg_med_discnt_margin"))),
+        "low_yield": _first(_f(r.get("low_yield")), _f(r.get("low_discnt_margin"))),
+        "median_discount_rate": _f(r.get("avg_med_discnt_rate")), "low_discount_rate": _f(r.get("low_discnt_rate")),
         "allocation_pct": _f(r.get("allocation_pctage")), "soma": _f(r.get("soma_accepted")),
-        "offering": _f(r.get("offering_amt")), "src": "fiscaldata",
+        "offering": _f(r.get("offering_amt")), "results_pdf": r.get("pdf_filenm_comp_results") or None, "src": "fiscaldata",
     }
 
 
@@ -341,6 +358,10 @@ def fetch_fd(dataset, params, max_pages=40, proof_out=None):
 
 def rec_key(r):
     return "%s|%s" % (r.get("cusip"), r.get("auction_date"))
+
+
+SUPPLEMENT_FIELDS = ("pd_tendered", "direct_tendered", "indirect_tendered", "competitive_tendered",
+                     "median_yield", "low_yield", "median_discount_rate", "low_discount_rate", "results_pdf")
 
 
 # ─────────────────────────── par curve (tail proxy) ──────────────────
@@ -463,14 +484,24 @@ def analyze_auction(r, bank_sorted, par_rows, prior=None):
     ]
     a["quality"] = {"status": "valid" if grading["status"] == "complete" else "partial", "grading_contract": grading["contract"], "missing_features": grading["missing_features"],
                     "observation_date": r.get("auction_date"), "scope": "historical_measurement_validity_not_current_freshness",
-                    "cohort_size": len(prior), "cohort_basis": "instrument_kind + remaining term + reopening",
+                    "cohort_size": len(prior), "cohort_basis": "instrument_kind + term bucket (bills: auctioned term; coupons/TIPS/FRN: original term) + reopening",
+                    "cohort_term": auction_participation.cohort(r)[1] if auction_participation.cohort(r) else None,
                     "wi_quote_available": False, "call": None, "sizing_eligible": False}
+    # Interpretation layer: hit ratios, dispersion, par-curve set-up / reaction (descriptive, outside the grade).
+    a["behaviour"] = auction_interpretation.bidder_behaviour(a)
+    a["setup"] = auction_interpretation.setup_and_reaction(par_rows, a) if nominal_par_eligible(r) else None
+    a["pd_hit_pct"] = a["behaviour"]["hit_ratio_pct"]["pd"]
+    a["indirect_hit_pct"] = a["behaviour"]["hit_ratio_pct"]["indirect"]
+    a["high_minus_median_bp"] = a["behaviour"]["dispersion"]["high_minus_median_bp"]
+    a["concession_5s_bp"] = (a["setup"] or {}).get("concession_bp")
+    a["reaction_bp"] = (a["setup"] or {}).get("reaction_bp")
     invalid = {key: value for key, value in a.items() if isinstance(value, float) and not math.isfinite(value)}
     if invalid:
         a["invalid_numeric_inputs"] = auction_reactions.safe(invalid)
         a.update({key: None for key in invalid})
     a["explain"] = explain_auction(a)
     a["verdict"] = auction_verdict(a)
+    a["read"] = auction_interpretation.auction_read(a, a["behaviour"], a["setup"])
     return a
 
 
@@ -505,6 +536,21 @@ def explain_auction(a):
         lines.append({"metric": "Prior-close gap %+.1fbp" % tb, "text": txt + (" (recent comparable average: %+.1fbp)" % t["tail_bp"] if t.get("tail_bp") is not None else "")})
     elif a.get("tail_missing_reason"):
         lines.append({"metric": "Yield comparison unavailable", "text": a["tail_missing_reason"]})
+    beh = a.get("behaviour") or {}
+    hit = (beh.get("hit_ratio_pct") or {}).get("pd")
+    if hit is not None:
+        lines.append({"metric": "Dealer hit ratio %.0f%%" % hit,
+                      "text": "Dealers were awarded %.0f%% of what they bid for (%s bid, %s awarded). A low fill means end investors outbid the dealers; a high fill means the dealers had to absorb the paper." % (
+                          hit, fmt_bn(a.get("pd_tendered")), fmt_bn(a.get("pd")))})
+    disp = (beh.get("dispersion") or {}).get("high_minus_median_bp")
+    if disp is not None:
+        lines.append({"metric": "Stop vs median %+.1fbp" % disp,
+                      "text": "The stop (high accepted) cleared %.1fbp above the median accepted bid. A wide gap means the last bids Treasury needed were far from the centre of demand; a narrow gap means bids were tightly clustered." % disp})
+    setup = a.get("setup") or {}
+    if setup.get("concession_bp") is not None:
+        lines.append({"metric": "Set-up %+.1fbp over 5 sessions" % setup["concession_bp"], "text": (setup.get("reading") or {}).get("concession") or ""})
+    if setup.get("reaction_bp") is not None:
+        lines.append({"metric": "Auction-day move %+.1fbp" % setup["reaction_bp"], "text": ((setup.get("reading") or {}).get("reaction") or "") + " Constant-maturity par yield, not the auctioned CUSIP."})
     if a.get("allocation_pct") is not None:
         ap = a["allocation_pct"]
         lines.append({"metric": "Allotted at high %.0f%%" % ap,
@@ -518,7 +564,7 @@ def explain_auction(a):
     z_txt = ", ".join("%s %s" % (p["metric"].lower(), ("%+.1f" % p["z"]) + "σ") for p in a.get("score_parts", []) if p.get("z") is not None)
     if a.get("demand_score") is not None:
         lines.append({"metric": "Grade %s (score %+.2f)" % (a["grade"], a["demand_score"]),
-                      "text": "Compare the last 12 auctions of the same verified instrument kind, remaining term and reopening status. Every current and historical participation input is required. The three weighted standardized contributions use one fixed denominator of three; a missing input or zero-variance baseline withholds the grade. Prior-close gaps are excluded (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F. This descriptive grade is not a calibrated forecast." % z_txt})
+                      "text": "Compare the last 12 auctions of the same verified instrument kind, term bucket (coupons by original term, bills by auctioned term) and reopening status. Every current and historical participation input is required. The three weighted standardized contributions use one fixed denominator of three; a missing input or zero-variance baseline withholds the grade. Prior-close gaps are excluded (%s). A ≥ +1.0, B ≥ +0.4, C ≥ -0.4, D ≥ -1.0, else F. This descriptive grade is not a calibrated forecast." % z_txt})
     return lines
 
 
@@ -637,10 +683,12 @@ def day_verdict(date, auctions, buybacks):
 def ai_note(facts):
     """Compatibility name; the desk explanation requires no paid model/provider."""
     verdict = facts.get("verdict") or {}
+    read = facts.get("read") or {}
     return {
-        "what_happened": str(verdict.get("headline") or "No verified operation summary available."),
-        "what_it_means": "Participation grades compare matched auction cohorts. Prior-close par gaps are context, not when-issued tails. Buyback accepted par does not establish cash settlement, net duration removal or monetary easing.",
-        "watch_next": "Verify subsequent market prices, settlement dates and offsetting issuance. Historical conditional returns do not authorize portfolio sizing.",
+        "headline": str(read.get("headline") or verdict.get("headline") or "No verified operation summary available."),
+        "what_happened": str(read.get("what_happened") or verdict.get("headline") or "No verified operation summary available."),
+        "what_it_means": str(read.get("what_it_means") or "Participation grades compare matched auction cohorts. Prior-close par gaps are context, not when-issued tails. Buyback accepted par does not establish cash settlement, net duration removal or monetary easing."),
+        "watch_next": str(read.get("watch_next") or "Verify subsequent market prices, settlement dates and offsetting issuance. Historical conditional returns do not authorize portfolio sizing."),
         "model": None, "generation_method": "deterministic_treasury_v1",
         "paid_api_calls": 0, "generated_at": _iso(),
         "evidence_date": facts.get("date"), "call": None, "sizing_eligible": False,
@@ -651,6 +699,10 @@ def ai_note(facts):
 def load_full_bank(force=False):
     doc = _s3_json(FULL_KEY) or {}
     rows = doc.get("rows") or {}
+    if rows and not force and doc.get("last_capture") and "original_security_term" not in (rows.get(min(rows)) or {}):
+        # Legacy slim engine capture (field-restricted). Re-acquire the complete rows once so
+        # instrument identity, tendered amounts and median yields exist for every year.
+        force = True
     if rows and not force:
         # incremental: everything since the newest banked auction minus 10 days
         start = (datetime.fromisoformat(max(rows)[:10]) - timedelta(days=10)).date().isoformat()
@@ -661,10 +713,16 @@ def load_full_bank(force=False):
         acquired = fetch_fd("auctions_query", {"filter": "auction_date:gte:%s" % start, "sort": "-auction_date"}, max_pages=60, proof_out=proof)
         finish = _now().date().isoformat()
         updates = {}
+        skipped_future = 0
         for r in acquired:
             observed = issuance_day(r.get('auction_date')) if isinstance(r, dict) else None
             cusip = r.get('cusip') if isinstance(r, dict) else None
-            if observed is None or not start <= observed.isoformat() <= finish or type(cusip) is not str or not cusip.strip():
+            if observed is not None and observed.isoformat() > finish:
+                # FiscalData lists announced auctions before they are held; they
+                # carry no results yet and must not fail the whole capture.
+                skipped_future += 1
+                continue
+            if observed is None or observed.isoformat() < start or type(cusip) is not str or not cusip.strip():
                 raise ValueError('Full auction capture has invalid identity or date')
             key = '%s|%s' % (observed.isoformat(), cusip)
             if key in updates:
@@ -691,7 +749,7 @@ def load_full_bank(force=False):
                 merged.append(dict(span))
         doc = {**doc, "version": VERSION, "rows": rows, "as_of": _iso(), "n": len(rows),
                "first": min(rows)[:10] if rows else None, "last": max(rows)[:10] if rows else None,
-               "population_coverage": merged, "last_capture": proof[0],
+               "population_coverage": merged, "last_capture": dict(proof[0], skipped_announced_future_rows=skipped_future),
                "coverage_note": "Only listed date ranges have complete pagination and no BTC filter. Older bank coverage is unverified; current vintage, not historical point-in-time evidence."}
         doc.pop('error', None)
         _put_json(FULL_KEY, doc, gz=True)
@@ -874,7 +932,7 @@ def predict_today(classes, reactions, assets):
 
 
 def chart_cohorts(auctions):
-    """Chart only the same declared security kind, remaining term and reopening."""
+    """Chart only the same declared security kind, term bucket and reopening."""
     groups={}
     for a in auctions:
         cohort=auction_participation.cohort(a)
@@ -934,9 +992,15 @@ def lambda_handler(event, ctx):
                     old = records.get(rec_key(rec))
                     if not old:
                         records[rec_key(rec)] = rec
-                    elif comparable_cohort(old) is None:
-                        # Repair identity only; retain the bank's original measurements.
-                        old.update(instrument_fields(r, "fiscaldata"))
+                    else:
+                        if comparable_cohort(old) is None or old.get("original_term") is None:
+                            # Repair identity only; retain the bank's original measurements.
+                            old.update(instrument_fields(r, "fiscaldata"))
+                        for key in SUPPLEMENT_FIELDS:
+                            # Fields first captured in 1.6.0 (tendered amounts, median/low, results PDF):
+                            # fill only where the bank has nothing; never overwrite a retained value.
+                            if old.get(key) is None and rec.get(key) is not None:
+                                old[key] = rec[key]
             notes.append("backfill %d records since %s" % (len(records), start))
         except Exception as e:
             notes.append("backfill failed: %s" % str(e)[:120])
@@ -1035,6 +1099,23 @@ def lambda_handler(event, ctx):
     verdicts = {d: day_verdict(d, days[d]["auctions"], days[d]["buybacks"]) for d in day_list}
     latest_day = day_list[0] if day_list else None
 
+    # interpretation layer: curve demand map, alert flags, percentile context (descriptive; outside the grade)
+    demand_map, alert_flags, population, interpretation_note = {"rows": []}, {"items": []}, None, ""
+    try:
+        population = auction_interpretation.build_population(bank_sorted)
+        demand_map = auction_interpretation.curve_map(analyzed_all, today, population=population, par_rows=par_rows)
+        alert_flags = auction_interpretation.alerts(analyzed_all, today, demand_map=demand_map)
+        for a in analyzed:
+            a["percentiles"] = auction_interpretation.percentile_context(a, population)
+            a["read"] = auction_interpretation.auction_read(a, a.get("behaviour"), a.get("setup"), a["percentiles"])
+        for d in day_list:
+            verdicts[d]["read"] = auction_interpretation.day_read(verdicts[d], days[d]["auctions"], days[d]["buybacks"], demand_map if d == latest_day else None,
+                                                                  alert_flags["items"] if d == latest_day else None)
+            verdicts[d]["headline_short"] = verdicts[d]["read"]["headline"]
+    except Exception as e:
+        interpretation_note = "interpretation failed: %s" % str(e)[:140]
+        notes.append(interpretation_note)
+
     # cross-asset reactions (history from the same graded bank; prices via the fleet proxy, cached ~daily)
     reactions, prediction, scoreboard, assets_note = None, [], [], ""
     try:
@@ -1049,7 +1130,7 @@ def lambda_handler(event, ctx):
         today_classes = ["none"]
 
     # composite history 1996-> (weekly; daily last 60d) with the detector's own live point appended
-    composite = None
+    composite, fingerprints = None, {"status": "unavailable", "episodes": [], "timeline": []}
     try:
         full = load_full_bank(force=bool(event.get("history")))
         live = None
@@ -1059,6 +1140,17 @@ def lambda_handler(event, ctx):
         except Exception:
             pass
         composite = build_composite_history(full.get("rows") or {}, fetch_fred_daily("DFF"), live, population_coverage=full.get("population_coverage") or [])
+        try:
+            full_norm = [norm_fd(r) for r in (full.get("rows") or {}).values() if isinstance(r, dict)]
+            fingerprints = auction_interpretation.crisis_fingerprints(full_norm, today)
+            # percentile context from the complete 1996-> bank beats the 3-year desk bank
+            population = auction_interpretation.build_population(full_norm)
+            demand_map = auction_interpretation.curve_map(analyzed_all, today, population=population, par_rows=par_rows)
+            for a in analyzed:
+                a["percentiles"] = auction_interpretation.percentile_context(a, population)
+                a["read"] = auction_interpretation.auction_read(a, a.get("behaviour"), a.get("setup"), a["percentiles"])
+        except Exception as e:
+            fingerprints = {"status": "unavailable", "error": str(e)[:160], "episodes": [], "timeline": []}
         composite["bank"] = {"as_of": full.get("as_of"), "population_coverage": full.get("population_coverage") or [], "coverage_note": full.get("coverage_note"), "first": full.get("first"), "last": full.get("last"), "n": full.get("n"), "error": full.get("error")}
         _put_json(COMPOSITE_KEY, composite)
     except Exception as e:
@@ -1083,10 +1175,10 @@ def lambda_handler(event, ctx):
         prev = _s3_json(arch_key) or {}
         fingerprint = json.dumps([(a["cusip"], a.get("btc"), a["grade"]) for a in days[latest_day]["auctions"]] +
                                  [(b["operation_date"], b.get("accepted")) for b in days[latest_day]["buybacks"]], sort_keys=True)
-        if prev.get("version") == VERSION and prev.get("fingerprint") == fingerprint and (prev.get("ai_note") or {}).get("generation_method") == "deterministic_treasury_v1":
+        if prev.get("version") == VERSION and prev.get("fingerprint") == fingerprint and (prev.get("ai_note") or {}).get("generation_method") == "deterministic_treasury_v1" and (prev.get("ai_note") or {}).get("headline"):
             ai = prev["ai_note"]
         elif not event.get("no_ai"):
-            ai = ai_note({"date": latest_day, "verdict": verdicts[latest_day],
+            ai = ai_note({"date": latest_day, "verdict": verdicts[latest_day], "read": verdicts[latest_day].get("read"),
                           "auctions": [{k: a.get(k) for k in ("term", "type", "total_accepted", "btc", "indirect_pct", "pd_pct", "tail_bp", "grade", "z", "trailing12")} for a in days[latest_day]["auctions"]],
                           "buybacks": [{k: b.get(k) for k in ("operation_date", "maturity_bucket", "operation_type", "max_par", "offered", "accepted", "fill_pct", "coverage", "tags")} for b in days[latest_day]["buybacks"]],
                           "program": program_stats})
@@ -1118,6 +1210,9 @@ def lambda_handler(event, ctx):
         "calendar": {"auctions": calendar_auctions[:40], "buybacks": [dict(b, securities=None) for b in bb_analyzed if auction_reactions.day(b.get("operation_date")) and b["operation_date"] > today][:10]},
         "by_term": by_term,
         "chart_cohort_contract":"treasury-comparable-chart.v1","chart_cohorts":chart_cohorts(analyzed),
+        "interpretation_contract": auction_interpretation.CONTRACT,
+        "curve_map": demand_map, "alerts": alert_flags, "crisis_fingerprints": fingerprints,
+        "wi_tail": {"status": "feed_unavailable", "reason": "No when-issued quote feed is retained. Prior-close par gaps and auction-day par moves are shown instead and are labelled as such."},
         "composite_history": composite,
         "reactions": {"prediction": prediction, "today_classes": today_classes, "class_labels": CLASS_LABEL, "scoreboard": scoreboard,
                       "stats": (reactions or {}).get("stats"), "baseline": (reactions or {}).get("baseline"), "n_events": (reactions or {}).get("n_events"),
@@ -1135,7 +1230,8 @@ def lambda_handler(event, ctx):
                      "reason": "Participation grades and historical conditional returns are descriptive, not a validated action model"},
         "methodology": {
             "tail_proxy": "legacy tail_bp aliases prior_close_concession_bp for verified nominal coupons/bills only. TIPS/FRN/unknown comparisons are null. This context is excluded from demand scoring; wi_tail_bp is unavailable",
-            "z_scores": "vs the trailing 12 auctions of the same verified instrument kind, remaining term and reopening status", "grade": "complete three-feature mean: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer); same full supplied 4-to-12-row comparable cohort, positive variance required, no partial-feature renormalization. Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
+            "z_scores": "vs the trailing 4-12 auctions of the same verified instrument kind, term bucket (coupons, TIPS and FRNs by original term; bills by auctioned term) and reopening status",
+            "interpretation": "hit ratio = accepted / tendered per bidder class; stop vs median = high accepted yield minus median accepted yield; set-up = par-curve change over the five sessions before the auction; auction-day move = par-curve change from the prior close to the auction-day close (constant-maturity tenor, not the CUSIP, not a when-issued tail); percentiles rank the auction among retained same-bucket auctions since 2010; crisis fingerprints compare mean cohort z-scores, dealer fills and dispersion in documented episode windows with the last 90 days -- descriptive similarity only", "grade": "complete three-feature mean: z(bid-to-cover), 0.8 z(indirect), -0.8 z(dealer); same full supplied 4-to-12-row comparable cohort, positive variance required, no partial-feature renormalization. Prior-close gaps excluded; A >= 1.0, B >= 0.4, C >= -0.4, D >= -1.0, else F; descriptive only",
             "buyback_signal": "Par-dollar fields are separate from issue counts; missing or conflicting fields remain unavailable. Strong requires complete supplied mapping, accepted >= 90% of maximum and maximum >= $5B. Size percentile is a descriptive midrank against strictly earlier operations of the same type, security and bucket; whole program coverage is unverified. This is not monetary easing. Accepted par differs from cash settlement; financing offsets and net effects are unmeasured",
             "reactions": "for every graded auction day since the bank starts, forward returns of each asset are bucketed by the day's class (buyback_strong, coupon_weak, coupon_strong, coupon_mixed, bills_only); today's prediction shows the median and hit-rate of those buckets -- conditional history, not a forecast model"},
     }

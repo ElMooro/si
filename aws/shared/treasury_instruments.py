@@ -37,12 +37,30 @@ def instrument_fields(row, provider):
     }
 
 
+def cohort_term(row):
+    """Comparable-term bucket.
+
+    Bills compare on the auctioned (remaining) term: a 4-week reopening of a
+    26-week CUSIP trades like a 4-week bill. Coupons, TIPS and FRNs compare on
+    the original security term: a 29-year-10-month reopening is a 30-year
+    auction and a 9-year-11-month reopening is a 10-year auction. Remaining
+    terms vary month to month and would otherwise split one 30-year programme
+    into cohorts too small to grade. Rows without a retained original term
+    fall back to the auctioned term.
+    """
+    term = row.get('term')
+    if row.get('instrument_kind') == 'BILL':
+        return term
+    original = row.get('original_term')
+    return original if type(original) is str and original.strip() else term
+
+
 def comparable_cohort(row):
     """Unknown legacy rows cannot establish a comparable demand distribution."""
     kind = row.get('instrument_kind')
     if row.get('instrument_contract') != CONTRACT_VERSION or kind not in ('TIPS', 'FRN', 'BILL', 'NOMINAL_COUPON'):
         return None
-    return kind, row.get('term'), bool(row.get('reopening'))
+    return kind, cohort_term(row), bool(row.get('reopening'))
 
 
 def nominal_par_eligible(row):

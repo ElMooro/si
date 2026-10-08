@@ -12,17 +12,18 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / 'aws/shared'))
 import auction_buybacks
+import auction_interpretation
 import auction_participation
 import auction_reactions
 from treasury_instruments import instrument_fields, comparable_cohort, nominal_par_eligible
 
 SRC = HERE.parent / 'source/lambda_function.py'
 tree = ast.parse(SRC.read_text(encoding='utf-8'))
-env = dict(auction_buybacks=auction_buybacks,auction_reactions=auction_reactions,auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
+env = dict(auction_buybacks=auction_buybacks,auction_interpretation=auction_interpretation,auction_reactions=auction_reactions,auction_participation=auction_participation, bisect=bisect, json=json, math=math, statistics=statistics, datetime=datetime,
            timedelta=timedelta, timezone=timezone, instrument_fields=instrument_fields,
            comparable_cohort=comparable_cohort, nominal_par_eligible=nominal_par_eligible,
            _PAR_DATES={}, TERM_TENOR={'10-Year': '10Y', '9-Year 10-Month': '10Y'})
-functions = {'_f', '_d', '_now', '_iso', 'norm_td', 'norm_fd', 'par_prev_close', 'shares', 'z',
+functions = {'_f', '_d', '_first', '_now', '_iso', 'norm_td', 'norm_fd', 'par_prev_close', 'shares', 'z',
              'analyze_bank', 'analyze_auction', 'explain_auction', 'fmt_bn', 'auction_verdict',
              'implication_for_auction', 'analyze_buyback', 'day_verdict', 'ai_note'}
 functions.update({'day_class','build_reactions','_dist','predict_today','chart_cohorts','fwd_returns'})
