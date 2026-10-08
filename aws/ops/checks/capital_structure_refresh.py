@@ -118,6 +118,32 @@ def transport():
     return once
 
 
+def release_failed_control(client, ops_number, note, clock=now):
+    """The explicit review the failed-control stop asks for (2026-10-08, ops 6501).
+
+    A failed cycle stops every later day until a human looks at it; before this function
+    the only way past the stop was to edit S3 by hand, which left no evidence. This retains
+    the failed control bytes unchanged, records who released it and why, and moves the
+    status to 'released' so the next scheduled plan may start a NEW cycle. Nothing about
+    the failed cycle's journals, parts or plan is altered; no phase is retried.
+    """
+    if not isinstance(ops_number, int) or not 0 < ops_number < 10**6: raise ValueError('Ops number required')
+    if not isinstance(note, str) or not 10 <= len(note) <= 500: raise ValueError('Review note required')
+    state, etag, raw = load_control(client)
+    if not state or state.get('contract') != CONTRACT: raise ValueError('Current refresh control required')
+    if state.get('status') != 'failed': raise ValueError('Only a failed control can be released')
+    retained = capture.retain(client, raw)
+    state.update(status='released', review={'ops': ops_number, 'note': note, 'released_at': clock(),
+                                            'failed_control': retained, 'failed_status': 'failed',
+                                            'error_type': state.get('error_type'), 'failed_at': state.get('failed_at'),
+                                            'active_phase': state.get('active_phase'),
+                                            'completed_phases': list(state.get('completed_phases') or [])})
+    save_control(client, state, etag)
+    return {'released': True, 'request_id': state.get('request_id'), 'failed_control': retained,
+            'error_type': state.get('error_type'), 'failed_at': state.get('failed_at'),
+            'active_phase': state.get('active_phase'), 'completed_phases': state.get('completed_phases')}
+
+
 def run(client, run_id, phase, credential=None, clock=now, audit=private_access,
         identity_fetch=None, source_transport=None, qualification=readiness.run):
     request = request_id(run_id)
@@ -127,7 +153,7 @@ def run(client, run_id, phase, credential=None, clock=now, audit=private_access,
     if phase == 'plan':
         if state and state.get('request_id') == request:
             raise ValueError('Refresh already attempted; do not repeat a workflow run')
-        if state and (state.get('contract') != CONTRACT or state.get('status') != 'complete'):
+        if state and (state.get('contract') != CONTRACT or state.get('status') not in ('complete', 'released')):
             raise ValueError('Previous refresh incomplete or failed; explicit review is required')
         if state and source.clock(state['started_at']).date() >= source.clock(clock()).date():
             raise ValueError('At most one complete source sweep per UTC day')

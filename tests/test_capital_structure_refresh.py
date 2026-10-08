@@ -86,6 +86,35 @@ class Tests(unittest.TestCase):
         journal = json.loads(s3.files[capture.request_key(refresh.request_id('123'), 'batch:1')])
         self.assertTrue(journal['captures']); self.assertEqual(journal['status'], 'failed')
 
+    def test_reviewed_release_lets_a_new_day_plan_but_never_retries_the_failed_cycle(self):
+        f, s3, calls, checks, invoke = self.setup_cycle(); invoke('plan')
+        original = capture.capture
+        def fail(client, request_id, spec, *args, **kwargs):
+            if spec['endpoint'] == 'quote': raise ValueError('Synthetic source failure')
+            return original(client, request_id, spec, *args, **kwargs)
+        with patch.object(capture, 'capture', side_effect=fail):
+            with self.assertRaises(ValueError): invoke('part-1')
+        failed_bytes = s3.files[refresh.CONTROL]
+        with self.assertRaises(ValueError): invoke('plan', '456')
+        with self.assertRaises(ValueError): refresh.release_failed_control(s3, 0, 'note long enough', clock=lambda: STAMP)
+        with self.assertRaises(ValueError): refresh.release_failed_control(s3, 6501, 'short', clock=lambda: STAMP)
+        released = refresh.release_failed_control(s3, 6501, 'audit 2026-10-08: part-1 failure reviewed', clock=lambda: STAMP)
+        self.assertEqual(s3.files[released['failed_control']['key']], failed_bytes)
+        control = json.loads(s3.files[refresh.CONTROL])
+        self.assertEqual(control['status'], 'released'); self.assertEqual(control['review']['ops'], 6501)
+        self.assertEqual(control['review']['error_type'], 'ValueError')
+        with self.assertRaises(ValueError): refresh.release_failed_control(s3, 6502, 'already released once', clock=lambda: STAMP)
+        with self.assertRaises(ValueError): invoke('part-1')
+        count = len(calls)
+        later = lambda: '2027-01-02T00:00:00+00:00'
+        new = refresh.run(s3, '456', 'plan', clock=later, audit=lambda c, k, p: {'summary': {'all_denied': True}},
+                          identity_fetch=lambda: f['identity'])
+        self.assertTrue(new['plan']); self.assertEqual(len(calls), count)
+        control = json.loads(s3.files[refresh.CONTROL])
+        self.assertEqual(control['status'], 'running')
+        previous = json.loads(s3.files[control['previous_cycle']['key']])  # the released control, which points at the failed one
+        self.assertEqual(previous['status'], 'released'); self.assertEqual(previous['review']['failed_control']['sha256'], released['failed_control']['sha256'])
+
     def test_runner_loss_after_claim_cannot_be_retried_or_skipped(self):
         f, s3, calls, checks, invoke = self.setup_cycle(); invoke('plan')
         state, etag, raw = refresh.load_control(s3); state['active_phase'] = 'part-1'
