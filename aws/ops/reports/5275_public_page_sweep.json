@@ -1,18 +1,19 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "4dcff514af76a0a27f847d84be13f56a44e91baf",
-  "observed_at": "2026-10-08T22:49:25.059077+00:00",
+  "observed_at": "2026-10-08T22:59:09.774701+00:00",
   "ok": false,
   "routes_checked": 600,
-  "verified_routes": 599,
+  "verified_routes": 598,
   "failed_routes": [
-    "bottleneck.html"
+    "system.html",
+    "tail-hedge.html"
   ],
   "source_equivalent_builds": {
     "4dcff514af76a0a27f847d84be13f56a44e91baf": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -710,12 +711,13 @@
     },
     {
       "route": "bottleneck.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "4dcff514af76a0a27f847d84be13f56a44e91baf",
+      "inspector_present": true,
+      "bytes_read": 4184,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "bottom-signals.html",
@@ -5349,13 +5351,12 @@
     },
     {
       "route": "system.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "4dcff514af76a0a27f847d84be13f56a44e91baf",
-      "inspector_present": true,
-      "bytes_read": 43771,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "systemic-stress.html",
@@ -5369,13 +5370,12 @@
     },
     {
       "route": "tail-hedge.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "4dcff514af76a0a27f847d84be13f56a44e91baf",
-      "inspector_present": true,
-      "bytes_read": 26243,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "tail-risk.html",
@@ -6019,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37855073723,
+  "deployment_run_id": 37856205393,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-08T22:49:25.067474+00:00"
+  "check_finished_at": "2026-10-08T22:59:09.784654+00:00"
 }
