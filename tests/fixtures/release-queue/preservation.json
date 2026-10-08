@@ -1,24 +1,28 @@
 {
-  ".github/workflows/deploy-lambdas.yml": {
-    "archive": "tests/fixtures/release-queue/deploy-lambdas.yml.before.txt",
-    "predecessor_sha256": "ef9054b609e519210037ffd600d5095c788212ec00c99b561533f72f8a34c94c",
-    "edits": [
-      [
-        "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n",
-        "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n  queue: max\n"
-      ]
-    ],
-    "group": "deploy-lambdas-production"
-  },
-  ".github/workflows/run-ops-direct.yml": {
-    "archive": "tests/fixtures/release-queue/run-ops-direct.yml.before.txt",
-    "predecessor_sha256": "f0199a578379f10201617f11ce607d8c782df1d40c88eaed8cd981b79b305d1a",
-    "edits": [
-      [
-        "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n",
-        "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n  queue: max\n"
-      ]
-    ],
-    "group": "run-ops-direct"
-  }
+ ".github/workflows/deploy-lambdas.yml": {
+  "archive": "tests/fixtures/release-queue/deploy-lambdas.yml.before.txt",
+  "predecessor_sha256": "ef9054b609e519210037ffd600d5095c788212ec00c99b561533f72f8a34c94c",
+  "edits": [
+   [
+    "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n",
+    "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n  queue: max\n"
+   ]
+  ],
+  "group": "deploy-lambdas-production"
+ },
+ ".github/workflows/run-ops-direct.yml": {
+  "archive": "tests/fixtures/release-queue/run-ops-direct.yml.before.txt",
+  "predecessor_sha256": "f0199a578379f10201617f11ce607d8c782df1d40c88eaed8cd981b79b305d1a",
+  "edits": [
+   [
+    "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n",
+    "concurrency:\n  group: run-ops-direct\n  cancel-in-progress: false\n  queue: max\n"
+   ],
+   [
+    "          git commit -q -m \"ops(direct): report from run ${{ github.run_id }} [skip-deploy] [skip-ops]\" || { echo \"nothing to commit\"; exit 0; }\n          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && break || sleep $((i * 7)); done\n",
+    "          git commit -q -m \"ops(direct): report from run ${{ github.run_id }} [skip-deploy] [skip-ops]\" || { echo \"nothing to commit\"; exit 0; }\n          # 2026-10-08 (ops 6497): a script that regenerates a tracked file (engine-manifest.json) left the\n          # checkout dirty, `pull --rebase` refused five times and the run still went green with its report\n          # lost. Discard everything that is not the committed report, and fail loudly if the push never lands.\n          git stash -q -u || true\n          pushed=0\n          for i in 1 2 3 4 5; do\n            if git pull --rebase -q origin main && git push -q origin HEAD:main; then pushed=1; break; fi\n            sleep $((i * 7))\n          done\n          [ \"$pushed\" = 1 ] || { echo \"::error::report commit could not be pushed to main after 5 attempts\"; exit 1; }\n"
+   ]
+  ],
+  "group": "run-ops-direct"
+ }
 }
