@@ -29,7 +29,10 @@ def main():
     pend_nums = [n for n in (ops_num(p) for p in pending) if n is not None]
     # 2026-09-17: STAGED direct-lane scripts and report-only numbers are taken too (every lane reads
     # this number; a probe that only ever ran through run-ops-direct must not be handed out again).
-    staged_nums = [n for n in (ops_num(p.name) for p in (OPS / "STAGED").glob("ops_*.py")) if n is not None]
+    # 2026-10-08: the repo carries BOTH aws/ops/STAGED and aws/ops/staged (case-distinct trees); a number
+    # that lives only in the lowercase tree without a report yet was being handed out again.
+    staged_nums = [n for n in (ops_num(p.name) for d in ("STAGED", "staged") for p in (OPS / d).glob("ops_*.py"))
+                   if n is not None]
     report_nums = [n for n in (ops_num("ops_" + p.name.removeprefix("ops_")) for p in (OPS / "reports" / "latest").glob("*.md")) if n is not None]
     next_free = max(ran_nums + pend_nums + staged_nums + report_nums, default=0) + 1
 

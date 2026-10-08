@@ -64,7 +64,7 @@ def check_py(path):
             num = m.group(1)
             # 2026-09-17: STAGED (direct-lane) scripts and report-only numbers are taken too --
             # every lane picks from the same space (STATE.md next_free_ops_number).
-            dups = [p.name for d in ("pending", "ran", "STAGED")
+            dups = [p.name for d in ("pending", "ran", "STAGED", "staged")
                     for p in (OPS / d).glob("ops_%s_*.py" % num)
                     if p.resolve() != path.resolve()]
             dups += [p.name for p in (OPS / "reports" / "latest").glob("*%s_*.md" % num)
