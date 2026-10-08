@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "f47747181453152305e51c4c044ba38b3e46b882",
-  "observed_at": "2026-10-08T00:54:55.953734+00:00",
-  "ok": false,
+  "observed_at": "2026-10-08T01:45:08.824187+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "frontrun.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "f47747181453152305e51c4c044ba38b3e46b882": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2590,12 +2588,13 @@
     },
     {
       "route": "frontrun.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "f47747181453152305e51c4c044ba38b3e46b882",
+      "inspector_present": true,
+      "bytes_read": 19546,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "fundamental-census.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37709783990,
+  "deployment_run_id": 37713777553,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-08T00:54:55.963793+00:00"
+  "check_finished_at": "2026-10-08T01:45:08.830567+00:00"
 }
