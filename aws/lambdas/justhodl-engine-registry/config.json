@@ -1,0 +1,19 @@
+{
+  "function_name": "justhodl-engine-registry",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 300,
+  "memory": 512,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Live engine directory: Lambda inventory, EventBridge/Scheduler bindings and artifact ownership published daily to data/engine-registry.json",
+  "env": {"S3_BUCKET": "justhodl-dashboard-live"},
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-engine-registry-daily",
+    "cron": "cron(40 5 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily 05:40 UTC after the overnight deploy window; readers tolerate a day-old directory"
+  }
+}
