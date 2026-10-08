@@ -354,7 +354,8 @@
   .desk-alerts li .sev { font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; padding:1px 5px; border-radius:3px; margin-right:6px; }
   .desk-alerts li .sev.watch { color:var(--amber); background:var(--amber-soft); } .desk-alerts li .sev.info { color:var(--fg-3); background:var(--bg-sunken); }
   .desk-alerts .rules { font-size:10.5px; color:var(--fg-4); margin-top:6px; }
-  table.cmap td, table.cmap th { white-space:nowrap; }
+  table.cmap td, table.cmap th { white-space:nowrap; font-size:11px; padding:7px 8px; }
+  table.cmap td.tk b { font-size:12px; }
   .zcell { font-variant-numeric:tabular-nums; font-weight:600; padding:1px 6px; border-radius:4px; display:inline-block; min-width:44px; text-align:right; }
   .zcell.p2 { color:var(--green); background:var(--green-soft); } .zcell.p1 { color:var(--green); } .zcell.n1 { color:var(--red); } .zcell.n2 { color:var(--red); background:var(--red-soft); } .zcell.flat { color:var(--fg-3); }
   .zcell.inv.p2 { color:var(--red); background:var(--red-soft); } .zcell.inv.p1 { color:var(--red); } .zcell.inv.n1 { color:var(--green); } .zcell.inv.n2 { color:var(--green); background:var(--green-soft); }
@@ -394,18 +395,18 @@
 
 <div class="desk-alerts" id="desk-alerts" hidden></div>
 <section class="box" id="curve-map-box">
-  <div class="head"><h3>🗺 Curve demand map — latest auction per coupon tenor, graded against its own cohort</h3><span class="right" id="curve-map-meta"></span></div>
+  <div class="head"><h3>🗺 Curve demand map — latest auction per coupon tenor</h3><span class="right" id="curve-map-meta"></span></div>
   <div style="overflow-x:auto"><table class="cmap"><thead><tr><th>Tenor</th><th>Latest</th><th>Grade</th><th class="r">Score</th><th class="r" title="z vs trailing 4-12 same-cohort auctions">BTC z</th><th class="r">Indirect z</th><th class="r">Dealer z</th><th class="r" title="accepted ÷ tendered by primary dealers">Dealer fill</th><th class="r" title="high accepted yield minus median accepted yield">Stop−median</th><th class="r" title="par-curve change over the five sessions before the auction">Set-up 5s</th><th class="r" title="par-curve change prior close → auction-day close (constant-maturity tenor, not a WI tail)">Day move</th><th>Last 12 grades</th></tr></thead><tbody id="curve-map-body"></tbody></table></div>
   <p class="desk-method" id="curve-map-note" style="padding:8px 14px 12px"></p>
 </section>
-<p class="desk-method rx-collapsed" id="rx-collapsed" hidden></p>
 <div class="rx-grid" id="rx-grid">
-  <section class="box" style="margin:0">
+  <p class="desk-method rx-collapsed" id="rx-collapsed" style="grid-column:1/-1;margin:0" hidden></p>
+  <section class="box" id="rx-sec-history" style="margin:0">
     <div class="head"><h3>Cross-asset history — validation status</h3><span class="right" id="rx-meta"></span></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Asset</th><th>Based on</th><th class="r">Same day</th><th class="r">+1 day</th><th class="r">+5 days</th><th class="r">+20 days</th><th class="r">Validation</th></tr></thead><tbody id="rx-pred"><tr><td colspan="7"><div class="skel" style="height:40px"></div></td></tr></tbody></table></div>
     <div class="body" style="padding-top:8px"><div class="rx-note" id="rx-note"></div></div>
   </section>
-  <section class="box" style="margin:0">
+  <section class="box" id="rx-sec-days" style="margin:0">
     <div class="head"><h3>📒 What actually happened — recent auction days</h3><span class="right">same-day = prior close → auction-day close; not the release response</span></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Day</th><th>What the tape said</th><th class="r">S&amp;P</th><th class="r">Nasdaq</th><th class="r">TLT</th><th class="r">HYG</th><th class="r">BTC</th><th class="r">Gold</th><th class="r">Silver</th><th class="r">REITs</th></tr></thead><tbody id="rx-board"></tbody></table></div>
   </section>
@@ -445,7 +446,7 @@
 </section>
 
 <section class="box" id="crisis-box">
-  <div class="head"><h3>🚨 Crisis &amp; market-top fingerprints — how today's auctions compare with 2007-2008, 2011, 2020, 2022 and 2023</h3><span class="right" id="crisis-meta"></span></div>
+  <div class="head"><h3>🚨 Crisis &amp; market-top fingerprints — today vs 2007-2023</h3><span class="right" id="crisis-meta"></span></div>
   <div class="body">
     <div class="desk-stats" id="crisis-stats" style="grid-template-columns:repeat(4,minmax(0,1fr))"></div>
     <svg class="desk-chart" id="crisis-chart" viewBox="0 0 720 210" preserveAspectRatio="none" role="img" aria-label="Monthly mean cohort z-score of coupon auctions since 2003 with crisis and market-top windows shaded" style="height:210px"></svg>
@@ -729,7 +730,7 @@
   function renderReactions(D) {
     const R = D.reactions || {};
     const verified = R.price_lineage_verified === true;
-    $("rx-grid").hidden = !verified;
+    $("rx-sec-history").hidden = !verified; $("rx-sec-days").hidden = !verified;
     $("rx-collapsed").hidden = verified;
     $("rx-collapsed").textContent = verified ? "" : "Cross-asset reaction history (S&P, Nasdaq, TLT, HYG, BTC, gold, silver after each auction day) is withheld until the price feed's original-response lineage is verified. The rows stay in the downloadable packet; nothing is shown as a forecast.";
     const pred = verified ? R.prediction || [] : [];
@@ -782,21 +783,23 @@
     const trow = (e, cls) => `<tr class="crisis-row ${cls}"><td><b>${esc(e.label)}</b><div class="kind">${esc(kindLabel[e.kind] || e.kind)}${e.anchor ? " · " + esc(e.anchor) : ""}</div></td><td class="r">${e.n_auctions}</td><td class="r">${f1(e.mean_btc, 2)}</td><td class="r">${f1(e.mean_indirect_pct, 0, "%")}</td><td class="r">${f1(e.mean_pd_pct, 0, "%")}</td><td class="r">${f1(e.mean_pd_hit_pct, 0, "%")}</td><td class="r">${f1(e.mean_high_minus_median_bp, 1, "bp")}</td><td class="r">${f1(e.max_high_minus_median_bp, 1, "bp")}</td><td class="r">${zcell(e.mean_z_btc)}</td><td class="r">${zcell(e.mean_z_indirect)}</td><td class="r">${zcell(e.mean_z_pd, true)}</td><td class="r">${f1(e.share_weak_pct, 0, "%")}</td><td class="r">${e.kind === "current" ? "—" : e.distance_from_current == null ? '<span class="flat">n/a</span>' : e.distance_from_current.toFixed(2)}</td></tr>`;
     $("crisis-body").innerHTML = trow(cur, "current") + eps.map(e => trow(e, "")).join("") + (base.n_auctions ? trow(base, "") : "");
     // timeline chart
-    const T = Array.isArray(C.timeline) ? C.timeline.filter(p => p.mean_z_btc != null || p.mean_score != null) : [];
+    const rawT = Array.isArray(C.timeline) ? C.timeline.filter(p => p.mean_z_btc != null || p.mean_score != null) : [];
+    const smooth = (arr, key, i) => { const w = arr.slice(Math.max(0, i - 2), i + 1).map(p => p[key]).filter(v => v != null); return w.length ? w.reduce((a, b) => a + b, 0) / w.length : null; };
+    const T = rawT.map((p, i) => ({ ...p, mean_z_btc: smooth(rawT, "mean_z_btc", i), mean_score: smooth(rawT, "mean_score", i), raw_score: p.mean_score, raw_z: p.mean_z_btc }));
     const svg = $("crisis-chart"); svg.innerHTML = "";
     if (T.length > 12) {
       const W = 720, H = 210, padL = 36, padR = 12, padT = 18, padB = 24, n = T.length;
       const x = i => padL + i * (W - padL - padR) / Math.max(n - 1, 1);
       const yMin = -2.5, yMax = 2.5, y = v => padT + (H - padT - padB) * (1 - (Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin));
       const idx = m => { let best = -1; T.forEach((p, i) => { if (p.month <= m) best = i; }); return best; };
-      const bands = (C.episode_windows || []).map(w => { const a = idx(w.start.slice(0, 7)), b = idx(w.end.slice(0, 7)); if (a < 0 && b < 0) return ""; const x0 = x(Math.max(a, 0)), x1 = x(Math.max(b, 0)); const col = w.kind === "crisis" ? "rgba(239,68,68,.16)" : w.kind === "market_top" ? "rgba(245,158,11,.18)" : w.kind === "market_bottom" ? "rgba(34,197,94,.14)" : "rgba(167,139,250,.16)"; return `<rect x="${x0.toFixed(1)}" y="${padT}" width="${Math.max(3, x1 - x0).toFixed(1)}" height="${H - padT - padB}" fill="${col}"><title>${esc(w.label)} (${esc(w.start)} → ${esc(w.end)})</title></rect><text x="${(x0 + 2).toFixed(1)}" y="${padT + 9}" font-size="8" fill="#9aa7bd">${esc(w.label.split(" ")[0])}</text>`; }).join("");
+      const bands = (C.episode_windows || []).map((w, k) => { const a = idx(w.start.slice(0, 7)), b = idx(w.end.slice(0, 7)); if (a < 0 && b < 0) return ""; const x0 = x(Math.max(a, 0)), x1 = x(Math.max(b, 0)); const col = w.kind === "crisis" ? "rgba(239,68,68,.22)" : w.kind === "market_top" ? "rgba(245,158,11,.22)" : w.kind === "market_bottom" ? "rgba(34,197,94,.18)" : "rgba(167,139,250,.22)"; return `<rect x="${x0.toFixed(1)}" y="${padT}" width="${Math.max(4, x1 - x0).toFixed(1)}" height="${H - padT - padB}" fill="${col}"><title>${esc(w.label)} (${esc(w.start)} → ${esc(w.end)})</title></rect><text x="${(x0 + 2).toFixed(1)}" y="${padT + 9 + (k % 3) * 10}" font-size="8" fill="#9aa7bd">${esc(w.label.split(" ")[0])}</text>`; }).join("");
       const line = (key, color, width) => { let d = "", pen = false; T.forEach((p, i) => { if (p[key] == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + "," + y(p[key]).toFixed(1); pen = true; }); return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}"/>`; };
       const ticks = [-2, -1, 0, 1, 2].map(v => `<line x1="${padL}" y1="${y(v).toFixed(1)}" x2="${W - padR}" y2="${y(v).toFixed(1)}" stroke="rgba(120,145,180,${v === 0 ? ".45" : ".15"})"/><text x="${padL - 4}" y="${(y(v) + 3).toFixed(1)}" font-size="9" fill="#6b7a92" text-anchor="end">${v > 0 ? "+" : ""}${v}σ</text>`).join("");
       const years = T.map((p, i) => p.month.endsWith("-01") && +p.month.slice(0, 4) % 2 === 1 ? `<text x="${x(i).toFixed(1)}" y="${H - 8}" font-size="9" fill="#6b7a92" text-anchor="middle">${p.month.slice(0, 4)}</text>` : "").join("");
       const last = T[n - 1];
       svg.innerHTML = `${bands}${ticks}${line("mean_z_btc", "#6b7a92", 1)}${line("mean_score", "#06b6d4", 1.6)}${years}
-        <text x="${padL}" y="11" font-size="10" fill="#6b7a92">Monthly mean · <tspan fill="#06b6d4">cohort score (BTC + indirect − dealer)</tspan> · <tspan fill="#9aa7bd">bid-to-cover z alone (back to 2003)</tspan> · shaded: crisis (red), market top (amber), bottom (green), rates stress (purple)</text>
-        <circle cx="${x(n - 1).toFixed(1)}" cy="${y(last.mean_score != null ? last.mean_score : last.mean_z_btc).toFixed(1)}" r="3" fill="#06b6d4"><title>${esc(last.month)}: score ${last.mean_score == null ? "—" : last.mean_score.toFixed(2)}, BTC z ${last.mean_z_btc == null ? "—" : last.mean_z_btc.toFixed(2)}, ${last.n} auctions</title></circle>`;
+        <text x="${padL}" y="11" font-size="10" fill="#6b7a92">3-month mean of monthly coupon-auction averages · <tspan fill="#06b6d4">cohort score</tspan> · <tspan fill="#9aa7bd">bid-to-cover z (from 2003)</tspan> · shaded: crisis red · top amber · bottom green · rates purple</text>
+        <circle cx="${x(n - 1).toFixed(1)}" cy="${y(last.mean_score != null ? last.mean_score : last.mean_z_btc).toFixed(1)}" r="3" fill="#06b6d4"><title>${esc(last.month)}: 3-month score ${last.mean_score == null ? "—" : last.mean_score.toFixed(2)} (month ${last.raw_score == null ? "—" : last.raw_score.toFixed(2)}), BTC z ${last.mean_z_btc == null ? "—" : last.mean_z_btc.toFixed(2)}, ${last.n} auctions this month</title></circle>`;
     }
     // computed read
     const covid = eps.find(e => e.id === "covid_2020") || {}, tops = eps.filter(e => e.kind === "market_top" && e.mean_z_btc != null);
