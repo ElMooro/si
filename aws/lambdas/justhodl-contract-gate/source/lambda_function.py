@@ -71,7 +71,7 @@ from private_artifact import is_private_source
 from reviewed_contracts import (apply_contracts, apply_producers, artifact_function_name,
                                 load_overlay, validate_fields)
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 MARKER = "contract-gate v1.5.0 history-aware relearn, stable keys, orphan ledger"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -440,14 +440,18 @@ def learn():
             continue
         cad = cadences.get(key)
         bound, bsrc, was_stale = _staleness_bound(cad, age_h)
-        rows.append({"key": key, "doc": doc, "path": path, "n": n, "age_h": age_h,
+        # Keep only scalars per artifact: holding every parsed document for the second pass
+        # exhausted the function's memory (v1.5.1 first cut, ops 6502/6505).
+        rows.append({"key": key, "path": path, "n": n, "age_h": age_h,
                      "src": src, "writers": writers, "bound": bound, "bsrc": bsrc,
-                     "was_stale": was_stale})
+                     "was_stale": was_stale,
+                     "stable_keys": _stable_keys(doc, previous.get(key) or {})})
+        del doc
     dormant_map = _classify_dormant(rows, producers)
     dormant = []
     for r in rows:
-        key, doc, path, n, age_h, src, writers, bound, bsrc, was_stale = (
-            r["key"], r["doc"], r["path"], r["n"], r["age_h"], r["src"],
+        key, path, n, age_h, src, writers, bound, bsrc, was_stale = (
+            r["key"], r["path"], r["n"], r["age_h"], r["src"],
             r["writers"], r["bound"], r["bsrc"], r["was_stale"])
         prev = previous.get(key) or {}
         is_dormant = False
@@ -481,7 +485,7 @@ def learn():
             "min_rows": max(1, int(n * 0.70)) if n else 0,
             "learned_rows": n,
             "history_max_rows": hmax or None,
-            "required_keys": _stable_keys(doc, prev),
+            "required_keys": r["stable_keys"],
             "max_age_hours": None if is_dormant else bound,
             "bound_source": "dormant(%s)" % bsrc if is_dormant else bsrc,
             "dormant": True if is_dormant else None,
