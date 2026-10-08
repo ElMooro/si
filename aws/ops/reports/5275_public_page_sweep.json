@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "529515076db98b11cc637118e1bc2ad4f42f1d83",
-  "observed_at": "2026-10-08T18:55:27.772546+00:00",
-  "ok": false,
+  "observed_at": "2026-10-08T19:23:37.613480+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "fundamental-census.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "529515076db98b11cc637118e1bc2ad4f42f1d83": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2600,12 +2598,13 @@
     },
     {
       "route": "fundamental-census.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "529515076db98b11cc637118e1bc2ad4f42f1d83",
+      "inspector_present": true,
+      "bytes_read": 67684,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "fundamental-graphs.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37827018794,
+  "deployment_run_id": 37830515752,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-08T18:55:27.781467+00:00"
+  "check_finished_at": "2026-10-08T19:23:37.621894+00:00"
 }
