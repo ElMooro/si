@@ -52,7 +52,8 @@ def test_writer_overlay_changes_exact_reviewed_entries_only_and_preserves_shared
 
 def test_curated_theme_array_and_momentum_classifier_dictionary_are_distinct_real_shapes():
     curated={'engine':'themes','version':'1.0','generated_at':'2026-09-09T12:00:00Z','as_of_session':'2026-09-08','themes':[],'methodology':'Curated thematic watchlists'}
-    classified={'schema_version':'1.0','producer':'justhodl-theme-classifier','generated_at':'2026-09-09T12:00:00Z','themes':{},'ticker_to_theme':{},'unclassified':[],'all_industries_seen':[],'n_active_themes':0}
+    # 2026-10-08: profile_observations.py writes schema_version '2.0' (issuer-classification-observations.v1); the pin follows the source.
+    classified={'schema_version':'2.0','producer':'justhodl-theme-classifier','generated_at':'2026-09-09T12:00:00Z','themes':{},'ticker_to_theme':{},'unclassified':[],'all_industries_seen':[],'n_active_themes':0}
     assert reviewed.validate_fields(curated,contract('data/themes.json'))==[]
     assert reviewed.validate_fields(classified,contract('data/momentum-themes.json'))==[]
     for doc,key,wrong in ((curated,'data/themes.json',{}),(classified,'data/momentum-themes.json',[])):

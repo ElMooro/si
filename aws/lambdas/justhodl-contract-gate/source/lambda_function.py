@@ -71,7 +71,7 @@ from private_artifact import is_private_source
 from reviewed_contracts import (apply_contracts, apply_producers, artifact_function_name,
                                 load_overlay, validate_fields)
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 MARKER = "contract-gate v1.5.0 history-aware relearn, stable keys, orphan ledger"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -369,8 +369,35 @@ def _stable_keys(doc, previous):
 
 
 def _writers(producers, key):
+    """Source-bound writers first; then writers the 2026-08-01 map knew (v3 AST inventory lost
+    10 dynamic ones); then engines whose key_patterns cover this key (per-symbol caches)."""
     rec = (producers or {}).get(key) or {}
-    return list(rec.get("writers") or [])
+    for field in ("writers", "legacy_writers", "pattern_writers"):
+        w = list(rec.get(field) or [])
+        if w:
+            return w
+    return []
+
+
+def _classify_dormant(rows, producers):
+    """Second pass over learn() rows: a stale-at-learn artifact whose writer still has some OTHER
+    output inside its bound is a dormant secondary output (history/state branch no longer taken),
+    not evidence that the engine is dead. If none of its writers has any fresh output, the engine
+    itself has stopped — that stays a STALE violation. Returns {key: reason}."""
+    fresh_by_writer = {}
+    for r in rows:
+        if not r["was_stale"]:
+            for w in r["writers"]:
+                fresh_by_writer.setdefault(w, []).append(r["key"])
+    dormant = {}
+    for r in rows:
+        if not r["was_stale"] or not r["writers"]:
+            continue
+        live = [w for w in r["writers"] if fresh_by_writer.get(w)]
+        if live:
+            dormant[r["key"]] = {"writers_live": live[:4],
+                                 "fresh_example": fresh_by_writer[live[0]][0]}
+    return dormant
 
 
 def learn():
@@ -393,6 +420,7 @@ def learn():
     print("[contracts] rowcount history: %d days, %d artifacts; previous "
           "contracts: %d; producers: %d" % (hist_days, len(hist_max),
                                              len(previous), len(producers)))
+    rows = []
     for a in list_artifacts():
         key = a["key"]
         try:
@@ -412,12 +440,30 @@ def learn():
             continue
         cad = cadences.get(key)
         bound, bsrc, was_stale = _staleness_bound(cad, age_h)
+        rows.append({"key": key, "doc": doc, "path": path, "n": n, "age_h": age_h,
+                     "src": src, "writers": writers, "bound": bound, "bsrc": bsrc,
+                     "was_stale": was_stale})
+    dormant_map = _classify_dormant(rows, producers)
+    dormant = []
+    for r in rows:
+        key, doc, path, n, age_h, src, writers, bound, bsrc, was_stale = (
+            r["key"], r["doc"], r["path"], r["n"], r["age_h"], r["src"],
+            r["writers"], r["bound"], r["bsrc"], r["was_stale"])
         prev = previous.get(key) or {}
-        if was_stale:
+        is_dormant = False
+        if was_stale and key in dormant_map:
+            is_dormant = True
+            dormant.append({"key": key, "age_h": round(age_h, 1), "bound_h": bound,
+                            "writers": writers[:4], **dormant_map[key],
+                            "note": "stale at learn time but its writer still produces "
+                                    "other fresh output — dormant secondary output; "
+                                    "rows/keys contracted, age not enforced until it "
+                                    "updates again"})
+        elif was_stale:
             suspects.append({"key": key, "age_h": round(age_h, 1),
                              "bound_h": bound, "writers": writers[:4],
-                             "note": "already STALE at learn time — this "
-                                     "artifact was NOT blessed"})
+                             "note": "already STALE at learn time and no writer has "
+                                     "any fresh output — this artifact was NOT blessed"})
             if prev.get("max_age_hours"):
                 bound, bsrc = prev["max_age_hours"], \
                     "kept-previous(%s)" % prev.get("bound_source", "?")
@@ -436,8 +482,9 @@ def learn():
             "learned_rows": n,
             "history_max_rows": hmax or None,
             "required_keys": _stable_keys(doc, prev),
-            "max_age_hours": bound,
-            "bound_source": bsrc,
+            "max_age_hours": None if is_dormant else bound,
+            "bound_source": "dormant(%s)" % bsrc if is_dormant else bsrc,
+            "dormant": True if is_dormant else None,
             "age_source": src,
             "writers": writers[:6],
             "learned_at": now().isoformat(),
@@ -458,6 +505,7 @@ def learn():
            "n_suspects": len(suspects), "suspects": suspects,
            "n_regressed": len(regressed), "regressed": regressed,
            "n_orphaned": len(orphaned), "orphaned": orphaned,
+           "n_dormant": len(dormant), "dormant": dormant,
            "contracts": contracts}
     s3.put_object(Bucket=BUCKET, Key=CONTRACTS_KEY,
                   Body=json.dumps(doc, indent=1).encode(),
@@ -472,6 +520,7 @@ def check():
         return {"ok": False, "error": "CONTRACT_REGISTRY_UNAVAILABLE"}
     all_contracts = reg.get("contracts", {})
     orphaned = {o["key"] for o in (reg.get("orphaned") or []) if isinstance(o, dict)}
+    n_dormant_checked = 0
     private_excluded = sum(is_private_source(key) for key in all_contracts)
     contracts = {key: value for key, value in all_contracts.items() if not is_private_source(key)}
     # Explicit, reviewed exemptions — one-shot reports and event-driven
@@ -543,9 +592,11 @@ def check():
                 v("MISSING_KEYS", key,
                   "absent top-level keys: %s" % ", ".join(missing[:8]))
         age_h, _ = doc_age_h(doc, a["modified"], c.get("timestamp_field"))
-        if age_h is not None and age_h > c.get("max_age_hours", 48):
-            v("STALE", key, "%.0fh old, bound is %.0fh"
-              % (age_h, c.get("max_age_hours", 48)))
+        bound = c.get("max_age_hours", 48)
+        if c.get("dormant") and bound is None:
+            n_dormant_checked += 1  # age deliberately not enforced; see contracts.dormant[]
+        elif age_h is not None and age_h > (bound or 48):
+            v("STALE", key, "%.0fh old, bound is %.0fh" % (age_h, bound or 48))
 
     # v1.2.0 (ops 4252): persist today's principal-row counts.
     #
@@ -585,6 +636,7 @@ def check():
            "n_orphaned": len(orphaned & set(live)),
            "orphaned": sorted(orphaned & set(live)),
            "n_regressed": reg.get("n_regressed", 0),
+           "n_dormant": n_dormant_checked,
            "contracts_learned_at": reg.get("generated_at"),
            "uncontracted": uncontracted,
            "n_uncontracted": len(uncontracted),

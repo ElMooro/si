@@ -115,7 +115,7 @@
         },
         "required_values": {
           "producer": "justhodl-theme-classifier",
-          "schema_version": "1.0"
+          "schema_version": "2.0"
         },
         "rows_path": [
           "all_industries_seen"
@@ -128,7 +128,8 @@
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
         "review_note": "Zero qualifying momentum names is structurally valid; historical sample size is not an institutional coverage floor."
-      }
+      },
+      "review_note": "2026-10-08: schema_version 2.0 (profile_observations.py rewrite)."
     },
     "data/options-flow-scanner.json": {
       "writers": [
@@ -152,8 +153,8 @@
           "generated_at": "timestamp"
         },
         "required_values": {
-          "schema_version": 1,
-          "method": "options_flow_scanner_v1"
+          "schema_version": 2,
+          "method": "current_contract_bar_observations_and_separate_finra_flows"
         },
         "rows_path": [
           "all_qualifying"
@@ -165,7 +166,8 @@
         "timestamp_field": "generated_at",
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR"
-      }
+      },
+      "review_note": "2026-10-08: pins moved to v1.1.0 packet (schema_version 2)."
     },
     "flow-data.json": {
       "writers": [
@@ -327,7 +329,8 @@
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
         "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
-      }
+      },
+      "review_note": "2026-10-08: llm_status pin removed; background LLM calls are gated by llm_cost on_demand policy so unavailable is the designed outcome, not a defect."
     },
     "data/khalid-metrics.json": {
       "writers": [
@@ -402,7 +405,8 @@
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
         "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
-      }
+      },
+      "review_note": "2026-10-08: llm_status pin removed; background LLM calls are gated by llm_cost on_demand policy so unavailable is the designed outcome, not a defect."
     },
     "data/tv-sources.json": {
       "writers": [
