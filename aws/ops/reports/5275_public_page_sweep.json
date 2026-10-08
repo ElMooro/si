@@ -1,19 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "6ece24c3e39447337ad6b7fa9a647e27403f05f5",
-  "observed_at": "2026-10-08T13:27:24.435423+00:00",
-  "ok": false,
+  "observed_at": "2026-10-08T13:52:27.292810+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 598,
-  "failed_routes": [
-    "capture-gap.html",
-    "reports.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "6ece24c3e39447337ad6b7fa9a647e27403f05f5": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 597,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -921,12 +918,13 @@
     },
     {
       "route": "capture-gap.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "6ece24c3e39447337ad6b7fa9a647e27403f05f5",
+      "inspector_present": true,
+      "bytes_read": 65224,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "carry-surface.html",
@@ -4610,12 +4608,13 @@
     },
     {
       "route": "reports.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "6ece24c3e39447337ad6b7fa9a647e27403f05f5",
+      "inspector_present": true,
+      "bytes_read": 29275,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "research-spine.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37783797779,
+  "deployment_run_id": 37786721046,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-08T13:27:24.444831+00:00"
+  "check_finished_at": "2026-10-08T13:52:27.302069+00:00"
 }
