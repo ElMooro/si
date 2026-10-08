@@ -54,7 +54,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add aws/ops/reports/latest/*.md aws/ops/reports/5576_provider_keys.json 2>/dev/null || git add aws/ops/reports/latest/*.md
           git commit -q -m "ops(direct): report from run ${{ github.run_id }} [skip-deploy] [skip-ops]" || { echo "nothing to commit"; exit 0; }
-          for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push -q origin HEAD:main && break || sleep $((i * 7)); done
+          # 2026-10-08 (ops 6497): a script that regenerates a tracked file (engine-manifest.json) left the
+          # checkout dirty, `pull --rebase` refused five times and the run still went green with its report
+          # lost. Discard everything that is not the committed report, and fail loudly if the push never lands.
+          git stash -q -u || true
+          pushed=0
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -q origin main && git push -q origin HEAD:main; then pushed=1; break; fi
+            sleep $((i * 7))
+          done
+          [ "$pushed" = 1 ] || { echo "::error::report commit could not be pushed to main after 5 attempts"; exit 1; }
 
       - name: Fail the run if the script failed (after its report was pushed)
         if: always() && env.OPS_RC != '' && env.OPS_RC != '0'
