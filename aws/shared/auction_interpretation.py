@@ -473,13 +473,13 @@ def auction_read(a, behaviour=None, setup=None, percentiles=None):
                      ('the %s par yield closed %.1fbp higher afterwards' % (setup.get('tenor'), setup['reaction_bp'])) if setup['reaction_bp'] > 0.5 else
                      'the %s par yield was little changed afterwards' % setup.get('tenor'))
     pct = (percentiles or {}).get('metrics') or {}
-    rank_bits = [('%s at the %s percentile since %s' % (name, _ordinal(pct[key]['percentile']), (percentiles or {}).get('since', '')[:4]))
+    rank_bits = [('%s at the %s percentile' % (name, _ordinal(pct[key]['percentile'])))
                  for key, name in (('btc', 'bid-to-cover'), ('indirect_pct', 'indirect share'), ('pd_pct', 'dealer share'))
                  if pct.get(key, {}).get('percentile') is not None and (pct[key]['percentile'] >= 90 or pct[key]['percentile'] <= 10)]
     return {'headline': '%s: %s (%s, score %+.2f)' % (label, demand, g, a.get('demand_score') or 0),
             'what_happened': '%s; %s.' % (label[0].upper() + label[1:], ', '.join(bits) or 'takedown detail unavailable'),
             'what_it_means': (('; '.join(means)[0].upper() + '; '.join(means)[1:] + '.') if means else 'Hit ratios, dispersion and par set-up are unavailable for this auction.') +
-                             ((' Versus every same-kind auction of this bucket since 2010: ' + '; '.join(rank_bits) + '.') if rank_bits else ''),
+                             ((' Versus every same-kind auction of this bucket since %s: ' % ((percentiles or {}).get('since', '2010')[:4]) + '; '.join(rank_bits) + '.') if rank_bits else ''),
             'watch_next': 'Whether the next %s cohort auction confirms this read; the par curve on settlement; this is a descriptive measurement, not a forecast.' % cohort_term(a)}
 
 
