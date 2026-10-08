@@ -316,7 +316,7 @@ def score_relative(predicted_direction, ticker, benchmark,
 
 
 # ─── Main outcome checker ──────────────────────────────────────────────────
-def check_pending_signals():
+def check_pending_signals(budget_s=None):
     """Scan DynamoDB for signals whose check windows have elapsed and score them."""
     table   = dynamodb.Table(SIGNALS_TABLE)
     now     = datetime.now(timezone.utc)
@@ -342,7 +342,15 @@ def check_pending_signals():
     processed_count  = 0
     price_cache      = {}  # cache prices to avoid repeated API calls
 
+    # 2026-10-08: every run hit the 300 s hard timeout (42/42 errors in 7 days) because the pending
+    # list is walked with no time budget and each price lookup can spend 10 s on a 404. Stop early and
+    # say so; the next scheduled run picks up the remaining pending signals from DynamoDB.
+    t_start = time.time()
+    deferred = 0
     for signal in signals:
+        if budget_s is not None and time.time() - t_start > budget_s:
+            deferred += 1
+            continue
         signal_id   = signal["signal_id"]
         signal_type = signal["signal_type"]
         ticker      = signal.get("measure_against") or signal.get("ticker")
@@ -584,6 +592,8 @@ def check_pending_signals():
         processed_count += 1
 
     print(f"[CHECKER] Processed {processed_count} signals")
+    if deferred:
+        print(f"[CHECKER] time budget {budget_s}s reached: processed={processed_count} deferred={deferred} (next run continues)")
     return processed_count
 
 
@@ -592,7 +602,8 @@ def lambda_handler(event, context):
     if (event or {}).get('validation_only'):
         return {'ok': resolve_instrument('BTC') is None,
                 'validation_only': True, 'lineage_contract': OUTCOME_CONTRACT, 'ledger_writes': 0}
-    processed = check_pending_signals()
+    remaining = context.get_remaining_time_in_millis() / 1000.0 if context and hasattr(context, 'get_remaining_time_in_millis') else 840.0
+    processed = check_pending_signals(budget_s=max(30.0, remaining - 45.0))
     
     # Emit outcome.resolved event so calibrator can run immediately
     # rather than waiting for its scheduled cron. Best-effort — never blocks.

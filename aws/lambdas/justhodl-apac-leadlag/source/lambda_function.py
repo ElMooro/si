@@ -63,12 +63,29 @@ def _http_bytes(url, headers=None, timeout=20):
         return r.read()
 
 
+# ---------- wall-clock budget (2026-10-08) ----------
+# 10 of 14 runs in the last week died at the 300 s hard timeout: when TWSE/Naver stall, the 95-day
+# date loop spends up to 40 s per day and nothing is ever written. Providers now stop at a deadline
+# and after a run of consecutive misses; whatever history was acquired is still real data and is
+# written with its true day counts (status WARMING when overlap is short).
+_DEADLINE = [None]
+_MAX_CONSECUTIVE_MISSES = 6
+
+
+def _out_of_time():
+    return _DEADLINE[0] is not None and time.time() > _DEADLINE[0]
+
+
 # ---------- Asian flow backfills ----------
 def tw_semi_history(cal_days=95):
     """Daily Taiwan foreign net (semis) via TWSE T86 date loop (rwd JSON)."""
     out = {}
     taipei = datetime.now(timezone.utc) + timedelta(hours=8)
+    misses = 0
     for back in range(1, cal_days):
+        if _out_of_time() or misses >= _MAX_CONSECUTIVE_MISSES:
+            print("[apac-leadlag] tw_semi stopped early: days=%d misses=%d out_of_time=%s" % (len(out), misses, _out_of_time()))
+            break
         d = taipei - timedelta(days=back)
         if d.weekday() >= 5:
             continue
@@ -106,7 +123,10 @@ def tw_semi_history(cal_days=95):
             got = True
             break
         if got:
+            misses = 0
             time.sleep(0.25)
+        else:
+            misses += 1
     return out
 
 
@@ -116,6 +136,8 @@ def _kr_stock_foreign_hist(code, pages=6):
     Dedupe by date. Returns {date: foreign_net}."""
     out = {}
     for page in range(1, pages + 1):
+        if _out_of_time():
+            break
         try:
             html = _http_bytes("https://finance.naver.com/item/frgn.naver?code=%s&page=%d" % (code, page),
                                headers={"Referer": "https://finance.naver.com/item/frgn.naver?code=%s" % code}).decode("euc-kr", "ignore")
@@ -145,6 +167,9 @@ def kr_memory_history():
     frgn.naver; falls back to mobile trend (pageSize=30) if desktop is blocked."""
     agg = {}
     for code in KR_MEMORY:
+        if _out_of_time():
+            print("[apac-leadlag] kr_memory stopped early (deadline)")
+            break
         h = _kr_stock_foreign_hist(code)
         if len(h) < 15:  # desktop blocked/thin -> mobile fallback (~30d)
             try:
@@ -244,6 +269,9 @@ def fwd_return_corr(flow_by_date, close_by_date, horizon):
 
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
+    remaining = context.get_remaining_time_in_millis() / 1000.0 if context and hasattr(context, "get_remaining_time_in_millis") else 300.0
+    # leave ~90 s for US prices, correlation and the two S3 writes
+    _DEADLINE[0] = time.time() + max(60.0, remaining - 90.0)
     key = os.environ.get("FMP_KEY") or os.environ.get("FMP_API_KEY")
     start = (now - timedelta(days=140)).strftime("%Y-%m-%d")
     # backfill Asian flows

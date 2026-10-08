@@ -19,6 +19,8 @@ Schedule: cron(0 9 * * ? *) = 09:00 UTC = 04:00 ET — one hour after the
 prewarm finishes at 03:00 ET so the snapshot picks up fresh data.
 """
 import json
+from concurrent.futures import ThreadPoolExecutor
+from botocore.config import Config as BotoConfig
 import os
 import time
 from datetime import datetime, timezone
@@ -31,7 +33,7 @@ CRITIQUE_PREFIX = "equity-critique/"
 ETF_FLOWS_KEY = "etf-flows/daily.json"
 OUTPUT_PREFIX = "analytics/"
 
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = boto3.client("s3", region_name="us-east-1", config=BotoConfig(max_pool_connections=32))
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -203,28 +205,39 @@ def flatten_critique(doc: dict) -> dict:
 # ═══════════════════════════════════════════════════════════════════
 # S3 readers
 # ═══════════════════════════════════════════════════════════════════
+def _read_one(key, flattener):
+    try:
+        body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+        row = flattener(json.loads(body))
+        return (row if row.get("ticker") else None), None
+    except Exception as e:
+        return None, f"[skip] {key}: {type(e).__name__}: {str(e)[:120]}"
+
+
 def read_all_under_prefix(prefix: str, flattener) -> list:
-    """List + read every JSON file under prefix, flatten each, return list of rows."""
-    rows = []
-    skipped = 0
+    """List + read every JSON file under prefix, flatten each, return list of rows.
+
+    2026-10-08: the three prefixes grew past what a sequential GET loop can read inside the
+    timeout (21/21 runs died at 120 s right after "[snapshot] starting"). Reads are now
+    concurrent (16 workers); the output is sorted afterwards so results are unchanged."""
+    keys = []
     pag = s3.get_paginator("list_objects_v2")
     for page in pag.paginate(Bucket=S3_BUCKET, Prefix=prefix):
         for obj in (page.get("Contents") or []):
             key = obj["Key"]
-            # Skip non-JSON or manifests
-            if not key.endswith(".json"):
+            if not key.endswith(".json") or key.endswith("manifest.json") or key.endswith("latest.json"):
                 continue
-            if key.endswith("manifest.json") or key.endswith("latest.json"):
-                continue
-            try:
-                body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-                doc = json.loads(body)
-                row = flattener(doc)
-                if row.get("ticker"):
-                    rows.append(row)
-            except Exception as e:
-                print(f"[skip] {key}: {type(e).__name__}: {str(e)[:120]}")
+            keys.append(key)
+    rows = []
+    skipped = 0
+    with ThreadPoolExecutor(max_workers=16) as ex:
+        for row, err in ex.map(lambda k: _read_one(k, flattener), keys):
+            if err:
+                print(err)
                 skipped += 1
+            elif row is not None:
+                rows.append(row)
+    print(f"[snapshot] {prefix}: listed {len(keys)} objects")
     return rows, skipped
 
 

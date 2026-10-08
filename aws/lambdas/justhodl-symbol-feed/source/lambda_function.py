@@ -173,7 +173,9 @@ def lambda_handler(event, context):
         time.sleep(_D["ms"] / 1000.0)
         if time.time() - t0 > 250:
             break
-        bare = full.split(":", 1)[1]
+        # ops4210 admits bare futures roots ("ES1!") with no EXCHANGE: prefix; splitting on ":"
+        # raised IndexError on the first such key and killed every daily run (21/21 errors, Oct 2026).
+        bare = full.split(":", 1)[1] if ":" in full else full
         pv = None
         used = None
         for ysym in tg[full]:
@@ -184,7 +186,7 @@ def lambda_handler(event, context):
         if pv is None:
             err += 1
             store.setdefault(full, {"miss": True})
-            store.setdefault(full.split(":", 1)[1], {"miss": True})
+            store.setdefault(bare, {"miss": True})
             continue
         ok += 1
         store[full] = {"value": round(pv, 4), "ysym": used,
