@@ -38,6 +38,24 @@ VIOLATION CLASSES
 MODES
   {"mode":"learn"}   re-derive contracts from the current state
   {"mode":"check"}   default — validate and publish violations
+
+v1.5.0 (2026-10-08 audit) — LEARN IS NOW HISTORY-AWARE AND HONEST ABOUT DRIFT
+The 2026-08-01 contracts aged into 365 violations while 822 of 909 engines
+ran clean: the fleet moved to a fail-closed output doctrine (empty boards
+with execution_eligible=false are a truthful state), incidental keys such as
+elapsed_s were "required", and 77 contracted artifacts had no writer at all.
+A gate that is wrong about the fleet 365 times teaches people to skim it.
+  * required_keys  = keys present now AND in the previous contract (stable
+                     keys), else current keys minus a volatile denylist.
+  * regressed[]    = artifacts whose principal rows fell below half of the
+                     max seen in data/_state/rowcounts/ history. They are
+                     contracted at today's floor but LISTED, never silently
+                     blessed — the review trail lives in the registry.
+  * orphaned[]     = artifacts with no source-bound writer in the producers
+                     map and no update for ORPHAN_DAYS. Not contracted; not
+                     counted as uncontracted; listed with their age.
+  * previous bounds are kept for artifacts that are STALE at learn time, so
+    a dead feed cannot widen its own age bound by being learned while dead.
 """
 
 import json
@@ -53,8 +71,8 @@ from private_artifact import is_private_source
 from reviewed_contracts import (apply_contracts, apply_producers, artifact_function_name,
                                 load_overlay, validate_fields)
 
-VERSION = "1.4.0"
-MARKER = "contract-gate v1.4.0 reviewed namespace contracts"
+VERSION = "1.5.0"
+MARKER = "contract-gate v1.5.0 history-aware relearn, stable keys, orphan ledger"
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 CONTRACTS_KEY = "config/engine-contracts.json"
@@ -71,6 +89,16 @@ SKIP = {"contract-violations.json", "fleet-integrity.json",
 
 SEV = {"MISSING": 1, "UNPARSEABLE": 1, "ROW_COLLAPSE": 1,
        "MISSING_KEYS": 1, "FIELD_TYPE": 1, "FIELD_VALUE": 1, "STALE": 2}
+
+# v1.5.0: keys that describe the run, not the result. They come and go with
+# code paths (error only on failure, elapsed_s only when timed) and must
+# never make a healthy artifact "MISSING_KEYS".
+VOLATILE_KEYS = {"elapsed_s", "elapsed_sec", "elapsed", "duration_s", "duration",
+                 "error", "errors", "warning", "warnings", "note", "notes", "debug",
+                 "method", "trace", "request_id", "run_id", "attempt", "retries"}
+ORPHAN_DAYS = 30
+REGRESSION_RATIO = 0.5
+ROWCOUNT_PREFIX = "data/_state/rowcounts/"
 
 
 def now():
@@ -308,47 +336,128 @@ def get_json_raw(key):
     return s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
 
 
+def _rowcount_history_max():
+    """Max principal-row count per artifact over the daily ledger written by
+    check() since v1.2.0. Empty dict when the ledger is unreadable."""
+    best = {}
+    days = 0
+    try:
+        for page in s3.get_paginator("list_objects_v2").paginate(
+                Bucket=BUCKET, Prefix=ROWCOUNT_PREFIX):
+            for o in page.get("Contents", []):
+                try:
+                    rows = get_json(o["Key"]).get("rows") or {}
+                except Exception:
+                    continue
+                days += 1
+                for k, n in rows.items():
+                    if isinstance(n, (int, float)) and n > best.get(k, 0):
+                        best[k] = int(n)
+    except Exception as e:
+        print("[contracts] rowcount history unreadable: %s" % str(e)[:90])
+    return best, days
+
+
+def _stable_keys(doc, previous):
+    """v1.5.0 key policy: stable across learn points, never volatile."""
+    if not isinstance(doc, dict):
+        return []
+    cur = set(doc.keys())
+    prev = set((previous or {}).get("required_keys") or [])
+    keys = (cur & prev) if prev else (cur - VOLATILE_KEYS)
+    return sorted(keys)[:40]
+
+
+def _writers(producers, key):
+    rec = (producers or {}).get(key) or {}
+    return list(rec.get("writers") or [])
+
+
 def learn():
     contracts = {}
     suspects = []
+    regressed = []
+    orphaned = []
     cadences = _load_cadences()
     print("[contracts] cadence map: %d artifacts resolvable" % len(cadences))
+    try:
+        previous = apply_contracts(get_json(CONTRACTS_KEY)).get("contracts", {})
+    except Exception:
+        previous = {}
+    try:
+        producers = apply_producers(
+            json.loads(get_json_raw(PRODUCERS_KEY))).get("producers", {})
+    except Exception:
+        producers = {}
+    hist_max, hist_days = _rowcount_history_max()
+    print("[contracts] rowcount history: %d days, %d artifacts; previous "
+          "contracts: %d; producers: %d" % (hist_days, len(hist_max),
+                                             len(previous), len(producers)))
     for a in list_artifacts():
+        key = a["key"]
         try:
-            doc = get_json(a["key"])
+            doc = get_json(key)
         except Exception:
             continue
         path, n = principal_rows(doc)
         age_h, src = doc_age_h(doc, a["modified"])
-        cad = cadences.get(a["key"])
+        writers = _writers(producers, key)
+        if not writers and age_h is not None and age_h > ORPHAN_DAYS * 24:
+            orphaned.append({"key": key, "age_h": round(age_h, 1),
+                             "readers": list((producers.get(key) or {})
+                                             .get("readers") or [])[:6],
+                             "note": "no source-bound writer and no update for "
+                                     "%d+ days — retired output, not contracted"
+                                     % ORPHAN_DAYS})
+            continue
+        cad = cadences.get(key)
         bound, bsrc, was_stale = _staleness_bound(cad, age_h)
+        prev = previous.get(key) or {}
         if was_stale:
-            suspects.append({"key": a["key"],
-                             "age_h": round(age_h, 1),
-                             "bound_h": bound,
+            suspects.append({"key": key, "age_h": round(age_h, 1),
+                             "bound_h": bound, "writers": writers[:4],
                              "note": "already STALE at learn time — this "
                                      "artifact was NOT blessed"})
-        keys = sorted(doc.keys())[:40] if isinstance(doc, dict) else []
-        contracts[a["key"]] = {
+            if prev.get("max_age_hours"):
+                bound, bsrc = prev["max_age_hours"], \
+                    "kept-previous(%s)" % prev.get("bound_source", "?")
+        hmax = hist_max.get(key, 0)
+        if hmax and n < REGRESSION_RATIO * hmax:
+            regressed.append({"key": key, "rows_now": n, "rows_path": path,
+                              "history_max_rows": hmax,
+                              "previous_learned_rows": prev.get("learned_rows"),
+                              "writers": writers[:4],
+                              "note": "principal rows below %d%% of history max; "
+                                      "contracted at today's floor, listed for "
+                                      "review" % int(REGRESSION_RATIO * 100)})
+        contracts[key] = {
             "rows_path": path,
             "min_rows": max(1, int(n * 0.70)) if n else 0,
             "learned_rows": n,
-            "required_keys": keys,
+            "history_max_rows": hmax or None,
+            "required_keys": _stable_keys(doc, prev),
             "max_age_hours": bound,
             "bound_source": bsrc,
             "age_source": src,
+            "writers": writers[:6],
             "learned_at": now().isoformat(),
+            "previous_learned_at": prev.get("learned_at"),
         }
     doc = {"version": VERSION, "marker": MARKER,
            "generated_at": now().isoformat(),
            "note": "Learned floors, not hand-authored ceilings. min_rows "
                    "is 70% of the count observed at learn time; tighten by "
-                   "hand where an engine's output should be exact.",
+                   "hand where an engine's output should be exact. v1.5.0: "
+                   "required_keys are stable across learn points; regressed[] "
+                   "and orphaned[] are review ledgers, not silent blessings.",
            "n_contracts": len(contracts),
            "n_cadence_bounded": sum(1 for c in contracts.values()
                                     if str(c.get("bound_source", ""))
                                     .startswith("cadence")),
+           "rowcount_history_days": hist_days,
            "n_suspects": len(suspects), "suspects": suspects,
+           "n_regressed": len(regressed), "regressed": regressed,
+           "n_orphaned": len(orphaned), "orphaned": orphaned,
            "contracts": contracts}
     s3.put_object(Bucket=BUCKET, Key=CONTRACTS_KEY,
                   Body=json.dumps(doc, indent=1).encode(),
@@ -362,6 +471,7 @@ def check():
     except Exception as e:
         return {"ok": False, "error": "CONTRACT_REGISTRY_UNAVAILABLE"}
     all_contracts = reg.get("contracts", {})
+    orphaned = {o["key"] for o in (reg.get("orphaned") or []) if isinstance(o, dict)}
     private_excluded = sum(is_private_source(key) for key in all_contracts)
     contracts = {key: value for key, value in all_contracts.items() if not is_private_source(key)}
     # Explicit, reviewed exemptions — one-shot reports and event-driven
@@ -459,7 +569,7 @@ def check():
     except Exception as e:
         print("[contracts] rowcount history write failed: %s" % str(e)[:90])
 
-    uncontracted = sorted(set(live) - set(contracts))
+    uncontracted = sorted(set(live) - set(contracts) - orphaned)
     violations.sort(key=lambda x: (x["sev"], x["cls"], x["artifact"]))
     doc = {"version": VERSION, "marker": MARKER,
            "source_overlay": reg.get("source_overlay"),
@@ -472,6 +582,10 @@ def check():
            "by_class": {},
            "n_exempted": len(exempted_hits),
            "exempted": sorted(exempted_hits),
+           "n_orphaned": len(orphaned & set(live)),
+           "orphaned": sorted(orphaned & set(live)),
+           "n_regressed": reg.get("n_regressed", 0),
+           "contracts_learned_at": reg.get("generated_at"),
            "uncontracted": uncontracted,
            "n_uncontracted": len(uncontracted),
            "violations": violations}
@@ -500,6 +614,11 @@ SELFTEST = [
     ("learned_while_stale", lambda: _staleness_bound((1.0, False), 120.0)[2]
         is True),
     ("observed_cap", lambda: _staleness_bound(None, 500.0)[0] == 72.0),
+    ("stable_keys_intersect", lambda: _stable_keys(
+        {"a": 1, "b": 2, "elapsed_s": 3}, {"required_keys": ["a", "zz"]}) == ["a"]),
+    ("stable_keys_no_previous", lambda: _stable_keys(
+        {"a": 1, "b": 2, "elapsed_s": 3, "error": None}, None) == ["a", "b"]),
+    ("stable_keys_list_doc", lambda: _stable_keys([1, 2], None) == []),
 ]
 
 
@@ -529,16 +648,19 @@ def lambda_handler(event=None, context=None):
     if mode == "learn":
         d = learn()
         print("[contracts] learned %d contracts (%d cadence-bounded, "
-              "%d suspects)" % (d["n_contracts"],
-                                d.get("n_cadence_bounded", 0),
-                                d.get("n_suspects", 0)))
+              "%d suspects, %d regressed, %d orphaned)"
+              % (d["n_contracts"], d.get("n_cadence_bounded", 0),
+                 d.get("n_suspects", 0), d.get("n_regressed", 0),
+                 d.get("n_orphaned", 0)))
         for x in (d.get("suspects") or [])[:15]:
             print("[contracts] SUSPECT %s age=%sh bound=%sh"
                   % (x["key"], x["age_h"], x["bound_h"]))
         out = {"ok": True, "mode": "learn",
                "n_contracts": d["n_contracts"],
                "n_cadence_bounded": d.get("n_cadence_bounded", 0),
-               "n_suspects": d.get("n_suspects", 0)}
+               "n_suspects": d.get("n_suspects", 0),
+               "n_regressed": d.get("n_regressed", 0),
+               "n_orphaned": d.get("n_orphaned", 0)}
     else:
         d = check()
         if not d.get("ok", True):
