@@ -1,22 +1,22 @@
 {
-  "observed_at": "2026-10-09T00:57:22.966572+00:00",
+  "observed_at": "2026-10-09T00:57:28.879107+00:00",
   "runs": [
     {
       "id": 37866878700,
       "path": ".github/workflows/pages.yml",
       "head_sha": "6d125567745d82ae9746d61d487f829b0c56eccf",
-      "status": "in_progress",
+      "status": "queued",
       "conclusion": null,
       "created_at": "2026-10-09T00:51:25Z",
-      "updated_at": "2026-10-09T00:51:29Z",
+      "updated_at": "2026-10-09T00:57:16Z",
       "jobs": [
         {
           "id": 113615591593,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-10-09T00:51:29Z",
-          "completed_at": null,
+          "completed_at": "2026-10-09T00:57:13Z",
           "steps": [
             {
               "number": 1,
@@ -237,28 +237,45 @@
             {
               "number": 28,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-09T00:57:08Z",
-              "completed_at": null
+              "completed_at": "2026-10-09T00:57:10Z"
             },
             {
               "number": 55,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T00:57:10Z",
+              "completed_at": "2026-10-09T00:57:10Z"
             },
             {
               "number": 56,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T00:57:10Z",
+              "completed_at": "2026-10-09T00:57:10Z"
+            },
+            {
+              "number": 57,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T00:57:10Z",
+              "completed_at": "2026-10-09T00:57:10Z"
             }
           ]
+        },
+        {
+          "id": 113617157657,
+          "name": "deploy",
+          "status": "queued",
+          "conclusion": null,
+          "started_at": "2026-10-09T00:57:14Z",
+          "completed_at": null,
+          "steps": []
         }
       ]
     },
