@@ -14,6 +14,8 @@ def preceding_source(path, text=None):
     if not path.is_absolute(): path = ROOT / path
     relative = path.relative_to(ROOT).as_posix()
     text = path.read_text(encoding='utf-8') if text is None else text
+    from risk_composite_preservation import preceding_source as before_risk
+    text = before_risk(path, text)
     from ranker_schedule_preservation import preceding_source as before_schedule
     text = before_schedule(path, text)
     from ticker_batch_preservation import preceding_source as before_batch

@@ -1,0 +1,33 @@
+{
+  "description": "risk composite release (ops 6518): classic-dashboard.html re-pointed its two Risk Sizer links to /risk-sizer.html (the /risk.html slot became the composite risk page); the website-research-status manifest records those replacements and the new page hash.",
+  "sources": {
+    "tests/fixtures/website-research-status/imports-preservation.json": {
+      "before_sha256": "ed712d50cdcc49c61224a65e76a5031cf840e129e19a240615a0d38db8cfc2d3",
+      "after_sha256": "588122d1fa930d50e0b0dbcc6352606b4cfcc8341d5fc59e025971d522caa1ae",
+      "edits": [
+        [
+          "\"sha256\": \"9fe386744ea92d396ed982e239497e94ed6b49c36931f2ca3b8b036daf69e5c5\",\n      \"bytes\": 164017,",
+          "\"sha256\": \"93b2eb55e64b5a03b3fe4aaf66971c4928df098ec1278283b877edcaa8a86f2c\",\n      \"bytes\": 164029,"
+        ],
+        [
+          "<a href=\\\"/crypto/\\\">Inspect reported rows</a></span>\"\n        ]\n      ]\n    },",
+          "<a href=\\\"/crypto/\\\">Inspect reported rows</a></span>\"\n        ],\n        [\n          \"<a href=\\\"/risk.html\\\" class=\\\"card-action\\\">DETAIL →</a>\",\n          \"<a href=\\\"/risk-sizer.html\\\" class=\\\"card-action\\\">DETAIL →</a>\"\n        ],\n        [\n          \"<a class=\\\"tool\\\" href=\\\"/risk.html\\\">\",\n          \"<a class=\\\"tool\\\" href=\\\"/risk-sizer.html\\\">\"\n        ]\n      ]\n    },"
+        ]
+      ]
+    },
+    "classic-dashboard.html": {
+      "before_sha256": "9fe386744ea92d396ed982e239497e94ed6b49c36931f2ca3b8b036daf69e5c5",
+      "after_sha256": "93b2eb55e64b5a03b3fe4aaf66971c4928df098ec1278283b877edcaa8a86f2c",
+      "edits": [
+        [
+          "<a href=\"/risk.html\" class=\"card-action\">DETAIL →</a>",
+          "<a href=\"/risk-sizer.html\" class=\"card-action\">DETAIL →</a>"
+        ],
+        [
+          "<a class=\"tool\" href=\"/risk.html\">",
+          "<a class=\"tool\" href=\"/risk-sizer.html\">"
+        ]
+      ]
+    }
+  }
+}
