@@ -1,19 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "44b5c4c90880bc872fb6c9be4f5a3d992bd9543b",
-  "observed_at": "2026-10-09T18:54:04.945254+00:00",
-  "ok": false,
+  "observed_at": "2026-10-09T19:21:14.068790+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 598,
-  "failed_routes": [
-    "hiring-velocity.html",
-    "inventory-drawdown.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "44b5c4c90880bc872fb6c9be4f5a3d992bd9543b": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 597,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2961,12 +2958,13 @@
     },
     {
       "route": "hiring-velocity.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "44b5c4c90880bc872fb6c9be4f5a3d992bd9543b",
+      "inspector_present": true,
+      "bytes_read": 10329,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "holdings-research.html",
@@ -3300,12 +3298,13 @@
     },
     {
       "route": "inventory-drawdown.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "44b5c4c90880bc872fb6c9be4f5a3d992bd9543b",
+      "inspector_present": true,
+      "bytes_read": 10705,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "invest.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37975567669,
+  "deployment_run_id": 37978728796,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-09T18:54:04.954207+00:00"
+  "check_finished_at": "2026-10-09T19:21:14.077876+00:00"
 }
