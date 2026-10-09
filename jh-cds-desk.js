@@ -226,7 +226,7 @@ function renderCorp(group,prefix,sectorField,statusField){
 function renderSources(d,h){
  const box=byId('cdsdesk-sources');if(!box)return;
  const long=h&&h.long||{},ser=long.series||{},st=Object.assign({},(d.history||{}).sources||{},long.sources?Object.fromEntries(Object.entries(long.sources).map(([k,v])=>[k,v.status])):{});
- const fu=d.fundamentals||{},src=d.source||{},cov=(d.groups&&d.groups.sovereign&&d.groups.sovereign.coverage)||{};
+ const fu=d.fundamentals||{},src=d.source||{},cov=(d.groups&&d.groups.sovereign&&d.groups.sovereign.coverage)||{};Object.assign(st,fu.sources||{});
  const status=keys=>{const vals=keys.map(k=>st[k]).filter(Boolean);if(!vals.length)return '<span class="pill mute">status unknown</span>';const live=vals.filter(v=>v==='live').length;return `<span class="pill ${live===vals.length?'pos':live?'warning':'neg'}">${live===vals.length?'live':live?`${live}/${vals.length} live, rest cached`:'cached'}</span>`;};
  const sov=Object.entries(ser).filter(([k])=>/^sovciss_/.test(k)&&k!=='sovciss_EA').map(([k,v])=>({k,name:(v.name||k).replace('ECB SovCISS · ',''),v:v.last&&v.last.value,p:v.pct_rank_since_2006,euro:(v.peaks||[]).find(p=>/^Euro/.test(p.episode))})).sort((a,b)=>(b.p||0)-(a.p||0));
  const ea=ser.sovciss_EA;
