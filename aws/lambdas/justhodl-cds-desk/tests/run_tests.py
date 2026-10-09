@@ -98,7 +98,17 @@ def test_sign_resolution_orders_evidence():
     # same-day quoted print anchors the derived print
     q = C.normalize_trade(quoted_row(138), "sec")
     a, src, quality = C.day_anchor([amb, q], RATE, None)
-    assert src == "quoted" and quality == "firm" and a == 138
+    assert src == "quoted" and quality == "inferred" and a == 138      # unconfirmed quote, no history to check it against
+    a, src, quality = C.day_anchor([amb, q], RATE, (135.0, "firm"))
+    assert src == "quoted" and quality == "firm" and a == 138          # consistent with the name's own trailing anchor
+    # a quote that agrees with the print's own upfront is confirmed on its own
+    qc = C.normalize_trade(quoted_row(138, **{"Other payment amount": "%.2f" % (abs(C.clean_upfront_pct(138, 100, q["tenor"], RATE) - C.accrued_pct(100, C.date(2026, 10, 7))) / 100 * 5e6), "Other payment type": "UFRO"}), "sec")
+    assert C.quote_status(qc, RATE) == "confirmed" and C.day_anchor([qc], RATE, None)[2] == "firm"
+    # mis-filed spread columns are not quotes: 1.25bp on a 500-coupon name, or a bare coupon far from the name's history
+    bad = C.normalize_trade(quoted_row(1.25, **{"Fixed rate-Leg 1": "0.05"}), "sec")
+    assert C.quote_status(bad, RATE) == "reject" and C.candidate_spreads(bad, RATE) == []
+    far = C.normalize_trade(quoted_row(100), "sec")
+    assert C.candidate_spreads(far, RATE, 1000.0) == [] and C.resolve_spread(far, RATE, 1000.0) == (None, "none")
     s, basis = C.resolve_spread(amb, RATE, a)
     assert basis == "derived" and abs(s - 140) < 0.5
     # a far-away anchor must not force a branch
@@ -218,6 +228,32 @@ def test_lambda_glue_rate_and_file_date_logic(monkeypatch=None):
     assert [(d, n, k) for d, n, k in done] == [("2026-10-06", 2, "final"), ("2026-10-07", 1, "preliminary")]
     key = C.normalize_name("Federative Republic of Brazil")
     assert bank["series"][key]["2026-10-06"]["n"] == 2 and bank["series"][key]["2026-10-07"]["s"] == 111.0
+
+
+def test_stale_levels_are_listed_not_shown_as_current():
+    bank = {"version": C.VERSION, "series": {}, "meta": {}, "entity_map": {}, "days": []}
+    emap = {}
+    # priced in early September, then three weeks of prints whose upfront sign cannot be resolved
+    days = ["2026-09-%02d" % d for d in range(1, 29) if C.date(2026, 9, d).weekday() < 5]
+    for i, day in enumerate(days):
+        if i < 3:
+            ts = [C.normalize_trade(quoted_row(400, **{"Execution Timestamp": day + "T13:00:00Z"}), "sec") for _ in range(3)]
+        else:
+            ts = [C.normalize_trade(derived_row(900, coupon_bp=500.0, day=day), "sec") for _ in range(3)]
+        emap = C.entity_map(ts, emap)
+        agg = C.aggregate_day(ts, emap, RATE, {})   # no trailing anchors: the sign stays unresolved
+        C.update_bank(bank, day, agg, emap)
+    packet = C.build_packet(bank, days[-1], "2026-09-29T00:00:00Z")
+    sov = packet["groups"]["sovereign"]
+    assert not sov["rows"], "a 3-week-old level must not be shown as current"
+    assert sov["unpriced"] and sov["unpriced"][0]["last_date"] == days[2] and sov["unpriced"][0]["last_spread_bp"] == 400
+    # dated changes: a 1-day change is never computed across a gap
+    key = C.normalize_name("Federative Republic of Brazil")
+    m = C.measure_entity(key, bank["series"][key], days[-1])
+    assert m["stale_days"] > C.STALE_MAX_DAYS and m["chg_1d_bp"] is not None  # consecutive priced days 09-02/09-03 are 1 day apart
+    series = dict(bank["series"][key]); series.pop(days[1])
+    m2 = C.measure_entity(key, series, days[-1])
+    assert m2["chg_1d_bp"] is None or (C.date.fromisoformat(days[2]) - C.date.fromisoformat(days[0])).days <= 5
 
 
 if __name__ == "__main__":

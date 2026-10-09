@@ -33,7 +33,7 @@ import statistics
 import zipfile
 from datetime import date, datetime, timedelta
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 RECOVERY_SENIOR = 0.40
 SWAP_PROXY_OFFSET_PCT = 0.75          # 5Y Treasury par minus this = flat discount rate for the model
 DEFAULT_RATE_PCT = 4.25               # used only when no par curve is available (recorded in packet)
@@ -45,6 +45,10 @@ LIQUID_MIN_DAYS_30D = 4
 MIN_CURVE_PRINTS = 1          # uncapped prints per tenor needed for the curve-shape sign test
 CURVE_CROSS_MAX_RATIO = 4.0   # curve-shape test only when the coupon-crossing alternative would need long/short > 4x
 MIN_CASH_PCT = 0.02           # |upfront| below this share of notional is not a market upfront (fees, zero-cost novations)
+MIN_QUOTE_BP = 5.0            # a single-name "quoted" spread below this is a mis-filed field, not a market level
+SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this log-distance of the trailing anchor
+QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
+STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 INDEX_FAMILIES = {
     "CDX.NA.IG": {"label": "CDX IG", "coupon_bp": 100, "quote": "spread", "group": "US corporates"},
     "CDX.NA.HY": {"label": "CDX HY", "coupon_bp": 500, "quote": "price", "group": "US corporates"},
@@ -63,7 +67,8 @@ SOVEREIGNS = {
     "DOMINICAN REPUBLIC": ("Dominican Rep.", "LatAm"), "REPUBLIC OF GUATEMALA": ("Guatemala", "LatAm"),
     "REPUBLIC OF EL SALVADOR": ("El Salvador", "LatAm"), "REPUBLIC OF ECUADOR": ("Ecuador", "LatAm"),
     "REPUBLIC OF COSTA RICA": ("Costa Rica", "LatAm"), "COSTA RICA": ("Costa Rica", "LatAm"), "ORIENTAL REPUBLIC OF URUGUAY": ("Uruguay", "LatAm"),
-    "REPUBLIC OF TURKEY": ("Turkey", "EMEA"), "REPUBLIC OF SOUTH AFRICA": ("South Africa", "Africa"),
+    "REPUBLIC OF TURKEY": ("Turkey", "EMEA"), "REPUBLIC OF TURKIYE": ("Turkey", "EMEA"), "REPUBLIC OF T RKIYE": ("Turkey", "EMEA"), "TURKIYE": ("Turkey", "EMEA"),
+    "REPUBLIC OF SOUTH AFRICA": ("South Africa", "Africa"), "AFRISUD": ("South Africa", "Africa"),
     "ARAB REPUBLIC OF EGYPT": ("Egypt", "Africa"), "GOVERNMENT OF ARAB REPUBLIC OF EGYPT": ("Egypt", "Africa"),
     "FEDERAL REPUBLIC OF NIGERIA": ("Nigeria", "Africa"),
     "REPUBLIC OF COTE D IVOIRE": ("Cote d'Ivoire", "Africa"), "REPUBLIC OF KENYA": ("Kenya", "Africa"),
@@ -407,8 +412,18 @@ def _sov_canon():
 SOV_CANON = _sov_canon()
 
 
+_SOV_SUFFIXES = (" REPUBLIC OF", " KINGDOM OF", " STATE OF", " SULTANATE OF", " COMMONWEALTH OF", " FEDERATION OF")
+
+
 def canonical_norm(norm):
-    return SOV_CANON.get(norm, norm)
+    """One series per sovereign: aliases, and the postfix form some reporters use ('TURKEY REPUBLIC OF')."""
+    if norm in SOV_CANON:
+        return SOV_CANON[norm]
+    for suf in _SOV_SUFFIXES:
+        if norm.endswith(suf):
+            pre = suf.strip() + " " + norm[: -len(suf)].strip()
+            return SOV_CANON.get(pre, pre)
+    return norm
 
 
 def entity_map(trades, prior_map=None):
@@ -440,14 +455,47 @@ def classify_entity(kind, norm, ccy_votes):
 
 
 # ----------------------------------------------------------------------------- spread resolution
-def candidate_spreads(trade, rate_pct):
-    """(spread_bp, branch) candidates for a derived print; [] when nothing can be derived."""
+def quote_status(trade, rate_pct):
+    """Classify a single-name print's Spread-Leg 1 value.
+
+    'confirmed' - agrees with the print's own disseminated upfront under its coupon (or any standard coupon);
+    'soft'      - plausible but unverifiable (about 40% of quoted prints carry no upfront at all, legitimately);
+    'reject'    - a mis-filed field: below MIN_QUOTE_BP (e.g. "1.25bp" on a 500-coupon name) is never a market level."""
+    q = trade.get("quoted_bp")
+    if q is None:
+        return "reject"
+    if trade["kind"] == "index":
+        return "confirmed"
+    if q < MIN_QUOTE_BP:
+        return "reject"
+    up, notional = trade.get("upfront"), trade.get("notional")
+    if up is not None and notional:
+        cash_pct = abs(up) / notional * 100.0
+        if cash_pct >= MIN_CASH_PCT:
+            d = date.fromisoformat(trade["date"])
+            coupons = [trade["coupon_bp"]] if trade.get("coupon_bp") else list(STANDARD_COUPONS_BP)
+            for c in coupons:
+                expected = clean_upfront_pct(q, c, trade["tenor"], rate_pct) - accrued_pct(c, d)
+                if abs(abs(expected) - cash_pct) <= max(QUOTE_CONFIRM_TOL_PCT, 0.15 * abs(expected)):
+                    return "confirmed"
+    return "soft"
+
+
+def candidate_spreads(trade, rate_pct, anchor_bp=None):
+    """(spread_bp, branch) candidates for a derived print; [] when nothing can be derived.
+
+    Quoted spreads are used only when confirmed by the print's own upfront, or (unconfirmed) when they sit within
+    SOFT_QUOTE_GATE_LOG of the entity's anchor; otherwise the print falls through to upfront-derived branches."""
     if trade.get("package"):
         return []
     if trade["kind"] == "index":
         index_quote(trade, rate_pct)
     if trade["quoted_bp"] is not None:
-        return [(trade["quoted_bp"], "quoted")]
+        st = quote_status(trade, rate_pct)
+        if st == "confirmed" or (st == "soft" and (anchor_bp is None or _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG)):
+            return [(trade["quoted_bp"], "quoted")]
+        if st == "soft":
+            return []   # plausible but contradicts what this name has been trading at: unresolved, not wrong
     if trade["price"] is not None and trade["coupon_bp"]:
         s = price_to_spread_bp(trade["price"], trade["coupon_bp"], trade["tenor"], rate_pct)
         return [(s, "price")] if s else []
@@ -471,7 +519,7 @@ def candidate_spreads(trade, rate_pct):
 
 def resolve_spread(trade, rate_pct, anchor_bp=None):
     """-> (spread_bp | None, basis) with basis in quoted / price / derived / ambiguous / none."""
-    cands = candidate_spreads(trade, rate_pct)
+    cands = candidate_spreads(trade, rate_pct, anchor_bp)
     if not cands:
         return None, "none"
     if cands[0][1] in ("quoted", "price"):
@@ -542,13 +590,17 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     if isinstance(trailing_anchor, (tuple, list)):
         trailing_anchor, trail_q = trailing_anchor
     five = [t for t in trades if t["bucket"] == "5Y" and not t.get("package")]
-    quoted = []
+    quoted, soft = [], []
     for t in five:
-        cands = candidate_spreads(t, rate_pct)
+        cands = candidate_spreads(t, rate_pct, trailing_anchor)
         if cands and cands[0][1] in ("quoted", "price"):
-            quoted.append(cands[0][0])
+            (quoted if (t["kind"] == "index" or t["price"] is not None or quote_status(t, rate_pct) == "confirmed") else soft).append(cands[0][0])
     if quoted:
         return statistics.median(quoted), "quoted", "firm"
+    if soft and trailing_anchor is not None:
+        return statistics.median(soft), "quoted", trail_q      # unconfirmed quotes, but consistent with the name's own history
+    if soft:
+        return statistics.median(soft), "quoted", "inferred"   # unconfirmed and nothing to check them against
     # candidates from uncapped derived prints (exact notional)
     derived = []
     for t in five:
@@ -676,7 +728,7 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
     out = {
         "n": len(trades), "n_5y": len(five), "n_priced_5y": len(spreads), "basis": basis_counts, "cand": cand or None,
         "spread_5y": _median(quoted_only) if len(quoted_only) >= 2 else _median(spreads), "spread_basis": spread_basis,
-        "anchor_source": anchor_src, "anchor_quality": anchor_q if spreads else None, "points_5y": _median(points) if points and (_median(spreads) or 0) > 1000 else None,
+        "anchor_source": (anchor_src or ("single_branch" if spreads else None)), "anchor_quality": ((anchor_q or "firm") if spreads else None), "points_5y": _median(points) if points and (_median(spreads) or 0) > 1000 else None,
         "lo_5y": round(min(spreads), 2) if spreads else None, "hi_5y": round(max(spreads), 2) if spreads else None,
         "notional_5y_mm": round(notional_mm, 1), "capped_share": round(capped / len(five), 2) if five else None,
         "cleared_share": round(cleared / len(five), 2) if five else None,
@@ -778,11 +830,14 @@ def _change(cur, ref):
     return round(cur - ref, 1)
 
 
-def _value_on_or_before(points, target_iso):
-    best = None
+def _value_on_or_before(points, target_iso, tol_days=None):
+    """Last priced value on/before target; with tol_days, only if that value is at most tol_days older than target."""
+    best, best_d = None, None
     for d, row in points:
         if d <= target_iso and row.get("s") is not None:
-            best = row["s"]
+            best, best_d = row["s"], d
+    if best is not None and tol_days is not None and (date.fromisoformat(target_iso) - date.fromisoformat(best_d)).days > tol_days:
+        return None
     return best
 
 
@@ -796,10 +851,11 @@ def measure_entity(norm, series, as_of_iso):
     last30 = [(d, r) for d, r in pts if d > (as_of - timedelta(days=30)).isoformat()]
     hist = [r["s"] for d, r in priced[:-1]]
     hist_90 = [r["s"] for d, r in priced if d > (as_of - timedelta(days=90)).isoformat()][:-1]
-    prev = priced[-2][1]["s"] if len(priced) >= 2 else None
-    w1 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=7)).isoformat())
-    m1 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=30)).isoformat())
-    m3 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=91)).isoformat())
+    # changes are only reported against a reference that is itself recent (no 1-day change across a 6-month gap)
+    prev = priced[-2][1]["s"] if len(priced) >= 2 and (date.fromisoformat(last_d) - date.fromisoformat(priced[-2][0])).days <= 5 else None
+    w1 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=7)).isoformat(), 5)
+    m1 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=30)).isoformat(), 10)
+    m3 = _value_on_or_before(priced, (date.fromisoformat(last_d) - timedelta(days=91)).isoformat(), 21)
     mu = statistics.mean(hist_90) if len(hist_90) >= 10 else None
     sd = statistics.pstdev(hist_90) if len(hist_90) >= 10 else None
     z = round((last["s"] - mu) / sd, 2) if sd and sd > 1e-9 else None
@@ -882,6 +938,14 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                 unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), **act,
                                                               "why": "sign unresolved: no quoted print and no single-branch/multi-coupon evidence"})
             continue
+        if m["stale_days"] > STALE_MAX_DAYS:
+            # the name still trades, but nothing in the last STALE_MAX_DAYS days could be priced: list it, do not show an old level as current
+            if m["trades_30d"] >= LIQUID_MIN_TRADES_30D and m["days_active_30d"] >= LIQUID_MIN_DAYS_30D:
+                unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), "trades_30d": m["trades_30d"],
+                                                              "days_active_30d": m["days_active_30d"], "ambiguous_30d": m["ambiguous_last"], "last_date": m["last_date"],
+                                                              "last_spread_bp": m["spread_bp"],
+                                                              "why": "last priced %s at %.0fbp; every print since carries an unresolved upfront sign" % (m["last_date"], m["spread_bp"])})
+            continue
         row = {"key": norm, "name": display_name(norm, info.get("raw")), **cls, **m, "liquid": liquid(m)}
         all_rows.append(row)
     for row in all_rows:
@@ -950,6 +1014,8 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                    "liquid_rule": ">=%d prints on >=%d days in the trailing 30 days" % (LIQUID_MIN_TRADES_30D, LIQUID_MIN_DAYS_30D),
                    "spread_rule": "median of quoted prints when >=2 quoted, else median of quoted + sign-resolved derived prints; ambiguous prints counted but unpriced",
                    "sign_rule": "evidence order: same-day quoted prints > two-coupon intersection > single feasible branch (uncapped) > trailing 7-day anchor > curve-shape (>=3y gap, <300bp); nothing else",
+                   "quote_rule": "a Spread-Leg-1 value counts as a quote if it agrees with the print's own upfront; unconfirmed quotes must be >=%.0fbp and within %.0f%% log-distance of the name's trailing anchor (none available: accepted, sign evidence 'inferred')" % (MIN_QUOTE_BP, 100 * SOFT_QUOTE_GATE_LOG),
+                   "stale_rule": "levels older than %d calendar days are not shown as current; such names appear in the unpriced list with their last dated level" % STALE_MAX_DAYS,
                    "package_rule": "prints flagged as package transactions (index-arbitrage baskets) are counted but never priced",
                    "limitations": ["upfront sign is not disclosed; derived prints need an anchor", "block notionals are capped (+) in the public file",
                                    "public history begins 2024-09; nothing here covers 2008", "clearinghouse settlement prices are not used (licence forbids republication)"]},

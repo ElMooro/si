@@ -296,7 +296,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
       <div id="cdsdesk-movers"></div>
     </div>
     <div class="panel">
-      <h3>Active but unpriced <span class="tag">prints seen, upfront sign unresolved</span></h3>
+      <h3>Active but unpriced <span class="tag">prints seen, upfront sign unresolved or last level older than 10 days</span></h3>
       <div id="cdsdesk-unpriced"></div>
     </div>
     <div class="interp" id="cdsdesk-interp"></div>
@@ -888,7 +888,7 @@ function renderCDSDesk(d) {
     .filter(m => fin(m.chg_1d_bp)).sort((a, b) => Math.abs(b.chg_1d_bp) - Math.abs(a.chg_1d_bp)).slice(0, 12);
   document.getElementById('cdsdesk-movers').innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>1d</th><th>Prints</th></tr></thead><tbody>${movers.map(m => `<tr><td class="t-info">${esc(m.name)}</td><td class="t-mute">${m.grp}</td><td>${bp(m.spread_bp,1)}</td><td>${chg(m.chg_1d_bp)}</td><td>${m.n_last ?? '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="t-mute">no priced moves</td></tr>'}</tbody></table>`;
   const unp = [...(sov.unpriced || []).map(u => ({...u, grp: 'Sov'})), ...(us.unpriced || []).map(u => ({...u, grp: 'US'})), ...(gl.unpriced || []).map(u => ({...u, grp: 'Global'}))].sort((a, b) => b.trades_30d - a.trades_30d).slice(0, 24);
-  document.getElementById('cdsdesk-unpriced').innerHTML = unp.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${unp.map(u => `<span class="pill mute" title="${esc(u.why || '')}">${esc(u.name)} · ${u.grp} · ${u.trades_30d} prints</span>`).join('')}</div><div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">These names trade, but every print in the window carries an upfront whose payer is not disclosed and no quoted, two-coupon or single-branch evidence fixed the sign. They are listed rather than guessed.</div>` : '<span class="t-mute">every active name is priced</span>';
+  document.getElementById('cdsdesk-unpriced').innerHTML = unp.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${unp.map(u => `<span class="pill mute" title="${esc(u.why || '')}">${esc(u.name)} · ${u.grp} · ${u.trades_30d} prints${fin(u.last_spread_bp) ? ` · last ${bp(u.last_spread_bp)}bp on ${esc(u.last_date || '')}` : ''}</span>`).join('')}</div><div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">These names trade, but every recent print carries an upfront whose payer is not disclosed and no quoted, two-coupon or single-branch evidence fixed the sign. Where an older priced level exists it is dated here instead of being shown as current. Listed rather than guessed.</div>` : '<span class="t-mute">every active name is priced</span>';
   const m = d.method || {}, src = d.source || {};
   document.getElementById('cdsdesk-interp').innerHTML = `<b>What this is:</b> 5Y CDS levels measured from the real-time public trade reports every U.S. swap dealer must disseminate (${esc(src.law || '')}), via the DTCC files ${esc(src.files || '')}. History in the bank: ${esc(src.first_day || '')} → ${esc(src.last_day || '')} (${src.n_days ?? '—'} days). Spread rule: ${esc(m.spread_rule || '')}. Model: ${esc(m.model || '')}. Liquid = ${esc(m.liquid_rule || '')}. Sign rule: ${esc(m.sign_rule || '')}.<br><b>Limits:</b> ${(m.limitations || []).map(esc).join(' · ')}. <b>No call, no sizing</b> — descriptive measurements only (decision.call = ${d.decision && d.decision.call === null ? 'null' : esc(d.decision && d.decision.call)}).`;
 }
