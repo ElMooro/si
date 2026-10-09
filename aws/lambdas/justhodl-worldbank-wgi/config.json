@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-worldbank-wgi",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "World Bank Worldwide Governance Indicators: six dimensions x ~214 economies, annual 1996->, from the WGI download zip. Descriptive. Owns data/worldbank-wgi.json + data/warm/worldbank-wgi/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-worldbank-wgi-daily",
+    "cron": "cron(5 3 ? * MON *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Weekly read of the WGI download zip (annual data)",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

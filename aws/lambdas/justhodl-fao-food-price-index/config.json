@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-fao-food-price-index",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FAO Food Price Index and five sub-indices, monthly since 1990 from FAO's public CSV. Descriptive. Owns data/fao-food-price-index.json + data/warm/fao-food-price-index/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fao-food-price-index-daily",
+    "cron": "cron(30 2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of the FAO FFPI CSV (monthly data, first Friday)",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

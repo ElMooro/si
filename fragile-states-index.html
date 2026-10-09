@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fragile States Index (Fund for Peace) · justhodl.ai</title>
+<meta name="description" content="Annual 0–120 fragility scores for ~179 countries across twelve cohesion, economic, political and social indicators, every public edition since 2006 harvested from the Fund for Peace download page.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#10151d; --panel-2:#141a24; --border:#1c2330; --border-hi:#2a3548;
+  --text:#e6ecf3; --text-dim:#8b96a8; --text-mute:#5b6479;
+  --pos:#00e676; --neg:#ff3d5a; --info:#22d3ee; --accent:#a78bfa;
+  --gold:#fbbf24; --orange:#fb923c; --pink:#ec4899;
+  --font-ui:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ui);font-size:13px;line-height:1.45;min-height:100vh;}
+a{color:inherit;}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,#0a0e14,rgba(10,14,20,.95));border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+header h1{font-size:16px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.badge{font-family:var(--font-mono);font-size:10px;color:var(--accent);background:rgba(167,139,250,.12);padding:2px 6px;border-radius:3px;letter-spacing:.5px;}
+.header-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;align-items:center;}
+.nav-back{color:var(--text-dim);text-decoration:none;font-size:11px;font-family:var(--font-mono);}
+.nav-back:hover{color:var(--text);}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+
+/* INTRO */
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:18px;}
+.intro h2{margin:0 0 6px 0;font-size:15px;font-weight:600;}
+.intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:13px 15px;position:relative;}
+.kpi.accent{border-left:3px solid var(--accent);}
+.kpi.pos{border-left:3px solid var(--pos);} .kpi.neg{border-left:3px solid var(--neg);}
+.kpi.info{border-left:3px solid var(--info);} .kpi.gold{border-left:3px solid var(--gold);}
+.kpi.warning{border-left:3px solid var(--orange);}
+.kpi .label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);}
+.kpi .val{font-family:var(--font-mono);font-size:22px;font-weight:600;margin-top:6px;line-height:1.1;}
+.kpi .val.pos{color:var(--pos);} .kpi .val.neg{color:var(--neg);} .kpi .val.info{color:var(--info);} .kpi .val.gold{color:var(--gold);} .kpi .val.warning{color:var(--orange);}
+.kpi .sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-top:4px;}
+
+/* SECTION */
+.section-title{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-mute);margin:22px 0 10px 0;font-weight:500;display:flex;justify-content:space-between;align-items:center;}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:14px;}
+.panel h3{margin:0 0 14px 0;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.panel h3 .tag{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.5px;}
+
+/* TABLES */
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap;}
+th.sortable:hover{color:var(--text);}
+th.sortable .sort-ind{opacity:.45;font-size:9px;margin-left:3px;}
+th.sortable.sorted .sort-ind{opacity:1;color:var(--info);}
+.csv-btn{background:transparent;border:1px solid var(--border);color:var(--text-mute);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;border-radius:3px;padding:2px 6px;cursor:pointer;margin-left:8px;}
+.csv-btn:hover{color:var(--text);border-color:var(--border-hi);}
+.cds-clickable{cursor:pointer;text-decoration:underline dotted rgba(34,211,238,.45);text-underline-offset:3px;}
+.cds-clickable:hover{color:var(--text);}
+.seg-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;border-radius:3px;padding:3px 8px;cursor:pointer;}
+.seg-btn.active{color:var(--info);border-color:var(--info);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:8px 10px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);font-weight:500;border-bottom:1px solid var(--border);}
+td{padding:8px 10px;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.t-pos{color:var(--pos);} .t-neg{color:var(--neg);} .t-info{color:var(--info);} .t-mute{color:var(--text-mute);}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 7px;border-radius:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:.3px;font-weight:500;}
+.pill.pos{background:rgba(0,230,118,.13);color:var(--pos);}
+.pill.neg{background:rgba(255,61,90,.13);color:var(--neg);}
+.pill.info{background:rgba(34,211,238,.13);color:var(--info);}
+.pill.gold{background:rgba(251,191,36,.13);color:var(--gold);}
+.pill.warning{background:rgba(251,146,60,.13);color:var(--orange);}
+.pill.mute{background:rgba(255,255,255,.05);color:var(--text-dim);}
+.pill.accent{background:rgba(167,139,250,.13);color:var(--accent);}
+
+/* INTERP NOTE */
+.interp{background:var(--panel-2);border-left:3px solid var(--accent);padding:11px 15px;font-size:12.5px;color:var(--text-dim);border-radius:0 4px 4px 0;margin:14px 0;line-height:1.55;}
+
+/* LOADING */
+.loading{color:var(--text-mute);font-family:var(--font-mono);font-size:11px;padding:32px;text-align:center;}
+.spin::after{content:" ⟳";animation:rot 1s linear infinite;display:inline-block;}
+@keyframes rot{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+.seg-btn.cds-chip{padding:4px 9px;} .seg-btn.cds-chip:hover{color:var(--text);border-color:var(--border-hi);} .seg-btn.cds-chip.active{color:var(--info);border-color:var(--info);background:rgba(34,211,238,.08);}
+.cds-map-country:hover{stroke:#e6ecf3;stroke-width:1.2;}
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:18px;} .intro h2{margin:0 0 6px 0;font-size:15px;font-weight:600;} .intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 FRAGILE STATES INDEX <span class="badge">v1.0</span></h1>
+  <div class="header-meta">
+    <span id="ts" class="t-mute">loading...</span>
+    <a href="/cds.html" class="nav-back">cds desk</a>
+    <a href="/data.html" class="nav-back">data engine</a>
+    <a href="/" class="nav-back">← justhodl.ai</a>
+  </div>
+</header>
+<main>
+  <div class="intro">
+    <h2>Fragile States Index</h2>
+    <p>Annual 0–120 fragility scores for ~179 countries across twelve cohesion, economic, political and social indicators, every public edition since 2006 harvested from the Fund for Peace download page. Higher = more fragile. Descriptive only.</p>
+  </div>
+  <div id="rs-root" data-risk-source="1" data-engine="justhodl-fragile-states-index" data-slug="fragile-states-index"></div>
+</main>
+<script src="/jh-risk-source.js?v=20261009-1"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>

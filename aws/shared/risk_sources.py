@@ -36,7 +36,7 @@ import urllib.request
 import zipfile
 from datetime import date, datetime, timedelta, timezone
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 UA = {"User-Agent": "JustHodl Research (justhodl.ai; raafouis@gmail.com) risk-sources/" + VERSION,
       "Accept": "*/*"}
@@ -179,7 +179,10 @@ class Xlsx:
                 raise KeyError(f"sheet {sheet!r} not in {list(d)}")
             rid = d[sheet]
         target = self.rels[rid]
-        target = target if target.startswith("xl/") else "xl/" + target.lstrip("/")
+        if target.startswith("/"):          # absolute package path ("/xl/worksheets/sheet1.xml")
+            target = target.lstrip("/")
+        elif not target.startswith("xl/"):
+            target = "xl/" + target
         xml = self.z.read(target).decode("utf-8", "replace")
         out = []
         for row in re.findall(r"<row [^>]*>(.*?)</row>", xml, re.S):
@@ -227,6 +230,15 @@ def _unescape(s):
 
 
 # ──────────────────────────────────────────────────────────── statistics ──
+def ordinal(n):
+    """18.1 -> '18th', 2 -> '2nd', 11 -> '11th' (for percentile captions)."""
+    if n is None:
+        return "n/a"
+    i = int(round(float(n)))
+    suf = "th" if 10 <= i % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(i % 10, "th")
+    return f"{i}{suf}"
+
+
 def pct_rank(values, x):
     vals = [v for v in values if v is not None]
     if x is None or len(vals) < 3:
@@ -276,6 +288,7 @@ class Packet:
         self.notes = []
         self.source_files = []
         self.extra = {}
+        self.hot_tail = None            # per-packet override of how many trailing points the hot packet carries
         self._raw = []                  # (name, bytes, content_type)
 
     def add_series(self, sid, label, points, unit="", freq="", group="", **meta):
@@ -319,7 +332,7 @@ class Packet:
             s = dict(self.series[sid])
             pts = s.pop("_points")
             s["warm_key"] = f"data/warm/{self.slug}/series/{sid}.json.gz"
-            keep = TAIL_POINTS if len(self.series_order) <= MAX_HOT_SERIES else TAIL_SMALL
+            keep = self.hot_tail or (TAIL_POINTS if len(self.series_order) <= MAX_HOT_SERIES else TAIL_SMALL)
             s["tail"] = pts[-keep:]
             s["tail_is_full"] = len(pts) <= keep
             hot_series[sid] = s

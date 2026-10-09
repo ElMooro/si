@@ -139,7 +139,7 @@ def build(event):
                  note="Share of each banking system's sovereign portfolio held in its own government (home bias), in other EU/EEA sovereigns, held at amortised cost (not marked to market) and by residual maturity. The bank–sovereign nexus, from the banks' side.")
     eu_npl = pk.series.get("KRI_AQT_3_2_EU"); eu_cet1 = pk.series.get("KRI_SVC_3_EU"); eu_home = pk.series.get("SOV_T15_2_EU")
     if eu_npl:
-        pk.kpi("EU NPL ratio", f"{eu_npl['latest']:.2f}%", f"{eu_npl['date']} · {eu_npl['pct_rank']}th pct since 2014", "info")
+        pk.kpi("EU NPL ratio", f"{eu_npl['latest']:.2f}%", f"{eu_npl['date']} · {RS.ordinal(eu_npl['pct_rank'])} pct since 2014", "info")
     if eu_cet1:
         pk.kpi("EU CET1 ratio", f"{eu_cet1['latest']:.1f}%", f"Δ {eu_cet1['chg']:+.2f}pp q/q" if eu_cet1["chg"] is not None else "", "pos")
     if eu_home:

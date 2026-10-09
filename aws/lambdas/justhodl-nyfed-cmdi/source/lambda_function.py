@@ -67,13 +67,13 @@ def build(event):
     if m:
         pts = m["_points"]
         peak = max(pts, key=lambda p: p[1])
-        pk.kpi("Market CMDI", f"{m['latest']:.2f}", f"week of {m['date']} · {m['pct_rank']}th pct since 2005",
+        pk.kpi("Market CMDI", f"{m['latest']:.2f}", f"week of {m['date']} · {RS.ordinal(m['pct_rank'])} pct since 2005",
                "neg" if m["pct_rank"] and m["pct_rank"] > 85 else "info")
         pk.kpi("All-time peak", f"{peak[1]:.2f}", f"{peak[0]} (GFC)", "mute")
         for sid in ("IG", "HY"):
             s = pk.series.get(sid)
             if s:
-                pk.kpi(f"{sid} CMDI", f"{s['latest']:.2f}", f"{s['pct_rank']}th pct · Δ {s['chg']:+.2f} w/w" if s['chg'] is not None else "", "info")
+                pk.kpi(f"{sid} CMDI", f"{s['latest']:.2f}", f"{RS.ordinal(s['pct_rank'])} pct · Δ {s['chg']:+.2f} w/w" if s['chg'] is not None else "", "info")
         # yearly table of annual mean / max
         years = {}
         for d, v in pts:

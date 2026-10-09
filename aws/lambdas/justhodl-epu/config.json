@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-epu",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Economic Policy Uncertainty (Baker-Bloom-Davis): Global EPU, ~22 national monthly indices, US daily index since 1985 from policyuncertainty.com. Descriptive. Owns data/epu.json + data/warm/epu/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-epu-daily",
+    "cron": "cron(10 2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of the EPU global workbook + US daily CSV",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

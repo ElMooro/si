@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-fhfa-hpi",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 2048,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FHFA House Price Index: US + Census divisions monthly purchase-only, states quarterly, 100 metros, from FHFA's master CSV. Descriptive. Owns data/fhfa-hpi.json + data/warm/fhfa-hpi/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fhfa-hpi-daily",
+    "cron": "cron(40 2 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of the FHFA HPI master CSV (monthly/quarterly data)",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

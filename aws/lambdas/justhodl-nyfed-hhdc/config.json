@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-nyfed-hhdc",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "NY Fed Quarterly Report on Household Debt and Credit: balances, delinquency, originations, by age and state, from the report workbook. Descriptive. Owns data/nyfed-hhdc.json + data/warm/nyfed-hhdc/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-nyfed-hhdc-daily",
+    "cron": "cron(0 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily probe for the latest HHDC report workbook (quarterly data)",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}
