@@ -48,6 +48,28 @@ out = {'ran_at': datetime.now(timezone.utc).isoformat()}
 failed = []
 
 
+ENGINE_PATHS = ('aws/lambdas/%s/' % FN, 'aws/shared/')
+
+
+def receipt_covers_this_commit(receipt_commit):
+    """deploy-lambdas only fires on engine paths.  The receipt names the commit it deployed; this ops commit may be a
+    later, engine-neutral one (e.g. the script moved into aws/ops/pending).  Accept the receipt when it is THIS commit,
+    or an ancestor with no engine-path change between it and HEAD (so the deployed code IS the code under test)."""
+    if not receipt_commit:
+        return False
+    if receipt_commit == THIS_COMMIT:
+        return True
+    try:
+        subprocess.run(['git', 'fetch', '-q', '--depth=50', 'origin', receipt_commit], cwd=ROOT, capture_output=True, text=True, timeout=120)
+        anc = subprocess.run(['git', 'merge-base', '--is-ancestor', receipt_commit, THIS_COMMIT], cwd=ROOT, capture_output=True, text=True)
+        if anc.returncode != 0:
+            return False
+        diff = subprocess.run(['git', 'diff', '--name-only', receipt_commit, THIS_COMMIT, '--'] + list(ENGINE_PATHS), cwd=ROOT, capture_output=True, text=True)
+        return diff.returncode == 0 and not diff.stdout.strip()
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def wait_for_function(max_wait_s=1800):
     """deploy-lambdas runs in a parallel workflow on the same push: wait until its release receipt names THIS commit
     (the function already exists and is Active with the OLD code, so State alone is not enough), then for Active."""
@@ -58,7 +80,7 @@ def wait_for_function(max_wait_s=1800):
             receipt = json.loads(s3.get_object(Bucket=BUCKET, Key=RECEIPT_KEY)['Body'].read())
             cfg = lam.get_function_configuration(FunctionName=FN)
             last = (receipt.get('commit', '')[:8], cfg.get('State'), cfg.get('LastUpdateStatus'), cfg.get('CodeSha256'))
-            if receipt.get('commit') == THIS_COMMIT and cfg.get('CodeSha256') == receipt.get('code_sha256') \
+            if receipt_covers_this_commit(receipt.get('commit', '')) and cfg.get('CodeSha256') == receipt.get('code_sha256') \
                     and cfg.get('State') == 'Active' and cfg.get('LastUpdateStatus') in (None, 'Successful'):
                 return cfg
         except Exception as exc:  # noqa: BLE001 - receipt or function not there yet
@@ -98,6 +120,7 @@ def invoke(payload):
 
 try:
     cfg = wait_for_function()
+    out['release_receipt'] = json.loads(s3.get_object(Bucket=BUCKET, Key=RECEIPT_KEY)['Body'].read())
     out['function'] = {'arn': cfg['FunctionArn'], 'runtime': cfg.get('Runtime'), 'timeout': cfg.get('Timeout'), 'memory': cfg.get('MemorySize'),
                        'code_sha': cfg.get('CodeSha256')}
     out['schedule'] = ensure_schedule(cfg['FunctionArn'])
