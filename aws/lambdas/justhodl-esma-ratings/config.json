@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-esma-ratings",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "ESMA European Rating Platform: sovereign long-term ratings and rating actions from all EU-registered agencies (S&P, Moody's, Fitch, DBRS, Scope...). Descriptive. Owns data/esma-ratings.json + data/warm/esma-ratings/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-esma-ratings-daily",
+    "cron": "cron(30 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of ESMA's rating platform Solr index; runs before the 04:00 CDS desk pass",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

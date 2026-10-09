@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-eba-risk-dashboard",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "EBA Risk Dashboard: EU banking key risk indicators by country since 2014 and bank sovereign exposures since 2018 from the EBA Data Annex workbook. Descriptive. Owns data/eba-risk-dashboard.json + data/warm/eba-risk-dashboard/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-eba-risk-dashboard-daily",
+    "cron": "cron(40 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily check of the EBA Risk Dashboard Data Annex (quarterly data); runs before the 04:00 CDS desk pass",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

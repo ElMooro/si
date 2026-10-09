@@ -29,6 +29,7 @@ import boto3
 
 import cds_desk
 import cds_long_context
+import cds_risk_layers
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 PACKET_KEY = os.environ.get("PACKET_KEY", "data/cds-desk.json")
@@ -55,6 +56,15 @@ LONG_SOURCES = {
 SYSTEMIC_STRESS_KEY = "data/systemic-stress.json"  # sibling engine, used only as a same-day cross-check
 # IMF WEO fundamentals (DataMapper, keyless JSON): one request per indicator, all countries
 IMF_SOURCES = {ind: "https://www.imf.org/external/datamapper/api/v1/%s" % ind for ind in cds_long_context.IMF_INDICATORS}
+# v1.6 risk layers: IMF reserve adequacy + private debt (DataMapper), ECB SUP bank→sovereign exposures, OFR Form PF
+# (warm store of the OFR engine), and the sibling engines' hot packets (ESMA, EBA, NY Fed CMDI, FDIC)
+IMF_LAYER_SOURCES = {ind: "https://www.imf.org/external/datamapper/api/v1/%s" % ind
+                     for ind in list(cds_risk_layers.IMF_ARA) + list(cds_risk_layers.IMF_GDD)}
+ECB_SUP_SOURCES = {"ecb_sup_s13": cds_risk_layers.ECB_SUP_URL}
+ECB_SUP_WARM = "data/warm/ecb-sup/"
+OFR_HFM_SERIES = "data/warm/ofr-hfm/series/%s.json.gz"
+SIBLING_PACKETS = {"esma": "data/esma-ratings.json", "eba": "data/eba-risk-dashboard.json",
+                   "cmdi": "data/nyfed-cmdi.json", "fdic": "data/fdic-bankfind.json"}
 PAR_KEY = os.environ.get("PAR_KEY", "data/warm/treasury-par/curve.json.gz")
 DTCC_BASE = "https://kgc0418-tdw-data-0.s3.amazonaws.com"
 FIRST_PUBLIC_DAY = "2024-09-03"
@@ -217,7 +227,7 @@ def latest_available_file_day(today):
 
 
 def _fetch_text(url, timeout=40):
-    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.5 (+https://justhodl.ai)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/%s (+https://justhodl.ai)" % cds_desk.VERSION})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", "replace")
 
@@ -270,6 +280,76 @@ def load_fundamentals():
     return imf, status
 
 
+def _read_ofr_series(mnemonic):
+    try:
+        return s3.get_object(Bucket=BUCKET, Key=OFR_HFM_SERIES % mnemonic)["Body"].read()
+    except Exception:  # pragma: no cover - missing series
+        return None
+
+
+def attach_layers(packet, as_of, now):
+    """v1.6 layers; each one is independent and reports its own status in packet['layers']['status']."""
+    status = {}
+    # IMF ARA + GDD
+    try:
+        texts, st = load_long_sources(sources=IMF_LAYER_SOURCES, json_mode=True)
+        imf = {ind: cds_risk_layers.parse_imf_json(txt, ind) for ind, txt in texts.items()}
+        n_ara, n_debt = cds_risk_layers.attach_imf_layers(packet, imf, as_of)
+        packet["layers"]["imf_ara_gdd"]["sources"] = st
+        status["imf_ara_gdd"] = "ok: %d reserve-adequacy, %d private-debt" % (n_ara, n_debt)
+    except Exception as exc:
+        status["imf_ara_gdd"] = "error %s: %s" % (type(exc).__name__, exc)
+    # ECB SUP bank -> sovereign exposures (also mirrored as its own warm store for the data engine)
+    try:
+        texts, st = load_long_sources(min_rows=50, sources=ECB_SUP_SOURCES)
+        sup = cds_risk_layers.parse_ecb_sup(texts["ecb_sup_s13"]) if "ecb_sup_s13" in texts else {}
+        n = cds_risk_layers.attach_ecb_sup(packet, sup)
+        if sup:
+            bs = packet["bank_sovereign"]
+            bs["source_status"] = st.get("ecb_sup_s13")
+            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "src/sup_s13_e0010.csv", Body=texts["ecb_sup_s13"].encode(), ContentType="text/csv", CacheControl="max-age=300")
+            catalog = []
+            for iso3, rec in bs["by_iso3"].items():
+                sid = "EA_BANKS_TO_%s" % iso3
+                body = json.dumps({"id": sid, "label": "Euro-area banks' exposure to %s general government" % iso3, "unit": "EUR bn", "freq": "half-yearly",
+                                   "slug": "ecb-sup", "generated_at": now, "points": rec["history"]}, separators=(",", ":")).encode()
+                s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "series/%s.json.gz" % sid, Body=gzip.compress(body), ContentType="application/json", ContentEncoding="gzip", CacheControl="max-age=300")
+                catalog.append(sid)
+            state = {"slug": "ecb-sup", "as_of": bs["period_end"], "generated_at": now, "catalog": catalog, "n_series": len(catalog),
+                     "status": "COMPLETE-maintaining", "version": cds_risk_layers.VERSION, "engine": "justhodl-cds-desk",
+                     "hot": PACKET_KEY, "hot_block": "bank_sovereign", "page": "/cds.html#bank-sovereign",
+                     "source_files": [{"name": "sup_s13_e0010.csv", "url": cds_risk_layers.ECB_SUP_URL, "bytes": len(texts["ecb_sup_s13"]), "status": st.get("ecb_sup_s13")}]}
+            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "state.json", Body=json.dumps(state).encode(), ContentType="application/json", CacheControl="no-cache")
+            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "_last-check.json", Body=json.dumps({"checked_at": now}).encode(), ContentType="application/json", CacheControl="no-cache")
+            for rec in bs["by_iso3"].values():
+                rec["history"] = rec["history"][-6:]
+        status["ecb_sup"] = "ok: %d sovereigns, %s" % (n, (packet.get("bank_sovereign") or {}).get("period"))
+    except Exception as exc:
+        status["ecb_sup"] = "error %s: %s" % (type(exc).__name__, exc)
+    # sibling engines' hot packets
+    sib = {k: _get_json(v, None) for k, v in SIBLING_PACKETS.items()}
+    try:
+        status["esma"] = "ok: %d sovereigns" % cds_risk_layers.attach_esma(packet, sib["esma"]) if sib["esma"] else "data/esma-ratings.json not published yet"
+    except Exception as exc:
+        status["esma"] = "error %s: %s" % (type(exc).__name__, exc)
+    try:
+        status["eba"] = "ok: %d sovereigns" % cds_risk_layers.attach_eba(packet, sib["eba"]) if sib["eba"] else "data/eba-risk-dashboard.json not published yet"
+    except Exception as exc:
+        status["eba"] = "error %s: %s" % (type(exc).__name__, exc)
+    try:
+        status["ofr_form_pf"] = "ok: %d series" % cds_risk_layers.attach_ofr_form_pf(packet, _read_ofr_series)
+    except Exception as exc:
+        status["ofr_form_pf"] = "error %s: %s" % (type(exc).__name__, exc)
+    try:
+        n = cds_risk_layers.attach_us_credit(packet, sib["cmdi"], sib["fdic"])
+        status["us_credit"] = "ok: %d blocks (cmdi %s, fdic %s)" % (n, "yes" if sib["cmdi"] else "no", "yes" if sib["fdic"] else "no")
+    except Exception as exc:
+        status["us_credit"] = "error %s: %s" % (type(exc).__name__, exc)
+    packet.setdefault("layers", {})["status"] = status
+    packet["layers"]["version"] = cds_risk_layers.VERSION
+    return status
+
+
 def publish(bank, as_of, run_meta):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cds_desk.prune_bank(bank, as_of)
@@ -281,6 +361,11 @@ def publish(bank, as_of, run_meta):
     except Exception as exc:  # fundamentals are an enrichment; the desk publishes without them
         n_fund = 0
         packet["fundamentals"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
+    try:
+        layer_status = attach_layers(packet, as_of, now)
+    except Exception as exc:  # layers are enrichments; the desk publishes without them
+        layer_status = {"error": "%s: %s" % (type(exc).__name__, exc)}
+        packet["layers"] = {"status": layer_status}
     history_bytes, long_status, n_stress = None, {}, 0
     try:
         long_block = build_long_block(bank, as_of)
@@ -307,7 +392,7 @@ def publish(bank, as_of, run_meta):
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
     return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
             "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_tracked": {g: v["n_tracked"] for g, v in packet["groups"].items()},
-            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund, "n_ecb_stress": n_stress,
+            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund, "n_ecb_stress": n_stress, "layers": layer_status,
             "cross_reference": {k: v for k, v in ((packet.get("cross_reference") or {}).get("systemic_stress") or {}).items() if k != "checks"},
             "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 

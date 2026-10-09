@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-nyfed-cmdi",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "NY Fed Corporate Bond Market Distress Index (CMDI): weekly market / IG / HY index since 2005 from the Fed's public workbook. Descriptive. Owns data/nyfed-cmdi.json + data/warm/nyfed-cmdi/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-nyfed-cmdi-daily",
+    "cron": "cron(20 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of the NY Fed CMDI workbook (weekly data); runs before the 04:00 CDS desk pass",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

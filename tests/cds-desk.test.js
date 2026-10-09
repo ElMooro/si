@@ -83,7 +83,7 @@ test('ECB SovCISS and IMF figures are visible outside the modal: table columns a
   const st=ui.worldMap(world,rows,'stress');assert.match(st,/ECB SovCISS 0\.265 \(2026-10-08, sovereign-market stress\) · 84th pct since 2006/);
   const cds=ui.worldMap(world,rows,'cds');assert.match(cds,/cds-hatch/);
   [debt,fis,st,cds].forEach(h=>assert.doesNotMatch(h,/undefined|NaN/));
-  assert.equal(ui.MAP_MODES.length,4);assert.notEqual(ui.mapColor('debt',20),ui.mapColor('debt',150));assert.equal(ui.mapColor('fiscal',null),null);
+  assert.equal(ui.MAP_MODES.length,6);assert.notEqual(ui.mapColor('debt',20),ui.mapColor('debt',150));assert.equal(ui.mapColor('fiscal',null),null);
   // v1.5: packet-side `stress` (any ECB family) wins over the history lookup and names its family; CISS / CLIFS fall back by priority
   const e2=sov.universe.find(e=>e.iso3==='ECU');e2.stress={family:'ciss',value:0.008,date:'2026-10-08',pct_rank_since_2006:15.6,frequency:'daily',gfc_peak:0.896};
   const rows2=ui.universeRows('sovereign',sov);const r2=rows2.find(r=>r.iso3==='ECU');assert.equal(r2.stress.fam,'ciss');assert.equal(r2.stress.tag,'sys');
@@ -93,6 +93,47 @@ test('ECB SovCISS and IMF figures are visible outside the modal: table columns a
   assert.equal(ui.proxyFor('sovereign','EM','ECUADOR','ECU',ui.state.history.long.series),'clifs_ECU');assert.equal(ui.proxyFor('sovereign','EM','ARG','ARG',ui.state.history.long.series),'sovciss_ARG');
   const st2=ui.worldMap(world,rows3,'stress');assert.match(st2,/ECB SovCISS 0\.265 \(2026-10-08, sovereign-market stress\)/);assert.doesNotMatch(st2,/undefined|NaN/);
  }finally{ui.state.history=null;}
+});
+test('v1.6 risk layers: rating / reserves / private-debt / bank-holding columns, rating + private-debt map modes, four new panels render from the packet',()=>{
+ const d=packet();const sov=d.groups.sovereign;const e=sov.universe.find(e=>e.iso3==='ARG');
+ e.rating={consensus:'CCC+',notch:5,n_agencies:4,neg:1,pos:1,last_action:'2026-09-25',agencies:{"S&P":{rating:'CCC+',outlook:'Stable',date:'2025-11-01'},"Moody's":{rating:'Caa1',outlook:'Positive',date:'2026-01-10'}}};
+ e.ara={year:'2025',ara:0.34,res_months_imports:3.0,res_std_cover:0.5,res_m2_pct:9.1};
+ e.pdebt={year:'2024',private_debt_gdp:36.2,hh_debt_gdp:4.1,nfc_debt_gdp:32.1};
+ const fra=sov.universe.find(e=>e.iso3==='CYP');assert.ok(fra);
+ fra.banks={period:'2025-S2',ea_banks_eur_bn:789.9,share_of_ea_sov_book_pct:20.2,home_banks_eur_bn:642.3,home_banks_share_pct:81.3,chg_yoy_pct:9.4};
+ fra.eba={period:'2026-06-30',home_bias_pct:45.2,other_eu_pct:30.1,amortised_cost_pct:57.3,long_10y_pct:18.2,total_eur_bn:1200.5};
+ const rows=ui.universeRows('sovereign',sov);const r=rows.find(r=>r.iso3==='ARG');assert.equal(r.rating.notch,5);assert.equal(r.ara.ara,0.34);
+ const cols=['Region','Tier','Rating','Debt/GDP','Fiscal / CA','Reserves','Private debt','Banks hold','ECB stress'];
+ const tbl=ui.universeTable(rows,cols,'none');
+ assert.match(tbl,/<b class="t-neg">CCC\+<\/b> <span class="t-mute">· 4<\/span> <span class="pill neg"[^>]*>1 neg<\/span>/);
+ assert.match(tbl,/<b class="t-neg">0\.34×<\/b> ARA <span class="t-mute">· 3\.0m<\/span>/);
+ assert.match(tbl,/36%<\/span> <span class="t-mute">· hh 4 · nfc 32<\/span>/);
+ assert.match(tbl,/<b>€790bn<\/b> <span class="t-mute">· own 81\.3%<\/span> <span class="pill mute" title="EBA home bias">home 45%<\/span>/);
+ assert.match(tbl,/IMF assesses reserve adequacy for emerging markets only/);
+ assert.doesNotMatch(tbl,/undefined|NaN|\[object Object\]/);
+ const world={w:100,h:50,paths:{ARG:'M0 0h10v10h-10z',CYP:'M20 0h10v10h-10z'},names:{},centroids:{ARG:[5,5],CYP:[25,5]}};
+ const rm=ui.worldMap(world,rows,'rating');assert.match(rm,/CCC\+ consensus \(notch 5, 4 agencies, 1 negative outlook\) · ESMA/);assert.match(rm,/>CCC\+<\/text>/);assert.ok(rm.includes(ui.mapColor('rating',5)));assert.notEqual(ui.mapColor('rating',5),ui.mapColor('rating',21));
+ const pm=ui.worldMap(world,rows,'pdebt');assert.match(pm,/private debt 36% of GDP \(IMF GDD 2024\)/);
+ [rm,pm].forEach(h=>assert.doesNotMatch(h,/undefined|NaN/));
+ assert.equal(ui.titleCase('BOLIVIA, PLURINATIONAL STATE OF'),'Bolivia, Plurinational State of');
+ // panels: fake a minimal DOM
+ const els={};const mk=id=>els[id]||(els[id]={id,innerHTML:'',textContent:''});
+ global.document={getElementById:id=>mk(id)};
+ try{
+  d.bank_sovereign={period:'2025-S2',ea_banks_total_sov_eur_bn:3902.8,read:'Who holds whom.',rows:[['CYP',789.9,20.2,642.3,81.3,9.4]],columns:['iso3','ea','share','home','home_share','yoy'],by_iso3:{CYP:{history:[['2024-12-31',722],['2025-06-30',760],['2025-12-31',789.9]]}},aggregates:{W0:{label:'all counterparties',eur_bn:3902.8}}};
+  d.layers={status:{imf_ara_gdd:'ok',ecb_sup:'ok',esma:'ok',eba:'ok',ofr_form_pf:'ok',us_credit:'ok'},eba:{period:'2026-06-30',n_sovereigns:30,read:''},esma:{as_of:'2026-10-09',n_sovereigns:116,read:'Tape.',recent_actions:[['2026-10-05','KGZ','KYRGYZSTAN',"Moody's",'Upgrade','B2'],['2026-09-25','ARG','ARGENTINA','S&P','Downgrade','CCC']]}};
+  d.hedge_funds={as_of:'2026-06-30',n_series:3,read:'Books.',series:{sov_gne:{label:'Sovereign GNE',mnemonic:'X',last:{date:'2026-06-30',value:2774},chg_yoy_pct:12.2,max:2774,max_date:'2026-06-30',points:[['2025-06-30',2473],['2025-12-31',2600],['2026-06-30',2774]]},cds_up250_p50:{label:'stress',mnemonic:'Y',last:{date:'2026-06-30',value:-3},chg_yoy_pct:null,max:0,max_date:'',points:[]}}};
+  d.us_credit={cmdi:{market:{date:'2026-09-25',value:0.2,pct_rank_since_2005:48.8,max:0.81,tail:[['2026-09-11',0.19],['2026-09-18',0.21],['2026-09-25',0.2]]},ig:{date:'2026-09-25',value:0.25,pct_rank_since_2005:56,max:0.9},read:'Gauge.'},fdic:{quarter:'2026-06-30',read:'Banks.',aggregates:{n_banks:4313,uninsured_share:40.42,htm_loss_bn:216.9,htm_loss_to_equity:8.22,cre_to_tier1:132.1,n_cre_gt300_tier1:1363,n_htm_loss_gt50_equity:9,noncurrent_ratio:0.94},series:{SYS_HTM_LOSS_TO_EQUITY:{tail:[['2026-03-31',8.0],['2026-06-30',8.22]]}},screen:[['AMERICAN BUSINESS BANK','CA',4417,76,19,477,0,0,0,0,95]]}};
+  ui.renderLayers(d);
+  assert.match(els['cdsdesk-nexus'].innerHTML,/<b>€790bn<\/b>/);assert.match(els['cdsdesk-nexus'].innerHTML,/81%/);assert.match(els['cdsdesk-nexus'].innerHTML,/45%/);
+  assert.match(els['cdsdesk-ratings'].innerHTML,/Kyrgyzstan/);assert.match(els['cdsdesk-ratings'].innerHTML,/Downgrade/);assert.doesNotMatch(els['cdsdesk-ratings'].innerHTML,/KYRGYZSTAN/);
+  assert.match(els['cdsdesk-hf'].innerHTML,/\$2\.77tn/);assert.match(els['cdsdesk-hf'].innerHTML,/\+12% y\/y/);assert.match(els['cdsdesk-hf'].innerHTML,/-3\.0%/);
+  assert.match(els['cdsdesk-uscredit'].innerHTML,/MARKET <b>0\.20<\/b>/);assert.match(els['cdsdesk-uscredit'].innerHTML,/\$217bn/);assert.match(els['cdsdesk-uscredit-tag'].textContent,/4,313 banks/);assert.match(els['cdsdesk-uscredit'].innerHTML,/AMERICAN BUSINESS BANK/);
+  Object.values(els).forEach(el=>assert.doesNotMatch(el.innerHTML+el.textContent,/undefined|NaN|\[object Object\]/));
+  // empty packet: every panel degrades to a pending note, never throws
+  Object.values(els).forEach(el=>{el.innerHTML='';});ui.renderLayers(Object.assign({},packet(),{layers:{status:{}}}));
+  assert.match(els['cdsdesk-nexus'].innerHTML,/not in this packet yet/);assert.match(els['cdsdesk-hf'].innerHTML,/not attached yet/);
+ }finally{delete global.document;}
 });
 test('line chart supports a second axis and a two-branch band without NaN coordinates',()=>{
  const svg=ui.lineChart([['2006-01-01',1],['2016-01-01',2],['2026-01-01',3]],{axis2:true,series2:[['2024-09-01',200],['2026-01-01',150]],band:[['2024-09-01',300,40],['2026-01-01',280,42]],markers:[{date:'2008-11-01',value:2.5,label:'GFC'}]});

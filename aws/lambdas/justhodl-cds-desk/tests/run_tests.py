@@ -461,6 +461,56 @@ def test_v150_ecb_ciss_clifs_families_attach_and_reconcile():
         assert banned not in json.dumps(packet["ecb_stress"]).lower()
 
 
+def test_v160_risk_layers_attach_and_stay_descriptive():
+    """v1.6.0: IMF ARA/GDD, ECB SUP bank→sovereign, EBA home bias, ESMA ratings, OFR Form PF and the U.S. credit block
+    attach to sovereign universe entries + rows without touching the doctrine fields."""
+    import cds_risk_layers as RL
+    assert RL.VERSION == C.VERSION == "1.6.0"
+    pk = {"groups": {"sovereign": {"universe": [{"key": "ITA", "iso3": "ITA"}, {"key": "TUR", "iso3": "TUR"}, {"key": "USA", "iso3": "USA"}],
+                                   "rows": [{"key": "ITA"}], "unpriced": [{"key": "TUR"}], "dormant": []}},
+          "decision": {"call": None, "sizing_eligible": False}}
+    imf = {"Reserves_ARA": {"TUR": {"2024": 0.73, "2025": 0.787}}, "Privatedebt_all": {"ITA": {"2023": 151.7, "2024": 147.0}, "USA": {"2024": 216.6}},
+           "HH_ALL": {"ITA": {"2024": 47.5}}, "NFC_ALL": {"ITA": {"2024": 99.5}}}
+    n_ara, n_debt = RL.attach_imf_layers(pk, imf, "2026-10-09")
+    assert (n_ara, n_debt) == (1, 2)
+    assert pk["groups"]["sovereign"]["unpriced"][0]["ara"] == {"ara": 0.79, "year": "2025"}
+    assert pk["groups"]["sovereign"]["rows"][0]["pdebt"]["private_debt_gdp"] == 147.0
+    sup_csv = ("KEY,FREQ,REF_AREA,COUNT_AREA,COUNTERPART_SECTOR,CB_ITEM,SBS_BREAKDOWN,SBS_DI_1,SBS_DI_2,CB_EXP_TYPE,DATA_TYPE,BS_SUFFIX,SBS_SAMPLE_TYPE,TIME_PERIOD,OBS_VALUE\n"
+               "k,H,B01,IT,S13,E0010,_T,ALL,_Z,ALL,LE,E,C,2024-S2,503166.2\nk,H,B01,IT,S13,E0010,_T,ALL,_Z,ALL,LE,E,C,2025-S1,516247.5\n"
+               "k,H,B01,IT,S13,E0010,_T,ALL,_Z,ALL,LE,E,C,2025-S2,540789.4\nk,H,IT,IT,S13,E0010,_T,ALL,_Z,ALL,LE,E,C,2025-S2,373521.9\n"
+               "k,H,B01,W0,S13,E0010,_T,ALL,_Z,ALL,LE,E,C,2025-S2,3902804.8\n")
+    sup = RL.parse_ecb_sup(sup_csv)
+    assert RL.attach_ecb_sup(pk, sup) == 1
+    b = pk["groups"]["sovereign"]["rows"][0]["banks"]
+    assert b["ea_banks_eur_bn"] == 540.8 and b["home_banks_share_pct"] == 69.1 and b["chg_yoy_pct"] == 7.5 and b["period_end"] == "2025-12-31"
+    assert pk["bank_sovereign"]["rows"][0][0] == "ITA" and pk["bank_sovereign"]["by_iso3"]["ITA"]["history"][-1] == ["2025-12-31", 540.8]
+    eba = {"latest_period": "2026-06-30", "tables": {"sovereign_grid": {"columns": ["Banks of", "Home sovereign %", "Other EU/EEA %", "Amortised cost %", "0–3M %", "10Y+ %", "Total €bn"],
+                                                                        "rows": [["IT", 49.57, 36.03, 65.98, 4.0, 19.7, 574.8], ["EU", 42.8, 30.0, 60.0, 5.0, 20.0, 3000.0]]}}}
+    assert RL.attach_eba(pk, eba) == 1 and pk["groups"]["sovereign"]["rows"][0]["eba"]["home_bias_pct"] == 49.57
+    assert pk["layers"]["eba"]["eu_home_bias_pct"] == 42.8
+    esma = {"as_of": "2026-10-08", "consensus": {"ITA": {"consensus_label": "BBB+", "consensus_notch": 14.0, "n_agencies": 4, "negative_outlooks": 0, "positive_outlooks": 2,
+                                                         "last_action_date": "2026-04-17", "ratings": {"S&P": {"rating": "BBB+", "outlook": "Placed under positive outlook", "date": "2026-01-30", "last_action": "x"}}}},
+            "tables": {"actions": {"rows": [["2026-10-08", "MDV", "MALDIVES", "Moody's", "Upgrade", "Caa1", "FC"]]}}}
+    assert RL.attach_esma(pk, esma) == 1 and pk["groups"]["sovereign"]["rows"][0]["rating"]["consensus"] == "BBB+"
+    assert pk["layers"]["esma"]["recent_actions"][0][4] == "Upgrade"
+    pts = [["2026-03-31", 2579e9], ["2026-06-30", 2774e9]]
+    blob = json.dumps({"FPF-ASSETCLASS_SOVEREIGN_GNE_SUM": {"timeseries": {"aggregation": pts}}}).encode()
+    n = RL.attach_ofr_form_pf(pk, lambda mn: blob if mn == "FPF-ASSETCLASS_SOVEREIGN_GNE_SUM" else None)
+    assert n == 1 and pk["hedge_funds"]["series"]["sov_gne"]["last"] == {"date": "2026-06-30", "value": 2774.0}
+    assert pk["hedge_funds"]["status"]["FPF-BORROW_REPO_SUM"] == "not in warm store"
+    cmdi = {"as_of": "2026-09-25", "series": {"MARKET": {"latest": 0.2, "date": "2026-09-25", "pct_rank": 48.8, "chg": 0.01, "max": 0.81, "tail": [["2026-09-25", 0.2]]}}}
+    fdic = {"latest_quarter": "2026-06-30", "aggregates": {"2026-06-30": {"htm_loss_to_equity": 8.22}}, "series": {}, "tables": {"fragility_screen": {"columns": ["Bank"], "rows": [["X"]]}}}
+    assert RL.attach_us_credit(pk, cmdi, fdic) == 2
+    assert pk["us_credit"]["cmdi"]["market"]["value"] == 0.2 and pk["us_credit"]["fdic"]["aggregates"]["htm_loss_to_equity"] == 8.22
+    assert pk["decision"] == {"call": None, "sizing_eligible": False}
+    blob = json.dumps(pk).lower()
+    for w in ("buy", "sell", "target", "forecast", "predict"):
+        assert (" %s " % w) not in blob, w
+    # lambda glue: constants point at the sibling engines and the warm stores
+    assert L.SIBLING_PACKETS["esma"] == "data/esma-ratings.json" and L.ECB_SUP_WARM == "data/warm/ecb-sup/"
+    assert set(L.IMF_LAYER_SOURCES) == set(RL.IMF_ARA) | set(RL.IMF_GDD)
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0

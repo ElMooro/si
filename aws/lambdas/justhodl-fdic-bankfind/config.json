@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-fdic-bankfind",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FDIC BankFind: bank-level balance-sheet fragility for all FDIC-insured institutions (uninsured deposits, HTM losses vs equity, CRE/Tier 1, brokered funding) from api.fdic.gov. Descriptive. Owns data/fdic-bankfind.json + data/warm/fdic-bankfind/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fdic-bankfind-daily",
+    "cron": "cron(10 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily read of the FDIC BankFind API (quarterly Call Report data); runs before the 04:00 CDS desk pass",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

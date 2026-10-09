@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CDS Desk — sovereign and corporate credit default swaps · JustHodl.AI</title>
-<meta name="description" content="5Y credit default swap levels for sovereigns and U.S. / global corporates measured from the public DTCC trade tape, with a world map, clickable regions and sectors, and every name placed against free credit records since 2006.">
+<title>NY Fed Corporate Bond Market Distress Index · justhodl.ai</title>
+<meta name="description" content="The NY Fed Corporate Bond Market Distress Index (CMDI): weekly market, IG and HY indices since 2005 from the Fed's public workbook.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -95,28 +95,22 @@ tr:hover td{background:rgba(255,255,255,.015);}
 </head>
 <body>
 <header>
-  <h1>🛡 CDS DESK <span class="badge">v1.6</span></h1>
+  <h1>📉 NY FED CMDI <span class="badge">v1.0</span></h1>
   <div class="header-meta">
     <span id="ts" class="t-mute">loading...</span>
-    <a href="/intelligence/#cds" class="nav-back">intelligence</a>
+    <a href="/cds.html" class="nav-back">cds desk</a>
+    <a href="/data.html" class="nav-back">data engine</a>
     <a href="/" class="nav-back">← justhodl.ai</a>
   </div>
 </header>
 <main>
   <div class="intro">
-    <h2>Credit default swaps from the public tape</h2>
-    <p>Sovereign, U.S. corporate and global corporate 5Y CDS measured from the real-time trade reports U.S. swap dealers must disseminate (DTCC public price files). Every name in the tape is listed — priced, "either / or" (upfront sign undisclosed) or dormant — plus every known sovereign issuer that has not printed. Click a region, tier or sector chip to filter, any column header to sort, any name or country for its record drawn against free credit records since 2006. Around the tape sit the free risk layers: ESMA consensus ratings and the rating tape, IMF reserve adequacy and private debt, the ECB / EBA bank–sovereign nexus, OFR Form PF hedge-fund books, the NY Fed corporate-credit distress index and FDIC bank-level fragility. Descriptive measurements only; no call, no sizing.</p>
+    <h2>NY Fed Corporate Bond Market Distress Index</h2>
+    <p>The New York Fed's weekly 0–1 index of U.S. corporate bond market functioning for the whole market, investment grade and high yield, built from primary-market (issuance, pricing) and secondary-market (spreads, liquidity, default-adjusted) measures, read from the interactive's own public workbook since 2005. Percentile bands are the Fed's own reference lines. Descriptive only.</p>
   </div>
-  <div id="cdsdesk-root" data-engine="justhodl-cds-desk" data-auto="1"></div>
+  <div id="rs-root" data-risk-source="1" data-engine="justhodl-nyfed-cmdi" data-slug="nyfed-cmdi"></div>
 </main>
-<script src="/jh-cds-desk.js?v=20261009-11"></script>
-<script>
-(function(){
-  var ts=document.getElementById('ts');
-  function tick(){var p=window.JH_CDS&&JH_CDS.state.packet;if(p&&ts)ts.textContent='as of '+(p.as_of||'')+' · generated '+(p.generated_at||'').replace('T',' ').slice(0,16)+'Z · v'+(p.version||'');}
-  setInterval(tick,1500);tick();
-})();
-</script>
+<script src="/jh-risk-source.js?v=20261009-1"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
