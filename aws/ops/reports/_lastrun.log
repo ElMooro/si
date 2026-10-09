@@ -1,2 +1,26 @@
-executing-against: f734e34033ed8b746065b22e573dbd4497b60108
-{"written": 11}
+executing-against: aadf439dd6167205cffcb59b667c26aab1d59cee
+chunk {"start": "2024-09-03", "end": "2024-10-17", "files": 43, "last_file": "2024-10-17", "as_of": "2024-10-17", "n_liquid": {"sovereign": 27, "us_corp": 190, "global_corp": 110}, "budget_exhausted": false, "elapsed_s": 32.4}
+chunk {"start": "2024-10-18", "end": "2024-12-01", "files": 45, "last_file": "2024-12-01", "as_of": "2024-11-29", "n_liquid": {"sovereign": 25, "us_corp": 166, "global_corp": 116}, "budget_exhausted": false, "elapsed_s": 33.7}
+chunk {"start": "2024-12-02", "end": "2025-01-15", "files": 43, "last_file": "2025-01-15", "as_of": "2025-01-15", "n_liquid": {"sovereign": 24, "us_corp": 112, "global_corp": 60}, "budget_exhausted": false, "elapsed_s": 33.4}
+chunk {"start": "2025-01-16", "end": "2025-03-01", "files": 45, "last_file": "2025-03-01", "as_of": "2025-02-28", "n_liquid": {"sovereign": 26, "us_corp": 150, "global_corp": 80}, "budget_exhausted": false, "elapsed_s": 39.5}
+chunk {"start": "2025-03-02", "end": "2025-04-15", "files": 43, "last_file": "2025-04-15", "as_of": "2025-04-15", "n_liquid": {"sovereign": 31, "us_corp": 212, "global_corp": 142}, "budget_exhausted": false, "elapsed_s": 66.7}
+chunk {"start": "2025-04-16", "end": "2025-05-30", "files": 45, "last_file": "2025-05-30", "as_of": "2025-05-30", "n_liquid": {"sovereign": 28, "us_corp": 184, "global_corp": 79}, "budget_exhausted": false, "elapsed_s": 44.1}
+chunk {"start": "2025-05-31", "end": "2025-07-14", "files": 45, "last_file": "2025-07-14", "as_of": "2025-07-14", "n_liquid": {"sovereign": 27, "us_corp": 109, "global_corp": 99}, "budget_exhausted": false, "elapsed_s": 37.1}
+chunk {"start": "2025-07-15", "end": "2025-08-28", "files": 44, "last_file": "2025-08-28", "as_of": "2025-08-28", "n_liquid": {"sovereign": 28, "us_corp": 94, "global_corp": 59}, "budget_exhausted": false, "elapsed_s": 35.8}
+chunk {"start": "2025-08-29", "end": "2025-10-12", "files": 45, "last_file": "2025-10-12", "as_of": "2025-10-10", "n_liquid": {"sovereign": 30, "us_corp": 210, "global_corp": 112}, "budget_exhausted": false, "elapsed_s": 46.8}
+chunk {"start": "2025-10-13", "end": "2025-11-26", "files": 45, "last_file": "2025-11-26", "as_of": "2025-11-26", "n_liquid": {"sovereign": 27, "us_corp": 218, "global_corp": 85}, "budget_exhausted": false, "elapsed_s": 51.8}
+chunk {"start": "2025-11-27", "end": "2026-01-10", "files": 45, "last_file": "2026-01-10", "as_of": "2026-01-09", "n_liquid": {"sovereign": 20, "us_corp": 125, "global_corp": 32}, "budget_exhausted": false, "elapsed_s": 37.1}
+chunk {"start": "2026-01-11", "end": "2026-02-24", "files": 45, "last_file": "2026-02-24", "as_of": "2026-02-24", "n_liquid": {"sovereign": 27, "us_corp": 139, "global_corp": 75}, "budget_exhausted": false, "elapsed_s": 45.9}
+chunk {"start": "2026-02-25", "end": "2026-04-10", "files": 45, "last_file": "2026-04-10", "as_of": "2026-04-10", "n_liquid": {"sovereign": 35, "us_corp": 208, "global_corp": 129}, "budget_exhausted": false, "elapsed_s": 70.4}
+chunk {"start": "2026-04-11", "end": "2026-05-25", "files": 45, "last_file": "2026-05-25", "as_of": "2026-05-25", "n_liquid": {"sovereign": 31, "us_corp": 171, "global_corp": 45}, "budget_exhausted": false, "elapsed_s": 44.2}
+chunk {"start": "2026-05-26", "end": "2026-07-09", "files": 45, "last_file": "2026-07-09", "as_of": "2026-07-09", "n_liquid": {"sovereign": 29, "us_corp": 157, "global_corp": 45}, "budget_exhausted": false, "elapsed_s": 45.5}
+chunk {"start": "2026-07-10", "end": "2026-08-23", "files": 45, "last_file": "2026-08-23", "as_of": "2026-08-21", "n_liquid": {"sovereign": 25, "us_corp": 133, "global_corp": 46}, "budget_exhausted": false, "elapsed_s": 40.7}
+chunk {"start": "2026-08-24", "end": "2026-10-07", "files": 45, "last_file": "2026-10-07", "as_of": "2026-10-07", "n_liquid": {"sovereign": 39, "us_corp": 224, "global_corp": 125}, "budget_exhausted": false, "elapsed_s": 73.3}
+chunk {"start": "2026-10-08", "end": "2026-10-09", "files": 1, "last_file": "2026-10-08", "as_of": "2026-10-08", "n_liquid": {"sovereign": 39, "us_corp": 221, "global_corp": 123}, "budget_exhausted": false, "elapsed_s": 5.5}
+# ops 6510 - justhodl-cds-desk launch + DTCC backfill
+
+- function: {"arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cds-desk", "runtime": "python3.12", "timeout": 600, "memory": 1024, "code_sha": "mdxlzo/fonisw15yVWzB3nNVw1JIfV8VtBKnbV1uNew="}
+- schedule: {"status": "exists", "expression": "cron(0 1,4 ? * TUE-SAT *)", "state": "ENABLED"}
+- chunks: 18
+- packet: {"version": "1.0.0", "as_of": "2026-10-08", "generated_at": "2026-10-09T00:31:50Z", "n_days": 291, "first_day": "2025-09-03", "n_liquid": {"sovereign": 39, "us_corp": 221, "global_corp": 123}, "n_unpriced": {"sovereign": 7, "us_corp": 29, "global_corp": 40}, "indices": [["CDX IG", 59.04, 454], ["CDX HY", 339.55, 461], ["CDX EM", 160.45, 68], ["iTraxx Main", 64.5, 488], ["iTraxx Xover", 315.41, 406], ["iTraxx Sr Fin", 72.18, 52]], "sov_top": [["Argentina", 699.5, "quoted"], ["Ecuador", 488.0, "mixed"], ["Angola", 415.89, "derived"], ["Kenya", 395.57, "derived"], ["Pakistan", 374.77, "derived"]], "decision": {"call": null, "sizing_eligible": false, "basis": "descriptive measurements of public prints only"}, "breadth": {"n": 358, "wider": 204, "tighter": 145, "median_chg_1d_bp": 0.6, "share_above_90d_mean": 0.29, "n_z_over_2": 26, "n_z_under_minus2": 0}, "bank_bytes": 1145754}
+
