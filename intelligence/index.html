@@ -129,7 +129,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
     <button class="tab" data-pane="internals">🫁 Market Internals</button>
     <button class="tab" data-pane="heatmap">🔥 Sector Heatmap</button>
     <!-- CREDIT & RATES -->
-    <button class="tab" data-pane="cds">🩸 CDS Proxy</button>
+    <button class="tab" data-pane="cds">🩸 CDS Desk</button>
     <button class="tab" data-pane="bondtrace">📉 Bond TRACE</button>
     <button class="tab" data-pane="tic">🌍 TIC Flows</button>
     <button class="tab" data-pane="auction">📜 Auction Grades</button>
@@ -275,14 +275,40 @@ tr:hover td{background:rgba(255,255,255,.015);}
     <div class="interp" id="heatmap-interp"></div>
   </div>
 
-  <!-- CDS PROXY -->
+  <!-- CDS DESK (real DTCC prints) + legacy FRED proxies -->
   <div class="tab-pane" id="pane-cds">
-    <div class="kpi-grid" id="cds-kpis"><div class="loading spin">loading cds-proxy</div></div>
+    <div class="kpi-grid" id="cdsdesk-kpis"><div class="loading spin">loading cds-desk</div></div>
     <div class="panel">
-      <h3>Top reasons <span class="tag">credit-stress contributors</span></h3>
-      <div id="cds-reasons"></div>
+      <h3>Index strip <span class="tag">on-the-run 5Y · median of the day's quoted prints</span></h3>
+      <div id="cdsdesk-indices"></div>
     </div>
-    <div class="interp" id="cds-interp"></div>
+    <div class="panel">
+      <h3>Sovereign 5Y CDS <span class="tag" id="cdsdesk-sov-tag">liquid names · USD senior</span></h3>
+      <div id="cdsdesk-sov"></div>
+    </div>
+    <div class="panel">
+      <h3>U.S. corporate 5Y CDS <span class="tag" id="cdsdesk-us-tag">liquid names · USD senior</span></h3>
+      <div id="cdsdesk-sectors"></div>
+      <div id="cdsdesk-us"></div>
+    </div>
+    <div class="panel">
+      <h3>Biggest 1-day moves <span class="tag">bp, last print vs prior priced day · names under 1000bp</span></h3>
+      <div id="cdsdesk-movers"></div>
+    </div>
+    <div class="panel">
+      <h3>Active but unpriced <span class="tag">prints seen, upfront sign unresolved</span></h3>
+      <div id="cdsdesk-unpriced"></div>
+    </div>
+    <div class="interp" id="cdsdesk-interp"></div>
+    <details class="panel" style="margin-top:6px">
+      <summary style="cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px">Legacy FRED credit proxies (HY / IG OAS) — not CDS prints</summary>
+      <div style="margin-top:14px">
+        <div class="kpi-grid" id="cds-kpis"><div class="loading spin">loading cds-proxy</div></div>
+        <h3>Top reasons <span class="tag">credit-stress contributors</span></h3>
+        <div id="cds-reasons"></div>
+        <div class="interp" id="cds-interp"></div>
+      </div>
+    </details>
   </div>
 
   <!-- BOND TRACE -->
@@ -374,6 +400,7 @@ const ENDPOINTS = {
   internals: 'data/market-internals.json',
   heatmap: 'data/sector-heatmap.json',
   cds: 'data/cds-proxy.json',
+  cdsdesk: 'data/cds-desk.json',
   bondtrace: 'data/bond-trace.json',
   tic: 'data/tic-flows.json',
   consensus: 'data/analyst-consensus.json',
@@ -806,6 +833,66 @@ function renderCDS(d) {
   document.getElementById('cds-interp').innerHTML = `<b>Reading:</b> credit ${reg} at ${cr}/100. HY OAS ${fmtNum(d.hy_oas,2)}% vs IG ${fmtNum(d.ig_oas,2)}% (ratio ${fmtNum(d.hy_ig_ratio,2)}). ${cr>=50?'Credit stress is meaningful — watch for further widening.':cr>=30?'Modest credit pressure but not panic.':'Credit markets calm.'}`;
 }
 
+// ─── CDS DESK (DTCC public prints) ─────────────────────────────────
+function renderCDSDesk(d) {
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const fin = v => typeof v === 'number' && Number.isFinite(v);
+  const bp = (v, dp=0) => fin(v) ? v.toFixed(dp) : '—';
+  const chg = v => fin(v) ? `<span class="${v>0?'t-neg':v<0?'t-pos':'t-mute'}">${v>0?'+':''}${v.toFixed(1)}</span>` : '<span class="t-mute">—</span>';
+  const pct = v => { if (!fin(v)) return '—'; const n = Math.round(v), t = n % 10, h = n % 100; return n + ((h >= 11 && h <= 13) ? 'th' : t === 1 ? 'st' : t === 2 ? 'nd' : t === 3 ? 'rd' : 'th'); };
+  const z = v => fin(v) ? `<span class="${v>=2?'t-neg':v<=-2?'t-pos':''}">${v>0?'+':''}${v.toFixed(1)}</span>` : '—';
+  const spark = pts => {
+    if (!Array.isArray(pts) || pts.length < 2) return '';
+    const ys = pts.map(p => p[1]).filter(fin); if (ys.length < 2) return '';
+    const lo = Math.min(...ys), hi = Math.max(...ys), w = 90, h = 22, n = ys.length;
+    const path = ys.map((y, i) => `${i ? 'L' : 'M'}${(i / (n - 1) * w).toFixed(1)},${(hi === lo ? h / 2 : h - 2 - (y - lo) / (hi - lo) * (h - 4)).toFixed(1)}`).join(' ');
+    const up = ys[n - 1] > ys[0];
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${path}" fill="none" stroke="${up ? 'var(--neg)' : 'var(--pos)'}" stroke-width="1.2"/></svg>`;
+  };
+  const basisPill = r => {
+    const b = r.spread_basis, ev = r.sign_evidence;
+    if (b === 'quoted') return '<span class="pill pos">quoted</span>';
+    if (b === 'mixed') return '<span class="pill info">quoted+derived</span>';
+    if (b === 'derived') return ev === 'inferred' ? '<span class="pill warning">derived · curve-inferred sign</span>' : '<span class="pill gold">derived</span>';
+    return '<span class="pill mute">—</span>';
+  };
+  const level = r => fin(r.points_upfront) ? `${bp(r.points_upfront,1)} pts <span class="t-mute">(${bp(r.spread_bp)}bp eq.)</span>` : bp(r.spread_bp,1);
+  const kp = document.getElementById('cdsdesk-kpis');
+  if (!d || !d.groups) {
+    kp.innerHTML = '<div class="kpi warning"><div class="label">CDS desk</div><div class="val">Unavailable</div><div class="sub">data/cds-desk.json not published yet</div></div>';
+    return;
+  }
+  const g = d.groups, sov = g.sovereign || {}, us = g.us_corp || {}, gl = g.global_corp || {}, br = d.breadth || {};
+  const idx = Object.fromEntries((d.indices || []).map(i => [i.key, i]));
+  const ig = idx['CDX.NA.IG'], hy = idx['CDX.NA.HY'];
+  const widerShare = fin(br.n) && br.n ? Math.round(100 * br.wider / br.n) : null;
+  kp.innerHTML = `
+    <div class="kpi ${widerShare == null ? 'info' : widerShare >= 65 ? 'neg' : widerShare <= 35 ? 'pos' : 'gold'}"><div class="label">Breadth (1d)</div><div class="val">${widerShare == null ? '—' : widerShare + '% wider'}</div><div class="sub">${br.wider ?? 0} wider · ${br.tighter ?? 0} tighter · median ${fin(br.median_chg_1d_bp) ? (br.median_chg_1d_bp > 0 ? '+' : '') + br.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
+    <div class="kpi accent"><div class="label">Sovereign median</div><div class="val">${bp(sov.median_bp)}bp</div><div class="sub">${sov.n_liquid ?? 0} liquid names · 1d median ${fin(sov.median_chg_1d_bp) ? (sov.median_chg_1d_bp > 0 ? '+' : '') + sov.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
+    <div class="kpi info"><div class="label">U.S. corp median</div><div class="val">${bp(us.median_bp)}bp</div><div class="sub">${us.n_liquid ?? 0} liquid names · 1d median ${fin(us.median_chg_1d_bp) ? (us.median_chg_1d_bp > 0 ? '+' : '') + us.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
+    <div class="kpi gold"><div class="label">CDX IG / HY</div><div class="val">${ig ? bp(ig.spread_bp,1) : '—'} / ${hy ? bp(hy.spread_bp) : '—'}</div><div class="sub">${ig ? `IG ${ig.n_last} prints` : ''}${hy ? ` · HY px ${bp(hy.price,2)} (${hy.n_last} prints)` : ''}</div></div>
+    <div class="kpi ${fin(br.n_z_over_2) && br.n_z_over_2 >= 10 ? 'warning' : 'info'}"><div class="label">Stretched names</div><div class="val">${br.n_z_over_2 ?? '—'}</div><div class="sub">≥2σ above own 90d mean · ${br.n_z_under_minus2 ?? 0} at ≤−2σ · ${fin(br.share_above_90d_mean) ? Math.round(br.share_above_90d_mean*100) + '% above mean' : ''}</div></div>
+  `;
+  document.getElementById('cdsdesk-indices').innerHTML = `<div style="overflow-x:auto"><table>
+    <thead><tr><th>Index</th><th>5Y spread</th><th>Price</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>z 90d</th><th>Prints</th><th>Expiry</th><th>120d</th></tr></thead>
+    <tbody>${(d.indices || []).map(i => `<tr><td class="t-info">${esc(i.name)}</td><td><b>${bp(i.spread_bp,1)}</b></td><td>${bp(i.price,2)}</td><td>${chg(i.chg_1d_bp)}</td><td>${chg(i.chg_1w_bp)}</td><td>${chg(i.chg_1m_bp)}</td><td>${chg(i.chg_3m_bp)}</td><td>${pct(i.pct_rank_1y)}</td><td>${z(i.z_90d)}</td><td>${i.n_last ?? '—'}</td><td class="t-mute">${esc(i.expiry || '')}</td><td>${spark(i.spark)}</td></tr>`).join('') || '<tr><td colspan="12" class="t-mute">no index prints</td></tr>'}</tbody></table></div>`;
+  const nameTable = (rows, labelKey, labelHead) => `<div style="overflow-x:auto;max-height:560px;overflow-y:auto"><table>
+    <thead><tr><th>Name</th><th>${labelHead}</th><th>5Y</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>z 90d</th><th>Prints 30d</th><th>Last day</th><th>Basis</th><th>120d</th></tr></thead>
+    <tbody>${rows.map(r => `<tr title="${esc(r.read || '')}"><td class="t-info">${esc(r.name)}</td><td class="t-mute">${esc(r[labelKey] || '')}</td><td><b>${level(r)}</b></td><td>${chg(r.chg_1d_bp)}</td><td>${chg(r.chg_1w_bp)}</td><td>${chg(r.chg_1m_bp)}</td><td>${chg(r.chg_3m_bp)}</td><td>${pct(r.pct_rank_1y)}</td><td>${z(r.z_90d)}</td><td>${r.trades_30d ?? '—'}<span class="t-mute">/${r.days_active_30d ?? '—'}d</span></td><td class="t-mute">${esc((r.last_date || '').slice(5))} · ${r.n_last ?? 0}p${r.ambiguous_last ? ` <span title="prints with unresolved sign">(${r.ambiguous_last}?)</span>` : ''}</td><td>${basisPill(r)}</td><td>${spark(r.spark)}</td></tr>`).join('') || '<tr><td colspan="13" class="t-mute">no liquid names yet</td></tr>'}</tbody></table></div>`;
+  document.getElementById('cdsdesk-sov-tag').textContent = `${sov.n_liquid ?? 0} liquid of ${sov.n_tracked ?? 0} tracked · as of ${d.as_of || ''}`;
+  document.getElementById('cdsdesk-sov').innerHTML = (sov.regions && sov.regions.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${sov.regions.map(x => `<span class="pill mute">${esc(x.region)} · ${x.n} · med ${bp(x.median_bp)}bp · 1d ${fin(x.median_chg_1d_bp) ? (x.median_chg_1d_bp > 0 ? '+' : '') + x.median_chg_1d_bp.toFixed(1) : '—'}</span>`).join('')}</div>` : '') + nameTable(sov.rows || [], 'region', 'Region');
+  document.getElementById('cdsdesk-us-tag').textContent = `${us.n_liquid ?? 0} liquid of ${us.n_tracked ?? 0} tracked · global USD names: ${gl.n_liquid ?? 0} (median ${bp(gl.median_bp)}bp)`;
+  document.getElementById('cdsdesk-sectors').innerHTML = us.sectors && us.sectors.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${us.sectors.map(x => `<span class="pill mute" title="widest: ${esc(x.widest)}">${esc(x.sector)} · ${x.n} · med ${bp(x.median_bp)}bp · 1d ${fin(x.median_chg_1d_bp) ? (x.median_chg_1d_bp > 0 ? '+' : '') + x.median_chg_1d_bp.toFixed(1) : '—'}</span>`).join('')}</div>` : '';
+  document.getElementById('cdsdesk-us').innerHTML = nameTable(us.rows || [], 'sector', 'Sector');
+  const movers = [...(sov.movers_1d || []).map(m => ({...m, grp: 'Sov'})), ...(us.movers_1d || []).map(m => ({...m, grp: 'US'})), ...(gl.movers_1d || []).map(m => ({...m, grp: 'Global'}))]
+    .filter(m => fin(m.chg_1d_bp)).sort((a, b) => Math.abs(b.chg_1d_bp) - Math.abs(a.chg_1d_bp)).slice(0, 12);
+  document.getElementById('cdsdesk-movers').innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>1d</th><th>Prints</th></tr></thead><tbody>${movers.map(m => `<tr><td class="t-info">${esc(m.name)}</td><td class="t-mute">${m.grp}</td><td>${bp(m.spread_bp,1)}</td><td>${chg(m.chg_1d_bp)}</td><td>${m.n_last ?? '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="t-mute">no priced moves</td></tr>'}</tbody></table>`;
+  const unp = [...(sov.unpriced || []).map(u => ({...u, grp: 'Sov'})), ...(us.unpriced || []).map(u => ({...u, grp: 'US'})), ...(gl.unpriced || []).map(u => ({...u, grp: 'Global'}))].sort((a, b) => b.trades_30d - a.trades_30d).slice(0, 24);
+  document.getElementById('cdsdesk-unpriced').innerHTML = unp.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${unp.map(u => `<span class="pill mute" title="${esc(u.why || '')}">${esc(u.name)} · ${u.grp} · ${u.trades_30d} prints</span>`).join('')}</div><div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">These names trade, but every print in the window carries an upfront whose payer is not disclosed and no quoted, two-coupon or single-branch evidence fixed the sign. They are listed rather than guessed.</div>` : '<span class="t-mute">every active name is priced</span>';
+  const m = d.method || {}, src = d.source || {};
+  document.getElementById('cdsdesk-interp').innerHTML = `<b>What this is:</b> 5Y CDS levels measured from the real-time public trade reports every U.S. swap dealer must disseminate (${esc(src.law || '')}), via the DTCC files ${esc(src.files || '')}. History in the bank: ${esc(src.first_day || '')} → ${esc(src.last_day || '')} (${src.n_days ?? '—'} days). Spread rule: ${esc(m.spread_rule || '')}. Model: ${esc(m.model || '')}. Liquid = ${esc(m.liquid_rule || '')}. Sign rule: ${esc(m.sign_rule || '')}.<br><b>Limits:</b> ${(m.limitations || []).map(esc).join(' · ')}. <b>No call, no sizing</b> — descriptive measurements only (decision.call = ${d.decision && d.decision.call === null ? 'null' : esc(d.decision && d.decision.call)}).`;
+}
+
 // ─── BOND TRACE ────────────────────────────────────────────────────
 function renderBondTrace(d) {
   const packet = d && typeof d === 'object' && !Array.isArray(d) ? d : {};
@@ -987,7 +1074,7 @@ function renderLiquidity(d) {
 
 // Boot
 (async () => {
-  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp, dc, cp, cl, bk] = await Promise.all([
+  const [k, s, p, r, a, l, esi, vs, mi, hm, cds, bt, tic, ac, ss, sn, lp, dc, cp, cl, bk, cdd] = await Promise.all([
     fetchJson(ENDPOINTS.khalid), fetchJson(ENDPOINTS.stress),
     fetchJson(ENDPOINTS.political), fetchJson(ENDPOINTS.reversal),
     fetchJson(ENDPOINTS.auction), fetchJson(ENDPOINTS.lending),
@@ -999,6 +1086,7 @@ function renderLiquidity(d) {
     fetchJson(ENDPOINTS.liquidity),
     fetchJson(ENDPOINTS.defcon), fetchJson(ENDPOINTS.capitulation),
     fetchJson(ENDPOINTS.chinaLiq), fetchJson(ENDPOINTS.bankStress),
+    fetchJson(ENDPOINTS.cdsdesk),
   ]);
   if (k) renderKhalid(k);
   if (s) renderStress(s);
@@ -1011,6 +1099,7 @@ function renderLiquidity(d) {
   if (mi) renderInternals(mi);
   if (hm) renderHeatmap(hm);
   if (cds) renderCDS(cds);
+  renderCDSDesk(cdd);
   renderBondTrace(bt);
   if (tic) renderTIC(tic);
   if (ac) renderConsensus(ac);
@@ -1018,7 +1107,7 @@ function renderLiquidity(d) {
   if (sn) renderSeasonality(sn);
   if (lp) renderLiquidity(lp);
   if (dc) renderDefcon(dc, cp, cl, bk);
-  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp,dc,cp,cl,bk].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
+  const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp,dc,cp,cl,bk,cdd].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
   if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
 })();
 </script>

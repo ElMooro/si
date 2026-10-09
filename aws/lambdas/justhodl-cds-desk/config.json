@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-cds-desk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 600,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "CDS desk: sovereign + US corporate single-name and index CDS measured from DTCC public price-dissemination prints (SEC/CFTC). Descriptive spreads, breadth and liquidity only; no calls. Owns data/cds-desk.json.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-cds-desk-daily",
+    "cron": "cron(0 1,4 ? * TUE-SAT *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Process the previous trading day's DTCC CDS dissemination files (posted ~00:15 UTC); second pass catches late postings",
+    "input": {"action": "daily"},
+    "retry_policy": {"MaximumRetryAttempts": 2, "MaximumEventAgeInSeconds": 3600}
+  }
+}
