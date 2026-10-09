@@ -368,6 +368,41 @@ def test_v130_comove_sign_test_picks_the_branch_that_moves_with_its_index():
     assert a and a[2] == "comove" and a[1] == "inferred" and abs(a[0] - true) / true < 0.15, a
 
 
+def test_v140_ecb_sovciss_and_imf_fundamentals():
+    from datetime import date, timedelta
+    cds_long_context = LC
+    """ECB csvdata rows become per-country long series keyed by ISO3; IMF DataMapper JSON becomes per-sovereign fundamentals
+    attached to universe entries and rows; both survive a missing source (empty dicts)."""
+    hdr = "KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE,OBS_STATUS\n"
+    rows = []
+    for i in range(0, 900, 3):
+        d = (date(2006, 1, 2) + timedelta(days=i * 8)).isoformat()
+        rows.append("CISS.D.IT.Z0Z.4F.EC.SOV_CIN.IDX,D,IT,Z0Z,4F,EC,SOV_CIN,IDX,%s,%.4f,A" % (d, 0.1 + (0.6 if d.startswith("2011") else 0.0)))
+        rows.append("CISS.D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX,D,U2,Z0Z,4F,EC,SOV_GDPWN,IDX,%s,%.4f,A" % (d, 0.2))
+    ecb = cds_long_context.parse_ecb_csv(hdr + "\n".join(rows) + "\n")
+    assert set(ecb) == {"ITA", "EA"}, ecb.keys()
+    as_of = max(ecb["ITA"])
+    block = cds_long_context.build_long_context({}, {}, {}, {"series": {}}, as_of, ecb=ecb)
+    assert "sovciss_ITA" in block["series"] and "sovciss_EA" in block["series"]
+    it = block["series"]["sovciss_ITA"]
+    assert it["iso3"] == "ITA" and it["points"][0][0] >= "2006-01-01" and it["last"]["date"] == as_of
+    euro = next(p for p in it["peaks"] if p["episode"].startswith("Euro"))
+    assert euro["value"] > 0.6, euro
+    imf_txt = json.dumps({"values": {"GGXWDG_NGDP": {"ITA": {"2024": 135.3, "2025": 136.9, "2026": 138.0}, "JPN": {"2025": 235.0}}}})
+    imf = {"GGXWDG_NGDP": cds_long_context.parse_imf_json(imf_txt, "GGXWDG_NGDP")}
+    f = cds_long_context.fundamentals_for(imf, "ITA", "2026-10-08")
+    assert f["debt_gdp"] == 136.9 and f["debt_gdp_weo"] == 138.0 and f["year"] == "2025", f
+    f2 = cds_long_context.fundamentals_for(imf, "JPN", "2026-10-08")
+    assert f2["debt_gdp"] == 235.0 and f2["debt_gdp_weo"] is None
+    assert cds_long_context.fundamentals_for(imf, "XXX", "2026-10-08") is None
+    packet = {"groups": {"sovereign": {"universe": [{"name": "Italy", "iso3": "ITA", "key": "ITALY"}, {"name": "Chile", "iso3": "CHL", "key": None}],
+                                       "rows": [{"key": "ITALY"}], "unpriced": [], "dormant": []}}}
+    n = cds_long_context.attach_fundamentals(packet, imf, "2026-10-08")
+    assert n == 1 and packet["groups"]["sovereign"]["rows"][0]["fund"]["debt_gdp"] == 136.9
+    assert packet["fundamentals"]["n_sovereigns"] == 1 and "IMF" in packet["fundamentals"]["source"]
+    assert cds_long_context.parse_ecb_csv("") == {} and cds_long_context.parse_imf_json("<html>", "X") == {}
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0

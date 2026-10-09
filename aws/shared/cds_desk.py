@@ -33,7 +33,7 @@ import statistics
 import zipfile
 from datetime import date, datetime, timedelta
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 RECOVERY_SENIOR = 0.40
 SWAP_PROXY_OFFSET_PCT = 0.75          # 5Y Treasury par minus this = flat discount rate for the model
 DEFAULT_RATE_PCT = 4.25               # used only when no par curve is available (recorded in packet)

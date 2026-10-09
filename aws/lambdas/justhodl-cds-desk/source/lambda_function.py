@@ -43,7 +43,12 @@ LONG_SOURCES = {
     "BAMLC0A0CM": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM",
     "ofr_fsi": "https://www.financialresearch.gov/financial-stress-index/data/fsi.csv",
     "ebp": "https://www.federalreserve.gov/econres/notes/feds-notes/ebp_csv.csv",
+    # ECB SovCISS: daily sovereign-stress composite per euro-area state (SOV_CIN) and GDP-weighted euro area (SOV_GDPWN)
+    "ecb_sovciss": "https://data-api.ecb.europa.eu/service/data/CISS/D..Z0Z.4F.EC.SOV_CIN.IDX?format=csvdata&startPeriod=2000-01-01&detail=dataonly",
+    "ecb_sovciss_ea": "https://data-api.ecb.europa.eu/service/data/CISS/D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX?format=csvdata&startPeriod=2000-01-01&detail=dataonly",
 }
+# IMF WEO fundamentals (DataMapper, keyless JSON): one request per indicator, all countries
+IMF_SOURCES = {ind: "https://www.imf.org/external/datamapper/api/v1/%s" % ind for ind in cds_long_context.IMF_INDICATORS}
 PAR_KEY = os.environ.get("PAR_KEY", "data/warm/treasury-par/curve.json.gz")
 DTCC_BASE = "https://kgc0418-tdw-data-0.s3.amazonaws.com"
 FIRST_PUBLIC_DAY = "2024-09-03"
@@ -206,22 +211,25 @@ def latest_available_file_day(today):
 
 
 def _fetch_text(url, timeout=40):
-    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.2 (+https://justhodl.ai)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.4 (+https://justhodl.ai)"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", "replace")
 
 
-def load_long_sources(min_rows=100):
-    """Fetch each long-history CSV; on any failure fall back to the last good copy kept in S3 (cache-first on failure,
-    never on success, so the record stays current). Returns (texts, status)."""
+def load_long_sources(min_rows=100, sources=None, json_mode=False):
+    """Fetch each long-history CSV (or IMF JSON); on any failure fall back to the last good copy kept in S3 (cache-first
+    on failure, never on success, so the record stays current). Returns (texts, status)."""
     texts, status = {}, {}
-    for name, url in LONG_SOURCES.items():
-        key = LONG_SRC_PREFIX + name + ".csv.gz"
+    for name, url in (sources or LONG_SOURCES).items():
+        key = LONG_SRC_PREFIX + name + (".json.gz" if json_mode else ".csv.gz")
         try:
-            txt = _fetch_text(url)
-            if txt.count("\n") < min_rows or txt.lstrip().startswith("<"):
+            txt = _fetch_text(url, timeout=90 if name.startswith("ecb_") else 40)
+            if json_mode:
+                if not txt.lstrip().startswith("{") or '"values"' not in txt:
+                    raise ValueError("non-JSON response (%d bytes)" % len(txt))
+            elif txt.count("\n") < min_rows or txt.lstrip().startswith("<"):
                 raise ValueError("short or non-CSV response (%d bytes)" % len(txt))
-            s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(txt.encode()), ContentType="text/csv", ContentEncoding="gzip")
+            s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(txt.encode()), ContentType="application/json" if json_mode else "text/csv", ContentEncoding="gzip")
             texts[name], status[name] = txt, "live"
         except Exception as exc:  # pragma: no cover - network
             try:
@@ -238,15 +246,33 @@ def build_long_block(bank, as_of):
     fred = {k: cds_long_context.parse_fred_csv(texts[k]) for k in ("BAA10Y", "AAA10Y", "BAMLH0A0HYM2", "BAMLC0A0CM") if k in texts}
     ofr = cds_long_context.parse_ofr_csv(texts["ofr_fsi"]) if "ofr_fsi" in texts else {}
     ebp = cds_long_context.parse_ebp_csv(texts["ebp"]) if "ebp" in texts else {}
-    block = cds_long_context.build_long_context(fred, ofr, ebp, bank, as_of)
+    ecb = {}
+    for k in ("ecb_sovciss", "ecb_sovciss_ea"):
+        if k in texts:
+            ecb.update(cds_long_context.parse_ecb_csv(texts[k]))
+    block = cds_long_context.build_long_context(fred, ofr, ebp, bank, as_of, ecb=ecb)
     block["sources"] = {k: {"url": LONG_SOURCES[k], "status": status.get(k, "unavailable")} for k in LONG_SOURCES}
     return block
+
+
+def load_fundamentals():
+    """IMF WEO indicators -> ({indicator: {iso3: {year: value}}}, status)."""
+    texts, status = load_long_sources(sources=IMF_SOURCES, json_mode=True)
+    imf = {ind: cds_long_context.parse_imf_json(txt, ind) for ind, txt in texts.items()}
+    return imf, status
 
 
 def publish(bank, as_of, run_meta):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cds_desk.prune_bank(bank, as_of)
     packet = cds_desk.build_packet(bank, as_of, now, run_meta)
+    try:
+        imf, imf_status = load_fundamentals()
+        n_fund = cds_long_context.attach_fundamentals(packet, imf, as_of)
+        packet["fundamentals"]["sources"] = imf_status
+    except Exception as exc:  # fundamentals are an enrichment; the desk publishes without them
+        n_fund = 0
+        packet["fundamentals"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
     history_bytes, long_status = None, {}
     try:
         long_block = build_long_block(bank, as_of)
@@ -268,7 +294,7 @@ def publish(bank, as_of, run_meta):
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
     return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
             "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_tracked": {g: v["n_tracked"] for g, v in packet["groups"].items()},
-            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]),
+            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund,
             "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 
 

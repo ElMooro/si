@@ -8,6 +8,11 @@ years in April 2026, so neither can show 2008.  Three free government sources st
   * OFR Financial Stress Index (financialresearch.gov) — daily since 2000, with a Credit category built from
     corporate and CDS spreads, and an Emerging-markets regional category.
   * Gilchrist–Zakrajšek credit spread and excess bond premium (Federal Reserve FEDS notes) — monthly since 1973.
+  * ECB SovCISS (Composite Indicator of Sovereign Stress) — daily since 2000 for eleven euro-area states and the euro
+    area, built from 2Y/10Y yield spreads to swaps, realised yield volatility and bid-ask spreads (ECB Data Portal,
+    dataset CISS, keyless CSV).  The only free, country-specific sovereign-market stress record that reaches 2008.
+  * IMF World Economic Outlook via the DataMapper API (keyless JSON): gross debt, fiscal balance, current account,
+    growth and inflation for every sovereign in the universe, including the ones with no public CDS print.
 
 The live CDX IG level is mapped onto Baa–10Y with a least-squares fit over the overlap window (the days both
 series exist), and the mapped level is placed on the 2006→today distribution.  The fit statistics (n, r², slope)
@@ -28,6 +33,15 @@ CRISIS_WINDOWS = (("GFC 2008-09", "2008-01-01", "2009-12-31"), ("Euro crisis 201
                   ("Hiking cycle 2022-23", "2022-01-01", "2023-12-31"))
 FRED_SERIES = {"BAA10Y": "Moody's Baa − 10Y Treasury", "AAA10Y": "Moody's Aaa − 10Y Treasury",
                "BAMLH0A0HYM2": "ICE BofA US HY OAS", "BAMLC0A0CM": "ICE BofA US Corp (IG) OAS"}
+ECB_ISO2_TO_ISO3 = {"AT": "AUT", "BE": "BEL", "DE": "DEU", "ES": "ESP", "FI": "FIN", "FR": "FRA", "GR": "GRC", "IE": "IRL", "IT": "ITA",
+                    "NL": "NLD", "PT": "PRT", "U2": "EA", "GB": "GBR", "US": "USA", "CN": "CHN"}
+ECB_NAMES = {"AUT": "Austria", "BEL": "Belgium", "DEU": "Germany", "ESP": "Spain", "FIN": "Finland", "FRA": "France", "GRC": "Greece",
+             "IRL": "Ireland", "ITA": "Italy", "NLD": "Netherlands", "PRT": "Portugal", "EA": "euro area", "GBR": "United Kingdom"}
+IMF_INDICATORS = {"GGXWDG_NGDP": ("debt_gdp", "general government gross debt, % of GDP"),
+                  "GGXCNL_NGDP": ("fiscal_bal_gdp", "general government net lending/borrowing, % of GDP"),
+                  "BCA_NGDPD": ("cab_gdp", "current account balance, % of GDP"),
+                  "NGDP_RPCH": ("gdp_growth", "real GDP growth, %"),
+                  "PCPIPCH": ("inflation", "inflation, average consumer prices, %")}
 OFR_COLUMNS = {"OFR FSI": "ofr_fsi", "Credit": "ofr_credit", "Emerging markets": "ofr_em", "Funding": "ofr_funding", "Volatility": "ofr_vol"}
 
 
@@ -80,6 +94,96 @@ def parse_ebp_csv(text):
                 except ValueError:
                     pass
     return out
+
+
+def parse_ecb_csv(text):
+    """ECB Data Portal csvdata (KEY,FREQ,REF_AREA,...,TIME_PERIOD,OBS_VALUE,...) -> {iso3: {date: value}}.
+    Accepts any CISS SOV_* daily key; the reference area decides the bucket (U2 = euro area -> 'EA')."""
+    out = {}
+    rdr = csv.DictReader(io.StringIO(text))
+    for row in rdr:
+        area = (row.get("REF_AREA") or "").strip()
+        d = (row.get("TIME_PERIOD") or "").strip()
+        v = (row.get("OBS_VALUE") or "").strip()
+        if not area or len(d) != 10 or not v:
+            continue
+        try:
+            out.setdefault(ECB_ISO2_TO_ISO3.get(area, area), {})[d] = float(v)
+        except ValueError:
+            continue
+    return out
+
+
+def parse_imf_json(text, indicator):
+    """IMF DataMapper /api/v1/<indicator> -> {iso3: {year(str): value}}."""
+    import json
+    try:
+        d = json.loads(text)
+    except ValueError:
+        return {}
+    vals = ((d.get("values") or {}).get(indicator)) or {}
+    out = {}
+    for iso3, years in vals.items():
+        if not isinstance(years, dict) or len(iso3) != 3:
+            continue
+        clean = {}
+        for y, v in years.items():
+            try:
+                clean[str(y)] = float(v)
+            except (TypeError, ValueError):
+                continue
+        if clean:
+            out[iso3] = clean
+    return out
+
+
+def fundamentals_for(imf, iso3, as_of_iso):
+    """Latest WEO outturn (previous calendar year) and the current-year WEO figure for one sovereign.
+    imf: {indicator: {iso3: {year: value}}}.  Returns None when the IMF has nothing for the code."""
+    if not imf or not iso3:
+        return None
+    yr = int(as_of_iso[:4])
+    out, hit = {"year": str(yr - 1), "weo_year": str(yr)}, False
+    for ind, (alias, _label) in IMF_INDICATORS.items():
+        series = (imf.get(ind) or {}).get(iso3) or {}
+        v_last = series.get(str(yr - 1))
+        v_weo = series.get(str(yr))
+        if v_last is None:
+            # fall back to the latest year the IMF has at or before last year
+            prior = [y for y in series if y.isdigit() and int(y) <= yr - 1]
+            if prior:
+                y = max(prior)
+                v_last, out["year"] = series[y], y
+        if v_last is not None or v_weo is not None:
+            hit = True
+        out[alias] = round(v_last, 1) if v_last is not None else None
+        out[alias + "_weo"] = round(v_weo, 1) if v_weo is not None else None
+    return out if hit else None
+
+
+def attach_fundamentals(packet, imf, as_of_iso):
+    """Add IMF WEO fundamentals to every sovereign universe entry, row, unpriced and dormant record (by iso3).
+    Returns the number of sovereigns that received data; writes packet['fundamentals'] with the source note."""
+    groups = (packet.get("groups") or {})
+    sov = groups.get("sovereign") or {}
+    by_key = {}
+    n = 0
+    for e in sov.get("universe") or []:
+        f = fundamentals_for(imf, e.get("iso3"), as_of_iso)
+        if f:
+            e["fund"] = f
+            n += 1
+            if e.get("key"):
+                by_key[e["key"]] = f
+    for bucket in ("rows", "unpriced", "dormant"):
+        for r in sov.get(bucket) or []:
+            if r.get("key") in by_key:
+                r["fund"] = by_key[r["key"]]
+    packet["fundamentals"] = {"source": "IMF World Economic Outlook via DataMapper API (imf.org/external/datamapper/api/v1), keyless",
+                              "indicators": {alias: label for _ind, (alias, label) in IMF_INDICATORS.items()},
+                              "year": str(int(as_of_iso[:4]) - 1), "weo_year": as_of_iso[:4], "n_sovereigns": n,
+                              "read": "annual fiscal and external balances for the issuer behind each CDS; WEO current-year figures are IMF staff estimates, not outturns"}
+    return n
 
 
 def weekly(series, start_iso=LONG_START, scale=1.0, nd=1):
@@ -136,7 +240,7 @@ def _daily_series(bank_series):
     return {d: r["s"] for d, r in (bank_series or {}).items() if r.get("s") is not None}
 
 
-def build_long_context(fred, ofr, ebp, bank, as_of_iso):
+def build_long_context(fred, ofr, ebp, bank, as_of_iso, ecb=None):
     """fred: {id: {date: pct}}, ofr: {alias: {date: v}}, ebp: {gz_spread/ebp: {date: pct}}, bank: cds bank.
 
     Returns the long block for data/cds-desk-history.json: weekly series since 2006 with crisis peaks and today's
@@ -185,6 +289,17 @@ def build_long_context(fred, ofr, ebp, bank, as_of_iso):
                              "points": weekly(s, nd=2), "last": {"date": last_d, "value": round(s[last_d], 2)},
                              "pct_rank_since_2006": pct_rank([v for d, v in s.items() if d >= LONG_START and d <= as_of_iso], s[last_d]),
                              "peaks": crisis_peaks(s, nd=2)}
+    # 2b. ECB SovCISS — country-specific sovereign stress, daily since 2000 (euro area + eleven member states)
+    for iso3, s in sorted((ecb or {}).items()):
+        if not s or not any(d <= as_of_iso for d in s):
+            continue
+        last_d = max(d for d in s if d <= as_of_iso)
+        label = "ECB SovCISS · %s" % ECB_NAMES.get(iso3, iso3)
+        series_out["sovciss_" + iso3] = {"name": label, "unit": "index (0 calm → 1 extreme sovereign stress)",
+                                         "source": "ECB Data Portal CISS dataset, daily SovCISS since 2000 (2Y/10Y spread to swaps, yield volatility, bid-ask)",
+                                         "iso3": iso3, "points": weekly(s, nd=3), "last": {"date": last_d, "value": round(s[last_d], 3)},
+                                         "pct_rank_since_2006": pct_rank([v for d, v in s.items() if d >= LONG_START and d <= as_of_iso], s[last_d]),
+                                         "peaks": crisis_peaks(s, nd=3)}
     # 3. GZ spread / EBP (monthly)
     for k, label in (("gz_spread", "Gilchrist–Zakrajšek credit spread"), ("ebp", "Excess bond premium")):
         s = (ebp or {}).get(k) or {}
@@ -209,7 +324,7 @@ def build_long_context(fred, ofr, ebp, bank, as_of_iso):
         notes.append("no long-history source was reachable; block empty")
     return {"start": LONG_START, "as_of": as_of_iso, "series": series_out, "basis": basis,
             "limits": ["DTCC public tape begins 2024-09; FRED ICE BofA OAS series carry only three years since April 2026 — neither shows 2008",
-                       "sovereign CDS history before 2024-09 is not available from any free source; OFR's emerging-markets category is the only free long EM stress record",
+                       "sovereign CDS history before 2024-09 is not available from any free source; ECB SovCISS gives a country-specific sovereign-stress record since 2000 for eleven euro-area states, OFR's emerging-markets category is the only free long EM stress record",
                        "the CDX IG → Baa-10Y mapping is a straight-line fit over the overlap window; it places today's level on the long distribution, it does not reconstruct historical CDX"],
             "notes": notes}
 

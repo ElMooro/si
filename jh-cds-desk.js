@@ -17,14 +17,15 @@ const spark=pts=>{if(!Array.isArray(pts)||pts.length<2)return '';const ys=pts.ma
 const sparkChg=pts=>{if(!Array.isArray(pts)||pts.length<2)return null;const ys=pts.map(p=>p[1]).filter(fin);return ys.length<2?null:ys[ys.length-1]-ys[0];};
 const SRC={quoted:'quoted print',multi_coupon:'two-coupon print',multi_coupon_trailing:'two-coupon (90d)',single_branch:'single feasible branch',trailing:'own level ≤7d',trailing_long:'own level ≤180d',comove:'index co-movement',curve_shape:'curve shape',index:'index quote'};
 const GRP={sovereign:'Sov',us_corp:'US',global_corp:'Global'};
-const LONG_ORDER=[['baa10y','Baa − 10Y (Moody\'s)'],['ofr_credit','OFR credit stress'],['ofr_em','OFR emerging markets'],['gz_spread','GZ credit spread'],['ebp','Excess bond premium'],['ofr_fsi','OFR FSI (total)'],['aaa10y','Aaa − 10Y'],['ofr_funding','OFR funding'],['ofr_vol','OFR volatility']];
+const LONG_ORDER=[['baa10y','Baa − 10Y (Moody\'s)'],['ofr_credit','OFR credit stress'],['ofr_em','OFR emerging markets'],['sovciss_EA','ECB sovereign stress (euro area)'],['gz_spread','GZ credit spread'],['ebp','Excess bond premium'],['ofr_fsi','OFR FSI (total)'],['aaa10y','Aaa − 10Y'],['ofr_funding','OFR funding'],['ofr_vol','OFR volatility']];
 const STATUS_LABEL={liquid:'liquid',thin:'thin',unpriced:'either / or',dormant:'dormant',not_in_tape:'not in tape'};
 const STATUS_CLASS={liquid:'pos',thin:'info',unpriced:'warning',dormant:'mute',not_in_tape:'mute'};
 const statusPill=s=>`<span class="pill ${STATUS_CLASS[s]||'mute'}" title="${esc(STATUS_HELP[s]||'')}">${esc(STATUS_LABEL[s]||s||'—')}</span>`;
 const STATUS_HELP={liquid:'priced on >=12 of the last 20 file days',thin:'priced, but on fewer than 12 of the last 20 file days',unpriced:'prints seen in the last 30 days, but every one carries an upfront whose payer DTCC does not disclose; both feasible levels are shown',dormant:'no listable print in the last 30 days; last dated level shown',not_in_tape:'known sovereign CDS issuer with no public print since the tape began (2024-09)'};
 // which free long record (since 2006) a name is compared against in the history modal: same bp unit for Baa-10Y, index units for OFR
-function proxyFor(group,tier,key){
- if(group==='index'){if(/EM/.test(key))return 'ofr_em';if(/HY|XOVER/.test(key))return 'baa10y';if(/ITRAXX/.test(key))return 'ofr_credit';return 'baa10y';}
+function proxyFor(group,tier,key,iso3,long){
+ if(group==='sovereign'&&iso3&&long&&long['sovciss_'+iso3])return 'sovciss_'+iso3;
+ if(group==='index'){if(/ITRAXX/.test(key)&&long&&long.sovciss_EA&&/SOV/.test(key))return 'sovciss_EA';if(/EM/.test(key))return 'ofr_em';if(/HY|XOVER/.test(key))return 'baa10y';if(/ITRAXX/.test(key))return 'ofr_credit';return 'baa10y';}
  if(group==='sovereign')return tier==='DM'?'ofr_credit':'ofr_em';
  if(group==='us_corp')return 'baa10y';
  return 'ofr_credit';
@@ -32,7 +33,8 @@ function proxyFor(group,tier,key){
 // time-axis SVG line chart.  pts=[[iso,value]]; opts {h,bars,color,label,markers:[{date,value,label}],hline:{value,label},series2:[[iso,v]],axis2:bool,color2,label2,band:[[iso,hi,lo]],xmin}
 function lineChart(pts,opts){
  opts=opts||{};
- const W=920,H=opts.h||240,L=54,R=opts.axis2?58:16,T=18,B=30;
+ const inset=opts.inset&&fin(opts.inset.lo)&&fin(opts.inset.hi)?opts.inset:null;
+ const W=920,H=opts.h||240,L=54,R=opts.axis2?58:inset?96:16,T=18,B=30;
  const data=(pts||[]).filter(p=>Array.isArray(p)&&fin(p[1]));
  const s2=(opts.series2||[]).filter(p=>Array.isArray(p)&&fin(p[1]));
  const band=(opts.band||[]).filter(p=>Array.isArray(p)&&fin(p[1])&&fin(p[2]));
@@ -60,6 +62,17 @@ function lineChart(pts,opts){
  (opts.markers||[]).forEach(m=>{if(!fin(m.value)||!m.date)return;const xx=x(Date.parse(m.date)),yy=y(m.value);const anchor=xx>W-150?'end':'start';g+=`<circle cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" r="3" fill="var(--neg)"/><text x="${(xx+(anchor==='end'?-6:6)).toFixed(1)}" y="${(yy-5).toFixed(1)}" text-anchor="${anchor}" font-size="9.5" fill="#ff3d5a">${esc(m.label)} ${fmt(m.value)}</text>`;});
  if(opts.hline&&fin(opts.hline.value)){const yy=y(opts.hline.value);g+=`<line x1="${L}" x2="${W-R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--gold)" stroke-width="1" stroke-dasharray="5 4"/><text x="${W-R}" y="${(yy-4).toFixed(1)}" text-anchor="end" font-size="10" fill="#f5c451">${esc(opts.hline.label)}</text>`;}
  if(data.length>1&&!opts.bars){const last=data[data.length-1];g+=`<circle cx="${x(Date.parse(last[0])).toFixed(1)}" cy="${y(last[1]).toFixed(1)}" r="2.8" fill="${color}"/>`;}
+ // inset: the name's own record drawn as a range glyph in the right margin (its 13 months would otherwise collapse into a vertical scribble on a 20-year axis) plus a shaded span marking the period it covers
+ if(inset){const ic=inset.color||'#f5c451';const xs=inset.from?Math.max(L,x(Date.parse(inset.from))):null,xe=inset.to?Math.min(W-R,x(Date.parse(inset.to))):W-R;
+  if(xs!==null){g+=`<rect x="${xs.toFixed(1)}" y="${T}" width="${Math.max(2,xe-xs).toFixed(1)}" height="${H-T-B}" fill="${ic}" opacity=".10"/><text x="${xe.toFixed(1)}" y="${H-B-5}" font-size="9" fill="${ic}" text-anchor="end">${esc(inset.spanLabel||'own prints')}</text>`;}
+  const top=T+12,bot=H-B-12,gx=W-R+22,lo2=inset.lo,hi2=inset.hi===inset.lo?inset.lo+1:inset.hi,gy=v=>bot-(v-lo2)/(hi2-lo2)*(bot-top);
+  g+=`<line x1="${gx}" x2="${gx}" y1="${top}" y2="${bot}" stroke="${ic}" stroke-width="2" stroke-linecap="round"/><line x1="${gx-5}" x2="${gx+5}" y1="${top}" y2="${top}" stroke="${ic}" stroke-width="1.5"/><line x1="${gx-5}" x2="${gx+5}" y1="${bot}" y2="${bot}" stroke="${ic}" stroke-width="1.5"/>`;
+  const ly=fin(inset.last)?gy(inset.last):null,near=v=>ly!==null&&Math.abs(gy(v)-ly)<13;
+  if(!near(inset.hi))g+=`<text x="${gx+9}" y="${top+3}" font-size="9.5" fill="${ic}">high ${fmt(inset.hi)}</text>`;
+  if(!near(inset.lo))g+=`<text x="${gx+9}" y="${bot+3}" font-size="9.5" fill="${ic}">low ${fmt(inset.lo)}</text>`;
+  if(ly!==null){g+=`<circle cx="${gx}" cy="${ly.toFixed(1)}" r="4" fill="${ic}" stroke="#0b0d12" stroke-width="1.5"/><text x="${gx+9}" y="${(ly+3.5).toFixed(1)}" font-size="10" font-weight="700" fill="${ic}">${fmt(inset.last)}${near(inset.hi)?' = high':near(inset.lo)?' = low':''}</text>`;}
+  if(fin(inset.median)){const my=gy(inset.median);g+=`<line x1="${gx-4}" x2="${gx+4}" y1="${my.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#0b0d12" stroke-width="1.2"/>`;}
+  g+=`<text x="${gx-6}" y="${T-6}" font-size="9" fill="${ic}" text-anchor="start">${esc(inset.label||'own range, bp')}</text>`;}
  return g+'</svg>';
 }
 // ---- table tools: every <th> sorts asc/desc, every single-table panel gets a CSV button (idempotent) ----
@@ -115,18 +128,20 @@ function shell(){
 <div id="cdsdesk-modal" style="display:none;position:fixed;inset:0;background:rgba(5,8,12,.78);z-index:50;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true"><div class="panel" style="max-width:1000px;width:100%;margin:0;max-height:92vh;overflow:auto"><h3><span id="cdsdesk-modal-title">history</span><span class="tag"><button type="button" id="cdsdesk-modal-close" class="csv-btn">close ✕</button></span></h3><div id="cdsdesk-modal-body"></div></div></div>`;
 }
 // ---- universe tables ----
-const nameCell=(r,label)=>`<td class="t-info cds-clickable" data-key="${esc(r.key)}" data-name="${esc(label||r.name)}" data-group="${esc(r.group||'')}" data-tier="${esc(r.tier||'')}" title="click: history since 2006">${esc(label||r.name)}</td>`;
+const nameCell=(r,label)=>`<td class="t-info cds-clickable" data-key="${esc(r.key)}" data-name="${esc(label||r.name)}" data-group="${esc(r.group||'')}" data-tier="${esc(r.tier||'')}" data-iso3="${esc(r.iso3||'')}" title="click: history since 2006">${esc(label||r.name)}</td>`;
 const level=r=>fin(r.points_upfront)?`${bp(r.points_upfront,1)} pts <span class="t-mute">(${bp(r.spread_bp)}bp eq.)</span>`:bp(r.spread_bp,1);
 const cands=u=>(u.candidates||[]).length?u.candidates.map(c=>`<span title="${c.days} day(s) with two feasible branches at the ${c.coupon_bp}bp coupon">${bp(c.below_coupon_bp)} <span class="t-mute">or</span> ${bp(c.above_coupon_bp)} <span class="t-mute">@${c.coupon_bp}c</span></span>`).join('<br>'):'<span class="t-mute">no derivable level</span>';
 const evidence=r=>{if(r.status==='unpriced')return '<span class="t-mute">sign undisclosed</span>';if(r.status==='dormant'||r.status==='not_in_tape')return '<span class="t-mute">—</span>';const s=SRC[r.anchor_source]||r.anchor_source||'—';const ev=r.sign_evidence;return `<span class="pill ${ev==='firm'?'pos':ev==='inferred'?'warning':'mute'}" title="spread basis: ${esc(r.spread_basis||'')}">${esc(s)}${ev==='inferred'?' · inferred':''}</span>`;};
 // merge priced rows, unpriced and dormant records (and, for sovereigns, the known-universe list) into one row set with a shared shape
+const fundTitle=f=>f?`IMF WEO ${f.year}: debt ${f.debt_gdp??'—'}% of GDP · fiscal balance ${f.fiscal_bal_gdp??'—'}% · current account ${f.cab_gdp??'—'}% · growth ${f.gdp_growth??'—'}% · inflation ${f.inflation??'—'}%${fin(f.debt_gdp_weo)?` · WEO ${f.weo_year} debt ${f.debt_gdp_weo}%`:''}`:'';
+const fundPills=f=>f?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill mute" title="IMF World Economic Outlook, DataMapper API">IMF WEO ${esc(f.year)}</span>${fin(f.debt_gdp)?`<span class="pill ${f.debt_gdp>=100?'warning':'info'}">debt ${f.debt_gdp}% of GDP${fin(f.debt_gdp_weo)?` → ${f.debt_gdp_weo}% (${esc(f.weo_year)}e)`:''}</span>`:''}${fin(f.fiscal_bal_gdp)?`<span class="pill ${f.fiscal_bal_gdp<=-5?'warning':'mute'}">fiscal ${sgn(f.fiscal_bal_gdp,1)}% GDP</span>`:''}${fin(f.cab_gdp)?`<span class="pill ${f.cab_gdp<=-5?'warning':'mute'}">current account ${sgn(f.cab_gdp,1)}% GDP</span>`:''}${fin(f.gdp_growth)?`<span class="pill mute">growth ${sgn(f.gdp_growth,1)}%</span>`:''}${fin(f.inflation)?`<span class="pill ${f.inflation>=10?'warning':'mute'}">inflation ${f.inflation}%</span>`:''}</div>`:'';
 function universeRows(group,g){
  const byKey=new Map();
  (g.rows||[]).forEach(r=>byKey.set(r.key,{...r,group}));
  (g.unpriced||[]).forEach(u=>{if(!byKey.has(u.key))byKey.set(u.key,{...u,group,status:'unpriced'});});
  (g.dormant||[]).forEach(u=>{if(!byKey.has(u.key))byKey.set(u.key,{...u,group,status:'dormant'});});
  if(group==='sovereign'){
-  (g.universe||[]).forEach(e=>{const r=byKey.get(e.key);if(r){r.name=e.name||r.name;r.iso3=e.iso3;r.region=e.region||r.region;r.tier=e.tier||r.tier;}else{const k=e.key||('NA:'+e.iso3);byKey.set(k,{...e,key:k,group,status:e.status||'not_in_tape'});}});
+  (g.universe||[]).forEach(e=>{const r=byKey.get(e.key);if(r){r.name=e.name||r.name;r.iso3=e.iso3;r.region=e.region||r.region;r.tier=e.tier||r.tier;if(e.fund)r.fund=e.fund;}else{const k=e.key||('NA:'+e.iso3);byKey.set(k,{...e,key:k,group,status:e.status||'not_in_tape'});}});
  }
  return [...byKey.values()];
 }
@@ -134,13 +149,13 @@ function chipRow(label,field,items,current,fmtItem){
  return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center"><span class="t-mute" style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:52px">${esc(label)}</span><button type="button" class="seg-btn cds-chip${current==='all'?' active':''}" data-filter="${field}" data-value="all">all</button>${items.map(it=>`<button type="button" class="seg-btn cds-chip${current===it.value?' active':''}" data-filter="${field}" data-value="${esc(it.value)}" title="${esc(it.title||'')}">${fmtItem(it)}</button>`).join('')}</div>`;
 }
 function universeTable(rows,cols,emptyMsg){
- const head=`<tr><th>Name</th>${cols.map(c=>`<th>${c}</th>`).join('')}<th>Status</th><th title="priced level, or the two levels an unsigned upfront could mean">5Y (bp)</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th title="5Y minus 1Y, same-day sign-fixed prints">5Y−1Y</th><th>Prints 30d</th><th>Last print</th><th title="how the upfront sign was fixed">Sign evidence</th><th>120d</th></tr>`;
+ const head=`<tr><th>Name</th>${cols.map(c=>`<th${c==='Debt/GDP'?' title="general government gross debt, % of GDP — IMF World Economic Outlook, latest outturn year"':''}>${c}</th>`).join('')}<th>Status</th><th title="priced level, or the two levels an unsigned upfront could mean">5Y (bp)</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th title="5Y minus 1Y, same-day sign-fixed prints">5Y−1Y</th><th>Prints 30d</th><th>Last print</th><th title="how the upfront sign was fixed">Sign evidence</th><th>120d</th></tr>`;
  const body=rows.map(r=>{
   const priced=r.status==='liquid'||r.status==='thin';
   const lvl=priced?`<b>${level(r)}</b>`:r.status==='unpriced'?`${cands(r)}${fin(r.last_spread_bp)?`<div class="t-mute" style="font-size:10px">last fixed ${bp(r.last_spread_bp,1)} · ${esc(r.last_priced_date||'')}</div>`:''}`:r.status==='dormant'?`<span class="t-mute">last ${bp(r.last_spread_bp,1)} · ${esc(r.last_priced_date||'')}</span>`:'<span class="t-mute">no public print since 2024-09</span>';
   const lvlSort=priced?r.spread_bp:(r.candidates&&r.candidates.length?r.candidates[0].above_coupon_bp:r.last_spread_bp);
   const lastCell=r.status==='not_in_tape'?'<td class="t-mute" data-sort="">—</td>':`<td class="t-mute" data-sort="${esc(r.last_date||'')}">${esc((r.last_date||'').slice(5))}${priced?` · ${r.n_last??0}p${r.ambiguous_last?` <span title="prints with unresolved sign">(${r.ambiguous_last}?)</span>`:''}`:''}</td>`;
-  return `<tr data-status="${esc(r.status)}" title="${esc(r.read||r.why||'')}">${nameCell(r)}${cols.map(c=>`<td class="t-mute">${esc(r[c==='Region'?'region':c==='Tier'?'tier':'sector']||'')}</td>`).join('')}<td data-sort="${esc(r.status)}">${statusPill(r.status)}</td><td${sd(lvlSort)}>${lvl}</td><td${sd(r.chg_1d_bp)}>${chg(r.chg_1d_bp)}</td><td${sd(r.chg_1w_bp)}>${chg(r.chg_1w_bp)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td><td${sd(r.chg_3m_bp)}>${chg(r.chg_3m_bp)}</td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r.hi_1y_bp)} class="t-mute">${fin(r.hi_1y_bp)?`${bp(r.lo_1y_bp)}–${bp(r.hi_1y_bp)}`:'—'}</td><td${sd(r.z_90d)}>${z(r.z_90d)}</td><td${sd(r.slope_1y5y_bp)}>${fin(r.slope_1y5y_bp)?`<span class="${r.slope_1y5y_bp<0?'t-neg':''}">${sgn(r.slope_1y5y_bp,0)}</span>`:'<span class="t-mute">—</span>'}</td><td${sd(r.trades_30d)}>${r.trades_30d??'—'}</td>${lastCell}<td data-sort="${esc(r.anchor_source||r.status)}">${evidence(r)}</td><td${sd(sparkChg(r.spark))}>${spark(r.spark)}</td></tr>`;
+  return `<tr data-status="${esc(r.status)}" title="${esc(r.read||r.why||'')}">${nameCell(r)}${cols.map(c=>c==='Debt/GDP'?`<td${sd(r.fund&&r.fund.debt_gdp)} title="${esc(fundTitle(r.fund))}">${r.fund&&fin(r.fund.debt_gdp)?`${r.fund.debt_gdp}%`:'<span class="t-mute">—</span>'}</td>`:`<td class="t-mute">${esc(r[c==='Region'?'region':c==='Tier'?'tier':'sector']||'')}</td>`).join('')}<td data-sort="${esc(r.status)}">${statusPill(r.status)}</td><td${sd(lvlSort)}>${lvl}</td><td${sd(r.chg_1d_bp)}>${chg(r.chg_1d_bp)}</td><td${sd(r.chg_1w_bp)}>${chg(r.chg_1w_bp)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td><td${sd(r.chg_3m_bp)}>${chg(r.chg_3m_bp)}</td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r.hi_1y_bp)} class="t-mute">${fin(r.hi_1y_bp)?`${bp(r.lo_1y_bp)}–${bp(r.hi_1y_bp)}`:'—'}</td><td${sd(r.z_90d)}>${z(r.z_90d)}</td><td${sd(r.slope_1y5y_bp)}>${fin(r.slope_1y5y_bp)?`<span class="${r.slope_1y5y_bp<0?'t-neg':''}">${sgn(r.slope_1y5y_bp,0)}</span>`:'<span class="t-mute">—</span>'}</td><td${sd(r.trades_30d)}>${r.trades_30d??'—'}</td>${lastCell}<td data-sort="${esc(r.anchor_source||r.status)}">${evidence(r)}</td><td${sd(sparkChg(r.spark))}>${spark(r.spark)}</td></tr>`;
  }).join('');
  return `<div style="overflow-x:auto;max-height:640px;overflow-y:auto"><table style="white-space:nowrap"><thead>${head}</thead><tbody>${body||`<tr><td colspan="${cols.length+16}" class="t-mute">${esc(emptyMsg||'nothing matches this filter')}</td></tr>`}</tbody></table></div>`;
 }
@@ -162,7 +177,8 @@ function worldMap(world,rows){
    else if(r.status==='unpriced'){fill='url(#cds-hatch)';title=`${esc(r.name)}: either/or — ${(r.candidates||[]).map(c=>`${bp(c.below_coupon_bp)} or ${bp(c.above_coupon_bp)} @${c.coupon_bp}c`).join('; ')||'no derivable level'}${fin(r.last_spread_bp)?` · last fixed ${bp(r.last_spread_bp,1)} on ${esc(r.last_priced_date)}`:''}`;}
    else if(r.status==='dormant'){fill='#3a4356';title=`${esc(r.name)}: dormant · last ${bp(r.last_spread_bp,1)}bp on ${esc(r.last_priced_date||'')}`;}
    else{fill='#232b3a';title=`${esc(r.name)}: known issuer, no public print since 2024-09`;}
-   cls=` class="cds-clickable cds-map-country" data-key="${esc(r.key)}" data-name="${esc(r.name)}" data-group="sovereign" data-tier="${esc(r.tier||'')}"`;}
+   if(r.fund&&fin(r.fund.debt_gdp))title+=` · debt/GDP ${r.fund.debt_gdp}% (IMF ${r.fund.year})`;
+   cls=` class="cds-clickable cds-map-country" data-key="${esc(r.key)}" data-name="${esc(r.name)}" data-group="sovereign" data-tier="${esc(r.tier||'')}" data-iso3="${esc(r.iso3||iso)}"`;}
   g+=`<path d="${d}" fill="${fill}" stroke="#0a0e14" stroke-width=".6"${cls}><title>${title}</title></path>`;
  }
  // labels for priced sovereigns
@@ -185,9 +201,10 @@ function renderSovereign(){
  const regions=countBy(all,'region'),tiers=countBy(all,'tier').sort((a,b)=>({DM:0,EM:1,Frontier:2}[a.value]??9)-({DM:0,EM:1,Frontier:2}[b.value]??9));
  const rows=applyFilters(all,f.sovRegion,f.sovTier,f.sovStatus,null);
  const cov=sov.coverage||{},nP=all.filter(r=>r.status==='liquid'||r.status==='thin').length,nU=all.filter(r=>r.status==='unpriced').length,nD=all.filter(r=>r.status==='dormant').length;
- byId('cdsdesk-sov-tag').textContent=`${cov.known??all.length} known sovereign issuers · ${cov.in_tape??(nP+nU+nD)} in the public tape · ${nP} priced · ${nU} either/or · ${nD} dormant · showing ${rows.length} · as of ${d.as_of||''}`;
+ const fu=d.fundamentals||{};
+ byId('cdsdesk-sov-tag').textContent=`${cov.known??all.length} known sovereign issuers · ${cov.in_tape??(nP+nU+nD)} in the public tape · ${nP} priced · ${nU} either/or · ${nD} dormant${fu.n_sovereigns?` · IMF WEO ${fu.year} fundamentals for ${fu.n_sovereigns}`:''} · showing ${rows.length} · as of ${d.as_of||''}`;
  byId('cdsdesk-sov-chips').innerHTML=chipRow('Region','sovRegion',regions,f.sovRegion,chipText)+chipRow('Tier','sovTier',tiers,f.sovTier,chipText)+chipRow('Status','sovStatus',STATUS_ITEMS(all),f.sovStatus,c=>`${esc(STATUS_LABEL[c.value]||c.value)} <span class="t-mute">· ${c.n}</span>`);
- byId('cdsdesk-sov').innerHTML=universeTable(rows,['Region','Tier'],'no sovereign matches this filter');
+ byId('cdsdesk-sov').innerHTML=universeTable(rows,['Region','Tier','Debt/GDP'],'no sovereign matches this filter');
  enhanceTables(byId('cdsdesk-sov').parentElement);
  const mapRows=applyFilters(all,f.sovRegion,f.sovTier,'all',null);
  byId('cdsdesk-map-tag').textContent=`5Y · ${all.filter(r=>r.status==='liquid'||r.status==='thin').length} priced · ${all.filter(r=>r.status==='unpriced').length} either/or · ${all.filter(r=>r.status==='not_in_tape').length} known issuers with no public print · click a country for history`;
@@ -224,9 +241,10 @@ function renderLong(h){
  enhanceTables(pk);
 }
 // history modal: the name's own DTCC record (2024-09 →) drawn over the group's free long record back to 2006
-function modalHtml(key,name,group,tier,h,packet){
+function modalHtml(key,name,group,tier,h,packet,iso3){
  const s=h&&h.names&&h.names[key];const long=h&&h.long&&h.long.series||{};
- const pk=proxyFor(group,tier,key),px=long[pk];
+ const pk=proxyFor(group,tier,key,iso3,long),px=long[pk],ownRecord=/^sovciss_/.test(pk)&&pk!=='sovciss_EA';
+ const found=packet&&findName(key),fund=found&&found.fund||null;
  const pts=s&&s.points||[];
  const coupons=s&&s.branches?Object.keys(s.branches).sort((a,b)=>(s.branches[b].length-s.branches[a].length)):[];
  const band=coupons.length?s.branches[coupons[0]].map(p=>[p[0],p[1],p[2]]):[];
@@ -234,11 +252,15 @@ function modalHtml(key,name,group,tier,h,packet){
  if(px){
   const markers=(px.peaks||[]).map(p=>({date:p.date,value:p.value,label:p.episode.replace(/ \d{4}.*$/,'')}));
   const own=pts.length>1?pts:[];
-  html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">2006 → today: <b style="color:#bdb6a6">${esc(px.name)}</b> (${esc(px.unit||'')}, left axis, ${esc(px.source||'')}) with <b style="color:#f5c451">${esc(name)}</b> 5Y CDS (bp, right axis) from the first public print${own.length?` ${esc(own[0][0])}`:''}${band.length?` · orange band = the two feasible levels of the unsigned upfront @${coupons[0]}c`:''}</div>`;
-  html+=lineChart(px.points,{h:280,color:'#bdb6a6',label:px.name,markers,series2:own,axis2:true,color2:'#f5c451',label2:'bp',band:own.length?[]:band,xmin:'2006-01-01'});
+  let inset=null;
+  if(own.length){const ys=own.map(p=>p[1]).sort((a,b)=>a-b);inset={lo:ys[0],hi:ys[ys.length-1],last:own[own.length-1][1],median:ys[Math.floor(ys.length/2)],from:own[0][0],to:own[own.length-1][0],spanLabel:`${esc(name)} prints ${own[0][0].slice(0,7)} →`,label:'5Y CDS, bp'};}
+  else if(band.length>1){const lows=band.map(p=>p[2]),highs=band.map(p=>p[1]);inset={lo:Math.min(...lows),hi:Math.max(...highs),last:null,from:band[0][0],to:band[band.length-1][0],spanLabel:`${esc(name)} either/or ${band[0][0].slice(0,7)} →`,label:'feasible levels, bp',color:'#f0923a'};}
+  html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">2006 → today: <b style="color:#bdb6a6">${esc(px.name)}</b> (${esc(px.unit||'')}, ${esc(px.source||'')})${ownRecord?' — <b>this country\'s own</b> sovereign-market stress record':''}${inset?`. Right margin: <b style="color:${inset.color||'#f5c451'}">${esc(name)}</b> ${own.length?'5Y CDS range since its first public print':'feasible level range (sign undisclosed)'} — ${inset.from} → ${inset.to}, shaded on the long axis`:''}</div>`;
+  html+=lineChart(px.points,{h:280,color:'#bdb6a6',label:px.name,markers,inset,xmin:'2006-01-01'});
   const gfc=(px.peaks||[]).find(p=>p.episode.startsWith('GFC'));
-  html+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill info">${esc(px.name)} ${px.last.value} ${esc(px.unit||'')} · ${pct(px.pct_rank_since_2006)} pct since 2006</span>${gfc?`<span class="pill neg">2008 peak ${gfc.value} on ${gfc.date}</span>`:''}${(px.peaks||[]).filter(p=>!p.episode.startsWith('GFC')).map(p=>`<span class="pill mute">${esc(p.episode)}: ${p.value}</span>`).join('')}</div>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill info">${esc(px.name)} ${px.last.value} ${esc(px.unit||'')} · ${pct(px.pct_rank_since_2006)} pct since 2006</span>${pts.length>1?`<span class="pill" style="border-color:#f5c451;color:#f5c451">${esc(name)} ${pts[pts.length-1][1]}bp · ${pct(100*pts.filter(p=>p[1]<=pts[pts.length-1][1]).length/pts.length)} pct of its own ${pts.length} priced days</span>`:''}${gfc?`<span class="pill neg">2008 peak ${gfc.value} on ${gfc.date}</span>`:''}${(px.peaks||[]).filter(p=>!p.episode.startsWith('GFC')).map(p=>`<span class="pill mute">${esc(p.episode)}: ${p.value}</span>`).join('')}</div>`;
  }
+ if(fund)html+=fundPills(fund);
  if(pts.length>1){
   const ys=pts.map(p=>p[1]),lo=Math.min(...ys),hi=Math.max(...ys),last=pts[pts.length-1],loD=pts[ys.indexOf(lo)][0],hiD=pts[ys.indexOf(hi)][0];
   html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin:14px 0 4px">Own record, every priced day in the DTCC bank</div>`+lineChart(pts,{h:240,color:'#f5c451',label:name,markers:[{date:hiD,value:hi,label:'high'}],band})+
@@ -247,14 +269,14 @@ function modalHtml(key,name,group,tier,h,packet){
   html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin:14px 0 4px">No print ever fixed the sign: both feasible levels per day @${coupons[0]}c (orange band)</div>`+lineChart([],{h:220,label:name,band,axis2:true,color2:'var(--orange)',label2:'bp'})+`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><span class="pill warning">either / or · ${band.length} days with two branches</span><span class="pill mute">${s?s.n:0} prints in bank</span></div>`;
  }else if(!px){html+='<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">no stored history for this name yet (file not published, or no public print since 2024-09)</div>';}
  else if(!s){html+='<div class="t-mute" style="font-family:var(--font-mono);font-size:11px;margin-top:10px">This issuer has no public DTCC print since the tape began (2024-09), so only the group record is drawn.</div>';}
- html+=`<div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:10px">No free source carries this name's own CDS before 2024-09: the DTCC public tape starts there and every long single-name CDS history is licensed (Markit/ICE, Bloomberg). The 2006 → panel therefore draws the free ${px?esc(px.name):'group'} record the name is compared against (same bp unit for Baa−10Y; OFR series are stress indexes), with the name's real prints overlaid on their own axis — it places today against 2008 / 2011 / 2020 for the name's group, not for the name itself.${h&&h.as_of?' History as of '+esc(h.as_of)+'.':''}</div>`;
+ html+=`<div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:10px">No free source carries this name's own CDS before 2024-09: the DTCC public tape starts there and every long single-name CDS history is licensed (Markit/ICE, Bloomberg). ${ownRecord?`The 2006 → panel therefore draws the ECB's daily sovereign-stress composite for this country itself (yield spread to swaps, yield volatility and bid-ask spread of its 2Y/10Y bonds) — a country-specific record that reaches 2008 and 2011 — with the name's CDS range from the public tape in the right margin.`:`The 2006 → panel therefore draws the free ${px?esc(px.name):'group'} record the name is compared against (same bp unit for Baa−10Y; OFR and ECB series are stress indexes), with the name's real CDS range from the public tape in the right margin — it places today against 2008 / 2011 / 2020 for the name's group, not for the name itself.`}${h&&h.as_of?' History as of '+esc(h.as_of)+'.':''}</div>`;
  return html;
 }
-function openHistory(key,name,group,tier){
+function openHistory(key,name,group,tier,iso3){
  const modal=byId('cdsdesk-modal'),body=byId('cdsdesk-modal-body'),title=byId('cdsdesk-modal-title');
  if(!modal)return;
  title.textContent=`${name} · 5Y CDS vs 2006 →`;body.innerHTML='<div class="loading spin">loading history</div>';modal.style.display='flex';
- loadHistory().then(h=>{body.innerHTML=modalHtml(key,name,group,tier,h,CDS.packet);}).catch(e=>{body.innerHTML=`<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">history file unavailable (${esc(e.message)})</div>`;});
+ loadHistory().then(h=>{body.innerHTML=modalHtml(key,name,group,tier,h,CDS.packet,iso3);}).catch(e=>{body.innerHTML=`<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">history file unavailable (${esc(e.message)})</div>`;});
 }
 function render(d){
  const kp=byId('cdsdesk-kpis');if(!kp)return;
@@ -317,7 +339,7 @@ function wire(){
   const chip=e.target.closest('.cds-chip[data-filter]');
   if(chip){const f=chip.dataset.filter;CDS.f[f]=chip.dataset.value;if(f.startsWith('sov'))renderSovereign();else if(f.startsWith('us'))renderCorp('us_corp','us','usSector','usStatus');else renderCorp('global_corp','gl','glSector','glStatus');return;}
   const n=e.target.closest('.cds-clickable[data-key]');
-  if(n){openHistory(n.dataset.key,n.dataset.name||n.textContent,n.dataset.group||'',n.dataset.tier||'');if(byId('cdsdesk-root')&&byId('cdsdesk-root').dataset.auto==='1'&&typeof history!=='undefined')history.replaceState(null,'','#name='+encodeURIComponent(n.dataset.key));return;}
+  if(n){openHistory(n.dataset.key,n.dataset.name||n.textContent,n.dataset.group||'',n.dataset.tier||'',n.dataset.iso3||'');if(byId('cdsdesk-root')&&byId('cdsdesk-root').dataset.auto==='1'&&typeof history!=='undefined')history.replaceState(null,'','#name='+encodeURIComponent(n.dataset.key));return;}
   if(e.target.id==='cdsdesk-modal-close'||e.target.id==='cdsdesk-modal'){const m=byId('cdsdesk-modal');if(m)m.style.display='none';}
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=byId('cdsdesk-modal');if(m)m.style.display='none';}});
@@ -325,12 +347,12 @@ function wire(){
 function findName(key){
  const d=CDS.packet;if(!d)return null;
  if(key.startsWith('IDX:')){const i=(d.indices||[]).find(i=>'IDX:'+i.key===key);return i?{key,name:i.name,group:'index',tier:''}:null;}
- for(const [g,v] of Object.entries(d.groups||{})){const r=universeRows(g,v).find(r=>r.key===key);if(r)return {key,name:r.name,group:g,tier:r.tier||''};}
+ for(const [g,v] of Object.entries(d.groups||{})){const r=universeRows(g,v).find(r=>r.key===key);if(r)return {key,name:r.name,group:g,tier:r.tier||'',iso3:r.iso3||'',fund:r.fund||null};}
  return null;
 }
 function openFromHash(){
  if(typeof location==='undefined')return;const m=/[#&]name=([^&]+)/.exec(location.hash||'');if(!m)return;
- const key=decodeURIComponent(m[1]),f=findName(key);if(f)openHistory(f.key,f.name,f.group,f.tier);
+ const key=decodeURIComponent(m[1]),f=findName(key);if(f)openHistory(f.key,f.name,f.group,f.tier,f.iso3);
 }
 function mount(el,opts){
  opts=opts||{};if(opts.base)CDS.base=opts.base;

@@ -45,12 +45,28 @@ test('history modal draws the group record from 2006 with the name on its own ax
   names:{'REPUBLIC OF TURKEY':{points:[['2024-09-03',280],['2026-10-08',250]],n:900,first:'2024-09-03',last:'2026-10-08'},'STATE OF QATAR':{points:[],n:40,first:null,last:null,branches:{'100':[['2026-09-01',162,43],['2026-10-01',160,44]]}}}};
  const a=ui.modalHtml('REPUBLIC OF TURKEY','Turkey','sovereign','EM',h,{});
  assert.match(a,/2006 → today/);assert.match(a,/OFR EM stress/);assert.match(a,/GFC/);assert.match(a,/No free source carries this name's own CDS before 2024-09/);assert.match(a,/Own record, every priced day/);
+ // v1.4: the name's tape record is a range glyph in the right margin (high/low/last), never a time-compressed second line on the 20-year axis
+ assert.match(a,/high 280/);assert.match(a,/low 250/);assert.match(a,/Turkey prints 2024-09/);assert.doesNotMatch(a,/stroke-width="1.6"/);
  const b=ui.modalHtml('STATE OF QATAR','Qatar','sovereign','EM',h,{});
  assert.match(b,/No print ever fixed the sign/);assert.match(b,/either \/ or/);
  const c=ui.modalHtml('UNKNOWN','Canada','sovereign','DM',h,{});
  assert.match(c,/no public DTCC print since the tape began/);
  assert.equal(ui.proxyFor('us_corp','',''),'baa10y');assert.equal(ui.proxyFor('sovereign','Frontier',''),'ofr_em');assert.equal(ui.proxyFor('sovereign','DM',''),'ofr_credit');assert.equal(ui.proxyFor('index','','IDX:CDX.EM'),'ofr_em');
+ // v1.4: a euro-area sovereign is drawn against its own ECB SovCISS record when the history file carries it
+ const longES={...h.long.series,sovciss_ESP:{name:'ECB SovCISS · Spain',unit:'index',source:'ECB',iso3:'ESP',points:pts,last:{date:'2026-10-08',value:0.05},pct_rank_since_2006:50,peaks:[{episode:'Euro crisis 2011-12',date:'2012-07-24',value:0.99}]}};
+ assert.equal(ui.proxyFor('sovereign','DM','KINGDOM OF SPAIN','ESP',longES),'sovciss_ESP');assert.equal(ui.proxyFor('sovereign','DM','KINGDOM OF SPAIN','ESP',h.long.series),'ofr_credit');
+ const d=ui.modalHtml('KINGDOM OF SPAIN','Spain','sovereign','DM',{...h,long:{series:longES},names:{'KINGDOM OF SPAIN':{points:[['2025-02-14',31.8],['2026-10-02',23.5]],n:100,first:'2025-02-14',last:'2026-10-02'}}},{},'ESP');
+ assert.match(d,/ECB SovCISS · Spain/);assert.match(d,/this country.s own/);assert.match(d,/Euro crisis/);assert.doesNotMatch(d,/undefined|NaN/);
  for(const html of [a,b,c])assert.doesNotMatch(html,/undefined|NaN|\[object Object\]/);
+});
+test('sovereign rows carry IMF fundamentals when the packet has them: Debt\/GDP column, map tooltip, modal pills',()=>{
+ const d=packet();const sov=d.groups.sovereign;const ita=sov.universe.find(e=>e.iso3==='ARG');assert.ok(ita);
+ ita.fund={year:'2025',weo_year:'2026',debt_gdp:137.1,debt_gdp_weo:138.4,fiscal_bal_gdp:-3.1,cab_gdp:1.2,gdp_growth:0.5,inflation:1.6};
+ d.fundamentals={n_sovereigns:1,year:'2025'};
+ const rows=ui.universeRows('sovereign',sov);const r=rows.find(r=>r.iso3==='ARG');assert.equal(r.fund.debt_gdp,137.1);
+ const tbl=ui.universeTable(rows,['Region','Tier','Debt\/GDP'],'none');assert.match(tbl,/137\.1%/);assert.match(tbl,/IMF WEO 2025: debt 137\.1% of GDP/);
+ const world={w:100,h:50,paths:{ARG:'M0 0h10v10h-10z'},names:{ARG:'Argentina'}};assert.match(ui.worldMap(world,rows),/debt\/GDP 137\.1% \(IMF 2025\)/);
+ const dash=ui.universeTable(rows.filter(r=>r.iso3!=='ARG').slice(0,3),['Debt\/GDP'],'none');assert.doesNotMatch(dash,/undefined|NaN/);
 });
 test('line chart supports a second axis and a two-branch band without NaN coordinates',()=>{
  const svg=ui.lineChart([['2006-01-01',1],['2016-01-01',2],['2026-01-01',3]],{axis2:true,series2:[['2024-09-01',200],['2026-01-01',150]],band:[['2024-09-01',300,40],['2026-01-01',280,42]],markers:[{date:'2008-11-01',value:2.5,label:'GFC'}]});
