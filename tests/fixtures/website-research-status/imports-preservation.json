@@ -27,8 +27,8 @@
       "page": "classic-dashboard.html",
       "predecessor": "tests/fixtures/website-research-status/pre513-imports/classic-dashboard.html.txt",
       "previous_sha256": "d9749bfd4909f014d51f1478da1605bdd8833ace2dc8c00da65c109006fe8f5c",
-      "sha256": "9fe386744ea92d396ed982e239497e94ed6b49c36931f2ca3b8b036daf69e5c5",
-      "bytes": 164017,
+      "sha256": "93b2eb55e64b5a03b3fe4aaf66971c4928df098ec1278283b877edcaa8a86f2c",
+      "bytes": 164029,
       "additional_replacements": [
         [
           "  document.getElementById('cryptoSub').textContent = `${stables.net_signal || '—'} · ${fmtAge(d.generated_at)}`;\n\n  const stableCls = stables.net_signal === 'INFLOW' || stables.net_signal === 'MINTING' ? 'g' :\n                    stables.net_signal === 'OUTFLOW' || stables.net_signal === 'BURNING' ? 'r' : 'a';\n\n",
@@ -37,6 +37,14 @@
         [
           "      <span class=\"readout-key\">STABLECOINS</span><span class=\"readout-val ${stableCls}\">${stables.total_mcap_fmt || '—'} · ${escHtml(stables.net_signal||'—')}</span>",
           "      <span class=\"readout-key\">STABLECOIN STOCKS</span><span class=\"readout-val\">${escHtml(stableLabel)} · flow and observation dates unavailable; no sizing vote. <a href=\"/crypto/\">Inspect reported rows</a></span>"
+        ],
+        [
+          "<a href=\"/risk.html\" class=\"card-action\">DETAIL →</a>",
+          "<a href=\"/risk-sizer.html\" class=\"card-action\">DETAIL →</a>"
+        ],
+        [
+          "<a class=\"tool\" href=\"/risk.html\">",
+          "<a class=\"tool\" href=\"/risk-sizer.html\">"
         ]
       ]
     },

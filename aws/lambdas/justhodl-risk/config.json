@@ -1,0 +1,28 @@
+{
+  "function_name": "justhodl-risk",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1536,
+  "timeout": 600,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Composite risk engine: STRESS and FROTH composites (point-in-time percentiles over 80+ in-system risk gauges, 10 pillars, 1990->) with an episode scorecard against every labelled equity and Bitcoin crisis/top/bottom. Descriptive. Owns data/risk.json + data/warm/risk/.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-risk-daily",
+    "cron": "cron(40 4 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Daily composite risk pass after the risk-source engines (03:20-03:40) and the CDS desk (04:00)",
+    "input": {},
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
+  }
+}

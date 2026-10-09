@@ -72,7 +72,7 @@ test('private request failures produce fixed unavailable response and no public 
   assert.equal(response.status,503);assert.ok(!(await response.text()).includes('internal detail'));assert.equal(state.calls.length,1);
 });
 test('every known account-consuming page installs the helper before inline fetches',()=>{
-  for(const name of ['classic-dashboard.html','desk.html','sizing/index.html','why.html','portfolio/index.html','ticker.html','risk.html','pm-decision.html','catalyst/index.html','desk-v2.html','brief.html','engine.html','engines.html','index.html','watchlist.html','trade-journal.html','master-rank.html','vol-regime.html']){
+  for(const name of ['classic-dashboard.html','desk.html','sizing/index.html','why.html','portfolio/index.html','ticker.html','risk-sizer.html','pm-decision.html','catalyst/index.html','desk-v2.html','brief.html','engine.html','engines.html','index.html','watchlist.html','trade-journal.html','master-rank.html','vol-regime.html']){
     const html=fs.readFileSync(path.join(__dirname,'..',name),'utf8');const marker=html.indexOf('src="/private-artifacts.js?v=20260909"');
     assert.ok(marker>=0,name);const fetch=html.indexOf('fetch(');if(fetch>=0)assert.ok(marker<fetch,name+' installs late');
   }

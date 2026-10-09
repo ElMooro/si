@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="jh-primary-engine" content="justhodl-risk-sizer">
+<script src="/private-artifacts.js?v=20260909"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Risk Sizer · JustHodl.AI</title>
+<meta name="description" content="Phase 4 risk sizing — Kelly fraction · sector clustering · drawdown circuit breakers · regime exposure caps">
+<style>
+:root{
+  --bg-base:#07090f; --bg-raised:#0e1320; --bg-sunken:#04050a; --bg-elevated:#131a2a;
+  --bg-glow:rgba(0,212,255,0.04);
+  --border:rgba(120,145,180,0.12); --border-hover:rgba(120,145,180,0.28); --border-strong:rgba(120,145,180,0.40);
+  --fg-1:#e6ecf5; --fg-2:#a8b3c7; --fg-3:#6b7a92; --fg-4:#3a4458;
+  --green:#38ffa8; --green-dim:#1b8a5c;
+  --amber:#ffb13d; --amber-dim:#8a5e10;
+  --red:#ff5c7a; --red-dim:#8a2c44;
+  --cyan:#00d4ff; --cyan-dim:#0a6080;
+  --violet:#a78bfa;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --font-sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --radius:4px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg-base);color:var(--fg-1);font-family:var(--font-sans);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:"ss01" on,"cv11" on}
+body{min-height:100vh;background-image:repeating-linear-gradient(0deg,rgba(0,212,255,0.012) 0,rgba(0,212,255,0.012) 1px,transparent 1px,transparent 3px)}
+a{color:var(--cyan);text-decoration:none}a:hover{color:var(--fg-1)}
+button{font-family:inherit;cursor:pointer;background:none;border:none;color:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-sunken)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--fg-3)}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(7,9,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:52px;gap:28px}
+.brand{font-family:var(--font-mono);font-weight:700;font-size:14px;letter-spacing:1.5px;color:var(--fg-1);display:flex;align-items:center;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.brand span{color:var(--cyan);font-weight:500}
+.nav-links{display:flex;gap:0;flex:1;overflow-x:auto}
+.nav-links a{font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:1px;color:var(--fg-3);text-transform:uppercase;padding:0 14px;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-links a:hover{color:var(--fg-1);border-bottom-color:var(--cyan-dim);background:var(--bg-glow)}
+.nav-links a.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.topbar-meta{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:1px;display:flex;align-items:center;gap:14px}
+.status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(56,255,168,.06);border:1px solid var(--green-dim);border-radius:3px;color:var(--green);font-weight:600}
+.status-pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+
+/* PAGE */
+.page{max-width:1620px;margin:0 auto;padding:24px}
+.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.page-head h1{font-family:var(--font-mono);font-size:18px;font-weight:600;letter-spacing:2.5px;color:var(--fg-1);text-transform:uppercase;margin-bottom:6px}
+.page-head .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);letter-spacing:1px}
+.page-head .sub a{color:var(--cyan)}
+
+/* STRIP */
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin-bottom:24px;background:var(--border);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden}
+.strip-cell{background:var(--bg-raised);padding:14px 18px}
+.strip-cell:hover{background:var(--bg-elevated)}
+.strip-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--fg-3);text-transform:uppercase;margin-bottom:8px}
+.strip-value{font-family:var(--font-mono);font-size:22px;font-weight:600;color:var(--fg-1);line-height:1;margin-bottom:4px}
+.strip-sub{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);letter-spacing:.5px}
+.strip-sub.green{color:var(--green)}.strip-sub.amber{color:var(--amber)}.strip-sub.red{color:var(--red)}.strip-sub.cyan{color:var(--cyan)}
+@media (max-width:1024px){.strip{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:600px){.strip{grid-template-columns:repeat(2,1fr)}}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-bottom:24px}
+.card{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;transition:border-color .2s}
+.card:hover{border-color:var(--border-hover)}
+.card::before,.card::after{content:'';position:absolute;width:10px;height:10px;border-color:var(--border-strong);border-style:solid}
+.card::before{top:6px;left:6px;border-width:1px 0 0 1px}
+.card::after{bottom:6px;right:6px;border-width:0 1px 1px 0}
+.col-12{grid-column:span 12}
+.col-8{grid-column:span 8}
+.col-7{grid-column:span 7}
+.col-6{grid-column:span 6}
+.col-5{grid-column:span 5}
+.col-4{grid-column:span 4}
+@media (max-width:1100px){.col-7,.col-8{grid-column:span 12}.col-4,.col-5{grid-column:span 6}}
+@media (max-width:700px){.col-4,.col-5,.col-6{grid-column:span 12}}
+
+.card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:2.5px;color:var(--fg-2);text-transform:uppercase}
+.card-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--fg-3);letter-spacing:1px}
+
+.bignum{font-family:var(--font-mono);font-size:42px;font-weight:600;color:var(--fg-1);line-height:1;margin-bottom:6px}
+.bignum-sub{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--fg-3)}
+.bignum.g{color:var(--green)}.bignum.a{color:var(--amber)}.bignum.r{color:var(--red)}.bignum.c{color:var(--cyan)}
+
+.readout{display:grid;grid-template-columns:1fr auto;gap:8px 14px;font-family:var(--font-mono);font-size:12px}
+.readout-key{color:var(--fg-3);letter-spacing:.5px}
+.readout-val{color:var(--fg-1);font-weight:500;text-align:right}
+.readout-val.g{color:var(--green)}.readout-val.a{color:var(--amber)}.readout-val.r{color:var(--red)}.readout-val.c{color:var(--cyan)}
+
+table.tbl{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+table.tbl th{text-align:left;font-weight:500;letter-spacing:1.5px;color:var(--fg-3);font-size:9px;padding:6px 4px;border-bottom:1px solid var(--border);text-transform:uppercase}
+table.tbl th.r{text-align:right}
+table.tbl td{padding:8px 4px;border-bottom:1px solid rgba(120,145,180,.06);color:var(--fg-2)}
+table.tbl td.r{text-align:right}
+table.tbl tr:hover td{background:rgba(120,145,180,.04)}
+table.tbl tr:last-child td{border-bottom:none}
+.sym{font-weight:600;color:var(--fg-1);letter-spacing:.5px}
+.sym a{color:var(--fg-1)}.sym a:hover{color:var(--cyan)}
+
+.bar{height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden;margin:4px 0}
+.bar-fill{height:100%;background:var(--cyan);transition:width .6s ease}
+.bar-fill.g{background:var(--green)}.bar-fill.a{background:var(--amber)}.bar-fill.r{background:var(--red)}
+
+.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,var(--bg-raised) 50%,var(--bg-elevated) 100%);background-size:200% 100%;animation:shimmer 1.6s linear infinite;border-radius:3px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:8px}
+.skel-line.short{width:60%}
+.err{color:var(--red);font-family:var(--font-mono);font-size:11px;letter-spacing:.5px;padding:8px 0}
+.muted{color:var(--fg-3);font-style:italic;font-size:11px}
+
+.badge{display:inline-block;padding:2px 7px;font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;background:var(--bg-elevated);color:var(--fg-2);border:1px solid var(--border)}
+.badge.g{color:var(--green);border-color:var(--green-dim);background:rgba(56,255,168,.05)}
+.badge.a{color:var(--amber);border-color:var(--amber-dim);background:rgba(255,177,61,.05)}
+.badge.r{color:var(--red);border-color:var(--red-dim);background:rgba(255,92,122,.05)}
+.badge.c{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,212,255,.05)}
+
+.disclaimer{font-family:var(--font-mono);font-size:10px;color:var(--fg-4);font-style:italic;border-top:1px solid var(--border);padding-top:12px;margin-top:18px;text-align:center;letter-spacing:.5px}
+
+.footer{border-top:1px solid var(--border);padding:24px;margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;color:var(--fg-3);text-transform:uppercase}
+</style>
+<script src="/tenor-signals.js" defer></script>
+<script src="/liquidity-credit.js" defer></script>
+<script src="/liquidity-pulse.js" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>JUSTHODL<span>·AI</span></a>
+  <nav class="nav-links">
+    <a href="/">DESK</a>
+    <a href="/stock/">STOCK</a>
+    <a href="/screener/">SCREENER</a>
+    <a href="/edge.html">EDGE</a>
+    
+    <a href="/intelligence.html">INTEL</a>
+    <a href="/ticker.html">TICKER</a>
+    <a href="/sectors.html">SECTORS</a>
+    <a href="/allocator.html">ALLOCATOR</a>
+    <a href="/vol.html">VOL</a>
+    <a href="/news.html">NEWS</a>
+    <a href="/momentum.html">MOMENTUM</a>
+    <a href="/research.html">RESEARCH</a>
+    <a href="/accuracy.html">ACCURACY</a>
+    <a href="/feedback.html">FEEDBACK</a>
+    <a href="/liquidity.html">LIQUIDITY</a>
+    <a href="/flow.html">FLOW</a>
+    <a href="/crypto/">CRYPTO</a>
+    <a href="/positioning/">COT</a>
+    <a href="/risk-sizer.html" class="active">RISK</a>
+    <a href="/stress.html" style="color:#ef4444;font-weight:600">🌪 STRESS</a>
+    <a href="/auctions.html" style="color:#3b82f6;font-weight:600">🏛 AUCTIONS</a>
+    <a href="/bonds.html" style="color:#06b6d4;font-weight:600">📈 BONDS</a>
+    <a href="/valuations.html">VALUATIONS</a>
+    <a href="/desk.html">DESK·V2</a>
+  </nav>
+  <div class="topbar-meta">
+    <span id="clock">—</span>
+    <span class="status-pill">OPERATIONAL</span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <h1>RISK SIZER · PHASE 4</h1>
+    <div class="sub">Kelly sizing · sector clustering · drawdown circuit breakers · regime exposure caps · <a href="/desk.html">view on DESK →</a></div>
+  </div>
+
+  <!-- TOP STRIP -->
+  <div class="strip" id="strip">
+    <div class="strip-cell" data-cell="regime">
+      <div class="strip-label">REGIME</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="deployed">
+      <div class="strip-label">DEPLOYED</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="ideas">
+      <div class="strip-label">IDEAS</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="clusters">
+      <div class="strip-label">CLUSTERS</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+    <div class="strip-cell" data-cell="drawdown">
+      <div class="strip-label">DRAWDOWN</div>
+      <div class="strip-value">—</div>
+      <div class="strip-sub">—</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Constraints + drawdown -->
+    <section class="card col-5">
+      <div class="card-head">
+        <div>
+          <div class="card-title">CONSTRAINTS</div>
+          <div class="card-subtitle" id="consSub">—</div>
+        </div>
+      </div>
+      <div id="consBody">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Cluster breakdown -->
+    <section class="card col-7">
+      <div class="card-head">
+        <div>
+          <div class="card-title">CLUSTER ALLOCATION</div>
+          <div class="card-subtitle" id="clustersSub">—</div>
+        </div>
+      </div>
+      <div id="clustersBody">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div>
+      </div>
+    </section>
+
+    <!-- Sized recommendations table -->
+    <section class="card col-12">
+      <div class="card-head">
+        <div>
+          <div class="card-title">SIZED RECOMMENDATIONS</div>
+          <div class="card-subtitle" id="recsSub">—</div>
+        </div>
+      </div>
+      <div id="recsBody">
+        <div class="skel skel-line"></div><div class="skel skel-line"></div>
+        <div class="skel skel-line"></div><div class="skel skel-line short"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="disclaimer">
+    HYPOTHETICAL · For research only. Position sizes are model output, not investment advice.
+    Kelly fraction capped at 0.25. Single-position cap 8%. Cluster cap 25%. Gross exposure cap 75% (regime-adjusted).
+  </div>
+
+<div style="max-width:1500px; margin:18px auto; padding:0 18px;">
+  <div id="basket-var-panel" style="margin-top:18px"></div>
+  <div id="tenor-signals-panel"></div>
+<div id="liquidity-credit-panel" style="margin-top:18px"></div>
+<div id="liquidity-pulse-panel" style="margin-bottom:18px"></div>
+
+</div>
+<section id="capital-evidence" class="card" style="margin:20px;padding:16px;overflow-wrap:anywhere"></section>
+</main>
+
+<footer class="footer">
+  <div>JUSTHODL · AI · RISK SIZER</div>
+  <div style="margin-top:8px;color:var(--fg-4)">
+    <span id="footUpdated">—</span> · v1.0 phase4 · auto-refresh 5m
+  </div>
+</footer>
+
+<script src="/capital-view.js"></script>
+<script>
+const S3 = 'https://justhodl-dashboard-live.s3.amazonaws.com';
+const SRC = `${S3}/risk/recommendations.json`;
+setInterval(renderRiskEvidence,30000);
+document.addEventListener("visibilitychange",renderRiskEvidence);
+
+function fmt$(n,d=2){if(n==null||isNaN(n))return'—';const a=Math.abs(n);if(a>=1e12)return'$'+(n/1e12).toFixed(d)+'T';if(a>=1e9)return'$'+(n/1e9).toFixed(d)+'B';if(a>=1e6)return'$'+(n/1e6).toFixed(d)+'M';if(a>=1e3)return'$'+(n/1e3).toFixed(d)+'K';return'$'+n.toFixed(d)}
+function fmtNum(n,d=1){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtPct(n,d=1){if(n==null||isNaN(n))return'—';return Number(n).toFixed(d)+'%'}
+function fmtAge(iso){if(!iso)return'—';try{const t=new Date(iso).getTime();const dt=(Date.now()-t)/1000;if(dt<60)return Math.floor(dt)+'s ago';if(dt<3600)return Math.floor(dt/60)+'m ago';if(dt<86400)return Math.floor(dt/3600)+'h ago';return Math.floor(dt/86400)+'d ago'}catch(e){return'—'}}
+function escHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setCell(name,value,sub,subClass=''){const cell=document.querySelector(`[data-cell="${name}"]`);if(!cell)return;cell.querySelector('.strip-value').textContent=value;const subEl=cell.querySelector('.strip-sub');subEl.textContent=sub;subEl.className='strip-sub'+(subClass?' '+subClass:'')}
+function updateClock(){document.getElementById('clock').textContent=new Date().toISOString().slice(11,16)+' UTC'}
+
+let riskEvidence=null;
+async function load(){
+  let d;
+  try{
+    const r = await fetch(SRC, {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    d = await r.json();
+  }catch(e){
+    document.getElementById('consBody').innerHTML = `<div class="err">⚠ Failed to load: ${escHtml(e.message)}</div>`;
+    document.getElementById('clustersBody').innerHTML = '';
+    document.getElementById('recsBody').innerHTML = '';
+    return;
+  }
+
+  // ── Strip
+  riskEvidence=d;
+  JHCapitalView.renderEvidence('capital-evidence',d);
+  renderRiskEvidence();
+}
+function renderRiskEvidence(){
+  if(!riskEvidence)return;
+  const failures=JHCapitalView.permissionErrors(riskEvidence,'risk-sizer');
+  const d=JHCapitalView.restrictedCopy(riskEvidence,'risk-sizer',failures);
+  const regime = d.regime || 'NEUTRAL';
+  const regimeStr = d.regime_strength;
+  const regimeCls = regime === 'RISK_ON' ? 'green' : regime === 'RISK_OFF' ? 'red' : 'cyan';
+  setCell('regime', regime, regimeStr != null ? `str ${fmtNum(regimeStr,1)}/100` : '—', regimeCls);
+
+  const sm = d.summary || {};
+  const deployedPct = sm.total_recommended_size_pct;
+  const dCls = deployedPct > 70 ? 'green' : deployedPct > 40 ? 'amber' : 'red';
+  setCell('deployed', deployedPct != null ? fmtPct(deployedPct, 1) : '—', `cap ${fmtPct(d.max_gross_exposure_pct, 0)}`, dCls);
+  setCell('ideas', sm.n_candidate_ideas || '—', `from ${fmtPct(sm.total_pre_caps_pct, 0)} pre-caps`, 'cyan');
+  setCell('clusters', sm.n_clusters || '—', `${(d.clusters||[]).length} active`, 'cyan');
+
+  const dd = d.drawdown_status || {};
+  // audit 2026-09-08 FR-05: an UNKNOWN drawdown is shown as unknown (never as 0.00%), and the
+  // trigger shown is the BINDING one the producer now publishes (deepest breached rule).
+  const ddUnknown = dd.status === 'UNKNOWN' || dd.current_dd_pct == null;
+  const ddCls = ddUnknown ? 'red' : dd.current_dd_pct < -10 ? 'red' : dd.current_dd_pct < -5 ? 'amber' : 'green';
+  setCell('drawdown',
+    ddUnknown ? 'UNKNOWN' : fmtPct(dd.current_dd_pct, 2),
+    ddUnknown ? 'no trusted NAV history -- sizing held' : (dd.active_trigger ? escHtml(dd.active_trigger) : 'no trigger'),
+    ddCls);
+  // FR-04: the binding capital authority + hold reasons, shown above the constraints card
+  (function(){
+    var a = d.authority || {}, host = document.getElementById('consSub');
+    if (!host) return;
+    var el = document.getElementById('jhAuthorityStrip');
+    if (!el) { el = document.createElement('div'); el.id = 'jhAuthorityStrip'; el.style.cssText = 'margin:8px 0 12px;font-size:12px;line-height:1.5;border:1px solid var(--border);border-radius:8px;padding:8px 10px'; host.parentNode.insertBefore(el, host.nextSibling); }
+    var ok = a.status === 'FRESH';
+    var html = '<b>Binding capital authority (Khalid Risk):</b> ' + (ok ? escHtml(String(a.mode || '-')) + ' · cap ' + fmtPct(a.exposure_cap_pct, 0) + ' · new entries ' + (a.allows_new_entries ? 'allowed' : '<span style="color:var(--red)">BLOCKED</span>') + ' · ' + fmtAge(a.generated_at) : '<span style="color:var(--red)">UNAVAILABLE (' + escHtml(String(a.status || 'MISSING')) + ')</span>');
+    html += ' · status <b>' + escHtml(String(d.status || 'OK')) + '</b>';
+    if (d.book) html += ' · book gross ' + fmtPct(d.book.gross_pct, 1) + ' (' + (d.book.n_positions || 0) + ' positions), available ' + fmtPct(d.book.available_gross_pct, 1);
+    if ((d.hold_reasons || []).length) html += '<div style="color:var(--red);margin-top:4px">HOLD: ' + escHtml(d.hold_reasons.join(' · ')) + '</div>';
+    if (d.recommendation_semantics) html += '<div style="color:var(--fg-3);margin-top:4px">' + escHtml(d.recommendation_semantics) + '</div>';
+    el.innerHTML = html;
+  })();
+
+  // ── Constraints card
+  document.getElementById('consSub').textContent = `regime-adjusted · ${fmtAge(d.as_of)}`;
+  const c = d.constraints_applied || {};
+  document.getElementById('consBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div class="bignum c">${fmtPct(d.max_gross_exposure_pct, 0)}</div>
+        <div class="bignum-sub">MAX GROSS EXPOSURE</div>
+      </div>
+      <div>
+        <div class="bignum">${fmtNum(c.kelly_fraction, 2)}</div>
+        <div class="bignum-sub">KELLY FRACTION</div>
+      </div>
+    </div>
+    <div class="readout" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <span class="readout-key">SINGLE POSITION CAP</span><span class="readout-val">${fmtPct(c.max_single_position_pct, 1)}</span>
+      <span class="readout-key">CLUSTER CAP</span><span class="readout-val">${fmtPct(c.max_cluster_pct, 1)}</span>
+      <span class="readout-key">DRAWDOWN MULTIPLIER</span><span class="readout-val">×${fmtNum(dd.size_multiplier, 2)}</span>
+      <span class="readout-key">PRE-CAPS TOTAL</span><span class="readout-val a">${fmtPct(sm.total_pre_caps_pct, 1)}</span>
+      <span class="readout-key">POST-CAPS TOTAL</span><span class="readout-val c">${fmtPct(sm.total_recommended_size_pct, 1)}</span>
+    </div>`;
+
+  // ── Cluster card
+  const clusters = d.clusters || [];
+  document.getElementById('clustersSub').textContent = `${clusters.length} clusters · ${sm.n_candidate_ideas||0} ideas`;
+  if(!clusters.length){
+    document.getElementById('clustersBody').innerHTML = '<div class="muted">No active clusters</div>';
+  }else{
+    // Sort by cluster size, show all
+    const sortedC = [...clusters].sort((a,b) => (b.size||0) - (a.size||0));
+    let html = `<table class="tbl"><thead><tr><th>CLUSTER</th><th>METHOD</th><th class="r">SIZE</th><th class="r">MEMBERS</th></tr></thead><tbody>`;
+    for(const cl of sortedC){
+      const mems = (cl.members || []).join(', ');
+      html += `
+        <tr>
+          <td class="sym">${escHtml(cl.sector || cl.id)}</td>
+          <td>${escHtml(cl.method||'—')}</td>
+          <td class="r">${cl.size||0}</td>
+          <td class="r" style="color:var(--fg-3);font-size:10px">${escHtml(mems)}</td>
+        </tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('clustersBody').innerHTML = html;
+  }
+
+  // ── Recommendations table
+  const recs = d.sized_recommendations || [];
+  document.getElementById('recsSub').textContent = `${recs.length} sized · sum ${fmtPct(sm.total_recommended_size_pct, 1)} · ${fmtAge(d.as_of)}`;
+  if(!recs.length){
+    document.getElementById('recsBody').innerHTML = '<div class="muted">No active recommendations</div>';
+  }else{
+    const sorted = [...recs].sort((a,b) => (b.recommended_size_pct||0) - (a.recommended_size_pct||0));
+    let html = `<table class="tbl"><thead><tr>
+      <th>SYM</th><th>NAME</th><th>SECTOR</th>
+      <th class="r">PRICE</th>
+      <th class="r">CONVICTION</th>
+      <th class="r">KELLY</th>
+      <th class="r">SIZE</th>
+      <th>REASONING</th>
+    </tr></thead><tbody>`;
+    for(const r of sorted){
+      const sz = r.recommended_size_pct || 0;
+      const szCls = sz > 4 ? 'g' : sz > 2 ? 'c' : '';
+      const conv = r.raw_conviction;
+      const convCls = conv > 0.7 ? 'g' : conv > 0.5 ? 'a' : '';
+      html += `
+        <tr>
+          <td class="sym"><a href="/stock/?symbol=${encodeURIComponent(r.symbol)}">${escHtml(r.symbol)}</a></td>
+          <td>${escHtml((r.name||'—').slice(0,28))}</td>
+          <td>${escHtml((r.sector||'—').slice(0,14))}</td>
+          <td class="r">${fmt$(r.price)}</td>
+          <td class="r ${convCls}">${conv != null ? conv.toFixed(2) : '—'}</td>
+          <td class="r" style="color:var(--fg-3)">${r.kelly_raw != null ? r.kelly_raw.toFixed(3) : '—'}</td>
+          <td class="r"><span class="badge ${szCls}">${fmtPct(sz, 2)}</span></td>
+          <td style="color:var(--fg-3);font-size:10px">${escHtml(r.reasoning||'—')}</td>
+        </tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('recsBody').innerHTML = html;
+  }
+
+  document.getElementById('footUpdated').textContent = 'updated ' + new Date().toISOString().slice(11,19) + ' UTC';
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+load();
+setInterval(load, 5 * 60 * 1000);
+
+// ── Historical VaR / CVaR / beta on the live conviction basket (audit #8) ──
+async function loadBasketVaR(){
+  try{
+    const r = await fetch('https://justhodl-data-proxy.raafouis.workers.dev/data/basket-var.json?t='+Date.now());
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d || !d.ok) return;
+    const el = document.getElementById('basket-var-panel');
+    if(!el) return;
+    const fmt = (v)=> v==null?'—':v.toFixed(2)+'%';
+    el.innerHTML = `
+      <div class="card" style="border:1px solid var(--border-bright);border-radius:14px;padding:16px 18px;background:var(--bg-1)">
+        <div style="font-family:var(--font-mono,monospace);font-size:12px;color:var(--fg-2);letter-spacing:.5px;margin-bottom:4px">📉 VALUE AT RISK · ${d.n_names}-NAME CONVICTION BASKET (EQUAL-WEIGHT)</div>
+        <div style="font-size:11px;color:var(--fg-3);margin-bottom:12px">${(d.basket||[]).join(' · ')}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">1-DAY VaR 95%</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#fb923c">${fmt(d.var_1d_95_pct)}</div><div style="font-size:10px;color:var(--fg-3)">worst loss, 19/20 days</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">1-DAY VaR 99%</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.var_1d_99_pct)}</div><div style="font-size:10px;color:var(--fg-3)">worst loss, 99/100 days</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">CVaR 95% (tail)</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.cvar_1d_95_pct)}</div><div style="font-size:10px;color:var(--fg-3)">avg loss in worst 1/20</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">ANN. VOL</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:var(--fg-1)">${d.vol_annual_pct!=null?d.vol_annual_pct.toFixed(0)+'%':'—'}</div><div style="font-size:10px;color:var(--fg-3)">β to SPY ${d.basket_beta_spy!=null?d.basket_beta_spy:'—'}</div></div>
+          <div><div style="font-family:monospace;font-size:10px;color:var(--fg-3)">WORST DAY</div><div style="font-family:monospace;font-size:24px;font-weight:800;color:#ff5577">${fmt(d.worst_day_pct)}</div><div style="font-size:10px;color:var(--fg-3)">over ${d.lookback_days}d</div></div>
+        </div>
+        <div style="font-size:10.5px;color:var(--fg-3);margin-top:12px;line-height:1.5">${escHtml(d.interpretation||'')} <span style="color:var(--fg-3)">· ${escHtml(d.var_method||'')}. Add real positions for portfolio-specific VaR.</span></div>
+      </div>`;
+  }catch(e){}
+}
+loadBasketVaR();
+setInterval(loadBasketVaR, 5 * 60 * 1000);
+</script>
+
+  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>
