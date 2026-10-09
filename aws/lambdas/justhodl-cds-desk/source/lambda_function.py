@@ -251,8 +251,9 @@ def publish(bank, as_of, run_meta):
     try:
         long_block = build_long_block(bank, as_of)
         long_status = {k: v["status"] for k, v in long_block["sources"].items()}
-        keys = [r["key"] for g in packet["groups"].values() for r in g["rows"]] + ["IDX:" + i["key"] for i in packet["indices"]]
-        history = cds_long_context.build_history(bank, as_of, long_block, keys)
+        keys = [r["key"] for g in packet["groups"].values() for r in g["rows"] + g["unpriced"] + g["dormant"]] + ["IDX:" + i["key"] for i in packet["indices"]]
+        branch_keys = [r["key"] for g in packet["groups"].values() for r in g["unpriced"]]
+        history = cds_long_context.build_history(bank, as_of, long_block, keys, branch_keys)
         history["generated_at"] = now
         history_bytes = _put_json(HISTORY_KEY, history, cache="public, max-age=900")
         packet["history"] = {"key": HISTORY_KEY, "names": len(history["names"]), "long_series": sorted(long_block["series"].keys()),
@@ -266,7 +267,8 @@ def publish(bank, as_of, run_meta):
     bank_bytes = _put_json(BANK_KEY, bank, gz=True)
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
     return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
-            "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_indices": len(packet["indices"]),
+            "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_tracked": {g: v["n_tracked"] for g, v in packet["groups"].items()},
+            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]),
             "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 
 
@@ -280,6 +282,7 @@ def lambda_handler(event, context=None):
         bank = {"version": cds_desk.VERSION, "series": {}, "meta": {}, "entity_map": {}, "days": []}
     else:
         bank = _get_json(BANK_KEY, None) or {"version": cds_desk.VERSION, "series": {}, "meta": {}, "entity_map": {}, "days": []}
+    merged = cds_desk.merge_aliases(bank)   # one series per legal entity (reporter short codes, split spellings, sovereign aliases)
 
     if action in ("backfill", "rebuild"):
         start_iso = str(event.get("start") or FIRST_PUBLIC_DAY)
@@ -289,7 +292,7 @@ def lambda_handler(event, context=None):
         if as_of is None:
             return {"ok": False, "action": action, "error": "no files found in range", "start": start_iso, "end": end_iso}
         out = publish(bank, as_of, {"action": action, "start": start_iso, "end": end_iso, "files": len(log), "last_file": last,
-                                    "budget_exhausted": exhausted, "elapsed_s": round(time.time() - started, 1)})
+                                    "budget_exhausted": exhausted, "aliases_merged": len(merged), "elapsed_s": round(time.time() - started, 1)})
         out.update(ok=True, action=action, files=len(log), last_file=last, budget_exhausted=exhausted,
                    next_start=((date.fromisoformat(last) + timedelta(days=1)).isoformat() if (exhausted and last) else None))
         return out
@@ -309,7 +312,7 @@ def lambda_handler(event, context=None):
         probe -= timedelta(days=1)
     done = process_file_date(bank, file_day, cur, prev_day, prev_trades, par_rows)
     as_of = (bank.get("days") or [file_day])[-1]
-    out = publish(bank, as_of, {"action": "daily", "file": file_day, "prev_file": prev_day, "written": done,
+    out = publish(bank, as_of, {"action": "daily", "file": file_day, "prev_file": prev_day, "written": done, "aliases_merged": len(merged),
                                 "elapsed_s": round(time.time() - started, 1)})
     out.update(ok=True, action="daily", file=file_day, written=done)
     return out

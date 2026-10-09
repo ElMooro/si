@@ -306,6 +306,68 @@ def test_long_context_parsers_weekly_and_mapping():
     assert len(hist["names"]["IDX:CDX.NA.IG"]["points"]) == 40 and hist["long"] is block
 
 
+def test_v130_universe_aliases_and_long_anchor():
+    # (a) sovereign taxonomy carries region / tier / iso3 and the AI / software sectors exist
+    cls = C.classify_entity("sov", "FEDERAL REPUBLIC OF GERMANY", {"USD": 3})
+    assert cls == {"group": "sovereign", "region": "DM Europe", "tier": "DM", "iso3": "DEU", "ccy": "USD"}
+    assert C.classify_entity(None, "NVIDIA", {"USD": 1})["sector"] == "AI & semis"
+    assert C.classify_entity(None, "ORACLE", {"USD": 1})["sector"] == "Software & internet"
+    assert C.classify_entity(None, C.normalize_name("Community Health Systems, Inc."), {"USD": 1})["sector"] == "Healthcare"   # keyword fallback (whole word)
+    assert C.classify_entity(None, C.normalize_name("Bayerische Motoren Werke Aktiengesellschaft"), {"EUR": 1})["sector"] == "Autos & transport"
+    assert C.classify_entity(None, C.normalize_name("Petroleo Brasileiro S.A. - Petrobras"), {"USD": 1})["group"] == "global_corp"
+    # (b) reporter short codes and '&' spellings fold into one series
+    assert C.canonical_norm("ORACLECORP") == "ORACLE" and C.normalize_name("Wells Fargo&Company") == C.normalize_name("WELLS FARGO & CO")
+    bank = {"version": C.VERSION, "series": {"ORACLE": {"2026-09-01": {"n": 2, "n5": 2, "np": 0, "s": None, "q": 0, "amb": 2, "nm": 1.0, "cd": {"100": [150.0, 60.0]}}},
+                                                "ORACLECORP": {"2026-09-01": {"n": 1, "n5": 1, "np": 1, "s": 62.0, "sb": "quoted", "q": 1, "amb": 0, "nm": 5.0, "cd": None, "aq": "firm", "as": "quoted"}}},
+            "meta": {"ORACLE": {"kind": "corp", "raw": "Oracle Corp", "ccy": {"USD": 2}}, "ORACLECORP": {"kind": "corp", "raw": "ORACLECORP", "ccy": {"USD": 1}}},
+            "entity_map": {"u1": {"norm": "ORACLECORP", "raw": "ORACLECORP", "votes": 1}}, "days": ["2026-09-01"]}
+    merged = C.merge_aliases(bank)
+    assert merged == [("ORACLECORP", "ORACLE")] and "ORACLECORP" not in bank["series"]
+    row = bank["series"]["ORACLE"]["2026-09-01"]
+    assert row["n"] == 3 and row["np"] == 1 and row["s"] == 62.0 and row["cd"] == {"100": [150.0, 60.0]} and bank["meta"]["ORACLE"]["ccy"] == {"USD": 3}
+    assert bank["entity_map"]["u1"]["norm"] == "ORACLE" and C.merge_aliases(bank) == []   # idempotent
+    # (c) an old firm level only picks between FAR-apart branches (South Korea: 22 vs 190 on a 100bp coupon), never near ones
+    t = C.normalize_trade(derived_row(170, coupon_bp=100.0, day="2026-10-01"), "sec")
+    cands = C.candidate_spreads(t, RATE)
+    assert len(cands) == 2, cands
+    hi, lo = max(c[0] for c in cands), min(c[0] for c in cands)
+    assert C.resolve_spread(t, RATE, lo * 1.3, far_only=True)[0] is not None            # branches far apart, anchor near the low one
+    near = C.normalize_trade(derived_row(600, coupon_bp=500.0, day="2026-10-01"), "sec")
+    nc = C.candidate_spreads(near, RATE)
+    if len(nc) == 2 and abs(C.math.log(nc[0][0] / nc[1][0])) < C.BRANCH_FAR_LOG:
+        assert C.resolve_spread(near, RATE, min(nc)[0] * 1.3, far_only=True)[0] is None  # near branches: an old anchor is not enough
+    # (d) anchors_from_bank: the name's own firm level 100 days back is offered as 'trailing_long'
+    bank2 = {"version": C.VERSION, "series": {"REPUBLIC OF KOREA": {"2026-06-25": {"n": 3, "n5": 3, "np": 3, "s": 20.0, "sb": "quoted", "q": 3, "amb": 0, "nm": 10.0, "aq": "firm", "as": "quoted", "cd": None},
+                                                                      "2026-10-01": {"n": 3, "n5": 3, "np": 0, "s": None, "q": 0, "amb": 3, "nm": 10.0, "cd": {"100": [190.0, 22.0]}}}},
+             "meta": {"REPUBLIC OF KOREA": {"kind": "sov", "raw": "Republic of Korea", "ccy": {"USD": 6}}}, "entity_map": {}, "days": ["2026-06-25", "2026-10-01"]}
+    anc = C.anchors_from_bank(bank2, "2026-10-02")
+    assert anc["REPUBLIC OF KOREA"][2] == "trailing_long" and anc["REPUBLIC OF KOREA"][0] == 20.0
+    # (e) the packet lists the whole universe: universe + coverage for sovereigns, dormant block, status on rows
+    packet = C.build_packet(bank2, "2026-10-02", "2026-10-02T00:00:00Z")
+    sov = packet["groups"]["sovereign"]
+    assert sov["coverage"]["known"] >= 100 and any(e["name"] == "South Korea" and e["iso3"] == "KOR" and e["status"] in ("unpriced", "dormant") for e in sov["universe"])
+    assert all("status" in e for e in sov["universe"]) and "dormant" in sov and "tiers" in sov and "universe_rule" in packet["method"]
+
+
+def test_v130_comove_sign_test_picks_the_branch_that_moves_with_its_index():
+    import random
+    random.seed(7)
+    days = [(C.date(2026, 4, 1) + C.timedelta(days=i)).isoformat() for i in range(120) if (C.date(2026, 4, 1) + C.timedelta(days=i)).weekday() < 5]
+    idx, name = {}, {}
+    level, true = 60.0, 40.0
+    for d in days:
+        shock = random.gauss(0, 0.02)
+        level *= C.math.exp(shock)
+        true *= C.math.exp(shock * 0.8 + random.gauss(0, 0.005))
+        mirror = 2 * 100.0 - true * 1.1                      # the other branch mirrors through the coupon: it moves against the index
+        idx[d] = {"n": 50, "n5": 50, "np": 50, "s": round(level, 2), "q": 50, "amb": 0, "nm": 500.0}
+        name[d] = {"n": 2, "n5": 2, "np": 0, "s": None, "q": 0, "amb": 2, "nm": 10.0, "cd": {"100": [round(mirror, 1), round(true, 1)]}}
+    bank = {"version": C.VERSION, "series": {"IDX:CDX.EM": idx, "STATE OF QATAR": name}, "meta": {"STATE OF QATAR": {"kind": "sov", "raw": "State of Qatar", "ccy": {"USD": 9}}}, "entity_map": {}, "days": days}
+    anc = C.anchors_from_bank(bank, (C.date.fromisoformat(days[-1]) + C.timedelta(days=1)).isoformat())
+    a = anc.get("STATE OF QATAR")
+    assert a and a[2] == "comove" and a[1] == "inferred" and abs(a[0] - true) / true < 0.15, a
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0

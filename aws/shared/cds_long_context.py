@@ -214,8 +214,9 @@ def build_long_context(fred, ofr, ebp, bank, as_of_iso):
             "notes": notes}
 
 
-def build_history(bank, as_of_iso, long_block, keys):
-    """Full daily series for the liquid names and indices (the main packet only carries 120-day sparklines)."""
+def build_history(bank, as_of_iso, long_block, keys, branch_keys=()):
+    """Full daily series for every listed name and index (the main packet only carries 120-day sparklines).
+    branch_keys: unpriced names also get both feasible branches per coupon per day ([date, above_coupon, below_coupon])."""
     series = bank.get("series") or {}
     meta = bank.get("meta") or {}
     out = {}
@@ -224,7 +225,14 @@ def build_history(bank, as_of_iso, long_block, keys):
         if not s:
             continue
         pts = [[d, r["s"]] for d, r in sorted(s.items()) if r.get("s") is not None and d <= as_of_iso]
-        if pts:
-            out[key] = {"points": pts, "n": sum(r.get("n") or 0 for r in s.values()), "first": pts[0][0], "last": pts[-1][0],
+        branches = {}
+        if key in branch_keys:
+            for d, r in sorted(s.items()):
+                for c, pair in (r.get("cd") or {}).items():
+                    branches.setdefault(c, []).append([d, pair[0], pair[1]])
+        if pts or branches:
+            out[key] = {"points": pts, "n": sum(r.get("n") or 0 for r in s.values()), "first": pts[0][0] if pts else None, "last": pts[-1][0] if pts else None,
                         "raw": (meta.get(key) or {}).get("raw")}
+            if branches:
+                out[key]["branches"] = branches
     return {"engine": "justhodl-cds-desk", "as_of": as_of_iso, "names": out, "long": long_block}
