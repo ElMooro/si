@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "aws/shared"))
 sys.path.insert(0, str(HERE.parent / "source"))
 
 import cds_desk as C  # noqa: E402
+import cds_long_context as LC  # noqa: E402
 
 # boto3 is not needed for these tests; stub it so the handler module imports without AWS.
 if "boto3" not in sys.modules:
@@ -246,7 +247,7 @@ def test_stale_levels_are_listed_not_shown_as_current():
     packet = C.build_packet(bank, days[-1], "2026-09-29T00:00:00Z")
     sov = packet["groups"]["sovereign"]
     assert not sov["rows"], "a 3-week-old level must not be shown as current"
-    assert sov["unpriced"] and sov["unpriced"][0]["last_date"] == days[2] and sov["unpriced"][0]["last_spread_bp"] == 400
+    assert sov["unpriced"] and sov["unpriced"][0]["last_priced_date"] == days[2] and sov["unpriced"][0]["last_spread_bp"] == 400 and sov["unpriced"][0]["last_date"] == days[-1]
     # dated changes: a 1-day change is never computed across a gap
     key = C.normalize_name("Federative Republic of Brazil")
     m = C.measure_entity(key, bank["series"][key], days[-1])
@@ -254,6 +255,55 @@ def test_stale_levels_are_listed_not_shown_as_current():
     series = dict(bank["series"][key]); series.pop(days[1])
     m2 = C.measure_entity(key, series, days[-1])
     assert m2["chg_1d_bp"] is None or (C.date.fromisoformat(days[2]) - C.date.fromisoformat(days[0])).days <= 5
+
+
+def test_unpriced_records_carry_both_branches_and_packet_has_expansion_blocks():
+    bank = {"version": C.VERSION, "series": {}, "meta": {}, "entity_map": {}, "days": []}
+    emap = {}
+    days = ["2026-09-%02d" % d for d in range(1, 29) if C.date(2026, 9, d).weekday() < 5]
+    for day in days:
+        ts = [C.normalize_trade(derived_row(900, coupon_bp=500.0, day=day), "sec") for _ in range(3)]
+        emap = C.entity_map(ts, emap)
+        C.update_bank(bank, day, C.aggregate_day(ts, emap, RATE, {}), emap)
+    packet = C.build_packet(bank, days[-1], "2026-09-29T00:00:00Z")
+    u = packet["groups"]["sovereign"]["unpriced"][0]
+    assert u["candidates"] and u["candidates"][0]["coupon_bp"] == 500
+    assert u["candidates"][0]["above_coupon_bp"] > 500 > u["candidates"][0]["below_coupon_bp"]
+    assert u["days_active_30d"] >= 15 and u["last_date"] == days[-1]
+    for k in ("term", "wides_1y", "tights_1y", "activity"):
+        assert k in packet, k
+    assert packet["activity"]["columns"][0] == "date" and len(packet["activity"]["rows"]) == len(days)
+    assert packet["decision"]["call"] is None
+
+
+def test_long_context_parsers_weekly_and_mapping():
+    fred_txt = "observation_date,BAA10Y\n" + "\n".join("%s,%s" % (d, v) for d, v in [("2008-12-01", "6.0"), ("2008-12-02", "6.1"), ("2026-09-01", "1.5"), ("2026-09-02", "."), ("2026-09-03", "1.6")])
+    baa = LC.parse_fred_csv(fred_txt)
+    assert baa == {"2008-12-01": 6.0, "2008-12-02": 6.1, "2026-09-01": 1.5, "2026-09-03": 1.6}
+    assert LC.weekly(baa, scale=100, nd=0) == [["2008-12-02", 610.0], ["2026-09-03", 160.0]]
+    ofr = LC.parse_ofr_csv("Date,OFR FSI,Credit,Equity valuation,Safe assets,Funding,Volatility,United States,Other advanced economies,Emerging markets\n2020-03-16,10.1,2.5,1,1,1,3,7,2,1.2\n")
+    assert ofr["ofr_credit"] == {"2020-03-16": 2.5} and ofr["ofr_em"] == {"2020-03-16": 1.2}
+    ebp = LC.parse_ebp_csv("date,gz_spread,ebp,est_prob\n2008-12-01,7.9,3.4,0.9\n")
+    assert ebp["gz_spread"]["2008-12-01"] == 7.9
+    # mapping: an exact line is recovered, and a thin overlap is refused
+    fit = LC.fit_map([float(i) for i in range(40)], [10 + 2.0 * i for i in range(40)])
+    assert fit["a"] == 10 and fit["b"] == 2 and fit["r2"] == 1 and fit["n"] == 40
+    assert LC.fit_map([1.0, 2.0], [1.0, 2.0]) is None
+    assert LC.pct_rank([1, 2, 3, 4], 3) == 75.0
+    # full block with a synthetic bank overlap
+    series = {}
+    for i, v in enumerate(range(50, 90)):
+        d = (C.date(2026, 8, 1) + C.timedelta(days=i)).isoformat()
+        series[d] = {"s": float(v), "n": 3}
+        baa[d] = 1.0 + 0.01 * v
+    bank = {"series": {"IDX:CDX.NA.IG": series}, "meta": {}}
+    block = LC.build_long_context({"BAA10Y": baa}, ofr, ebp, bank, "2026-09-09")
+    m = block["series"]["baa10y"]["cdx_ig_map"]
+    assert m["fit"]["n"] == 40 and m["fit"]["r2"] > 0.99 and m["mapped_baa10y_bp"] == 189
+    assert block["series"]["baa10y"]["peaks"][0]["episode"].startswith("GFC") and block["series"]["baa10y"]["peaks"][0]["value"] == 610
+    assert block["series"]["gz_spread"]["last"]["value"] == 790 and "ofr_em" in block["series"]
+    hist = LC.build_history(bank, "2026-09-09", block, ["IDX:CDX.NA.IG"])
+    assert len(hist["names"]["IDX:CDX.NA.IG"]["points"]) == 40 and hist["long"] is block
 
 
 if __name__ == "__main__":

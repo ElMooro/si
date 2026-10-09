@@ -62,6 +62,16 @@ main{padding:20px;max-width:1600px;margin:0 auto;}
 .panel h3 .tag{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400;letter-spacing:.5px;}
 
 /* TABLES */
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap;}
+th.sortable:hover{color:var(--text);}
+th.sortable .sort-ind{opacity:.45;font-size:9px;margin-left:3px;}
+th.sortable.sorted .sort-ind{opacity:1;color:var(--info);}
+.csv-btn{background:transparent;border:1px solid var(--border);color:var(--text-mute);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.4px;border-radius:3px;padding:2px 6px;cursor:pointer;margin-left:8px;}
+.csv-btn:hover{color:var(--text);border-color:var(--border-hi);}
+.cds-clickable{cursor:pointer;text-decoration:underline dotted rgba(34,211,238,.45);text-underline-offset:3px;}
+.cds-clickable:hover{color:var(--text);}
+.seg-btn{background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;border-radius:3px;padding:3px 8px;cursor:pointer;}
+.seg-btn.active{color:var(--info);border-color:var(--info);}
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{text-align:left;padding:8px 10px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute);font-weight:500;border-bottom:1px solid var(--border);}
 td{padding:8px 10px;border-bottom:1px solid rgba(28,35,48,.5);font-family:var(--font-mono);}
@@ -279,8 +289,14 @@ tr:hover td{background:rgba(255,255,255,.015);}
   <div class="tab-pane" id="pane-cds">
     <div class="kpi-grid" id="cdsdesk-kpis"><div class="loading spin">loading cds-desk</div></div>
     <div class="panel">
-      <h3>Index strip <span class="tag">on-the-run 5Y · median of the day's quoted prints</span></h3>
+      <h3>Index strip <span class="tag">on-the-run 5Y · median of the day's quoted prints · click a name for full history</span></h3>
       <div id="cdsdesk-indices"></div>
+    </div>
+    <div class="panel">
+      <h3>Where today sits vs 2006 → <span class="tag" id="cdsdesk-long-tag">weekly · free government records that still carry 2008 · loading…</span></h3>
+      <div id="cdsdesk-long-ctl" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div>
+      <div id="cdsdesk-long"></div>
+      <div id="cdsdesk-long-peaks" style="margin-top:10px"></div>
     </div>
     <div class="panel">
       <h3>Sovereign 5Y CDS <span class="tag" id="cdsdesk-sov-tag">liquid names · USD senior</span></h3>
@@ -292,14 +308,38 @@ tr:hover td{background:rgba(255,255,255,.015);}
       <div id="cdsdesk-us"></div>
     </div>
     <div class="panel">
-      <h3>Biggest 1-day moves <span class="tag">bp, last print vs prior priced day · names under 1000bp</span></h3>
-      <div id="cdsdesk-movers"></div>
-    </div>
-    <div class="panel">
-      <h3>Active but unpriced <span class="tag">prints seen, upfront sign unresolved or last level older than 10 days</span></h3>
+      <h3>Active but unpriced <span class="tag" id="cdsdesk-unpriced-tag">prints seen, upfront sign unresolved or last level older than 10 days</span></h3>
       <div id="cdsdesk-unpriced"></div>
     </div>
-    <div class="interp" id="cdsdesk-interp"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px">
+      <div class="panel" style="margin-bottom:0">
+        <h3>Biggest 1-day moves <span class="tag">bp vs prior priced day · under 1000bp</span></h3>
+        <div id="cdsdesk-movers"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <h3>At 1-year wides <span class="tag">≥95th pct of own priced days · ≥60 days</span></h3>
+        <div id="cdsdesk-wides"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <h3>At 1-year tights <span class="tag">≤5th pct of own priced days</span></h3>
+        <div id="cdsdesk-tights"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <h3>Inverted curves <span class="tag" id="cdsdesk-term-tag">1Y above 5Y on the same day's sign-fixed prints</span></h3>
+        <div id="cdsdesk-term"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-top:14px">
+      <div class="panel" style="margin-bottom:0">
+        <h3>CDS − bond basis <span class="tag">CDX vs ICE BofA cash OAS · bp · 1y</span></h3>
+        <div id="cdsdesk-basis"></div>
+      </div>
+      <div class="panel" style="margin-bottom:0">
+        <h3>Tape activity <span class="tag">single-name prints per file day · 120d</span></h3>
+        <div id="cdsdesk-activity"></div>
+      </div>
+    </div>
+    <div class="interp" id="cdsdesk-interp" style="margin-top:14px"></div>
     <details class="panel" style="margin-top:6px">
       <summary style="cursor:pointer;font-family:var(--font-mono);font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px">Legacy FRED credit proxies (HY / IG OAS) — not CDS prints</summary>
       <div style="margin-top:14px">
@@ -309,6 +349,12 @@ tr:hover td{background:rgba(255,255,255,.015);}
         <div class="interp" id="cds-interp"></div>
       </div>
     </details>
+    <div id="cdsdesk-modal" style="display:none;position:fixed;inset:0;background:rgba(5,8,12,.78);z-index:50;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true">
+      <div class="panel" style="max-width:980px;width:100%;margin:0;max-height:90vh;overflow:auto">
+        <h3><span id="cdsdesk-modal-title">history</span><span class="tag"><button type="button" id="cdsdesk-modal-close" class="csv-btn">close ✕</button></span></h3>
+        <div id="cdsdesk-modal-body"></div>
+      </div>
+    </div>
   </div>
 
   <!-- BOND TRACE -->
@@ -401,6 +447,7 @@ const ENDPOINTS = {
   heatmap: 'data/sector-heatmap.json',
   cds: 'data/cds-proxy.json',
   cdsdesk: 'data/cds-desk.json',
+  cdshist: 'data/cds-desk-history.json',
   bondtrace: 'data/bond-trace.json',
   tic: 'data/tic-flows.json',
   consensus: 'data/analyst-consensus.json',
@@ -841,13 +888,175 @@ function renderCDS(d) {
 }
 
 // ─── CDS DESK (DTCC public prints) ─────────────────────────────────
+// ─── TABLE TOOLS: click-to-sort on every header, CSV export on every table ───
+// Every <th> on the page becomes a sort control (numeric-aware: "+12.3", "59bp", "87th", "1,234", "—" sort last);
+// first click descending, second ascending. Idempotent: safe to call after every render.
+function enhanceTables(root) {
+  (root || document).querySelectorAll('table').forEach(tbl => {
+    if (!tbl.tBodies.length || !tbl.tHead) return;
+    tbl.tHead.querySelectorAll('th').forEach((th, i) => {
+      if (th.classList.contains('sortable')) return;
+      th.classList.add('sortable');
+      th.dataset.col = i;
+      th.title = (th.title ? th.title + ' · ' : '') + 'click to sort (asc/desc)';
+      th.insertAdjacentHTML('beforeend', '<span class="sort-ind">⇅</span>');
+    });
+    const panel = tbl.closest('.panel');
+    const h3 = panel && panel.querySelector(':scope > h3');
+    if (h3 && !h3.querySelector('.csv-btn[data-csv]') && panel.querySelectorAll('table').length === 1) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'csv-btn'; b.dataset.csv = '1'; b.textContent = '⇩ csv';
+      b.title = 'download this table as CSV (current sort order)';
+      (h3.querySelector('.tag') || h3).appendChild(b);
+    }
+  });
+}
+function sortTableBy(th) {
+  const tbl = th.closest('table'), col = +th.dataset.col, body = tbl.tBodies[0];
+  if (!body) return;
+  const dir = th.dataset.dir === 'desc' ? 'asc' : 'desc';
+  tbl.tHead.querySelectorAll('th').forEach(x => { x.classList.remove('sorted'); if (x !== th) delete x.dataset.dir; const ind = x.querySelector('.sort-ind'); if (ind) ind.textContent = '⇅'; });
+  th.dataset.dir = dir; th.classList.add('sorted'); const ind = th.querySelector('.sort-ind'); if (ind) ind.textContent = dir === 'desc' ? '▼' : '▲';
+  const rows = [...body.rows].filter(r => r.cells.length > 1);
+  const parse = td => {
+    if (!td) return { n: NaN, s: '' };
+    const raw = (td.dataset.sort != null ? td.dataset.sort : td.textContent).trim();
+    if (raw === '' || raw === '—' || raw === '-') return { n: NaN, s: '' };
+    const m = raw.replace(/,/g, '').match(/^[+\-−]?\d+(\.\d+)?/);
+    if (m && !/^\d{4}-\d{2}-\d{2}/.test(raw)) return { n: parseFloat(m[0].replace('−', '-')), s: raw.toLowerCase() };
+    return { n: NaN, s: raw.toLowerCase() };
+  };
+  const vals = rows.map(r => parse(r.cells[col]));
+  const numeric = vals.filter(v => !Number.isNaN(v.n)).length >= Math.max(1, vals.filter(v => v.s !== '').length / 2);
+  const idx = rows.map((_, i) => i);
+  idx.sort((a, b) => {
+    const va = vals[a], vb = vals[b];
+    if (numeric) {
+      const na = Number.isNaN(va.n), nb = Number.isNaN(vb.n);
+      if (na && nb) return 0; if (na) return 1; if (nb) return -1;      // blanks always last
+      return dir === 'desc' ? vb.n - va.n : va.n - vb.n;
+    }
+    if (va.s === '' && vb.s === '') return 0; if (va.s === '') return 1; if (vb.s === '') return -1;
+    return dir === 'desc' ? vb.s.localeCompare(va.s) : va.s.localeCompare(vb.s);
+  });
+  idx.forEach(i => body.appendChild(rows[i]));
+}
+function tableToCsv(tbl) {
+  const cell = td => { const t = (td.dataset.sort != null ? td.dataset.sort : td.textContent).replace(/\s+/g, ' ').trim(); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const head = [...tbl.tHead.rows[0].cells].map(th => cell({ textContent: th.textContent.replace(/[⇅▼▲]/g, ''), dataset: {} }));
+  const lines = [head.join(',')];
+  [...tbl.tBodies[0].rows].forEach(r => { if (r.cells.length > 1) lines.push([...r.cells].map(cell).join(',')); });
+  return lines.join('\n');
+}
+document.addEventListener('click', e => {
+  const th = e.target.closest('th.sortable');
+  if (th) { sortTableBy(th); return; }
+  const btn = e.target.closest('.csv-btn[data-csv]');
+  if (btn) {
+    const panel = btn.closest('.panel'), tbl = panel && panel.querySelector('table');
+    if (!tbl) return;
+    const name = (panel.querySelector('h3') ? panel.querySelector('h3').childNodes[0].textContent : 'table').trim().replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    const blob = new Blob([tableToCsv(tbl)], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `justhodl-${name}-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+});
+
+// ─── CDS DESK ───────────────────────────────────────────────────────
+const CDS = { packet: null, history: null, historyPromise: null, longKey: 'baa10y' };
+const cdsEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const cdsFin = v => typeof v === 'number' && Number.isFinite(v);
+// Time-axis SVG line chart: pts = [[iso, value]], opts {h, markers:[{date,value,label}], hline:{value,label}, unit, color, bars}
+function cdsLineChart(pts, opts) {
+  opts = opts || {};
+  const W = 920, H = opts.h || 240, L = 54, R = 16, T = 18, B = 30;
+  const data = (pts || []).filter(p => Array.isArray(p) && cdsFin(p[1]));
+  if (data.length < 2) return '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">not enough points</div>';
+  const t0 = Date.parse(data[0][0]), t1 = Date.parse(data[data.length - 1][0]);
+  const ys = data.map(p => p[1]).concat(opts.hline && cdsFin(opts.hline.value) ? [opts.hline.value] : []).concat((opts.markers || []).map(m => m.value).filter(cdsFin));
+  let lo = Math.min(...ys), hi = Math.max(...ys); if (hi === lo) { hi += 1; lo -= 1; }
+  const pad = (hi - lo) * 0.08; lo = opts.bars ? Math.min(0, lo) : lo - pad; hi += pad;
+  const x = t => L + (t - t0) / Math.max(1, t1 - t0) * (W - L - R), y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  const fmt = v => Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+  let g = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;font-family:var(--font-mono)" role="img" aria-label="${cdsEsc(opts.label || 'time series')}">`;
+  // y grid
+  for (let i = 0; i <= 4; i++) { const v = lo + (hi - lo) * i / 4, yy = y(v); g += `<line x1="${L}" x2="${W - R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="rgba(28,35,48,.9)" stroke-width="1"/><text x="${L - 6}" y="${(yy + 3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#5b6479">${fmt(v)}</text>`; }
+  // x ticks: years
+  const y0 = new Date(t0).getUTCFullYear(), y1 = new Date(t1).getUTCFullYear(), step = (y1 - y0) > 12 ? 2 : 1;
+  for (let yr = y0 + 1; yr <= y1; yr++) { if ((yr - y0) % step) continue; const xx = x(Date.UTC(yr, 0, 1)); if (xx < L || xx > W - R) continue; g += `<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${T}" y2="${H - B}" stroke="rgba(28,35,48,.6)"/><text x="${xx.toFixed(1)}" y="${H - B + 14}" text-anchor="middle" font-size="9.5" fill="#5b6479">${(y1 - y0) > 3 ? yr : new Date(Date.UTC(yr, 0, 1)).toISOString().slice(0, 7)}</text>`; }
+  if ((y1 - y0) <= 3) { // month ticks for short windows
+    for (let t = new Date(t0); t.getTime() <= t1; t.setUTCMonth(t.getUTCMonth() + 1, 1)) { const tt = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1); if (tt < t0) continue; const xx = x(tt); g += `<line x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${T}" y2="${H - B}" stroke="rgba(28,35,48,.6)"/><text x="${xx.toFixed(1)}" y="${H - B + 14}" text-anchor="middle" font-size="9" fill="#5b6479">${new Date(tt).toISOString().slice(2, 7)}</text>`; }
+  }
+  const color = opts.color || 'var(--info)';
+  if (opts.bars) {
+    const bw = Math.max(1, (W - L - R) / data.length - 1);
+    data.forEach(p => { const xx = x(Date.parse(p[0])), yy = y(p[1]); g += `<rect x="${(xx - bw / 2).toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${(y(Math.max(lo, 0)) - yy).toFixed(1)}" fill="${color}" opacity=".7"><title>${p[0]}: ${fmt(p[1])}</title></rect>`; });
+  } else {
+    const path = data.map((p, i) => `${i ? 'L' : 'M'}${x(Date.parse(p[0])).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+    g += `<path d="${path} L${x(t1).toFixed(1)},${y(lo).toFixed(1)} L${x(t0).toFixed(1)},${y(lo).toFixed(1)} Z" fill="${color}" opacity=".07"/><path d="${path}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
+    if (opts.series2 && opts.series2.length > 1) { const p2 = opts.series2.filter(p => cdsFin(p[1])).map((p, i) => `${i ? 'L' : 'M'}${x(Date.parse(p[0])).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' '); g += `<path d="${p2}" fill="none" stroke="${opts.color2 || 'var(--gold)'}" stroke-width="1.1" stroke-dasharray="3 2"/>`; }
+  }
+  (opts.markers || []).forEach(m => { if (!cdsFin(m.value) || !m.date) return; const xx = x(Date.parse(m.date)), yy = y(m.value); const anchor = xx > W - 150 ? 'end' : 'start'; g += `<circle cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" r="3" fill="var(--neg)"/><text x="${(xx + (anchor === 'end' ? -6 : 6)).toFixed(1)}" y="${(yy - 5).toFixed(1)}" text-anchor="${anchor}" font-size="9.5" fill="#ff3d5a">${cdsEsc(m.label)} ${fmt(m.value)}</text>`; });
+  if (opts.hline && cdsFin(opts.hline.value)) { const yy = y(opts.hline.value); g += `<line x1="${L}" x2="${W - R}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="var(--gold)" stroke-width="1" stroke-dasharray="5 4"/><text x="${W - R}" y="${(yy - 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#f5c451">${cdsEsc(opts.hline.label)}</text>`; }
+  const last = data[data.length - 1]; g += `<circle cx="${x(Date.parse(last[0])).toFixed(1)}" cy="${y(last[1]).toFixed(1)}" r="2.8" fill="${color}"/>`;
+  return g + '</svg>';
+}
+async function cdsLoadHistory() {
+  if (CDS.history) return CDS.history;
+  if (!CDS.historyPromise) CDS.historyPromise = fetchJson(ENDPOINTS.cdshist).then(h => { CDS.history = h; return h; });
+  return CDS.historyPromise;
+}
+const CDS_LONG_ORDER = [['baa10y', 'Baa − 10Y (Moody\'s)'], ['ofr_credit', 'OFR credit stress'], ['ofr_em', 'OFR emerging markets'], ['gz_spread', 'GZ credit spread'], ['ebp', 'Excess bond premium'], ['ofr_fsi', 'OFR FSI (total)'], ['aaa10y', 'Aaa − 10Y'], ['ofr_funding', 'OFR funding'], ['ofr_vol', 'OFR volatility']];
+function renderCDSLong(h) {
+  const tag = document.getElementById('cdsdesk-long-tag'), ctl = document.getElementById('cdsdesk-long-ctl'), box = document.getElementById('cdsdesk-long'), pk = document.getElementById('cdsdesk-long-peaks');
+  const long = h && h.long, ser = long && long.series || {};
+  if (!Object.keys(ser).length) { tag.textContent = 'history file not published yet'; box.innerHTML = '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">data/cds-desk-history.json will appear after the next engine run' + (h && h.long && h.long.notes ? ' · ' + cdsEsc(h.long.notes.join('; ')) : '') + '</div>'; return; }
+  const avail = CDS_LONG_ORDER.filter(([k]) => ser[k]);
+  if (!ser[CDS.longKey]) CDS.longKey = avail[0][0];
+  ctl.innerHTML = avail.map(([k, lab]) => `<button type="button" class="seg-btn${k === CDS.longKey ? ' active' : ''}" data-long="${k}">${lab}</button>`).join('');
+  ctl.querySelectorAll('[data-long]').forEach(b => b.addEventListener('click', () => { CDS.longKey = b.dataset.long; renderCDSLong(h); }));
+  const s = ser[CDS.longKey], map = s.cdx_ig_map, unit = s.unit || '';
+  const markers = (s.peaks || []).map(p => ({ date: p.date, value: p.value, label: p.episode.replace(/ \d{4}.*$/, '') }));
+  const hline = map && cdsFin(map.mapped_baa10y_bp) && map.usable ? { value: map.mapped_baa10y_bp, label: `CDX IG ${map.cdx_ig_bp}bp ≈ ${map.mapped_baa10y_bp}bp here` } : null;
+  tag.textContent = `${s.name} · ${s.source} · last ${s.last.date}`;
+  box.innerHTML = cdsLineChart(s.points, { h: 250, markers, hline, color: 'var(--info)', label: s.name });
+  const pct = v => { if (!cdsFin(v)) return '—'; const n = Math.round(v), t = n % 10, hh = n % 100; return n + ((hh >= 11 && hh <= 13) ? 'th' : t === 1 ? 'st' : t === 2 ? 'nd' : t === 3 ? 'rd' : 'th'); };
+  const gfc = (s.peaks || []).find(p => p.episode.startsWith('GFC'));
+  let read = `<b>${cdsEsc(s.name)}</b> is <b>${s.last.value}</b> ${cdsEsc(unit)} (${s.last.date}) — the <b>${pct(s.pct_rank_since_2006)} percentile</b> of every week since 2006${gfc ? `, ${(100 * s.last.value / gfc.value).toFixed(0)}% of its 2008 peak (${gfc.value} on ${gfc.date})` : ''}.`;
+  if (map) read += ` Mapping the live CDX IG print (${map.cdx_ig_bp}bp on ${map.cdx_ig_date}) onto this record with a straight-line fit over the ${map.fit.n}-day overlap (r² ${map.fit.r2}${map.usable ? '' : ' — too weak to lean on'}) puts it at <b>${map.mapped_baa10y_bp}bp</b>, the <b>${pct(map.pct_rank_since_2006)} percentile</b> since 2006${cdsFin(map.share_of_gfc_peak) ? ` and ${(100 * map.share_of_gfc_peak).toFixed(0)}% of the GFC peak` : ''}.`;
+  pk.innerHTML = `<table><thead><tr><th>Episode</th><th>Peak date</th><th>Peak</th><th>Today</th><th>Today / peak</th></tr></thead><tbody>${(s.peaks || []).map(p => `<tr><td class="t-info">${cdsEsc(p.episode)}</td><td class="t-mute">${p.date}</td><td><b>${p.value}</b></td><td>${s.last.value}</td><td>${p.value ? (100 * s.last.value / p.value).toFixed(0) + '%' : '—'}</td></tr>`).join('')}</tbody></table>
+    <div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">${read}<br>${(long.limits || []).map(cdsEsc).join(' · ')}</div>`;
+  enhanceTables(pk);
+}
+function cdsOpenHistory(key, name) {
+  const modal = document.getElementById('cdsdesk-modal'), body = document.getElementById('cdsdesk-modal-body'), title = document.getElementById('cdsdesk-modal-title');
+  title.textContent = `${name} · 5Y CDS, every priced day in the bank`;
+  body.innerHTML = '<div class="loading spin">loading history</div>';
+  modal.style.display = 'flex';
+  cdsLoadHistory().then(h => {
+    const s = h && h.names && h.names[key];
+    if (!s) { body.innerHTML = '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">no stored history for this name yet (file not published or name not liquid)</div>'; return; }
+    const ys = s.points.map(p => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), last = s.points[s.points.length - 1];
+    const loD = s.points[ys.indexOf(lo)][0], hiD = s.points[ys.indexOf(hi)][0];
+    body.innerHTML = cdsLineChart(s.points, { h: 280, color: 'var(--info)', label: name, markers: [{ date: hiD, value: hi, label: 'high' }] }) +
+      `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><span class="pill info">last ${last[1]}bp · ${last[0]}</span><span class="pill mute">${s.points.length} priced days · ${s.first} → ${s.last}</span><span class="pill neg">high ${hi}bp · ${hiD}</span><span class="pill pos">low ${lo}bp · ${loD}</span><span class="pill mute">${s.n} prints in bank</span></div>
+       <div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">Daily medians from DTCC public prints since the bank starts (${cdsEsc(h.as_of ? 'as of ' + h.as_of : '')}). Gaps are days with no print whose upfront sign could be resolved.</div>`;
+  });
+}
+document.addEventListener('click', e => {
+  const n = e.target.closest('.cds-clickable[data-key]');
+  if (n) { cdsOpenHistory(n.dataset.key, n.dataset.name || n.textContent); return; }
+  if (e.target.id === 'cdsdesk-modal-close' || e.target.id === 'cdsdesk-modal') document.getElementById('cdsdesk-modal').style.display = 'none';
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const m = document.getElementById('cdsdesk-modal'); if (m) m.style.display = 'none'; } });
+
 function renderCDSDesk(d) {
-  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const fin = v => typeof v === 'number' && Number.isFinite(v);
+  const esc = cdsEsc, fin = cdsFin;
   const bp = (v, dp=0) => fin(v) ? v.toFixed(dp) : '—';
+  const sgn = (v, dp=1) => fin(v) ? (v > 0 ? '+' : '') + v.toFixed(dp) : '—';
   const chg = v => fin(v) ? `<span class="${v>0?'t-neg':v<0?'t-pos':'t-mute'}">${v>0?'+':''}${v.toFixed(1)}</span>` : '<span class="t-mute">—</span>';
   const pct = v => { if (!fin(v)) return '—'; const n = Math.round(v), t = n % 10, h = n % 100; return n + ((h >= 11 && h <= 13) ? 'th' : t === 1 ? 'st' : t === 2 ? 'nd' : t === 3 ? 'rd' : 'th'); };
   const z = v => fin(v) ? `<span class="${v>=2?'t-neg':v<=-2?'t-pos':''}">${v>0?'+':''}${v.toFixed(1)}</span>` : '—';
+  const sd = v => fin(v) ? ` data-sort="${v}"` : ' data-sort=""';
   const spark = pts => {
     if (!Array.isArray(pts) || pts.length < 2) return '';
     const ys = pts.map(p => p[1]).filter(fin); if (ys.length < 2) return '';
@@ -856,6 +1065,7 @@ function renderCDSDesk(d) {
     const up = ys[n - 1] > ys[0];
     return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${path}" fill="none" stroke="${up ? 'var(--neg)' : 'var(--pos)'}" stroke-width="1.2"/></svg>`;
   };
+  const sparkChg = pts => { if (!Array.isArray(pts) || pts.length < 2) return null; const ys = pts.map(p => p[1]).filter(fin); return ys.length < 2 ? null : ys[ys.length - 1] - ys[0]; };
   const basisPill = r => {
     const b = r.spread_basis, ev = r.sign_evidence;
     if (b === 'quoted') return '<span class="pill pos">quoted</span>';
@@ -863,41 +1073,89 @@ function renderCDSDesk(d) {
     if (b === 'derived') return ev === 'inferred' ? '<span class="pill warning">derived · curve-inferred sign</span>' : '<span class="pill gold">derived</span>';
     return '<span class="pill mute">—</span>';
   };
+  const nameCell = (r, label) => `<td class="t-info cds-clickable" data-key="${esc(r.key)}" data-name="${esc(label || r.name)}" title="click: full history">${esc(label || r.name)}</td>`;
   const level = r => fin(r.points_upfront) ? `${bp(r.points_upfront,1)} pts <span class="t-mute">(${bp(r.spread_bp)}bp eq.)</span>` : bp(r.spread_bp,1);
   const kp = document.getElementById('cdsdesk-kpis');
   if (!d || !d.groups) {
     kp.innerHTML = '<div class="kpi warning"><div class="label">CDS desk</div><div class="val">Unavailable</div><div class="sub">data/cds-desk.json not published yet</div></div>';
     return;
   }
-  const g = d.groups, sov = g.sovereign || {}, us = g.us_corp || {}, gl = g.global_corp || {}, br = d.breadth || {};
+  CDS.packet = d;
+  const g = d.groups, sov = g.sovereign || {}, us = g.us_corp || {}, gl = g.global_corp || {}, br = d.breadth || {}, hist = d.history || {}, term = d.term || {};
   const idx = Object.fromEntries((d.indices || []).map(i => [i.key, i]));
   const ig = idx['CDX.NA.IG'], hy = idx['CDX.NA.HY'];
   const widerShare = fin(br.n) && br.n ? Math.round(100 * br.wider / br.n) : null;
+  const map = hist.cdx_ig_vs_2006, bh = hist.basis && hist.basis.hy, bi = hist.basis && hist.basis.ig;
   kp.innerHTML = `
-    <div class="kpi ${widerShare == null ? 'info' : widerShare >= 65 ? 'neg' : widerShare <= 35 ? 'pos' : 'gold'}"><div class="label">Breadth (1d)</div><div class="val">${widerShare == null ? '—' : widerShare + '% wider'}</div><div class="sub">${br.wider ?? 0} wider · ${br.tighter ?? 0} tighter · median ${fin(br.median_chg_1d_bp) ? (br.median_chg_1d_bp > 0 ? '+' : '') + br.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
-    <div class="kpi accent"><div class="label">Sovereign median</div><div class="val">${bp(sov.median_bp)}bp</div><div class="sub">${sov.n_liquid ?? 0} liquid names · 1d median ${fin(sov.median_chg_1d_bp) ? (sov.median_chg_1d_bp > 0 ? '+' : '') + sov.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
-    <div class="kpi info"><div class="label">U.S. corp median</div><div class="val">${bp(us.median_bp)}bp</div><div class="sub">${us.n_liquid ?? 0} liquid names · 1d median ${fin(us.median_chg_1d_bp) ? (us.median_chg_1d_bp > 0 ? '+' : '') + us.median_chg_1d_bp.toFixed(1) : '—'}bp</div></div>
-    <div class="kpi gold"><div class="label">CDX IG / HY</div><div class="val">${ig ? bp(ig.spread_bp,1) : '—'} / ${hy ? bp(hy.spread_bp) : '—'}</div><div class="sub">${ig ? `IG ${ig.n_last} prints` : ''}${hy ? ` · HY px ${bp(hy.price,2)} (${hy.n_last} prints)` : ''}</div></div>
+    <div class="kpi ${widerShare == null ? 'info' : widerShare >= 65 ? 'neg' : widerShare <= 35 ? 'pos' : 'gold'}"><div class="label">Breadth (1d)</div><div class="val">${widerShare == null ? '—' : widerShare + '% wider'}</div><div class="sub">${br.wider ?? 0} wider · ${br.tighter ?? 0} tighter · median ${sgn(br.median_chg_1d_bp)}bp</div></div>
+    <div class="kpi accent"><div class="label">Sovereign median</div><div class="val">${bp(sov.median_bp)}bp</div><div class="sub">${sov.n_liquid ?? 0} liquid names · 1d median ${sgn(sov.median_chg_1d_bp)}bp</div></div>
+    <div class="kpi info"><div class="label">U.S. corp median</div><div class="val">${bp(us.median_bp)}bp</div><div class="sub">${us.n_liquid ?? 0} liquid names · 1d median ${sgn(us.median_chg_1d_bp)}bp</div></div>
+    <div class="kpi gold"><div class="label">CDX IG / HY</div><div class="val">${ig ? bp(ig.spread_bp,1) : '—'} / ${hy ? bp(hy.spread_bp) : '—'}</div><div class="sub">${ig ? `IG ${pct(ig.pct_rank_1y)} pct 1y` : ''}${hy ? ` · HY px ${bp(hy.price,2)} · ${pct(hy.pct_rank_1y)} pct` : ''}</div></div>
+    <div class="kpi ${map && map.usable ? (map.pct_rank_since_2006 >= 75 ? 'neg' : map.pct_rank_since_2006 <= 25 ? 'pos' : 'gold') : 'info'}" id="cdsdesk-kpi-long"><div class="label">CDX IG vs 2006→</div><div class="val">${map && map.usable ? pct(map.pct_rank_since_2006) + ' pct' : '—'}</div><div class="sub">${map ? `≈ ${map.mapped_baa10y_bp}bp Baa−10Y · ${fin(map.share_of_gfc_peak) ? Math.round(100 * map.share_of_gfc_peak) + '% of 2008 peak' : ''} · fit r² ${map.fit ? map.fit.r2 : '—'}${map.usable ? '' : ' (weak)'}` : 'needs history file'}</div></div>
+    <div class="kpi ${bh ? (bh[1] < -40 ? 'warning' : 'info') : 'info'}" id="cdsdesk-kpi-basis"><div class="label">CDS − bond basis</div><div class="val">${bh ? sgn(bh[1], 0) : '—'}<span style="font-size:13px"> HY</span> ${bi ? sgn(bi[1], 0) : '—'}<span style="font-size:13px"> IG</span></div><div class="sub">${bh ? `CDX HY ${bp(bh[2])} vs HY OAS ${bp(bh[3])}bp · ${bh[0]}` : 'CDX vs ICE BofA cash OAS'}</div></div>
     <div class="kpi ${fin(br.n_z_over_2) && br.n_z_over_2 >= 10 ? 'warning' : 'info'}"><div class="label">Stretched names</div><div class="val">${br.n_z_over_2 ?? '—'}</div><div class="sub">≥2σ above own 90d mean · ${br.n_z_under_minus2 ?? 0} at ≤−2σ · ${fin(br.share_above_90d_mean) ? Math.round(br.share_above_90d_mean*100) + '% above mean' : ''}</div></div>
+    <div class="kpi ${(term.n_inverted || 0) >= 5 ? 'neg' : 'info'}"><div class="label">Inverted curves</div><div class="val">${term.n_inverted ?? '—'}<span style="font-size:13px"> / ${term.n_with_curve ?? '—'}</span></div><div class="sub">1Y above 5Y · ${(d.wides_1y || []).length} names at 1y wides · ${(d.tights_1y || []).length} at 1y tights</div></div>
   `;
   document.getElementById('cdsdesk-indices').innerHTML = `<div style="overflow-x:auto"><table>
-    <thead><tr><th>Index</th><th>5Y spread</th><th>Price</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>z 90d</th><th>Prints</th><th>Expiry</th><th>120d</th></tr></thead>
-    <tbody>${(d.indices || []).map(i => `<tr><td class="t-info">${esc(i.name)}</td><td><b>${bp(i.spread_bp,1)}</b></td><td>${bp(i.price,2)}</td><td>${chg(i.chg_1d_bp)}</td><td>${chg(i.chg_1w_bp)}</td><td>${chg(i.chg_1m_bp)}</td><td>${chg(i.chg_3m_bp)}</td><td>${pct(i.pct_rank_1y)}</td><td>${z(i.z_90d)}</td><td>${i.n_last ?? '—'}</td><td class="t-mute">${esc(i.expiry || '')}</td><td>${spark(i.spark)}</td></tr>`).join('') || '<tr><td colspan="12" class="t-mute">no index prints</td></tr>'}</tbody></table></div>`;
+    <thead><tr><th>Index</th><th>5Y spread</th><th>Price</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th>Prints</th><th>Expiry</th><th>120d</th></tr></thead>
+    <tbody>${(d.indices || []).map(i => `<tr>${nameCell({ key: 'IDX:' + i.key, name: i.name })}<td${sd(i.spread_bp)}><b>${bp(i.spread_bp,1)}</b></td><td${sd(i.price)}>${bp(i.price,2)}</td><td${sd(i.chg_1d_bp)}>${chg(i.chg_1d_bp)}</td><td${sd(i.chg_1w_bp)}>${chg(i.chg_1w_bp)}</td><td${sd(i.chg_1m_bp)}>${chg(i.chg_1m_bp)}</td><td${sd(i.chg_3m_bp)}>${chg(i.chg_3m_bp)}</td><td${sd(i.pct_rank_1y)}>${pct(i.pct_rank_1y)}</td><td${sd(i.hi_1y_bp)} class="t-mute">${bp(i.lo_1y_bp)}–${bp(i.hi_1y_bp)}</td><td${sd(i.z_90d)}>${z(i.z_90d)}</td><td>${i.n_last ?? '—'}</td><td class="t-mute">${esc(i.expiry || '')}</td><td${sd(sparkChg(i.spark))}>${spark(i.spark)}</td></tr>`).join('') || '<tr><td colspan="13" class="t-mute">no index prints</td></tr>'}</tbody></table></div>`;
   const nameTable = (rows, labelKey, labelHead) => `<div style="overflow-x:auto;max-height:560px;overflow-y:auto"><table>
-    <thead><tr><th>Name</th><th>${labelHead}</th><th>5Y</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>z 90d</th><th>Prints 30d</th><th>Last day</th><th>Basis</th><th>120d</th></tr></thead>
-    <tbody>${rows.map(r => `<tr title="${esc(r.read || '')}"><td class="t-info">${esc(r.name)}</td><td class="t-mute">${esc(r[labelKey] || '')}</td><td><b>${level(r)}</b></td><td>${chg(r.chg_1d_bp)}</td><td>${chg(r.chg_1w_bp)}</td><td>${chg(r.chg_1m_bp)}</td><td>${chg(r.chg_3m_bp)}</td><td>${pct(r.pct_rank_1y)}</td><td>${z(r.z_90d)}</td><td>${r.trades_30d ?? '—'}<span class="t-mute">/${r.days_active_30d ?? '—'}d</span></td><td class="t-mute">${esc((r.last_date || '').slice(5))} · ${r.n_last ?? 0}p${r.ambiguous_last ? ` <span title="prints with unresolved sign">(${r.ambiguous_last}?)</span>` : ''}</td><td>${basisPill(r)}</td><td>${spark(r.spark)}</td></tr>`).join('') || '<tr><td colspan="13" class="t-mute">no liquid names yet</td></tr>'}</tbody></table></div>`;
-  document.getElementById('cdsdesk-sov-tag').textContent = `${sov.n_liquid ?? 0} liquid of ${sov.n_tracked ?? 0} tracked · as of ${d.as_of || ''}`;
-  document.getElementById('cdsdesk-sov').innerHTML = (sov.regions && sov.regions.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${sov.regions.map(x => `<span class="pill mute">${esc(x.region)} · ${x.n} · med ${bp(x.median_bp)}bp · 1d ${fin(x.median_chg_1d_bp) ? (x.median_chg_1d_bp > 0 ? '+' : '') + x.median_chg_1d_bp.toFixed(1) : '—'}</span>`).join('')}</div>` : '') + nameTable(sov.rows || [], 'region', 'Region');
+    <thead><tr><th>Name</th><th>${labelHead}</th><th>5Y</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th title="5Y minus 1Y, same-day sign-fixed prints">5Y−1Y</th><th>Prints 30d</th><th>Days</th><th>Last day</th><th>Basis</th><th>120d</th></tr></thead>
+    <tbody>${rows.map(r => `<tr title="${esc(r.read || '')}">${nameCell(r)}<td class="t-mute">${esc(r[labelKey] || '')}</td><td${sd(r.spread_bp)}><b>${level(r)}</b></td><td${sd(r.chg_1d_bp)}>${chg(r.chg_1d_bp)}</td><td${sd(r.chg_1w_bp)}>${chg(r.chg_1w_bp)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td><td${sd(r.chg_3m_bp)}>${chg(r.chg_3m_bp)}</td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r.hi_1y_bp)} class="t-mute">${bp(r.lo_1y_bp)}–${bp(r.hi_1y_bp)}</td><td${sd(r.z_90d)}>${z(r.z_90d)}</td><td${sd(r.slope_1y5y_bp)}>${fin(r.slope_1y5y_bp) ? `<span class="${r.slope_1y5y_bp < 0 ? 't-neg' : ''}">${sgn(r.slope_1y5y_bp, 0)}</span>` : '<span class="t-mute">—</span>'}</td><td${sd(r.trades_30d)}>${r.trades_30d ?? '—'}</td><td${sd(r.days_active_30d)}>${r.days_active_30d ?? '—'}</td><td class="t-mute" data-sort="${esc(r.last_date || '')}">${esc((r.last_date || '').slice(5))} · ${r.n_last ?? 0}p${r.ambiguous_last ? ` <span title="prints with unresolved sign">(${r.ambiguous_last}?)</span>` : ''}</td><td data-sort="${esc(r.spread_basis || '')}">${basisPill(r)}</td><td${sd(sparkChg(r.spark))}>${spark(r.spark)}</td></tr>`).join('') || '<tr><td colspan="16" class="t-mute">no liquid names priced</td></tr>'}</tbody></table></div>`;
+  const chips = (arr, keyName) => arr && arr.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${arr.map(x => `<span class="pill mute" title="widest: ${esc(x.widest)}">${esc(x[keyName])} · ${x.n} · med ${bp(x.median_bp)}bp · 1d ${sgn(x.median_chg_1d_bp)}</span>`).join('')}</div>` : '';
+  document.getElementById('cdsdesk-sov-tag').textContent = `${sov.n_liquid ?? 0} liquid of ${sov.n_tracked ?? 0} tracked · as of ${d.as_of || ''} · click any header to sort, any name for history`;
+  document.getElementById('cdsdesk-sov').innerHTML = chips(sov.regions, 'region') + nameTable(sov.rows || [], 'region', 'Region');
   document.getElementById('cdsdesk-us-tag').textContent = `${us.n_liquid ?? 0} liquid of ${us.n_tracked ?? 0} tracked · global USD names: ${gl.n_liquid ?? 0} (median ${bp(gl.median_bp)}bp)`;
-  document.getElementById('cdsdesk-sectors').innerHTML = us.sectors && us.sectors.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${us.sectors.map(x => `<span class="pill mute" title="widest: ${esc(x.widest)}">${esc(x.sector)} · ${x.n} · med ${bp(x.median_bp)}bp · 1d ${fin(x.median_chg_1d_bp) ? (x.median_chg_1d_bp > 0 ? '+' : '') + x.median_chg_1d_bp.toFixed(1) : '—'}</span>`).join('')}</div>` : '';
+  document.getElementById('cdsdesk-sectors').innerHTML = chips(us.sectors, 'sector');
   document.getElementById('cdsdesk-us').innerHTML = nameTable(us.rows || [], 'sector', 'Sector');
+  // movers / wides / tights / inverted
+  const grpOf = { sovereign: 'Sov', us_corp: 'US', global_corp: 'Global' };
   const movers = [...(sov.movers_1d || []).map(m => ({...m, grp: 'Sov'})), ...(us.movers_1d || []).map(m => ({...m, grp: 'US'})), ...(gl.movers_1d || []).map(m => ({...m, grp: 'Global'}))]
     .filter(m => fin(m.chg_1d_bp)).sort((a, b) => Math.abs(b.chg_1d_bp) - Math.abs(a.chg_1d_bp)).slice(0, 12);
-  document.getElementById('cdsdesk-movers').innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>1d</th><th>Prints</th></tr></thead><tbody>${movers.map(m => `<tr><td class="t-info">${esc(m.name)}</td><td class="t-mute">${m.grp}</td><td>${bp(m.spread_bp,1)}</td><td>${chg(m.chg_1d_bp)}</td><td>${m.n_last ?? '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="t-mute">no priced moves</td></tr>'}</tbody></table>`;
-  const unp = [...(sov.unpriced || []).map(u => ({...u, grp: 'Sov'})), ...(us.unpriced || []).map(u => ({...u, grp: 'US'})), ...(gl.unpriced || []).map(u => ({...u, grp: 'Global'}))].sort((a, b) => b.trades_30d - a.trades_30d).slice(0, 24);
-  document.getElementById('cdsdesk-unpriced').innerHTML = unp.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">${unp.map(u => `<span class="pill mute" title="${esc(u.why || '')}">${esc(u.name)} · ${u.grp} · ${u.trades_30d} prints${fin(u.last_spread_bp) ? ` · last ${bp(u.last_spread_bp)}bp on ${esc(u.last_date || '')}` : ''}</span>`).join('')}</div><div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">These names trade, but every recent print carries an upfront whose payer is not disclosed and no quoted, two-coupon or single-branch evidence fixed the sign. Where an older priced level exists it is dated here instead of being shown as current. Listed rather than guessed.</div>` : '<span class="t-mute">every active name is priced</span>';
+  document.getElementById('cdsdesk-movers').innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>1d</th><th>Prints</th></tr></thead><tbody>${movers.map(m => `<tr>${nameCell(m)}<td class="t-mute">${m.grp}</td><td${sd(m.spread_bp)}>${bp(m.spread_bp,1)}</td><td${sd(m.chg_1d_bp)}>${chg(m.chg_1d_bp)}</td><td>${m.n_last ?? '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="t-mute">no priced moves</td></tr>'}</tbody></table>`;
+  const extremes = (arr, rangeKey, rangeHead) => `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>1y pct</th><th>${rangeHead}</th><th>1m</th></tr></thead><tbody>${(arr || []).map(r => `<tr>${nameCell(r)}<td class="t-mute">${grpOf[r.group] || r.group}</td><td${sd(r.spread_bp)}><b>${bp(r.spread_bp,1)}</b></td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r[rangeKey])}>${bp(r[rangeKey],1)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td></tr>`).join('') || `<tr><td colspan="6" class="t-mute">none today</td></tr>`}</tbody></table>`;
+  document.getElementById('cdsdesk-wides').innerHTML = extremes(d.wides_1y, 'hi_1y_bp', '1y high');
+  document.getElementById('cdsdesk-tights').innerHTML = extremes(d.tights_1y, 'lo_1y_bp', '1y low');
+  document.getElementById('cdsdesk-term-tag').textContent = `${term.n_inverted ?? 0} of ${term.n_with_curve ?? 0} names with a same-day 1Y print`;
+  document.getElementById('cdsdesk-term').innerHTML = `<table><thead><tr><th>Name</th><th>Group</th><th>5Y</th><th>5Y−1Y</th></tr></thead><tbody>${(term.inverted || []).map(r => `<tr>${nameCell(r)}<td class="t-mute">${grpOf[r.group] || r.group}</td><td${sd(r.spread_bp)}>${bp(r.spread_bp,1)}</td><td${sd(r.slope_1y5y_bp)}><span class="t-neg">${sgn(r.slope_1y5y_bp, 0)}</span></td></tr>`).join('') || '<tr><td colspan="4" class="t-mute">no inverted curves among names with a sign-fixed 1Y print</td></tr>'}</tbody></table><div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">${esc(term.note || '')}</div>`;
+  // unpriced: full table with both candidate branches
+  const unp = [...(sov.unpriced || []).map(u => ({...u, grp: 'Sov'})), ...(us.unpriced || []).map(u => ({...u, grp: 'US'})), ...(gl.unpriced || []).map(u => ({...u, grp: 'Global'}))].sort((a, b) => b.trades_30d - a.trades_30d);
+  document.getElementById('cdsdesk-unpriced-tag').textContent = `${unp.length} names · ${unp.filter(u => fin(u.last_spread_bp)).length} with a dated earlier level · sorted by prints`;
+  const cand = u => (u.candidates || []).length ? (u.candidates || []).map(c => `<span title="${c.days} days with two feasible branches at the ${c.coupon_bp}bp coupon">${bp(c.below_coupon_bp)} <span class="t-mute">or</span> ${bp(c.above_coupon_bp)} <span class="t-mute">@${c.coupon_bp}c</span></span>`).join('<br>') : '<span class="t-mute">—</span>';
+  const candSort = u => (u.candidates || []).length ? u.candidates[0].above_coupon_bp : null;
+  document.getElementById('cdsdesk-unpriced').innerHTML = unp.length ? `<div style="overflow-x:auto;max-height:520px;overflow-y:auto"><table>
+    <thead><tr><th>Name</th><th>Group</th><th>Sector / region</th><th>Prints 30d</th><th>Days active</th><th>Ambiguous</th><th>Last print</th><th title="the two spreads the unsigned upfront could mean: seller-paid (below coupon) or buyer-paid (above coupon)">Either … or (bp)</th><th>Last priced level</th><th>Priced on</th><th>Why unpriced</th></tr></thead>
+    <tbody>${unp.map(u => `<tr>${nameCell(u)}<td class="t-mute">${u.grp}</td><td class="t-mute">${esc(u.sector || u.region || '')}</td><td${sd(u.trades_30d)}>${u.trades_30d ?? '—'}</td><td${sd(u.days_active_30d)}>${u.days_active_30d ?? '—'}</td><td${sd(u.ambiguous_30d)}>${u.ambiguous_30d ?? '—'}</td><td class="t-mute" data-sort="${esc(u.last_date || '')}">${esc(u.last_date || '')}</td><td${sd(candSort(u))}>${cand(u)}</td><td${sd(u.last_spread_bp)}>${fin(u.last_spread_bp) ? `<b>${bp(u.last_spread_bp,1)}</b>` : '<span class="t-mute">never</span>'}</td><td class="t-mute" data-sort="${esc(u.last_priced_date || '')}">${esc(u.last_priced_date || '—')}</td><td class="t-mute" style="font-size:10.5px;max-width:340px">${esc(u.why || '')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">These names trade, but every recent print carries an upfront whose payer DTCC does not disclose, and no quoted, two-coupon or single-branch print fixed the sign. "Either … or" shows the two levels the median unsigned print could mean — for a 100bp-coupon name, a seller-paid upfront means the name trades below 100, a buyer-paid one means above. Where an older priced level exists it is dated, never shown as current. Listed rather than guessed.</div>` : '<span class="t-mute">every active name is priced</span>';
+  // basis + activity
+  const basisBox = document.getElementById('cdsdesk-basis');
+  basisBox.innerHTML = '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">loading history…</div>';
+  const act = d.activity && d.activity.rows || [];
+  if (act.length > 1) {
+    const prints = act.map(r => [r[0], r[1]]), priced = act.map(r => [r[0], r[2]]), names = act.map(r => [r[0], r[4]]);
+    const l = act[act.length - 1], avg = act.slice(-20).reduce((s, r) => s + r[1], 0) / Math.min(20, act.length);
+    document.getElementById('cdsdesk-activity').innerHTML = cdsLineChart(prints, { h: 170, bars: true, color: 'var(--accent)', label: 'single-name prints per day' }) +
+      `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill info">${l[0]}: ${l[1]} prints</span><span class="pill mute">${l[2]} with a resolved spread (${l[1] ? Math.round(100 * l[2] / l[1]) : 0}%)</span><span class="pill mute">${l[4]} names priced</span><span class="pill mute">5Y notional ${fin(l[3]) ? '$' + (l[3] / 1000).toFixed(1) + 'bn' : '—'} (blocks at cap)</span><span class="pill ${l[1] > avg * 1.4 ? 'warning' : 'mute'}">${(100 * l[1] / avg - 100).toFixed(0)}% vs 20d avg</span></div>
+       <div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">Prints are a liquidity gauge: single-name volume spikes when hedgers rush, and a rising share of unresolved signs usually means more upfront-heavy (distressed) trading.</div>`;
+    enhanceTables(document.getElementById('cdsdesk-activity'));
+  } else document.getElementById('cdsdesk-activity').innerHTML = '<span class="t-mute">activity block not published yet</span>';
   const m = d.method || {}, src = d.source || {};
-  document.getElementById('cdsdesk-interp').innerHTML = `<b>What this is:</b> 5Y CDS levels measured from the real-time public trade reports every U.S. swap dealer must disseminate (${esc(src.law || '')}), via the DTCC files ${esc(src.files || '')}. History in the bank: ${esc(src.first_day || '')} → ${esc(src.last_day || '')} (${src.n_days ?? '—'} days). Spread rule: ${esc(m.spread_rule || '')}. Model: ${esc(m.model || '')}. Liquid = ${esc(m.liquid_rule || '')}. Sign rule: ${esc(m.sign_rule || '')}.<br><b>Limits:</b> ${(m.limitations || []).map(esc).join(' · ')}. <b>No call, no sizing</b> — descriptive measurements only (decision.call = ${d.decision && d.decision.call === null ? 'null' : esc(d.decision && d.decision.call)}).`;
+  document.getElementById('cdsdesk-interp').innerHTML = `<b>What this is:</b> 5Y CDS levels measured from the real-time public trade reports every U.S. swap dealer must disseminate (${esc(src.law || '')}), via the DTCC files ${esc(src.files || '')}. History in the bank: ${esc(src.first_day || '')} → ${esc(src.last_day || '')} (${src.n_days ?? '—'} days); tables carry 120-day sparklines, click a name for the full record. Spread rule: ${esc(m.spread_rule || '')}. Model: ${esc(m.model || '')}. Liquid = ${esc(m.liquid_rule || '')}. Sign rule: ${esc(m.sign_rule || '')}.<br><b>Long view:</b> the DTCC tape starts 2024-09 and FRED's ICE BofA spread series were cut to three years in April 2026, so the "since 2006" panel uses free government records that still carry 2008 (Moody's Baa−10Y, OFR Financial Stress Index, Fed GZ spread / excess bond premium) and maps today's CDX IG onto them with a disclosed fit. <b>Limits:</b> ${(m.limitations || []).map(esc).join(' · ')}. <b>No call, no sizing</b> — descriptive measurements only (decision.call = ${d.decision && d.decision.call === null ? 'null' : esc(d.decision && d.decision.call)}).`;
+  enhanceTables(document.getElementById('pane-cds'));
+  // history-backed panels (lazy file)
+  cdsLoadHistory().then(h => {
+    renderCDSLong(h);
+    const bs = h && h.long && h.long.basis || {};
+    const one = (k, lab) => { const b = bs[k]; if (!b) return ''; const pts = b.points.map(p => [p[0], p[1]]); const lv = b.last; return `<div style="margin-bottom:10px"><div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">${lab}: <b class="${lv[1] < 0 ? 't-neg' : 't-pos'}">${sgn(lv[1], 0)}bp</b> on ${lv[0]} · CDS ${bp(lv[2])} vs cash ${bp(lv[3])} · 1y mean ${sgn(b.mean_bp, 0)} · ${pct(b.pct_rank)} pct</div>${cdsLineChart(pts, { h: 120, color: lv[1] < 0 ? 'var(--neg)' : 'var(--pos)', label: lab + ' basis', hline: { value: 0, label: '0' } })}</div>`; };
+    basisBox.innerHTML = (one('hy', 'CDX HY − HY OAS') + one('ig', 'CDX IG − IG OAS')) || '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">basis not published yet (needs the history file)</div>';
+    if (bs.hy) basisBox.insertAdjacentHTML('beforeend', `<div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px">${esc(bs.hy.read || '')}</div>`);
+    // KPIs that depend on the history file (packet may predate it)
+    const lm = h && h.long && h.long.series && h.long.series.baa10y && h.long.series.baa10y.cdx_ig_map;
+    const kl = document.getElementById('cdsdesk-kpi-long');
+    if (kl && lm) { kl.className = 'kpi ' + (lm.usable ? (lm.pct_rank_since_2006 >= 75 ? 'neg' : lm.pct_rank_since_2006 <= 25 ? 'pos' : 'gold') : 'info'); kl.innerHTML = `<div class="label">CDX IG vs 2006→</div><div class="val">${lm.usable ? pct(lm.pct_rank_since_2006) + ' pct' : '—'}</div><div class="sub">≈ ${lm.mapped_baa10y_bp}bp Baa−10Y · ${fin(lm.share_of_gfc_peak) ? Math.round(100 * lm.share_of_gfc_peak) + '% of 2008 peak' : ''} · fit r² ${lm.fit ? lm.fit.r2 : '—'}${lm.usable ? '' : ' (weak fit — see panel)'}</div>`; }
+    const kb = document.getElementById('cdsdesk-kpi-basis');
+    if (kb && (bs.hy || bs.ig)) { const lh = bs.hy && bs.hy.last, li = bs.ig && bs.ig.last; kb.className = 'kpi ' + (lh && lh[1] < -40 ? 'warning' : 'info'); kb.innerHTML = `<div class="label">CDS − bond basis</div><div class="val">${lh ? sgn(lh[1], 0) : '—'}<span style="font-size:13px"> HY</span> ${li ? sgn(li[1], 0) : '—'}<span style="font-size:13px"> IG</span></div><div class="sub">${lh ? `CDX HY ${bp(lh[2])} vs HY OAS ${bp(lh[3])}bp · ${lh[0]}` : 'CDX vs ICE BofA cash OAS'}</div>`; }
+  });
 }
 
 // ─── BOND TRACE ────────────────────────────────────────────────────
@@ -1116,6 +1374,7 @@ function renderLiquidity(d) {
   if (dc) renderDefcon(dc, cp, cl, bk);
   const ts = [k,s,p,r,a,l,esi,vs,mi,hm,cds,bt,tic,ac,ss,sn,lp,dc,cp,cl,bk,cdd].map(x=>x&&x.generated_at).filter(Boolean).sort().pop();
   if (ts) document.getElementById('ts').textContent = `updated ${ago(ts)}`;
+  enhanceTables(document);  // every table on every tab: click headers to sort, csv per panel
 })();
 </script>
 </body>

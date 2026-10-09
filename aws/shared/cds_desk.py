@@ -33,7 +33,7 @@ import statistics
 import zipfile
 from datetime import date, datetime, timedelta
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 RECOVERY_SENIOR = 0.40
 SWAP_PROXY_OFFSET_PCT = 0.75          # 5Y Treasury par minus this = flat discount rate for the model
 DEFAULT_RATE_PCT = 4.25               # used only when no par curve is available (recorded in packet)
@@ -694,7 +694,9 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
         else:
             s, basis = resolve_spread(t, rate_pct, anchor)
             basis_counts[basis] += 1
-        if s is not None:
+        if s is not None and (basis in ("quoted", "price") or t["bucket"] == "5Y" or len(candidate_spreads(t, rate_pct)) == 1):
+            # off-the-run tenors only enter the curve when their own print fixes the sign: the 5Y anchor cannot
+            # disambiguate a 1Y upfront (a 60bp 1Y and a 160bp 1Y are both "near" a 140bp 5Y)
             by_bucket.setdefault(t["bucket"], []).append(s)
         if t["bucket"] == "5Y":
             if s is not None:
@@ -880,7 +882,41 @@ def activity(series, as_of_iso):
     as_of = date.fromisoformat(as_of_iso)
     last30 = [(d, r) for d, r in _series_points(series, as_of_iso, 30) if d > (as_of - timedelta(days=30)).isoformat()]
     return {"trades_30d": sum(r["n"] for d, r in last30), "days_active_30d": sum(1 for d, r in last30 if r["n"]),
-            "ambiguous_30d": sum(r.get("amb") or 0 for d, r in last30), "last_date": last30[-1][0] if last30 else None}
+            "ambiguous_30d": sum(r.get("amb") or 0 for d, r in last30), "last_date": last30[-1][0] if last30 else None,
+            "candidates": _candidate_summary(last30)}
+
+
+def _candidate_summary(points):
+    """Both feasible branches of the unresolved prints, per coupon, over the window: what the name would be if the
+    protection buyer paid the upfront (above coupon) vs if the seller paid it (below coupon)."""
+    acc = {}
+    for d, r in points:
+        for c, pair in (r.get("cd") or {}).items():
+            acc.setdefault(c, []).append(pair)
+    out = []
+    for c, pairs in sorted(acc.items(), key=lambda kv: -len(kv[1])):
+        out.append({"coupon_bp": int(c), "above_coupon_bp": round(statistics.median([p[0] for p in pairs]), 1),
+                    "below_coupon_bp": round(statistics.median([p[1] for p in pairs]), 1), "days": len(pairs)})
+    return out
+
+
+def tape_activity(series_map, as_of_iso, days=120):
+    """Daily single-name tape: prints, priced prints, 5Y notional (capped blocks counted at the cap) and names priced."""
+    as_of = date.fromisoformat(as_of_iso)
+    start = (as_of - timedelta(days=days)).isoformat()
+    acc = {}
+    for key, series in series_map.items():
+        if key.startswith("IDX:"):
+            continue
+        for d, r in series.items():
+            if d <= start or d > as_of_iso:
+                continue
+            slot = acc.setdefault(d, [0, 0, 0.0, 0])
+            slot[0] += r.get("n") or 0
+            slot[1] += r.get("np") or 0
+            slot[2] += r.get("nm") or 0.0
+            slot[3] += 1 if r.get("s") is not None else 0
+    return [[d, v[0], v[1], round(v[2], 1), v[3]] for d, v in sorted(acc.items())]
 
 
 def liquid(meas):
@@ -935,17 +971,20 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         if m is None:
             act = activity(s, as_of_iso)
             if act["trades_30d"] >= LIQUID_MIN_TRADES_30D and act["days_active_30d"] >= LIQUID_MIN_DAYS_30D:
-                unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), **act,
+                unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), **act, **{k: v for k, v in cls.items() if k != "group"},
+                                                              "last_spread_bp": None, "last_priced_date": None,
                                                               "why": "sign unresolved: no quoted print and no single-branch/multi-coupon evidence"})
             continue
         if m["stale_days"] > STALE_MAX_DAYS:
             # the name still trades, but nothing in the last STALE_MAX_DAYS days could be priced: list it, do not show an old level as current
             if m["trades_30d"] >= LIQUID_MIN_TRADES_30D and m["days_active_30d"] >= LIQUID_MIN_DAYS_30D:
-                unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), "trades_30d": m["trades_30d"],
-                                                              "days_active_30d": m["days_active_30d"], "ambiguous_30d": m["ambiguous_last"], "last_date": m["last_date"],
-                                                              "last_spread_bp": m["spread_bp"],
+                act = activity(s, as_of_iso)
+                unpriced.setdefault(cls["group"], []).append({"key": norm, "name": display_name(norm, info.get("raw")), **act, **{k: v for k, v in cls.items() if k != "group"},
+                                                              "last_spread_bp": m["spread_bp"], "last_priced_date": m["last_date"],
                                                               "why": "last priced %s at %.0fbp; every print since carries an unresolved upfront sign" % (m["last_date"], m["spread_bp"])})
             continue
+        cv = m.get("curve_last") or {}
+        m["slope_1y5y_bp"] = round(cv["5Y"] - cv["1Y"], 1) if cv.get("5Y") is not None and cv.get("1Y") is not None else None
         row = {"key": norm, "name": display_name(norm, info.get("raw")), **cls, **m, "liquid": liquid(m)}
         all_rows.append(row)
     for row in all_rows:
@@ -1004,6 +1043,19 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                "median_chg_1d_bp": round(statistics.median(chg), 1) if chg else None,
                "share_above_90d_mean": round(sum(1 for r in liquid_rows if (r["z_90d"] or 0) > 0) / len(liquid_rows), 2) if liquid_rows else None,
                "n_z_over_2": sum(1 for r in liquid_rows if (r["z_90d"] or 0) >= 2), "n_z_under_minus2": sum(1 for r in liquid_rows if (r["z_90d"] or 0) <= -2)}
+    with_slope = [r for r in liquid_rows if r.get("slope_1y5y_bp") is not None]
+    term = {"n_with_curve": len(with_slope), "n_inverted": sum(1 for r in with_slope if r["slope_1y5y_bp"] < 0),
+            "inverted": sorted([{"key": r["key"], "name": r["name"], "spread_bp": r["spread_bp"], "slope_1y5y_bp": r["slope_1y5y_bp"], "group": r["group"]}
+                                for r in with_slope if r["slope_1y5y_bp"] < 0], key=lambda r: r["slope_1y5y_bp"])[:15],
+            "note": "5Y minus 1Y spread from the same day's prints; an inverted single-name curve (1Y above 5Y) is the classic near-term distress signature"}
+    wides = sorted([{"key": r["key"], "name": r["name"], "group": r["group"], "spread_bp": r["spread_bp"], "pct_rank_1y": r["pct_rank_1y"], "chg_1m_bp": r["chg_1m_bp"],
+                     "hi_1y_bp": r["hi_1y_bp"], "n_days_priced_1y": r["n_days_priced_1y"]}
+                    for r in liquid_rows if (r.get("pct_rank_1y") or 0) >= 95 and (r.get("n_days_priced_1y") or 0) >= 60],
+                   key=lambda r: -(r["chg_1m_bp"] or 0))[:20]
+    tights = sorted([{"key": r["key"], "name": r["name"], "group": r["group"], "spread_bp": r["spread_bp"], "pct_rank_1y": r["pct_rank_1y"], "chg_1m_bp": r["chg_1m_bp"],
+                      "lo_1y_bp": r["lo_1y_bp"], "n_days_priced_1y": r["n_days_priced_1y"]}
+                     for r in liquid_rows if r.get("pct_rank_1y") is not None and r["pct_rank_1y"] <= 5 and (r.get("n_days_priced_1y") or 0) >= 60],
+                    key=lambda r: (r["chg_1m_bp"] or 0))[:20]
     days = bank.get("days") or []
     packet = {
         "engine": "justhodl-cds-desk", "version": VERSION, "generated_at": generated_at, "as_of": as_of_iso,
@@ -1018,9 +1070,12 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                    "stale_rule": "levels older than %d calendar days are not shown as current; such names appear in the unpriced list with their last dated level" % STALE_MAX_DAYS,
                    "package_rule": "prints flagged as package transactions (index-arbitrage baskets) are counted but never priced",
                    "limitations": ["upfront sign is not disclosed; derived prints need an anchor", "block notionals are capped (+) in the public file",
-                                   "public history begins 2024-09; nothing here covers 2008", "clearinghouse settlement prices are not used (licence forbids republication)"]},
+                                   "public history begins 2024-09; nothing in the DTCC tape covers 2008 — the long view in data/cds-desk-history.json uses Moody's Baa-10Y, OFR FSI and Fed GZ/EBP records instead", "clearinghouse settlement prices are not used (licence forbids republication)"],
+                   "curve_rule": "off-the-run tenors enter the curve only when their own print fixes the sign (quoted, priced or single feasible branch); 5Y-1Y slope is same-day",
+                   "unpriced_rule": "active names whose sign cannot be fixed are listed with both feasible branches (median unsigned print read as seller-paid vs buyer-paid upfront) and any dated earlier level"},
         "decision": {"call": None, "sizing_eligible": False, "basis": "descriptive measurements of public prints only"},
-        "breadth": breadth, "groups": out_groups, "indices": indices,
+        "breadth": breadth, "term": term, "wides_1y": wides, "tights_1y": tights,
+        "activity": {"days": 120, "columns": ["date", "prints", "priced_prints", "notional_5y_mm", "names_priced"], "rows": tape_activity(series, as_of_iso)}, "groups": out_groups, "indices": indices,
         "run": run_meta or {},
     }
     return packet

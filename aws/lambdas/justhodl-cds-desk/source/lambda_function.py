@@ -28,10 +28,22 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 
 import cds_desk
+import cds_long_context
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 PACKET_KEY = os.environ.get("PACKET_KEY", "data/cds-desk.json")
 BANK_KEY = os.environ.get("BANK_KEY", "data/warm/cds/bank.json.gz")
+HISTORY_KEY = os.environ.get("HISTORY_KEY", "data/cds-desk-history.json")
+LONG_SRC_PREFIX = "data/warm/cds/long-src/"
+LONG_SOURCES = {
+    # free, keyless, full-history credit records (see cds_long_context docstring)
+    "BAA10Y": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAA10Y",
+    "AAA10Y": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=AAA10Y",
+    "BAMLH0A0HYM2": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2",
+    "BAMLC0A0CM": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM",
+    "ofr_fsi": "https://www.financialresearch.gov/financial-stress-index/data/fsi.csv",
+    "ebp": "https://www.federalreserve.gov/econres/notes/feds-notes/ebp_csv.csv",
+}
 PAR_KEY = os.environ.get("PAR_KEY", "data/warm/treasury-par/curve.json.gz")
 DTCC_BASE = "https://kgc0418-tdw-data-0.s3.amazonaws.com"
 FIRST_PUBLIC_DAY = "2024-09-03"
@@ -193,15 +205,69 @@ def latest_available_file_day(today):
     return None
 
 
+def _fetch_text(url, timeout=40):
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.2 (+https://justhodl.ai)"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read().decode("utf-8", "replace")
+
+
+def load_long_sources(min_rows=100):
+    """Fetch each long-history CSV; on any failure fall back to the last good copy kept in S3 (cache-first on failure,
+    never on success, so the record stays current). Returns (texts, status)."""
+    texts, status = {}, {}
+    for name, url in LONG_SOURCES.items():
+        key = LONG_SRC_PREFIX + name + ".csv.gz"
+        try:
+            txt = _fetch_text(url)
+            if txt.count("\n") < min_rows or txt.lstrip().startswith("<"):
+                raise ValueError("short or non-CSV response (%d bytes)" % len(txt))
+            s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(txt.encode()), ContentType="text/csv", ContentEncoding="gzip")
+            texts[name], status[name] = txt, "live"
+        except Exception as exc:  # pragma: no cover - network
+            try:
+                body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+                texts[name] = gzip.decompress(body).decode("utf-8", "replace")
+                status[name] = "cached (%s)" % type(exc).__name__
+            except Exception:
+                status[name] = "unavailable (%s)" % type(exc).__name__
+    return texts, status
+
+
+def build_long_block(bank, as_of):
+    texts, status = load_long_sources()
+    fred = {k: cds_long_context.parse_fred_csv(texts[k]) for k in ("BAA10Y", "AAA10Y", "BAMLH0A0HYM2", "BAMLC0A0CM") if k in texts}
+    ofr = cds_long_context.parse_ofr_csv(texts["ofr_fsi"]) if "ofr_fsi" in texts else {}
+    ebp = cds_long_context.parse_ebp_csv(texts["ebp"]) if "ebp" in texts else {}
+    block = cds_long_context.build_long_context(fred, ofr, ebp, bank, as_of)
+    block["sources"] = {k: {"url": LONG_SOURCES[k], "status": status.get(k, "unavailable")} for k in LONG_SOURCES}
+    return block
+
+
 def publish(bank, as_of, run_meta):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cds_desk.prune_bank(bank, as_of)
     packet = cds_desk.build_packet(bank, as_of, now, run_meta)
+    history_bytes, long_status = None, {}
+    try:
+        long_block = build_long_block(bank, as_of)
+        long_status = {k: v["status"] for k, v in long_block["sources"].items()}
+        keys = [r["key"] for g in packet["groups"].values() for r in g["rows"]] + ["IDX:" + i["key"] for i in packet["indices"]]
+        history = cds_long_context.build_history(bank, as_of, long_block, keys)
+        history["generated_at"] = now
+        history_bytes = _put_json(HISTORY_KEY, history, cache="public, max-age=900")
+        packet["history"] = {"key": HISTORY_KEY, "names": len(history["names"]), "long_series": sorted(long_block["series"].keys()),
+                             "basis": {k: v["last"] for k, v in long_block["basis"].items()},
+                             "cdx_ig_vs_2006": (long_block["series"].get("baa10y") or {}).get("cdx_ig_map"),
+                             "long_last": {k: {"value": v["last"]["value"], "date": v["last"]["date"], "pct_rank_since_2006": v["pct_rank_since_2006"], "unit": v["unit"], "name": v["name"]}
+                                           for k, v in long_block["series"].items()},
+                             "sources": long_status}
+    except Exception as exc:  # the desk must still publish if the long-context sources misbehave
+        packet["history"] = {"key": HISTORY_KEY, "error": "%s: %s" % (type(exc).__name__, exc), "sources": long_status}
     bank_bytes = _put_json(BANK_KEY, bank, gz=True)
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
-    return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "as_of": as_of,
+    return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
             "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_indices": len(packet["indices"]),
-            "breadth": packet["breadth"]}
+            "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 
 
 def lambda_handler(event, context=None):
