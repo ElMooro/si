@@ -109,7 +109,7 @@ function shell(){
  return `<div class="kpi-grid" id="cdsdesk-kpis"><div class="loading spin">loading cds-desk</div></div>
 <div class="panel"><h3>Index strip <span class="tag">on-the-run 5Y · median of the day's quoted prints · click a name for history vs 2006</span></h3><div id="cdsdesk-indices"></div></div>
 <div class="panel"><h3>Where today sits vs 2006 → <span class="tag" id="cdsdesk-long-tag">weekly · free government records that still carry 2008 · loading…</span></h3><div id="cdsdesk-long-ctl" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div><div id="cdsdesk-long"></div><div id="cdsdesk-long-peaks" style="margin-top:10px"></div></div>
-<div class="panel"><h3>World sovereign CDS map <span class="tag" id="cdsdesk-map-tag">5Y · colour = level · hatched = either/or · grey = dormant or not in tape · click a country for history</span></h3><div id="cdsdesk-map"></div></div>
+<div class="panel"><h3>World sovereign map <span class="tag" id="cdsdesk-map-tag">5Y · colour = level · hatched = either/or · grey = dormant or not in tape · click a country for history</span></h3><div id="cdsdesk-map-ctl" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"></div><div id="cdsdesk-map"></div></div>
 <div class="panel"><h3>Sovereign 5Y CDS <span class="tag" id="cdsdesk-sov-tag">whole known universe · USD senior · click a chip to filter, a header to sort, a name for history</span></h3><div id="cdsdesk-sov-chips"></div><div id="cdsdesk-sov"></div></div>
 <div class="panel"><h3>U.S. corporate 5Y CDS <span class="tag" id="cdsdesk-us-tag">every USD name in the tape · click a sector to filter</span></h3><div id="cdsdesk-us-chips"></div><div id="cdsdesk-us"></div></div>
 <div class="panel"><h3>Global (non-U.S.) corporate 5Y CDS <span class="tag" id="cdsdesk-gl-tag">EUR / JPY / USD names · click a sector to filter</span></h3><div id="cdsdesk-gl-chips"></div><div id="cdsdesk-gl"></div></div>
@@ -124,6 +124,7 @@ function shell(){
  <div class="panel" style="margin-bottom:0"><h3>CDS − bond basis <span class="tag">CDX vs ICE BofA cash OAS · bp · 1y</span></h3><div id="cdsdesk-basis"></div></div>
  <div class="panel" style="margin-bottom:0"><h3>Tape activity <span class="tag">single-name prints per file day · 120d</span></h3><div id="cdsdesk-activity"></div></div>
 </div>
+<style>.t-orange{color:var(--orange,#fb923c)}</style>
 <div class="panel" style="margin-top:14px"><h3>Data sources <span class="tag" id="cdsdesk-sources-tag">every feed is free and keyless · status from the last engine run</span></h3><div id="cdsdesk-sources"></div></div>
 <div class="interp" id="cdsdesk-interp" style="margin-top:14px"></div>
 <div id="cdsdesk-modal" style="display:none;position:fixed;inset:0;background:rgba(5,8,12,.78);z-index:50;align-items:center;justify-content:center;padding:20px" role="dialog" aria-modal="true"><div class="panel" style="max-width:1000px;width:100%;margin:0;max-height:92vh;overflow:auto"><h3><span id="cdsdesk-modal-title">history</span><span class="tag"><button type="button" id="cdsdesk-modal-close" class="csv-btn">close ✕</button></span></h3><div id="cdsdesk-modal-body"></div></div></div>`;
@@ -136,6 +137,11 @@ const evidence=r=>{if(r.status==='unpriced')return '<span class="t-mute">sign un
 // merge priced rows, unpriced and dormant records (and, for sovereigns, the known-universe list) into one row set with a shared shape
 const fundTitle=f=>f?`IMF WEO ${f.year}: debt ${f.debt_gdp??'—'}% of GDP · fiscal balance ${f.fiscal_bal_gdp??'—'}% · current account ${f.cab_gdp??'—'}% · growth ${f.gdp_growth??'—'}% · inflation ${f.inflation??'—'}%${fin(f.debt_gdp_weo)?` · WEO ${f.weo_year} debt ${f.debt_gdp_weo}%`:''}`:'';
 const fundPills=f=>f?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill mute" title="IMF World Economic Outlook, DataMapper API">IMF WEO ${esc(f.year)}</span>${fin(f.debt_gdp)?`<span class="pill ${f.debt_gdp>=100?'warning':'info'}">debt ${f.debt_gdp}% of GDP${fin(f.debt_gdp_weo)?` → ${f.debt_gdp_weo}% (${esc(f.weo_year)}e)`:''}</span>`:''}${fin(f.fiscal_bal_gdp)?`<span class="pill ${f.fiscal_bal_gdp<=-5?'warning':'mute'}">fiscal ${sgn(f.fiscal_bal_gdp,1)}% GDP</span>`:''}${fin(f.cab_gdp)?`<span class="pill ${f.cab_gdp<=-5?'warning':'mute'}">current account ${sgn(f.cab_gdp,1)}% GDP</span>`:''}${fin(f.gdp_growth)?`<span class="pill mute">growth ${sgn(f.gdp_growth,1)}%</span>`:''}${fin(f.inflation)?`<span class="pill ${f.inflation>=10?'warning':'mute'}">inflation ${f.inflation}%</span>`:''}</div>`:'';
+// ECB SovCISS for a sovereign (from the history file's long series, when the ECB publishes that country)
+const sovStress=iso3=>{const ser=CDS.history&&CDS.history.long&&CDS.history.long.series;const s=ser&&iso3&&ser['sovciss_'+iso3];return s&&s.last?{v:s.last.value,p:s.pct_rank_since_2006,d:s.last.date,euro:(s.peaks||[]).find(p=>/^Euro/.test(p.episode))}:null;};
+const stressClass=p=>!fin(p)?'':p>=90?'t-neg':p>=75?'t-orange':p<=25?'t-pos':'';
+const stressCell=r=>{const st=r.stress;if(!st)return `<td class="t-mute" data-sort="" title="${r.iso3?'the ECB publishes SovCISS only for the euro area and eleven member states':''}">—</td>`;return `<td data-sort="${st.p??''}" title="ECB SovCISS ${st.v} on ${st.d} · ${pct(st.p)} percentile of every week since 2006${st.euro?` · euro-crisis peak ${st.euro.value} (${st.euro.date})`:''}"><b class="${stressClass(st.p)}">${st.v.toFixed(2)}</b> <span class="t-mute">· ${pct(st.p)}</span></td>`;};
+const fiscalCell=r=>{const f=r.fund;if(!f||(!fin(f.fiscal_bal_gdp)&&!fin(f.cab_gdp)))return '<td class="t-mute" data-sort="">—</td>';return `<td data-sort="${f.fiscal_bal_gdp??''}" title="${esc(fundTitle(f))}"><span class="${fin(f.fiscal_bal_gdp)&&f.fiscal_bal_gdp<=-5?'t-neg':''}">${fin(f.fiscal_bal_gdp)?sgn(f.fiscal_bal_gdp,1):'—'}</span> <span class="t-mute">/</span> <span class="${fin(f.cab_gdp)&&f.cab_gdp<=-5?'t-neg':''}">${fin(f.cab_gdp)?sgn(f.cab_gdp,1):'—'}</span></td>`;};
 function universeRows(group,g){
  const byKey=new Map();
  (g.rows||[]).forEach(r=>byKey.set(r.key,{...r,group}));
@@ -143,6 +149,7 @@ function universeRows(group,g){
  (g.dormant||[]).forEach(u=>{if(!byKey.has(u.key))byKey.set(u.key,{...u,group,status:'dormant'});});
  if(group==='sovereign'){
   (g.universe||[]).forEach(e=>{const r=byKey.get(e.key);if(r){r.name=e.name||r.name;r.iso3=e.iso3;r.region=e.region||r.region;r.tier=e.tier||r.tier;if(e.fund)r.fund=e.fund;}else{const k=e.key||('NA:'+e.iso3);byKey.set(k,{...e,key:k,group,status:e.status||'not_in_tape'});}});
+  byKey.forEach(r=>{if(r.iso3)r.stress=sovStress(r.iso3);});
  }
  return [...byKey.values()];
 }
@@ -150,13 +157,14 @@ function chipRow(label,field,items,current,fmtItem){
  return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center"><span class="t-mute" style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:52px">${esc(label)}</span><button type="button" class="seg-btn cds-chip${current==='all'?' active':''}" data-filter="${field}" data-value="all">all</button>${items.map(it=>`<button type="button" class="seg-btn cds-chip${current===it.value?' active':''}" data-filter="${field}" data-value="${esc(it.value)}" title="${esc(it.title||'')}">${fmtItem(it)}</button>`).join('')}</div>`;
 }
 function universeTable(rows,cols,emptyMsg){
- const head=`<tr><th>Name</th>${cols.map(c=>`<th${c==='Debt/GDP'?' title="general government gross debt, % of GDP — IMF World Economic Outlook, latest outturn year"':''}>${c}</th>`).join('')}<th>Status</th><th title="priced level, or the two levels an unsigned upfront could mean">5Y (bp)</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th title="5Y minus 1Y, same-day sign-fixed prints">5Y−1Y</th><th>Prints 30d</th><th>Last print</th><th title="how the upfront sign was fixed">Sign evidence</th><th>120d</th></tr>`;
+ const TH={'Debt/GDP':'general government gross debt, % of GDP — IMF World Economic Outlook, latest outturn year','Fiscal / CA':'general government balance / current account balance, % of GDP — IMF WEO, latest outturn year','ECB stress':'ECB SovCISS: daily composite of 2Y/10Y yield spread to swaps, yield volatility and bid-ask — level today and its percentile since 2006; euro area and eleven member states only'};
+ const head=`<tr><th>Name</th>${cols.map(c=>`<th${TH[c]?` title="${esc(TH[c])}"`:''}>${c}</th>`).join('')}<th>Status</th><th title="priced level, or the two levels an unsigned upfront could mean">5Y (bp)</th><th>1d</th><th>1w</th><th>1m</th><th>3m</th><th>1y pct</th><th>1y range</th><th>z 90d</th><th title="5Y minus 1Y, same-day sign-fixed prints">5Y−1Y</th><th>Prints 30d</th><th>Last print</th><th title="how the upfront sign was fixed">Sign evidence</th><th>120d</th></tr>`;
  const body=rows.map(r=>{
   const priced=r.status==='liquid'||r.status==='thin';
   const lvl=priced?`<b>${level(r)}</b>`:r.status==='unpriced'?`${cands(r)}${fin(r.last_spread_bp)?`<div class="t-mute" style="font-size:10px">last fixed ${bp(r.last_spread_bp,1)} · ${esc(r.last_priced_date||'')}</div>`:''}`:r.status==='dormant'?`<span class="t-mute">last ${bp(r.last_spread_bp,1)} · ${esc(r.last_priced_date||'')}</span>`:'<span class="t-mute">no public print since 2024-09</span>';
   const lvlSort=priced?r.spread_bp:(r.candidates&&r.candidates.length?r.candidates[0].above_coupon_bp:r.last_spread_bp);
   const lastCell=r.status==='not_in_tape'?'<td class="t-mute" data-sort="">—</td>':`<td class="t-mute" data-sort="${esc(r.last_date||'')}">${esc((r.last_date||'').slice(5))}${priced?` · ${r.n_last??0}p${r.ambiguous_last?` <span title="prints with unresolved sign">(${r.ambiguous_last}?)</span>`:''}`:''}</td>`;
-  return `<tr data-status="${esc(r.status)}" title="${esc(r.read||r.why||'')}">${nameCell(r)}${cols.map(c=>c==='Debt/GDP'?`<td${sd(r.fund&&r.fund.debt_gdp)} title="${esc(fundTitle(r.fund))}">${r.fund&&fin(r.fund.debt_gdp)?`${r.fund.debt_gdp}%`:'<span class="t-mute">—</span>'}</td>`:`<td class="t-mute">${esc(r[c==='Region'?'region':c==='Tier'?'tier':'sector']||'')}</td>`).join('')}<td data-sort="${esc(r.status)}">${statusPill(r.status)}</td><td${sd(lvlSort)}>${lvl}</td><td${sd(r.chg_1d_bp)}>${chg(r.chg_1d_bp)}</td><td${sd(r.chg_1w_bp)}>${chg(r.chg_1w_bp)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td><td${sd(r.chg_3m_bp)}>${chg(r.chg_3m_bp)}</td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r.hi_1y_bp)} class="t-mute">${fin(r.hi_1y_bp)?`${bp(r.lo_1y_bp)}–${bp(r.hi_1y_bp)}`:'—'}</td><td${sd(r.z_90d)}>${z(r.z_90d)}</td><td${sd(r.slope_1y5y_bp)}>${fin(r.slope_1y5y_bp)?`<span class="${r.slope_1y5y_bp<0?'t-neg':''}">${sgn(r.slope_1y5y_bp,0)}</span>`:'<span class="t-mute">—</span>'}</td><td${sd(r.trades_30d)}>${r.trades_30d??'—'}</td>${lastCell}<td data-sort="${esc(r.anchor_source||r.status)}">${evidence(r)}</td><td${sd(sparkChg(r.spark))}>${spark(r.spark)}</td></tr>`;
+  return `<tr data-status="${esc(r.status)}" title="${esc(r.read||r.why||'')}">${nameCell(r)}${cols.map(c=>c==='Debt/GDP'?`<td${sd(r.fund&&r.fund.debt_gdp)} title="${esc(fundTitle(r.fund))}">${r.fund&&fin(r.fund.debt_gdp)?`<span class="${r.fund.debt_gdp>=120?'t-neg':r.fund.debt_gdp>=90?'t-orange':''}">${r.fund.debt_gdp}%</span>`:'<span class="t-mute">—</span>'}</td>`:c==='Fiscal / CA'?fiscalCell(r):c==='ECB stress'?stressCell(r):`<td class="t-mute">${esc(r[c==='Region'?'region':c==='Tier'?'tier':'sector']||'')}</td>`).join('')}<td data-sort="${esc(r.status)}">${statusPill(r.status)}</td><td${sd(lvlSort)}>${lvl}</td><td${sd(r.chg_1d_bp)}>${chg(r.chg_1d_bp)}</td><td${sd(r.chg_1w_bp)}>${chg(r.chg_1w_bp)}</td><td${sd(r.chg_1m_bp)}>${chg(r.chg_1m_bp)}</td><td${sd(r.chg_3m_bp)}>${chg(r.chg_3m_bp)}</td><td${sd(r.pct_rank_1y)}>${pct(r.pct_rank_1y)}</td><td${sd(r.hi_1y_bp)} class="t-mute">${fin(r.hi_1y_bp)?`${bp(r.lo_1y_bp)}–${bp(r.hi_1y_bp)}`:'—'}</td><td${sd(r.z_90d)}>${z(r.z_90d)}</td><td${sd(r.slope_1y5y_bp)}>${fin(r.slope_1y5y_bp)?`<span class="${r.slope_1y5y_bp<0?'t-neg':''}">${sgn(r.slope_1y5y_bp,0)}</span>`:'<span class="t-mute">—</span>'}</td><td${sd(r.trades_30d)}>${r.trades_30d??'—'}</td>${lastCell}<td data-sort="${esc(r.anchor_source||r.status)}">${evidence(r)}</td><td${sd(sparkChg(r.spark))}>${spark(r.spark)}</td></tr>`;
  }).join('');
  return `<div style="overflow-x:auto;max-height:640px;overflow-y:auto"><table style="white-space:nowrap"><thead>${head}</thead><tbody>${body||`<tr><td colspan="${cols.length+16}" class="t-mute">${esc(emptyMsg||'nothing matches this filter')}</td></tr>`}</tbody></table></div>`;
 }
@@ -167,9 +175,43 @@ const chipText=c=>`${esc(c.value)} <span class="t-mute">· ${c.n}${c.priced?` ·
 const STATUS_ITEMS=rows=>['liquid','thin','unpriced','dormant','not_in_tape'].map(s=>({value:s,n:rows.filter(r=>r.status===s).length})).filter(s=>s.n).map(s=>({value:s.value,n:s.n,title:STATUS_HELP[s.value]}));
 // ---- world map ----
 function colorFor(v){if(!fin(v))return null;const l=Math.log(Math.max(5,Math.min(5000,v)));const stops=[[Math.log(10),[34,211,238]],[Math.log(60),[0,230,118]],[Math.log(150),[251,191,36]],[Math.log(400),[251,146,60]],[Math.log(1500),[255,61,90]]];if(l<=stops[0][0])return `rgb(${stops[0][1]})`;for(let i=1;i<stops.length;i++){if(l<=stops[i][0]){const t=(l-stops[i-1][0])/(stops[i][0]-stops[i-1][0]),a=stops[i-1][1],b=stops[i][1];return `rgb(${a.map((c,j)=>Math.round(c+(b[j]-c)*t)).join(',')})`;}}return `rgb(${stops[stops.length-1][1]})`;}
-function worldMap(world,rows){
+// map colour scales for the non-CDS modes (IMF % of GDP, ECB stress index)
+const MAP_MODES=[['cds','5Y CDS'],['stress','ECB sovereign stress'],['debt','Debt / GDP (IMF)'],['fiscal','Fiscal balance (IMF)']];
+function scaleColor(stops,v){if(!fin(v))return null;if(v<=stops[0][0])return `rgb(${stops[0][1]})`;for(let i=1;i<stops.length;i++){if(v<=stops[i][0]){const t=(v-stops[i-1][0])/(stops[i][0]-stops[i-1][0]),a=stops[i-1][1],b=stops[i][1];return `rgb(${a.map((c,j)=>Math.round(c+(b[j]-c)*t)).join(',')})`;}}return `rgb(${stops[stops.length-1][1]})`;}
+const DEBT_STOPS=[[20,[34,211,238]],[60,[0,230,118]],[90,[251,191,36]],[120,[251,146,60]],[200,[255,61,90]]];
+const FISCAL_STOPS=[[-10,[255,61,90]],[-6,[251,146,60]],[-3,[251,191,36]],[0,[0,230,118]],[4,[34,211,238]]];
+const STRESS_STOPS=[[0.05,[34,211,238]],[0.15,[0,230,118]],[0.3,[251,191,36]],[0.5,[251,146,60]],[0.8,[255,61,90]]];
+const mapValue=(mode,r)=>mode==='debt'?(r.fund&&r.fund.debt_gdp):mode==='fiscal'?(r.fund&&r.fund.fiscal_bal_gdp):mode==='stress'?(r.stress&&r.stress.v):null;
+const mapColor=(mode,v)=>mode==='debt'?scaleColor(DEBT_STOPS,v):mode==='fiscal'?scaleColor(FISCAL_STOPS,v):mode==='stress'?scaleColor(STRESS_STOPS,v):colorFor(v);
+const legendItem=(bg,l)=>`<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"><i style="display:inline-block;width:14px;height:10px;background:${bg};border-radius:2px"></i>${l}</span>`;
+// greedy label placement: skip a centroid label when it would sit on top of one already drawn (small European / Caribbean states)
+function placeLabels(items,k){k=k||1;const out=[];items.forEach(it=>{if(!out.some(o=>Math.abs(o.x-it.x)<30/k&&Math.abs(o.y-it.y)<11/k))out.push(it);});return out;}
+function worldMap(world,rows,mode){
+ mode=mode||'cds';
  if(!world||!world.paths)return '<div class="t-mute" style="font-family:var(--font-mono);font-size:11px">map outlines not loaded</div>';
  const byIso=new Map();rows.forEach(r=>{if(r.iso3)byIso.set(r.iso3,r);});
+ if(mode!=='cds'){
+  // ECB publishes SovCISS for euro-area states only, so that mode zooms the frame to the countries that carry a value
+  const W=+world.w||960,H=+world.h||415;let vb=[0,0,W,H],k=1;
+  if(mode==='stress'&&world.centroids){const cs=rows.filter(r=>fin(mapValue(mode,r))&&world.centroids[r.iso3]).map(r=>world.centroids[r.iso3]);if(cs.length>=2){const xs=cs.map(c=>c[0]),ys=cs.map(c=>c[1]);let x0=Math.min(...xs)-70,x1=Math.max(...xs)+70,y0=Math.min(...ys)-45,y1=Math.max(...ys)+45;let w=x1-x0,h=y1-y0;if(w/h<W/H){const nw=h*W/H;x0-=(nw-w)/2;w=nw;}else{const nh=w*H/W;y0-=(nh-h)/2;h=nh;}vb=[x0,y0,w,h];k=W/w;}}
+  let g=`<svg viewBox="${vb.map(v=>+v.toFixed(1)).join(' ')}" width="100%" style="display:block;max-height:520px" role="img" aria-label="world sovereign map · ${esc(MAP_MODES.find(m=>m[0]===mode)[1])}">`;
+  let n=0;
+  for(const [iso,d] of Object.entries(world.paths)){
+   const r=byIso.get(iso);let fill='#141a24',cls='',title=esc((world.names||{})[iso]||iso)+': not a known sovereign CDS issuer';
+   if(r){const v=mapValue(mode,r);const col=mapColor(mode,v);
+    if(col){fill=col;n++;title=mode==='stress'?`${esc(r.name)}: ECB SovCISS ${v} (${esc(r.stress.d)}) · ${pct(r.stress.p)} pct since 2006`:mode==='debt'?`${esc(r.name)}: debt ${v}% of GDP (IMF WEO ${esc(r.fund.year)})${fin(r.fund.debt_gdp_weo)?` → ${r.fund.debt_gdp_weo}% ${esc(r.fund.weo_year)}e`:''}`:`${esc(r.name)}: fiscal balance ${sgn(v,1)}% of GDP (IMF WEO ${esc(r.fund.year)})${fin(r.fund.cab_gdp)?` · current account ${sgn(r.fund.cab_gdp,1)}%`:''}`;}
+    else{fill='#232b3a';title=`${esc(r.name)}: ${mode==='stress'?'ECB publishes SovCISS for the euro area and eleven member states only':'no IMF WEO figure'}`;}
+    const priced=r.status==='liquid'||r.status==='thin';if(priced)title+=` · 5Y CDS ${bp(r.spread_bp,1)}bp`;
+    cls=` class="cds-clickable cds-map-country" data-key="${esc(r.key)}" data-name="${esc(r.name)}" data-group="sovereign" data-tier="${esc(r.tier||'')}" data-iso3="${esc(r.iso3||iso)}"`;}
+   g+=`<path d="${d}" fill="${fill}" stroke="#0a0e14" stroke-width="${(0.6/k).toFixed(2)}"${cls}><title>${title}</title></path>`;
+  }
+  const items=[];rows.forEach(r=>{const c=world.centroids&&world.centroids[r.iso3];const v=mapValue(mode,r);if(!c||!fin(v))return;items.push({x:c[0],y:c[1],v:Math.abs(v),lab:mode==='stress'?v.toFixed(2):mode==='debt'?Math.round(v)+'%':sgn(v,0)});});
+  const fs=8.5/k;placeLabels(items.sort((a,b)=>b.v-a.v),k).forEach(it=>{g+=`<text x="${it.x}" y="${it.y+fs*0.35}" text-anchor="middle" font-size="${fs.toFixed(2)}" font-family="var(--font-mono)" fill="#e6ecf3" stroke="#0a0e14" stroke-width="${(2/k).toFixed(2)}" paint-order="stroke" pointer-events="none">${it.lab}</text>`;});
+  g+='</svg>';
+  const leg=mode==='debt'?[[20,'≤20%'],[40,'40'],[60,'60'],[90,'90'],[120,'120'],[150,'150'],[200,'200%+']].map(([v,l])=>legendItem(mapColor(mode,v),l)):mode==='fiscal'?[[-10,'−10% or worse'],[-6,'−6'],[-3,'−3'],[0,'0'],[4,'+4% surplus']].map(([v,l])=>legendItem(mapColor(mode,v),l)):[[0.05,'0.05 calm'],[0.15,'0.15'],[0.3,'0.30'],[0.5,'0.50'],[0.8,'0.80+ extreme']].map(([v,l])=>legendItem(mapColor(mode,v),l));
+  const src=mode==='stress'?'ECB SovCISS · daily · euro area + 11 states · level today (percentile since 2006 in the tooltip)':'IMF World Economic Outlook · latest outturn year · % of GDP';
+  return g+`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:center">${leg.join('')}${legendItem('#232b3a','known issuer, no figure')}<span class="t-mute" style="font-family:var(--font-mono);font-size:10px;margin-left:auto">${n} countries · ${src}</span></div>`;
+ }
  const W=+world.w||960,H=+world.h||415;
  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;max-height:520px" role="img" aria-label="world sovereign CDS map"><defs><pattern id="cds-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#2a3548"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fb923c" stroke-width="2"/></pattern></defs>`;
  for(const [iso,d] of Object.entries(world.paths)){
@@ -183,13 +225,14 @@ function worldMap(world,rows){
   g+=`<path d="${d}" fill="${fill}" stroke="#0a0e14" stroke-width=".6"${cls}><title>${title}</title></path>`;
  }
  // labels for priced sovereigns
- rows.forEach(r=>{const c=world.centroids&&world.centroids[r.iso3];if(!c||!(r.status==='liquid'||r.status==='thin'))return;g+=`<text x="${c[0]}" y="${c[1]+3}" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)" fill="#e6ecf3" stroke="#0a0e14" stroke-width="2" paint-order="stroke" pointer-events="none">${bp(r.spread_bp)}</text>`;});
+ const items=[];rows.forEach(r=>{const c=world.centroids&&world.centroids[r.iso3];if(!c||!(r.status==='liquid'||r.status==='thin'))return;items.push({x:c[0],y:c[1],v:r.spread_bp,lab:bp(r.spread_bp)});});
+ placeLabels(items.sort((a,b)=>b.v-a.v)).forEach(it=>{g+=`<text x="${it.x}" y="${it.y+3}" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)" fill="#e6ecf3" stroke="#0a0e14" stroke-width="2" paint-order="stroke" pointer-events="none">${it.lab}</text>`;});
  g+='</svg>';
  const legend=[[10,'10'],[30,'30'],[60,'60'],[100,'100'],[150,'150'],[250,'250'],[400,'400'],[800,'800'],[1500,'1500+']].map(([v,l])=>`<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"><i style="display:inline-block;width:14px;height:10px;background:${colorFor(v)};border-radius:2px"></i>${l}</span>`).join('');
  return g+`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:center">${legend}<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"><i style="display:inline-block;width:14px;height:10px;background:repeating-linear-gradient(45deg,#2a3548 0 3px,#fb923c 3px 5px);border-radius:2px"></i>either / or (sign undisclosed)</span><span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"><i style="display:inline-block;width:14px;height:10px;background:#3a4356;border-radius:2px"></i>dormant</span><span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)"><i style="display:inline-block;width:14px;height:10px;background:#232b3a;border-radius:2px"></i>known issuer, not in tape</span></div>`;
 }
 // ---- state + rendering ----
-const CDS={packet:null,history:null,historyPromise:null,world:null,worldPromise:null,longKey:'baa10y',base:S3,
+const CDS={packet:null,history:null,historyPromise:null,world:null,worldPromise:null,longKey:'baa10y',mapMode:'cds',base:S3,
  f:{sovRegion:'all',sovTier:'all',sovStatus:'all',usSector:'all',usStatus:'all',glSector:'all',glStatus:'all'}};
 const byId=id=>document.getElementById(id);
 async function fetchJson(key){const url=(key.startsWith('/')?key:CDS.base+key)+'?cb='+Math.floor(Date.now()/60000);const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error(key+' '+r.status);return r.json();}
@@ -205,11 +248,13 @@ function renderSovereign(){
  const fu=d.fundamentals||{};
  byId('cdsdesk-sov-tag').textContent=`${cov.known??all.length} known sovereign issuers · ${cov.in_tape??(nP+nU+nD)} in the public tape · ${nP} priced · ${nU} either/or · ${nD} dormant${fu.n_sovereigns?` · IMF WEO ${fu.year} fundamentals for ${fu.n_sovereigns}`:''} · showing ${rows.length} · as of ${d.as_of||''}`;
  byId('cdsdesk-sov-chips').innerHTML=chipRow('Region','sovRegion',regions,f.sovRegion,chipText)+chipRow('Tier','sovTier',tiers,f.sovTier,chipText)+chipRow('Status','sovStatus',STATUS_ITEMS(all),f.sovStatus,c=>`${esc(STATUS_LABEL[c.value]||c.value)} <span class="t-mute">· ${c.n}</span>`);
- byId('cdsdesk-sov').innerHTML=universeTable(rows,['Region','Tier','Debt/GDP'],'no sovereign matches this filter');
+ byId('cdsdesk-sov').innerHTML=universeTable(rows,['Region','Tier','Debt/GDP','Fiscal / CA','ECB stress'],'no sovereign matches this filter');
  enhanceTables(byId('cdsdesk-sov').parentElement);
  const mapRows=applyFilters(all,f.sovRegion,f.sovTier,'all',null);
- byId('cdsdesk-map-tag').textContent=`5Y · ${all.filter(r=>r.status==='liquid'||r.status==='thin').length} priced · ${all.filter(r=>r.status==='unpriced').length} either/or · ${all.filter(r=>r.status==='not_in_tape').length} known issuers with no public print · click a country for history`;
- loadWorld().then(w=>{byId('cdsdesk-map').innerHTML=worldMap(w,mapRows);});
+ const mode=CDS.mapMode||'cds',nStress=all.filter(r=>r.stress).length,nFund=all.filter(r=>r.fund).length;
+ byId('cdsdesk-map-tag').textContent=mode==='cds'?`5Y CDS · ${all.filter(r=>r.status==='liquid'||r.status==='thin').length} priced · ${all.filter(r=>r.status==='unpriced').length} either/or · ${all.filter(r=>r.status==='not_in_tape').length} known issuers with no public print · click a country for history`:mode==='stress'?`ECB SovCISS · ${nStress} countries with a daily sovereign-stress record since 2000 · click a country for its own 2006 → chart`:`IMF World Economic Outlook · ${nFund} of ${all.length} known issuers · click a country for history`;
+ byId('cdsdesk-map-ctl').innerHTML=MAP_MODES.map(([k,lab])=>`<button type="button" class="seg-btn${k===mode?' active':''}" data-map-mode="${k}"${k==='stress'&&!nStress?' disabled title="history file not loaded yet"':''}>${lab}${k==='stress'&&nStress?` <span class="t-mute">· ${nStress}</span>`:k!=='cds'&&k!=='stress'&&nFund?` <span class="t-mute">· ${nFund}</span>`:''}</button>`).join('');
+ loadWorld().then(w=>{byId('cdsdesk-map').innerHTML=worldMap(w,mapRows,CDS.mapMode||'cds');});
 }
 function renderCorp(group,prefix,sectorField,statusField){
  const d=CDS.packet;if(!d)return;const g=d.groups[group]||{},f=CDS.f;
@@ -339,6 +384,7 @@ function render(d){
  renderSources(d,null);
  loadHistory().then(h=>{
   renderSources(d,h);
+  renderSovereign();
   renderLong(h);
   const bs=h&&h.long&&h.long.basis||{};
   const one=(k,lab)=>{const b=bs[k];if(!b)return '';const pts=b.points.map(p=>[p[0],p[1]]);const lv=b.last;return `<div style="margin-bottom:10px"><div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">${lab}: <b class="${lv[1]<0?'t-neg':'t-pos'}">${sgn(lv[1],0)}bp</b> on ${lv[0]} · CDS ${bp(lv[2])} vs cash ${bp(lv[3])} · 1y mean ${sgn(b.mean_bp,0)} · ${pct(b.pct_rank)} pct</div>${lineChart(pts,{h:120,color:lv[1]<0?'var(--neg)':'var(--pos)',label:lab+' basis',hline:{value:0,label:'0'}})}</div>`;};
@@ -358,6 +404,7 @@ function wire(){
   const th=e.target.closest('th.sortable');if(th){sortTableBy(th);return;}
   const csv=e.target.closest('.csv-btn[data-csv]');
   if(csv){const panel=csv.closest('.panel'),tbl=panel&&panel.querySelector('table');if(!tbl)return;const name=(panel.querySelector('h3')?panel.querySelector('h3').childNodes[0].textContent:'table').trim().replace(/[^a-z0-9]+/gi,'-').toLowerCase();const blob=new Blob([tableToCsv(tbl)],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`justhodl-${name}-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);return;}
+  const mm=e.target.closest('[data-map-mode]');if(mm){CDS.mapMode=mm.dataset.mapMode;renderSovereign();return;}
   const chip=e.target.closest('.cds-chip[data-filter]');
   if(chip){const f=chip.dataset.filter;CDS.f[f]=chip.dataset.value;if(f.startsWith('sov'))renderSovereign();else if(f.startsWith('us'))renderCorp('us_corp','us','usSector','usStatus');else renderCorp('global_corp','gl','glSector','glStatus');return;}
   const n=e.target.closest('.cds-clickable[data-key]');
@@ -384,7 +431,7 @@ function mount(el,opts){
  if(opts.fetch===false)return Promise.resolve(null);
  return fetchJson(KEYS.packet).then(p=>{render(p);openFromHash();return p;}).catch(e=>{const kp=byId('cdsdesk-kpis');if(kp)kp.innerHTML=`<div class="kpi warning"><div class="label">CDS desk</div><div class="val">Unavailable</div><div class="sub">${esc(e.message)}</div></div>`;return null;});
 }
-const api={render,mount,findName,shell,lineChart,universeRows,universeTable,worldMap,modalHtml,proxyFor,colorFor,enhanceTables,sortTableBy,tableToCsv,countBy,applyFilters,state:CDS,KEYS};
+const api={render,mount,findName,shell,lineChart,universeRows,universeTable,worldMap,modalHtml,proxyFor,colorFor,MAP_MODES,mapColor,sovStress,enhanceTables,sortTableBy,tableToCsv,countBy,applyFilters,state:CDS,KEYS};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 if(root&&typeof root.document!=='undefined'){root.JH_CDS=api;root.enhanceTables=enhanceTables;root.sortTableBy=sortTableBy;root.tableToCsv=tableToCsv;
  root.document.addEventListener('DOMContentLoaded',()=>{const el=root.document.getElementById('cdsdesk-root');if(el&&el.dataset.auto==='1')mount(el,{base:el.dataset.base||S3});});}

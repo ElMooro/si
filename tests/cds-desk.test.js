@@ -68,6 +68,24 @@ test('sovereign rows carry IMF fundamentals when the packet has them: Debt\/GDP 
  const world={w:100,h:50,paths:{ARG:'M0 0h10v10h-10z'},names:{ARG:'Argentina'}};assert.match(ui.worldMap(world,rows),/debt\/GDP 137\.1% \(IMF 2025\)/);
  const dash=ui.universeTable(rows.filter(r=>r.iso3!=='ARG').slice(0,3),['Debt\/GDP'],'none');assert.doesNotMatch(dash,/undefined|NaN/);
 });
+test('ECB SovCISS and IMF figures are visible outside the modal: table columns and map modes',()=>{
+ const d=packet();const sov=d.groups.sovereign;const e=sov.universe.find(e=>e.iso3==='ARG');
+ e.fund={year:'2025',weo_year:'2026',debt_gdp:80.3,debt_gdp_weo:78,fiscal_bal_gdp:-0.5,cab_gdp:1.2,gdp_growth:5,inflation:30};
+ ui.state.history={long:{series:{sovciss_ARG:{iso3:'ARG',last:{date:'2026-10-08',value:0.265},pct_rank_since_2006:84,peaks:[{episode:'Euro crisis 2011-12',date:'2012-07-24',value:0.99}]}}}};
+ try{
+  const rows=ui.universeRows('sovereign',sov);const r=rows.find(r=>r.iso3==='ARG');assert.equal(r.stress.v,0.265);assert.equal(r.stress.p,84);
+  const tbl=ui.universeTable(rows,['Region','Tier','Debt/GDP','Fiscal / CA','ECB stress'],'none');
+  assert.match(tbl,/<th title="[^"]*ECB SovCISS[^"]*">ECB stress<\/th>/);assert.match(tbl,/0\.27<\/b> <span class="t-mute">· 84th/);assert.match(tbl,/-0\.5<\/span> <span class="t-mute">\/<\/span> <span class="">\+1\.2/);
+  assert.doesNotMatch(tbl,/undefined|NaN/);
+  const world={w:100,h:50,paths:{ARG:'M0 0h10v10h-10z',XXX:'M0 0h1v1z'},names:{XXX:'Nowhere'},centroids:{ARG:[5,5]}};
+  const debt=ui.worldMap(world,rows,'debt');assert.match(debt,/debt 80\.3% of GDP \(IMF WEO 2025\) → 78% 2026e/);assert.ok(debt.includes(ui.mapColor('debt',80.3)));assert.match(debt,/>80%<\/text>/);
+  const fis=ui.worldMap(world,rows,'fiscal');assert.match(fis,/fiscal balance -0\.5% of GDP/);
+  const st=ui.worldMap(world,rows,'stress');assert.match(st,/ECB SovCISS 0\.265 \(2026-10-08\) · 84th pct since 2006/);
+  const cds=ui.worldMap(world,rows,'cds');assert.match(cds,/cds-hatch/);
+  [debt,fis,st,cds].forEach(h=>assert.doesNotMatch(h,/undefined|NaN/));
+  assert.equal(ui.MAP_MODES.length,4);assert.notEqual(ui.mapColor('debt',20),ui.mapColor('debt',150));assert.equal(ui.mapColor('fiscal',null),null);
+ }finally{ui.state.history=null;}
+});
 test('line chart supports a second axis and a two-branch band without NaN coordinates',()=>{
  const svg=ui.lineChart([['2006-01-01',1],['2016-01-01',2],['2026-01-01',3]],{axis2:true,series2:[['2024-09-01',200],['2026-01-01',150]],band:[['2024-09-01',300,40],['2026-01-01',280,42]],markers:[{date:'2008-11-01',value:2.5,label:'GFC'}]});
  assert.match(svg,/<svg/);assert.doesNotMatch(svg,/NaN|undefined/);assert.match(svg,/stroke-dasharray="3 2"/);assert.match(svg,/GFC/);
