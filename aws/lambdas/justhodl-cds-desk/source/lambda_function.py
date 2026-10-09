@@ -46,7 +46,13 @@ LONG_SOURCES = {
     # ECB SovCISS: daily sovereign-stress composite per euro-area state (SOV_CIN) and GDP-weighted euro area (SOV_GDPWN)
     "ecb_sovciss": "https://data-api.ecb.europa.eu/service/data/CISS/D..Z0Z.4F.EC.SOV_CIN.IDX?format=csvdata&startPeriod=2000-01-01&detail=dataonly",
     "ecb_sovciss_ea": "https://data-api.ecb.europa.eu/service/data/CISS/D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX?format=csvdata&startPeriod=2000-01-01&detail=dataonly",
+    # ECB new CISS: daily systemic financial stress for the euro area, US, UK, China and eight euro states (same feed the
+    # justhodl-systemic-stress engine reads with lastNObservations; here the full record so 2008 is on the axis)
+    "ecb_ciss": "https://data-api.ecb.europa.eu/service/data/CISS/D..Z0Z.4F.EC.SS_CIN.IDX?format=csvdata&startPeriod=2000-01-01&detail=dataonly",
+    # ECB CLIFS: monthly country-level financial stress for every EU member state + UK since 1990
+    "ecb_clifs": "https://data-api.ecb.europa.eu/service/data/CLIFS/M.._Z.4F.EC.CLIFS_CI.IDX?format=csvdata&startPeriod=1990-01-01&detail=dataonly",
 }
+SYSTEMIC_STRESS_KEY = "data/systemic-stress.json"  # sibling engine, used only as a same-day cross-check
 # IMF WEO fundamentals (DataMapper, keyless JSON): one request per indicator, all countries
 IMF_SOURCES = {ind: "https://www.imf.org/external/datamapper/api/v1/%s" % ind for ind in cds_long_context.IMF_INDICATORS}
 PAR_KEY = os.environ.get("PAR_KEY", "data/warm/treasury-par/curve.json.gz")
@@ -211,7 +217,7 @@ def latest_available_file_day(today):
 
 
 def _fetch_text(url, timeout=40):
-    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.4 (+https://justhodl.ai)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-cds-desk/1.5 (+https://justhodl.ai)"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", "replace")
 
@@ -250,7 +256,9 @@ def build_long_block(bank, as_of):
     for k in ("ecb_sovciss", "ecb_sovciss_ea"):
         if k in texts:
             ecb.update(cds_long_context.parse_ecb_csv(texts[k]))
-    block = cds_long_context.build_long_context(fred, ofr, ebp, bank, as_of, ecb=ecb)
+    ciss = cds_long_context.parse_ecb_csv(texts["ecb_ciss"]) if "ecb_ciss" in texts else {}
+    clifs = cds_long_context.parse_ecb_csv(texts["ecb_clifs"]) if "ecb_clifs" in texts else {}
+    block = cds_long_context.build_long_context(fred, ofr, ebp, bank, as_of, ecb=ecb, ciss=ciss, clifs=clifs)
     block["sources"] = {k: {"url": LONG_SOURCES[k], "status": status.get(k, "unavailable")} for k in LONG_SOURCES}
     return block
 
@@ -273,10 +281,15 @@ def publish(bank, as_of, run_meta):
     except Exception as exc:  # fundamentals are an enrichment; the desk publishes without them
         n_fund = 0
         packet["fundamentals"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
-    history_bytes, long_status = None, {}
+    history_bytes, long_status, n_stress = None, {}, 0
     try:
         long_block = build_long_block(bank, as_of)
         long_status = {k: v["status"] for k, v in long_block["sources"].items()}
+        n_stress = cds_long_context.attach_ecb_stress(packet, long_block["series"])
+        try:
+            cds_long_context.reconcile_with_systemic_stress(packet, _get_json(SYSTEMIC_STRESS_KEY, None))
+        except Exception as exc:  # cross-check only
+            packet.setdefault("cross_reference", {})["systemic_stress"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         keys = [r["key"] for g in packet["groups"].values() for r in g["rows"] + g["unpriced"] + g["dormant"]] + ["IDX:" + i["key"] for i in packet["indices"]]
         branch_keys = [r["key"] for g in packet["groups"].values() for r in g["unpriced"]]
         history = cds_long_context.build_history(bank, as_of, long_block, keys, branch_keys)
@@ -294,7 +307,8 @@ def publish(bank, as_of, run_meta):
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
     return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
             "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_tracked": {g: v["n_tracked"] for g, v in packet["groups"].items()},
-            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund,
+            "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund, "n_ecb_stress": n_stress,
+            "cross_reference": {k: v for k, v in ((packet.get("cross_reference") or {}).get("systemic_stress") or {}).items() if k != "checks"},
             "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 
 

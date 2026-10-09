@@ -403,6 +403,64 @@ def test_v140_ecb_sovciss_and_imf_fundamentals():
     assert cds_long_context.parse_ecb_csv("") == {} and cds_long_context.parse_imf_json("<html>", "X") == {}
 
 
+def test_v150_ecb_ciss_clifs_families_attach_and_reconcile():
+    """v1.5.0: CISS (daily, incl. US / UK / China) and CLIFS (monthly, rest of the EU) join SovCISS as ECB stress
+    families; every sovereign gets its most specific record on the packet; a discontinued CLIFS country is skipped; the
+    same-day cross-check against the sibling systemic-stress engine flags only real mismatches."""
+    from datetime import date, timedelta
+    hdr = "KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE\n"
+    sov, cis, cli = [], [], []
+    for i in range(0, 900, 3):
+        d = (date(2006, 1, 2) + timedelta(days=i * 8)).isoformat()
+        sov.append("CISS.D.IT.Z0Z.4F.EC.SOV_CIN.IDX,D,IT,Z0Z,4F,EC,SOV_CIN,IDX,%s,%.4f" % (d, 0.1 + (0.6 if d.startswith("2011") else 0.0)))
+        cis.append("CISS.D.IT.Z0Z.4F.EC.SS_CIN.IDX,D,IT,Z0Z,4F,EC,SS_CIN,IDX,%s,%.4f" % (d, 0.05))
+        cis.append("CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX,D,US,Z0Z,4F,EC,SS_CIN,IDX,%s,%.4f" % (d, 0.02 + (0.7 if d.startswith("2008-1") else 0.0)))
+        cis.append("CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX,D,CN,Z0Z,4F,EC,SS_CIN,IDX,%s,%.4f" % (d, 0.01))
+    for y in range(2006, 2027):
+        for m in range(1, 13):
+            per = "%04d-%02d" % (y, m)
+            if per > "2026-08":
+                break
+            cli.append("CLIFS.M.SE._Z.4F.EC.CLIFS_CI.IDX,M,SE,_Z,4F,EC,CLIFS_CI,IDX,%s,%.4f" % (per, 0.09))
+            cli.append("CLIFS.M.IT._Z.4F.EC.CLIFS_CI.IDX,M,IT,_Z,4F,EC,CLIFS_CI,IDX,%s,%.4f" % (per, 0.04))
+            if y <= 2010:
+                cli.append("CLIFS.M.EE._Z.4F.EC.CLIFS_CI.IDX,M,EE,_Z,4F,EC,CLIFS_CI,IDX,%s,%.4f" % (per, 0.05))
+    ecb = LC.parse_ecb_csv(hdr + "\n".join(sov) + "\n")
+    ciss = LC.parse_ecb_csv(hdr + "\n".join(cis) + "\n")
+    clifs = LC.parse_ecb_csv(hdr + "\n".join(cli) + "\n")
+    assert set(ciss) == {"ITA", "USA", "CHN"} and set(clifs) == {"SWE", "ITA", "EST"}
+    assert "2026-08-31" in clifs["SWE"], "monthly periods become month-end dates"
+    as_of = "2026-10-08"
+    block = LC.build_long_context({}, {}, {}, {"series": {}}, as_of, ecb=ecb, ciss=ciss, clifs=clifs)
+    ser = block["series"]
+    assert {"sovciss_ITA", "ciss_ITA", "ciss_USA", "ciss_CHN", "clifs_SWE", "clifs_ITA"} <= set(ser), sorted(ser)
+    assert "clifs_EST" not in ser and any("discontinued" in n for n in block.get("notes", [])), "Estonia's CLIFS stops in 2010"
+    assert ser["ciss_USA"]["family"] == "ciss" and ser["ciss_USA"]["frequency"] == "daily" and "United States" in ser["ciss_USA"]["name"]
+    assert ser["clifs_SWE"]["frequency"] == "monthly" and ser["clifs_SWE"]["points"][0][0] >= "2006-01-01" and len(ser["clifs_SWE"]["points"]) >= 240
+    gfc = next(p for p in ser["ciss_USA"]["peaks"] if p["episode"].startswith("GFC"))
+    assert gfc["value"] > 0.7
+    packet = {"groups": {"sovereign": {"universe": [{"name": "Italy", "iso3": "ITA", "key": "ITALY"}, {"name": "United States", "iso3": "USA", "key": "USA"},
+                                                    {"name": "Sweden", "iso3": "SWE", "key": None}, {"name": "China", "iso3": "CHN", "key": "CHINA"},
+                                                    {"name": "Japan", "iso3": "JPN", "key": "JAPAN"}],
+                                       "rows": [{"key": "ITALY", "iso3": "ITA"}, {"key": "JAPAN", "iso3": "JPN"}], "unpriced": [{"key": "CHINA", "iso3": "CHN"}], "dormant": []}}}
+    n = LC.attach_ecb_stress(packet, ser)
+    assert n == 4
+    uni = {e["iso3"]: e.get("stress") for e in packet["groups"]["sovereign"]["universe"]}
+    assert uni["ITA"]["family"] == "sovciss", "SovCISS wins over CISS and CLIFS for a euro state"
+    assert uni["USA"]["family"] == "ciss" and uni["SWE"]["family"] == "clifs" and uni["CHN"]["family"] == "ciss" and uni["JPN"] is None
+    assert packet["groups"]["sovereign"]["unpriced"][0]["stress"]["family"] == "ciss"
+    assert packet["groups"]["sovereign"]["rows"][0]["stress"]["value"] == ser["sovciss_ITA"]["last"]["value"]
+    assert "stress" not in packet["groups"]["sovereign"]["rows"][1]
+    assert packet["ecb_stress"]["series_by_family"] == {"sovciss": 1, "ciss": 3, "clifs": 2}
+    systemic = {"generated_at": "x", "sovereign_stress": {"countries": {"IT": {"value": ser["sovciss_ITA"]["last"]["value"] + 0.001, "as_of": ser["sovciss_ITA"]["last"]["date"]}}},
+                "systemic_stress": {"countries": {"US": {"value": 0.5, "as_of": ser["ciss_USA"]["last"]["date"]}, "CN": {"value": 0.01, "as_of": "2000-01-01"}}}}
+    xr = LC.reconcile_with_systemic_stress(packet, systemic)
+    assert xr["n_checked"] == 3 and xr["n_same_day"] == 2 and xr["n_match"] == 1, xr
+    assert LC.reconcile_with_systemic_stress(packet, None) is None
+    for banned in ("buy", "sell", "target", "forecast", "predict"):
+        assert banned not in json.dumps(packet["ecb_stress"]).lower()
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0

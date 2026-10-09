@@ -22,6 +22,7 @@ for the CDS–bond basis.
 Pure functions over CSV text; no network.  Descriptive measurements only.
 """
 from datetime import date, timedelta
+import calendar
 import csv
 import io
 import math
@@ -34,9 +35,27 @@ CRISIS_WINDOWS = (("GFC 2008-09", "2008-01-01", "2009-12-31"), ("Euro crisis 201
 FRED_SERIES = {"BAA10Y": "Moody's Baa − 10Y Treasury", "AAA10Y": "Moody's Aaa − 10Y Treasury",
                "BAMLH0A0HYM2": "ICE BofA US HY OAS", "BAMLC0A0CM": "ICE BofA US Corp (IG) OAS"}
 ECB_ISO2_TO_ISO3 = {"AT": "AUT", "BE": "BEL", "DE": "DEU", "ES": "ESP", "FI": "FIN", "FR": "FRA", "GR": "GRC", "IE": "IRL", "IT": "ITA",
-                    "NL": "NLD", "PT": "PRT", "U2": "EA", "GB": "GBR", "US": "USA", "CN": "CHN"}
+                    "NL": "NLD", "PT": "PRT", "U2": "EA", "GB": "GBR", "US": "USA", "CN": "CHN",
+                    # CLIFS (monthly country-level financial stress) adds the rest of the EU
+                    "BG": "BGR", "CY": "CYP", "CZ": "CZE", "DK": "DNK", "EE": "EST", "HR": "HRV", "HU": "HUN", "LT": "LTU", "LU": "LUX",
+                    "LV": "LVA", "MT": "MLT", "PL": "POL", "RO": "ROU", "SE": "SWE", "SI": "SVN", "SK": "SVK"}
 ECB_NAMES = {"AUT": "Austria", "BEL": "Belgium", "DEU": "Germany", "ESP": "Spain", "FIN": "Finland", "FRA": "France", "GRC": "Greece",
-             "IRL": "Ireland", "ITA": "Italy", "NLD": "Netherlands", "PRT": "Portugal", "EA": "euro area", "GBR": "United Kingdom"}
+             "IRL": "Ireland", "ITA": "Italy", "NLD": "Netherlands", "PRT": "Portugal", "EA": "euro area", "GBR": "United Kingdom",
+             "USA": "United States", "CHN": "China", "BGR": "Bulgaria", "CYP": "Cyprus", "CZE": "Czech Republic", "DNK": "Denmark",
+             "EST": "Estonia", "HRV": "Croatia", "HUN": "Hungary", "LTU": "Lithuania", "LUX": "Luxembourg", "LVA": "Latvia", "MLT": "Malta",
+             "POL": "Poland", "ROU": "Romania", "SWE": "Sweden", "SVN": "Slovenia", "SVK": "Slovakia"}
+# three ECB stress families, in the order a sovereign's own 2006 -> record is chosen (most sovereign-specific first)
+ECB_FAMILIES = (
+    ("sovciss", "ECB SovCISS", "index (0 calm → 1 extreme sovereign stress)",
+     "ECB Data Portal CISS dataset, daily SovCISS since 2000 (2Y/10Y spread to swaps, yield volatility, bid-ask)", "sovereign-market stress"),
+    ("ciss", "ECB CISS", "index (0 calm → 1 extreme systemic financial stress)",
+     "ECB Data Portal CISS dataset, daily new CISS since 2000 (money, bond, equity and FX markets, financial intermediaries, and their cross-correlation)",
+     "systemic financial stress"),
+    ("clifs", "ECB CLIFS", "index (0 calm → 1 extreme country financial stress)",
+     "ECB Data Portal CLIFS dataset, monthly Country-Level Index of Financial Stress since 1990 (equity, bond and FX market stress, correlation-weighted)",
+     "country financial stress"),
+)
+STALE_ECB_MONTHS = 18  # a CLIFS country whose last print is older than this is a discontinued series (Estonia stops 2010)
 IMF_INDICATORS = {"GGXWDG_NGDP": ("debt_gdp", "general government gross debt, % of GDP"),
                   "GGXCNL_NGDP": ("fiscal_bal_gdp", "general government net lending/borrowing, % of GDP"),
                   "BCA_NGDPD": ("cab_gdp", "current account balance, % of GDP"),
@@ -105,8 +124,11 @@ def parse_ecb_csv(text):
         area = (row.get("REF_AREA") or "").strip()
         d = (row.get("TIME_PERIOD") or "").strip()
         v = (row.get("OBS_VALUE") or "").strip()
-        if not area or len(d) != 10 or not v:
+        if not area or not v or len(d) not in (7, 10):
             continue
+        if len(d) == 7:  # monthly period -> month-end date so the series shares the daily date axis
+            y, m = int(d[:4]), int(d[5:7])
+            d = "%04d-%02d-%02d" % (y, m, calendar.monthrange(y, m)[1])
         try:
             out.setdefault(ECB_ISO2_TO_ISO3.get(area, area), {})[d] = float(v)
         except ValueError:
@@ -240,7 +262,88 @@ def _daily_series(bank_series):
     return {d: r["s"] for d, r in (bank_series or {}).items() if r.get("s") is not None}
 
 
-def build_long_context(fred, ofr, ebp, bank, as_of_iso, ecb=None):
+def _months_before(iso, n):
+    y, m = int(iso[:4]), int(iso[5:7])
+    m -= n
+    while m <= 0:
+        y -= 1
+        m += 12
+    return "%04d-%02d-01" % (y, m)
+
+
+def ecb_stress_for(series_out, iso3):
+    """The most sovereign-specific ECB stress record published for a country: SovCISS, else CISS, else CLIFS."""
+    for fam, label0, _unit, _source, kind in ECB_FAMILIES:
+        s = series_out.get(fam + "_" + iso3)
+        if s:
+            euro = next((p for p in s.get("peaks") or [] if str(p.get("episode", "")).startswith("Euro")), None)
+            gfc = next((p for p in s.get("peaks") or [] if str(p.get("episode", "")).startswith("GFC")), None)
+            return {"family": fam, "label": label0, "kind": kind, "frequency": s.get("frequency", "daily"), "series": fam + "_" + iso3,
+                    "value": s["last"]["value"], "date": s["last"]["date"], "pct_rank_since_2006": s.get("pct_rank_since_2006"),
+                    "gfc_peak": gfc and gfc.get("value"), "euro_peak": euro and euro.get("value"), "n_points": len(s.get("points") or [])}
+    return None
+
+
+def attach_ecb_stress(packet, series_out):
+    """Put the ECB record on every sovereign universe entry / row / unpriced / dormant record (`stress`) so the table and
+    the map have it without waiting for the history file.  Returns the number of universe entries that got one."""
+    sov = (packet.get("groups") or {}).get("sovereign") or {}
+    n = 0
+    by_key = {}
+    for e in sov.get("universe") or []:
+        st = ecb_stress_for(series_out, e.get("iso3") or "")
+        if st:
+            e["stress"] = st
+            n += 1
+            if e.get("key"):
+                by_key[e["key"]] = st
+    for coll in ("rows", "unpriced", "dormant"):
+        for r in sov.get(coll) or []:
+            st = by_key.get(r.get("key")) or ecb_stress_for(series_out, r.get("iso3") or "")
+            if st:
+                r["stress"] = st
+    fams = {}
+    for k in series_out:
+        fam = k.split("_", 1)[0]
+        if fam in ("sovciss", "ciss", "clifs"):
+            fams[fam] = fams.get(fam, 0) + 1
+    packet["ecb_stress"] = {"source": "ECB Data Portal, datasets CISS (daily SovCISS + new CISS) and CLIFS (monthly), keyless csvdata",
+                            "n_sovereigns": n, "series_by_family": fams,
+                            "rule": "a sovereign is drawn against its own ECB record when one exists: SovCISS (sovereign-market stress) first, then CISS (systemic financial stress: US, UK, China and eight euro states), then CLIFS (monthly country financial stress: the rest of the EU); non-European sovereigns outside those lists keep the OFR proxy",
+                            "read": "0 = calm, 1 = extreme; percentile is of every observation since 2006 of that country's own record. Descriptive context, not a price."}
+    return n
+
+
+def reconcile_with_systemic_stress(packet, systemic):
+    """Cross-check today's ECB levels against the sibling engine justhodl-systemic-stress (data/systemic-stress.json), which
+    reads the same ECB series with lastNObservations.  Same date -> values must agree to 0.002."""
+    if not systemic:
+        return None
+    iso2 = {v: k for k, v in ECB_ISO2_TO_ISO3.items()}
+    checks = []
+    sov = (packet.get("groups") or {}).get("sovereign") or {}
+    stress_by_iso = {e.get("iso3"): e.get("stress") for e in sov.get("universe") or [] if e.get("stress")}
+    for fam, block_key in (("sovciss", "sovereign_stress"), ("ciss", "systemic_stress")):
+        other = ((systemic.get(block_key) or {}).get("countries") or {})
+        for iso3, st in stress_by_iso.items():
+            if st.get("family") != fam:
+                continue
+            o = other.get(iso2.get(iso3, ""))
+            if not o:
+                continue
+            same_day = o.get("as_of") == st.get("date")
+            diff = abs(float(o.get("value")) - float(st["value"])) if o.get("value") is not None else None
+            checks.append({"iso3": iso3, "family": fam, "cds_desk": st["value"], "cds_desk_date": st["date"], "systemic_stress": o.get("value"),
+                           "systemic_stress_date": o.get("as_of"), "same_day": same_day,
+                           "match": bool(same_day and diff is not None and diff <= 0.002)})
+    out = {"engine": "justhodl-systemic-stress", "key": "data/systemic-stress.json", "generated_at": systemic.get("generated_at"),
+           "n_checked": len(checks), "n_match": sum(1 for c in checks if c["match"]), "n_same_day": sum(1 for c in checks if c["same_day"]),
+           "checks": checks, "read": "two independent pulls of the same ECB series must agree on the same day; a same-day mismatch is a parsing bug, a different-day pair is just publication lag"}
+    packet.setdefault("cross_reference", {})["systemic_stress"] = out
+    return out
+
+
+def build_long_context(fred, ofr, ebp, bank, as_of_iso, ecb=None, ciss=None, clifs=None):
     """fred: {id: {date: pct}}, ofr: {alias: {date: v}}, ebp: {gz_spread/ebp: {date: pct}}, bank: cds bank.
 
     Returns the long block for data/cds-desk-history.json: weekly series since 2006 with crisis peaks and today's
@@ -289,17 +392,23 @@ def build_long_context(fred, ofr, ebp, bank, as_of_iso, ecb=None):
                              "points": weekly(s, nd=2), "last": {"date": last_d, "value": round(s[last_d], 2)},
                              "pct_rank_since_2006": pct_rank([v for d, v in s.items() if d >= LONG_START and d <= as_of_iso], s[last_d]),
                              "peaks": crisis_peaks(s, nd=2)}
-    # 2b. ECB SovCISS — country-specific sovereign stress, daily since 2000 (euro area + eleven member states)
-    for iso3, s in sorted((ecb or {}).items()):
-        if not s or not any(d <= as_of_iso for d in s):
-            continue
-        last_d = max(d for d in s if d <= as_of_iso)
-        label = "ECB SovCISS · %s" % ECB_NAMES.get(iso3, iso3)
-        series_out["sovciss_" + iso3] = {"name": label, "unit": "index (0 calm → 1 extreme sovereign stress)",
-                                         "source": "ECB Data Portal CISS dataset, daily SovCISS since 2000 (2Y/10Y spread to swaps, yield volatility, bid-ask)",
-                                         "iso3": iso3, "points": weekly(s, nd=3), "last": {"date": last_d, "value": round(s[last_d], 3)},
-                                         "pct_rank_since_2006": pct_rank([v for d, v in s.items() if d >= LONG_START and d <= as_of_iso], s[last_d]),
-                                         "peaks": crisis_peaks(s, nd=3)}
+    # 2b. ECB stress families — SovCISS (sovereign, daily, euro area + 11 states), CISS (systemic, daily, + US / UK / China),
+    #     CLIFS (country financial stress, monthly, every EU state + UK).  Each becomes `<family>_<ISO3>`.
+    stale_cut = _months_before(as_of_iso, STALE_ECB_MONTHS)
+    for (fam, label0, unit, source, _kind), data in zip(ECB_FAMILIES, (ecb, ciss, clifs)):
+        for iso3, s in sorted((data or {}).items()):
+            if not s or not any(d <= as_of_iso for d in s):
+                continue
+            last_d = max(d for d in s if d <= as_of_iso)
+            if last_d < stale_cut:
+                notes.append("%s %s discontinued (last %s), skipped" % (label0, iso3, last_d))
+                continue
+            pts = weekly(s, nd=3) if fam != "clifs" else [[d, round(v, 3)] for d, v in sorted(s.items()) if d >= LONG_START and d <= as_of_iso]
+            series_out[fam + "_" + iso3] = {"name": "%s · %s" % (label0, ECB_NAMES.get(iso3, iso3)), "unit": unit, "source": source,
+                                            "family": fam, "frequency": "monthly" if fam == "clifs" else "daily",
+                                            "iso3": iso3, "points": pts, "last": {"date": last_d, "value": round(s[last_d], 3)},
+                                            "pct_rank_since_2006": pct_rank([v for d, v in s.items() if d >= LONG_START and d <= as_of_iso], s[last_d]),
+                                            "peaks": crisis_peaks(s, nd=3)}
     # 3. GZ spread / EBP (monthly)
     for k, label in (("gz_spread", "Gilchrist–Zakrajšek credit spread"), ("ebp", "Excess bond premium")):
         s = (ebp or {}).get(k) or {}

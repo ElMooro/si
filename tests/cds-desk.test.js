@@ -75,15 +75,23 @@ test('ECB SovCISS and IMF figures are visible outside the modal: table columns a
  try{
   const rows=ui.universeRows('sovereign',sov);const r=rows.find(r=>r.iso3==='ARG');assert.equal(r.stress.v,0.265);assert.equal(r.stress.p,84);
   const tbl=ui.universeTable(rows,['Region','Tier','Debt/GDP','Fiscal / CA','ECB stress'],'none');
-  assert.match(tbl,/<th title="[^"]*ECB SovCISS[^"]*">ECB stress<\/th>/);assert.match(tbl,/0\.27<\/b> <span class="t-mute">· 84th/);assert.match(tbl,/-0\.5<\/span> <span class="t-mute">\/<\/span> <span class="">\+1\.2/);
+  assert.match(tbl,/<th title="[^"]*SovCISS[^"]*CISS[^"]*CLIFS[^"]*">ECB stress<\/th>/);assert.match(tbl,/0\.27<\/b> <span class="t-mute">· 84th · sov/);assert.match(tbl,/-0\.5<\/span> <span class="t-mute">\/<\/span> <span class="">\+1\.2/);
   assert.doesNotMatch(tbl,/undefined|NaN/);
   const world={w:100,h:50,paths:{ARG:'M0 0h10v10h-10z',XXX:'M0 0h1v1z'},names:{XXX:'Nowhere'},centroids:{ARG:[5,5]}};
   const debt=ui.worldMap(world,rows,'debt');assert.match(debt,/debt 80\.3% of GDP \(IMF WEO 2025\) → 78% 2026e/);assert.ok(debt.includes(ui.mapColor('debt',80.3)));assert.match(debt,/>80%<\/text>/);
   const fis=ui.worldMap(world,rows,'fiscal');assert.match(fis,/fiscal balance -0\.5% of GDP/);
-  const st=ui.worldMap(world,rows,'stress');assert.match(st,/ECB SovCISS 0\.265 \(2026-10-08\) · 84th pct since 2006/);
+  const st=ui.worldMap(world,rows,'stress');assert.match(st,/ECB SovCISS 0\.265 \(2026-10-08, sovereign-market stress\) · 84th pct since 2006/);
   const cds=ui.worldMap(world,rows,'cds');assert.match(cds,/cds-hatch/);
   [debt,fis,st,cds].forEach(h=>assert.doesNotMatch(h,/undefined|NaN/));
   assert.equal(ui.MAP_MODES.length,4);assert.notEqual(ui.mapColor('debt',20),ui.mapColor('debt',150));assert.equal(ui.mapColor('fiscal',null),null);
+  // v1.5: packet-side `stress` (any ECB family) wins over the history lookup and names its family; CISS / CLIFS fall back by priority
+  const e2=sov.universe.find(e=>e.iso3==='ECU');e2.stress={family:'ciss',value:0.008,date:'2026-10-08',pct_rank_since_2006:15.6,frequency:'daily',gfc_peak:0.896};
+  const rows2=ui.universeRows('sovereign',sov);const r2=rows2.find(r=>r.iso3==='ECU');assert.equal(r2.stress.fam,'ciss');assert.equal(r2.stress.tag,'sys');
+  const tbl2=ui.universeTable(rows2,['ECB stress'],'none');assert.match(tbl2,/0\.01<\/b> <span class="t-mute">· 16th · sys/);assert.match(tbl2,/ECB CISS 0\.008 on 2026-10-08 \(systemic financial stress, daily\)[^"]*2008 peak 0\.896/);
+  ui.state.history={long:{series:{clifs_ECU:{iso3:'ECU',frequency:'monthly',last:{date:'2026-08-31',value:0.093},pct_rank_since_2006:55.6,peaks:[]},ciss_ARG:{iso3:'ARG',last:{date:'2026-10-08',value:0.02},pct_rank_since_2006:30,peaks:[]},sovciss_ARG:{iso3:'ARG',last:{date:'2026-10-08',value:0.265},pct_rank_since_2006:84,peaks:[]}}}};
+  delete e2.stress;const rows3=ui.universeRows('sovereign',sov);assert.equal(rows3.find(r=>r.iso3==='ECU').stress.fam,'clifs');assert.equal(rows3.find(r=>r.iso3==='ARG').stress.fam,'sovciss');
+  assert.equal(ui.proxyFor('sovereign','EM','ECUADOR','ECU',ui.state.history.long.series),'clifs_ECU');assert.equal(ui.proxyFor('sovereign','EM','ARG','ARG',ui.state.history.long.series),'sovciss_ARG');
+  const st2=ui.worldMap(world,rows3,'stress');assert.match(st2,/ECB SovCISS 0\.265 \(2026-10-08, sovereign-market stress\)/);assert.doesNotMatch(st2,/undefined|NaN/);
  }finally{ui.state.history=null;}
 });
 test('line chart supports a second axis and a two-branch band without NaN coordinates',()=>{
