@@ -234,8 +234,8 @@ function modalHtml(key,name,group,tier,h,packet){
  if(px){
   const markers=(px.peaks||[]).map(p=>({date:p.date,value:p.value,label:p.episode.replace(/ \d{4}.*$/,'')}));
   const own=pts.length>1?pts:[];
-  html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">2006 → today: <b style="color:var(--info)">${esc(px.name)}</b> (${esc(px.unit||'')}, left axis, ${esc(px.source||'')}) with <b style="color:#f5c451">${esc(name)}</b> 5Y CDS (bp, right axis) from the first public print${own.length?` ${esc(own[0][0])}`:''}${band.length?` · orange band = the two feasible levels of the unsigned upfront @${coupons[0]}c`:''}</div>`;
-  html+=lineChart(px.points,{h:280,color:'var(--info)',label:px.name,markers,series2:own,axis2:true,color2:'#f5c451',label2:'bp',band:own.length?[]:band,xmin:'2006-01-01'});
+  html+=`<div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-bottom:4px">2006 → today: <b style="color:#4fb7e8">${esc(px.name)}</b> (${esc(px.unit||'')}, left axis, ${esc(px.source||'')}) with <b style="color:#f5c451">${esc(name)}</b> 5Y CDS (bp, right axis) from the first public print${own.length?` ${esc(own[0][0])}`:''}${band.length?` · orange band = the two feasible levels of the unsigned upfront @${coupons[0]}c`:''}</div>`;
+  html+=lineChart(px.points,{h:280,color:'#4fb7e8',label:px.name,markers,series2:own,axis2:true,color2:'#f5c451',label2:'bp',band:own.length?[]:band,xmin:'2006-01-01'});
   const gfc=(px.peaks||[]).find(p=>p.episode.startsWith('GFC'));
   html+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="pill info">${esc(px.name)} ${px.last.value} ${esc(px.unit||'')} · ${pct(px.pct_rank_since_2006)} pct since 2006</span>${gfc?`<span class="pill neg">2008 peak ${gfc.value} on ${gfc.date}</span>`:''}${(px.peaks||[]).filter(p=>!p.episode.startsWith('GFC')).map(p=>`<span class="pill mute">${esc(p.episode)}: ${p.value}</span>`).join('')}</div>`;
  }
