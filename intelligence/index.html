@@ -435,8 +435,15 @@ document.querySelectorAll('.tab').forEach(b => {
     document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     document.getElementById('pane-'+b.dataset.pane).classList.add('active');
+    if (history.replaceState) history.replaceState(null, '', '#' + b.dataset.pane);
   });
 });
+// Deep link: /intelligence/#cds (or #pane-cds) opens that tab directly
+(function openTabFromHash() {
+  const want = (location.hash || '').replace(/^#(pane-)?/, '');
+  const btn = want && document.querySelector('.tab[data-pane="' + want.replace(/"/g, '') + '"]');
+  if (btn) btn.click();
+})();
 
 // Fetch all
 async function fetchJson(key) {
