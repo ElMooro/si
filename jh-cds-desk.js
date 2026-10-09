@@ -184,8 +184,8 @@ function renderSovereign(){
  const all=sortUniverse(universeRows('sovereign',sov));
  const regions=countBy(all,'region'),tiers=countBy(all,'tier').sort((a,b)=>({DM:0,EM:1,Frontier:2}[a.value]??9)-({DM:0,EM:1,Frontier:2}[b.value]??9));
  const rows=applyFilters(all,f.sovRegion,f.sovTier,f.sovStatus,null);
- const cov=sov.coverage||{};
- byId('cdsdesk-sov-tag').textContent=`${cov.known??all.length} known sovereign issuers · ${cov.in_tape??'—'} in the public tape · ${cov.priced??sov.n_priced??0} priced · ${cov.unpriced??0} either/or · ${cov.dormant??0} dormant · showing ${rows.length} · as of ${d.as_of||''}`;
+ const cov=sov.coverage||{},nP=all.filter(r=>r.status==='liquid'||r.status==='thin').length,nU=all.filter(r=>r.status==='unpriced').length,nD=all.filter(r=>r.status==='dormant').length;
+ byId('cdsdesk-sov-tag').textContent=`${cov.known??all.length} known sovereign issuers · ${cov.in_tape??(nP+nU+nD)} in the public tape · ${nP} priced · ${nU} either/or · ${nD} dormant · showing ${rows.length} · as of ${d.as_of||''}`;
  byId('cdsdesk-sov-chips').innerHTML=chipRow('Region','sovRegion',regions,f.sovRegion,chipText)+chipRow('Tier','sovTier',tiers,f.sovTier,chipText)+chipRow('Status','sovStatus',STATUS_ITEMS(all),f.sovStatus,c=>`${esc(STATUS_LABEL[c.value]||c.value)} <span class="t-mute">· ${c.n}</span>`);
  byId('cdsdesk-sov').innerHTML=universeTable(rows,['Region','Tier'],'no sovereign matches this filter');
  enhanceTables(byId('cdsdesk-sov').parentElement);
@@ -198,7 +198,8 @@ function renderCorp(group,prefix,sectorField,statusField){
  const all=sortUniverse(universeRows(group,g));
  const sectors=countBy(all,'sector');
  const rows=applyFilters(all,null,null,f[statusField],f[sectorField]);
- byId(`cdsdesk-${prefix}-tag`).textContent=`${g.n_tracked??all.length} names in the tape · ${g.n_priced??0} priced (${g.n_liquid??0} liquid) · ${g.n_unpriced??0} either/or · ${g.n_dormant??0} dormant · median ${bp(g.median_bp)}bp · showing ${rows.length}`;
+ const nP=all.filter(r=>r.status==='liquid'||r.status==='thin').length,nL=all.filter(r=>r.status==='liquid').length,nU=all.filter(r=>r.status==='unpriced').length,nD=all.filter(r=>r.status==='dormant').length;
+ byId(`cdsdesk-${prefix}-tag`).textContent=`${all.length} names in the tape · ${nP} priced (${nL} liquid) · ${nU} either/or · ${nD} dormant · median ${bp(g.median_bp)}bp · showing ${rows.length}`;
  byId(`cdsdesk-${prefix}-chips`).innerHTML=chipRow('Sector',sectorField,sectors,f[sectorField],chipText)+chipRow('Status',statusField,STATUS_ITEMS(all),f[statusField],c=>`${esc(STATUS_LABEL[c.value]||c.value)} <span class="t-mute">· ${c.n}</span>`);
  byId(`cdsdesk-${prefix}`).innerHTML=universeTable(rows,['Sector'],'no name matches this filter');
  enhanceTables(byId(`cdsdesk-${prefix}`).parentElement);
@@ -266,8 +267,8 @@ function render(d){
  const cov=sov.coverage||{};
  kp.innerHTML=`
   <div class="kpi ${widerShare==null?'info':widerShare>=65?'neg':widerShare<=35?'pos':'gold'}"><div class="label">Breadth (1d)</div><div class="val">${widerShare==null?'—':widerShare+'% wider'}</div><div class="sub">${br.wider??0} wider · ${br.tighter??0} tighter · median ${sgn(br.median_chg_1d_bp)}bp</div></div>
-  <div class="kpi accent"><div class="label">Sovereign median</div><div class="val">${bp(sov.median_bp)}bp</div><div class="sub">${sov.n_priced??sov.n_liquid??0} priced of ${cov.in_tape??sov.n_tracked??0} in tape · ${cov.known??'—'} known issuers · 1d ${sgn(sov.median_chg_1d_bp)}bp</div></div>
-  <div class="kpi info"><div class="label">U.S. corp median</div><div class="val">${bp(us.median_bp)}bp</div><div class="sub">${us.n_priced??us.n_liquid??0} priced of ${us.n_tracked??0} names · global ${gl.n_priced??0} of ${gl.n_tracked??0} · 1d ${sgn(us.median_chg_1d_bp)}bp</div></div>
+  <div class="kpi accent"><div class="label">Sovereign median</div><div class="val">${bp(sov.median_bp)}bp</div><div class="sub">${sov.n_priced??sov.n_liquid??0} priced of ${cov.in_tape??sov.n_tracked??0} in tape${cov.known?` · ${cov.known} known issuers`:''} · 1d ${sgn(sov.median_chg_1d_bp)}bp</div></div>
+  <div class="kpi info"><div class="label">U.S. corp median</div><div class="val">${bp(us.median_bp)}bp</div><div class="sub">${us.n_priced??us.n_liquid??0} priced of ${us.n_tracked??0} names · global ${gl.n_priced??gl.n_liquid??0} of ${gl.n_tracked??0} · 1d ${sgn(us.median_chg_1d_bp)}bp</div></div>
   <div class="kpi gold"><div class="label">CDX IG / HY</div><div class="val">${ig?bp(ig.spread_bp,1):'—'} / ${hy?bp(hy.spread_bp):'—'}</div><div class="sub">${ig?`IG ${pct(ig.pct_rank_1y)} pct 1y`:''}${hy?` · HY px ${bp(hy.price,2)} · ${pct(hy.pct_rank_1y)} pct`:''}</div></div>
   <div class="kpi ${map&&map.usable?(map.pct_rank_since_2006>=75?'neg':map.pct_rank_since_2006<=25?'pos':'gold'):'info'}" id="cdsdesk-kpi-long"><div class="label">CDX IG vs 2006→</div><div class="val">${map&&map.usable?pct(map.pct_rank_since_2006)+' pct':'—'}</div><div class="sub">${map?`≈ ${map.mapped_baa10y_bp}bp Baa−10Y · ${fin(map.share_of_gfc_peak)?Math.round(100*map.share_of_gfc_peak)+'% of 2008 peak':''} · fit r² ${map.fit?map.fit.r2:'—'}${map.usable?'':' (weak)'}`:'needs history file'}</div></div>
   <div class="kpi ${bh?(bh[1]<-40?'warning':'info'):'info'}" id="cdsdesk-kpi-basis"><div class="label">CDS − bond basis</div><div class="val">${bh?sgn(bh[1],0):'—'}<span style="font-size:13px"> HY</span> ${bi?sgn(bi[1],0):'—'}<span style="font-size:13px"> IG</span></div><div class="sub">${bh?`CDX HY ${bp(bh[2])} vs HY OAS ${bp(bh[3])}bp · ${bh[0]}`:'CDX vs ICE BofA cash OAS'}</div></div>
