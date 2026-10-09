@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-09T05:10:10.814150+00:00",
+  "observed_at": "2026-10-09T05:13:16.283532+00:00",
   "runs": [
     {
       "id": 37885738344,
@@ -341,18 +341,18 @@
       "id": 37884885807,
       "path": ".github/workflows/run-ops.yml",
       "head_sha": "bc26ff94af6c649bfe6f7a6a5b68b7cfb484f429",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-10-09T04:39:17Z",
-      "updated_at": "2026-10-09T04:39:21Z",
+      "updated_at": "2026-10-09T05:12:43Z",
       "jobs": [
         {
           "id": 113672548235,
           "name": "Execute ops script",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-10-09T04:39:20Z",
-          "completed_at": null,
+          "completed_at": "2026-10-09T05:12:43Z",
           "steps": [
             {
               "number": 1,
@@ -429,66 +429,74 @@
             {
               "number": 10,
               "name": "Run script(s)",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-09T04:41:54Z",
-              "completed_at": null
+              "completed_at": "2026-10-09T05:12:36Z"
             },
             {
               "number": 11,
               "name": "Regenerate STATE.md snapshot",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:36Z",
+              "completed_at": "2026-10-09T05:12:36Z"
             },
             {
               "number": 12,
               "name": "Preserve reviewed audit receipts before commit",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:36Z",
+              "completed_at": "2026-10-09T05:12:37Z"
             },
             {
               "number": 13,
               "name": "Commit any new/changed reports or imports",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:37Z",
+              "completed_at": "2026-10-09T05:12:40Z"
             },
             {
               "number": 14,
               "name": "Summary",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:40Z",
+              "completed_at": "2026-10-09T05:12:40Z"
             },
             {
               "number": 26,
               "name": "Post Configure AWS credentials",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:40Z",
+              "completed_at": "2026-10-09T05:12:40Z"
             },
             {
               "number": 27,
               "name": "Post Set up Python",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:40Z",
+              "completed_at": "2026-10-09T05:12:40Z"
             },
             {
               "number": 28,
               "name": "Post Checkout",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:40Z",
+              "completed_at": "2026-10-09T05:12:40Z"
+            },
+            {
+              "number": 29,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-09T05:12:40Z",
+              "completed_at": "2026-10-09T05:12:41Z"
             }
           ]
         }
