@@ -1021,9 +1021,9 @@ function renderCDSLong(h) {
   box.innerHTML = cdsLineChart(s.points, { h: 250, markers, hline, color: 'var(--info)', label: s.name });
   const pct = v => { if (!cdsFin(v)) return '—'; const n = Math.round(v), t = n % 10, hh = n % 100; return n + ((hh >= 11 && hh <= 13) ? 'th' : t === 1 ? 'st' : t === 2 ? 'nd' : t === 3 ? 'rd' : 'th'); };
   const gfc = (s.peaks || []).find(p => p.episode.startsWith('GFC'));
+  const isIndex = /^index/.test(unit);
   let read = `<b>${cdsEsc(s.name)}</b> is <b>${s.last.value}</b> ${cdsEsc(unit)} (${s.last.date}) — the <b>${pct(s.pct_rank_since_2006)} percentile</b> of every week since 2006${gfc ? (isIndex ? `, ${(s.last.value - gfc.value).toFixed(2)} below its 2008 peak (${gfc.value} on ${gfc.date})` : `, ${(100 * s.last.value / gfc.value).toFixed(0)}% of its 2008 peak (${gfc.value} on ${gfc.date})`) : ''}.`;
   if (map) read += ` Mapping the live CDX IG print (${map.cdx_ig_bp}bp on ${map.cdx_ig_date}) onto this record with a straight-line fit over the ${map.fit.n}-day overlap (r² ${map.fit.r2}${map.usable ? '' : ' — too weak to lean on'}) puts it at <b>${map.mapped_baa10y_bp}bp</b>, the <b>${pct(map.pct_rank_since_2006)} percentile</b> since 2006${cdsFin(map.share_of_gfc_peak) ? ` and ${(100 * map.share_of_gfc_peak).toFixed(0)}% of the GFC peak` : ''}.`;
-  const isIndex = /^index/.test(unit);
   pk.innerHTML = `<table><thead><tr><th>Episode</th><th>Peak date</th><th>Peak</th><th>Today</th><th>${isIndex ? 'Today − peak' : 'Today / peak'}</th></tr></thead><tbody>${(s.peaks || []).map(p => `<tr><td class="t-info">${cdsEsc(p.episode)}</td><td class="t-mute">${p.date}</td><td><b>${p.value}</b></td><td>${s.last.value}</td><td>${isIndex ? (s.last.value - p.value).toFixed(2) : p.value > 0 ? (100 * s.last.value / p.value).toFixed(0) + '%' : '—'}</td></tr>`).join('')}</tbody></table>
     <div class="t-mute" style="font-family:var(--font-mono);font-size:10.5px;margin-top:8px">${read}<br>${(long.limits || []).map(cdsEsc).join(' · ')}</div>`;
   enhanceTables(pk);
