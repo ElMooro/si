@@ -15,6 +15,8 @@ written into the data engine under its own engine + page.  This release:
                                   everything shows on data.html / provider.html.
 
 Order: the four source engines first (each must publish), then the CDS desk daily pass, then the provider catalog.
+First run (2026-10-09 17:16Z, dispatch after the recovery deploy) ran every engine successfully but FAILED on two of its own
+checks: FDIC aggregates are keyed by quarter and the ESMA consensus block uses `consensus_label` -- corrected here, re-run.
 Waits until deploy-lambdas (parallel workflow, same push) has published a release receipt covering THIS commit for every
 function.  Descriptive engines only (decision.call None, sizing_eligible False).  Retries disabled on the Lambda client.
 """
@@ -186,7 +188,12 @@ try:
 
     # source-specific sanity on real values
     f = hots.get('fdic-bankfind') or {}
-    agg = (f.get('extra') or {}).get('aggregates') or f.get('aggregates') or {}
+    # aggregates are keyed by Call Report quarter (28 quarters); check the latest one (first run read the dict itself -> None)
+    agg_all = (f.get('extra') or {}).get('aggregates') or f.get('aggregates') or {}
+    agg = (agg_all.get(f.get('latest_quarter') or (f.get('extra') or {}).get('latest_quarter') or '') or {}) if isinstance(agg_all, dict) else {}
+    out['fdic_quarters'] = sorted(agg_all.keys()) if isinstance(agg_all, dict) else None
+    if f and isinstance(agg_all, dict) and len(agg_all) < 20:
+        failed.append('fdic-bankfind: only %d quarters of aggregates (N_QUARTERS=28 expected)' % len(agg_all))
     if f and not agg:
         failed.append('fdic-bankfind: no aggregates block')
     if agg:
@@ -203,7 +210,7 @@ try:
     if e and len(cons) < 80:
         failed.append('esma-ratings: consensus covers only %d sovereigns' % len(cons))
     for iso in ('USA', 'FRA', 'ITA', 'DEU'):
-        if e and not (cons.get(iso) or {}).get('consensus'):
+        if e and not (cons.get(iso) or {}).get('consensus_label'):  # ESMA consensus block uses consensus_label / consensus_notch
             failed.append('esma-ratings: no consensus rating for %s' % iso)
     b = hots.get('eba-risk-dashboard') or {}
     if b and (b.get('n_series') or 0) < 150:
