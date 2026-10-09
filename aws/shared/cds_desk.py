@@ -1072,7 +1072,7 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                    "limitations": ["upfront sign is not disclosed; derived prints need an anchor", "block notionals are capped (+) in the public file",
                                    "public history begins 2024-09; nothing in the DTCC tape covers 2008 — the long view in data/cds-desk-history.json uses Moody's Baa-10Y, OFR FSI and Fed GZ/EBP records instead", "clearinghouse settlement prices are not used (licence forbids republication)"],
                    "curve_rule": "off-the-run tenors enter the curve only when their own print fixes the sign (quoted, priced or single feasible branch); 5Y-1Y slope is same-day",
-                   "unpriced_rule": "active names whose sign cannot be fixed are listed with both feasible branches (median unsigned print read as seller-paid vs buyer-paid upfront) and any dated earlier level"},
+                   "unpriced_rule": "active names whose sign cannot be fixed are listed with both feasible branches (median unsigned print read with the upfront paid by either side) and any dated earlier level"},
         "decision": {"call": None, "sizing_eligible": False, "basis": "descriptive measurements of public prints only"},
         "breadth": breadth, "term": term, "wides_1y": wides, "tights_1y": tights,
         "activity": {"days": 120, "columns": ["date", "prints", "priced_prints", "notional_5y_mm", "names_priced"], "rows": tape_activity(series, as_of_iso)}, "groups": out_groups, "indices": indices,
