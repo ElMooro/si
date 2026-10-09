@@ -1,10 +1,10 @@
 /* JustHodl CDS desk renderer (shared by /cds.html and /intelligence/#cds).
    Data: data/cds-desk.json (packet), data/cds-desk-history.json (every name's daily series + free long records since 2006),
-   /cds-world.json (static Natural Earth 110m outlines keyed by ISO3).  Descriptive only: no calls, no sizing. */
+   /assets/cds-world.json (static Natural Earth 110m outlines keyed by ISO3).  Descriptive only: no calls, no sizing. */
 (function(root){
 'use strict';
 const S3='https://justhodl-dashboard-live.s3.amazonaws.com/';
-const KEYS={packet:'data/cds-desk.json',history:'data/cds-desk-history.json',world:'/cds-world.json'};
+const KEYS={packet:'data/cds-desk.json',history:'data/cds-desk-history.json',world:'/assets/cds-world.json'};
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const fin=v=>typeof v==='number'&&Number.isFinite(v);
 const bp=(v,dp=0)=>fin(v)?v.toFixed(dp):'—';
