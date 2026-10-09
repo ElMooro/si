@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "b45fbcdee312a109e5c390226287cd24d3a7c2b6",
-  "observed_at": "2026-10-09T13:00:19.427379+00:00",
-  "ok": true,
+  "observed_at": "2026-10-09T13:28:14.481626+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 599,
+  "failed_routes": [
+    "revenue-acceleration.html"
+  ],
   "source_equivalent_builds": {
     "b45fbcdee312a109e5c390226287cd24d3a7c2b6": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 598,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -4678,13 +4680,12 @@
     },
     {
       "route": "revenue-acceleration.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "b45fbcdee312a109e5c390226287cd24d3a7c2b6",
-      "inspector_present": true,
-      "bytes_read": 11042,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "risk-desk.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 37932899585,
+  "deployment_run_id": 37936137373,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-09T13:00:19.436212+00:00"
+  "check_finished_at": "2026-10-09T13:28:14.492306+00:00"
 }
