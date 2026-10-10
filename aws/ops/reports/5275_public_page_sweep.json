@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "ddb957d6e8eaf25ae71385ea2e56429155a8547e",
-  "observed_at": "2026-10-10T13:48:14.237034+00:00",
-  "ok": false,
+  "observed_at": "2026-10-10T14:00:20.835206+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "options-analytics.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "ddb957d6e8eaf25ae71385ea2e56429155a8547e": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -4070,12 +4068,13 @@
     },
     {
       "route": "options-analytics.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "ddb957d6e8eaf25ae71385ea2e56429155a8547e",
+      "inspector_present": true,
+      "bytes_read": 14222,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "options-confluence.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38056782726,
+  "deployment_run_id": 38057423218,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-10T13:48:14.245581+00:00"
+  "check_finished_at": "2026-10-10T14:00:20.843578+00:00"
 }
