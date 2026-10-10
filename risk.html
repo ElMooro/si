@@ -101,8 +101,10 @@ tr:hover td{background:rgba(255,255,255,.015);}
 .dial .zone{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;margin-top:6px;}
 .dial .meta{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-top:6px;line-height:1.6;}
 .dial .meta b{color:var(--text);font-weight:500;}
-.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 18px;}
-.bar{display:grid;grid-template-columns:150px 1fr 40px;gap:8px;align-items:center;font-family:var(--font-mono);font-size:11px;padding:3px 0;}
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2px 22px;}
+.barw{padding:2px 0 6px;}
+.barw .cap{font-family:var(--font-mono);font-size:9.5px;color:var(--text-mute);margin:1px 0 0 158px;line-height:1.4;}
+.bar{display:grid;grid-template-columns:150px 1fr 40px;gap:8px;align-items:center;font-family:var(--font-mono);font-size:11px;padding:2px 0;}
 .bar .lab{color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar .trk{height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden;position:relative;}
 .bar .fil{height:100%;border-radius:4px;}
@@ -115,7 +117,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
 .scoregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
 .scoregrid .kpi .val{font-size:18px;}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-@media (max-width:640px){.dial-in{grid-template-columns:1fr;} .bar{grid-template-columns:110px 1fr 40px;}}
+@media (max-width:640px){.dial-in{grid-template-columns:1fr;} .bar{grid-template-columns:110px 1fr 40px;} .barw .cap{margin-left:118px;}}
 
 </style>
 </head>
@@ -168,7 +170,7 @@ function toneFor(kind,v){
   if(kind==='stress')return v>=80?'neg':v>=65?'warning':v>=45?'gold':'pos';
   return v>=70?'neg':v>=60?'warning':v>=45?'info':'pos';
 }
-var COLORS={pos:'#00e676',neg:'#ff3d5a',info:'#22d3ee',gold:'#fbbf24',warning:'#fb923c',accent:'#a78bfa',mute:'#5b6479'};
+var COLORS={pos:'#6fce8a',neg:'#E07A6A',info:'#F0B429',gold:'#FFD45E',warning:'#C9942E',accent:'#e8e2d4',mute:'#6a6455'}; // site palette (deploy reskin is a no-op on these)
 function dial(v,tone){
   var r=60,cx=75,cy=80,a0=Math.PI,a1=Math.PI+Math.PI*Math.max(0,Math.min(100,fin(v)?v:0))/100;
   var x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
@@ -194,7 +196,7 @@ function barsHtml(p){
   var L=p.latest||{},W=(p.model||{}).stress_weights||{},FW=(p.model||{}).froth_weights||{};
   var rows=(p.tables&&p.tables.pillars&&p.tables.pillars.rows)||[];
   var frows=(p.tables&&p.tables.froth_pillars&&p.tables.froth_pillars.rows)||[];
-  function bar(label,v,w,kind,sub){var t=toneFor(kind,v);return '<div class="bar"><div class="lab" title="'+esc(label)+'">'+esc(label)+'<span class="w">×'+esc(w)+'</span></div><div class="trk"><div class="fil" style="width:'+(fin(v)?v:0)+'%;background:'+COLORS[t]+'"></div></div><div class="val">'+f0(v)+'</div></div>'+(sub?'<div class="t-mute" style="font-family:var(--font-mono);font-size:9.5px;margin:-2px 0 4px 158px">'+esc(sub)+'</div>':'');}
+  function bar(label,v,w,kind,sub){var t=toneFor(kind,v);return '<div class="barw"><div class="bar"><div class="lab" title="'+esc(label)+'">'+esc(label)+'<span class="w">×'+esc(w)+'</span></div><div class="trk"><div class="fil" style="width:'+(fin(v)?v:0)+'%;background:'+COLORS[t]+'"></div></div><div class="val">'+f0(v)+'</div></div>'+(sub?'<div class="cap">'+esc(sub)+'</div>':'')+'</div>';}
   var h='<h3>Stress pillars <span class="tag">weighted mean → STRESS · colour = pillar zone · hottest gauge under each bar</span></h3><div class="bars">';
   rows.forEach(function(r){h+=bar(r[1],r[3],r[2],'stress',(r[7]?r[7]+' · '+ord(r[8])+' pct · '+r[6]+' live':''));});
   h+='</div><h3 style="margin-top:16px">Froth pillars <span class="tag">equal-weighted → FROTH</span></h3><div class="bars">';
