@@ -94,7 +94,8 @@ tr:hover td{background:rgba(255,255,255,.015);}
 
 /* RISK HERO */
 .hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:14px;}
-.dial{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;}
+.dial{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 18px;}
+.dial-in{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;}
 .dial svg{display:block;width:150px;height:96px;}
 .dial .big{font-family:var(--font-mono);font-size:34px;font-weight:600;line-height:1;}
 .dial .zone{font-family:var(--font-mono);font-size:11px;letter-spacing:.4px;margin-top:6px;}
@@ -114,7 +115,7 @@ tr:hover td{background:rgba(255,255,255,.015);}
 .scoregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
 .scoregrid .kpi .val{font-size:18px;}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-@media (max-width:640px){.dial{grid-template-columns:1fr;} .bar{grid-template-columns:110px 1fr 40px;}}
+@media (max-width:640px){.dial-in{grid-template-columns:1fr;} .bar{grid-template-columns:110px 1fr 40px;}}
 
 </style>
 </head>
@@ -159,6 +160,7 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){r
 var fin=function(v){return typeof v==='number'&&isFinite(v);};
 var f1=function(v){return fin(v)?v.toFixed(1):'—';};
 var f0=function(v){return fin(v)?Math.round(v).toString():'—';};
+var ord=function(v){if(!fin(v))return '—';var n=Math.round(v),m=n%100;return n+((m>=11&&m<=13)?'th':({1:'st',2:'nd',3:'rd'})[n%10]||'th');};
 var sgn=function(v){return fin(v)?(v>0?'+':'')+v.toFixed(1):'—';};
 function fetchJson(url){return fetch(url+(url.indexOf('?')>=0?'&':'?')+'cb='+Math.floor(Date.now()/60000),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(url+' '+r.status);return r.json();});}
 function toneFor(kind,v){
@@ -179,10 +181,10 @@ function heroHtml(p){
   var L=p.latest||{},m=(p.model||{}).thresholds||{};
   var st=toneFor('stress',L.stress),ft=toneFor('froth',L.froth);
   function card(title,v,zone,tone,rel,pctAll,relLab,thr){
-    return '<div class="dial"><div>'+dial(v,tone)+'<div class="big t-'+tone+'" style="color:'+COLORS[tone]+'">'+f1(v)+'</div></div>'+
+    return '<div class="dial"><div class="dial-in"><div>'+dial(v,tone)+'<div class="big t-'+tone+'" style="color:'+COLORS[tone]+'">'+f1(v)+'</div></div>'+
       '<div><div class="label" style="font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-mute)">'+esc(title)+'</div>'+
       '<div class="zone" style="color:'+COLORS[tone]+'">'+esc(zone||'—')+'</div>'+
-      '<div class="meta">vs own 1990→ history: <b>'+(fin(pctAll)?Math.round(pctAll)+'th pct':'—')+'</b><br>vs last 3 years: <b>'+(fin(rel)?Math.round(rel)+'th pct':'—')+'</b> <span class="t-mute">(≥'+esc(m.rel_zone||90)+' = '+esc(relLab)+')</span><br>'+esc(thr)+'</div></div></div>';
+      '<div class="meta">vs own 1990→ history: <b>'+(fin(pctAll)?ord(pctAll)+' pct':'—')+'</b><br>vs last 3 years: <b>'+(fin(rel)?ord(rel)+' pct':'—')+'</b> <span class="t-mute">(≥'+esc(m.rel_zone||90)+' = '+esc(relLab)+')</span><br>'+esc(thr)+'</div></div></div></div>';
   }
   var h=card('Stress composite',L.stress,L.stress_zone,st,L.stress_rel3y,L.stress_pct_all,'stress zone, where troughs clustered','alert ≥'+(m.stress_alert||65)+' · extreme ≥'+(m.stress_extreme||80)+' · breadth '+f0(L.breadth80)+'% of gauges ≥80th pct');
   h+=card('Froth composite',L.froth,L.froth_zone,ft,L.froth_rel3y,L.froth_pct_all,'froth zone, where peaks clustered','frothy ≥'+(m.froth_alert||70)+' · Bitcoin froth '+f0(L.btc_froth)+' / Bitcoin stress '+f0(L.btc_stress));
@@ -194,7 +196,7 @@ function barsHtml(p){
   var frows=(p.tables&&p.tables.froth_pillars&&p.tables.froth_pillars.rows)||[];
   function bar(label,v,w,kind,sub){var t=toneFor(kind,v);return '<div class="bar"><div class="lab" title="'+esc(label)+'">'+esc(label)+'<span class="w">×'+esc(w)+'</span></div><div class="trk"><div class="fil" style="width:'+(fin(v)?v:0)+'%;background:'+COLORS[t]+'"></div></div><div class="val">'+f0(v)+'</div></div>'+(sub?'<div class="t-mute" style="font-family:var(--font-mono);font-size:9.5px;margin:-2px 0 4px 158px">'+esc(sub)+'</div>':'');}
   var h='<h3>Stress pillars <span class="tag">weighted mean → STRESS · colour = pillar zone · hottest gauge under each bar</span></h3><div class="bars">';
-  rows.forEach(function(r){h+=bar(r[1],r[3],r[2],'stress',(r[7]?r[7]+' · '+f0(r[8])+'th pct · '+r[6]+' live':''));});
+  rows.forEach(function(r){h+=bar(r[1],r[3],r[2],'stress',(r[7]?r[7]+' · '+ord(r[8])+' pct · '+r[6]+' live':''));});
   h+='</div><h3 style="margin-top:16px">Froth pillars <span class="tag">equal-weighted → FROTH</span></h3><div class="bars">';
   frows.forEach(function(r){h+=bar(r[1],r[3],r[2],'froth',r[6]+' live gauges');});
   h+='</div><div class="legend"><span><i style="background:'+COLORS.pos+'"></i>calm</span><span><i style="background:'+COLORS.gold+'"></i>elevated ≥45</span><span><i style="background:'+COLORS.warning+'"></i>high ≥65</span><span><i style="background:'+COLORS.neg+'"></i>extreme ≥80</span><span class="t-mute">froth: ≥45 neutral · ≥60 warm · ≥70 frothy</span></div>';
@@ -234,7 +236,7 @@ function scoreboardHtml(p){
 function interpHtml(p){
   var L=p.latest||{};
   var parts=[];
-  parts.push('<b>Today:</b> STRESS '+f1(L.stress)+' ('+esc(L.stress_zone)+', '+f0(L.stress_rel3y)+'th pct of the last 3 years) · FROTH '+f1(L.froth)+' ('+esc(L.froth_zone)+', '+f0(L.froth_rel3y)+'th pct of the last 3 years) · hottest pillar '+esc(hottest(p))+'.');
+  parts.push('<b>Today:</b> STRESS '+f1(L.stress)+' ('+esc(L.stress_zone)+', '+ord(L.stress_rel3y)+' pct of the last 3 years) · FROTH '+f1(L.froth)+' ('+esc(L.froth_zone)+', '+ord(L.froth_rel3y)+' pct of the last 3 years) · hottest pillar '+esc(hottest(p))+'.');
   parts.push('<b>How to read it:</b> historically the stress maximum landed within days of the actual trough — it describes capitulation as it happens; it did not lead it. The froth composite sat in its 3-year zone for months before most liquidity-driven peaks (1998, 2000, 2010, 2011, 2018, 2021) and stayed quiet before credit-led or exogenous ones (2007, COVID, SVB). Complacency can last for years, so froth is a conditions gauge with a high false-alarm rate, shown rather than hidden.');
   parts.push('<b>What this is not:</b> a call, a probability or a timing signal. Weights were fixed on 1990–2012 and the held-out 2013→ statistics are weaker because post-2012 drawdowns were shallower — which is why the 3-year relative readings are published alongside the levels.');
   return parts.join('<br><br>');
