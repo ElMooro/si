@@ -170,7 +170,7 @@ function toneFor(kind,v){
   if(kind==='stress')return v>=80?'neg':v>=65?'warning':v>=45?'gold':'pos';
   return v>=70?'neg':v>=60?'warning':v>=45?'info':'pos';
 }
-var COLORS={pos:'#6fce8a',neg:'#E07A6A',info:'#F0B429',gold:'#b8d44a',warning:'#C9942E',accent:'#e8e2d4',mute:'#6a6455'}; // site palette: deploy reskin leaves these as-is (gold = yellow-green, hue 72)
+var COLORS={pos:'#6fce8a',neg:'#E07A6A',info:'#F0B429',gold:'#b8d44a',warning:'#a8781f',accent:'#e8e2d4',mute:'#6a6455'}; // site palette after the deploy reskin: green / yellow-green (untouched, hue 72) / amber / dark amber / red
 function dial(v,tone){
   var r=60,cx=75,cy=80,a0=Math.PI,a1=Math.PI+Math.PI*Math.max(0,Math.min(100,fin(v)?v:0))/100;
   var x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
