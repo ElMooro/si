@@ -10,15 +10,26 @@
     var p = nyParts(ts);
     return p ? p.year + "-" + p.mon + "-" + p.day : "";
   }
-  var KEY = "jh-desk-pack";
-  var state = { avwap: 1, vp: 1, ref: 1 };
+  var KEY = "jh-desk-pack-v2";
+  var state = { avwap: 0, vp: 0, ref: 0 };
   try { var saved = JSON.parse(localStorage.getItem(KEY) || ""); if (saved && typeof saved === "object") state = saved; } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function ensure() {
     var INDS = window.INDS;
     if (!INDS || !INDS.push) return;
+    function layoutOn(id, fallback) {
+      try {
+        var lay = JSON.parse(localStorage.getItem("jh-chart-v12-tv-layout") || "");
+        var rows = lay && lay.inds, i;
+        if (rows) for (i = 0; i < rows.length; i++) if (rows[i] && rows[i].id === id && rows[i].on != null) return rows[i].on ? 1 : 0;
+      } catch (eL) {}
+      return fallback ? 1 : 0;
+    }
     [["avwap", "Anchored VWAP"], ["vprof", "Volume profile"], ["reflevels", "PDH / PWH / OR"]].forEach(function (pair) {
-      if (!INDS.some(function (i) { return i && i.id === pair[0]; })) INDS.push({ id: pair[0], n: pair[1], on: state[pair[0] === "vprof" ? "vp" : pair[0] === "reflevels" ? "ref" : "avwap"] ? 1 : 0, cat: "Volume", c: "#C9942E" });
+      if (!INDS.some(function (i) { return i && i.id === pair[0]; })) {
+        var key = pair[0] === "vprof" ? "vp" : pair[0] === "reflevels" ? "ref" : "avwap";
+        INDS.push({ id: pair[0], n: pair[1], on: layoutOn(pair[0], state[key]) ? 1 : 0, cat: "Volume", c: "#C9942E" });
+      }
     });
   }
   function studyOn(id) {
@@ -162,7 +173,7 @@
       host.style.cssText = "position:absolute;inset:0;z-index:4;pointer-events:none";
       el.appendChild(host);
       var bar = document.createElement("div");
-      bar.style.cssText = "position:absolute;top:6px;left:8px;display:flex;gap:4px;pointer-events:auto";
+      bar.style.cssText = "position:absolute;left:8px;bottom:36px;display:flex;gap:4px;pointer-events:auto;z-index:12";
       [["avwap", "AVWAP"], ["vp", "VP"], ["ref", "PDH/OR"]].forEach(function (pair) {
         var b = document.createElement("button");
         b.type = "button"; b.textContent = pair[1]; b.dataset.k = pair[0];
@@ -171,7 +182,9 @@
           state[pair[0]] = state[pair[0]] ? 0 : 1; save();
           var id = pair[0] === "vp" ? "vprof" : pair[0] === "ref" ? "reflevels" : "avwap";
           var INDS = window.INDS, row = INDS && INDS.filter(function (i) { return i && i.id === id; })[0];
-          if (row) row.on = state[pair[0]];
+          if (row) { row.on = state[pair[0]] ? 1 : 0; row.hide = false; }
+          try { if (window.jhSaveLay) window.jhSaveLay(); } catch (eS) {}
+          try { if (window.paint && window.lastBars && window.lastBars.length) window.paint(window.lastBars); } catch (eP) {}
           draw();
         });
         bar.appendChild(b);

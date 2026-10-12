@@ -56,5 +56,5 @@
     }
     return out;
   };
-  document.write('<script src="/jh-chart-auction.js?v=20261002desk"><\/script>');
+  document.write('<script src="/jh-chart-auction.js?v=20261011leg"><\/script>');
 })();

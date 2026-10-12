@@ -4,6 +4,77 @@
 (function () {
   if (typeof window === "undefined" || window.__jhBbFix) return;
   window.__jhBbFix = 1;
+  /* One visit: drop every preloaded study. Volume stays. Later choices still save. */
+  try {
+    if (localStorage.getItem("jh-only-volume-v1") !== "1") {
+      var raw = localStorage.getItem("jh-chart-v12-tv-layout");
+      if (raw) {
+        var lay = JSON.parse(raw);
+        if (lay && lay.inds) lay.inds.forEach(function (i) { if (i) i.on = false; });
+        if (lay && lay.osc) lay.osc.forEach(function (o) { if (o) o.on = false; });
+        if (lay) lay.volOn = true;
+        localStorage.setItem("jh-chart-v12-tv-layout", JSON.stringify(lay));
+      }
+      localStorage.setItem("jh-desk-pack-v2", JSON.stringify({ avwap: 0, vp: 0, ref: 0 }));
+      localStorage.setItem("jh-bb-armed", "1");
+      localStorage.setItem("jh-only-volume-v1", "1");
+    }
+  } catch (eClean) {}
+  var css = document.createElement("style");
+  css.id = "jh-legend-x";
+  css.textContent = "#legend .leg-ops{opacity:1!important}#legend .leg-ops button,#legend .leg-sym [data-act=symx]{display:inline-flex!important;align-items:center;justify-content:center;width:18px;height:18px;margin-left:4px;border-radius:2px;color:#d1d4dc;font:700 14px/16px IBM Plex Sans,sans-serif;pointer-events:auto;background:transparent}#legend .leg-ops button:hover,#legend .leg-sym [data-act=symx]:hover{background:#2a2e39;color:#fff}#legend .leg-row{position:relative;z-index:2}#legend .leg-sym{position:relative;z-index:3}";
+  (document.head || document.documentElement).appendChild(css);
+  function mountSymX() {
+    var host = document.getElementById("legend");
+    if (!host) return;
+    var sym = host.querySelector(".leg-sym");
+    if (!sym) return;
+    var hidden = false;
+    try { hidden = localStorage.getItem("jh-legend-sym") === "0"; } catch (e) {}
+    if (hidden) { sym.style.display = "none"; var wm = document.getElementById("wm"); if (wm) wm.textContent = ""; return; }
+    if (sym.querySelector("[data-act=symx]")) return;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.setAttribute("data-act", "symx");
+    x.title = "Remove symbol and ticker";
+    x.setAttribute("aria-label", "Remove symbol and ticker");
+    x.textContent = "\u00d7";
+    x.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      try { localStorage.setItem("jh-legend-sym", "0"); } catch (err) {}
+      sym.style.display = "none";
+      var mark = document.getElementById("wm");
+      if (mark) mark.textContent = "";
+    });
+    sym.appendChild(x);
+  }
+  document.addEventListener("click", function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest("#legend [data-act=x]") : null;
+    if (!btn) return;
+    var row = btn.closest(".leg-row");
+    if (!row || row.getAttribute("data-kind") !== "ov") return;
+    var id = row.getAttribute("data-id");
+    var inds = window.INDS || [];
+    var item = null, i;
+    for (i = 0; i < inds.length; i++) if (inds[i] && inds[i].id === id) item = inds[i];
+    if (!item) return;
+    e.preventDefault();
+    e.stopPropagation();
+    item.on = false;
+    item.hide = false;
+    if (id === "vprof" || id === "reflevels" || id === "avwap" || /vwap/i.test(id)) {
+      try {
+        var st = JSON.parse(localStorage.getItem("jh-desk-pack-v2") || "{}") || {};
+        if (id === "vprof") st.vp = 0;
+        else if (id === "reflevels") st.ref = 0;
+        else st.avwap = 0;
+        localStorage.setItem("jh-desk-pack-v2", JSON.stringify(st));
+      } catch (err) {}
+    }
+    try { if (window.jhSaveLay) window.jhSaveLay(); } catch (err2) {}
+    try { if (window.paint && window.lastBars && window.lastBars.length) window.paint(window.lastBars); } catch (err3) {}
+  }, true);
   function finite(v) { return typeof v === "number" && isFinite(v); }
   function isBtc() {
     var el = document.getElementById("symin");
@@ -88,31 +159,43 @@
     setData.__jh = 1;
     s.setData = setData;
   }
+  function quietTitle(args) {
+    if (!args || !args.length || !args[0] || typeof args[0] !== "object" || typeof args[0].title !== "string") return args;
+    var title = args[0].title;
+    var sym = String(window.jhActive || window.active || "").toUpperCase();
+    var up = title.toUpperCase();
+    if (!(/vwap/i.test(title) || (sym && (up === sym || up === sym + " H")))) return args;
+    var copy = Array.prototype.slice.call(args);
+    copy[0] = Object.assign({}, args[0], { title: "" });
+    return copy;
+  }
   function hook(chart) {
-    if (!chart || chart.__jhBbHook || !chart.addLineSeries) return false;
+    if (!chart || chart.__jhBbHook) return false;
     chart.__jhBbHook = 1;
-    ["addLineSeries", "addHistogramSeries"].forEach(function (name) {
-      if (!chart[name]) return;
+    ["addLineSeries", "addAreaSeries", "addBaselineSeries", "addHistogramSeries", "addCandlestickSeries", "addBarSeries"].forEach(function (name) {
+      if (!chart[name] || chart[name].__jhQuiet) return;
       var fn = chart[name].bind(chart);
-      chart[name] = function () {
-        var s = fn.apply(chart, arguments);
+      var wrapped = function () {
+        var s = fn.apply(chart, quietTitle(arguments));
         guardSeries(s);
         return s;
       };
+      wrapped.__jhQuiet = 1;
+      chart[name] = wrapped;
     });
     return true;
   }
-  function armBb() {
-    var inds = window.INDS, i, bb = null, armed = false;
-    if (!inds) return;
-    for (i = 0; i < inds.length; i++) if (inds[i] && inds[i].id === "bb") bb = inds[i];
-    if (!bb) return;
-    try { armed = localStorage.getItem("jh-bb-armed") === "1"; } catch (e) {}
-    if (armed) return;
-    bb.on = true;
-    bb.hide = false;
-    try { localStorage.setItem("jh-bb-armed", "1"); } catch (e2) {}
-    try { if (window.jhSaveLay) window.jhSaveLay(); } catch (e3) {}
+  function wrapCreate() {
+    var LC = window.LightweightCharts;
+    if (!LC || !LC.createChart || LC.createChart.__jhQuiet) return;
+    var orig = LC.createChart.bind(LC);
+    var wrapped = function () {
+      var chart = orig.apply(LC, arguments);
+      try { hook(chart); } catch (e) {}
+      return chart;
+    };
+    wrapped.__jhQuiet = 1;
+    LC.createChart = wrapped;
   }
   var framedKey = "";
   function frame(chart) {
@@ -129,11 +212,22 @@
   }
   var seen = null;
   setInterval(function () {
+    try { wrapCreate(); } catch (eW) {}
+    try { mountSymX(); } catch (eM) {}
+    if (window.jhInduxLegend && !window.jhInduxLegend.__symx) {
+      var origLeg = window.jhInduxLegend;
+      var wrappedLeg = function () {
+        var out = origLeg.apply(this, arguments);
+        try { mountSymX(); } catch (eL) {}
+        return out;
+      };
+      wrappedLeg.__symx = 1;
+      window.jhInduxLegend = wrappedLeg;
+    }
     var chart = window.jhDeskChart || window.chart;
     hook(chart);
     var bars = window.lastBars;
     if (!bars || bars === seen || !window.paint) return;
-    try { armBb(); } catch (e0) {}
     try { align(bars); } catch (e) {}
     seen = bars;
     var painted = null;
