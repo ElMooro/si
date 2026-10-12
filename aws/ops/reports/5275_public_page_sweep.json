@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "c70434a6b91c240b09a9d99cbdcba1402238f601",
-  "observed_at": "2026-10-12T08:15:17.702090+00:00",
-  "ok": false,
+  "observed_at": "2026-10-12T09:00:12.640395+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "switzerland.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "c70434a6b91c240b09a9d99cbdcba1402238f601": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -5330,12 +5328,13 @@
     },
     {
       "route": "switzerland.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "c70434a6b91c240b09a9d99cbdcba1402238f601",
+      "inspector_present": true,
+      "bytes_read": 18968,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "system-health.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38221655677,
+  "deployment_run_id": 38226284121,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-12T08:15:17.710686+00:00"
+  "check_finished_at": "2026-10-12T09:00:12.648832+00:00"
 }
