@@ -1,7 +1,10 @@
-/* Correlation Matrix · ALERT
-   Separate heatmap per asset class.
+/* jh-reskin-skip */
+/* tv-heat-1
+   Correlation Matrix · ALERT
+   TradingView-style treemap, one group per asset class.
    Color is compounded excess vs SPY on SPY-down sessions only.
-   Green = held up. Red = dumped harder. Scale is inside the class. */
+   Green = held up. Red = dumped harder. Scale is inside the class.
+   Tile area grows with how far the name sat from SPY (mono-weighted). */
 (function () {
   var BOOKS = [
     ["Stocks", "AAPL,MSFT,NVDA,AMZN,GOOGL,META,TSLA,AVGO,AMD,JPM,XOM,LLY,COST"],
@@ -26,7 +29,11 @@
   }
   function fmt(v) {
     if (v == null || v !== v) return "—";
-    return (v >= 0 ? "+" : "") + (v * 100).toFixed(1) + "%";
+    var n = v * 100;
+    var body = Math.abs(n) >= 10 ? Math.abs(n).toFixed(1) : Math.abs(n).toFixed(2);
+    if (n > 0) return "+" + body + "%";
+    if (n < 0) return "−" + body + "%";
+    return "0.00%";
   }
   function needFor(n) { return n >= 63 ? 40 : n >= 21 ? 14 : 4; }
   function closes(bars) {
@@ -111,19 +118,20 @@
     return m;
   }
   function paint(v, scale) {
-    if (v == null || v !== v) return ["#1e222d", "#787b86"];
-    var t = Math.max(-1, Math.min(1, v / scale));
+    if (v == null || v !== v) return ["#2a2e39", "#d1d4dc"];
+    var t = Math.max(-1, Math.min(1, v / (scale || 0.005)));
+    var u = Math.pow(Math.abs(t), 0.62);
     var src = t < 0 ? [242, 54, 69] : [8, 153, 129];
-    var u = Math.abs(t), mid = [30, 34, 45];
+    var mid = [32, 35, 46];
     var r = Math.round(mid[0] + (src[0] - mid[0]) * u);
     var g = Math.round(mid[1] + (src[1] - mid[1]) * u);
     var b = Math.round(mid[2] + (src[2] - mid[2]) * u);
-    return ["rgb(" + r + "," + g + "," + b + ")", u > 0.62 ? "#fff" : "#d1d4dc"];
+    return ["rgb(" + r + "," + g + "," + b + ")", u > 0.42 ? "#fff" : "#d1d4dc"];
   }
   function tip(cell, label) {
     if (cell.v == null) return label + ": not enough overlapping SPY-down sessions (" + cell.k + ")";
     if (label === "Drop") return "From the high of the last 63 SPY sessions: this name " + fmt(cell.a) + ", SPY " + fmt(cell.s) + ". Green means it gave back less.";
-    return label + " SPY-down sessions: this name " + fmt(cell.a) + " compounded, SPY " + fmt(cell.s) + ". Cell is the sum of daily excess (" + cell.k + " days).";
+    return label + " SPY-down sessions: this name " + fmt(cell.a) + " compounded, SPY " + fmt(cell.s) + ". Tile is the sum of daily excess (" + cell.k + " days).";
   }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -132,6 +140,71 @@
       if (c === ">") return "&" + "gt;";
       return "&" + "quot;";
     });
+  }
+
+  function worst(row, side) {
+    var sum = 0, max = 0, min = Infinity, k;
+    for (k = 0; k < row.length; k++) {
+      sum += row[k];
+      if (row[k] > max) max = row[k];
+      if (row[k] < min) min = row[k];
+    }
+    var s2 = sum * sum, w2 = side * side;
+    return Math.max(w2 * max / s2, s2 / (w2 * min));
+  }
+  function treemap(weights, W, H) {
+    var n = weights.length, i, total = 0, areas = [];
+    for (i = 0; i < n; i++) total += weights[i];
+    if (!(total > 0) || !(W > 2) || !(H > 2)) return [];
+    var space = W * H;
+    for (i = 0; i < n; i++) areas.push(weights[i] / total * space);
+    var rects = new Array(n);
+    var cursor = 0;
+    function place(x, y, w, h, count) {
+      if (count <= 0 || w <= 0 || h <= 0) return;
+      if (count === 1) {
+        rects[cursor] = { x: x, y: y, w: w, h: h };
+        cursor++;
+        return;
+      }
+      var side = Math.min(w, h);
+      var row = [areas[cursor]];
+      var best = worst(row, side);
+      var take = 1;
+      while (take < count) {
+        var next = row.concat([areas[cursor + take]]);
+        var score = worst(next, side);
+        if (score > best) break;
+        row = next;
+        best = score;
+        take++;
+      }
+      var rowArea = 0, k;
+      for (k = 0; k < row.length; k++) rowArea += row[k];
+      if (w >= h) {
+        var rowW = rowArea / h;
+        var yy = y;
+        for (k = 0; k < row.length; k++) {
+          var rh = row[k] / rowW;
+          rects[cursor] = { x: x, y: yy, w: rowW, h: rh };
+          cursor++;
+          yy += rh;
+        }
+        place(x + rowW, y, w - rowW, h, count - take);
+      } else {
+        var rowH = rowArea / w;
+        var xx = x;
+        for (k = 0; k < row.length; k++) {
+          var rw = row[k] / rowH;
+          rects[cursor] = { x: xx, y: y, w: rw, h: rowH };
+          cursor++;
+          xx += rw;
+        }
+        place(x, y + rowH, w, h - rowH, count - take);
+      }
+    }
+    place(0, 0, W, H, n);
+    return rects;
   }
 
   window.jhCorrScore = function (spyBars, books) {
@@ -178,61 +251,109 @@
     };
   };
 
+  function colNow() {
+    var c = window.__jhCorrCol;
+    if (c == null || c < 0 || c > 3) return 1;
+    return c | 0;
+  }
+
   function render(host, model) {
+    var col = colNow();
+    var W = host.clientWidth || (host.parentElement && host.parentElement.clientWidth) || 0;
+    if (W < 280) W = 960;
     var html = "<style>"
-      + ".jhca{font:12px/1.35 ui-sans-serif,system-ui,sans-serif;color:#d1d4dc;padding:14px 16px 28px}"
-      + ".jhca h2{margin:0 0 4px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#d1d4dc}"
-      + ".jhca .sub{color:#787b86;margin:0 0 12px;max-width:820px}"
-      + ".jhca .spy{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}"
-      + ".jhca .pill{background:#1e222d;border:1px solid #2a2e39;border-radius:6px;padding:8px 10px;min-width:120px}"
-      + ".jhca .pill b{display:block;color:#f23645;font-size:14px}"
-      + ".jhca .pill span{color:#787b86;font-size:11px}"
-      + ".jhca .leg{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:#787b86}"
-      + ".jhca .bar{width:140px;height:10px;border-radius:5px;background:linear-gradient(90deg,#f23645,#1e222d 50%,#089981)}"
-      + ".jhca section{margin:0 0 18px}"
-      + ".jhca h3{margin:0 0 6px;font-size:13px;color:#d1d4dc}"
-      + ".jhca h3 em{font-style:normal;color:#787b86;font-weight:500}"
-      + ".jhca table{border-collapse:separate;border-spacing:3px;width:100%}"
-      + ".jhca th{text-align:right;color:#787b86;font-weight:600;font-size:11px;padding:0 6px}"
-      + ".jhca th:first-child,.jhca td.nm{text-align:left}"
-      + ".jhca td.nm{padding:0 8px;white-space:nowrap}"
-      + ".jhca td.nm small{color:#787b86;margin-left:6px}"
-      + ".jhca td.c{text-align:right;border-radius:4px;padding:5px 8px;font-variant-numeric:tabular-nums;min-width:72px}"
-      + ".jhca .note{color:#787b86;font-size:11px;margin-top:8px}"
+      + ".jhca{font:12px/1.25 -apple-system,BlinkMacSystemFont,'Trebuchet MS',Roboto,Ubuntu,sans-serif;color:#d1d4dc;background:#000;min-height:100%;padding:0 0 28px}"
+      + ".jhca .top{display:flex;align-items:center;gap:14px;min-height:44px;padding:6px 12px;background:#131722;border-bottom:1px solid #2a2e39;position:sticky;top:0;z-index:3;flex-wrap:wrap}"
+      + ".jhca .top .ttl{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#d1d4dc}"
+      + ".jhca .top .meta{color:#787b86;font-size:12px;min-width:0}"
+      + ".jhca .modes{margin-left:auto;display:flex;gap:1px;background:#0d1118;border:1px solid #2a2e39;border-radius:6px;padding:2px}"
+      + ".jhca .modes button{padding:5px 10px;border-radius:4px;color:#787b86;font-size:12px;font-weight:600;letter-spacing:.02em}"
+      + ".jhca .modes button.on{background:#2a2e39;color:#fff}"
+      + ".jhca .grp{background:#000}"
+      + ".jhca .gh{display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;background:#131722;color:#787b86;font-size:12px;border-top:1px solid #000}"
+      + ".jhca .gh b{color:#d1d4dc;font-weight:600}"
+      + ".jhca .gh i{font-style:normal;color:#787b86}"
+      + ".jhca .gh em{font-style:normal;margin-left:auto;color:#787b86}"
+      + ".jhca .map{position:relative;background:#000;overflow:hidden}"
+      + ".jhca .tile{position:absolute;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;text-align:center}"
+      + ".jhca .tile .in{max-width:96%;line-height:1.05}"
+      + ".jhca .tile b{display:block;font-weight:600;letter-spacing:.01em}"
+      + ".jhca .tile em{display:block;font-style:normal;font-variant-numeric:tabular-nums;margin-top:3px;font-weight:500}"
+      + ".jhca .lg{display:flex;align-items:center;gap:8px;padding:4px 10px 8px;background:#131722;color:#787b86;font-size:11px}"
+      + ".jhca .sw{display:flex;flex:1;height:8px;max-width:420px;border-radius:1px;overflow:hidden}"
+      + ".jhca .sw i{flex:1}"
+      + ".jhca .note{color:#787b86;font-size:11px;padding:10px 12px 0;max-width:880px}"
       + "</style><div class=jhca>";
-    html += "<h2>Held up vs dumped · SPY down days</h2>";
-    html += "<p class=sub>Not a correlation. Each cell adds up how much the name beat or lagged SPY on sessions SPY fell. Green held up. Red dumped harder. Each asset class has its own scale, so a bond is not washed out by crypto.</p>";
-    html += "<div class=spy>";
-    html += "<div class=pill><b>" + (model.px != null ? model.px.toFixed(2) : "—") + "</b><span>SPY close · " + esc(model.last) + "</span></div>";
     var labels = ["Last 5 down days", "Last 21 down days", "Last 63 down days"];
-    for (var i = 0; i < model.base.length; i++) {
-      var b = model.base[i];
-      html += "<div class=pill><b>" + fmt(b.v) + "</b><span>" + labels[i] + (b.from ? " · " + b.from + " → " + b.to : "") + "</span></div>";
+    var spyBit = col < 3
+      ? (labels[col] + " " + fmt(model.base[col] && model.base[col].v) + (model.base[col] && model.base[col].from ? " · " + model.base[col].from + " → " + model.base[col].to : ""))
+      : ("Drop from the 63-session high " + fmt(model.dd));
+    html += "<div class=top><span class=ttl>Held up vs dumped</span><span class=meta>SPY " + (model.px != null ? model.px.toFixed(2) : "—") + " · " + esc(model.last) + " · " + esc(spyBit) + "</span><div class=modes>";
+    for (var m = 0; m < COLS.length; m++) {
+      html += "<button type=button data-col=" + m + (m === col ? " class=on" : "") + ">" + COLS[m] + "</button>";
     }
-    html += "<div class=pill><b>" + fmt(model.dd) + "</b><span>SPY drop from the 63-session high</span></div>";
-    html += "</div>";
-    html += "<div class=leg><span>Dumped more</span><i class=bar></i><span>Held up</span></div>";
-    for (i = 0; i < model.classes.length; i++) {
+    html += "</div></div>";
+    for (var i = 0; i < model.classes.length; i++) {
       var cls = model.classes[i];
-      var hint = cls.name === "Crypto" ? " — spot ETFs and proxies, not a coin tape" : cls.name === "Inverse" ? " — these are built to rise when SPY falls" : "";
-      html += "<section><h3>" + esc(cls.name) + " <em>" + cls.rows.length + hint + "</em></h3><table><thead><tr><th>Name</th>";
-      for (var c = 0; c < COLS.length; c++) html += "<th>" + COLS[c] + "</th>";
-      html += "</tr></thead><tbody>";
-      for (var r = 0; r < cls.rows.length; r++) {
-        var row = cls.rows[r];
-        html += "<tr><td class=nm>" + esc(row.sym) + (row.asof ? "<small>as of " + esc(row.asof) + "</small>" : "") + "</td>";
-        for (c = 0; c < 4; c++) {
-          var cell = row.cells[c];
-          var bg = paint(cell.v, cls.scales[c]);
-          html += "<td class=c style=\"background:" + bg[0] + ";color:" + bg[1] + "\" title=\"" + esc(tip(cell, COLS[c])) + "\">" + fmt(cell.v) + "</td>";
-        }
-        html += "</tr>";
+      if (!cls.rows.length) continue;
+      var hint = cls.name === "Crypto" ? "spot ETFs" : cls.name === "Inverse" ? "rise when SPY falls" : "";
+      var scale = cls.scales[col] || 0.005;
+      var items = cls.rows.map(function (row) {
+        var cell = row.cells[col];
+        var v = cell.v;
+        var weight = v == null ? 0.38 : Math.abs(v) / scale + 0.48;
+        return { row: row, cell: cell, weight: weight };
+      });
+      items.sort(function (a, b) { return b.weight - a.weight || ((b.cell.v || 0) - (a.cell.v || 0)); });
+      var n = items.length;
+      var H = Math.round(Math.min(480, Math.max(156, Math.sqrt(n) * 112)));
+      var rects = treemap(items.map(function (it) { return it.weight; }), W, H);
+      html += "<section class=grp><div class=gh><b>" + esc(cls.name) + "</b><i>›</i>";
+      if (hint) html += "<span>" + esc(hint) + "</span>";
+      html += "<em>" + n + " · " + COLS[col] + "</em></div>";
+      html += "<div class=map style=\"height:" + H + "px\">";
+      for (var r = 0; r < n; r++) {
+        var it = items[r];
+        var rc = rects[r] || { x: 0, y: 0, w: 0, h: 0 };
+        var gap = 1;
+        var x = rc.x + gap, y = rc.y + gap;
+        var tw = Math.max(0, rc.w - gap * 2), th = Math.max(0, rc.h - gap * 2);
+        var bg = paint(it.cell.v, scale);
+        var side = Math.min(tw, th);
+        var symPx = side < 48 ? 11 : Math.max(12, Math.min(40, Math.floor(side * 0.30)));
+        var pctPx = side < 52 || th < 40 ? 0 : Math.max(10, Math.min(16, Math.floor(side * 0.16)));
+        var title = tip(it.cell, COLS[col]) + (it.row.asof ? " Tape as of " + it.row.asof + "." : "");
+        html += "<div class=tile title=\"" + esc(title) + "\" style=\"left:" + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;width:" + tw.toFixed(1) + "px;height:" + th.toFixed(1) + "px;background:" + bg[0] + ";color:" + bg[1] + "\">";
+        html += "<div class=in><b style=\"font-size:" + symPx + "px\">" + esc(it.row.sym) + "</b>";
+        if (pctPx) html += "<em style=\"font-size:" + pctPx + "px\">" + fmt(it.cell.v) + "</em>";
+        html += "</div></div>";
       }
-      html += "</tbody></table></section>";
+      html += "</div><div class=lg><span>" + fmt(-scale) + "</span><span class=sw>";
+      for (var s = 0; s < 7; s++) {
+        var sw = paint((s - 3) / 3 * scale, scale);
+        html += "<i style=\"background:" + sw[0] + "\"></i>";
+      }
+      html += "</span><span>" + fmt(scale) + "</span></div></section>";
     }
-    if (model.missed.length) html += "<p class=note>No warehouse tape, left blank: " + esc(model.missed.join(", ")) + "</p>";
-    html += "<p class=note>5D / 21D / 63D are SPY-down sessions, not calendar days. The number is the sum of (name return minus SPY return) on those days. Drop is this name's decline from its high over the last 63 SPY sessions, minus SPY's own decline. A name that missed the latest down day is left blank. Sorted by 21D. Warehouse closes only.</p></div>";
+    if (model.missed && model.missed.length) html += "<p class=note>No warehouse tape, left blank: " + esc(model.missed.join(", ")) + "</p>";
+    html += "<p class=note>Same read as a TradingView heatmap: tile color is the move, tile size is how far it was from unchanged. Here the move is excess versus SPY on sessions SPY fell — green held up, red dumped harder. Each asset class has its own scale. 5D / 21D / 63D are SPY-down sessions, not calendar days. Drop is this name's decline from its high over the last 63 SPY sessions, minus SPY's own decline. Warehouse closes only.</p></div>";
     host.innerHTML = html;
+    host.onclick = function (ev) {
+      var b = ev.target && ev.target.closest ? ev.target.closest("[data-col]") : null;
+      if (!b || !host.contains(b)) return;
+      window.__jhCorrCol = +b.getAttribute("data-col");
+      render(host, model);
+    };
+    if (!host._jhcaRz) {
+      host._jhcaRz = 1;
+      var timer;
+      window.addEventListener("resize", function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          if (host.isConnected && window.__jhCorrHeat) render(host, window.__jhCorrHeat);
+        }, 140);
+      });
+    }
   }
 
   function parseList(spec) {
