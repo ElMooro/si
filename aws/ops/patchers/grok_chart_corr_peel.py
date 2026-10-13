@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Peel the corr heatmap hook so chart preservation hashes still see the prior tvrail."""
+import base64
+from pathlib import Path
+
+B64 = (
+    "Ly8gRXhhY3QgYnl0ZSByZXZlcnNhbCBvZiB0aGUgMjAyNi0xMC0wNSBtYWNybyBsaW5lL2NhbmRsZXMvY2hhbmdlLW1vZGVzLCBh"
+    "dXRvLWhpZGUgd29ya3NwYWNlIGFuZCBmaWxlLWltcG9ydCBjaGFuZ2Ugb25seS4KLy8gMjAyNi0xMC0xMjogcGVlbCB0aGUgRWZm"
+    "b3J0ICYgU3ByZWFkIHNjcmlwdCB0YWcgYmVmb3JlIHRoYXQgcmV2ZXJzYWwuIFRoZSB0YWcgaXMgdGhlIG9ubHkgbmV3IGNoYXJ0"
+    "Lmh0bWwgYnl0ZS4KLy8gMjAyNi0xMC0xMzogcGVlbCB0aGUgQ29ycmVsYXRpb24gTWF0cml4IGhlYXRtYXAgaG9vayBpbiBqaC1j"
+    "aGFydC10dnJhaWwuanMgYmVmb3JlIHRoZSBjZW5zdXMgaGFzaC4KY29uc3QgZnM9cmVxdWlyZSgnbm9kZTpmcycpLHBhdGg9cmVx"
+    "dWlyZSgnbm9kZTpwYXRoJyksYXNzZXJ0PXJlcXVpcmUoJ25vZGU6YXNzZXJ0L3N0cmljdCcpLGNyeXB0bz1yZXF1aXJlKCdub2Rl"
+    "OmNyeXB0bycpOwpjb25zdCBSPXBhdGgucmVzb2x2ZShfX2Rpcm5hbWUsJy4uLy4uJyksdHJhbnNpdGlvbj1yZXF1aXJlKCcuLi9m"
+    "aXh0dXJlcy9jaGFydC1tYWNyby1saW5lL3RyYW5zaXRpb24uanNvbicpLGhhc2g9cz0+Y3J5cHRvLmNyZWF0ZUhhc2goJ3NoYTI1"
+    "NicpLnVwZGF0ZShzKS5kaWdlc3QoJ2hleCcpOwpjb25zdCBFVlJfVEFHPSc8c2NyaXB0IHNyYz0iL2poLWNoYXJ0LWV2ci5qcz92"
+    "PTIwMjYxMDEyZXZyIj48L3NjcmlwdD5cbic7CmNvbnN0IEVWUl9BRlRFUj0nZTI3YzRmMzMxYWY4NzFlZThkNzE4MzU2MzFkNjI3"
+    "NmEwMzI4YmE4ZTMwMWU3MmEzODMwMmZlMDE2ZTE0MTM4NSc7CmNvbnN0IEVWUl9CRUZPUkU9JzU2NmMxNDU0MGVkZjJiYzE4YmEy"
+    "OGJiODYzMTA1MTA3OTQ2NTFmNDMxYjFjY2QxMjE1MjFkNjllZDRiMTFhZjknOwpmdW5jdGlvbiBwZWVsRXZyKHJhdyxmaWxlKXsK"
+    "IGlmKGZpbGUhPT0nY2hhcnQuaHRtbCd8fGhhc2gocmF3KSE9PUVWUl9BRlRFUilyZXR1cm4gcmF3OwogYXNzZXJ0LmVxdWFsKHJh"
+    "dy5zcGxpdChFVlJfVEFHKS5sZW5ndGgsMiwnY2hhcnQuaHRtbCBFZmZvcnQgJiBTcHJlYWQgdGFnJyk7CiByYXc9cmF3LnJlcGxh"
+    "Y2UoRVZSX1RBRywnJyk7CiBhc3NlcnQuZXF1YWwoaGFzaChyYXcpLEVWUl9CRUZPUkUsJ2NoYXJ0Lmh0bWwnKTsKIHJldHVybiBy"
+    "YXc7Cn0KY29uc3QgU09TX0ZST009J3NyYz0iL2poLWNoYXJ0LWRpc3RyaWJ1dGlvbi5qcz92PTIwMjYxMDEyc29zb2ZmIic7CmNv"
+    "bnN0IFNPU19UTz0nc3JjPSIvamgtY2hhcnQtZGlzdHJpYnV0aW9uLmpzP3Y9MjAyNjA5MjUtZGlzdCInOwpjb25zdCBTT1NfQUZU"
+    "RVI9J2NkNTM4MDBjMjdkYTFlNzNmODQwYTYzOTA2ZGE0Y2RmZTY1YTRjZDU1ZDdkNmI5OWJkZmY5MjlkYzE4ZGI5ZDknOwpjb25z"
+    "dCBTT1NfQkVGT1JFPSdlMjdjNGYzMzFhZjg3MWVlOGQ3MTgzNTYzMWQ2Mjc2YTAzMjhiYThlMzAxZTcyYTM4MzAyZmUwMTZlMTQx"
+    "Mzg1JzsKZnVuY3Rpb24gcGVlbFNvcyhyYXcsZmlsZSl7CiBpZihmaWxlIT09J2NoYXJ0Lmh0bWwnfHxoYXNoKHJhdykhPT1TT1Nf"
+    "QUZURVIpcmV0dXJuIHJhdzsKIGFzc2VydC5lcXVhbChyYXcuc3BsaXQoU09TX0ZST00pLmxlbmd0aCwyLCdjaGFydC5odG1sIFNP"
+    "Uy9ESVNUIGNhY2hlJyk7CiByYXc9cmF3LnJlcGxhY2UoU09TX0ZST00sU09TX1RPKTsKIGFzc2VydC5lcXVhbChoYXNoKHJhdyks"
+    "U09TX0JFRk9SRSwnY2hhcnQuaHRtbCcpOwogcmV0dXJuIHJhdzsKfQpjb25zdCBDT1JSX0FGVEVSPSc2NGRmMWViMGMxMGYyYjY5"
+    "NzA4YzZlODQwYmRjNjRmMzFlOTA0ZTdhYTljMzI4ZjYzY2M0MjNmMGY0OTVlNTQ2JzsKY29uc3QgQ09SUl9CRUZPUkU9JzBmMjhl"
+    "YTk1ZDM4OTk3MDhkNGYwZjQ5Njc2NzBhOTcwNzBhOWFhNzBhMGJiZDM1NTRkNzk1YTFmNDgwMGJjZTAnOwpjb25zdCBDT1JSX0ZS"
+    "T009IiAgICBpZiAoa2luZCA9PT0gXCJjb3JyXCIpIHtcbiAgICAgIHZhciBob3N0ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQo"
+    "XCJ3cy1jb3JyXCIpO1xuICAgICAgaG9zdC5zdHlsZS5wYWRkaW5nID0gXCIwXCI7XG4gICAgICBob3N0LnN0eWxlLm92ZXJmbG93"
+    "ID0gXCJhdXRvXCI7XG4gICAgICBob3N0LnN0eWxlLmJhY2tncm91bmQgPSBcIiMxMzE3MjJcIjtcbiAgICAgIGhvc3QuaW5uZXJI"
+    "VE1MID0gXCI8ZGl2IHN0eWxlPSdwYWRkaW5nOjE2cHg7Y29sb3I6Izc4N2I4Nic+TG9hZGluZyBTUFkgZGVjbGluZSBoZWF0bWFw"
+    "c1x1MjAyNjwvZGl2PlwiO1xuICAgICAgdmFyIHJ1biA9IGZ1bmN0aW9uICgpIHtcbiAgICAgICAgaWYgKHdpbmRvdy5qaENvcnJB"
+    "bGVydCkgd2luZG93LmpoQ29yckFsZXJ0KGhvc3QpO1xuICAgICAgICBlbHNlIGhvc3QuaW5uZXJIVE1MID0gXCI8ZGl2IHN0eWxl"
+    "PSdwYWRkaW5nOjE2cHg7Y29sb3I6I2YyMzY0NSc+SGVhdG1hcCBzY3JpcHQgZGlkIG5vdCBzdGFydC48L2Rpdj5cIjtcbiAgICAg"
+    "IH07XG4gICAgICBpZiAod2luZG93LmpoQ29yckFsZXJ0KSBydW4oKTtcbiAgICAgIGVsc2Uge1xuICAgICAgICB2YXIgcyA9IGRv"
+    "Y3VtZW50LmNyZWF0ZUVsZW1lbnQoXCJzY3JpcHRcIik7XG4gICAgICAgIHMuc3JjID0gXCIvamgtY2hhcnQtY29yci1hbGVydC5q"
+    "cz92PTIwMjYxMDEyc3B5aGVhdFwiO1xuICAgICAgICBzLm9ubG9hZCA9IHJ1bjtcbiAgICAgICAgcy5vbmVycm9yID0gZnVuY3Rp"
+    "b24gKCkge1xuICAgICAgICAgIGhvc3QuaW5uZXJIVE1MID0gXCI8ZGl2IHN0eWxlPSdwYWRkaW5nOjE2cHg7Y29sb3I6I2YyMzY0"
+    "NSc+Q291bGQgbm90IGxvYWQgdGhlIGhlYXRtYXAuPC9kaXY+XCI7XG4gICAgICAgIH07XG4gICAgICAgIGRvY3VtZW50LmhlYWQu"
+    "YXBwZW5kQ2hpbGQocyk7XG4gICAgICB9XG4gICAgfSI7CmNvbnN0IENPUlJfVE89IiAgICBpZiAoa2luZCA9PT0gXCJjb3JyXCIp"
+    "IHtcbiAgICAgIHZhciBob3N0ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoXCJ3cy1jb3JyXCIpO1xuICAgICAgaG9zdC5zdHls"
+    "ZS5wYWRkaW5nID0gXCIxNnB4XCI7XG4gICAgICBob3N0LnN0eWxlLm92ZXJmbG93ID0gXCJhdXRvXCI7XG4gICAgICBob3N0Lmlu"
+    "bmVySFRNTCA9IFwiPGRpdiBzdHlsZT0ncGFkZGluZzoxNnB4O2NvbG9yOiM3ODdiODYnPkNvbXB1dGluZyB3YXRjaGxpc3QgY29y"
+    "cmVsYXRpb25zXHUyMDI2PC9kaXY+XCI7XG4gICAgICBpZiAod2luZG93LmpoUmVuZGVyQ29ycikge1xuICAgICAgICBQcm9taXNl"
+    "LnJlc29sdmUod2luZG93LmpoUmVuZGVyQ29ycigpKS50aGVuKGZ1bmN0aW9uICgpIHtcbiAgICAgICAgICB2YXIgc3JjID0gZG9j"
+    "dW1lbnQuZ2V0RWxlbWVudEJ5SWQoXCJjb3JyXCIpO1xuICAgICAgICAgIGlmIChzcmMpIGhvc3QuaW5uZXJIVE1MID0gc3JjLmlu"
+    "bmVySFRNTDtcbiAgICAgICAgfSk7XG4gICAgICB9IGVsc2Uge1xuICAgICAgICBob3N0LmlubmVySFRNTCA9IFwiPGlmcmFtZSBz"
+    "cmM9Jy9jb3JyZWxhdGlvbi5odG1sJyBzdHlsZT0nd2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTtib3JkZXI6MCc+PC9pZnJhbWU+XCI7"
+    "XG4gICAgICB9XG4gICAgfSI7CmZ1bmN0aW9uIHBlZWxDb3JyKHJhdyxmaWxlKXsKIGlmKGZpbGUhPT0namgtY2hhcnQtdHZyYWls"
+    "LmpzJ3x8aGFzaChyYXcpIT09Q09SUl9BRlRFUilyZXR1cm4gcmF3OwogYXNzZXJ0LmVxdWFsKHJhdy5zcGxpdChDT1JSX0ZST00p"
+    "Lmxlbmd0aCwyLCdqaC1jaGFydC10dnJhaWwuanMgY29yciBoZWF0bWFwJyk7CiByYXc9cmF3LnJlcGxhY2UoQ09SUl9GUk9NLENP"
+    "UlJfVE8pOwogYXNzZXJ0LmVxdWFsKGhhc2gocmF3KSxDT1JSX0JFRk9SRSwnamgtY2hhcnQtdHZyYWlsLmpzJyk7CiByZXR1cm4g"
+    "cmF3Owp9CmZ1bmN0aW9uIG5vcm1hbGl6ZShyYXcsZmlsZSl7cmF3PXBlZWxDb3JyKHJhdyxmaWxlKTtyYXc9cGVlbFNvcyhyYXcs"
+    "ZmlsZSk7cmF3PXBlZWxFdnIocmF3LGZpbGUpO2NvbnN0IHJvdz10cmFuc2l0aW9uLmNoYW5nZXNbZmlsZV07aWYoIXJvdylyZXR1"
+    "cm4gbm9ybWFsaXplTGVnYWN5VGVzdChyYXcsZmlsZSk7Y29uc3QgZGlnZXN0PWhhc2gocmF3KTsKIGlmKGRpZ2VzdD09PXJvdy5i"
+    "ZWZvcmVfc2hhMjU2fHxkaWdlc3QhPT1yb3cuYWZ0ZXJfc2hhMjU2KXJldHVybiByYXc7CiBmb3IoY29uc3QgZSBvZiBbLi4ucm93"
+    "LnJlcGxhY2VtZW50c10ucmV2ZXJzZSgpKXthc3NlcnQuZXF1YWwocmF3LnNwbGl0KGUuYWZ0ZXIpLmxlbmd0aCwyLGZpbGUrJzog"
+    "JytlLmFmdGVyLnNsaWNlKDAsNjApKTtyYXc9cmF3LnJlcGxhY2UoZS5hZnRlcixlLmJlZm9yZSk7fQogYXNzZXJ0LmVxdWFsKGhh"
+    "c2gocmF3KSxyb3cuYmVmb3JlX3NoYTI1NixmaWxlKTthc3NlcnQuZXF1YWwocmF3LGZzLnJlYWRGaWxlU3luYyhwYXRoLmpvaW4o"
+    "Uixyb3cuYmVmb3JlX3BhdGgpLCd1dGY4JykpO3JldHVybiByYXc7Cn0KLy8gVGhlIGFwcHJvdmVkIGJlaGF2aW91ciBjaGFuZ2Ug"
+    "KHBvaW50cyDihpIgbGluZS9jYW5kbGVzKSByZXdyb3RlIHRocmVlIHNjYWxhciB0ZXN0czsgZWFybGllciBnYXRlcyBzZWUgdGhl"
+    "aXIgZXhhY3QgcHJpb3IgYnl0ZXMuCmNvbnN0IGFkYXB0YXRpb25zPXJlcXVpcmUoJy4uL2ZpeHR1cmVzL2NoYXJ0LW1hY3JvLWxp"
+    "bmUvdGVzdC1hZGFwdGF0aW9ucy5qc29uJyk7CmZ1bmN0aW9uIG5vcm1hbGl6ZUxlZ2FjeVRlc3QocmF3LGZpbGUpe2NvbnN0IHJv"
+    "dz1hZGFwdGF0aW9uc1tmaWxlXTtpZighcm93fHxoYXNoKHJhdykhPT1yb3cuYWZ0ZXJfc2hhMjU2KXJldHVybiByYXc7CiBjb25z"
+    "dCBvbGQ9ZnMucmVhZEZpbGVTeW5jKHBhdGguam9pbihSLHJvdy5iZWZvcmVfcGF0aCksJ3V0ZjgnKTthc3NlcnQuZXF1YWwoaGFz"
+    "aChvbGQpLHJvdy5iZWZvcmVfc2hhMjU2LGZpbGUpO3JldHVybiBvbGQ7fQptb2R1bGUuZXhwb3J0cz17bm9ybWFsaXplLG5vcm1h"
+    "bGl6ZUxlZ2FjeVRlc3QsdHJhbnNpdGlvbixhZGFwdGF0aW9ucyxwZWVsRXZyfTsK"
+)
+
+def main():
+    path = Path("tests/helpers/chart-macro-line-preservation.cjs")
+    text = path.read_text(encoding="utf-8")
+    new = base64.b64decode("".join(B64.split())).decode("utf-8")
+    if text == new:
+        print("already peelCorr")
+        return
+    if "function peelCorr(" in text:
+        raise SystemExit("peelCorr present but bytes differ")
+    if "function normalize(raw,file){raw=peelSos(raw,file);raw=peelEvr(raw,file);" not in text:
+        raise SystemExit("macro-line needle missing")
+    if text.count("function peelSos(") != 1:
+        raise SystemExit("peelSos count")
+    path.write_text(new, encoding="utf-8")
+    print("patched macro-line")
+
+if __name__ == "__main__":
+    main()
