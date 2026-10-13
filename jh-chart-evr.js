@@ -19,8 +19,14 @@
   function ensure() {
     var OSC = window.OSC;
     if (!OSC || !OSC.splice) return false;
-    if (find()) return true;
-    var item = { id: ID, n: "Effort & Spread", on: 0, cat: "Volume", p: 20, externalPane: true, c: "#9aa3b5", c2: "#e0b15a" };
+    var existing = find();
+    if (existing) {
+      existing.cat = "Volatility";
+      existing.externalPane = true;
+      if (!existing.n) existing.n = "Effort & Spread";
+      return true;
+    }
+    var item = { id: ID, n: "Effort & Spread", on: 0, cat: "Volatility", p: 20, externalPane: true, c: "#9aa3b5", c2: "#e0b15a" };
     var at = -1, i;
     for (i = 0; i < OSC.length; i++) if (OSC[i] && OSC[i].id === "pspread") at = i;
     if (at >= 0) OSC.splice(at + 1, 0, item);
@@ -155,7 +161,8 @@
 
   function armMenu() {
     var menu = document.getElementById("menu");
-    if (!menu || !menu.classList.contains("on") || menu.getAttribute("data-evr") === "1") return;
+    if (!menu || !menu.classList.contains("on")) return;
+    if (menu.querySelector("[data-tog='effspread']")) return;
     var tog = menu.querySelector("[data-tog='pspread']");
     if (!tog) return;
     var row = tog.closest(".irow");
@@ -165,19 +172,27 @@
     var live = on(item);
     var div = document.createElement("div");
     div.className = "irow" + (live ? " on" : "");
-    div.innerHTML = "<button type=button class=nm data-tog='effspread'>" + (live ? "✓  " : "") + "Effort & Spread</button>";
+    div.innerHTML = "<button type=button class=nm data-tog='effspread'>" + (live ? "\u2713  " : "") + "Effort & Spread</button><button type=button class=gr data-gear='effspread' title='Inputs and colors'>\u2699</button>";
     row.parentNode.insertBefore(div, row.nextSibling);
-    menu.setAttribute("data-evr", "1");
-    div.querySelector("button").onclick = function (ev) {
+    div.querySelector("[data-tog]").onclick = function (ev) {
       ev.preventDefault();
       ev.stopPropagation();
       item.on = on(item) ? 0 : 1;
       item.hide = false;
       try { if (window.jhSaveLay) window.jhSaveLay(); } catch (e) {}
-      if (window.paint && window.lastBars && window.lastBars.length) window.paint(window.lastBars);
-      else draw();
+      var pr = (window.paint && window.lastBars && window.lastBars.length) ? window.paint(window.lastBars) : null;
+      if (pr && typeof pr.then === "function") pr.then(function () { draw(); }, function () { draw(); });
+      else setTimeout(draw, 0);
       var menuNow = document.getElementById("menu");
       if (menuNow) menuNow.className = "menu";
+    };
+    var gear = div.querySelector("[data-gear]");
+    if (gear) gear.onclick = function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var menuNow = document.getElementById("menu");
+      if (menuNow) menuNow.className = "menu";
+      if (window.jhInduxSet) window.jhInduxSet(item, true);
     };
   }
 
@@ -186,14 +201,49 @@
     var orig = window.paint;
     function wrapped() {
       var r = orig.apply(this, arguments);
-      try { draw(); } catch (e) {}
+      function finish() { try { draw(); } catch (e) {} }
+      if (r && typeof r.then === "function") r.then(finish, finish);
+      else finish();
       return r;
     }
     wrapped.__evr = 1;
     window.paint = wrapped;
   }
 
+  function watchWrap() {
+    var wrap = document.getElementById("oscwrap");
+    if (!wrap || wrap.getAttribute("data-evr-watch") === "1") return;
+    wrap.setAttribute("data-evr-watch", "1");
+    var busy = false;
+    new MutationObserver(function () {
+      if (busy) return;
+      var item = find();
+      if (!on(item)) return;
+      if (document.getElementById("jh-effspread")) return;
+      busy = true;
+      setTimeout(function () {
+        busy = false;
+        try { draw(); } catch (e) {} }
+      }, 0);
+    }).observe(wrap, { childList: true });
+  }
+
+  function watchMenu() {
+    var menu = document.getElementById("menu");
+    if (!menu || menu.getAttribute("data-evr-watch") === "1") return;
+    menu.setAttribute("data-evr-watch", "1");
+    new MutationObserver(function () {
+      try { armMenu(); } catch (e) {} }
+    }).observe(menu, { childList: true, attributes: true, attributeFilter: ["class"] });
+  }
+
+  /* evr-show-2 */
+  try { ensure(); hookPaint(); watchWrap(); watchMenu(); armMenu(); } catch (e0) {}
   setInterval(function () {
-    try { ensure(); hookPaint(); armMenu(); } catch (e) {}
+    try {
+      ensure(); hookPaint(); watchWrap(); watchMenu(); armMenu();
+      var item = find();
+      if (on(item) && !document.getElementById("jh-effspread")) draw();
+    } catch (e) {}
   }, 400);
 })();
