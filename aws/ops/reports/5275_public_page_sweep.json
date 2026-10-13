@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "a82cb2a845dc767cfa91b94d1d994ef7aaf027cd",
-  "observed_at": "2026-10-13T20:29:59.047808+00:00",
-  "ok": false,
+  "observed_at": "2026-10-13T20:50:39.074058+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "flow-confluence.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "a82cb2a845dc767cfa91b94d1d994ef7aaf027cd": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2470,12 +2468,13 @@
     },
     {
       "route": "flow-confluence.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "a82cb2a845dc767cfa91b94d1d994ef7aaf027cd",
+      "inspector_present": true,
+      "bytes_read": 15317,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "flow-lookthrough.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38461605771,
+  "deployment_run_id": 38464869349,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-13T20:29:59.056475+00:00"
+  "check_finished_at": "2026-10-13T20:50:39.083211+00:00"
 }
