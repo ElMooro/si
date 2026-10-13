@@ -1,8 +1,8 @@
 (function () {
   if (window.jhStructureMarks) return;
-  var K = "jhStruct.v2";
-  var baseOn = { t2: 1, b2: 1, ac: 1, dist: 1, spr: 1, ut: 1, thr: 1, sc: 1, bc: 1 };
-  var on = { t2: 1, b2: 1, ac: 1, dist: 1, spr: 1, ut: 1, thr: 1, sc: 1, bc: 1 };
+  var K = "jhStruct.v3";
+  var baseOn = { t2: 0, b2: 0, ac: 0, dist: 0, spr: 0, ut: 0, thr: 0, sc: 0, bc: 0 };
+  var on = { t2: 0, b2: 0, ac: 0, dist: 0, spr: 0, ut: 0, thr: 0, sc: 0, bc: 0 };
   try {
     var saved = JSON.parse(localStorage.getItem(K) || "null");
     if (saved && typeof saved === "object") {

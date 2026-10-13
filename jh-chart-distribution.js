@@ -169,6 +169,6 @@
     };
     (document.head || document.documentElement).appendChild(s);
   }
-  arm("jh-struct-src", "/jh-chart-structure.js?v=20261003struct7");
+  arm("jh-struct-src", "/jh-chart-structure.js?v=20261012sosoff");
   arm("jh-bb-src", "/jh-chart-bbfix.js?v=20261011leg");
 })();
