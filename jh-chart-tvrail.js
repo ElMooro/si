@@ -261,16 +261,23 @@
     ov.onclick = function (e) { if (e.target === ov) { disposeQualification(ov); ov.className = ""; } };
     if (kind === "corr") {
       var host = document.getElementById("ws-corr");
-      host.style.padding = "16px";
+      host.style.padding = "0";
       host.style.overflow = "auto";
-      host.innerHTML = "<div style='padding:16px;color:#787b86'>Computing watchlist correlations…</div>";
-      if (window.jhRenderCorr) {
-        Promise.resolve(window.jhRenderCorr()).then(function () {
-          var src = document.getElementById("corr");
-          if (src) host.innerHTML = src.innerHTML;
-        });
-      } else {
-        host.innerHTML = "<iframe src='/correlation.html' style='width:100%;height:100%;border:0'></iframe>";
+      host.style.background = "#131722";
+      host.innerHTML = "<div style='padding:16px;color:#787b86'>Loading SPY decline heatmaps…</div>";
+      var run = function () {
+        if (window.jhCorrAlert) window.jhCorrAlert(host);
+        else host.innerHTML = "<div style='padding:16px;color:#f23645'>Heatmap script did not start.</div>";
+      };
+      if (window.jhCorrAlert) run();
+      else {
+        var s = document.createElement("script");
+        s.src = "/jh-chart-corr-alert.js?v=20261012spyheat";
+        s.onload = run;
+        s.onerror = function () {
+          host.innerHTML = "<div style='padding:16px;color:#f23645'>Could not load the heatmap.</div>";
+        };
+        document.head.appendChild(s);
       }
     }
     if (kind === "sniper") {
