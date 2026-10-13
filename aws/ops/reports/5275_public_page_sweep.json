@@ -1,16 +1,41 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-  "observed_at": "2026-10-13T03:10:37.949090+00:00",
-  "ok": true,
+  "observed_at": "2026-10-13T04:04:59.111587+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 576,
+  "failed_routes": [
+    "accum-composite.html",
+    "accumulation.html",
+    "altseason.html",
+    "best-ideas.html",
+    "bond-desk.html",
+    "cftc/index.html",
+    "conviction.html",
+    "cot/index.html",
+    "distribution-composite.html",
+    "ecb-history.html",
+    "equity-chokepoint.html",
+    "flow-confluence.html",
+    "fmp.html",
+    "fred.html",
+    "harvest-monitor.html",
+    "insider-desk.html",
+    "insider-industry-cluster.html",
+    "leader-observations.html",
+    "market-map.html",
+    "physical-trade.html",
+    "repo.html",
+    "tail-risk.html",
+    "trend-reversal.html",
+    "web/intel/index.html"
+  ],
   "source_equivalent_builds": {
     "d942aad38e3f146a3cb1d0ae998d8cc7286a3483": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 575,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -78,23 +103,21 @@
     },
     {
       "route": "accum-composite.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 12146,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "accumulation.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 38071,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "accuracy.html",
@@ -278,13 +301,12 @@
     },
     {
       "route": "altseason.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 18300,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "analogs.html",
@@ -558,13 +580,12 @@
     },
     {
       "route": "best-ideas.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 18386,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "billings-crpo.html",
@@ -628,13 +649,12 @@
     },
     {
       "route": "bond-desk.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 30707,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "bond-vol.html",
@@ -1068,13 +1088,12 @@
     },
     {
       "route": "cftc/index.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 4416,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "chart-macro.html",
@@ -1288,13 +1307,12 @@
     },
     {
       "route": "conviction.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 22147,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "conviction/index.html",
@@ -1328,13 +1346,12 @@
     },
     {
       "route": "cot/index.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 12038,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "credit-before-equity.html",
@@ -1758,13 +1775,12 @@
     },
     {
       "route": "distribution-composite.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 13080,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "divergence-v2.html",
@@ -1938,13 +1954,12 @@
     },
     {
       "route": "ecb-history.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 18222,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "ecb.html",
@@ -2068,13 +2083,12 @@
     },
     {
       "route": "equity-chokepoint.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 20689,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "equity-confluence.html",
@@ -2468,13 +2482,12 @@
     },
     {
       "route": "flow-confluence.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 15475,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "flow-lookthrough.html",
@@ -2508,13 +2521,12 @@
     },
     {
       "route": "fmp.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 18889,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "fomc.html",
@@ -2568,13 +2580,12 @@
     },
     {
       "route": "fred.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 34104,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "freight-pulse.html",
@@ -2898,13 +2909,12 @@
     },
     {
       "route": "harvest-monitor.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 6967,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "health.html",
@@ -3168,13 +3178,12 @@
     },
     {
       "route": "insider-desk.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 17336,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "insider-drawdown.html",
@@ -3188,13 +3197,12 @@
     },
     {
       "route": "insider-industry-cluster.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 16475,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "insider-research.html",
@@ -3428,13 +3436,12 @@
     },
     {
       "route": "leader-observations.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 18664,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "leverage.html",
@@ -3708,13 +3715,12 @@
     },
     {
       "route": "market-map.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 19733,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "market-measurements.html",
@@ -4238,13 +4244,12 @@
     },
     {
       "route": "physical-trade.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 16857,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "pjm-grid.html",
@@ -4598,13 +4603,12 @@
     },
     {
       "route": "repo.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 48009,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "reports.html",
@@ -5378,13 +5382,12 @@
     },
     {
       "route": "tail-risk.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 11573,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "tape-reader.html",
@@ -5628,13 +5631,12 @@
     },
     {
       "route": "trend-reversal.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 32836,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "trends/index.html",
@@ -5888,13 +5890,12 @@
     },
     {
       "route": "web/intel/index.html",
-      "status": "HTML_VERIFIED",
+      "status": "UNAVAILABLE",
       "http_status": 200,
-      "build_sha": "d942aad38e3f146a3cb1d0ae998d8cc7286a3483",
-      "inspector_present": true,
-      "bytes_read": 56245,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "TimeoutError",
+      "product_source_matches_release": false
     },
     {
       "route": "weights.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38339857492,
+  "deployment_run_id": 38343884572,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-13T03:10:37.959021+00:00"
+  "check_finished_at": "2026-10-13T04:04:59.119088+00:00"
 }
