@@ -242,14 +242,20 @@
   }
 
   async function loadBank(key) {
-    var res = await fetch("/data/warm/tv-bars/universe/" + key + ".json.gz", { credentials: "omit" });
-    if (!res.ok) throw new Error(key + " " + res.status);
-    var buf = await res.arrayBuffer();
-    var stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
-    var text = await new Response(stream).text();
-    var data = JSON.parse(text);
-    if (!data || !data.bars || !data.bars.length) throw new Error(key + " empty");
-    return data.bars;
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 10000);
+    try {
+      var res = await fetch("/data/warm/tv-bars/universe/" + key + ".json.gz", { credentials: "omit", signal: ctrl.signal });
+      if (!res.ok) throw new Error(key + " " + res.status);
+      var buf = await res.arrayBuffer();
+      var stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+      var text = await new Response(stream).text();
+      var data = JSON.parse(text);
+      if (!data || !data.bars || !data.bars.length) throw new Error(key + " empty");
+      return data.bars;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   window.jhCorrAlert = function (host) {
