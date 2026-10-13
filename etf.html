@@ -3,23 +3,15 @@
 <title>ETF Research Desk · JustHodl</title><meta name="description" content="Trace dated ETF profiles, complete holdings and reported fund flows to their retained source evidence.">
 <link rel="stylesheet" href="/jh-sector-research.css?v=20260921-native1">
 <style>
-[data-etf-desk-page] .xr-controls,[data-etf-desk-page] form{position:relative;padding-top:28px}
-[data-etf-desk-page] .jh-secbadge.float{position:relative;display:inline-block;margin:0 0 8px}
-[data-etf-desk-page] form>.jh-secbadge.float,[data-etf-desk-page] .xr-controls>.jh-secbadge.float{grid-column:1/-1;justify-self:start}
-.ed-pager{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}.ed-pager button:disabled{opacity:.45;cursor:default}
-[data-ed-inventory] .xr-scroll,[data-ed-holdings] .xr-scroll{max-height:640px;overscroll-behavior:contain}
-th{position:sticky;top:0;background:#18202b}button{max-width:100%;overflow-wrap:anywhere}pre{max-width:100%;overflow:auto}
-[data-ed-selection]{scroll-margin-top:24px}caption{text-align:left;padding:12px 0;font-weight:600}
-</style></head><body><main data-etf-desk-page><a href="/">JUSTHODL·AI</a><h1>ETF Research Desk</h1>
-<p>Inspect each fund’s reported flows, profile and full constituent list. Keep their dates separate and trace a measurement to its exact source row before using it.</p>
-<nav aria-label="Related research"><a href="/flows.html">Fund flows</a><a href="/etf-holdings.html">Complete holdings</a><a href="/flow-lookthrough.html">Security memberships</a><a href="/etf-research.html">Issuer share changes</a><a href="/chart.html">Charts</a><a href="/calls.html">Calls</a></nav>
-<section data-etf-desk aria-label="Verified ETF desk research"><p role="status">Loading retained ETF desk evidence…</p></section>
-<section><h2>Your hypothetical fund outcome · <span data-ed-scenario-name>select a fund</span></h2>
-<p>Enter your own signed fund position, assumed fund return and total costs. These assumptions stay in your browser and do not create a forecast or an order.</p>
-<form data-ed-scenario>
-<label>Signed position · USD<input name="position" type="number" step="any" value="0" autocomplete="off"></label>
-<label>Your assumed fund return · %<input name="shock" type="number" step="any" min="-100" max="1000" value="0" autocomplete="off"></label>
-<label>Your assumed total costs · USD<input name="cost" type="number" step="any" min="0" value="0" autocomplete="off"></label>
-<button type="submit">Calculate hypothetical outcome</button></form><div data-ed-scenario-output aria-live="polite">No scenario calculated.</div>
-<p>The return assumption applies to the fund itself; no leverage multiplier is added. Financing, tax, path dependence and execution costs need your own assumptions. The source’s unqualified fee or weight scale is not used.</p></section>
-</main><script src="/jh-etf-holdings.js?v=20260921-native2" defer></script><script src="/jh-etf-desk-research.js?v=20260921-native1" defer></script><script src="/jh-etf-desk-page.js?v=20260921-native1" defer></script></body></html>
+body{margin:0;background:#000;color:#d1d4dc}
+#etf-desk-host{height:100vh;width:100%}
+</style></head><body>
+<div id="etf-desk-host"></div>
+<script src="/jh-etf-desk-overlay.js?v=20261013etfdesk"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.jhEtfDeskOverlay) window.jhEtfDeskOverlay(document.getElementById('etf-desk-host'));
+  else document.getElementById('etf-desk-host').innerHTML = '<div style="padding:16px;color:#f23645">Desk overlay did not load.</div>';
+});
+</script>
+</body></html>
