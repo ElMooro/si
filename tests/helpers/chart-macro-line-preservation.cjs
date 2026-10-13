@@ -1,5 +1,6 @@
 // Exact byte reversal of the 2026-10-05 macro line/candles/change-modes, auto-hide workspace and file-import change only.
 // 2026-10-12: peel the Effort & Spread script tag before that reversal. The tag is the only new chart.html byte.
+// 2026-10-13: peel the Correlation Matrix heatmap hook in jh-chart-tvrail.js before the census hash.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-macro-line/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const EVR_TAG='<script src="/jh-chart-evr.js?v=20261012evr"></script>\n';
@@ -23,7 +24,18 @@ function peelSos(raw,file){
  assert.equal(hash(raw),SOS_BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+const CORR_AFTER='64df1eb0c10f2b69708c6e840bdc64f31e904e7aa9c328f63cc423f0f495e546';
+const CORR_BEFORE='0f28ea95d3899708d4f0f4967670a97070a9aa70a0bbd3554d795a1f4800bce0';
+const CORR_FROM="    if (kind === \"corr\") {\n      var host = document.getElementById(\"ws-corr\");\n      host.style.padding = \"0\";\n      host.style.overflow = \"auto\";\n      host.style.background = \"#131722\";\n      host.innerHTML = \"<div style='padding:16px;color:#787b86'>Loading SPY decline heatmaps\u2026</div>\";\n      var run = function () {\n        if (window.jhCorrAlert) window.jhCorrAlert(host);\n        else host.innerHTML = \"<div style='padding:16px;color:#f23645'>Heatmap script did not start.</div>\";\n      };\n      if (window.jhCorrAlert) run();\n      else {\n        var s = document.createElement(\"script\");\n        s.src = \"/jh-chart-corr-alert.js?v=20261012spyheat\";\n        s.onload = run;\n        s.onerror = function () {\n          host.innerHTML = \"<div style='padding:16px;color:#f23645'>Could not load the heatmap.</div>\";\n        };\n        document.head.appendChild(s);\n      }\n    }";
+const CORR_TO="    if (kind === \"corr\") {\n      var host = document.getElementById(\"ws-corr\");\n      host.style.padding = \"16px\";\n      host.style.overflow = \"auto\";\n      host.innerHTML = \"<div style='padding:16px;color:#787b86'>Computing watchlist correlations\u2026</div>\";\n      if (window.jhRenderCorr) {\n        Promise.resolve(window.jhRenderCorr()).then(function () {\n          var src = document.getElementById(\"corr\");\n          if (src) host.innerHTML = src.innerHTML;\n        });\n      } else {\n        host.innerHTML = \"<iframe src='/correlation.html' style='width:100%;height:100%;border:0'></iframe>\";\n      }\n    }";
+function peelCorr(raw,file){
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==CORR_AFTER)return raw;
+ assert.equal(raw.split(CORR_FROM).length,2,'jh-chart-tvrail.js corr heatmap');
+ raw=raw.replace(CORR_FROM,CORR_TO);
+ assert.equal(hash(raw),CORR_BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
