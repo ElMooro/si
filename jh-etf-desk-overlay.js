@@ -91,6 +91,68 @@
     if (!w) return null;
     return { usd: num(w.flow_usd_decimal), pctA: num(w.flow_to_end_assets_pct_decimal) };
   }
+  var EM_T = { EEM:1, VWO:1, IEMG:1, EWZ:1, FXI:1, MCHI:1, INDA:1, EWY:1, EWT:1, EIDO:1, EZA:1, EWW:1, THD:1, TUR:1, ECH:1, EPU:1, EPOL:1, KWEB:1, EWX:1, FNDE:1, ASHR:1, GXC:1 };
+  var FR_T = { FM:1, VNM:1, AFK:1, FRN:1, FMQQ:1, VNAM:1, KPHO:1, ARGT:1 };
+  var IN_T = { EWJ:1, EFA:1, IEFA:1, VEA:1, EFNL:1, EWG:1, EWU:1, EWQ:1, EWL:1, EWI:1, EWP:1, EWC:1, EWA:1, EWS:1, EWH:1, EWN:1, EWD:1, EZU:1, VGK:1, EPP:1, VXUS:1, ACWX:1 };
+  var EM_C = { China:1, Brazil:1, Taiwan:1, "South Korea":1, India:1, Mexico:1, "South Africa":1, Malaysia:1, Thailand:1, Indonesia:1, Turkey:1, Chile:1, Colombia:1, Peru:1, Poland:1, Greece:1, Philippines:1, Hungary:1, Egypt:1, "United Arab Emirates":1, Qatar:1, Kuwait:1 };
+  var FR_C = { Argentina:1, Uruguay:1, Vietnam:1, Nigeria:1, Kenya:1, Morocco:1, Romania:1, Kazakhstan:1, Pakistan:1, Bangladesh:1, "Sri Lanka":1, Jordan:1, Tunisia:1, Croatia:1, Bahrain:1, Oman:1 };
+  var DEV_C = { Canada:1, Israel:1, "Hong Kong":1, "United Kingdom":1, Singapore:1, Switzerland:1, Japan:1, Australia:1, Ireland:1, Netherlands:1, France:1, Germany:1, Sweden:1, Belgium:1, Italy:1, Denmark:1, Spain:1, Norway:1, Finland:1, Austria:1, "New Zealand":1, Portugal:1, Luxembourg:1 };
+  function frontierName(name, ticker) {
+    if (FR_T[ticker]) return true;
+    return /vietnam|nigeria|kenya|morocco|pakistan|romania|kazakhstan|argentina|africa index|frontier markets|msci frontier/.test(String(name || "").toLowerCase());
+  }
+  function deskMkt(ticker, region, category, sub) {
+    if (FR_T[ticker] || frontierName("", ticker)) return "Frontier";
+    if (EM_T[ticker]) return "Emerging";
+    if (IN_T[ticker]) return "International";
+    var s = String(sub || "").toLowerCase();
+    if (/vietnam|msci frontier|frontier markets/.test(s)) return "Frontier";
+    if (region === "EM" || /emerging|china|india|brazil|korea|taiwan|mexico/.test(s)) return "Emerging";
+    if (region === "Intl" || /japan|eafe|developed|europe/.test(s)) return "International";
+    return "US";
+  }
+  function etfAsset(name) {
+    var s = String(name || "").toLowerCase();
+    if (/bitcoin|ethereum|crypto/.test(s)) return "Crypto";
+    if (/gold|silver|oil|commodity|copper|agriculture|platinum|palladium|natural gas/.test(s)) return "Commodities";
+    if (/bond|treasury|fixed income|municipal|tips|high yield|corporate bond|mortgage|aggregate/.test(s)) return "Fixed Income";
+    if (/real estate|reit/.test(s)) return "Real Estate";
+    if (/currency|\bdollar\b|yen|euro/.test(s)) return "Currency";
+    return "Equity";
+  }
+  function etfMkt(name, ticker) {
+    if (frontierName(name, ticker)) return "Frontier";
+    if (EM_T[ticker]) return "Emerging";
+    if (IN_T[ticker]) return "International";
+    var s = String(name || "").toLowerCase();
+    if (/emerging|\bchina\b|india|brazil|korea|taiwan|mexico|latin america|south africa|indonesia|thailand|turkey|\bchile\b|poland|malaysia|philippines|saudi/.test(s)) return "Emerging";
+    if (/eafe|international|ex-us|ex us|\bjapan\b|europe|germany|united kingdom|\bfrance\b|switzerland|australia|hong kong|developed/.test(s)) return "International";
+    return "US";
+  }
+  function stockMkt(country) {
+    if (!country || country === "USA") return "US";
+    if (FR_C[country]) return "Frontier";
+    if (EM_C[country]) return "Emerging";
+    if (DEV_C[country]) return "International";
+    return "Other";
+  }
+  function maStats(bars) {
+    var n = bars.length, ps = [0], i;
+    for (i = 0; i < n; i++) ps.push(ps[i] + (+bars[i][4] || 0));
+    function sma(i, len) { return i + 1 < len ? null : (ps[i + 1] - ps[i + 1 - len]) / len; }
+    function dist(len) { var m = sma(n - 1, len); return m ? (bars[n - 1][4] / m - 1) * 100 : null; }
+    function occ(len, win) {
+      var start = Math.max(len - 1, n - win), c = 0, t = 0, k, m;
+      for (k = start; k < n; k++) { m = sma(k, len); if (!m) continue; t++; if (bars[k][4] < m) c++; }
+      return t ? (c / t) * 100 : null;
+    }
+    function streak(len) {
+      var d = 0, k, m;
+      for (k = n - 1; k >= len - 1; k--) { m = sma(k, len); if (m && bars[k][4] < m) d++; else break; }
+      return d;
+    }
+    return { ma250: dist(250), belowDays: streak(250), b21: occ(250, 21), b63: occ(250, 63), b250: occ(250, 250) };
+  }
   function rowsOf(packet) {
     return Object.keys(packet.funds || {}).map(function (t) {
       var f = packet.funds[t];
@@ -114,6 +176,8 @@
         si: num(p.short_interest),
         disc: num(p.discount_premium),
         asset: textOf(f, "asset_class") || "—",
+        kind: "etf",
+        mkt: deskMkt(t, c.region, c.category, c.subcategory),
         issuer: textOf(f, "issuer") || "—",
         lev: textOf(f, "leverage_style") || "—",
         bench: textOf(f, "primary_benchmark") || "",
@@ -131,7 +195,7 @@
     if (!m || !m.tickers) return [];
     var cols = m.cols || {}, keys = Object.keys(cols), out = [], i, k;
     for (i = 0; i < m.tickers.length; i++) {
-      var r = { t: m.tickers[i], asset: m.asset_classes[i] || "—", category: m.categories[i] || "—", name: m.names[i] || "" };
+      var r = { t: m.tickers[i], asset: m.asset_classes[i] || "—", category: m.categories[i] || "—", name: m.names[i] || "", kind: "etf", mkt: deskMkt(m.tickers[i], "", m.categories[i], "") };
       for (k = 0; k < keys.length; k++) r[keys[k]] = num(cols[keys[k]][i]);
       out.push(r);
     }
@@ -238,13 +302,13 @@
     var extra = { matrix: null, finviz: null, boards: null };
     var tech = {};
     var state = {
-      tab: "flows", win: "1", mode: "heat", src: "funds", group: "asset", cls: "All", q: "",
+      tab: "flows", win: "1", mode: "heat", src: "funds", group: "asset", cls: "All", q: "", scope: "all", belowWin: "63",
       hold: "book", censusView: "all", metric: "tech", techMode: "weekly",
       flowSort: { k: "f1", d: -1 }, holdSort: { k: "nHold", d: -1 }, cenSort: { k: "tech_score", d: -1 },
       techSort: { k: "mom_12_1_pct", d: -1 }, topSort: { k: "net1", d: -1 }
     };
     host.innerHTML = "<style>" + CSS + "</style><div class=jh-etf>"
-      + "<div class=top><span class=brand>ETF DESK</span><div class=tabs id=etf-tabs></div><div class=win id=etf-win></div>"
+      + "<div class=top><span class=brand>ETF DESK</span><div class=tabs id=etf-tabs></div><div class=scope id=etf-scope></div><div class=win id=etf-win></div>"
       + "<input id=etf-q placeholder='Ticker' autocomplete=off><span class=meta id=etf-meta></span></div>"
       + "<div class=body id=etf-body></div></div>";
     var body = host.querySelector("#etf-body");
@@ -305,6 +369,7 @@
           if (b.getAttribute("data-cv")) state.censusView = b.getAttribute("data-cv");
           if (b.getAttribute("data-metric")) state.metric = b.getAttribute("data-metric");
           if (b.getAttribute("data-tech")) state.techMode = b.getAttribute("data-tech");
+          if (b.getAttribute("data-bw")) state.belowWin = b.getAttribute("data-bw");
           draw();
         };
       });
@@ -381,11 +446,363 @@
       });
     }
 
+
+    function isEquityEtf(r) {
+      if (r.kind === "stock" || r.kind === "cef") return false;
+      var a = String(r.asset || "");
+      if (/fixed|bond|commod|currenc|crypto|real estate|gold|multi|alternative/i.test(a)) return false;
+      return a === "Equity" || /equit|leverag|sector|large cap|intl|emerging/i.test(a);
+    }
+    var _uniIdxN = -1, _uniIdx = null;
+    function uniIndex() {
+      var n = extra.uni ? extra.uni.length : 0;
+      if (_uniIdx && _uniIdxN === n) return _uniIdx;
+      _uniIdx = {};
+      _uniIdxN = n;
+      (extra.uni || []).forEach(function (r) { _uniIdx[r.t] = r; });
+      return _uniIdx;
+    }
+    function mktOf(r) {
+      if (r.mkt && r.mkt !== "US") return r.mkt;
+      var u = uniIndex()[r.t];
+      if (u && u.mkt) return u.mkt;
+      return r.mkt || "US";
+    }
+    function passScope(r) {
+      var s = state.scope;
+      if (!s || s === "all") return true;
+      if (s === "eqEtf") return isEquityEtf(r);
+      if (s === "eqStock") return r.kind === "stock";
+      var want = s === "intl" ? "International" : s === "em" ? "Emerging" : s === "frontier" ? "Frontier" : "";
+      if (want) return mktOf(r) === want;
+      return true;
+    }
+    function ensureUni() {
+      if (extra.uni || host._uniStarted) return;
+      host._uniStarted = true;
+      fetch("/data/finviz-universe.json", { credentials: "omit" }).then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      }).then(function (j) {
+        var rows = [], bt = j.by_ticker || {}, sym;
+        for (sym in bt) {
+          var r = bt[sym], ind = r.industry || "";
+          var kind = ind === "Exchange Traded Fund" ? "etf" : (ind.indexOf("Closed-End") === 0 ? "cef" : "stock");
+          var name = r.company || "";
+          var price = num(r.price), atr = num(r.atr);
+          rows.push({
+            t: sym, name: name, kind: kind,
+            asset: kind === "etf" ? etfAsset(name) : (kind === "cef" ? "Closed-end" : "Equity"),
+            mkt: kind === "stock" ? stockMkt(r.country) : (kind === "etf" ? etfMkt(name, sym) : "Other"),
+            country: r.country || "", sector: r.sector || "", mcap: num(r.market_cap),
+            sma20: num(r.sma20_pct), sma50: num(r.sma50_pct), sma200: num(r.sma200_pct),
+            perfM: num(r.perf_m), perfW: num(r.perf_w), price: price,
+            atrPct: price && atr != null ? atr / price * 100 : null
+          });
+        }
+        extra.uni = rows;
+        extra.uniAt = j.generated_at || "";
+        if (host.isConnected) draw();
+      }).catch(function (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); });
+    }
+    function ensureIssuer() {
+      if (extra.issuer || host._issStarted) return;
+      host._issStarted = true;
+      fetch("/data/etf-true-flows.json", { credentials: "omit" }).then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      }).then(function (j) {
+        var out = [], by = j.by_etf || {};
+        Object.keys(by).forEach(function (sym) {
+          var fw = by[sym].flow_windows || {};
+          function val(w) {
+            var d = fw[w];
+            if (!d || d.status !== "complete_descriptive_estimate") return null;
+            return num(d.value_decimal);
+          }
+          var f1 = val("1d"), f5 = val("5d"), f21 = val("20d");
+          if (f1 == null && f5 == null && f21 == null) return;
+          var mkt = deskMkt(sym, "", by[sym].category, "");
+          if (all.some(function (a) { return a.t === sym; })) return;
+          out.push({ t: sym, kind: "etf", asset: "Equity", category: String(by[sym].category || "").toLowerCase(), issuer: "issuer tape", lev: "—", region: mkt, mkt: mkt, f1: f1, p1: null, f5: f5, p5: null, f21: f21, p21: null, aum: num(by[sym].aum_est_b) != null ? num(by[sym].aum_est_b) * 1e9 : null, source: "issuer" });
+        });
+        extra.issuer = out;
+        if (host.isConnected) draw();
+      }).catch(function () { extra.issuer = []; });
+    }
+    function uniRows() { return extra.uni || []; }
+    function flowJoin() {
+      var m = {};
+      all.forEach(function (r) { m[r.t] = r; });
+      (extra.issuer || []).forEach(function (r) { if (!m[r.t]) m[r.t] = r; });
+      return m;
+    }
+    function scopeWant() {
+      if (state.scope === "intl") return "International";
+      if (state.scope === "em") return "Emerging";
+      if (state.scope === "frontier") return "Frontier";
+      return "";
+    }
+    function classMatches(type) {
+      var s = state.scope, t = String(type || "").toLowerCase();
+      if (!s || s === "all") return true;
+      if (s === "eqStock") return false;
+      if (s === "eqEtf") return /equit/.test(t);
+      if (s === "intl") return /global|ex[\.\- ]\s*us|international/.test(t);
+      if (s === "em") return /emerg/.test(t);
+      if (s === "frontier") return /frontier market/.test(t);
+      return true;
+    }
+    function sleeveMatches(name) {
+      var s = state.scope, n = String(name || "").toLowerCase();
+      if (!s || s === "all") return true;
+      if (s === "eqStock") return false;
+      if (s === "eqEtf") return /s&p|total us|small cap|nasdaq|developed|emerging/.test(n);
+      if (s === "intl") return /developed|intl|global|ex-us|ex us/.test(n);
+      if (s === "em") return /emerg/.test(n);
+      if (s === "frontier") return false;
+      return true;
+    }
+    function bookPlusIssuer() {
+      var seen = {}, out = [];
+      all.forEach(function (r) { seen[r.t] = 1; out.push(r); });
+      (extra.issuer || []).forEach(function (r) { if (!seen[r.t]) out.push(r); });
+      return out;
+    }
+    function foreignRosterHtml(want) {
+      ensureUni();
+      if (!extra.uni) return "<div class=note>Loading foreign ETFs and stocks…</div>";
+      var etfs = uniRows().filter(function (r) { return r.kind === "etf" && r.mkt === want; });
+      var stocks = uniRows().filter(function (r) { return r.kind === "stock" && r.mkt === want; });
+      var join = flowJoin();
+      var html = "<div class=note>" + etfs.length + " ETFs and " + stocks.length + " stocks in " + want + ". Creation dollars show only when the evidence tape printed them. A dash is no print, not zero. Frontier-brand US allocation funds are not treated as frontier markets.</div>";
+      html += "<table><thead><tr><th>Ticker</th><th>Kind</th><th>Class</th><th>Name</th><th>1D flow</th><th>200d</th><th>Month</th><th>ATR %</th></tr></thead><tbody>";
+      etfs.concat(stocks).sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 80).forEach(function (r) {
+        var f = join[r.t];
+        html += "<tr><td>" + esc(r.t) + "</td><td>" + esc(r.kind) + "</td><td>" + esc(r.asset) + "</td><td>" + esc(r.name) + "</td><td>" + (f && f.f1 != null ? money(f.f1) : "—") + "</td><td>" + pct(r.sma200) + "</td><td>" + pct(r.perfM) + "</td><td>" + (r.atrPct == null ? "—" : r.atrPct.toFixed(2)) + "</td></tr>";
+      });
+      return html + "</tbody></table>";
+    }
+    function showFileMA() {
+      ensureUni();
+      var rows = uniRows().filter(function (r) { return passScope(r) && (!state.q || r.t.indexOf(state.q) >= 0); });
+      if (!extra.uni) { meta("Loading the stock and ETF universe…"); body.innerHTML = "<div class=note>Loading names…</div>"; return; }
+      var key = state.techSort.k;
+      if (["t", "mkt", "asset", "country", "sector", "mcap", "atrPct", "sma200", "sma50", "sma20", "perfM"].indexOf(key) < 0) key = "sma200";
+      state.techSort.k = key;
+      sortRows(rows, key, state.techSort.d);
+      var shown = rows.slice(0, 250);
+      var scale = { sma200: pScale(shown.map(function (r) { return r.sma200; })), perfM: pScale(shown.map(function (r) { return r.perfM; })) };
+      meta(shown.length + " of " + rows.length + " · equity stocks are not mixed with equity ETFs · 20/50/200 from the file · " + String(extra.uniAt || "").slice(0, 10));
+      table(body, [["t", "Ticker"], ["kind", "Kind"], ["mkt", "Market"], ["asset", "Class"], ["country", "Country"], ["sector", "Sector"], ["mcap", "Mkt cap"], ["atrPct", "ATR %"], ["sma20", "20d"], ["sma50", "50d"], ["sma200", "200d"], ["perfM", "Month"]], shown, key, state.techSort.d, function (r) {
+        var c = paint(r.sma200, scale.sma200), p = paint(r.perfM, scale.perfM);
+        return "<td>" + esc(r.t) + "</td><td>" + esc(r.kind) + "</td><td>" + esc(r.mkt) + "</td><td>" + esc(r.asset) + "</td><td>" + esc(r.country) + "</td><td>" + esc(r.sector) + "</td><td>" + (r.mcap == null ? "—" : r.mcap.toFixed(0)) + "</td><td>" + (r.atrPct == null ? "—" : r.atrPct.toFixed(2)) + "</td><td>" + pct(r.sma20) + "</td><td>" + pct(r.sma50) + "</td><td style='background:" + c[0] + ";color:" + c[1] + "'>" + pct(r.sma200) + "</td><td style='background:" + p[0] + ";color:" + p[1] + "'>" + pct(r.perfM) + "</td>";
+      });
+      bindSort(body, state.techSort, draw);
+      body.insertAdjacentHTML("beforeend", "<div class=note>Showing " + shown.length + " of " + rows.length + ". Sort and the ticker box cover this scope. Quote spreads for the evidence ETFs are on Technicals → Spreads. The 250-day bar pass is Technicals → Below 250. Stock file has 20/50/200, not 250.</div>");
+    }
+    function sectorTiles(stocks) {
+      var g = {};
+      stocks.forEach(function (r) {
+        var k = r.sector || "—";
+        if (!g[k]) g[k] = { t: k, n: 0, perfs: [], above200: 0, above50: 0, mcap: 0 };
+        g[k].n++;
+        if (r.perfM != null) g[k].perfs.push(r.perfM);
+        if (r.sma200 != null && r.sma200 > 0) g[k].above200++;
+        if (r.sma50 != null && r.sma50 > 0) g[k].above50++;
+        g[k].mcap += r.mcap || 0;
+      });
+      return Object.keys(g).map(function (k) {
+        var per = g[k].perfs.slice().sort(function (a, b) { return a - b; });
+        var mid = per.length ? per[Math.floor(per.length / 2)] : 0;
+        g[k].net = mid;
+        g[k].a200 = g[k].n ? g[k].above200 / g[k].n * 100 : 0;
+        g[k].a50 = g[k].n ? g[k].above50 / g[k].n * 100 : 0;
+        g[k].sub = g[k].a200.toFixed(0) + "% >200d · n=" + g[k].n;
+        return g[k];
+      });
+    }
+    function fillExtra() {
+      ensureUni();
+      var html = "";
+      var mkts = ["International", "Emerging", "Frontier"];
+      html += "<div class=sech><span>FOREIGN ETF FLOWS · creations, separate from US equity</span><span>1D / 5D / 21D</span></div>";
+      html += "<div class=strip>";
+      mkts.forEach(function (m) {
+        var rs = bookPlusIssuer().filter(function (r) { return r.mkt === m; });
+        var n1 = 0, n5 = 0, n21 = 0, i;
+        for (i = 0; i < rs.length; i++) { n1 += rs[i].f1 || 0; n5 += rs[i].f5 || 0; n21 += rs[i].f21 || 0; }
+        var c = paint(n1, 2e8);
+        html += "<div class=pill data-scope='" + (m === "International" ? "intl" : m === "Emerging" ? "em" : "frontier") + "' style='background:" + c[0] + ";color:" + c[1] + "'><b>" + m.toUpperCase() + " · " + rs.length + " ETFs</b><span>" + money(n1) + "</span><span>5D " + money(n5) + " · 21D " + money(n21) + "</span></div>";
+      });
+      html += "</div>";
+      if (state.scope === "all") {
+        var stocks = uniRows().filter(function (r) { return r.kind === "stock" && r.mkt === "US"; });
+        html += "<div class=sech><span>US EQUITY STOCKS · not ETFs</span><span>" + (stocks.length ? stocks.length + " names" : "loading…") + "</span></div>";
+        html += "<div class='map short' id=stock-map></div>";
+      }
+      if (state.scope === "intl" || state.scope === "em" || state.scope === "frontier") {
+        html += foreignRosterHtml(scopeWant());
+      }
+      body.insertAdjacentHTML("beforeend", html);
+      var sm = body.querySelector("#stock-map");
+      if (sm) {
+        var tiles = sectorTiles(uniRows().filter(function (r) { return r.kind === "stock" && r.mkt === "US"; }));
+        if (tiles.length) drawTiles(sm, tiles, "net", function (r) { return r.t; }, function (r) { return r.sub; });
+      }
+      body.querySelectorAll(".pill[data-scope]").forEach(function (p) {
+        p.onclick = function () { state.scope = p.getAttribute("data-scope"); markScope(); draw(); };
+      });
+    }
+    function showSpreads() {
+      ensureUni();
+      var book = all.filter(passScope).filter(function (r) { return r.spread != null; }).slice().sort(function (a, b) { return a.spread - b.spread; });
+      var html = "<div class=note>Tightest quote spreads are bid/ask from the evidence book, in basis points. ATR % is the daily range from the universe file for ETFs and stocks that do not publish a quote here. Lower is tighter. Equity ETFs and equity stocks are listed apart.</div>";
+      function qboard(title, rows) {
+        html += "<div class=board><h3>" + esc(title) + "</h3>";
+        rows.slice(0, 12).forEach(function (r, i) {
+          html += "<div class=row><span>" + (i + 1) + "  <b>" + esc(r.t) + "</b> " + esc(r.mkt || "") + "</span><span>" + (r.spread * 10000).toFixed(2) + " bp</span></div>";
+        });
+        html += "</div>";
+      }
+      html += "<div class=boards>";
+      var assets = [];
+      book.forEach(function (r) { if (assets.indexOf(r.asset) < 0) assets.push(r.asset); });
+      assets.forEach(function (a) { qboard("ETF QUOTE · " + a, book.filter(function (r) { return r.asset === a; })); });
+      ["International", "Emerging", "Frontier"].forEach(function (m) {
+        qboard("ETF QUOTE · " + m, book.filter(function (r) { return r.mkt === m; }));
+      });
+      html += "</div>";
+      var uni = uniRows().filter(function (r) { return r.atrPct != null && r.price >= 5 && passScope(r); }).sort(function (a, b) { return a.atrPct - b.atrPct; });
+      function aboard(title, rows) {
+        html += "<div class=board><h3>" + esc(title) + "</h3>";
+        rows.slice(0, 12).forEach(function (r, i) {
+          html += "<div class=row><span>" + (i + 1) + "  <b>" + esc(r.t) + "</b> " + esc(r.mkt) + "</span><span>" + r.atrPct.toFixed(2) + "%</span></div>";
+        });
+        html += "</div>";
+      }
+      html += "<div class=boards>";
+      aboard("TIGHTEST RANGE · EQUITY ETFs", uni.filter(function (r) { return r.kind === "etf" && r.asset === "Equity"; }));
+      aboard("TIGHTEST RANGE · EQUITY STOCKS", uni.filter(function (r) { return r.kind === "stock"; }));
+      aboard("TIGHTEST RANGE · OTHER ETFs", uni.filter(function (r) { return r.kind === "etf" && r.asset !== "Equity"; }));
+      html += "</div>";
+      if (!extra.uni) html += "<div class=note>Loading the universe for stock and broad-ETF ranges…</div>";
+      body.innerHTML = html;
+      meta("Spreads · quote bp on the evidence book · ATR % on the universe · " + book.length + " quotes");
+    }
+    function pushPick(list, n, picks, metaMap) {
+      var rows = list.filter(function (r) { return r.sma200 != null && r.sma200 < 0; }).sort(function (a, b) { return a.sma200 - b.sma200; });
+      var i, c = 0;
+      for (i = 0; i < rows.length && c < n; i++) {
+        if (metaMap[rows[i].t]) continue;
+        picks.push(rows[i].t);
+        metaMap[rows[i].t] = rows[i];
+        c++;
+      }
+    }
+    function showBelow() {
+      ensureUni();
+      var winKey = state.belowWin === "21" ? "b21" : state.belowWin === "250" ? "b250" : "b63";
+      var uniReady = extra.uni ? extra.uni.length : 0;
+      var book = all.filter(passScope);
+      var uni = uniRows().filter(passScope);
+      var picks = [], metaMap = {};
+      book.forEach(function (r) { picks.push(r.t); metaMap[r.t] = r; });
+      if (state.scope === "all") {
+        pushPick(uni.filter(function (r) { return r.kind === "etf" && r.asset === "Equity"; }), 16, picks, metaMap);
+        pushPick(uni.filter(function (r) { return r.kind === "stock"; }), 24, picks, metaMap);
+        pushPick(uni.filter(function (r) { return r.kind === "etf" && r.asset !== "Equity"; }), 16, picks, metaMap);
+      } else {
+        pushPick(uni, 48, picks, metaMap);
+      }
+      var gen = host._belowGen || 0;
+      var sig = state.scope + ":" + gen + ":" + uniReady;
+      if (host._belowSig !== sig) {
+        host._belowSig = sig;
+        var i = 0, q = picks.filter(function (s) { return !tech[s]; });
+        (function step() {
+          if (host._belowSig !== sig) return;
+          if (i >= q.length) return;
+          var batch = q.slice(i, i + 4); i += 4;
+          Promise.all(batch.map(loadTech)).then(function () {
+            if (host._belowSig !== sig) return;
+            if (state.tab === "tech" && state.techMode === "below") showBelow();
+            step();
+          });
+        })();
+      }
+      var done = picks.filter(function (s) { return tech[s]; }).length;
+      var under = [];
+      picks.forEach(function (s) {
+        var st = tech[s];
+        if (!st || st.ma250 == null || !(st.ma250 < 0)) return;
+        var base = metaMap[s] || { t: s, kind: "etf" };
+        under.push(Object.assign({}, base, st));
+      });
+      under.sort(function (a, b) { return (b[winKey] || 0) - (a[winKey] || 0); });
+      meta("Below the 250-day · " + under.length + " under it now · " + done + "/" + picks.length + " bars · window " + state.belowWin + "d");
+      var html = "<div class=note>250-day is computed from daily bars. A name is listed when the last close is under the 250-session average. Days under is the current streak. The 21 / 63 / 250 columns are the share of those sessions spent under that average. Equity ETFs, other ETF classes, and stocks stay apart. The stock file’s own average is the 200-day until bars land. The bar pass is the evidence book plus the weakest names in this scope, not all 11,000.</div>";
+      html += "<table><thead><tr><th>Ticker</th><th>Kind</th><th>Class</th><th>Market</th><th>250d</th><th>Days under</th><th>21d under</th><th>63d under</th><th>250d under</th></tr></thead><tbody>";
+      under.forEach(function (r) {
+        var c = paint(r.ma250, 8);
+        html += "<tr><td>" + esc(r.t) + "</td><td>" + esc(r.kind || "etf") + "</td><td>" + esc(r.asset || "") + "</td><td>" + esc(r.mkt || "") + "</td><td style='background:" + c[0] + ";color:" + c[1] + "'>" + pct(r.ma250) + "</td><td>" + (r.belowDays == null ? "—" : r.belowDays) + "</td><td>" + (r.b21 == null ? "—" : r.b21.toFixed(0) + "%") + "</td><td>" + (r.b63 == null ? "—" : r.b63.toFixed(0) + "%") + "</td><td>" + (r.b250 == null ? "—" : r.b250.toFixed(0) + "%") + "</td></tr>";
+      });
+      html += "</tbody></table>";
+      var fileUnder = uni.filter(function (r) { return r.sma200 != null && r.sma200 < 0; }).sort(function (a, b) { return a.sma200 - b.sma200; });
+      function uBoard(title, list) {
+        html += "<div class=board><h3>" + esc(title) + " · 200d file</h3>";
+        list.slice(0, 15).forEach(function (r, i) {
+          var st = tech[r.t] || {};
+          var extraD = st.ma250 != null ? " · 250d " + pct(st.ma250) : "";
+          html += "<div class=row><span>" + (i + 1) + "  <b>" + esc(r.t) + "</b> " + esc(r.mkt) + "</span><span>" + pct(r.sma200) + extraD + "</span></div>";
+        });
+        html += "</div>";
+      }
+      html += "<div class=boards>";
+      uBoard("EQUITY ETFs UNDER 200d", fileUnder.filter(function (r) { return r.kind === "etf" && r.asset === "Equity"; }));
+      uBoard("EQUITY STOCKS UNDER 200d", fileUnder.filter(function (r) { return r.kind === "stock"; }));
+      uBoard("OTHER CLASSES UNDER 200d", fileUnder.filter(function (r) { return r.kind === "etf" && r.asset !== "Equity"; }));
+      html += "</div>";
+      if (!extra.uni) html += "<div class=note>Loading the universe so stocks and the wider ETF book can join this board…</div>";
+      body.innerHTML = html;
+    }
+    function spreadBoards(book) {
+      var rows = book.filter(function (r) { return r.spread != null; }).slice().sort(function (a, b) { return a.spread - b.spread; });
+      var h = "<div class=board><h3>TIGHTEST QUOTE SPREADS · ETFs</h3>";
+      rows.slice(0, 20).forEach(function (r, i) {
+        h += "<div class=row><span>" + (i + 1) + "  <b>" + esc(r.t) + "</b> " + esc(r.asset) + " " + esc(r.mkt) + "</span><span>" + (r.spread * 10000).toFixed(2) + " bp</span></div>";
+      });
+      var uni = uniRows().filter(function (r) { return r.kind === "stock" && r.atrPct != null && r.price >= 5 && passScope(r); }).sort(function (a, b) { return a.atrPct - b.atrPct; });
+      h += "</div><div class=board><h3>TIGHTEST RANGE · EQUITY STOCKS</h3>";
+      uni.slice(0, 15).forEach(function (r, i) {
+        h += "<div class=row><span>" + (i + 1) + "  <b>" + esc(r.t) + "</b> " + esc(r.country) + "</span><span>" + r.atrPct.toFixed(2) + "% ATR</span></div>";
+      });
+      return h + "</div>";
+    }
+    function foreignFlowBoard() {
+      var h = "<div class=board><h3>FOREIGN ETF FLOWS</h3>";
+      ["International", "Emerging", "Frontier"].forEach(function (m) {
+        var rs = bookPlusIssuer().filter(function (r) { return r.mkt === m; });
+        var n1 = 0, n21 = 0, i;
+        for (i = 0; i < rs.length; i++) { n1 += rs[i].f1 || 0; n21 += rs[i].f21 || 0; }
+        h += "<div class=row><span><b>" + m + "</b> · " + rs.length + "</span><span>" + money(n1) + " 1D · " + money(n21) + " 21D</span></div>";
+        rs.filter(function (r) { return r.f1 != null; }).slice().sort(function (a, b) { return Math.abs(b.f1) - Math.abs(a.f1); }).slice(0, 8).forEach(function (r) {
+          h += "<div class=row><span>" + esc(r.t) + " " + esc(r.sub || r.category || "") + "</span><span>" + money(r.f1) + "</span></div>";
+        });
+      });
+      return h + "</div>";
+    }
+    function markScope() {
+      host.querySelectorAll("#etf-scope button").forEach(function (b) {
+        b.className = b.getAttribute("data-scope") === state.scope ? "on" : "";
+      });
+    }
+
     function showFlows() {
       var k = flowKeyName(), pk = pctKey();
       if (state.flowSort.k === "p1" || state.flowSort.k === "p5" || state.flowSort.k === "p21") state.flowSort.k = pk;
       else if (state.flowSort.k === "f1" || state.flowSort.k === "f5" || state.flowSort.k === "f21") state.flowSort.k = k;
-      var groups = [["asset", "Asset"], ["category", "Category"], ["region", "Region"], ["issuer", "Issuer"], ["lev", "Leverage"]];
+      var groups = [["asset", "Asset"], ["mkt", "Market"], ["category", "Category"], ["region", "Region"], ["issuer", "Issuer"], ["lev", "Leverage"]];
       var html = btn("data-src", "funds", "Funds", state.src === "funds")
         + btn("data-src", "classes", "Asset classes", state.src === "classes")
         + btn("data-src", "sleeves", "Sleeves", state.src === "sleeves")
@@ -397,12 +814,14 @@
         groups.forEach(function (g) { html += btn("data-group", g[0], g[1], state.group === g[0]); });
       }
       setWin(html);
+      if (state.scope === "eqStock") return showFileMA();
       if (state.src === "classes") return showClasses();
       if (state.src === "sleeves") return showSleeves();
       if (state.src === "leaders") return showLeaders();
-      var base = searched(all, state.q).filter(function (r) { return r[k] != null; });
+      var scoped = all.filter(passScope).concat((extra.issuer || []).filter(function (r) { return passScope(r) && !all.some(function (a) { return a.t === r.t; }); }));
+      var base = searched(scoped, state.q).filter(function (r) { return r[k] != null; });
       var bucks = buckets(base, state.group, k);
-      var allowed = { t: 1, issuer: 1, region: 1, aum: 1, exp: 1, asset: 1, category: 1, lev: 1 };
+      var allowed = { t: 1, issuer: 1, region: 1, aum: 1, exp: 1, asset: 1, category: 1, lev: 1, mkt: 1 };
       allowed[k] = 1; allowed[pk] = 1; allowed[state.group] = 1;
       if (!allowed[state.flowSort.k]) state.flowSort.k = k;
       var list = state.cls === "All" ? base : base.filter(function (r) { return (r[state.group] || "—") === state.cls; });
@@ -428,6 +847,7 @@
       var box = body.querySelector("#etf-map");
       if (!heat.length) { box.innerHTML = "<div class=note>No " + state.win + "D prints in this slice.</div>"; return; }
       drawTiles(box, heat, k, function (r) { return r.t; }, function (r) { return pct(r[pk]) + " · " + (r[state.group] || ""); });
+      if (state.scope === "all" || state.scope === "intl" || state.scope === "em" || state.scope === "frontier") fillExtra();
     }
     function showClasses() {
       var fv = extra.finviz;
@@ -435,7 +855,7 @@
       var rows = fv.type_flows.map(function (t) {
         return { t: t.type, n: t.n, aum: num(t.aum), net: num(t.net_1m), ytd: num(t.net_ytd), inn: num(t.gross_in_1m), out: num(t.gross_out_1m), asset: t.type };
       });
-      var list = searched(rows, state.q).filter(function (r) { return passCls(r, "asset"); });
+      var list = searched(rows, state.q).filter(function (r) { return passCls(r, "asset") && classMatches(r.t); });
       if (["t", "n", "aum", "net", "ytd", "inn", "out"].indexOf(state.flowSort.k) < 0) state.flowSort.k = "net";
       var net = 0, i; for (i = 0; i < list.length; i++) net += list[i].net || 0;
       meta((fv.n_etfs || "") + " funds in " + rows.length + " asset classes · 1M net " + money(net) + " · finviz " + String(fv.generated_at || "").slice(0, 10));
@@ -475,6 +895,7 @@
       }
       var html = "";
       fv.complex_nets.forEach(function (c, idx) {
+        if (!sleeveMatches(c.complex)) return;
         if (state.cls !== "All" && c.complex !== state.cls) return;
         html += "<div class=sech><span>" + esc(c.complex) + " · " + c.n + "</span><span>" + money(num(c.net_1m)) + " 1M · YTD " + money(num(c.net_ytd)) + "</span></div><div class='map short' id='sl-" + idx + "'></div>";
       });
@@ -530,10 +951,11 @@
         + btn("data-hold", "census", "Census " + (cen.length || 303), state.hold === "census")
         + clsSelect(state.hold === "book" ? all : cen, "asset");
       setWin(html);
+      if (state.scope === "eqStock") return showFileMA();
       if (state.hold === "census") {
         if (!cen.length) { meta("Census holdings"); body.innerHTML = "<div class=note>" + (extra.matrix && extra.matrix.error ? esc(extra.matrix.error) : "Loading 303-name census…") + "</div>"; return; }
-        var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset"); });
-        if (["t", "asset", "category", "holdings_n", "aum_usd_m", "expense_pct", "prem_disc_pct", "dollar_vol_usd_m", "leveraged"].indexOf(state.holdSort.k) < 0) state.holdSort.k = "holdings_n";
+        var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset") && passScope(r); });
+        if (["t", "asset", "category", "holdings_n", "aum_usd_m", "expense_pct", "prem_disc_pct", "dollar_vol_usd_m", "leveraged", "mkt"].indexOf(state.holdSort.k) < 0) state.holdSort.k = "holdings_n";
         sortRows(list, state.holdSort.k, state.holdSort.d);
         meta(list.length + " names · holdings count, fee, premium · census " + String((extra.matrix || {}).generated_at || "").slice(0, 10));
         table(body, [["t", "Ticker"], ["asset", "Asset class"], ["category", "Category"], ["holdings_n", "Holdings"], ["aum_usd_m", "AUM $m"], ["expense_pct", "Expense"], ["prem_disc_pct", "Prem/disc"], ["dollar_vol_usd_m", "$ vol m"], ["leveraged", "Levered"]], list, state.holdSort.k, state.holdSort.d, function (r) {
@@ -542,8 +964,9 @@
         bindSort(body, state.holdSort, draw);
         return;
       }
-      var list = searched(all, state.q).filter(function (r) { return passCls(r, "asset"); });
-      if (["t", "asset", "category", "region", "issuer", "lev", "nHold", "both", "added", "deleted", "asof", "aum", "exp", "spread", "vol", "si", "disc"].indexOf(state.holdSort.k) < 0) state.holdSort.k = "nHold";
+      if (state.scope === "eqStock") return showFileMA();
+      var list = searched(all, state.q).filter(function (r) { return passCls(r, "asset") && passScope(r); });
+      if (["t", "asset", "category", "region", "issuer", "lev", "nHold", "both", "added", "deleted", "asof", "aum", "exp", "spread", "vol", "si", "disc", "mkt"].indexOf(state.holdSort.k) < 0) state.holdSort.k = "nHold";
       sortRows(list, state.holdSort.k, state.holdSort.d);
       meta(list.length + " funds · book vs prior · " + countsOf(all, "asset").length + " asset classes · " + countsOf(all, "issuer").length + " issuers");
       table(body, [["t", "Ticker"], ["asset", "Class"], ["category", "Category"], ["region", "Region"], ["issuer", "Issuer"], ["lev", "Leverage"], ["nHold", "Holdings"], ["both", "In both"], ["added", "Added"], ["deleted", "Deleted"], ["asof", "As of"], ["aum", "AUM"], ["exp", "Expense"], ["spread", "Spread bp"], ["vol", "Volume"], ["si", "Short sh"], ["disc", "Prem"]], list, state.holdSort.k, state.holdSort.d, function (r) {
@@ -562,10 +985,11 @@
         + (cen.length ? clsSelect(cen, "asset") : "");
       setWin(html);
       if (state.censusView === "boards") return showBoards(cen);
+      if (state.scope === "eqStock") return showFileMA();
       if (!cen.length) { meta("Census"); body.innerHTML = "<div class=note>" + (extra.matrix && extra.matrix.error ? esc(extra.matrix.error) : "Loading census matrix…") + "</div>"; return; }
       var cols = METRICS[state.metric];
-      var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset"); });
-      if (cols.every(function (c) { return c[0] !== state.cenSort.k; }) && state.cenSort.k !== "t" && state.cenSort.k !== "asset" && state.cenSort.k !== "category") state.cenSort.k = cols[0][0];
+      var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset") && passScope(r); });
+      if (cols.every(function (c) { return c[0] !== state.cenSort.k; }) && state.cenSort.k !== "t" && state.cenSort.k !== "asset" && state.cenSort.k !== "category" && state.cenSort.k !== "mkt") state.cenSort.k = cols[0][0];
       sortRows(list, state.cenSort.k, state.cenSort.d);
       var scale = scalesFor(list, cols.map(function (c) { return c[0]; }));
       meta(list.length + " of " + cen.length + " · " + countsOf(cen, "asset").length + " asset classes · " + countsOf(cen, "category").length + " categories · " + String(extra.matrix.generated_at || "").slice(0, 10));
@@ -601,6 +1025,8 @@
           if (state.q && String(sym).indexOf(state.q) < 0) return;
           var info = byT[sym];
           if (state.cls !== "All" && info && info.asset !== state.cls) return;
+          if (info && !passScope(info)) return;
+          if (!info && state.scope !== "all") return;
           html += "<div class=row><span>" + (i + 1) + "  <b>" + esc(sym) + "</b> " + esc(info ? info.asset : "") + "</span><span>" + (sc === "" || sc == null ? "" : esc(sc)) + "</span></div>";
         });
         html += "</div>";
@@ -612,15 +1038,21 @@
       var cen = matrixRows(extra.matrix);
       var html = btn("data-tech", "weekly", "Weekly " + (cen.length || 303), state.techMode === "weekly")
         + btn("data-tech", "daily", "Daily MAs", state.techMode === "daily")
-        + btn("data-tech", "sectors", "Sector breadth", state.techMode === "sectors");
+        + btn("data-tech", "sectors", "Stock sectors", state.techMode === "sectors")
+        + btn("data-tech", "spreads", "Spreads", state.techMode === "spreads")
+        + btn("data-tech", "below", "Below 250", state.techMode === "below")
+        + (state.techMode === "below" ? btn("data-bw", "21", "21d", state.belowWin === "21") + btn("data-bw", "63", "63d", state.belowWin === "63") + btn("data-bw", "250", "250d", state.belowWin === "250") : "");
       if (state.techMode === "weekly") html += clsSelect(cen, "asset");
       if (state.techMode === "daily") html += clsSelect(all, "asset");
       setWin(html);
       if (state.techMode === "sectors") return showSectors();
+      if (state.techMode === "spreads") return showSpreads();
+      if (state.techMode === "below") return showBelow();
       if (state.techMode === "daily") return showDaily();
+      if (state.scope === "eqStock") return showFileMA();
       if (!cen.length) { body.innerHTML = "<div class=note>Loading weekly technicals…</div>"; return; }
       var keys = [["above_ma40w", "Above 40w"], ["golden_cross_10_40w", "10/40 cross"], ["mom_12_1_pct", "Mom 12−1"], ["mom_6m_pct", "Mom 6m"], ["rsi_14w", "RSI"], ["dist_52w_high_pct", "vs high"], ["beta_spy", "Beta"], ["corr_spy_52w", "Corr"], ["rs_13w_pct", "RS 13w"], ["vol_52w_pct", "Vol"], ["tech_score", "Tech"], ["risk_score", "Risk"]];
-      var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset"); });
+      var list = searched(cen, state.q).filter(function (r) { return passCls(r, "asset") && passScope(r); });
       sortRows(list, state.techSort.k, state.techSort.d);
       var scale = scalesFor(list, keys.map(function (k) { return k[0]; }));
       var above = list.filter(function (r) { return r.above_ma40w; }).length;
@@ -636,7 +1068,7 @@
       var fv = extra.finviz;
       var rows = (fv && fv.sector_breadth) || null;
       if (!rows) { body.innerHTML = "<div class=note>Loading sector breadth…</div>"; return; }
-      meta("Stock sectors · share above the 50- and 200-day · median month · " + String(fv.generated_at || "").slice(0, 10));
+      meta("EQUITY STOCKS only · share above the 50- and 200-day · median month · not ETFs · " + String(fv.generated_at || "").slice(0, 10));
       var items = rows.map(function (s) {
         return { t: s.sector, n: s.n, net: num(s.median_perf_m), a200: num(s.pct_above_200dma), a50: num(s.pct_above_50dma) };
       });
@@ -649,11 +1081,12 @@
           var c = paint(r.net, scale.net);
           h += "<tr><td>" + esc(r.t) + "</td><td>" + r.n + "</td><td>" + r.a200.toFixed(1) + "%</td><td>" + r.a50.toFixed(1) + "%</td><td style='background:" + c[0] + ";color:" + c[1] + "'>" + pct(r.net) + "</td></tr>";
         });
-        body.insertAdjacentHTML("beforeend", h + "</tbody></table><div class=note>Breadth is the stock universe inside each sector, not an ETF holdings count.</div>");
+        body.insertAdjacentHTML("beforeend", h + "</tbody></table><div class=note>These are stocks. Equity ETFs stay on the Flows and Weekly tapes so the two books are not mixed.</div>");
       }
     }
     function showDaily() {
-      var list = searched(all, state.q).filter(function (r) { return passCls(r, "asset"); }).map(function (r) {
+      if (state.scope === "eqStock") return showFileMA();
+      var list = searched(all, state.q).filter(function (r) { return passCls(r, "asset") && passScope(r); }).map(function (r) {
         return Object.assign({}, r, tech[r.t] || {});
       });
       if (["t", "asset", "spread", "rng", "ma9", "ma20", "ma50", "ma100", "ma200", "ma250", "ret", "eff", "evr"].indexOf(state.techSort.k) < 0) state.techSort.k = "t";
@@ -710,13 +1143,16 @@
         var from = Math.max(0, n - 21), sV = 0, c = 0, k;
         for (k = from; k < n - 1; k++) { sV += +bars[k][5] || 0; c++; }
         var avg = c ? sV / c : null, eff = avg ? (+last[5] || 0) / avg : null;
-        tech[sym] = { ma9: sma(9), ma20: sma(20), ma50: sma(50), ma100: sma(100), ma200: sma(200), ma250: sma(250), ret: ret, rng: rng, eff: eff, evr: eff ? ret / eff : null };
+        var st = n >= 250 ? maStats(bars) : { ma250: null, belowDays: null, b21: null, b63: null, b250: null };
+        tech[sym] = { ma9: sma(9), ma20: sma(20), ma50: sma(50), ma100: sma(100), ma200: sma(200), ma250: st.ma250, belowDays: st.belowDays, b21: st.b21, b63: st.b63, b250: st.b250, ret: ret, rng: rng, eff: eff, evr: eff ? ret / eff : null };
       }).catch(function () { tech[sym] = {}; });
     }
 
     function showTops() {
       setWin("");
-      var cen = matrixRows(extra.matrix);
+      ensureUni();
+      var book = all.filter(passScope);
+      var cen = matrixRows(extra.matrix).filter(passScope);
       var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
       function col(title, rows, key, fmt) {
         var list = rows.filter(function (r) { return r[key] != null; }).slice();
@@ -728,13 +1164,13 @@
         });
         return h + "</div>";
       }
-      var bucks = buckets(all, "asset", "f1");
+      var bucks = buckets(book, "asset", "f1");
       var scale = pScale(bucks.map(function (g) { return g.net; }));
       var classTable = "<table><thead><tr><th>Asset class</th><th>Funds</th><th>Holdings sum</th><th>Added</th><th>Deleted</th><th>1D net</th><th>21D net</th></tr></thead><tbody>";
       buckets(all, "asset", "f21").sort(function (a, b) { return Math.abs(b.net) - Math.abs(a.net); });
-      countsOf(all, "asset").forEach(function (pair) {
+      countsOf(book, "asset").forEach(function (pair) {
         var name = pair[0];
-        var rs = all.filter(function (r) { return r.asset === name; });
+        var rs = book.filter(function (r) { return r.asset === name; });
         var hold = 0, add = 0, del = 0, n1 = 0, n21 = 0, i;
         for (i = 0; i < rs.length; i++) {
           hold += rs[i].nHold || 0; add += rs[i].added || 0; del += rs[i].deleted || 0; n1 += rs[i].f1 || 0; n21 += rs[i].f21 || 0;
@@ -744,9 +1180,11 @@
       });
       classTable += "</tbody></table>";
       var html = classTable + "<div class=boards>"
-        + col("MOST NAMES HELD · BOOK", all, "nHold", function (r) { return Math.round(r.nHold); })
-        + col("MOST NAMES ADDED · BOOK", all, "added", function (r) { return r.added; })
-        + col("MOST NAMES DELETED · BOOK", all, "deleted", function (r) { return r.deleted; });
+        + col("MOST NAMES HELD · BOOK", book, "nHold", function (r) { return Math.round(r.nHold); })
+        + col("MOST NAMES ADDED · BOOK", book, "added", function (r) { return r.added; })
+        + col("MOST NAMES DELETED · BOOK", book, "deleted", function (r) { return r.deleted; })
+        + spreadBoards(book)
+        + foreignFlowBoard();
       if (cen.length) html += col("MOST HOLDINGS · CENSUS 303", cen, "holdings_n", function (r) { return Math.round(r.holdings_n); });
       if (fv) {
         html += col("1M INFLOWS", (fv.top_inflows || []).map(function (x) { return { t: x.ticker, asset: x.etf_type || "", v: num(x.flows_1m) }; }), "v", function (r) { return money(r.v); });
@@ -754,7 +1192,7 @@
       }
       html += "</div><div class=note>Added and deleted are identities only in the current or prior book. Those rows are hashes, not tickers, so this ranks funds. The class table is the book of " + all.length + ". Census holdings are a wider " + (cen.length || "…") + "-name count. 1M leaders are the finviz extremes, not the full 5,775.</div>";
       body.innerHTML = html;
-      meta("Book " + all.length + " · census " + (cen.length || "…") + " · " + countsOf(all, "asset").length + " asset classes · " + countsOf(all, "category").length + " flow categories");
+      meta("Scope " + state.scope + " · book " + book.length + " · census " + (cen.length || "…") + " · equity ETFs and equity stocks are separate");
     }
 
     function draw() {
@@ -764,6 +1202,21 @@
       else if (state.tab === "tech") showTech();
       else showTops();
     }
+    var scopes = [["all", "All"], ["eqEtf", "Equity ETFs"], ["eqStock", "Equity stocks"], ["intl", "International"], ["em", "Emerging"], ["frontier", "Frontier"]];
+    host.querySelector("#etf-scope").innerHTML = scopes.map(function (s) {
+      return "<button type=button data-scope='" + s[0] + "'" + (s[0] === state.scope ? " class=on" : "") + ">" + s[1] + "</button>";
+    }).join("");
+    host.querySelectorAll("#etf-scope button").forEach(function (b) {
+      b.onclick = function () {
+        state.scope = b.getAttribute("data-scope");
+        state.cls = "All";
+        host._belowGen = (host._belowGen || 0) + 1;
+        markScope();
+        draw();
+      };
+    });
+    ensureIssuer();
+    setTimeout(function () { if (host.isConnected) ensureUni(); }, 300);
     host.querySelectorAll("#etf-tabs button").forEach(function (b) {
       b.onclick = function () {
         state.tab = b.getAttribute("data-tab");
