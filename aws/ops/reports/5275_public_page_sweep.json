@@ -1,16 +1,21 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "24ed438f3f21e3b9c55de3151913435145303760",
-  "observed_at": "2026-10-13T18:19:25.392769+00:00",
-  "ok": true,
+  "observed_at": "2026-10-13T18:31:37.466439+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 596,
+  "failed_routes": [
+    "etf-research.html",
+    "global-macro.html",
+    "opportunities.html",
+    "pjm-grid.html"
+  ],
   "source_equivalent_builds": {
     "24ed438f3f21e3b9c55de3151913435145303760": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 595,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2138,13 +2143,12 @@
     },
     {
       "route": "etf-research.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "24ed438f3f21e3b9c55de3151913435145303760",
-      "inspector_present": true,
-      "bytes_read": 16937,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "etf.html",
@@ -2778,13 +2782,12 @@
     },
     {
       "route": "global-macro.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "24ed438f3f21e3b9c55de3151913435145303760",
-      "inspector_present": true,
-      "bytes_read": 52348,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "global-recession.html",
@@ -4048,13 +4051,12 @@
     },
     {
       "route": "opportunities.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "24ed438f3f21e3b9c55de3151913435145303760",
-      "inspector_present": true,
-      "bytes_read": 91154,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "option-chain-research.html",
@@ -4248,13 +4250,12 @@
     },
     {
       "route": "pjm-grid.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "24ed438f3f21e3b9c55de3151913435145303760",
-      "inspector_present": true,
-      "bytes_read": 10579,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "plumbing.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38444844659,
+  "deployment_run_id": 38446326407,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-13T18:19:25.401151+00:00"
+  "check_finished_at": "2026-10-13T18:31:37.476075+00:00"
 }
