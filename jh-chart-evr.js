@@ -223,7 +223,7 @@
       busy = true;
       setTimeout(function () {
         busy = false;
-        try { draw(); } catch (e) {} }
+        try { draw(); } catch (e) {}
       }, 0);
     }).observe(wrap, { childList: true });
   }
@@ -233,7 +233,7 @@
     if (!menu || menu.getAttribute("data-evr-watch") === "1") return;
     menu.setAttribute("data-evr-watch", "1");
     new MutationObserver(function () {
-      try { armMenu(); } catch (e) {} }
+      try { armMenu(); } catch (e) {}
     }).observe(menu, { childList: true, attributes: true, attributeFilter: ["class"] });
   }
 
