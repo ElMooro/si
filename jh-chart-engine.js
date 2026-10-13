@@ -6426,7 +6426,6 @@ else if(o.id==="rvol"){
       "<div class=lab>INDICATORS</div>"+
       row("bb","Bollinger Bands")+
       row("pspread","Price Spread")+
-      row("effspread","Effort & Spread")+
       row("relvol","Relative Volatility")+
       row("macd","MACD")+
       row("rsi","RSI")+
