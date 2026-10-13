@@ -35,7 +35,32 @@ function peelCorr(raw,file){
  assert.equal(hash(raw),CORR_BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+
+const KIND_AFTER='fc98db4059553575fe80cf484f1e2a65463410466b22fb7a1a5d8ead7876afdc';
+const KIND_BEFORE='e4b0b6584723968373644f9e9f07e2dc88d278933df1f6f865d65672b0de629a';
+function peelKind(raw,file){
+ if(file!=='jh-chart-engine.js'||hash(raw)!==KIND_AFTER)return raw;
+ const pairs=[
+  ['kind="candles", scaleMode=0; /* default chart type: candles */','kind="line", scaleMode=0; /* default chart type: line (2026-10-05) */'],
+  ['if(lay.kind && lay.kindV===3) kind=lay.kind;','if(lay.kind && lay.kindV===2) kind=lay.kind;'],
+  ['saveJSON(LAY_KEY,{kindV:3,','saveJSON(LAY_KEY,{kindV:2,']
+ ];
+ for(const pair of pairs){assert.equal(raw.split(pair[0]).length,2,'engine '+pair[0].slice(0,48));raw=raw.replace(pair[0],pair[1]);}
+ assert.equal(hash(raw),KIND_BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+const HTML_KIND_FROM='src="/jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch=watchlist-transaction-v1&macro=20261006&candles=20261013"';
+const HTML_KIND_TO='src="/jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch=watchlist-transaction-v1&macro=20261006"';
+const HTML_KIND_AFTER='9291b0dcb516c792bd5dab6a37f2fe862d56d924cbdb5a97e73b0686829ee01b';
+const HTML_KIND_BEFORE='cd53800c27da1e73f840a63906da4cdfe65a4cd55d7d6b99bdff929dc18db9d9';
+function peelKindHtml(raw,file){
+ if(file!=='chart.html'||hash(raw)!==HTML_KIND_AFTER)return raw;
+ assert.equal(raw.split(HTML_KIND_FROM).length,2,'chart.html candles cache');
+ raw=raw.replace(HTML_KIND_FROM,HTML_KIND_TO);
+ assert.equal(hash(raw),HTML_KIND_BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
