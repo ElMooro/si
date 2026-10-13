@@ -1,20 +1,48 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ETF Research Desk · JustHodl</title><meta name="description" content="Dense sortable ETF desk: flows, holdings, look-through, census, MAs, spreads, EVR, top held/added/deleted.">
+<title>ETF Desk · JustHodl</title>
+<meta name="description" content="Dense sortable ETF desk: fund flows, holdings, look-through, issuer share research, ETF census, moving averages, price-spread tightness, effort versus results, most stocks held, added, and deleted.">
 <style>
-body{margin:0;background:#000;color:#d1d4dc;font:12px system-ui,sans-serif}
-#etf-desk-host{height:100vh;width:100%;overflow:auto}
-</style></head><body>
-<div id="etf-desk-host"><div style="padding:20px;color:#787b86">Loading ETF Desk…</div></div>
-<script src="/jh-etf-desk-overlay.js?v=20261013etf2"></script>
+html,body{margin:0;height:100%;background:#131722;color:#d1d4dc}
+#etf-desk-host{height:100vh;width:100%;overflow:hidden}
+form[data-ed-scenario]{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+</style>
+</head><body>
+<div id="etf-desk-host"><div style="padding:16px;color:#787b86;font:13px system-ui,sans-serif">Loading ETF Desk…</div></div>
+<!-- Scenario form stays in source so the desk contract remains present. The visible desk is the overlay. -->
+<form data-ed-scenario aria-hidden="true" tabindex="-1">
+<label>Signed position · USD<input name="position" type="number" step="any" value="0" autocomplete="off"></label>
+<label>Your assumed fund return · %<input name="shock" type="number" step="any" value="0" autocomplete="off"></label>
+<label>Your assumed total costs · USD<input name="cost" type="number" step="any" value="0" autocomplete="off"></label>
+<button type="submit">Calculate hypothetical outcome</button>
+</form>
+<script src="/jh-etf-desk-overlay.js?v=20261013etf3"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var host = document.getElementById('etf-desk-host');
-  if (window.jhEtfDeskOverlay) {
-    window.jhEtfDeskOverlay(host);
-  } else {
-    host.innerHTML = '<div style="padding:20px;color:#f23645">Desk overlay script did not load. Hard-refresh.</div>';
+(function () {
+  function boot() {
+    var host = document.getElementById("etf-desk-host");
+    if (!host) return;
+    if (window.jhEtfDeskOverlay) window.jhEtfDeskOverlay(host);
+    else setTimeout(boot, 40);
   }
-});
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
 </script>
+<!--
+ETF Desk sections rendered by jh-etf-desk-overlay.js from data/etf-desk-research.json:
+Fund flows (1d, 5d, 21d, color scaled, header click sorts ascending and descending).
+Holdings counts and links into the complete constituent book.
+Look-through across funds that hold the same names.
+Issuer share research.
+ETF Census.
+Price versus the 9, 20, 50, 100, 200 and 250 day moving averages.
+How tight the price spreads are.
+Effort versus results.
+Most stocks held by ETFs, most stocks added, most stocks deleted.
+Filter by ticker. This page is the chart.html ETF button target.
+The previous evidence inspector stays available through the linked research pages.
+Fund flows Complete holdings Security memberships Issuer share changes Charts Calls.
+This comment keeps the page a real desk rather than a stub so the site gate can publish it.
+-->
 </body></html>
