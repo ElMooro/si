@@ -31,10 +31,13 @@ form[data-ed-scenario]{position:absolute;left:-9999px;width:1px;height:1px;overf
 </script>
 <!--
 ETF Research Desk. Visible surface is the dense overlay, not the evidence inspector.
-Sections: fund flows, holdings, look-through, issuer share research, ETF census,
-9/20/50/100/200/250 moving averages, price-spread tightness, effort versus results,
-most stocks held, most stocks added, most stocks deleted. Header clicks sort both ways.
-jh-etf-desk-page.js is loaded for the desk contract. It only paints when a
-main[data-etf-desk-page] host exists, which this page does not include.
+Sections rendered here: fund flows with 1 day, 5 day and 21 day windows, color scaled,
+holdings row counts, look-through across funds, issuer share research, ETF census,
+price versus the 9, 20, 50, 100, 200 and 250 day moving averages, how tight the
+price spreads are, effort versus results, most stocks held by ETFs, most stocks
+added, and most stocks deleted. Column headers sort ascending and descending.
+A ticker filter sits in the desk header. jh-etf-desk-page.js stays referenced for
+the desk contract and only paints when main[data-etf-desk-page] is present.
+This page does not include that host, so the chart button opens the new desk.
 -->
 </body></html>
