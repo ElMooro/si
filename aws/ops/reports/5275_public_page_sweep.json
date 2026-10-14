@@ -1,16 +1,19 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "98ab61757dd193ac2e9a6556db3899a7b36a6299",
-  "observed_at": "2026-10-14T11:58:27.405889+00:00",
-  "ok": true,
+  "observed_at": "2026-10-14T12:31:58.381605+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 598,
+  "failed_routes": [
+    "eurodollar.html",
+    "treasury-auctions.html"
+  ],
   "source_equivalent_builds": {
     "98ab61757dd193ac2e9a6556db3899a7b36a6299": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 597,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2188,13 +2191,12 @@
     },
     {
       "route": "eurodollar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "98ab61757dd193ac2e9a6556db3899a7b36a6299",
-      "inspector_present": true,
-      "bytes_read": 16695,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "eva.html",
@@ -5578,13 +5580,12 @@
     },
     {
       "route": "treasury-auctions.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "98ab61757dd193ac2e9a6556db3899a7b36a6299",
-      "inspector_present": true,
-      "bytes_read": 98496,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "treasury-desk.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38559450039,
+  "deployment_run_id": 38563679834,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-14T11:58:27.414664+00:00"
+  "check_finished_at": "2026-10-14T12:31:58.390268+00:00"
 }
