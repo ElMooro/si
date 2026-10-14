@@ -5054,6 +5054,7 @@ else if(o.id==="rvol"){
     document.getElementById("tfbar").innerHTML=
       "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
       "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
+      "<button class='wsico wsdesk' id=btn-auc title='Treasury Auctions'><span class=g>Auc</span><span class=l>Auction</span></button>"+
       "<button class='wsico wsdesk' id=btn-corm title='Correlation Matrix'><span class=g>▣</span><span class=l>Corr</span></button>"+
       "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
@@ -5108,6 +5109,7 @@ else if(o.id==="rvol"){
     document.querySelectorAll("#tfbar [data-chg]").forEach(function(b){ b.onclick=function(){ mode=b.dataset.chg; renderTf(); if(lastBars.length) paint(lastBars); }; });
     var bmac=document.getElementById("btn-macro"); if(bmac) bmac.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("macro"); };
     var bht=document.getElementById("btn-heat"); if(bht) bht.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("heat"); };
+    var bauc=document.getElementById("btn-auc"); if(bauc) bauc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("auction"); };
     var bcm=document.getElementById("btn-corm"); if(bcm) bcm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("corr"); };
     var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
