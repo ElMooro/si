@@ -323,6 +323,7 @@
     + ".jh-etf .pill span{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}"
     + ".jh-etf .map{position:relative;flex:1;min-height:420px;background:#0c1016}"
     + ".jh-etf .map.short{min-height:150px;height:168px;flex:none;margin:0 8px 8px}"
+    + ".jh-etf .map.flow{position:relative;height:280px;min-height:280px;flex:none;margin:0 8px 8px;background:#0c1016}"
     + ".jh-etf .tile{position:absolute;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:2px 5px;border-radius:2px}"
     + ".jh-etf .tile b{font-weight:700;letter-spacing:.02em;line-height:1.05}"
     + ".jh-etf .tile span{font-variant-numeric:tabular-nums;line-height:1.15}"
@@ -344,7 +345,7 @@
     var tech = {};
     var state = {
       tab: "flows", win: "1", mode: "heat", src: "funds", group: "asset", cls: "All", q: "", scope: "all", belowWin: "63",
-      hold: "book", censusView: "all", metric: "tech", techMode: "weekly",
+      hold: "names", censusView: "all", metric: "tech", techMode: "weekly",
       flowSort: { k: "f1", d: -1 }, holdSort: { k: "nHold", d: -1 }, cenSort: { k: "tech_score", d: -1 },
       techSort: { k: "mom_12_1_pct", d: -1 }, topSort: { k: "net1", d: -1 }
     };
@@ -586,6 +587,7 @@
         if (!r.ok) throw new Error(String(r.status));
         return r.json();
       }).then(function (j) {
+        extra.true = j;
         var out = [], by = j.by_etf || {};
         Object.keys(by).forEach(function (sym) {
           var fw = by[sym].flow_windows || {};
@@ -607,7 +609,7 @@
         extra.issEnd = (j.aggregation_period || {}).end_date || "";
         if (!extra.issMap) extra.issMap = {};
         if (host.isConnected) draw();
-      }).catch(function () { extra.issuer = []; extra.issMap = {}; });
+      }).catch(function () { extra.issuer = []; extra.issMap = {}; extra.true = extra.true || { error: "issuer" }; });
     }
     function uniRows() { return extra.uni || []; }
     function flowJoin() {
@@ -1093,6 +1095,166 @@
         b.className = b.getAttribute("data-scope") === state.scope ? "on" : "";
       });
     }
+    function flowWinField() {
+      if (state.win === "5") return ["net_flow_5d_usd", "5D"];
+      if (state.win === "21") return ["net_flow_20d_usd", "20D"];
+      return ["net_flow_1d_usd", "1D"];
+    }
+    function catScope(cat, ticker) {
+      var s = state.scope, c = String(cat || "").toUpperCase();
+      if (!s || s === "all") return true;
+      if (s === "eqStock") return false;
+      if (s === "eqEtf") return /EQUITY|SECTOR|THEMATIC|FACTOR|GROWTH|DIVIDEND|INTERNATIONAL|COUNTRY|LEVERED/.test(c) || IN_T[ticker] || EM_T[ticker] || FR_T[ticker];
+      if (s === "intl") return c === "INTERNATIONAL" || IN_T[ticker];
+      if (s === "em") return EM_T[ticker];
+      if (s === "frontier") return FR_T[ticker];
+      return true;
+    }
+    function issuerLists() {
+      var j = extra.true;
+      if (!j || j.error || !j.inflows) return null;
+      var field = flowWinField();
+      function rows(list) {
+        return (list || []).map(function (r) {
+          return { t: r.ticker, net: num(r[field[0]]), cat: String(r.category || "").replace(/_/g, " "), sym: r.ticker };
+        }).filter(function (r) {
+          if (!r.t || r.net == null || !r.net) return false;
+          if (state.q && r.t.indexOf(state.q) < 0) return false;
+          return catScope(r.cat, r.t);
+        });
+      }
+      return { label: field[1], inn: rows(j.inflows), out: rows(j.outflows), end: (j.aggregation_period || {}).end_date || "" };
+    }
+    function industryPairs() {
+      var secIn = [], secOut = [], catIn = [], catOut = [];
+      var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
+      (fv && fv.sector_etfs || []).forEach(function (x) {
+        var v = num(x.flows_1m);
+        if (v == null || !v) return;
+        if (state.q && String(x.ticker).indexOf(state.q) < 0 && String(x.sector || "").toUpperCase().indexOf(state.q) < 0) return;
+        var row = { t: x.sector || x.ticker, sym: x.ticker, net: v, sub: x.ticker };
+        if (v > 0) secIn.push(row); else secOut.push(row);
+      });
+      ((extra.true && extra.true.category_rotation) || []).forEach(function (c) {
+        if (c.status === "unavailable") return;
+        if (state.scope === "eqStock") return;
+        if (state.scope === "intl" && c.category !== "INTERNATIONAL" && c.category !== "COUNTRY") return;
+        if (state.scope === "em" && c.category !== "COUNTRY" && c.category !== "INTERNATIONAL") return;
+        var v = num(c.net_flow_5d_usd);
+        if (v == null || !v) return;
+        var row = { t: String(c.category || "").replace(/_/g, " "), net: v, sub: (c.n_etfs || 0) + " funds · 5D", sym: "" };
+        if (v > 0) catIn.push(row); else catOut.push(row);
+      });
+      return { secIn: secIn, secOut: secOut, catIn: catIn, catOut: catOut };
+    }
+    function goMap(id, rows, opt) {
+      opt = opt || {};
+      var box = body.querySelector(id);
+      if (!box) return;
+      if (!rows || !rows.length) { box.innerHTML = "<div class=note>" + esc(opt.empty || "No prints in this slice.") + "</div>"; return; }
+      drawTiles(box, rows, "net", function (r) { return r.t; }, opt.sub || null, {
+        color: opt.color || paint,
+        fmt: opt.fmt || money,
+        symOf: function (r) { return r.sym || ""; },
+        area: opt.area || null
+      });
+    }
+    function paintIssuerAndIndustry(where) {
+      var iss = issuerLists();
+      var ind = industryPairs();
+      var old = body.querySelector("#flow-lead");
+      if (old) old.remove();
+      var lab = iss ? (iss.label + " · ends " + (iss.end || "—") + " · " + iss.inn.length + " in · " + iss.out.length + " out") : "loading the issuer tape";
+      var html = "<div id=flow-lead>"
+        + "<div class=sech><span>ETF INFLOWS</span><span>" + esc(lab) + "</span></div><div class='map flow' id=map-in></div>"
+        + "<div class=sech><span>ETF OUTFLOWS</span><span>issuer share change · not a creation print</span></div><div class='map flow' id=map-out></div>"
+        + "<div class=sech><span>INDUSTRIES · BIGGEST INFLOWS</span><span>sector ETFs · 1M</span></div><div class='map flow' id=map-sec-in style='height:200px;min-height:200px'></div>"
+        + "<div class=sech><span>INDUSTRIES · BIGGEST OUTFLOWS</span><span>sector ETFs · 1M</span></div><div class='map flow' id=map-sec-out style='height:200px;min-height:200px'></div>"
+        + "<div class=sech><span>CATEGORIES · INFLOWS AND OUTFLOWS</span><span>5D issuer share change</span></div><div class='map flow' id=map-cat style='height:220px;min-height:220px'></div>"
+        + "</div>";
+      body.insertAdjacentHTML(where || "afterbegin", html);
+      if (!iss) {
+        body.querySelector("#map-in").innerHTML = "<div class=note>Loading ETF inflows and outflows…</div>";
+        body.querySelector("#map-out").innerHTML = "<div class=note>Same tape. It has not arrived yet.</div>";
+      } else {
+        goMap("#map-in", iss.inn, { sub: function (r) { return r.cat; }, empty: "No inflows in this scope." });
+        goMap("#map-out", iss.out, { sub: function (r) { return r.cat; }, empty: "No outflows in this scope." });
+      }
+      goMap("#map-sec-in", ind.secIn, { sub: function (r) { return r.sub; }, empty: extra.finviz ? "No sector inflows." : "Loading sector ETFs…" });
+      goMap("#map-sec-out", ind.secOut, { sub: function (r) { return r.sub; }, empty: extra.finviz ? "No sector outflows." : "Loading sector ETFs…" });
+      goMap("#map-cat", ind.catIn.concat(ind.catOut), { sub: function (r) { return r.sub; }, empty: extra.true ? "No category print in this scope." : "Loading categories…", symOf: function () { return ""; } });
+    }
+    function ensureMoves() {
+      if (extra.moves || host._mvStarted) return;
+      host._mvStarted = true;
+      if (window.JHEtfMoves && window.JHEtfMoves.added) { extra.moves = window.JHEtfMoves; return; }
+      var el = document.createElement("script");
+      el.src = "/etf-holdings-moves.js";
+      el.onload = function () {
+        extra.moves = window.JHEtfMoves || { error: "empty" };
+        if (host.isConnected) draw();
+      };
+      el.onerror = function () { extra.moves = { error: "moves" }; if (host.isConnected) draw(); };
+      (document.head || document.documentElement).appendChild(el);
+    }
+    function passName(r) {
+      var s = state.scope;
+      if (!s || s === "all" || s === "eqEtf" || s === "eqStock") return true;
+      var u = uniIndex()[r.t];
+      if (!u) return false;
+      return passScope(u);
+    }
+    function showNames() {
+      ensureMoves();
+      ensureUni();
+      var mv = extra.moves;
+      if (!mv) { meta("Holdings · stocks ETFs added and left"); body.innerHTML = "<div class=note>Loading the stock-level book. Entries and exits, not a blended flow.</div>"; return; }
+      if (mv.error) { body.innerHTML = "<div class=note>The holdings move file did not load. Nothing invented.</div>"; return; }
+      function take(list) {
+        return (list || []).filter(function (r) {
+          if (!passName(r)) return false;
+          if (state.q && r.t.indexOf(state.q) < 0 && String(r.name || "").toUpperCase().indexOf(state.q) < 0) return false;
+          return true;
+        });
+      }
+      var added = take(mv.added).slice(0, 100);
+      var left = take(mv.left).slice(0, 100);
+      var held = take(mv.held).slice(0, 100);
+      var emerg = take(mv.emergers).slice(0, 100);
+      function tilesOf(list, sign) {
+        return list.slice(0, 36).map(function (r) { return { t: r.t, net: sign * (r.n || 0), sym: r.t, sub: r.n + " ETFs" }; });
+      }
+      function board(title, rows) {
+        var h = "<div class=board><h3>" + esc(title) + " · " + rows.length + "</h3>";
+        rows.forEach(function (r, i) {
+          h += "<div class=row><span>" + (i + 1) + "  <b data-sym='" + esc(r.t) + "'>" + esc(r.t) + "</b> " + esc(r.name || "") + "</span><span>" + r.n + "</span></div>";
+          if (i < 12 && r.etfs) h += "<div class=row><span style='color:#9aa0ac'>" + esc(r.etfs) + "</span><span></span></div>";
+        });
+        return h + "</div>";
+      }
+      meta("Holdings · top " + added.length + " added · " + left.length + " left · " + emerg.length + " first-time · book " + (mv.asof || "—"));
+      var note = "<div class=note>Top 100 stocks by how many ETFs in this " + (mv.n_books || mv.n_funds || "") + "-fund book newly report them, and how many dropped them, as of " + esc(mv.asof || "—") + ". "
+        + "Added means the name was not in that fund’s prior snapshot. Left means it was, and now it is not. "
+        + "A trim that stayed inside the fund is not in this file, so this is entries and exits. "
+        + "New emergers had zero holders in the prior book and at least one fund reports them now. That is a first print here, not a corporate merger. "
+        + (mv.n_added_names || 0) + " names were added somewhere, " + (mv.n_left_names || 0) + " left somewhere, " + (mv.n_emergers || 0) + " were new to the whole book. "
+        + "Look-through is the fund list under each name, capped at 16. A name that was added and left by the same funds was dropped as an identity remap, not a new position. The printed name is the snapshot’s name, so a ticker used in two countries can look wrong. Click a ticker for the chart.</div>";
+      body.innerHTML = note
+        + "<div class=sech><span>STOCKS ADDED BY ETFs</span><span>top " + added.length + "</span></div><div class='map flow' id=mv-add></div>"
+        + "<div class=sech><span>STOCKS LEFT BY ETFs</span><span>top " + left.length + "</span></div><div class='map flow' id=mv-left></div>"
+        + "<div class=sech><span>NEW EMERGERS · FIRST TIME IN THE BOOK</span><span>" + emerg.length + "</span></div><div class='map flow' id=mv-em style='height:220px;min-height:220px'></div>"
+        + "<div class=boards>"
+        + board("TOP 100 ADDED", added)
+        + board("TOP 100 LEFT", left)
+        + board("NEW EMERGERS", emerg)
+        + board("MOST HELD · LOOK-THROUGH", held)
+        + spreadBoards(all.filter(passScope))
+        + "</div>";
+      goMap("#mv-add", tilesOf(added, 1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No adds in this scope." });
+      goMap("#mv-left", tilesOf(left, -1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No exits in this scope." });
+      goMap("#mv-em", tilesOf(emerg, 1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No first-time names in this scope." });
+      paintIssuerAndIndustry("beforeend");
+    }
 
     function showFlows() {
       var k = flowKeyName(), pk = pctKey();
@@ -1135,15 +1297,18 @@
           return "<td>" + esc(r.t) + "</td><td>" + esc(r[state.group] || "—") + "</td><td>" + esc(r.issuer) + "</td><td>" + esc(r.region) + "</td><td>" + plain(r.aum) + "</td><td style='background:" + c[0] + ";color:" + c[1] + "'>" + money(r[k]) + "</td><td>" + pct(r[pk]) + "</td><td>" + (r.exp == null ? "—" : r.exp.toFixed(2) + "%") + "</td>";
         });
         bindSort(body, state.flowSort, draw);
+        body.insertAdjacentHTML("afterbegin", "<div class=sech><span>EVIDENCE BOOK · CREATION DOLLARS " + state.win + "D</span><span>" + list.length + " funds · this is the creation tape, under the issuer inflows</span></div>");
+        paintIssuerAndIndustry("afterbegin");
         fillExtra();
         return;
       }
       var heat = list.filter(function (r) { return r[k]; });
-      body.innerHTML = "<div class=stack>" + stripHtml(bucks) + "<div class=map id=etf-map></div></div>";
+      body.innerHTML = "<div class=sech><span>EVIDENCE BOOK · CREATION DOLLARS " + state.win + "D</span><span>" + list.length + " funds with a print</span></div><div class=stack>" + stripHtml(bucks) + "<div class=map id=etf-map></div></div>";
       bindStrip();
       var box = body.querySelector("#etf-map");
-      if (!heat.length) box.innerHTML = "<div class=note>No " + state.win + "D prints in this slice.</div>";
+      if (!heat.length) box.innerHTML = "<div class=note>No " + state.win + "D creation prints in this slice.</div>";
       else drawTiles(box, heat, k, function (r) { return r.t; }, function (r) { return pct(r[pk]) + " · " + (r[state.group] || ""); });
+      paintIssuerAndIndustry("afterbegin");
       fillExtra();
     }
     function showClasses() {
@@ -1244,10 +1409,12 @@
 
     function showHold() {
       var cen = matrixRows(extra.matrix);
-      var html = btn("data-hold", "book", "Book " + all.length, state.hold === "book")
+      var html = btn("data-hold", "names", "Added / left", state.hold === "names")
+        + btn("data-hold", "book", "Book " + all.length, state.hold === "book")
         + btn("data-hold", "census", "Census " + (cen.length || 303), state.hold === "census")
-        + clsSelect(state.hold === "book" ? all : cen, "asset");
+        + (state.hold === "names" ? "" : clsSelect(state.hold === "book" ? all : cen, "asset"));
       setWin(html);
+      if (state.hold === "names" || state.hold == null) return showNames();
       if (state.scope === "eqStock") return showFileMA();
       if (state.hold === "census") {
         if (!cen.length) { meta("Census holdings"); body.innerHTML = "<div class=note>" + (extra.matrix && extra.matrix.error ? esc(extra.matrix.error) : "Loading 303-name census…") + "</div>"; return; }
@@ -1270,7 +1437,7 @@
         return "<td>" + esc(r.t) + "</td><td>" + esc(r.asset) + "</td><td>" + esc(r.category) + "</td><td>" + esc(r.region) + "</td><td>" + esc(r.issuer) + "</td><td>" + esc(r.lev) + "</td><td>" + (r.nHold == null ? "—" : Math.round(r.nHold)) + "</td><td>" + (r.both == null ? "—" : r.both) + "</td><td>" + (r.added == null ? "—" : r.added) + "</td><td>" + (r.deleted == null ? "—" : r.deleted) + "</td><td>" + esc(r.asof || "—") + "</td><td>" + plain(r.aum) + "</td><td>" + (r.exp == null ? "—" : r.exp.toFixed(2) + "%") + "</td><td>" + (r.spread == null ? "—" : (r.spread * 10000).toFixed(2)) + "</td><td>" + plain(r.vol) + "</td><td>" + plain(r.si) + "</td><td>" + pct(r.disc) + "</td>";
       });
       bindSort(body, state.holdSort, draw);
-      body.insertAdjacentHTML("beforeend", "<div class=note>Click a ticker to open that fund on the chart. Added and deleted are hashes, not the stock that changed. This book cannot say how many ETFs hold one name.</div>");
+      body.insertAdjacentHTML("beforeend", "<div class=note>Fund book only. The Added and deleted columns are line counts, not the stock. The stocks themselves are on Added / left. Click a ticker to open that fund.</div>");
     }
 
     function showCensus() {
@@ -1455,6 +1622,7 @@
     function showTops() {
       setWin("");
       ensureUni();
+      ensureMoves();
       var book = all.filter(passScope);
       var cen = matrixRows(extra.matrix).filter(passScope);
       var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
@@ -1482,10 +1650,29 @@
         classTable += "<tr><td>" + esc(name) + "</td><td>" + rs.length + "</td><td>" + Math.round(hold) + "</td><td>" + add + "</td><td>" + del + "</td><td style='background:" + c[0] + ";color:" + c[1] + "'>" + money(n1) + "</td><td>" + money(n21) + "</td></tr>";
       });
       classTable += "</tbody></table>";
-      var html = classTable + "<div class=boards>"
-        + col("MOST NAMES HELD · BOOK", book, "nHold", function (r) { return Math.round(r.nHold); })
-        + col("MOST NAMES ADDED · BOOK", book, "added", function (r) { return r.added; })
-        + col("MOST NAMES DELETED · BOOK", book, "deleted", function (r) { return r.deleted; })
+      function stockCol(title, rows) {
+        var h = "<div class=board><h3>" + esc(title) + " · " + rows.length + "</h3>";
+        rows.forEach(function (r, i) {
+          if (state.q && r.t.indexOf(state.q) < 0 && String(r.name || "").toUpperCase().indexOf(state.q) < 0) return;
+          h += "<div class=row><span>" + (i + 1) + "  <b data-sym='" + esc(r.t) + "'>" + esc(r.t) + "</b> " + esc(r.name || "") + "</span><span>" + r.n + " ETFs</span></div>";
+        });
+        return h + "</div>";
+      }
+      var mv = extra.moves;
+      var stockHtml = "";
+      if (mv && mv.added) {
+        function takeMv(list) { return (list || []).filter(passName).slice(0, 40); }
+        stockHtml = "<div class=boards>"
+          + stockCol("MOST STOCKS HELD", takeMv(mv.held))
+          + stockCol("STOCKS ADDED", takeMv(mv.added))
+          + stockCol("STOCKS LEFT", takeMv(mv.left))
+          + stockCol("NEW EMERGERS", takeMv(mv.emergers))
+          + "</div>";
+      } else if (!mv) stockHtml = "<div class=note>Loading which stocks the book holds, added, and left…</div>";
+      var html = stockHtml + classTable + "<div class=boards>"
+        + col("FUND LINE COUNT", book, "nHold", function (r) { return Math.round(r.nHold); })
+        + col("FUND LINES ADDED", book, "added", function (r) { return r.added; })
+        + col("FUND LINES DELETED", book, "deleted", function (r) { return r.deleted; })
         + spreadBoards(book)
         + foreignFlowBoard();
       if (cen.length) html += col("MOST HOLDINGS · CENSUS 303", cen, "holdings_n", function (r) { return Math.round(r.holdings_n); });
@@ -1501,7 +1688,7 @@
         });
         html += "</div>";
       }
-      html += "</div><div class=note>Added and deleted are hashes, not stock names. Click a ticker to open that fund on the chart. This does not say how many ETFs hold one stock. Sign disagree compares creation dollars ending " + esc(flowAsOf) + " with issuer share-change ending " + esc(extra.issEnd || "—") + ". It is a flag, not a blended flow. 21D cells are a dash when that window did not print.</div>";
+      html += "</div><div class=note>Fund-level added and deleted are line counts, not stock names. The stock boards above are entries and exits. Click a ticker to open it. Sign disagree compares creation dollars ending " + esc(flowAsOf) + " with issuer share-change ending " + esc(extra.issEnd || "—") + ". It is a flag, not a blended flow. 21D cells are a dash when that window did not print.</div>";
       body.innerHTML = html;
       meta("Scope " + state.scope + " · book " + book.length + " · census " + (cen.length || "…") + " · equity ETFs and equity stocks are separate");
     }
