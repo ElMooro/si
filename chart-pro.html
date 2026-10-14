@@ -9866,9 +9866,10 @@ class Heatmap {
     const st = this.load();
     const cats = st.categories.map(cat => cat.auto === 'cascade' ? { ...cat, items: this.cascadeItems() } : cat);
     const html = cats.map(cat => {
+      if (cat.auto && !(cat.items && cat.items.length)) return '';
       const items = cat.items.map(it => this.cellHtml(cat, it)).join('')
         || (cat.auto
-          ? '<div class="macro-empty-cat">Cascade feed not loaded yet. It fills in automatically when the engine data arrives.</div>'
+          ? ''
           : '<div class="macro-empty-cat">No instruments yet. Use + to add any stock, ETF, index, FX pair, crypto or data series.</div>');
       const tools = cat.auto
         ? `<button class="macro-icon-btn remove" type="button" data-hm-action="hide-auto" data-category-id="${UI.esc(cat.id)}" aria-label="Hide the live cascade category" title="Hide (RESET restores it)">×</button>`

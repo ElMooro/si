@@ -2,6 +2,7 @@
 // 2026-10-12: peel the Effort & Spread script tag before that reversal. The tag is the only new chart.html byte.
 // 2026-10-13: peel the Correlation Matrix heatmap hook in jh-chart-tvrail.js before the census hash.
 // 2026-10-14: peel the Auction tab (engine button, rail meta, chart.html cache) before that census.
+// 2026-10-14: peel the heatmap cache-bust so the auction census still sees the prior bytes.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-macro-line/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const EVR_TAG='<script src="/jh-chart-evr.js?v=20261012evr"></script>\n';
@@ -93,7 +94,28 @@ function peelAucRail(raw,file){
  assert.equal(hash(raw),AUC_RAIL_BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function peelHeatHtml(raw,file){
+ const AFTER='edc3fb88fa09756baeccf417bb3afbad86dbd83f8aa1a38beac3c5c6cb7caa7a';
+ const BEFORE='82504fa7fad057eb4def8da4487515974b2b7ff05fb3043053ad0fe82c3c96f3';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ const from='&heat=20261014b';
+ assert.equal(raw.split(from).length,2,'chart.html heat cache');
+ raw=raw.replace(from,'');
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function peelHeatRail(raw,file){
+ const AFTER='33c541f77bf942b178814ea115bb51aa65407e89dfe4d5daa3dd3cee5aabd1c3';
+ const BEFORE='7cb3b9eb3b5dca7c5184e24e4fa46910c865d997dc1c3bb60d0f8dc475de2bc7';
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ const from='heat: ["Universe Heatmap", "/universe-heatmap.html?v=20261014b"],';
+ const to='heat: ["Universe Heatmap", "/universe-heatmap.html"],';
+ assert.equal(raw.split(from).length,2,'heat rail');
+ raw=raw.replace(from,to);
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

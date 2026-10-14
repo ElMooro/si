@@ -217,7 +217,7 @@
     disposeQualification(ov);
     var meta = {
       macro: ["Macro & Economic Data", "/macro-economic-data.html"],
-      heat: ["Universe Heatmap", "/universe-heatmap.html"],
+      heat: ["Universe Heatmap", "/universe-heatmap.html?v=20261014b"],
       auction: ["Treasury Auctions", "/auctions.html"],
       corr: ["Correlation Matrix · ALERT", "/correlation.html"],
       etf: ["ETF Desk", "/etf.html"],
