@@ -659,14 +659,14 @@
             if (!d || d.status !== "complete_descriptive_estimate") return null;
             return num(d.value_decimal);
           }
-          var f1 = val("1d"), f5 = val("5d"), f21 = val("20d");
-          var end1 = (fw["1d"] || {}).end_date || "";
+          var f1 = val("1d"), f5 = val("5d"), f20 = val("20d");
+          var end1 = (fw["1d"] || {}).end_date || (fw["20d"] || {}).end_date || "";
           if (!extra.issMap) extra.issMap = {};
-          if (f1 != null) extra.issMap[sym] = { f1: f1, end: end1 };
-          if (f1 == null && f5 == null && f21 == null) return;
+          if (f1 != null || f5 != null || f20 != null) extra.issMap[sym] = { f1: f1, f5: f5, f20: f20, end: end1 };
+          if (f1 == null && f5 == null && f20 == null) return;
           var mkt = deskMkt(sym, "", by[sym].category, "");
           if (all.some(function (a) { return a.t === sym; })) return;
-          out.push({ t: sym, kind: "etf", asset: "Equity", category: String(by[sym].category || "").toLowerCase(), issuer: "issuer tape", lev: "—", region: mkt, mkt: mkt, f1: f1, p1: null, f5: f5, p5: null, f21: f21, p21: null, aum: num(by[sym].aum_est_b) != null ? num(by[sym].aum_est_b) * 1e9 : null, source: "issuer" });
+          out.push({ t: sym, kind: "etf", asset: "Equity", category: String(by[sym].category || "").toLowerCase(), issuer: "issuer tape", lev: "—", region: mkt, mkt: mkt, f1: f1, p1: null, f5: f5, p5: null, f21: f20, p21: null, aum: num(by[sym].aum_est_b) != null ? num(by[sym].aum_est_b) * 1e9 : null, source: "issuer" });
         });
         extra.issuer = out;
         extra.issEnd = (j.aggregation_period || {}).end_date || "";
@@ -972,38 +972,31 @@
     }
     function countryTiles() {
       var out = [];
+      extra._flatCountries = [];
       var showCountries = state.scope !== "frontier" && state.scope !== "eqStock";
       if (showCountries) COUNTRY_DEF.forEach(function (d) {
         if (state.scope === "intl" && d.mkt !== "International") return;
         if (state.scope === "em" && d.mkt !== "Emerging") return;
         var rows = all.filter(function (r) { return countryHit(r, d); });
-        var net = sumKnown(rows, "f21"), d1 = sumKnown(rows, "f1"), prints = 0, late = 0, inc = 0, i;
+        var cre21 = sumKnown(rows, "f21"), cre1 = sumKnown(rows, "f1");
+        var iss20 = 0, issN = 0, i, hit;
         for (i = 0; i < rows.length; i++) {
-          if (rows[i].f21 != null) prints++;
-          if (rows[i].f21src === "latest") late++;
-          if (rows[i].f21 == null && rows[i].f21status === "incomplete") inc++;
+          hit = extra.issMap && extra.issMap[rows[i].t];
+          if (hit && hit.f20 != null) { iss20 += hit.f20; issN++; }
         }
-        var sub = !rows.length ? "no fund" : (net == null ? "21D —" : (prints + "/" + rows.length + " summed"));
-        if (inc && prints < rows.length) sub += " · " + inc + " incomplete";
-        if (late) sub += " · latest window";
-        if (d1 != null) sub += " · 1D " + money(d1);
+        var lead = rows.slice().sort(function (a, b) { return Math.abs(b.f1 || 0) - Math.abs(a.f1 || 0); })[0];
+        if (!rows.length || (cre21 == null && (cre1 == null || cre1 === 0))) {
+          extra._flatCountries.push(d.name + (cre1 === 0 ? " 1D $0" : " 1D —") + (issN ? " · issuer 20D " + money(iss20) : "") + " · 21D not published");
+          return;
+        }
+        var use21 = cre21 != null;
+        var sub = use21 ? ("21D creation" + (cre1 == null ? "" : " · 1D " + money(cre1))) : "1D creation · 21D not published";
+        if (!use21 && issN) sub += " · issuer 20D " + money(iss20);
         out.push({
-          t: d.name, net: net, sz: net == null ? 8e7 : (Math.abs(net) || 8e7),
-          sub: sub,
-          sym: ""
+          t: d.name, net: use21 ? cre21 : cre1, sz: Math.abs(use21 ? cre21 : cre1) || 1,
+          sub: sub, sym: lead ? lead.t : ""
         });
       });
-      if (state.scope === "all" || state.scope === "frontier" || state.scope === "eqEtf") {
-        var seen = {}, fr = [];
-        all.forEach(function (r) { if (r.mkt === "Frontier") { seen[r.t] = 1; fr.push(r); } });
-        uniRows().forEach(function (r) {
-          if (r.kind === "etf" && r.mkt === "Frontier" && !seen[r.t]) { seen[r.t] = 1; fr.push({ t: r.t, f21: null, aum: r.mcap }); }
-        });
-        fr.sort(function (a, b) { return (b.aum || 0) - (a.aum || 0); });
-        fr.slice(0, 12).forEach(function (r) {
-          out.push({ t: r.t, net: r.f21 == null ? null : r.f21, sz: r.f21 == null ? 5e7 : (Math.abs(r.f21) || 5e7), sub: r.f21 == null ? "21D —" : "21D", sym: r.t });
-        });
-      }
       return out;
     }
     function fillExtra() {
@@ -1012,15 +1005,19 @@
       if (state.scope === "all" || state.scope === "crypto") html += cryptoHtml();
       if (state.scope !== "crypto") {
       var mkts = ["International", "Emerging", "Frontier"];
-      html += "<div class=sech><span>FOREIGN ETF FLOWS · evidence-book creations</span><span>1D on the pills · 21D on the map</span></div><div class=strip>";
+      html += "<div class=sech><span>FOREIGN ETF FLOWS · evidence-book creations</span><span>tile is the creation that printed</span></div><div class=strip>";
       mkts.forEach(function (m) {
         var rs = all.filter(function (r) { return r.mkt === m && passScope(r); });
+        var fileN = uniRows().filter(function (r) { return r.kind === "etf" && r.mkt === m; }).length;
         var n1 = sumKnown(rs, "f1"), n5 = sumKnown(rs, "f5"), n21 = sumKnown(rs, "f21");
         var c = n1 == null || n1 === 0 ? ["#1e222d", "#d1d4dc"] : paint(n1, 2e8);
-        html += "<div class=pill data-scope='" + (m === "International" ? "intl" : m === "Emerging" ? "em" : "frontier") + "' style='background:" + c[0] + ";color:" + c[1] + "'><b>" + m.toUpperCase() + " · " + rs.length + " ETFs</b><span>" + money(n1) + "</span><span>5D " + money(n5) + " · 21D " + money(n21) + "</span></div>";
+        var head = m === "Frontier" && !rs.length ? "no creation print" : money(n1);
+        html += "<div class=pill data-scope='" + (m === "International" ? "intl" : m === "Emerging" ? "em" : "frontier") + "' style='background:" + c[0] + ";color:" + c[1] + "'><b>" + m.toUpperCase() + " · " + rs.length + " in the creation book" + (fileN ? " · " + fileN + " in the file" : "") + "</b><span>" + head + "</span><span>5D " + money(n5) + " · 21D " + money(n21) + "</span></div>";
       });
-      html += "</div><div class=note>Country tiles are sized and colored by 21-day creation dollars. Gray and a dash mean that window is incomplete. The 1D figure is labeled and is not the color. Zero stays zero. Frontier names are their own tiles, and a thin book stays thin.</div>";
+      html += "</div><div class=note>A country is a flow tile only when a creation dollar was published. The number is the 21-day creation when that sum exists, otherwise the 1-day creation, and the label says which. A published 1-day zero with no 21-day sum is not drawn as a flow. Issuer 20-day share-change is text, not the color. Frontier names with no creation print are on the month map under this one. That map is price, not a flow.</div>";
       html += "<div class='map short' id=country-map style='height:230px;min-height:230px'></div>";
+      html += "<div class=note id=flat-note></div>";
+      html += "<div class=sech><span>FRONTIER ETFs · MONTH</span><span>not in the creation book</span></div><div class='map short' id=fr-map></div>";
       if (extra.issMap) {
         var dis = disagreeRows();
         html += "<div class=note>Sign disagree: creation dollars and issuer share-change point opposite ways, and both are at least $5M. " + dis.length + " funds. Issuer session " + esc(extra.issEnd || "—") + ", creations " + esc(flowAsOf) + ". Not a third flow number.</div>";
@@ -1043,7 +1040,24 @@
       var cm = body.querySelector("#country-map");
       if (cm) {
         var ct = countryTiles();
+        var flat = body.querySelector("#flat-note");
+        if (flat) flat.textContent = extra._flatCountries && extra._flatCountries.length ? ("Not a flow tile. 21-day creation was not published. " + extra._flatCountries.join(" · ")) : "";
         if (ct.length) drawTiles(cm, ct, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { color: countryColor, area: "sz", fmt: function (v) { return v == null ? "—" : money(v); }, symOf: function (r) { return r.sym || ""; } });
+        else cm.innerHTML = "<div class=note>No country in this scope has a published creation dollar.</div>";
+      }
+      var fm = body.querySelector("#fr-map");
+      if (fm) {
+        var seenF = {}, frRows = [];
+        function addF(r) { if (r && r.t && !seenF[r.t]) { seenF[r.t] = 1; frRows.push(r); } }
+        uniRows().forEach(function (r) { if (r.kind === "etf" && r.mkt === "Frontier") addF(r); });
+        Object.keys(FR_T).forEach(function (t) { addF(uniIndex()[t]); });
+        frRows.sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); });
+        var frTiles = frRows.filter(function (r) { return r.perfM != null; }).slice(0, 16).map(function (r) {
+          var cre = byT[r.t];
+          return { t: r.t, net: r.perfM, sym: r.t, sz: Math.abs(r.mcap || 0) || 1, sub: (cre && cre.f1 != null ? "1D " + money(cre.f1) + " · " : "no creation · ") + "month" };
+        });
+        if (!frTiles.length) fm.innerHTML = "<div class=note>" + (extra.uni ? "No frontier ETF with a month print in the file." : "Loading the book…") + "</div>";
+        else drawTiles(fm, frTiles, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { color: pricePaint, area: "sz", fmt: function (v) { return pct(v); } });
       }
       var sm = body.querySelector("#stock-map");
       if (sm) {
