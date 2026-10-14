@@ -520,6 +520,17 @@
       if (/fixed|bond|commod|currenc|crypto|real estate|gold|multi|alternative/i.test(a)) return false;
       return a === "Equity" || /equit|leverag|sector|large cap|intl|emerging/i.test(a);
     }
+    var TREAS = { MSTR:1, XXI:1, ABTC:1, BMNR:1, SBET:1, DFDV:1, UPXI:1, NAKA:1, ASST:1, BTCS:1, FUFU:1, BTCT:1, PRE:1 };
+    var MINER = { MARA:1, RIOT:1, CLSK:1, WULF:1, CIFR:1, HUT:1, IREN:1, CORZ:1, BTDR:1, APLD:1, BTBT:1, CANG:1, ARBK:1, CAN:1 };
+    var OPER = { COIN:1, CRCL:1, HOOD:1, TSLA:1, XYZ:1, GME:1 };
+    function isCryptoEtf(r) {
+      if (r.kind === "stock") return false;
+      if (r.asset === "Crypto") return true;
+      return /bitcoin|ethereum|crypto/i.test(String(r.asset || "") + " " + String(r.category || "") + " " + String(r.sub || ""));
+    }
+    function isCryptoName(r) {
+      return isCryptoEtf(r) || !!TREAS[r.t] || !!MINER[r.t] || !!OPER[r.t];
+    }
     var _uniIdxN = -1, _uniIdx = null;
     function uniIndex() {
       var n = extra.uni ? extra.uni.length : 0;
@@ -540,6 +551,7 @@
       if (!s || s === "all") return true;
       if (s === "eqEtf") return isEquityEtf(r);
       if (s === "eqStock") return r.kind === "stock";
+      if (s === "crypto") return isCryptoName(r);
       var want = s === "intl" ? "International" : s === "em" ? "Emerging" : s === "frontier" ? "Frontier" : "";
       if (want) return mktOf(r) === want;
       return true;
@@ -572,7 +584,7 @@
       host._slimStarted = true;
       if (window.JHEtfSlim && window.JHEtfSlim.t) { try { applySlim(window.JHEtfSlim); } catch (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); } return; }
       var el = document.createElement("script");
-      el.src = "/etf-desk-slim.js";
+      el.src = "/etf-desk-slim.js?v=0031d67a";
       el.onload = function () {
         try { applySlim(window.JHEtfSlim); }
         catch (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); }
@@ -629,6 +641,7 @@
       if (!s || s === "all") return true;
       if (s === "eqStock") return false;
       if (s === "eqEtf") return /equit/.test(t);
+      if (s === "crypto") return /crypto|bitcoin|ether/.test(t);
       if (s === "intl") return /global|ex[\.\- ]\s*us|international/.test(t);
       if (s === "em") return /emerg/.test(t);
       if (s === "frontier") return /frontier market/.test(t);
@@ -642,6 +655,7 @@
       if (s === "intl") return /developed|intl|global|ex-us|ex us/.test(n);
       if (s === "em") return /emerg/.test(n);
       if (s === "frontier") return false;
+      if (s === "crypto") return /crypto|bitcoin|ether/.test(n);
       return true;
     }
     function bookPlusIssuer() {
@@ -915,6 +929,8 @@
     function fillExtra() {
       ensureUni();
       var html = "";
+      if (state.scope === "all" || state.scope === "crypto") html += cryptoHtml();
+      if (state.scope !== "crypto") {
       var mkts = ["International", "Emerging", "Frontier"];
       html += "<div class=sech><span>FOREIGN ETF FLOWS · evidence-book creations</span><span>1D on the pills · 21D on the map</span></div><div class=strip>";
       mkts.forEach(function (m) {
@@ -942,6 +958,7 @@
         html += "<div class='map short' id=stock-map></div>";
       }
       if (state.scope === "intl" || state.scope === "em" || state.scope === "frontier") html += foreignRosterHtml(scopeWant());
+      }
       body.insertAdjacentHTML("beforeend", html);
       var cm = body.querySelector("#country-map");
       if (cm) {
@@ -956,6 +973,58 @@
       body.querySelectorAll(".pill[data-scope]").forEach(function (p) {
         p.onclick = function () { state.scope = p.getAttribute("data-scope"); markScope(); draw(); };
       });
+      paintCryptoMaps();
+    }
+    function cryptoHtml() {
+      var book = all.filter(isCryptoEtf);
+      var n1 = sumKnown(book, "f1"), n21 = sumKnown(book, "f21");
+      var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
+      var klass = null, i;
+      if (fv && fv.type_flows) for (i = 0; i < fv.type_flows.length; i++) if (fv.type_flows[i].type === "Global Cryptocurrency") klass = fv.type_flows[i];
+      var html = "<div class=sech><span>CRYPTO ETFs · CREATIONS</span><span>evidence book " + book.length + " · 1D " + money(n1) + " · 21D " + money(n21) + "</span></div>";
+      html += "<div class='map flow' id=cr-flow style='height:170px;min-height:170px'></div>";
+      html += "<div class=note>";
+      if (klass) html += "Finviz Global Cryptocurrency is " + klass.n + " funds, AUM " + plain(num(klass.aum)) + ", 1M net " + money(num(klass.net_1m)) + ", YTD " + money(num(klass.net_ytd)) + ", as of " + esc(String(fv.generated_at || "").slice(0, 10)) + ". ";
+      html += "Creation tiles are only the evidence-book prints (IBIT, ETHA, FBTC, BITO). The maps below are month price, blue up and amber down, sized by market cap. That is not a flow. Treasury names are balance-sheet coin vehicles. Miners are hashrate businesses. Exchanges and operating companies are not treasuries. ETHA, FBTC and IBIT had no holdings index, so they are not in the stock add/left book.</div>";
+      html += "<div class=sech><span>LARGE CRYPTO ETFs · MONTH</span><span>111 in the file · largest 28 shown</span></div><div class='map flow' id=cr-etf style='height:240px;min-height:240px'></div>";
+      html += "<div class=sech><span>CRYPTO TREASURY COMPANIES · MONTH</span><span>not miners</span></div><div class='map flow' id=cr-treas style='height:190px;min-height:190px'></div>";
+      html += "<div class=sech><span>MINERS · MONTH</span><span>not a treasury</span></div><div class='map flow' id=cr-mine style='height:190px;min-height:190px'></div>";
+      html += "<div class=sech><span>EXCHANGES AND OPERATING COMPANIES · MONTH</span><span>coin line, not a treasury vehicle</span></div><div class='map flow' id=cr-oper style='height:160px;min-height:160px'></div>";
+      return html;
+    }
+    function cryptoPriceRows(list) {
+      return list.filter(function (r) { return r && r.perfM != null; }).map(function (r) {
+        return { t: r.t, net: r.perfM, sym: r.t, sz: Math.abs(r.mcap || 0) || 1, sub: r.sma200 == null ? "200d —" : ("200d " + pct(r.sma200)) };
+      });
+    }
+    function paintCryptoMaps() {
+      if (state.scope !== "all" && state.scope !== "crypto") return;
+      var flowRows = all.filter(function (r) { return isCryptoEtf(r) && r.f1 != null && r.f1; }).map(function (r) {
+        return { t: r.t, net: r.f1, sym: r.t, sub: "1D creation" };
+      });
+      var box = body.querySelector("#cr-flow");
+      if (box) {
+        if (!flowRows.length) box.innerHTML = "<div class=note>No crypto creation print in this window.</div>";
+        else drawTiles(box, flowRows, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { fmt: money });
+      }
+      function fromSet(setObj) {
+        var rows = [];
+        Object.keys(setObj).forEach(function (t) { var u = uniIndex()[t]; if (u) rows.push(u); });
+        rows.sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); });
+        return rows;
+      }
+      var etfs = uniRows().filter(function (r) { return r.kind === "etf" && r.asset === "Crypto"; }).sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 28);
+      function go(id, rows) {
+        var el = body.querySelector(id);
+        if (!el) return;
+        var list = cryptoPriceRows(rows);
+        if (!list.length) { el.innerHTML = "<div class=note>" + (extra.uni ? "No month print." : "Loading the book…") + "</div>"; return; }
+        drawTiles(el, list, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { color: pricePaint, area: "sz", fmt: function (v) { return pct(v); } });
+      }
+      go("#cr-etf", etfs);
+      go("#cr-treas", fromSet(TREAS));
+      go("#cr-mine", fromSet(MINER));
+      go("#cr-oper", fromSet(OPER));
     }
     function showSpreads() {
       ensureUni();
@@ -1108,6 +1177,7 @@
       if (s === "intl") return c === "INTERNATIONAL" || IN_T[ticker];
       if (s === "em") return EM_T[ticker];
       if (s === "frontier") return FR_T[ticker];
+      if (s === "crypto") return /CRYPTO/.test(c);
       return true;
     }
     function issuerLists() {
@@ -1129,6 +1199,7 @@
       var secIn = [], secOut = [], catIn = [], catOut = [];
       var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
       (fv && fv.sector_etfs || []).forEach(function (x) {
+        if (state.scope === "crypto") return;
         var v = num(x.flows_1m);
         if (v == null || !v) return;
         if (state.q && String(x.ticker).indexOf(state.q) < 0 && String(x.sector || "").toUpperCase().indexOf(state.q) < 0) return;
@@ -1140,6 +1211,7 @@
         if (state.scope === "eqStock") return;
         if (state.scope === "intl" && c.category !== "INTERNATIONAL" && c.category !== "COUNTRY") return;
         if (state.scope === "em" && c.category !== "COUNTRY" && c.category !== "INTERNATIONAL") return;
+        if (state.scope === "crypto" && String(c.category || "").indexOf("CRYPTO") < 0) return;
         var v = num(c.net_flow_5d_usd);
         if (v == null || !v) return;
         var row = { t: String(c.category || "").replace(/_/g, " "), net: v, sub: (c.n_etfs || 0) + " funds · 5D", sym: "" };
@@ -1189,7 +1261,7 @@
       host._mvStarted = true;
       if (window.JHEtfMoves && window.JHEtfMoves.added) { extra.moves = window.JHEtfMoves; return; }
       var el = document.createElement("script");
-      el.src = "/etf-holdings-moves.js";
+      el.src = "/etf-holdings-moves.js?v=3f8a2fa7";
       el.onload = function () {
         extra.moves = window.JHEtfMoves || { error: "empty" };
         if (host.isConnected) draw();
@@ -1200,6 +1272,7 @@
     function passName(r) {
       var s = state.scope;
       if (!s || s === "all" || s === "eqEtf" || s === "eqStock") return true;
+      if (s === "crypto") return !!(TREAS[r.t] || MINER[r.t] || OPER[r.t]);
       var u = uniIndex()[r.t];
       if (!u) return false;
       return passScope(u);
@@ -1253,6 +1326,10 @@
       goMap("#mv-add", tilesOf(added, 1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No adds in this scope." });
       goMap("#mv-left", tilesOf(left, -1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No exits in this scope." });
       goMap("#mv-em", tilesOf(emerg, 1), { sub: function (r) { return r.sub; }, fmt: function (v) { return (v == null ? "—" : Math.abs(v) + " ETFs"); }, empty: "No first-time names in this scope." });
+      if (state.scope === "crypto") {
+        body.insertAdjacentHTML("afterbegin", cryptoHtml());
+        paintCryptoMaps();
+      }
       paintIssuerAndIndustry("beforeend");
     }
 
@@ -1724,7 +1801,7 @@
       bindTickers(body);
       paintRegime();
     }
-    var scopes = [["all", "All"], ["eqEtf", "Equity ETFs"], ["eqStock", "Equity stocks"], ["intl", "International"], ["em", "Emerging"], ["frontier", "Frontier"]];
+    var scopes = [["all", "All"], ["eqEtf", "Equity ETFs"], ["eqStock", "Equity stocks"], ["crypto", "Crypto"], ["intl", "International"], ["em", "Emerging"], ["frontier", "Frontier"]];
     host.querySelector("#etf-scope").innerHTML = scopes.map(function (s) {
       return "<button type=button data-scope='" + s[0] + "'" + (s[0] === state.scope ? " class=on" : "") + ">" + s[1] + "</button>";
     }).join("");
