@@ -1,12 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "02070fa87437484ff8beebab9b4f56dbd0870c63",
-  "observed_at": "2026-10-14T05:48:30.862580+00:00",
+  "observed_at": "2026-10-14T06:00:27.710364+00:00",
   "ok": false,
   "routes_checked": 600,
   "verified_routes": 599,
   "failed_routes": [
-    "baggers.html"
+    "valuations-macro.html"
   ],
   "source_equivalent_builds": {
     "02070fa87437484ff8beebab9b4f56dbd0870c63": true
@@ -520,12 +520,13 @@
     },
     {
       "route": "baggers.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "02070fa87437484ff8beebab9b4f56dbd0870c63",
+      "inspector_present": true,
+      "bytes_read": 41309,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "bb-go.html",
@@ -5729,13 +5730,12 @@
     },
     {
       "route": "valuations-macro.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "02070fa87437484ff8beebab9b4f56dbd0870c63",
-      "inspector_present": true,
-      "bytes_read": 8627,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "valuations.html",
@@ -6019,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38518011480,
+  "deployment_run_id": 38518980953,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-14T05:48:30.868831+00:00"
+  "check_finished_at": "2026-10-14T06:00:27.719491+00:00"
 }
