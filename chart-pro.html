@@ -9746,7 +9746,7 @@ class Heatmap {
       legend.innerHTML = st.mode === 'perf'
         ? `<span class="hm-lg down">−${scale}%</span><span class="hm-lg-bar perf"></span><span class="hm-lg up">+${scale}%</span><span class="hm-lg-note">${st.horizon} change · ⏱ stale</span>`
         : st.mode === 'cascade'
-          ? `<span class="hm-lg">0</span><span class="hm-lg-bar cascade"></span><span class="hm-lg">200</span><span class="hm-lg-note">cascade combined score</span>`
+          ? `<span class="hm-lg">0</span><span class="hm-lg-bar cascade"></span><span class="hm-lg">200</span><span class="hm-lg-note">cascade score, or ${st.horizon} change when today's book is empty</span>`
           : `<span class="hm-lg">0</span><span class="hm-lg-bar signals"></span><span class="hm-lg">5+</span><span class="hm-lg-note">live signal sources</span>`;
     }
   }
@@ -10113,9 +10113,7 @@ class Heatmap {
     other.forEach(symbol => this.queueHistory(symbol, token));
     this.paintQuotes(market, token).then(() => {
       if (token !== this.renderToken) return;
-      const missing = symbols.filter(symbol => !this.metricsBySymbol.get(symbol));
-      if (market.length && missing.length > market.length * 0.8) return;
-      missing.forEach(symbol => this.queueHistory(symbol, token));
+      symbols.forEach(symbol => this.queueHistory(symbol, token));
     });
     if (!("IntersectionObserver" in window)) {
       cells.slice(0, 36).forEach(cell => this.queueHistory(cell.dataset.symbol, token));
@@ -10150,15 +10148,19 @@ class Heatmap {
     const perf = this.perfValue(metric);
     const score = this.cascadeScore(symbol);
     const sources = this.signalSources(symbol);
-    const value = st.mode === 'perf' ? perf : st.mode === 'cascade' ? score : sources.length;
+    const useCascade = st.mode === 'cascade' && Number.isFinite(score);
+    const useSignals = st.mode === 'signals' && sources.length > 0;
+    const value = useCascade ? score : useSignals ? sources.length : perf;
+    const paintMode = useCascade ? 'cascade' : useSignals ? 'signals' : 'perf';
     cell.classList.remove('loading');
-    cell.style.background = this.colorFor(st.mode, value, st.horizon);
+    cell.style.background = this.colorFor(paintMode, value, st.horizon);
     cell.dataset.value = Number.isFinite(value) ? String(value) : '';
+    cell.dataset.paintMode = paintMode;
     const ch = cell.querySelector('.hm-ch');
-    if (st.mode === 'perf') ch.textContent = this.formatChange(perf);
-    else if (st.mode === 'cascade') ch.textContent = Number.isFinite(score) ? score.toFixed(0) : '—';
-    else ch.textContent = `${sources.length} signal${sources.length === 1 ? '' : 's'}`;
-    ch.className = 'hm-ch ' + (st.mode === 'perf' ? (perf > 0 ? 'up' : perf < 0 ? 'down' : 'na') : 'neutral');
+    if (useCascade) ch.textContent = score.toFixed(0);
+    else if (useSignals) ch.textContent = `${sources.length} signal${sources.length === 1 ? '' : 's'}`;
+    else ch.textContent = this.formatChange(perf);
+    ch.className = 'hm-ch ' + (paintMode === 'perf' ? (perf > 0 ? 'up' : perf < 0 ? 'down' : 'na') : 'neutral');
     if (metric) {
       cell.querySelector('.hm-last-value').textContent = this.formatValue(metric.last);
       cell.querySelector('.hm-asof').textContent = metric.asof ? metric.asof.slice(5) : '';
@@ -10191,13 +10193,19 @@ class Heatmap {
   static paintAverages() {
     const st = this.state;
     document.querySelectorAll('#heatmap-body .hm-grid').forEach(grid => {
-      const values = [...grid.querySelectorAll('.hm-cell')].map(c => Number(c.dataset.value)).filter(v => Number.isFinite(v));
+      const cells = [...grid.querySelectorAll('.hm-cell')];
+      const values = cells.map(c => {
+        const raw = c.dataset.value;
+        if (raw == null || raw === '') return NaN;
+        return Number(raw);
+      }).filter(v => Number.isFinite(v));
+      const paintMode = (cells.find(c => c.dataset.paintMode) || {}).dataset?.paintMode || st.mode;
       const node = document.querySelector(`[data-category-avg="${CSS.escape(grid.dataset.categoryId)}"]`);
       if (!node) return;
       if (!values.length) { node.textContent = ''; return; }
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
-      node.textContent = st.mode === 'perf' ? `avg ${this.formatChange(avg)}` : st.mode === 'cascade' ? `avg ${avg.toFixed(0)}` : `avg ${avg.toFixed(1)} signals`;
-      node.className = 'hm-sector-avg ' + (st.mode === 'perf' ? (avg > 0 ? 'up' : avg < 0 ? 'down' : '') : '');
+      node.textContent = paintMode === 'perf' ? `avg ${this.formatChange(avg)}` : paintMode === 'cascade' ? `avg ${avg.toFixed(0)}` : `avg ${avg.toFixed(1)} signals`;
+      node.className = 'hm-sector-avg ' + (paintMode === 'perf' ? (avg > 0 ? 'up' : avg < 0 ? 'down' : '') : '');
     });
   }
 
