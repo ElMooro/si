@@ -1,0 +1,34 @@
+{
+ "apply_run_id": "38622508808",
+ "at": "2026-10-14T19:18:29Z",
+ "batch": "grok-20261014T2012Z-heatmap",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 67107,
+   "changed": true,
+   "check": "json",
+   "how": "parts",
+   "sha256": "91e2285077688678356b36921d7e657bb83b4d276e70c75f4be4aa65a0f7cd4f",
+   "target": "assets/jh-heatmap-universe.json"
+  }
+ ],
+ "functions": [],
+ "handoff_path": "aws/ops/reports/apply-lane/38622508808.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "grok",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "Wide universe for the chart heatmap",
+ "ops_scripts": [],
+ "pages": [
+  "assets/jh-heatmap-universe.json"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "pages.yml run for the apply-lane commit"
+ ],
+ "workers": []
+}

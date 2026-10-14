@@ -330,7 +330,7 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .hm-sector-avg { font: 600 9.5px/1 var(--font-mono); color: var(--fg-3); margin-left: 6px; }
 .hm-sector-avg.up { color: var(--green); }
 .hm-sector-avg.down { color: var(--red); }
-.hm-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 5px; }
+.hm-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 5px; }
 .hm-cell {
   position: relative; text-align: left; padding: 8px 8px 7px; min-height: 92px;
   border: 1px solid var(--border); border-radius: 5px; background: rgba(255,255,255,.045);

@@ -1705,7 +1705,7 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .hm-sector-head .hm-sector-name { margin-bottom: 0; }
 .hm-sector-avg { font: 600 9.5px/1 var(--font-mono); color: var(--fg-3); margin-left: 6px; }
 .hm-sector-avg.up { color: var(--green); } .hm-sector-avg.down { color: var(--red); }
-.hm-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 5px; }
+.hm-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 5px; }
 .hm-cell {
   position: relative; text-align: left; padding: 8px 8px 7px; min-height: 92px;
   border: 1px solid var(--border); border-radius: 5px; background: rgba(255,255,255,.045);
@@ -9473,7 +9473,8 @@ class Heatmap {
   static HORIZONS = ['D', 'W', 'M', 'Q', 'Y'];
   static MODES = ['perf', 'cascade', 'signals'];
   static PERF_SCALE = { D: 3, W: 6, M: 12, Q: 20, Y: 40 };
-  static LIMITS = { categories: 24, perCategory: 80, total: 500 };
+  static LIMITS = { categories: 40, perCategory: 90, total: 1600 };
+  static CATALOG_REV = 2;
   static CATALOG = [
     { cat: 'Index & Sector ETFs', flag: '🗺', items: [
       ['SPY', 'S&P 500', 'etf'], ['QQQ', 'Nasdaq 100', 'etf'], ['IWM', 'Russell 2000', 'etf'], ['DIA', 'Dow 30', 'etf'],
@@ -9649,6 +9650,7 @@ class Heatmap {
     });
     this.state = {
       version: 3,
+      catalogRev: src.catalogRev === this.CATALOG_REV ? this.CATALOG_REV : undefined,
       mode: this.MODES.includes(src.mode) ? src.mode : 'perf',
       horizon: this.HORIZONS.includes(src.horizon) ? src.horizon : 'D',
       hiddenAuto: !!src.hiddenAuto,
@@ -9675,6 +9677,8 @@ class Heatmap {
   static open() {
     this.load();
     this.init();
+    const run = async () => {
+    try { await this.ensureUniverse(); } catch (e) {}
     const modal = document.getElementById('heatmap-modal');
     this.modalTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.searchSeq++;
@@ -9685,6 +9689,8 @@ class Heatmap {
     this.paintControls();
     this.render();
     setTimeout(() => input && input.focus(), 50);
+    };
+    return run();
   }
 
   static close() {
@@ -9936,40 +9942,192 @@ class Heatmap {
     </div>`;
   }
 
-  static hydrate() {
-    const token = ++this.renderToken;
-    const body = document.getElementById('heatmap-body');
-    const cells = [...body.querySelectorAll('.hm-cell[data-symbol]')];
-    const hydrateCell = async cell => {
-      if (cell.dataset.metricState) return;
-      cell.dataset.metricState = 'loading';
+  static async ensureUniverse() {
+    if (this.universePromise) return this.universePromise;
+    this.universePromise = (async () => {
+      let catalog = null;
       try {
-        const metric = await MacroData.fetchMetric(cell.dataset.symbol);
-        if (token !== this.renderToken || !cell.isConnected) return;
-        this.metricsBySymbol.set(cell.dataset.symbol, metric);
-        this.paintCell(cell, metric);
-        cell.dataset.metricState = 'ready';
-      } catch (e) {
-        if (!cell.isConnected || token !== this.renderToken) return;
-        cell.classList.remove('loading');
-        cell.classList.add('unavailable');
-        cell.dataset.metricState = 'error';
-        cell.querySelector('.hm-ch').textContent = 'n/a';
-        cell.title = `${cell.dataset.symbol}: ${String(e && e.message || e)}`;
-        this.paintCell(cell, null);
+        const response = await fetch("/assets/jh-heatmap-universe.json?v=20261014heat");
+        if (response.ok) catalog = await response.json();
+      } catch (e) { catalog = null; }
+      const slots = Array.isArray(catalog) ? catalog.reduce((n, c) => n + ((c && c.items && c.items.length) || 0), 0) : 0;
+      if (!Array.isArray(catalog) || catalog.length < 8 || slots < 200) return;
+      this.CATALOG = catalog;
+      const st = this.load();
+      if (st.catalogRev !== this.CATALOG_REV) {
+        this.state = { version: 3, catalogRev: this.CATALOG_REV, mode: st.mode || "perf", horizon: st.horizon || "D", hiddenAuto: false, categories: this.defaults() };
+        this.normalize();
+        this.save();
+      }
+    })();
+    return this.universePromise;
+  }
+
+  static marketTicker(symbol) {
+    return /^[A-Z][A-Z0-9.]{0,12}$/.test(symbol);
+  }
+
+  static yahooSymbol(symbol) {
+    if (symbol.indexOf("=") >= 0 || symbol.charAt(0) === "^" || symbol.indexOf("-") >= 0) return symbol;
+    return symbol.replace(/\./g, "-");
+  }
+
+  static paintSymbol(symbol, metric, token) {
+    if (token !== this.renderToken) return;
+    this.metricsBySymbol.set(symbol, metric);
+    const body = document.getElementById("heatmap-body");
+    if (!body) return;
+    body.querySelectorAll(".hm-cell[data-symbol]").forEach(cell => {
+      if (cell.dataset.symbol !== symbol || !cell.isConnected) return;
+      this.paintCell(cell, metric);
+      cell.dataset.metricState = "ready";
+      cell.classList.remove("unavailable");
+    });
+  }
+
+  static async paintQuotes(symbols, token) {
+    const chunks = [];
+    for (let i = 0; i < symbols.length; i += 40) chunks.push(symbols.slice(i, i + 40));
+    let cursor = 0;
+    const run = async () => {
+      while (cursor < chunks.length && token === this.renderToken) {
+        const chunk = chunks[cursor++];
+        try {
+          const response = await fetch(PROXY + "/quotes?tickers=" + encodeURIComponent(chunk.join(",")));
+          if (!response.ok) continue;
+          const payload = await response.json();
+          const book = (payload && payload.tickers) || {};
+          const today = new Date().toISOString().slice(0, 10);
+          Object.keys(book).forEach(symbol => {
+            const q = book[symbol] || {};
+            const price = Number(q.price);
+            const pct = Number(q.changePct);
+            if (!Number.isFinite(price) || price <= 0) return;
+            const prev = this.metricsBySymbol.get(symbol);
+            const changes = Object.assign({ D: null, W: null, M: null, Q: null, Y: null }, prev && prev.changes);
+            if (Number.isFinite(pct)) changes.D = pct;
+            this.paintSymbol(symbol, {
+              last: price,
+              asof: (prev && prev.history && prev.asof) || today,
+              changes: changes,
+              spacingDays: 1,
+              quote: true,
+              history: !!(prev && prev.history),
+              cachedAt: Date.now(),
+            }, token);
+          });
+        } catch (e) {}
       }
     };
-    if (!('IntersectionObserver' in window)) {
-      cells.slice(0, 80).forEach(hydrateCell);
+    const jobs = [];
+    for (let n = 0; n < Math.min(3, chunks.length); n++) jobs.push(run());
+    await Promise.all(jobs);
+  }
+
+  static queueHistory(symbol, token) {
+    if (!symbol) return;
+    if (!this.histQueued) this.histQueued = new Set();
+    if (!this.histQueue) this.histQueue = [];
+    if (this.histQueued.has(symbol)) return;
+    const prev = this.metricsBySymbol.get(symbol);
+    if (prev && prev.history) return;
+    this.histQueued.add(symbol);
+    this.histQueue.push({ symbol: symbol, token: token });
+    this.pumpHistory();
+  }
+
+  static pumpHistory() {
+    if (this.histRunning == null) this.histRunning = 0;
+    while (this.histRunning < 3 && this.histQueue && this.histQueue.length) {
+      const job = this.histQueue.shift();
+      this.histRunning++;
+      this.loadHistory(job.symbol, job.token).finally(() => {
+        this.histRunning--;
+        this.pumpHistory();
+      });
+    }
+  }
+
+  static async loadHistory(symbol, token) {
+    try {
+      const response = await fetch(PROXY + "/yf-ohlc?symbol=" + encodeURIComponent(this.yahooSymbol(symbol)) + "&range=1y&interval=1d&nowarehouse=1");
+      if (!response.ok) throw new Error("History " + response.status);
+      const payload = await response.json();
+      const bars = (payload.bars || []).filter(bar => bar && Number.isFinite(Number(bar.close)));
+      if (bars.length < 2) throw new Error("No bars");
+      const closes = bars.map(bar => Number(bar.close));
+      const last = closes[closes.length - 1];
+      const prior = n => (closes.length > n ? closes[closes.length - 1 - n] : null);
+      const chg = base => (Number.isFinite(base) && base !== 0 ? ((last - base) / Math.abs(base)) * 100 : null);
+      const changes = {
+        D: chg(prior(1)),
+        W: chg(prior(5)),
+        M: chg(prior(21)),
+        Q: chg(prior(63)),
+        Y: chg(prior(Math.min(252, closes.length - 1))),
+      };
+      const prev = this.metricsBySymbol.get(symbol);
+      if (prev && prev.quote && prev.changes && Number.isFinite(prev.changes.D)) changes.D = prev.changes.D;
+      const asof = new Date((Number(bars[bars.length - 1].time) || 0) * 1000).toISOString().slice(0, 10);
+      if (token !== this.renderToken) return;
+      this.paintSymbol(symbol, {
+        last: prev && prev.quote ? prev.last : last,
+        asof: prev && prev.quote ? prev.asof : asof,
+        changes: changes,
+        spacingDays: 1,
+        quote: !!(prev && prev.quote),
+        history: true,
+        cachedAt: Date.now(),
+      }, token);
+    } catch (err) {
+      this.markMiss(symbol, token, err);
+    }
+  }
+
+  static markMiss(symbol, token, err) {
+    if (token !== this.renderToken) return;
+    if (this.metricsBySymbol.get(symbol)) return;
+    const body = document.getElementById("heatmap-body");
+    if (!body) return;
+    body.querySelectorAll(".hm-cell[data-symbol]").forEach(cell => {
+      if (cell.dataset.symbol !== symbol || !cell.isConnected) return;
+      cell.classList.remove("loading");
+      cell.classList.add("unavailable");
+      cell.dataset.metricState = "error";
+      const ch = cell.querySelector(".hm-ch");
+      if (ch) ch.textContent = "n/a";
+      cell.title = symbol + ": " + String((err && err.message) || err);
+    });
+  }
+
+  static hydrate() {
+    const token = ++this.renderToken;
+    this.histQueued = new Set();
+    this.histQueue = [];
+    const body = document.getElementById("heatmap-body");
+    const cells = [...body.querySelectorAll(".hm-cell[data-symbol]")];
+    const symbols = [...new Set(cells.map(cell => cell.dataset.symbol))];
+    const market = symbols.filter(symbol => this.marketTicker(symbol));
+    const other = symbols.filter(symbol => !this.marketTicker(symbol));
+    other.forEach(symbol => this.queueHistory(symbol, token));
+    this.paintQuotes(market, token).then(() => {
+      if (token !== this.renderToken) return;
+      const missing = symbols.filter(symbol => !this.metricsBySymbol.get(symbol));
+      if (market.length && missing.length > market.length * 0.8) return;
+      missing.forEach(symbol => this.queueHistory(symbol, token));
+    });
+    if (!("IntersectionObserver" in window)) {
+      cells.slice(0, 36).forEach(cell => this.queueHistory(cell.dataset.symbol, token));
       return;
     }
+    if (this.metricObserver) this.metricObserver.disconnect();
     this.metricObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         this.metricObserver.unobserve(entry.target);
-        hydrateCell(entry.target);
+        this.queueHistory(entry.target.dataset.symbol, token);
       });
-    }, { root: body, rootMargin: '360px 0px', threshold: 0.01 });
+    }, { root: body, rootMargin: "280px 0px", threshold: 0.01 });
     cells.forEach(cell => this.metricObserver.observe(cell));
   }
 
@@ -10575,7 +10733,7 @@ class Heatmap {
 
   static reset() {
     if (!confirm('Restore the original heatmap universe? Your custom categories, instruments and danger rules will be removed.')) return;
-    this.state = { version: 3, mode: this.state.mode, horizon: this.state.horizon, hiddenAuto: false, categories: this.defaults() };
+    this.state = { version: 3, catalogRev: this.CATALOG_REV, mode: this.state.mode, horizon: this.state.horizon, hiddenAuto: false, categories: this.defaults() };
     this.metricsBySymbol.clear();
     this.save();
     this.render();
