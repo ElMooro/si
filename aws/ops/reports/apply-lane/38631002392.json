@@ -1,0 +1,26 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "38631002392",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/38631002392",
+ "base_sha": "b560371172c081f06b182c97b759f2da6deb6896",
+ "result_sha": "a4100e99a6694a58976c2f6b3c48e41645136128",
+ "patchers": [
+  "grok_heatmap_show_moves.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "chart-pro.html"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-10-14T20:19:21Z"
+}
