@@ -70,6 +70,13 @@
     var src = t < 0 ? [255, 152, 0] : [41, 98, 255];
     return [mix([19, 23, 34], src, u), u > 0.55 ? "#fff" : "#d1d4dc"];
   }
+  function effortPaint(v, scale) {
+    if (v == null || v !== v || !scale) return ["#1e222d", "#787b86"];
+    var t = Math.max(-1, Math.min(1, v / scale));
+    var u = Math.pow(Math.abs(t), 0.55);
+    var src = t < 0 ? [126, 87, 194] : [0, 151, 167];
+    return [mix([19, 23, 34], src, u), u > 0.55 ? "#fff" : "#d1d4dc"];
+  }
   function countryColor(v, scale) {
     if (v == null || v !== v) return ["#3a3f4b", "#d1d4dc"];
     if (v === 0) return ["#1e222d", "#b2b5be"];
@@ -128,9 +135,23 @@
     return String(node.value);
   }
   function flowOf(f, win) {
-    var w = (((f.flows || {}).aligned_windows || {})[win]) || null;
-    if (!w) return null;
-    return { usd: num(w.flow_usd_decimal), pctA: num(w.flow_to_end_assets_pct_decimal) };
+    var aligned = (((f.flows || {}).aligned_windows || {})[win]) || null;
+    var latest = (((f.flows || {}).latest_windows || {})[win]) || null;
+    var usd = aligned ? num(aligned.flow_usd_decimal) : null;
+    var pctA = aligned ? num(aligned.flow_to_end_assets_pct_decimal) : null;
+    var end = (aligned && aligned.end_date) || "";
+    var src = usd == null ? "" : "aligned";
+    if (usd == null && latest && latest.status === "matched_reporting_window") {
+      var lu = num(latest.flow_usd_decimal);
+      if (lu != null) {
+        usd = lu;
+        pctA = num(latest.flow_to_end_assets_pct_decimal);
+        end = latest.end_date || end;
+        src = "latest";
+      }
+    }
+    if (!aligned && !latest) return null;
+    return { usd: usd, pctA: pctA, end: end, src: src, obs: latest ? latest.available_observations : null, status: latest ? (latest.status || "") : "" };
   }
   var EM_T = { EEM:1, VWO:1, IEMG:1, EWZ:1, FXI:1, MCHI:1, INDA:1, EWY:1, EWT:1, EIDO:1, EZA:1, EWW:1, THD:1, TUR:1, ECH:1, EPU:1, EPOL:1, KWEB:1, EWX:1, FNDE:1, ASHR:1, GXC:1 };
   var FR_T = { FM:1, VNM:1, AFK:1, FRN:1, FMQQ:1, VNAM:1, KPHO:1, ARGT:1 };
@@ -226,9 +247,12 @@
         region: c.region || "—",
         sub: c.subcategory || "",
         sector: c.ref_sector || "",
+        name: textOf(f, "description") || "",
+        snap: (h.snapshot || {}).key || "",
         f1: f1 && f1.usd, p1: f1 && f1.pctA,
         f5: f5 && f5.usd, p5: f5 && f5.pctA,
-        f21: f21 && f21.usd, p21: f21 && f21.pctA
+        f21: f21 && f21.usd, p21: f21 && f21.pctA,
+        f21src: f21 && f21.src, f21end: f21 && f21.end, f21obs: f21 && f21.obs, f21status: f21 && f21.status
       };
     });
   }
@@ -266,6 +290,7 @@
     body.querySelectorAll("th").forEach(function (th) {
       th.onclick = function () {
         var k = th.getAttribute("data-k");
+        if (!k || k === "book") return;
         if (keyRef.k === k) keyRef.d = -keyRef.d;
         else { keyRef.k = k; keyRef.d = (k === "t" || k === "asof" || k === "asset" || k === "category" || k === "region" || k === "issuer" || k === "lev" || k === "name") ? 1 : -1; }
         draw();
@@ -337,7 +362,7 @@
     + ".jh-etf .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;padding:8px}"
     + ".jh-etf .board{background:#1e222d;border:1px solid #2a2e39;border-radius:6px;padding:8px 10px;max-height:520px;overflow:auto}"
     + ".jh-etf .board h3{margin:0 0 6px;font-size:11px;letter-spacing:.06em;color:#787b86;font-weight:700;position:sticky;top:0;background:#1e222d}"
-    + ".jh-etf .board .row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #2a2e39}"+ ".jh-etf .regime{display:flex;gap:0;background:#0e1420;border-bottom:1px solid #2a2e39;flex:none;overflow:auto}"+ ".jh-etf .rc{min-width:156px;padding:7px 10px 8px;border-right:1px solid #2a2e39}"+ ".jh-etf .rc .asof{font-size:15px;font-weight:800;color:#fff;letter-spacing:.01em;font-variant-numeric:tabular-nums}"+ ".jh-etf .rc .lab{font-size:10px;letter-spacing:.04em;color:#9aa0ac;margin-top:2px}"+ ".jh-etf .rc .val{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;color:#d1d4dc}"+ ".jh-etf .lag{padding:0 10px 7px;background:#0e1420;color:#fff;font-size:12px;font-weight:700;border-bottom:1px solid #2a2e39}"+ ".jh-etf .breadth{height:220px;margin:8px 8px 0;background:#0c1016;border:1px solid #2a2e39;border-radius:4px}"+ ".jh-etf .breadth svg{width:100%;height:100%;display:block}"+ ".jh-etf [data-sym]{cursor:pointer}"+ ".jh-etf [data-sym]:hover{outline:1px solid #d1d4dc}";
+    + ".jh-etf .board .row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #2a2e39}"+ ".jh-etf .regime{display:flex;gap:0;background:#0e1420;border-bottom:1px solid #2a2e39;flex:none;overflow:auto}"+ ".jh-etf .rc{min-width:156px;padding:7px 10px 8px;border-right:1px solid #2a2e39}"+ ".jh-etf .rc .asof{font-size:15px;font-weight:800;color:#fff;letter-spacing:.01em;font-variant-numeric:tabular-nums}"+ ".jh-etf .rc .lab{font-size:10px;letter-spacing:.04em;color:#9aa0ac;margin-top:2px}"+ ".jh-etf .rc .val{font-size:12px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;color:#d1d4dc}"+ ".jh-etf .lag{padding:0 10px 7px;background:#0e1420;color:#fff;font-size:12px;font-weight:700;border-bottom:1px solid #2a2e39}"+ ".jh-etf .breadth{height:220px;margin:8px 8px 0;background:#0c1016;border:1px solid #2a2e39;border-radius:4px}"+ ".jh-etf .breadth svg{width:100%;height:100%;display:block}"+ ".jh-etf [data-sym]{cursor:pointer}"+ ".jh-etf [data-sym]:hover{outline:1px solid #d1d4dc}"+ ".jh-etf [data-book]{cursor:pointer;color:#8ab4ff}"+ ".jh-etf .look{margin:8px;background:#1e222d;border:1px solid #2a2e39;border-radius:6px;padding:8px 10px}";
 
   function render(host, packet) {
     var all = rowsOf(packet);
@@ -366,6 +391,8 @@
     var byT = {};
     all.forEach(function (r) { byT[r.t] = r; });
     body.addEventListener("click", function (e) {
+      var bookEl = e.target && e.target.closest ? e.target.closest("[data-book]") : null;
+      if (bookEl && body.contains(bookEl)) { openBook(bookEl.getAttribute("data-book")); return; }
       var el = e.target && e.target.closest ? e.target.closest("[data-sym]") : null;
       if (!el || !body.contains(el)) return;
       openChart(el.getAttribute("data-sym"));
@@ -514,11 +541,18 @@
     }
 
 
+    function isLev(r) {
+      if (!r || r.kind === "stock" || r.kind === "cef") return false;
+      var lev = String(r.lev || "").toLowerCase();
+      if (lev === "leveraged" || lev === "inverse") return true;
+      if (lev === "unleveraged") return false;
+      var s = (String(r.category || "") + " " + String(r.sub || "") + " " + String(r.name || "")).toLowerCase();
+      return /leverag|inverse|\bultra\b|\b[23]x\b|-1x|-2x|-3x/.test(s);
+    }
     function isEquityEtf(r) {
-      if (r.kind === "stock" || r.kind === "cef") return false;
-      var a = String(r.asset || "");
-      if (/fixed|bond|commod|currenc|crypto|real estate|gold|multi|alternative/i.test(a)) return false;
-      return a === "Equity" || /equit|leverag|sector|large cap|intl|emerging/i.test(a);
+      if (!r || r.kind === "stock" || r.kind === "cef") return false;
+      if (isLev(r) || isCryptoEtf(r)) return false;
+      return assetBucket(r) === "Equity";
     }
     var TREAS = { MSTR:1, XXI:1, ABTC:1, BMNR:1, SBET:1, DFDV:1, UPXI:1, NAKA:1, ASST:1, BTCS:1, FUFU:1, BTCT:1, PRE:1 };
     var MINER = { MARA:1, RIOT:1, CLSK:1, WULF:1, CIFR:1, HUT:1, IREN:1, CORZ:1, BTDR:1, APLD:1, BTBT:1, CANG:1, ARBK:1, CAN:1 };
@@ -530,6 +564,18 @@
     }
     function isCryptoName(r) {
       return isCryptoEtf(r) || !!TREAS[r.t] || !!MINER[r.t] || !!OPER[r.t];
+    }
+    function assetBucket(r) {
+      if (isCryptoEtf(r)) return "Crypto";
+      var a = String((r && r.asset) || "");
+      if (a === "Fixed Income" || a === "Commodities" || a === "Currency" || a === "Real Estate" || a === "Crypto" || a === "Equity" || a === "Multi Asset" || a === "Closed-end") return a;
+      var s = (a + " " + (r.category || "") + " " + (r.sub || "") + " " + (r.name || "")).toLowerCase();
+      if (/real estate|reit/.test(s)) return "Real Estate";
+      if (/bond|fixed income|municipal|tips|high yield|credit|aggregate|treasury/.test(s)) return "Fixed Income";
+      if (/gold|silver|oil|commod|copper|platinum|palladium|agriculture|natural gas/.test(s)) return "Commodities";
+      if (/currency|\bfx\b|dollar bull|yen|euro/.test(s)) return "Currency";
+      if (r.kind === "stock") return "Equity";
+      return a || "Other";
     }
     var _uniIdxN = -1, _uniIdx = null;
     function uniIndex() {
@@ -551,7 +597,12 @@
       if (!s || s === "all") return true;
       if (s === "eqEtf") return isEquityEtf(r);
       if (s === "eqStock") return r.kind === "stock";
-      if (s === "crypto") return isCryptoName(r);
+      if (s === "lev") return isLev(r);
+      if (s === "crypto") return isCryptoName(r) && !isLev(r);
+      if (s === "fi") return assetBucket(r) === "Fixed Income" && !isLev(r);
+      if (s === "cmd") return assetBucket(r) === "Commodities" && !isLev(r);
+      if (s === "fx") return assetBucket(r) === "Currency" && !isLev(r);
+      if (s === "re") return assetBucket(r) === "Real Estate" && !isLev(r);
       var want = s === "intl" ? "International" : s === "em" ? "Emerging" : s === "frontier" ? "Frontier" : "";
       if (want) return mktOf(r) === want;
       return true;
@@ -642,6 +693,11 @@
       if (s === "eqStock") return false;
       if (s === "eqEtf") return /equit/.test(t);
       if (s === "crypto") return /crypto|bitcoin|ether/.test(t);
+      if (s === "fi") return /bond|fixed|treasur|credit|income|muni/.test(t);
+      if (s === "cmd") return /commod|gold|metal|agricult|precious/.test(t);
+      if (s === "fx") return /currency|forex/.test(t);
+      if (s === "re") return /real estate|reit/.test(t);
+      if (s === "lev") return /leverag|inverse/.test(t);
       if (s === "intl") return /global|ex[\.\- ]\s*us|international/.test(t);
       if (s === "em") return /emerg/.test(t);
       if (s === "frontier") return /frontier market/.test(t);
@@ -656,6 +712,11 @@
       if (s === "em") return /emerg/.test(n);
       if (s === "frontier") return false;
       if (s === "crypto") return /crypto|bitcoin|ether/.test(n);
+      if (s === "fi") return /bond|treasur|credit|aggregate|muni/.test(n);
+      if (s === "cmd") return /commod|gold|metal|oil/.test(n);
+      if (s === "fx") return /currency|dollar|yen|euro/.test(n);
+      if (s === "re") return /reit|real estate/.test(n);
+      if (s === "lev") return /lever|ultra|inverse|\b[23]x\b/.test(n);
       return true;
     }
     function bookPlusIssuer() {
@@ -777,14 +838,20 @@
       var eqVal = eq.pct == null ? "—" : eq.pct.toFixed(0) + "% under";
       if (eq.n) eqVal += " · " + eq.have + "/" + eq.n + " bars";
       var stVal = extra.uniErr ? ("file " + extra.uniErr) : (st.pct == null ? (extra.uni ? "—" : "…") : st.pct.toFixed(0) + "% under · " + st.u + "/" + st.n);
+      var cmdRows = all.filter(function (r) { return assetBucket(r) === "Commodities" && !isLev(r); });
+      var cmd = sumKnown(cmdRows, "f1");
+      var crRows = all.filter(function (r) { return isCryptoEtf(r) && !isLev(r); });
+      var cr = sumKnown(crRows, "f1");
       var html = "<div class=regime>"
         + cell(flowAsOf, "CREATIONS 1D · EVIDENCE BOOK", net == null ? "—" : money(net))
         + cell(barAsOf || "BARS LOADING", "EQUITY ETFs UNDER 250-DAY", eqVal)
         + cell(stockDate || "STOCK FILE", "US STOCKS UNDER 200-DAY", stVal)
         + cell(flowAsOf, "EMERGING 1D CREATIONS", (em == null ? "—" : money(em)) + " · " + emRows.length + " ETFs")
         + cell(flowAsOf, "CREDIT 1D · LQD HYG EMB", (cany ? money(csum) + " · " : "") + bits.join(" · "))
+        + cell(flowAsOf, "COMMODITY 1D CREATIONS", (cmd == null ? "—" : money(cmd)) + " · " + cmdRows.length + " ETFs")
+        + cell(flowAsOf, "CRYPTO ETF 1D CREATIONS", (cr == null ? "—" : money(cr)) + " · " + crRows.length + " ETFs")
         + cell(issDate && flowAsOf ? issDate : "ISSUER", "SIGN DISAGREE · NOT A FLOW", dis == null ? "…" : String(dis.length) + " funds", "#ffb020")
-        + "</div><div class=lag>" + esc("Creations " + (flowAsOf || "—") + " are not the " + (barAsOf || "bar") + " session. Issuer share-change ends " + (issDate || "—") + ". Stocks use the 200-day file dated " + (stockDate || "—") + ". A dash is a missing print, not zero.") + "</div>";
+        + "</div><div class=lag>" + esc("Creations " + (flowAsOf || "—") + " are not the " + (barAsOf || "bar") + " session. Commodity and crypto creations use that same creation date. Issuer share-change ends " + (issDate || "—") + ". Stocks use the 200-day file dated " + (stockDate || "—") + ". A dash is a missing print, not zero.") + "</div>";
       if (el.innerHTML !== html) el.innerHTML = html;
     }
     function dayOf(ts) {
@@ -812,10 +879,19 @@
       return ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "AVGO", "TSLA", "JPM", "LLY", "XOM", "UNH", "V", "MA", "WMT", "JNJ", "PG", "HD", "COST", "BAC", "ORCL", "CVX", "KO", "PEP"];
     }
     function breadthGroups() {
+      function syms(pred) { return all.filter(pred).map(function (r) { return r.t; }); }
       return {
-        eq: all.filter(isEquityEtf).map(function (r) { return r.t; }),
-        oth: all.filter(function (r) { return !isEquityEtf(r); }).map(function (r) { return r.t; }),
-        stk: stockSample()
+        stk: stockSample(),
+        lines: [
+          ["Equity ETFs", syms(isEquityEtf), "#5b8cff"],
+          ["Fixed income", syms(function (r) { return assetBucket(r) === "Fixed Income" && !isLev(r); }), "#d4a017"],
+          ["Commodities", syms(function (r) { return assetBucket(r) === "Commodities" && !isLev(r); }), "#ef6c00"],
+          ["Crypto ETFs", syms(function (r) { return isCryptoEtf(r) && !isLev(r); }), "#b388ff"],
+          ["Currency", syms(function (r) { return assetBucket(r) === "Currency" && !isLev(r); }), "#26a69a"],
+          ["Real estate", syms(function (r) { return assetBucket(r) === "Real Estate" && !isLev(r); }), "#f48fb1"],
+          ["Leveraged", syms(isLev), "#ff8a65"],
+          ["US stock sample", stockSample(), "#e6e8ee"]
+        ]
       };
     }
     function cohortLine(symbols, win) {
@@ -832,7 +908,7 @@
         }
       }
       order.sort();
-      var need = Math.max(4, Math.ceil(loaded * 0.6)), pts = [];
+      var need = loaded < 4 ? Math.max(1, loaded) : Math.max(4, Math.ceil(loaded * 0.6)), pts = [];
       for (i = 0; i < order.length; i++) {
         a = acc[order[i]];
         if (a[1] < need) continue;
@@ -843,16 +919,12 @@
     }
     function breadthSvg(win) {
       var g = breadthGroups();
-      var lines = [
-        ["Equity ETFs", cohortLine(g.eq, win), "#5b8cff"],
-        ["Other ETF classes", cohortLine(g.oth, win), "#ffb020"],
-        ["US stock sample", cohortLine(g.stk, win), "#e6e8ee"]
-      ];
+      var lines = g.lines.map(function (ln) { return [ln[0], cohortLine(ln[1], win), ln[2]]; });
       var dates = {}, i, k;
       for (i = 0; i < lines.length; i++) for (k = 0; k < lines[i][1].pts.length; k++) dates[lines[i][1].pts[k][0]] = 1;
       var axis = Object.keys(dates).sort();
       if (axis.length > win) axis = axis.slice(-win);
-      var W = 800, H = 210, L = 36, R = 12, T = 16, B = 22;
+      var W = 800, H = 230, L = 36, R = 12, T = 16, B = 22;
       var svg = "<svg viewBox='0 0 " + W + " " + H + "' preserveAspectRatio='xMidYMid meet'>";
       var y0 = T, y1 = H - B, x0 = L, x1 = W - R;
       [0, 25, 50, 75, 100].forEach(function (gline) {
@@ -872,7 +944,7 @@
         if (pts.length < 2) { legend.push(ln[0] + " " + ln[1].loaded + "/" + ln[1].n); return; }
         var d = "";
         pts.forEach(function (pt, idx) { d += (idx ? "L" : "M") + xOf(pt[0]).toFixed(1) + " " + yOf(pt[1]).toFixed(1) + " "; });
-        svg += "<path d='" + d + "' fill='none' stroke='" + ln[2] + "' stroke-width='2'/>";
+        svg += "<path d='" + d + "' fill='none' stroke='" + ln[2] + "' stroke-width='1.7'/>";
         legend.push(ln[0] + " " + pts[pts.length - 1][1].toFixed(0) + "% · " + ln[1].loaded + "/" + ln[1].n);
       });
       if (axis.length) {
@@ -881,7 +953,7 @@
       }
       svg += "</svg>";
       var stockN = uniRows().filter(function (r) { return r.kind === "stock"; }).length;
-      return "<div class=breadth>" + svg + "</div><div class=note>Percent under the 250-day, one line each, last " + win + " sessions. Blue is equity ETFs. Amber is every other class in the evidence book. White is a liquid US stock sample (" + esc(g.stk.slice(0, 6).join(" ")) + "…), not the " + (stockN || "full") + "-name file. That file has 20, 50 and 200 only. " + esc(legend.join(" · ")) + "</div>";
+      return "<div class=breadth>" + svg + "</div><div class=note>Percent under the 250-day, one line per class, last " + win + " sessions. Equity, bonds, commodities, crypto, currency, real estate, and leveraged are the evidence book, not the 5,775-fund file. White is a liquid US stock sample (" + esc(g.stk.slice(0, 6).join(" ")) + "…), not the " + (stockN || "full") + "-name file. That file has 20, 50 and 200 only, so it cannot draw this line. " + esc(legend.join(" · ")) + "</div>";
     }
     var COUNTRY_DEF = [
       { name: "Japan", mkt: "International", tickers: { EWJ: 1, DXJ: 1, BBJP: 1, HEWJ: 1, FLJP: 1, JPXN: 1 }, re: /japan/ },
@@ -905,11 +977,19 @@
         if (state.scope === "intl" && d.mkt !== "International") return;
         if (state.scope === "em" && d.mkt !== "Emerging") return;
         var rows = all.filter(function (r) { return countryHit(r, d); });
-        var net = sumKnown(rows, "f21"), d1 = sumKnown(rows, "f1"), prints = 0, i;
-        for (i = 0; i < rows.length; i++) if (rows[i].f21 != null) prints++;
+        var net = sumKnown(rows, "f21"), d1 = sumKnown(rows, "f1"), prints = 0, late = 0, inc = 0, i;
+        for (i = 0; i < rows.length; i++) {
+          if (rows[i].f21 != null) prints++;
+          if (rows[i].f21src === "latest") late++;
+          if (rows[i].f21 == null && rows[i].f21status === "incomplete") inc++;
+        }
+        var sub = !rows.length ? "no fund" : (net == null ? "21D —" : (prints + "/" + rows.length + " summed"));
+        if (inc && prints < rows.length) sub += " · " + inc + " incomplete";
+        if (late) sub += " · latest window";
+        if (d1 != null) sub += " · 1D " + money(d1);
         out.push({
           t: d.name, net: net, sz: net == null ? 8e7 : (Math.abs(net) || 8e7),
-          sub: (net == null ? "21D —" : prints + " with 21D") + (d1 == null ? "" : " · 1D " + money(d1)),
+          sub: sub,
           sym: ""
         });
       });
@@ -928,7 +1008,7 @@
     }
     function fillExtra() {
       ensureUni();
-      var html = "";
+      var html = coverageNote() + issuerBoard();
       if (state.scope === "all" || state.scope === "crypto") html += cryptoHtml();
       if (state.scope !== "crypto") {
       var mkts = ["International", "Emerging", "Frontier"];
@@ -974,6 +1054,7 @@
         p.onclick = function () { state.scope = p.getAttribute("data-scope"); markScope(); draw(); };
       });
       paintCryptoMaps();
+      paintIssuerMap();
     }
     function cryptoHtml() {
       var book = all.filter(isCryptoEtf);
@@ -985,7 +1066,8 @@
       html += "<div class='map flow' id=cr-flow style='height:170px;min-height:170px'></div>";
       html += "<div class=note>";
       if (klass) html += "Finviz Global Cryptocurrency is " + klass.n + " funds, AUM " + plain(num(klass.aum)) + ", 1M net " + money(num(klass.net_1m)) + ", YTD " + money(num(klass.net_ytd)) + ", as of " + esc(String(fv.generated_at || "").slice(0, 10)) + ". ";
-      html += "Creation tiles are only the evidence-book prints (IBIT, ETHA, FBTC, BITO). The maps below are month price, blue up and amber down, sized by market cap. That is not a flow. Treasury names are balance-sheet coin vehicles. Miners are hashrate businesses. Exchanges and operating companies are not treasuries. ETHA, FBTC and IBIT had no holdings index, so they are not in the stock add/left book.</div>";
+      html += "Creation tiles are only the evidence-book prints. The maps below are month price, blue up and amber down, sized by market cap. That is not a flow. Treasury names are balance-sheet coin vehicles. Miners are hashrate businesses. Exchanges and operating companies are not treasuries. Company coin counts are not in this warehouse. The coin line is the ETF holdings rows, loaded under this map.</div>";
+      html += "<div class=sech><span>COINS INSIDE THE CRYPTO ETFs</span><span>holdings rows · not a company treasury</span></div><div class=note id=cr-coins>Loading the snapshot rows…</div>";
       html += "<div class=sech><span>LARGE CRYPTO ETFs · MONTH</span><span>111 in the file · largest 28 shown</span></div><div class='map flow' id=cr-etf style='height:240px;min-height:240px'></div>";
       html += "<div class=sech><span>CRYPTO TREASURY COMPANIES · MONTH</span><span>not miners</span></div><div class='map flow' id=cr-treas style='height:190px;min-height:190px'></div>";
       html += "<div class=sech><span>MINERS · MONTH</span><span>not a treasury</span></div><div class='map flow' id=cr-mine style='height:190px;min-height:190px'></div>";
@@ -1025,34 +1107,227 @@
       go("#cr-treas", fromSet(TREAS));
       go("#cr-mine", fromSet(MINER));
       go("#cr-oper", fromSet(OPER));
+      paintCoinBox();
+      loadCryptoCoins();
+    }
+    function coverageNote() {
+      var n = all.length, summed = 0, late = 0, inc = 0, i;
+      for (i = 0; i < n; i++) {
+        if (all[i].f21 != null) summed++;
+        if (all[i].f21src === "latest") late++;
+        if (all[i].f21 == null && all[i].f21status === "incomplete") inc++;
+      }
+      return "<div class=note>21-day creation dollars are summed for " + summed + " of " + n + " evidence funds. " + late + " of those sums were on the matched latest window and missing from the aligned row, so they are included and labeled. " + inc + " windows list dates but publish no dollar sum (missing reference observations). Those stay a dash, including several country funds. A dash is not zero, and a 5-day or 1-month figure is not written into the 21-day cell.</div>";
+    }
+    function issuerFamily(name) {
+      var s = String(name || "").toLowerCase();
+      if (/ishares|blackrock/.test(s)) return "BlackRock";
+      if (/ssga|spdr|state street/.test(s)) return "State Street";
+      if (/vanguard/.test(s)) return "Vanguard";
+      if (/invesco/.test(s)) return "Invesco";
+      if (/proshares/.test(s)) return "ProShares";
+      if (/direxion/.test(s)) return "Direxion";
+      if (/van eck|vaneck/.test(s)) return "VanEck";
+      if (/schwab/.test(s)) return "Schwab";
+      if (/fidelity/.test(s)) return "Fidelity";
+      if (/first trust/.test(s)) return "First Trust";
+      if (/global x/.test(s)) return "Global X";
+      if (/ark/.test(s)) return "ARK";
+      return name || "—";
+    }
+    function issuerBoard() {
+      var rows = all.filter(passScope);
+      var fam = {}, order = [], i, r, k, iss, cell;
+      for (i = 0; i < rows.length; i++) {
+        r = rows[i];
+        k = issuerFamily(r.issuer);
+        if (!fam[k]) { fam[k] = { t: k, n: 0, aum: 0, cre: 0, cren: 0, iss: 0, issn: 0, dis: 0 }; order.push(k); }
+        cell = fam[k];
+        cell.n++;
+        if (r.aum != null) cell.aum += r.aum;
+        if (r.f1 != null) { cell.cre += r.f1; cell.cren++; }
+        iss = extra.issMap && extra.issMap[r.t];
+        if (iss && iss.f1 != null) { cell.iss += iss.f1; cell.issn++; }
+      }
+      var dis = disagreeRows();
+      for (i = 0; i < dis.length; i++) {
+        if (!passScope(dis[i])) continue;
+        k = issuerFamily(dis[i].issuer);
+        if (fam[k]) fam[k].dis++;
+      }
+      var tiles = order.map(function (name) {
+        var c = fam[name];
+        return { t: name, net: c.cren ? c.cre : null, sz: Math.abs(c.aum) || 1, sub: c.n + " funds" };
+      });
+      var scale = pScale(tiles.map(function (t) { return t.net; }));
+      var h = "<div class=sech><span>ISSUER FAMILIES · 1D CREATIONS</span><span>one session · not a history</span></div>";
+      h += "<div class='map short' id=iss-map></div>";
+      h += "<div class=boards><div class=board><h3>CREATIONS VS ISSUER SHARES</h3>";
+      order.sort(function (a, b) { return Math.abs(fam[b].cre) - Math.abs(fam[a].cre); });
+      order.forEach(function (name) {
+        var c = fam[name];
+        h += "<div class=row><span><b>" + esc(name) + "</b> · " + c.n + "</span><span>creations " + (c.cren ? money(c.cre) : "—") + " · shares " + (c.issn ? money(c.iss) : "—") + " · disagree " + c.dis + "</span></div>";
+      });
+      h += "</div></div><div class=note>Families are the evidence-book issuer field, rolled up (iShares with BlackRock, SSgA with State Street). Creations end " + esc(flowAsOf || "—") + ". Issuer share-change ends " + esc(extra.issEnd || "—") + ". Disagree is a sign flip of at least $5M, not a third flow. The history file is a pointer, not a daily series, so this is one cross-section.</div>";
+      extra._issTiles = tiles;
+      extra._issScale = scale;
+      return h;
+    }
+    function paintIssuerMap() {
+      var el = body.querySelector("#iss-map");
+      if (!el || !extra._issTiles) return;
+      var rows = extra._issTiles.filter(function (r) { return r.net != null; });
+      if (!rows.length) { el.innerHTML = "<div class=note>No creation print for these issuers.</div>"; return; }
+      drawTiles(el, rows, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { area: "sz", fmt: money, symOf: function () { return ""; } });
+    }
+    function paintCoinBox() {
+      var el = body.querySelector("#cr-coins");
+      if (!el) return;
+      el.innerHTML = extra.coins || "Loading the snapshot rows…";
+    }
+    function loadCryptoCoins() {
+      if (extra._coinsStarted) { paintCoinBox(); return; }
+      extra._coinsStarted = true;
+      var funds = all.filter(function (r) { return isCryptoEtf(r) && r.snap; });
+      var bits = [];
+      var i = 0;
+      function step() {
+        if (!host.isConnected) return;
+        if (i >= funds.length) {
+          extra.coins = bits.length ? bits.join("<br>") : "No crypto ETF snapshot in this book.";
+          paintCoinBox();
+          return;
+        }
+        var r = funds[i++];
+        fetch("/" + r.snap).then(function (res) {
+          if (!res.ok) throw new Error(String(res.status));
+          return res.json();
+        }).then(function (snap) {
+          var parts = (snap && snap.parts) || [];
+          return Promise.all(parts.map(function (p) {
+            return fetch("/" + p.key).then(function (res) { if (!res.ok) throw new Error(String(res.status)); return res.json(); });
+          }));
+        }).then(function (chunks) {
+          var rows = [];
+          (chunks || []).forEach(function (c) { rows = rows.concat((c && c.rows) || []); });
+          var coin = rows.filter(function (row) {
+            var t = String(row.constituent_ticker || "").toUpperCase();
+            var n = String(row.constituent_name || "").toUpperCase();
+            return t === "BTC" || t === "ETH" || t === "SOL" || n === "BITCOIN" || n === "ETHEREUM";
+          });
+          if (!coin.length) bits.push("<b data-book='" + esc(r.t) + "'>" + esc(r.t) + "</b> snapshot has no BTC/ETH line");
+          else coin.forEach(function (row) {
+            bits.push("<b data-book='" + esc(r.t) + "'>" + esc(r.t) + "</b> holds " + plain(num(row.shares_held_raw_decimal)) + " " + esc(row.constituent_ticker || row.constituent_name || "") + " · value " + plain(num(row.market_value_raw_decimal)) + " · " + esc(r.asof || ""));
+          });
+        }).catch(function () {
+          bits.push(esc(r.t) + " snapshot did not load");
+        }).then(function () { setTimeout(step, 40); });
+      }
+      step();
+    }
+    function openBook(sym) {
+      sym = String(sym || "").toUpperCase();
+      var r = byT[sym];
+      var old = body.querySelector("#look-panel");
+      if (old) old.remove();
+      body.insertAdjacentHTML("afterbegin", "<div class=look id=look-panel><div class=sech><span>LOOK-THROUGH · " + esc(sym) + "</span><b id=look-x>close</b></div><div class=note id=look-note>Loading weights…</div><div id=look-rows></div></div>");
+      var x = body.querySelector("#look-x");
+      if (x) x.onclick = function () { var p = body.querySelector("#look-panel"); if (p) p.remove(); };
+      var note = body.querySelector("#look-note");
+      if (!r || !r.snap) { if (note) note.textContent = sym + " has no holdings snapshot in this book. Line counts are not a constituents list. Nothing invented."; return; }
+      fetch("/" + r.snap).then(function (res) {
+        if (!res.ok) throw new Error(String(res.status));
+        return res.json();
+      }).then(function (snap) {
+        var parts = (snap && snap.parts) || [];
+        return Promise.all(parts.map(function (p) {
+          return fetch("/" + p.key).then(function (res) { if (!res.ok) throw new Error(String(res.status)); return res.json(); });
+        })).then(function (chunks) { return { snap: snap, chunks: chunks }; });
+      }).then(function (pack) {
+        var rows = [];
+        (pack.chunks || []).forEach(function (c) { rows = rows.concat((c && c.rows) || []); });
+        var sumW = 0, haveW = 0, i, w;
+        for (i = 0; i < rows.length; i++) {
+          w = num(rows[i].weight_raw_decimal);
+          if (w != null) { sumW += w; haveW++; }
+        }
+        var asPct = sumW > 0.5 && sumW < 1.5;
+        rows.sort(function (a, b) {
+          var aw = num(a.weight_raw_decimal), bw = num(b.weight_raw_decimal);
+          if (aw == null && bw == null) return (num(b.market_value_raw_decimal) || 0) - (num(a.market_value_raw_decimal) || 0);
+          return (bw || 0) - (aw || 0);
+        });
+        var top = rows.slice(0, 40);
+        var h = "<table><thead><tr><th>Ticker</th><th>Name</th><th>Weight</th><th>Market value</th><th>Shares</th></tr></thead><tbody>";
+        top.forEach(function (row) {
+          var tk = String(row.constituent_ticker || "").toUpperCase();
+          var symCell = /^[A-Z][A-Z0-9.\-]{0,9}$/.test(tk) ? ("<b data-sym='" + esc(tk) + "'>" + esc(tk) + "</b>") : esc(tk || "—");
+          w = num(row.weight_raw_decimal);
+          var wtxt = w == null ? "—" : (asPct ? (w * 100).toFixed(2) + "%" : String(w));
+          h += "<tr><td>" + symCell + "</td><td>" + esc(row.constituent_name || "") + "</td><td>" + wtxt + "</td><td>" + plain(num(row.market_value_raw_decimal)) + "</td><td>" + plain(num(row.shares_held_raw_decimal)) + "</td></tr>";
+        });
+        h += "</tbody></table>";
+        var box = body.querySelector("#look-rows");
+        if (box) box.innerHTML = h;
+        if (note) note.textContent = rows.length + " lines · as of " + (r.asof || "—") + " · showing " + top.length + ". Weight is the provider raw figure" + (asPct ? ", shown as percent because the book sums near 1 (" + sumW.toFixed(3) + ")." : " (sum " + (haveW ? sumW.toFixed(3) : "—") + "). Scale is unverified, so it is not forced into a percent.") + " Added and deleted on the fund row are still line counts.";
+      }).catch(function (err) {
+        if (note) note.textContent = "The holdings file for " + sym + " did not load (" + (err && err.message ? err.message : "error") + "). Nothing invented.";
+      });
     }
     function showSpreads() {
       ensureUni();
-      function quoteRows(list) {
-        return list.filter(function (r) { return r.spread != null && passScope(r); }).map(function (r) {
-          return { t: r.t, v: r.spread * 10000, sz: Math.abs(r.aum || 0) || 1 };
-        });
-      }
-      var eq = quoteRows(all.filter(isEquityEtf));
-      var oth = quoteRows(all.filter(function (r) { return !isEquityEtf(r); }));
-      var stocks = uniRows().filter(function (r) { return r.kind === "stock" && r.atrPct != null && r.price >= 5 && passScope(r); })
-        .sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 70)
-        .map(function (r) { return { t: r.t, v: r.atrPct, sz: Math.abs(r.mcap || 0) || 1 }; });
-      body.innerHTML = "<div class=note>Size is assets. Color is tightness: cyan is tight, red is wide. This is not the green and red used for creations. Equity ETFs and the other classes are the bid/ask in basis points. Stocks are ATR as a percent of price, because that file has no quote. Stock tiles are the largest names in this scope, capped at 70.</div>"
-        + "<div class=sech><span>EQUITY ETFs · QUOTE BP</span><span>" + eq.length + "</span></div><div class='map short' id=sp-eq></div>"
-        + "<div class=sech><span>OTHER CLASSES · QUOTE BP</span><span>" + oth.length + "</span></div><div class='map short' id=sp-ot></div>"
-        + "<div class=sech><span>EQUITY STOCKS · ATR % OF PRICE</span><span>" + stocks.length + "</span></div><div class='map short' id=sp-st></div>"
-        + (extra.uni ? "" : "<div class=note>Loading the slim book for stock ranges…</div>");
+      var defs = [
+        ["eq", "Equity ETFs", function (r) { return isEquityEtf(r); }],
+        ["fi", "Fixed income", function (r) { return assetBucket(r) === "Fixed Income" && !isLev(r); }],
+        ["cmd", "Commodities", function (r) { return assetBucket(r) === "Commodities" && !isLev(r); }],
+        ["cr", "Crypto ETFs", function (r) { return isCryptoEtf(r) && !isLev(r); }],
+        ["fx", "Currency", function (r) { return assetBucket(r) === "Currency" && !isLev(r); }],
+        ["re", "Real estate", function (r) { return assetBucket(r) === "Real Estate" && !isLev(r); }],
+        ["lev", "Leveraged", function (r) { return isLev(r); }]
+      ];
+      if (state.scope !== "all") defs = defs.filter(function (d) {
+        return all.some(function (r) { return d[2](r) && passScope(r); }) || uniRows().some(function (r) { return d[2](r) && passScope(r); });
+      });
+      var html = "<div class=note>Color is tightness, cyan tight and red wide. It is not the green and red of creations, and not the blue and amber of price. Quote maps are bid/ask in basis points from the evidence book. Where that book has no quote, the map under it is ATR as a percent of price from the slim file. Those two units are never painted as the same fact. Stock tiles are the largest names, capped at 40.</div>";
+      defs.forEach(function (d) {
+        html += "<div class=sech><span>" + esc(d[1]).toUpperCase() + " · QUOTE BP</span><span id=sph-" + d[0] + "></span></div><div class='map short' id=spq-" + d[0] + "></div>";
+        html += "<div class=sech><span>" + esc(d[1]).toUpperCase() + " · ATR % WHERE NO QUOTE</span><span id=sph2-" + d[0] + "></span></div><div class='map short' id=spa-" + d[0] + "></div>";
+      });
+      if (state.scope === "all" || state.scope === "eqStock") html += "<div class=sech><span>EQUITY STOCKS · ATR % OF PRICE</span><span id=sph-st></span></div><div class='map short' id=sp-st></div>";
+      body.innerHTML = html;
       function go(id, list, unit) {
         var box = body.querySelector(id);
         if (!box) return;
-        if (!list.length) { box.innerHTML = "<div class=note>No names in this scope.</div>"; return; }
+        if (!list.length) { box.innerHTML = "<div class=note>No names in this slice.</div>"; return; }
         drawTiles(box, list, "v", function (r) { return r.t; }, null, { color: tightPaint, area: "sz", fmt: function (v) { return v == null ? "—" : v.toFixed(2) + unit; } });
       }
-      go("#sp-eq", eq, " bp");
-      go("#sp-ot", oth, " bp");
-      go("#sp-st", stocks, "%");
-      meta("Spreads · " + eq.length + " equity ETF quotes · " + oth.length + " other quotes · " + stocks.length + " stock ranges · color is tightness, not flow");
+      var quoted = {};
+      all.forEach(function (r) { if (r.spread != null) quoted[r.t] = 1; });
+      defs.forEach(function (d) {
+        var qrows = all.filter(function (r) { return d[2](r) && passScope(r) && r.spread != null; }).map(function (r) {
+          return { t: r.t, v: r.spread * 10000, sz: Math.abs(r.aum || 0) || 1 };
+        });
+        var arows = uniRows().filter(function (r) {
+          return r.kind === "etf" && d[2](r) && passScope(r) && r.atrPct != null && !quoted[r.t];
+        }).sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 36).map(function (r) {
+          return { t: r.t, v: r.atrPct, sz: Math.abs(r.mcap || 0) || 1 };
+        });
+        var qh = body.querySelector("#sph-" + d[0]);
+        var ah = body.querySelector("#sph2-" + d[0]);
+        if (qh) qh.textContent = qrows.length + " quotes";
+        if (ah) ah.textContent = arows.length ? (arows.length + " ATR") : "";
+        go("#spq-" + d[0], qrows, " bp");
+        go("#spa-" + d[0], arows, "%");
+      });
+      if (state.scope === "all" || state.scope === "eqStock") {
+        var stocks = uniRows().filter(function (r) { return r.kind === "stock" && r.atrPct != null && r.price >= 5 && (state.scope === "eqStock" ? passScope(r) : r.mkt === "US"); })
+          .sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 40)
+          .map(function (r) { return { t: r.t, v: r.atrPct, sz: Math.abs(r.mcap || 0) || 1 }; });
+        var sh = body.querySelector("#sph-st");
+        if (sh) sh.textContent = stocks.length + " names";
+        go("#sp-st", stocks, "%");
+      }
+      meta("Spreads by class · quote in bp · ATR in percent · tightness colors, not flow colors");
     }
     function pushPick(list, n, picks, metaMap) {
       var rows = list.filter(function (r) { return r.sma200 != null && r.sma200 < 0; }).sort(function (a, b) { return a.sma200 - b.sma200; });
@@ -1178,6 +1453,11 @@
       if (s === "em") return EM_T[ticker];
       if (s === "frontier") return FR_T[ticker];
       if (s === "crypto") return /CRYPTO/.test(c);
+      if (s === "fi") return /TREASURY|CREDIT|BOND|FIXED|MUNI|TIPS/.test(c);
+      if (s === "cmd") return /COMMOD|GOLD|METAL/.test(c);
+      if (s === "fx") return c === "FX" || /CURRENCY/.test(c);
+      if (s === "re") return /REIT|REAL.?ESTATE/.test(c);
+      if (s === "lev") return /LEVER/.test(c);
       return true;
     }
     function issuerLists() {
@@ -1199,7 +1479,7 @@
       var secIn = [], secOut = [], catIn = [], catOut = [];
       var fv = extra.finviz && !extra.finviz.error ? extra.finviz : null;
       (fv && fv.sector_etfs || []).forEach(function (x) {
-        if (state.scope === "crypto") return;
+        if (state.scope === "crypto" || state.scope === "fi" || state.scope === "cmd" || state.scope === "fx" || state.scope === "re" || state.scope === "lev") return;
         var v = num(x.flows_1m);
         if (v == null || !v) return;
         if (state.q && String(x.ticker).indexOf(state.q) < 0 && String(x.sector || "").toUpperCase().indexOf(state.q) < 0) return;
@@ -1212,6 +1492,11 @@
         if (state.scope === "intl" && c.category !== "INTERNATIONAL" && c.category !== "COUNTRY") return;
         if (state.scope === "em" && c.category !== "COUNTRY" && c.category !== "INTERNATIONAL") return;
         if (state.scope === "crypto" && String(c.category || "").indexOf("CRYPTO") < 0) return;
+        if (state.scope === "fi" && !/TREASURY|CREDIT|BOND|FIXED|MUNI|TIPS/.test(String(c.category || ""))) return;
+        if (state.scope === "cmd" && String(c.category || "").indexOf("COMMOD") < 0) return;
+        if (state.scope === "fx" && String(c.category || "") !== "FX") return;
+        if (state.scope === "re") return;
+        if (state.scope === "lev" && String(c.category || "").indexOf("LEVER") < 0) return;
         var v = num(c.net_flow_5d_usd);
         if (v == null || !v) return;
         var row = { t: String(c.category || "").replace(/_/g, " "), net: v, sub: (c.n_etfs || 0) + " funds · 5D", sym: "" };
@@ -1277,6 +1562,18 @@
       if (!u) return false;
       return passScope(u);
     }
+    function bookLinks(s) {
+      var parts = String(s || "").split(/[^A-Z0-9.\-]+/);
+      var seen = {}, out = [], i, t;
+      for (i = 0; i < parts.length; i++) {
+        t = parts[i];
+        if (!/^[A-Z][A-Z0-9.\-]{0,9}$/.test(t) || seen[t]) continue;
+        seen[t] = 1;
+        out.push("<b data-book='" + esc(t) + "'>" + esc(t) + "</b>");
+        if (out.length >= 16) break;
+      }
+      return out.length ? out.join(" ") : esc(s || "");
+    }
     function showNames() {
       ensureMoves();
       ensureUni();
@@ -1301,7 +1598,7 @@
         var h = "<div class=board><h3>" + esc(title) + " · " + rows.length + "</h3>";
         rows.forEach(function (r, i) {
           h += "<div class=row><span>" + (i + 1) + "  <b data-sym='" + esc(r.t) + "'>" + esc(r.t) + "</b> " + esc(r.name || "") + "</span><span>" + r.n + "</span></div>";
-          if (i < 12 && r.etfs) h += "<div class=row><span style='color:#9aa0ac'>" + esc(r.etfs) + "</span><span></span></div>";
+          if (i < 12 && r.etfs) h += "<div class=row><span>" + bookLinks(r.etfs) + "</span><span></span></div>";
         });
         return h + "</div>";
       }
@@ -1311,7 +1608,7 @@
         + "A trim that stayed inside the fund is not in this file, so this is entries and exits. "
         + "New emergers had zero holders in the prior book and at least one fund reports them now. That is a first print here, not a corporate merger. "
         + (mv.n_added_names || 0) + " names were added somewhere, " + (mv.n_left_names || 0) + " left somewhere, " + (mv.n_emergers || 0) + " were new to the whole book. "
-        + "Look-through is the fund list under each name, capped at 16. A name that was added and left by the same funds was dropped as an identity remap, not a new position. The printed name is the snapshot’s name, so a ticker used in two countries can look wrong. Click a ticker for the chart.</div>";
+        + "Look-through: the fund tokens under a name open that fund's weights. A name that was added and left by the same funds was dropped as an identity remap, not a new position. The printed name is the snapshot’s name, so a ticker used in two countries can look wrong. Click a stock ticker for the chart.</div>";
       body.innerHTML = note
         + "<div class=sech><span>STOCKS ADDED BY ETFs</span><span>top " + added.length + "</span></div><div class='map flow' id=mv-add></div>"
         + "<div class=sech><span>STOCKS LEFT BY ETFs</span><span>top " + left.length + "</span></div><div class='map flow' id=mv-left></div>"
@@ -1510,11 +1807,11 @@
       if (["t", "asset", "category", "region", "issuer", "lev", "nHold", "both", "added", "deleted", "asof", "aum", "exp", "spread", "vol", "si", "disc", "mkt"].indexOf(state.holdSort.k) < 0) state.holdSort.k = "nHold";
       sortRows(list, state.holdSort.k, state.holdSort.d);
       meta(list.length + " funds · book vs prior · " + countsOf(all, "asset").length + " asset classes · " + countsOf(all, "issuer").length + " issuers");
-      table(body, [["t", "Ticker"], ["asset", "Class"], ["category", "Category"], ["region", "Region"], ["issuer", "Issuer"], ["lev", "Leverage"], ["nHold", "Holdings"], ["both", "In both"], ["added", "Added"], ["deleted", "Deleted"], ["asof", "As of"], ["aum", "AUM"], ["exp", "Expense"], ["spread", "Spread bp"], ["vol", "Volume"], ["si", "Short sh"], ["disc", "Prem"]], list, state.holdSort.k, state.holdSort.d, function (r) {
-        return "<td>" + esc(r.t) + "</td><td>" + esc(r.asset) + "</td><td>" + esc(r.category) + "</td><td>" + esc(r.region) + "</td><td>" + esc(r.issuer) + "</td><td>" + esc(r.lev) + "</td><td>" + (r.nHold == null ? "—" : Math.round(r.nHold)) + "</td><td>" + (r.both == null ? "—" : r.both) + "</td><td>" + (r.added == null ? "—" : r.added) + "</td><td>" + (r.deleted == null ? "—" : r.deleted) + "</td><td>" + esc(r.asof || "—") + "</td><td>" + plain(r.aum) + "</td><td>" + (r.exp == null ? "—" : r.exp.toFixed(2) + "%") + "</td><td>" + (r.spread == null ? "—" : (r.spread * 10000).toFixed(2)) + "</td><td>" + plain(r.vol) + "</td><td>" + plain(r.si) + "</td><td>" + pct(r.disc) + "</td>";
+      table(body, [["t", "Ticker"], ["book", "Book"], ["asset", "Class"], ["category", "Category"], ["region", "Region"], ["issuer", "Issuer"], ["lev", "Leverage"], ["nHold", "Holdings"], ["both", "In both"], ["added", "Added"], ["deleted", "Deleted"], ["asof", "As of"], ["aum", "AUM"], ["exp", "Expense"], ["spread", "Spread bp"], ["vol", "Volume"], ["si", "Short sh"], ["disc", "Prem"]], list, state.holdSort.k, state.holdSort.d, function (r) {
+        return "<td>" + esc(r.t) + "</td><td><b data-book='" + esc(r.t) + "'>book</b></td><td>" + esc(r.asset) + "</td><td>" + esc(r.category) + "</td><td>" + esc(r.region) + "</td><td>" + esc(r.issuer) + "</td><td>" + esc(r.lev) + "</td><td>" + (r.nHold == null ? "—" : Math.round(r.nHold)) + "</td><td>" + (r.both == null ? "—" : r.both) + "</td><td>" + (r.added == null ? "—" : r.added) + "</td><td>" + (r.deleted == null ? "—" : r.deleted) + "</td><td>" + esc(r.asof || "—") + "</td><td>" + plain(r.aum) + "</td><td>" + (r.exp == null ? "—" : r.exp.toFixed(2) + "%") + "</td><td>" + (r.spread == null ? "—" : (r.spread * 10000).toFixed(2)) + "</td><td>" + plain(r.vol) + "</td><td>" + plain(r.si) + "</td><td>" + pct(r.disc) + "</td>";
       });
       bindSort(body, state.holdSort, draw);
-      body.insertAdjacentHTML("beforeend", "<div class=note>Fund book only. The Added and deleted columns are line counts, not the stock. The stocks themselves are on Added / left. Click a ticker to open that fund.</div>");
+      body.insertAdjacentHTML("beforeend", "<div class=note>Book opens the weights. The ticker still opens the chart. Added and deleted are line counts, not the stock names. The stocks are on Added / left.</div>");
     }
 
     function showCensus() {
@@ -1576,10 +1873,34 @@
       body.innerHTML = html + "</div>";
     }
 
+    function showEffort() {
+      var rows = all.filter(passScope).map(function (r) {
+        var st = tech[r.t] || {};
+        return { t: r.t, net: st.evr, ret: st.ret, eff: st.eff, sym: r.t, sub: (st.ret == null ? "—" : pct(st.ret)) + " / eff " + (st.eff == null ? "—" : st.eff.toFixed(2)) };
+      }).filter(function (r) { return r.net != null; });
+      var slim = uniRows().filter(function (r) { return passScope(r) && r.perfM != null && r.atrPct; }).sort(function (a, b) { return (b.mcap || 0) - (a.mcap || 0); }).slice(0, 40).map(function (r) {
+        return { t: r.t, net: r.perfM / r.atrPct, sym: r.t, sz: Math.abs(r.mcap || 0) || 1, sub: pct(r.perfM) + " / " + r.atrPct.toFixed(1) + "% ATR" };
+      });
+      body.innerHTML = "<div class=note>Effort on the evidence book is the last bar's volume divided by the average of the prior 21 sessions. Result is that bar's percent change. EVR is result divided by effort. Teal means the result was large versus the effort. Purple means the opposite. This is not a creation. The lower map is month percent divided by ATR percent from the slim file. It is a different ratio, so it is not labeled EVR. " + (rows.length ? (rows.length + " funds have a bar.") : "Bars are still loading.") + "</div>"
+        + "<div class=sech><span>EVIDENCE BOOK · RESULT / EFFORT</span><span>" + rows.length + "</span></div><div class='map flow' id=ev-map></div>"
+        + "<div class=sech><span>SLIM BOOK · MONTH / ATR</span><span>not the bar EVR</span></div><div class='map flow' id=ev-slim></div>";
+      var box = body.querySelector("#ev-map");
+      if (box) {
+        if (!rows.length) box.innerHTML = "<div class=note>Waiting for bars.</div>";
+        else drawTiles(box, rows, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { color: effortPaint, fmt: function (v) { return v == null ? "—" : v.toFixed(2); } });
+      }
+      var sb = body.querySelector("#ev-slim");
+      if (sb) {
+        if (!slim.length) sb.innerHTML = "<div class=note>" + (extra.uni ? "No month and ATR in this scope." : "Loading the slim book…") + "</div>";
+        else drawTiles(sb, slim, "net", function (r) { return r.t; }, function (r) { return r.sub; }, { color: effortPaint, area: "sz", fmt: function (v) { return v == null ? "—" : v.toFixed(2); } });
+      }
+      meta("Effort versus result · " + rows.length + " bar ratios · " + slim.length + " month/ATR · not a flow");
+    }
     function showTech() {
       var cen = matrixRows(extra.matrix);
       var html = btn("data-tech", "weekly", "Weekly " + (cen.length || 303), state.techMode === "weekly")
         + btn("data-tech", "daily", "Daily MAs", state.techMode === "daily")
+        + btn("data-tech", "effort", "Effort", state.techMode === "effort")
         + btn("data-tech", "sectors", "Stock sectors", state.techMode === "sectors")
         + btn("data-tech", "spreads", "Spreads", state.techMode === "spreads")
         + btn("data-tech", "below", "Below 250", state.techMode === "below")
@@ -1591,6 +1912,7 @@
       if (state.techMode === "spreads") return showSpreads();
       if (state.techMode === "below") return showBelow();
       if (state.techMode === "daily") return showDaily();
+      if (state.techMode === "effort") return showEffort();
       if (state.scope === "eqStock") return showFileMA();
       if (!cen.length) { body.innerHTML = "<div class=note>Loading weekly technicals…</div>"; return; }
       var keys = [["above_ma40w", "Above 40w"], ["golden_cross_10_40w", "10/40 cross"], ["mom_12_1_pct", "Mom 12−1"], ["mom_6m_pct", "Mom 6m"], ["rsi_14w", "RSI"], ["dist_52w_high_pct", "vs high"], ["beta_spy", "Beta"], ["corr_spy_52w", "Corr"], ["rs_13w_pct", "RS 13w"], ["vol_52w_pct", "Vol"], ["tech_score", "Tech"], ["risk_score", "Risk"]];
@@ -1775,6 +2097,7 @@
         if (td.getAttribute("data-sym")) return;
         var sym = String(td.textContent || "").replace(/\s+/g, "");
         if (!/^[A-Z][A-Z0-9.\-]{0,9}$/.test(sym)) return;
+        if (/[a-z]/.test(sym)) return;
         td.setAttribute("data-sym", sym);
         td.title = "Open " + sym + " on the chart";
       });
@@ -1782,13 +2105,21 @@
     function armEquityBars() {
       if (host._eqArmed) return;
       host._eqArmed = true;
-      var q = all.filter(isEquityEtf).map(function (r) { return r.t; }), i = 0;
+      var q = [], seen = {}, i;
+      all.forEach(function (r) { if (!seen[r.t]) { seen[r.t] = 1; q.push(r.t); } });
+      stockSample().forEach(function (t) { if (!seen[t]) { seen[t] = 1; q.push(t); } });
+      i = 0;
       function step() {
         if (!host.isConnected) return;
         var batch = [];
         while (i < q.length && batch.length < 2) { if (!tech[q[i]]) batch.push(q[i]); i++; }
         if (!batch.length) { paintRegime(); return; }
-        Promise.all(batch.map(loadTech)).then(function () { paintRegime(); setTimeout(step, 40); });
+        Promise.all(batch.map(loadTech)).then(function () {
+          paintRegime();
+          host._evN = (host._evN || 0) + 1;
+          if (state.tab === "tech" && state.techMode === "effort" && (host._evN % 6 === 0 || i >= q.length)) draw();
+          setTimeout(step, 40);
+        });
       }
       setTimeout(step, 400);
     }
@@ -1801,7 +2132,7 @@
       bindTickers(body);
       paintRegime();
     }
-    var scopes = [["all", "All"], ["eqEtf", "Equity ETFs"], ["eqStock", "Equity stocks"], ["crypto", "Crypto"], ["intl", "International"], ["em", "Emerging"], ["frontier", "Frontier"]];
+    var scopes = [["all", "All"], ["eqEtf", "Equity ETFs"], ["eqStock", "Equity stocks"], ["fi", "Bonds"], ["cmd", "Commodities"], ["fx", "FX"], ["re", "REITs"], ["lev", "Levered"], ["crypto", "Crypto"], ["intl", "International"], ["em", "Emerging"], ["frontier", "Frontier"]];
     host.querySelector("#etf-scope").innerHTML = scopes.map(function (s) {
       return "<button type=button data-scope='" + s[0] + "'" + (s[0] === state.scope ? " class=on" : "") + ">" + s[1] + "</button>";
     }).join("");
