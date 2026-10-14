@@ -543,34 +543,41 @@
       if (want) return mktOf(r) === want;
       return true;
     }
+    function applySlim(j) {
+      if (!j || !j.t) throw new Error("slim");
+      var rows = [], i, n = j.t.length;
+      var M = { U: "US", I: "International", E: "Emerging", F: "Frontier", O: "Other" };
+      var K = { s: "stock", e: "etf", c: "cef" };
+      for (i = 0; i < n; i++) {
+        rows.push({
+          t: j.t[i],
+          name: (j.nm && j.nm[i]) || "",
+          kind: K[j.k.charAt(i)] || "stock",
+          mkt: M[j.m.charAt(i)] || "US",
+          country: (j.countries || [])[j.co[i]] || "",
+          sector: (j.sectors || [])[j.se[i]] || "",
+          asset: (j.assets || [])[j.as[i]] || "Equity",
+          mcap: j.mc[i], price: j.px[i],
+          sma20: j.a20[i], sma50: j.a50[i], sma200: j.a200[i],
+          perfM: j.pm[i], atrPct: j.atr[i]
+        });
+      }
+      extra.uni = rows;
+      extra.uniAt = j.generated_at || "";
+      if (host.isConnected) draw();
+    }
     function ensureUni() {
       if (extra.uni || host._slimStarted) return;
       host._slimStarted = true;
-      fetch("/data/etf-desk-slim.json", { credentials: "omit" }).then(function (r) {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json();
-      }).then(function (j) {
-        var rows = [], i, n = (j.t || []).length;
-        var M = { U: "US", I: "International", E: "Emerging", F: "Frontier", O: "Other" };
-        var K = { s: "stock", e: "etf", c: "cef" };
-        for (i = 0; i < n; i++) {
-          rows.push({
-            t: j.t[i],
-            name: (j.nm && j.nm[i]) || "",
-            kind: K[j.k.charAt(i)] || "stock",
-            mkt: M[j.m.charAt(i)] || "US",
-            country: (j.countries || [])[j.co[i]] || "",
-            sector: (j.sectors || [])[j.se[i]] || "",
-            asset: (j.assets || [])[j.as[i]] || "Equity",
-            mcap: j.mc[i], price: j.px[i],
-            sma20: j.a20[i], sma50: j.a50[i], sma200: j.a200[i],
-            perfM: j.pm[i], atrPct: j.atr[i]
-          });
-        }
-        extra.uni = rows;
-        extra.uniAt = j.generated_at || "";
-        if (host.isConnected) draw();
-      }).catch(function (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); });
+      if (window.JHEtfSlim && window.JHEtfSlim.t) { try { applySlim(window.JHEtfSlim); } catch (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); } return; }
+      var el = document.createElement("script");
+      el.src = "/etf-desk-slim.js";
+      el.onload = function () {
+        try { applySlim(window.JHEtfSlim); }
+        catch (e) { extra.uni = []; extra.uniErr = e.message; if (host.isConnected) draw(); }
+      };
+      el.onerror = function () { extra.uni = []; extra.uniErr = "slim"; if (host.isConnected) draw(); };
+      (document.head || document.documentElement).appendChild(el);
     }
     function ensureIssuer() {
       if (extra.issuer || host._issStarted) return;
