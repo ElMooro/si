@@ -90,7 +90,7 @@ def _get_json(key):
 
 def fetch_fred(spec):
     try:
-        text = _get(FRED % spec["fred"], timeout=30)
+        text = _get(FRED % spec["fred"], timeout=12)
     except Exception as exc:
         return None, "%s %s" % (type(exc).__name__, exc)
     points = core.parse_fred_csv(text)
@@ -104,7 +104,7 @@ def fetch_ecb():
     errors = []
     names = []
     try:
-        page = _get(ECB_INDEX, timeout=30)
+        page = _get(ECB_INDEX, timeout=12)
         names = []
         for token in page.replace("'", '"').split('"'):
             base = token.split("?")[0]
@@ -116,7 +116,7 @@ def fetch_ecb():
     for name in names:
         urls.append(name if name.startswith("http") else "https://www.ecb.europa.eu" + name.split("?")[0])
     day = date.today()
-    for offset in range(0, 35):
+    for offset in range(0, 5):
         stamp = (day - timedelta(days=offset)).strftime("%Y%m%d")
         urls.append("https://www.ecb.europa.eu/mopo/pdf/CSPP_PEPP_corporate_bond_holdings_%s.csv" % stamp)
     seen = set()
@@ -125,7 +125,7 @@ def fetch_ecb():
             continue
         seen.add(url)
         try:
-            text = _get(url, timeout=40)
+            text = _get(url, timeout=12)
         except urllib.error.HTTPError as exc:
             if exc.code not in (403, 404):
                 errors.append("HTTP %s" % exc.code)
@@ -197,11 +197,15 @@ def publish():
     issue_pool = ThreadPoolExecutor(max_workers=1)
     issue_future = issue_pool.submit(fetch_issues, prior_bonds)
     sleeves = []
-    for spec in core.SLEEVES:
+
+    def _sleeve(spec):
         points, status = fetch_fred(spec)
-        sources["fred"][spec["fred"]] = status
-        if points:
-            row = core.sleeve_stats(spec, points, today_iso)
+        row = core.sleeve_stats(spec, points, today_iso) if points else None
+        return spec["fred"], status, row
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for fred_id, status, row in pool.map(_sleeve, core.SLEEVES):
+            sources["fred"][fred_id] = status
             if row:
                 sleeves.append(row)
     bonds, ecb_meta = fetch_ecb()
@@ -221,7 +225,7 @@ def publish():
     trace = fetch_trace()
     sources["trace"] = trace.get("status")
     try:
-        issue_book = issue_future.result()
+        issue_book = issue_future.result(timeout=120)
         sources["issues"] = {row["id"]: "%s %s" % (row["status"], row["n"]) for row in issue_book.get("funds") or []}
     except Exception as exc:
         issue_book = None
