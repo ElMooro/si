@@ -1,0 +1,259 @@
+@@PART 1/4@@
+"""Individual corporate bonds from public daily fund holdings.
+
+The rows are the bonds inside named iShares and SPDR books, not a TRACE
+CUSIP blotter and not every bond outstanding. A yield the file does not
+print stays blank. Demand is market value held by the scanned funds.
+CUSIPs are used only as a join key inside this process and are not returned.
+"""
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import io
+import math
+import re
+import zipfile
+from collections import defaultdict
+from datetime import date
+from xml.etree import ElementTree as ET
+
+FUNDS = (
+    {"id": "USIG", "ticker": "USIG", "name": "iShares Broad USD Investment Grade Corporate", "book": "US IG", "kind": "ishares", "url": "https://www.ishares.com/us/products/239460/x/latest-holdings.csv"},
+    {"id": "LQD", "ticker": "LQD", "name": "iShares iBoxx $ Investment Grade Corporate", "book": "US IG", "kind": "ishares", "url": "https://www.ishares.com/us/products/239566/x/latest-holdings.csv"},
+    {"id": "USHY", "ticker": "USHY", "name": "iShares Broad USD High Yield Corporate", "book": "US HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/291299/x/latest-holdings.csv"},
+    {"id": "HYG", "ticker": "HYG", "name": "iShares iBoxx $ High Yield Corporate", "book": "US HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/239565/x/latest-holdings.csv"},
+    {"id": "SHYG", "ticker": "SHYG", "name": "iShares 0-5 Year High Yield Corporate", "book": "US HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/258100/x/latest-holdings.csv"},
+    {"id": "FALN", "ticker": "FALN", "name": "iShares Fallen Angels USD Bond", "book": "US HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/283855/x/latest-holdings.csv"},
+    {"id": "CEMB", "ticker": "CEMB", "name": "iShares J.P. Morgan EM Corporate", "book": "EM corporate", "kind": "ishares", "url": "https://www.ishares.com/us/products/239525/x/latest-holdings.csv"},
+    {"id": "EMHY", "ticker": "EMHY", "name": "iShares J.P. Morgan EM High Yield", "book": "EM HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/239527/x/latest-holdings.csv"},
+    {"id": "EUIG", "ticker": "EUIG", "name": "iShares Euro Investment Grade Corporate USD Hedged", "book": "Euro IG", "kind": "ishares", "url": "https://www.ishares.com/us/products/346691/x/latest-holdings.csv"},
+    {"id": "EUHY", "ticker": "EUHY", "name": "iShares Euro High Yield Corporate USD Hedged", "book": "Euro HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/239550/x/latest-holdings.csv"},
+    {"id": "IGIL", "ticker": "IGIL", "name": "iShares US & Intl High Yield Corporate", "book": "US + intl HY", "kind": "ishares", "url": "https://www.ishares.com/us/products/239551/x/latest-holdings.csv"},
+    {"id": "ICVT", "ticker": "ICVT", "name": "iShares Convertible Bond", "book": "Convertible", "kind": "ishares", "url": "https://www.ishares.com/us/products/272819/x/latest-holdings.csv"},
+    {"id": "FLOT", "ticker": "FLOT", "name": "iShares Floating Rate Bond", "book": "Floating", "kind": "ishares", "url": "https://www.ishares.com/us/products/239534/x/latest-holdings.csv"},
+    {"id": "IEAC", "ticker": "IEAC", "name": "iShares Core Euro Corporate Bond UCITS", "book": "Euro IG", "kind": "ishares", "url": "https://www.ishares.com/uk/individual/en/products/251726/x/latest-holdings.csv"},
+    {"id": "IAGG", "ticker": "IAGG", "name": "iShares Core International Aggregate", "book": "International", "kind": "ishares", "url": "https://www.ishares.com/us/products/279626/x/latest-holdings.csv"},
+    {"id": "IBND", "ticker": "IBND", "name": "SPDR Bloomberg International Corporate", "book": "International", "kind": "ssga", "url": "https://www.ssga.com/us/en/intermediary/etfs/library-content/products/fund-data/etfs/us/holdings-daily-us-en-ibnd.xlsx"},
+)
+
+_SKIP_SECTOR = {
+    "treasury", "government", "sovereign", "cash and/or derivatives", "cash",
+    "agency", "municipal", "government related", "securitized", "supranational",
+    "money market",
+}
+_SKIP_ASSET = {"equity", "money market", "cash", "futures", "options", "fx", "currency"}
+_COARSE = {"corporates", "corporate", "fixed income"}
+_DROP = {
+    "MTN", "REGS", "REG", "144A", "SR", "UNSECURED", "GUAR", "GUARANTEED", "THE",
+    "INC", "LLC", "PLC", "NV", "SA", "AG", "CO", "CORP", "CORPORATION", "LTD",
+    "LIMITED", "BV", "SE", "SPA", "COMPANY", "HOLDINGS", "HOLDING",
+}
+_MON = {m: i for i, m in enumerate(
+    ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 1)}
+_NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+
+
+def _num(raw):
+    if type(raw) in (int, float) and not isinstance(raw, bool):
+        number = float(raw)
+        return number if math.isfinite(number) else None
+    text = str(raw or "").strip().replace(",", "").replace("%", "")
+    if text in ("", "-", "—", "N/A", "n/a", "#N/A"):
+        return None
+    try:
+        number = float(text)
+    except ValueError:
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _round(value, places):
+    number = _num(value)
+    if number is None:
+        return None
+    return round(number, places)
+
+
+def _date(raw):
+    text = str(raw or "").strip()
+    if not text or text in ("-", "—"):
+        return None
+    match = re.search(r"([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})", text)
+    if match and _MON.get(match.group(1).title()):
+        return date(int(match.group(3)), _MON[match.group(1).title()], int(match.group(2))).isoformat()
+    match = re.search(r"(\d{1,2})[/-]([A-Za-z]{3})[/-](\d{4})", text)
+    if match and _MON.get(match.group(2).title()):
+        return date(int(match.group(3)), _MON[match.group(2).title()], int(match.group(1))).isoformat()
+    match = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", text)
+    if match:
+        try:
+            return date(int(match.group(3)), int(match.group(1)), int(match.group(2))).isoformat()
+        except ValueError:
+            return None
+    match = re.search(r"(\d{4})-(\d{2})-(\d{2})", text)
+    if match:
+        return match.group(0)
+    return None
+
+
+def _as_of(text):
+    for line in (text or "").splitlines()[:8]:
+        if "as of" not in line.lower():
+            continue
+        found = _date(line)
+        if found:
+            return found
+    return None
+
+
+def norm_issuer(name):
+    cleaned = re.sub(r"[^A-Z0-9 ]", " ", (name or "").upper())
+    tokens = [tok for tok in cleaned.split() if tok not in _DROP and not tok.isdigit() and len(tok) > 1]
+    return " ".join(tokens[:6])
+
+
+def _cell(row, *names):
+    for name in names:
+        if name in row and row[name] not in (None, ""):
+            return row[name]
+    return None
+
+
+def _printed(row, *names):
+    """First cell that is actually a print, skipping the file's dash for 'not published'."""
+    for name in names:
+        if name not in row or row[name] in (None, ""):
+            continue
+        if str(row[name]).strip() in ("-", "—", "N/A", "n/a", "#N/A"):
+            continue
+        return row[name]
+    return None
+
+
+def _yyyymmdd(raw):
+    if raw is None or raw == "":
+        return None
+    if isinstance(raw, float) and raw == int(raw):
+        raw = int(raw)
+    if isinstance(raw, int):
+        text = str(raw)
+    else:
+        text = str(raw).strip()
+    if re.fullmatch(r"\d{8}", text):
+        return "%s-%s-%s" % (text[0:4], text[4:6], text[6:8])
+    return _date(text)
+
+
+def _keep_sector(sector):
+    return (sector or "").strip().lower() not in _SKIP_SECTOR
+
+
+def _keep_asset(asset):
+    text = (asset or "").strip().lower()
+    if not text:
+        return True
+    return text not in _SKIP_ASSET and "equity" not in text
+
+
+def _isin(raw):
+    text = re.sub(r"[^A-Za-z0-9]", "", str(raw or "")).upper()
+    if len(text) == 12 and text.isalnum() and not text.isdigit():
+        return text
+    return None
+
+
+def _row_from(mapped, fund):
+    issuer = str(_cell(mapped, "issuer") or "").strip()
+    if not issuer or issuer in ("-", "—"):
+        return None
+    sector = str(_cell(mapped, "sector") or "").strip()
+    if sector in ("-", "—"):
+        sector = ""
+    if not _keep_sector(sector):
+        return None
+    asset = str(_cell(mapped, "asset") or "")
+    if not _keep_asset(asset):
+        return None
+    maturity = _date(_cell(mapped, "maturity"))
+    coupon = _round(_cell(mapped, "coupon"), 3)
+    ytm = _round(_cell(mapped, "ytm"), 3)
+    ytw = _round(_cell(mapped, "ytw"), 3)
+    demand = _num(_cell(mapped, "demand"))
+    if demand is not None and demand < 0:
+        demand = None
+    isin = _isin(_cell(mapped, "isin"))
+    if maturity is None and isin is None:
+        return None
+    if ytm is None and ytw is None and (demand is None or demand == 0) and isin is None:
+        return None
+    ccy = str(_cell(mapped, "ccy") or "").strip().upper()
+    if ccy in ("", "-", "—"):
+        ccy = ""
+    country = str(_cell(mapped, "country") or "").strip()
+    if country in ("-", "—"):
+        country = ""
+    return {
+        "issuer": issuer,
+        "sector": sector,
+        "country": country,
+        "ccy": ccy[:3] if len(ccy) >= 3 else ccy,
+        "coupon": coupon,
+        "maturity": maturity,
+        "ytm": ytm,
+        "ytw": ytw,
+        "price": _round(_cell(mapped, "price"), 3),
+        "demand": demand,
+        "dur": _round(_cell(mapped, "dur"), 2),
+        "isin": isin,
+        "issued": _yyyymmdd(_cell(mapped, "issued")),
+        "book": fund["book"],
+        "fund": fund["id"],
+    }
+
+
+def parse_ishares(text, fund):
+    if not text or text.lstrip()[:1] == "<":
+        return [], None
+    lines = text.splitlines()
+    header = None
+    for index, line in enumerate(lines[:30]):
+        if "Name" in line and "Market Value" in line and "," in line:
+            header = index
+            break
+    if header is None:
+        return [], _as_of(text)
+    out = []
+    for raw in csv.DictReader(lines[header:]):
+        mapped = {
+            "issuer": _cell(raw, "Name"),
+            "sector": _cell(raw, "Sector"),
+            "asset": _cell(raw, "Asset Class"),
+            "maturity": _cell(raw, "Maturity"),
+            "coupon": _cell(raw, "Coupon (%)"),
+            "ytm": _cell(raw, "YTM (%)"),
+            "ytw": _cell(raw, "Yield to Worst (%)"),
+            "demand": _cell(raw, "Market Value"),
+            "price": _cell(raw, "Price"),
+            "dur": _printed(raw, "Mod. Duration", "Duration"),
+            "isin": _cell(raw, "ISIN"),
+
+            "ccy": _cell(raw, "Market Currency") or _cell(raw, "Currency"),
+            "country": _cell(raw, "Location"),
+        }
+        row = _row_from(mapped, fund)
+        if row:
+            out.append(row)
+    return out, _as_of(text)
+
+
+def _xlsx_strings(blob):
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(blob))
+    except zipfile.BadZipFile:
+        return None
+    if "xl/sharedStrings.xml" not in archive.namelist() or "xl/worksheets/sheet1.xml" not in archive.namelist():
+        return None
+    shared = []
+@@END 1@@
