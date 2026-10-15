@@ -18,7 +18,7 @@ import math
 import re
 from datetime import date, datetime
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 # kind "oas" is stored by FRED in percent; the packet converts it to basis points.
 # kind "yield" stays in percent. A missing series is skipped, never invented.
@@ -405,12 +405,14 @@ def coverage_block():
         "us": "FINRA TRACE corporate and Rule 144A market breadth, sentiment and capped volume. This is the whole disseminated US corporate tape rolled up by grade, not a sample. Individual CUSIPs are not in the public aggregate API.",
         "euro_issues": "Every bond on the ECB weekly CSPP/PEPP corporate holdings list: ISIN, issuer, coupon, maturity and the purchasing national central bank. It is the Eurosystem book, not every euro corporate outstanding.",
         "international_indices": "ICE BofA option-adjusted spread and yield sleeves on FRED for US ratings and tenors, Euro high yield, emerging-market corporates, EM high grade and Asia USD. A sleeve that FRED does not publish is omitted, not zeroed.",
-        "companies": "Individual bonds inside public daily holdings: iShares broad USD investment-grade and high-yield (plus the liquid and short books), EM corporate and EM high-yield, euro investment-grade and high-yield, convertibles, floating-rate, the iShares Core euro corporate UCITS book, corporate lines of the iShares core international aggregate (local market currency: euro, sterling, Canada, yen and others), and SPDR international corporate. Industry is the fund's sector. Yield is yield-to-worst when the file prints it, otherwise yield-to-maturity. Duration is modified duration when the file prints it, otherwise the duration column, and it is not estimated. Price and yield changes use the previous date that same holdings feed lists, usually the prior month-end. Demand is market value held by those funds, not TRACE volume and not the amount outstanding. CUSIPs are not republished.",
+        "companies": "Individual bonds inside public daily holdings: iShares broad USD investment-grade and high-yield (plus the liquid and short books), EM corporate and EM high-yield, euro investment-grade and high-yield, convertibles, floating-rate, the iShares Core euro corporate UCITS book, corporate lines of the iShares core international aggregate (local market currency: euro, sterling, Canada, yen and others), and SPDR international corporate. Industry is the fund sector. Yield is yield-to-worst when the file prints it, otherwise yield-to-maturity. Duration is modified duration when the file prints it, otherwise the duration column, and it is not estimated. Price and yield changes use the previous date that same holdings feed lists, usually the prior month-end. A longer window uses the earliest earlier date that feed still lists, usually the prior year-end, and only when both files print the bond. Demand is market value held by those funds, not TRACE volume and not the amount outstanding. Demand change is that market value minus the same sum on the previous holdings date. A bond the previous file held and this file does not is marked left; its price is the last print, not a live price. Versus-industry is the bond yield minus its industry's demand-weighted yield, not an option-adjusted spread. CUSIPs are not republished.",
         "not_issue_level": [
             "TRACE CUSIP blotter (public aggregate API has no prints; no CUSIP licence)",
             "A yield the holdings file does not print (left blank, not estimated)",
             "A duration the holdings file does not print (not estimated from coupon and maturity)",
             "A price or yield move for a bond that was not in the previous holdings date",
+            "A demand change when that fund's previous holdings file did not load",
+            "Option-adjusted spread on a single bond",
             "Bonds no scanned fund holds",
         ],
     }
@@ -453,6 +455,12 @@ def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sou
                 extra += " Yield changes versus the previous snapshot cover %s bonds." % changed
             else:
                 extra += " Price and yield moves stay blank until a previous holdings date is available."
+            if issues.get("n_with_ytd") and issues.get("ytd_as_of"):
+                extra += " The longer window versus %s covers %s bonds." % (issues.get("ytd_as_of"), issues.get("n_with_ytd"))
+            if issues.get("n_with_flow"):
+                extra += " Demand changes cover %s bonds." % issues.get("n_with_flow")
+            if issues.get("n_left"):
+                extra += " %s bonds left the scanned funds." % issues.get("n_left")
             if issues.get("n_with_dur"):
                 extra += " Modified duration is printed on %s bonds." % issues.get("n_with_dur")
             packet["read"] = packet["read"].rstrip() + extra

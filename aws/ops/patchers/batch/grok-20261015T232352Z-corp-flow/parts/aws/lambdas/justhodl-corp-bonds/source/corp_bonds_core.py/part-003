@@ -1,7 +1,0 @@
-@@PART 3/3@@
-def iso_now(now=None):
-
-    moment = now or datetime.utcnow()
-    return moment.strftime("%Y-%m-%dT%H:%M:%SZ"), moment.date().isoformat()
-
-@@END 3@@

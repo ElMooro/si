@@ -2,7 +2,7 @@
 (function () {
   var root = document.getElementById("root");
   var ts = document.getElementById("ts");
-  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false, need: "" };
+  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false, need: "", form: "" };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
@@ -25,6 +25,12 @@
     var cls = n > 0 ? "t-pos" : n < 0 ? "t-neg" : "t-mute";
     return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
   }
+  function gapBp(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v) * 100;
+    var cls = n > 5 ? "t-gold" : n < -5 ? "t-info" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, 0) + "</span>";
+  }
   function money(v) {
     if (v == null || !isFinite(Number(v))) return "—";
     var n = Number(v);
@@ -32,6 +38,12 @@
     if (abs >= 1e9) return (n / 1e9).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + "bn";
     if (abs >= 1e6) return (n / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "m";
     return num(n, 0);
+  }
+  function signedMoney(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-pos" : n < 0 ? "t-neg" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + money(n) + "</span>";
   }
   function cmp(a, b, key) {
     var av = a[key], bv = b[key];
@@ -64,6 +76,7 @@
     return weight ? total / weight : null;
   }
   function durationView(bonds) {
+    bonds = (bonds || []).filter(function (b) { return !b.left; });
     var bins = [[0, 1, "0–1y"], [1, 3, "1–3y"], [3, 5, "3–5y"], [5, 7, "5–7y"], [7, 10, "7–10y"], [10, 15, "10–15y"], [15, 25, "15–25y"], [25, 80, "25y+"]];
     var buckets = bins.map(function (bin) {
       var group = bonds.filter(function (b) { return b.dur != null && b.dur >= bin[0] && b.dur < bin[1]; });
@@ -108,7 +121,22 @@
     return '<div class="bars">' + show.map(function (r) {
       var width = Math.max(2, Math.round(100 * Math.abs(r.dpx) / max));
       var cls = r.dpx < 0 ? " hot" : " up";
-      return '<div class="bar-row"><div class="bar-name" title="' + esc(r.sector) + '">' + esc(r.sector) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.dpx > 0 ? "+" : "") + num(r.dpx, 2) + "</div></div>";
+      var name = r.label || r.sector || r.issuer || "";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.dpx > 0 ? "+" : "") + num(r.dpx, 2) + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function flowBars(rows) {
+    var list = (rows || []).filter(function (r) { return r.ddm != null; });
+    if (!list.length) return "<p class='note'>No demand change yet. That needs the previous holdings file.</p>";
+    var worst = list.slice(0, 8);
+    var best = list.slice(-8).reverse();
+    var show = worst.concat(best.filter(function (row) { return worst.indexOf(row) < 0; }));
+    var max = Math.max.apply(null, show.map(function (r) { return Math.abs(r.ddm); }));
+    return '<div class="bars">' + show.map(function (r) {
+      var width = Math.max(2, Math.round(100 * Math.abs(r.ddm) / max));
+      var cls = r.ddm < 0 ? " hot" : " up";
+      var name = r.label || r.sector || r.issuer || "";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.ddm > 0 ? "+" : "") + money(r.ddm) + "</div></div>";
     }).join("") + "</div>";
   }
   function issueBonds(book) {
@@ -116,8 +144,16 @@
     return (book.bonds || []).filter(function (b) {
       if (state.sector !== "ALL" && (b.sector || "") !== state.sector) return false;
       if (state.book !== "ALL" && b.book !== state.book) return false;
+      if (state.form === "144A" && String(b.issuer || "").indexOf("144A") < 0) return false;
+      if (state.form === "RegS" && String(b.issuer || "").toUpperCase().indexOf("REGS") < 0) return false;
       if (state.need === "chg" && b.chg == null) return false;
       if (state.need === "dpx" && b.dpx == null) return false;
+      if (state.need === "credit" && (b.left || b.dpx == null || b.dur == null || b.dur < 0.75)) return false;
+      if (state.need === "ddm" && b.ddm == null) return false;
+      if (state.need === "left" && !b.left) return false;
+      if (state.need === "vs" && b.vs == null) return false;
+      if (state.need === "ytd" && b.dpx_y == null) return false;
+      if (state.need === "issued" && String(b.issued || "") < "2026-01-01") return false;
       if (!q) return true;
       return (b.issuer + " " + (b.country || "") + " " + (b.sector || "")).toLowerCase().indexOf(q) >= 0;
     });
@@ -153,15 +189,29 @@
     var presets = '<div class="chips">'
       + '<button class="chip' + on("dpx", "desc", "dpx") + '" data-sort="dpx" data-dir="desc" data-need="dpx">Pumped</button>'
       + '<button class="chip' + on("dpx", "asc", "dpx") + '" data-sort="dpx" data-dir="asc" data-need="dpx">Dumped</button>'
+      + '<button class="chip' + on("dpx", "desc", "credit") + '" data-sort="dpx" data-dir="desc" data-need="credit">Credit pumped</button>'
+      + '<button class="chip' + on("dpx", "asc", "credit") + '" data-sort="dpx" data-dir="asc" data-need="credit">Credit dumped</button>'
+      + '<button class="chip' + on("pct", "desc", "dpx") + '" data-sort="pct" data-dir="desc" data-need="dpx">Pumped %</button>'
+      + '<button class="chip' + on("pct", "asc", "dpx") + '" data-sort="pct" data-dir="asc" data-need="dpx">Dumped %</button>'
+      + '<button class="chip' + on("dpx_y", "desc", "ytd") + '" data-sort="dpx_y" data-dir="desc" data-need="ytd">Longer window up</button>'
+      + '<button class="chip' + on("dpx_y", "asc", "ytd") + '" data-sort="dpx_y" data-dir="asc" data-need="ytd">Longer window down</button>'
       + '<button class="chip' + on("chg", "desc", "chg") + '" data-sort="chg" data-dir="desc" data-need="chg">Yield up</button>'
       + '<button class="chip' + on("chg", "asc", "chg") + '" data-sort="chg" data-dir="asc" data-need="chg">Yield down</button>'
+      + '<button class="chip' + on("ddm", "desc", "ddm") + '" data-sort="ddm" data-dir="desc" data-need="ddm">Funds added</button>'
+      + '<button class="chip' + on("ddm", "asc", "ddm") + '" data-sort="ddm" data-dir="asc" data-need="ddm">Funds cut</button>'
+      + '<button class="chip' + on("ddm", "asc", "left") + '" data-sort="ddm" data-dir="asc" data-need="left">Left the book</button>'
+      + '<button class="chip' + on("vs", "desc", "vs") + '" data-sort="vs" data-dir="desc" data-need="vs">Cheap vs industry</button>'
+      + '<button class="chip' + on("vs", "asc", "vs") + '" data-sort="vs" data-dir="asc" data-need="vs">Rich vs industry</button>'
       + '<button class="chip' + on("dur", "desc", "") + '" data-sort="dur" data-dir="desc">Longest duration</button>'
       + '<button class="chip' + on("dur", "asc", "") + '" data-sort="dur" data-dir="asc">Shortest duration</button>'
+      + '<button class="chip' + on("issued", "desc", "issued") + '" data-sort="issued" data-dir="desc" data-need="issued">Issued this year</button>'
       + '<button class="chip' + on("sector", "asc", "") + '" data-sort="sector" data-dir="asc">Industry A–Z</button>'
       + '<button class="chip' + on("sector", "desc", "") + '" data-sort="sector" data-dir="desc">Industry Z–A</button>'
       + '<button class="chip' + on("demand", "desc", "") + '" data-sort="demand" data-dir="desc">Demand by company</button>'
       + '<button class="chip' + on("rate", "desc", "") + '" data-sort="rate" data-dir="desc">Highest yield</button>'
       + '<button class="chip' + on("rate", "asc", "") + '" data-sort="rate" data-dir="asc">Lowest yield</button>'
+      + '<button class="chip' + (state.form === "144A" ? " on" : "") + '" data-form="144A">144A</button>'
+      + '<button class="chip' + (state.form === "RegS" ? " on" : "") + '" data-form="RegS">RegS</button>'
       + "</div>";
     var filters = '<div class="chips">' + presets + '</div><div class="chips">'
       + '<select class="search" id="sec">' + sectorOpts + "</select>"
@@ -175,29 +225,48 @@
       var mark = state.sort === key ? (state.dir === "asc" ? " ↑" : " ↓") : "";
       return '<th data-col="' + key + '" style="cursor:pointer">' + label + mark + "</th>";
     }
-    var head = "<tr>" + th("issuer", "Issuer") + th("sector", "Industry") + th("country", "Country") + th("book", "Book") + th("ccy", "Ccy") + th("coupon", "Coupon") + th("maturity", "Maturity") + th("dur", "Duration") + th("price", "Price") + th("dpx", "Px Δ") + th("rate", "Yield") + th("chg", "Yield Δ") + th("demand", "Demand") + "</tr>";
+    var head = "<tr>" + th("issuer", "Issuer") + th("sector", "Industry") + th("country", "Country") + th("book", "Book") + th("ccy", "Ccy") + th("coupon", "Coupon") + th("maturity", "Maturity") + th("dur", "Duration") + th("price", "Price") + th("dpx", "Px Δ") + th("pct", "Px %") + (book.ytd_as_of ? th("dpx_y", "Long Δ") : "") + th("rate", "Yield") + th("chg", "Yield Δ") + th("vs", "vs ind") + th("demand", "Demand") + th("ddm", "Dem Δ") + "</tr>";
     var body = rows.map(function (b) {
       var chgBp = b.chg == null ? null : b.chg * 100;
-      return "<tr><td>" + esc(b.issuer) + "</td><td>" + esc(b.sector || "—") + "</td><td>" + esc(b.country || "—") + "</td><td class='t-mute'>" + esc(b.book || "") + "</td><td>" + esc(b.ccy || "—") + "</td><td>" + num(b.coupon, 2) + "</td><td>" + esc(b.maturity || "—") + "</td><td>" + (b.dur == null ? "<span class='t-mute'>—</span>" : num(b.dur, 2)) + "</td><td>" + (b.price == null ? "<span class='t-mute'>—</span>" : num(b.price, 2)) + "</td><td>" + signedPx(b.dpx, 2) + "</td><td>" + (b.rate == null ? "<span class='t-mute'>—</span>" : num(b.rate, 2) + "%") + "</td><td>" + signed(chgBp, 1) + "</td><td>" + money(b.demand) + "</td></tr>";
+      var pxCell = b.left
+        ? (b.px0 == null ? "<span class='t-mute'>—</span>" : "<span class='t-mute'>" + num(b.px0, 2) + " left</span>")
+        : (b.price == null ? "<span class='t-mute'>—</span>" : num(b.price, 2));
+      return "<tr><td>" + esc(b.issuer) + "</td><td>" + esc(b.sector || "—") + "</td><td>" + esc(b.country || "—") + "</td><td class='t-mute'>" + esc(b.book || "") + "</td><td>" + esc(b.ccy || "—") + "</td><td>" + num(b.coupon, 2) + "</td><td>" + esc(b.maturity || "—") + "</td><td>" + (b.dur == null ? "<span class='t-mute'>—</span>" : num(b.dur, 2)) + "</td><td>" + pxCell + "</td><td>" + signedPx(b.dpx, 2) + "</td><td>" + signedPx(b.pct, 2) + "</td>" + (book.ytd_as_of ? "<td>" + signedPx(b.dpx_y, 2) + "</td>" : "") + "<td>" + (b.rate == null ? "<span class='t-mute'>—</span>" : num(b.rate, 2) + "%") + "</td><td>" + signed(chgBp, 1) + "</td><td>" + gapBp(b.vs) + "</td><td>" + money(b.demand) + "</td><td>" + signedMoney(b.ddm) + "</td></tr>";
     }).join("");
     var more = all.length > rows.length
       ? '<p class="note"><button class="chip" id="imore">Show more (' + rows.length + " of " + all.length + ")</button></p>"
       : '<p class="note">' + rows.length + " bonds in this filter.</p>";
     var since = book.move_as_of ? " since " + book.move_as_of : "";
+    var longer = book.ytd_as_of ? " The longer window is versus " + book.ytd_as_of + " (" + num(book.n_with_ytd, 0) + " bonds)." : "";
     var changeNote = book.n_with_move
-      ? (num(book.n_with_move, 0) + " bonds moved" + since + ". Pumped is price up. Dumped is price down. Yield change is that same window, in basis points; up is red because a higher yield is the selloff.")
+      ? (num(book.n_with_move, 0) + " bonds moved" + since + ". Pumped is price up. Dumped is price down. Credit pumped and credit dumped hide modified duration under 0.75 years, where a jump is usually a pull to par. Yield change is that same window, in basis points; up is red because a higher yield is the selloff. Demand change is market value the funds added or cut." + longer)
       : "No earlier holdings date came back, so pumped and dumped stay blank. Yield and duration on the row are the level the file printed.";
-    var curve = durationView(book.bonds || []);
+    var held = (book.bonds || []).filter(function (b) { return !b.left; });
+    var curve = durationView(held);
     var moved = sectors.filter(function (r) { return r.dpx != null; }).slice().sort(function (a, b) { return a.dpx - b.dpx; });
     var moveChart = moveBars(moved);
+    var flow = sectors.filter(function (r) { return r.ddm != null && r.sector; }).slice().sort(function (a, b) { return a.ddm - b.ddm; });
+    var names = issuers.filter(function (r) { return r.dpx != null && (r.demand || 0) >= 20000000; }).slice().sort(function (a, b) { return a.dpx - b.dpx; });
+    var byCountry = {};
+    held.forEach(function (b) {
+      if (b.dpx == null || !b.country) return;
+      var bucket = byCountry[b.country] || (byCountry[b.country] = []);
+      bucket.push(b);
+    });
+    var countryMove = Object.keys(byCountry).map(function (name) {
+      return { label: name, dpx: wavg(byCountry[name], "dpx"), demand: byCountry[name].reduce(function (sum, b) { return sum + (b.demand || 0); }, 0) };
+    }).filter(function (r) { return r.dpx != null && r.demand >= 50000000; }).sort(function (a, b) { return a.dpx - b.dpx; });
     return curve
       + '<div class="panel"><h3>Who got hit, by industry <span class="tag">demand-weighted price change' + esc(since) + "</span></h3>" + moveChart + "</div>"
+      + '<div class="split"><div class="panel"><h3>Companies that moved <span class="tag">demand-weighted, issuers holding at least $20m</span></h3>' + moveBars(names) + '</div>'
+      + '<div class="panel"><h3>Countries that moved <span class="tag">demand-weighted price change, books of at least $50m</span></h3>' + moveBars(countryMove) + "</div></div>"
+      + '<div class="panel"><h3>Where the funds added and cut <span class="tag">change in market value' + esc(since) + " · not TRACE volume</span></h3>" + flowBars(flow) + "</div>"
       + '<div class="panel"><h3>Demand by industry <span class="tag">' + num(book.n_sectors, 0) + " industries · " + money(book.demand) + " held · duration " + (book.dur == null ? "—" : num(book.dur, 2) + "y") + "</span></h3>" + sectorBars(sectors, "sector") + "</div>"
       + '<div class="panel"><h3>Demand by company <span class="tag">largest issuers in the scanned funds</span></h3>' + sectorBars(issuers, "issuer") + "</div>"
-      + '<div class="panel"><h3>Every scanned bond <span class="tag">' + num(book.n_bonds, 0) + " bonds · " + num(book.n_with_dur, 0) + " with duration · " + num(book.n_issuers, 0) + " issuers · " + esc(book.as_of || "") + "</span></h3>"
+      + '<div class="panel"><h3>Every scanned bond <span class="tag">' + num(book.n_bonds, 0) + " held · " + num(book.n_left, 0) + " left · " + num(book.n_with_dur, 0) + " with duration · " + num(book.n_issuers, 0) + " issuers · " + esc(book.as_of || "") + "</span></h3>"
       + filters
       + "<div class='scroll'><table>" + head + body + "</table></div>" + more
-      + "<p class='note'>" + changeNote + " Duration is modified duration when the file prints it, in years. Price is the holding's price. A blank cell was not printed and was not estimated. Demand is market value inside the scanned funds, summed when more than one fund holds the bond. " + esc(book.note || "") + "</p></div>";
+      + "<p class='note'>" + changeNote + " Duration is modified duration when the file prints it, in years. Versus industry is this yield minus the industry's demand-weighted yield, in basis points, not an OAS. A blank cell was not printed and was not estimated. Demand is market value inside the scanned funds, summed when more than one fund holds the bond. A row marked left is no longer held; the price is the last print. " + esc(book.note || "") + "</p></div>";
   }
 
   function rowBy(list, key, value) {
@@ -384,6 +453,14 @@
         state.dir = btn.getAttribute("data-dir") || "desc";
         state.need = btn.getAttribute("data-need") || "";
         state.onlyChg = state.need === "chg";
+        state.ishow = 200;
+        render(p);
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-form]"), function (btn) {
+      btn.onclick = function () {
+        var form = btn.getAttribute("data-form");
+        state.form = state.form === form ? "" : form;
         state.ishow = 200;
         render(p);
       };

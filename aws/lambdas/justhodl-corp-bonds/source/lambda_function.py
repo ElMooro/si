@@ -214,7 +214,7 @@ def publish():
     trace = fetch_trace()
     sources["trace"] = trace.get("status")
     try:
-        issue_book = issue_future.result(timeout=120)
+        issue_book = issue_future.result(timeout=300)
         sources["issues"] = {row["id"]: "%s %s" % (row["status"], row["n"]) for row in issue_book.get("funds") or []}
     except Exception as exc:
         issue_book = None

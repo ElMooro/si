@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Corp Bonds — companies, TRACE, euro book, credit sleeves · JustHodl.AI</title>
-<meta name="description" content="Which corporate bonds pumped and which dumped since the last holdings date, with modified duration across the US, euro and international books.">
+<meta name="description" content="Which corporate bonds pumped and dumped, how much the funds added or cut, and modified duration across US, euro and international books.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%8A%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -80,11 +80,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <main>
   <div class="intro">
     <h2>Corporate bonds, company by company</h2>
-    <p>Pumped is the price up since the previous holdings date, dumped is the price down. Sort industry either way, or by duration. Duration is modified duration where the file prints it. Demand is market value inside the scanned funds, by sector and by company. A missing print stays blank. No call and no sizing.</p>
+    <p>Pumped is the price up since the previous holdings date. Dumped is the price down. Credit pumped hides duration under 0.75 years, where a jump is usually a pull to par. The longer window is the earliest earlier date that same feed still lists, usually year-end. Demand change is market value the scanned funds added or cut. Versus industry is a yield gap, not an OAS. Duration is modified duration where the file prints it. A missing print stays blank. No call and no sizing.</p>
   </div>
   <div id="root" class="loading">Pulling the corp bonds packet…</div>
 </main>
-<script src="/jh-corp-bonds.js?v=20261015d"></script>
+<script src="/jh-corp-bonds.js?v=20261015e"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>

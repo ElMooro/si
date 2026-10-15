@@ -206,6 +206,7 @@ def _row_from(mapped, fund):
         "demand": demand,
         "dur": _round(_cell(mapped, "dur"), 2),
         "isin": isin,
+        "issued": _yyyymmdd(_cell(mapped, "issued")),
         "book": fund["book"],
         "fund": fund["id"],
     }
@@ -378,6 +379,7 @@ def parse_api(payload, fund):
             "price": at("unitPrice", index),
             "dur": modified if modified is not None else effective,
             "isin": at("isin", index),
+            "issued": _yyyymmdd(at("issueDate", index)),
             "ccy": at("marketCurrencyCode", index) or at("currencyCode", index),
             "country": at("countryOfRisk", index),
         }
@@ -388,21 +390,96 @@ def parse_api(payload, fund):
 
 
 def _attach_prior(rows, prior_rows, prior_asof):
+    """Join the previous file by ISIN. A loaded file that lacks the bond is a real zero, not a blank."""
     index = {}
     for old in prior_rows:
         isin = old.get("isin")
         if isin and isin not in index:
             index[isin] = old
     for row in rows:
-        old = index.get(row.get("isin"))
+        if row.get("_left") or not row.get("isin"):
+            continue
+        row["prior_file"] = prior_asof
+        old = index.get(row["isin"])
         if not old:
+            row["prior_demand"] = 0
+            row["prior_asof"] = prior_asof
             continue
         if old.get("price") is not None:
             row["prior_price"] = old["price"]
         rate = old.get("ytw") if old.get("ytw") is not None else old.get("ytm")
         if rate is not None:
             row["prior_rate"] = rate
+        if old.get("demand") is not None:
+            row["prior_demand"] = old["demand"]
         row["prior_asof"] = prior_asof
+
+
+def _attach_ytd(rows, prior_rows, prior_asof):
+    """Longer window: the earliest earlier date that same feed lists, usually year-end."""
+    index = {}
+    for old in prior_rows:
+        isin = old.get("isin")
+        if isin and isin not in index:
+            index[isin] = old
+    for row in rows:
+        if row.get("_left") or not row.get("isin"):
+            continue
+        old = index.get(row["isin"])
+        if not old:
+            continue
+        if old.get("price") is not None:
+            row["prior_price_y"] = old["price"]
+        rate = old.get("ytw") if old.get("ytw") is not None else old.get("ytm")
+        if rate is not None:
+            row["prior_rate_y"] = rate
+        row["prior_asof_y"] = prior_asof
+
+
+def _exited(rows, prior_rows, prior_asof):
+    """Bonds the previous file held that this file does not. Last print only — not a live price."""
+    seen = {row.get("isin") for row in rows if row.get("isin")}
+    out = []
+    for old in prior_rows:
+        isin = old.get("isin")
+        if not isin or isin in seen or not old.get("demand"):
+            continue
+        seen.add(isin)
+        rate = old.get("ytw") if old.get("ytw") is not None else old.get("ytm")
+        out.append({
+            "issuer": old.get("issuer"),
+            "sector": old.get("sector") or "",
+            "country": old.get("country") or "",
+            "ccy": old.get("ccy") or "",
+            "coupon": old.get("coupon"),
+            "maturity": old.get("maturity"),
+            "ytm": None,
+            "ytw": None,
+            "price": None,
+            "demand": None,
+            "dur": old.get("dur"),
+            "isin": isin,
+            "issued": old.get("issued"),
+            "book": old.get("book"),
+            "fund": old.get("fund"),
+            "prior_price": old.get("price"),
+            "prior_rate": rate,
+            "prior_demand": old.get("demand"),
+            "prior_asof": prior_asof,
+            "prior_file": prior_asof,
+            "_left": True,
+        })
+    return out
+
+
+def _load_dated(fund, get_bytes, ymd):
+    blob = get_bytes(_api_url(fund, ymd))
+    if not blob or blob[:1] not in (b"{", b"["):
+        return None
+    rows, got, _dates = parse_api(json.loads(blob.decode("utf-8")), fund)
+    if not rows or not got:
+        return None
+    return rows, got
 
 
 def _load_api(fund, get_bytes):
@@ -417,12 +494,22 @@ def _load_api(fund, get_bytes):
         return None
     priors = [day for day in dates if as_of and day < as_of]
     prior_asof = max(priors) if priors else None
+    older = [day for day in priors if prior_asof and day < prior_asof]
+    ytd_asof = min(older) if older else None
     if prior_asof:
         try:
-            blob = get_bytes(_api_url(fund, prior_asof.replace("-", "")))
-            prows, got, _ = parse_api(json.loads(blob.decode("utf-8")), fund)
-            if prows and got and got != as_of:
+            loaded = _load_dated(fund, get_bytes, prior_asof.replace("-", ""))
+            if loaded and loaded[1] != as_of:
+                prows, got = loaded
                 _attach_prior(rows, prows, got)
+                rows.extend(_exited(rows, prows, got))
+        except Exception:
+            pass
+    if ytd_asof:
+        try:
+            loaded = _load_dated(fund, get_bytes, ytd_asof.replace("-", ""))
+            if loaded and loaded[1] != as_of:
+                _attach_ytd(rows, loaded[0], loaded[1])
         except Exception:
             pass
     return fund, rows, "api", as_of
@@ -501,7 +588,9 @@ def assemble(fund_results, prior_bonds):
     for fund, rows, status, as_of in fund_results:
         funds_out.append({
             "id": fund["id"], "ticker": fund["ticker"], "name": fund["name"],
-            "book": fund["book"], "as_of": as_of, "n": len(rows or []), "status": status,
+            "book": fund["book"], "as_of": as_of,
+            "n": sum(1 for row in (rows or []) if not row.get("_left")),
+            "status": status,
         })
         for row in rows or []:
             if row.get("isin"):
@@ -524,36 +613,46 @@ def assemble(fund_results, prior_bonds):
     bonds = []
     for group in groups:
         parts = group["parts"]
-        demand = sum(part["demand"] or 0 for part in parts if part.get("demand"))
-        demand = round(demand, 0) if demand else None
-        rate = _pick_rate(parts)
-        fine = next((part["sector"] for part in parts if _fine(part.get("sector"))), "")
-        sector = fine or next((part["sector"] for part in parts if part.get("sector")), "") or ""
-        display = sorted(parts, key=lambda part: (-(part.get("demand") or 0), len(part.get("issuer") or "")))[0]
-        country = next((part["country"] for part in parts if part.get("country")), "") or display.get("country") or ""
-        ccy = next((part["ccy"] for part in parts if part.get("ccy")), "") or ""
+        live = [part for part in parts if not part.get("_left")]
+        current = live or parts
+        demand = round(sum(part.get("demand") or 0 for part in live), 0) if live else None
+        if demand == 0:
+            demand = None
+        fine = next((part["sector"] for part in current if _fine(part.get("sector"))), "")
+        sector = fine or next((part["sector"] for part in current if part.get("sector")), "") or ""
+        display = sorted(current, key=lambda part: (-(part.get("demand") or part.get("prior_demand") or 0), len(part.get("issuer") or "")))[0]
+        country = next((part["country"] for part in current if part.get("country")), "") or display.get("country") or ""
+        ccy = next((part["ccy"] for part in current if part.get("ccy")), "") or ""
+        maturity = next((part["maturity"] for part in current if part.get("maturity")), None)
+        coupon = next((part["coupon"] for part in current if part.get("coupon") is not None), None)
 
-        maturity = next((part["maturity"] for part in parts if part.get("maturity")), None)
-        coupon = next((part["coupon"] for part in parts if part.get("coupon") is not None), None)
-        def _best(pred):
-            pool = [part for part in parts if pred(part)]
-            pool.sort(key=lambda part: -(part.get("demand") or 0))
-            return pool[0] if pool else None
+        def _best(pool, pred):
+            chosen = [part for part in pool if pred(part)]
+            chosen.sort(key=lambda part: -(part.get("demand") or part.get("prior_demand") or 0))
+            return chosen[0] if chosen else None
 
-        rate_part = _best(lambda part: part.get("ytw") is not None or part.get("ytm") is not None)
+        rate_part = _best(live, lambda part: part.get("ytw") is not None or part.get("ytm") is not None)
+        rate = None
         if rate_part is not None:
             rate = rate_part.get("ytw") if rate_part.get("ytw") is not None else rate_part.get("ytm")
-        price_part = _best(lambda part: part.get("price") is not None)
+        price_part = _best(live, lambda part: part.get("price") is not None)
         price = price_part.get("price") if price_part else None
-        dur_part = _best(lambda part: part.get("dur") is not None)
+        dur_part = _best(current, lambda part: part.get("dur") is not None)
         dur = dur_part.get("dur") if dur_part else None
         book_demand = defaultdict(float)
-        for part in parts:
+        for part in live:
             if part.get("demand"):
                 book_demand[part["book"]] += part["demand"]
-        book = max(book_demand, key=book_demand.get) if book_demand else parts[0]["book"]
+        if book_demand:
+            book = max(book_demand, key=book_demand.get)
+        else:
+            prior_books = defaultdict(float)
+            for part in parts:
+                if part.get("prior_demand"):
+                    prior_books[part["book"]] += part["prior_demand"]
+            book = max(prior_books, key=prior_books.get) if prior_books else parts[0]["book"]
         key = _public_key(group["token"])
-        has_file_prior = any(part.get("prior_asof") for part in parts)
+        has_file_prior = any(part.get("prior_asof") for part in live)
         chg = None
         if rate is not None and rate_part is not None and rate_part.get("prior_rate") is not None:
             chg = round(rate - rate_part["prior_rate"], 3)
@@ -562,6 +661,39 @@ def assemble(fund_results, prior_bonds):
         dpx = None
         if price is not None and price_part is not None and price_part.get("prior_price") is not None:
             dpx = round(price - price_part["prior_price"], 2)
+        pct = None
+        if dpx is not None and price is not None and (price - dpx) > 0:
+            pct = round(100.0 * dpx / (price - dpx), 2)
+        y_part = _best(live, lambda part: part.get("prior_price_y") is not None)
+        dpx_y = round(price - y_part["prior_price_y"], 2) if price is not None and y_part is not None else None
+        y_rate = rate_part if rate_part is not None and rate_part.get("prior_rate_y") is not None else _best(live, lambda part: part.get("prior_rate_y") is not None)
+        chg_y = None
+        if rate is not None and y_rate is not None and y_rate.get("prior_rate_y") is not None:
+            chg_y = round(rate - y_rate["prior_rate_y"], 3)
+        y_stamp = (y_part or y_rate or {}).get("prior_asof_y") if (dpx_y is not None or chg_y is not None) else None
+        flow_now = flow_prior = 0.0
+        flow = False
+        for part in parts:
+            if part.get("_left"):
+                if part.get("prior_demand") is None:
+                    continue
+                flow = True
+                flow_prior += part["prior_demand"]
+                continue
+            if not part.get("prior_asof") or part.get("prior_demand") is None:
+                continue
+            flow = True
+            flow_now += part.get("demand") or 0
+            flow_prior += part["prior_demand"]
+        ddm = round(flow_now - flow_prior, 0) if flow else None
+        issued = None
+        for part in live:
+            if part.get("issued") and (issued is None or part["issued"] < issued):
+                issued = part["issued"]
+        px0 = None
+        if not live:
+            last = _best(parts, lambda part: part.get("prior_price") is not None)
+            px0 = last.get("prior_price") if last else None
         item = {
             "k": key,
             "issuer": display["issuer"],
@@ -570,13 +702,22 @@ def assemble(fund_results, prior_bonds):
             "ccy": ccy or None,
             "coupon": coupon,
             "maturity": maturity,
+            "issued": issued,
             "rate": rate,
             "chg": chg,
+            "chg_y": chg_y,
             "price": price,
+            "px0": px0,
             "dpx": dpx,
+            "dpx_y": dpx_y,
+            "pct": pct,
             "_move": ((rate_part or {}).get("prior_asof") or (price_part or {}).get("prior_asof")) if (chg is not None or dpx is not None) else None,
+            "_ylong": y_stamp,
             "demand": demand,
+            "ddm": ddm,
             "dur": dur,
+            "nf": len({part.get("fund") for part in live if part.get("fund")}) or None,
+            "left": 1 if not live else None,
             "book": book,
             "_norm": norm_issuer(display["issuer"]),
         }
@@ -587,19 +728,22 @@ def assemble(fund_results, prior_bonds):
     for bond in bonds:
         bucket = issuers.setdefault(bond["_norm"], {
             "issuer": bond["issuer"], "sector": bond["sector"], "country": bond["country"],
-            "n": 0, "demand": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": [], "books": set(), "countries": set(),
+            "n": 0, "demand": 0.0, "flow": False, "ddm": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": [], "books": set(), "countries": set(),
         })
         bucket["n"] += 1
-        if bond.get("demand"):
+        if not bond.get("left") and bond.get("demand"):
             bucket["demand"] += bond["demand"]
-        if bond.get("rate") is not None:
+        if not bond.get("left") and bond.get("rate") is not None:
             bucket["rates"].append((bond["rate"], bond.get("demand") or 0))
-        if bond.get("chg") is not None:
+        if not bond.get("left") and bond.get("chg") is not None:
             bucket["chgs"].append((bond["chg"], bond.get("demand") or 0))
-        if bond.get("dur") is not None:
+        if not bond.get("left") and bond.get("dur") is not None:
             bucket["durs"].append((bond["dur"], bond.get("demand") or 0))
-        if bond.get("dpx") is not None:
+        if not bond.get("left") and bond.get("dpx") is not None:
             bucket["dpxs"].append((bond["dpx"], bond.get("demand") or 0))
+        if bond.get("ddm") is not None:
+            bucket["flow"] = True
+            bucket["ddm"] += bond["ddm"]
         if bond.get("book"):
             bucket["books"].add(bond["book"])
         if bond.get("country"):
@@ -616,6 +760,7 @@ def assemble(fund_results, prior_bonds):
             "country": bucket["country"] if len(bucket["countries"]) <= 1 else "multi",
             "n": bucket["n"],
             "demand": round(bucket["demand"], 0) if bucket["demand"] else None,
+            "ddm": round(bucket["ddm"], 0) if bucket["flow"] else None,
             "rate": _wavg(bucket["rates"]),
             "chg": _wavg(bucket["chgs"]),
             "dur": _wavg(bucket["durs"]),
@@ -627,7 +772,12 @@ def assemble(fund_results, prior_bonds):
     sectors = {}
     for bond in bonds:
         label = bond.get("sector") or ""
-        bucket = sectors.setdefault(label, {"sector": label or None, "n": 0, "issuers": set(), "demand": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": []})
+        bucket = sectors.setdefault(label, {"sector": label or None, "n": 0, "issuers": set(), "demand": 0.0, "flow": False, "ddm": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": []})
+        if bond.get("left"):
+            if bond.get("ddm") is not None:
+                bucket["flow"] = True
+                bucket["ddm"] += bond["ddm"]
+            continue
         bucket["n"] += 1
         bucket["issuers"].add(bond["_norm"])
         if bond.get("demand"):
@@ -640,6 +790,9 @@ def assemble(fund_results, prior_bonds):
             bucket["durs"].append((bond["dur"], bond.get("demand") or 0))
         if bond.get("dpx") is not None:
             bucket["dpxs"].append((bond["dpx"], bond.get("demand") or 0))
+        if bond.get("ddm") is not None:
+            bucket["flow"] = True
+            bucket["ddm"] += bond["ddm"]
     sector_rows = []
     for bucket in sectors.values():
         sector_rows.append({
@@ -647,6 +800,7 @@ def assemble(fund_results, prior_bonds):
             "n": bucket["n"],
             "n_issuers": len(bucket["issuers"]),
             "demand": round(bucket["demand"], 0) if bucket["demand"] else None,
+            "ddm": round(bucket["ddm"], 0) if bucket["flow"] else None,
             "rate": _wavg(bucket["rates"]),
             "chg": _wavg(bucket["chgs"]),
             "dur": _wavg(bucket["durs"]),
@@ -654,29 +808,42 @@ def assemble(fund_results, prior_bonds):
         })
     sector_rows.sort(key=lambda row: (-(row["demand"] or 0), row["sector"] or ""))
 
+    sector_rate = {row["sector"]: row["rate"] for row in sector_rows if row.get("sector") and row.get("rate") is not None}
+    for bond in bonds:
+        if bond.get("rate") is not None and bond.get("sector") in sector_rate:
+            bond["vs"] = round(bond["rate"] - sector_rate[bond["sector"]], 3)
     move_counts = {}
+    ytd_counts = {}
     for bond in bonds:
         stamp = bond.pop("_move", None)
-        if stamp:
+        if stamp and not bond.get("left"):
             move_counts[stamp] = move_counts.get(stamp, 0) + 1
+        ystamp = bond.pop("_ylong", None)
+        if ystamp and not bond.get("left"):
+            ytd_counts[ystamp] = ytd_counts.get(ystamp, 0) + 1
         bond.pop("_norm", None)
         for key in list(bond):
             if bond[key] is None or bond[key] == "":
                 bond.pop(key)
-    bonds.sort(key=lambda row: (-(row.get("demand") or 0), row["issuer"], row.get("maturity") or ""))
+    bonds.sort(key=lambda row: (-(row.get("demand") or 0), row.get("issuer") or "", row.get("maturity") or ""))
+    held = [row for row in bonds if not row.get("left")]
     live = [fund for fund in funds_out if fund["n"] > 0]
     return {
-        "n_bonds": len(bonds),
+        "n_bonds": len(held),
         "n_issuers": len(issuer_rows),
         "n_sectors": sum(1 for row in sector_rows if row.get("sector")),
-        "n_with_rate": sum(1 for row in bonds if row.get("rate") is not None),
-        "n_with_dur": sum(1 for row in bonds if row.get("dur") is not None),
-        "n_with_price": sum(1 for row in bonds if row.get("price") is not None),
-        "n_with_change": sum(1 for row in bonds if row.get("chg") is not None),
-        "n_with_move": sum(1 for row in bonds if row.get("dpx") is not None),
-        "dur": _wavg([(row.get("dur"), row.get("demand") or 0) for row in bonds]),
-        "demand": round(sum(row.get("demand") or 0 for row in bonds), 0) if bonds else None,
+        "n_with_rate": sum(1 for row in held if row.get("rate") is not None),
+        "n_with_dur": sum(1 for row in held if row.get("dur") is not None),
+        "n_with_price": sum(1 for row in held if row.get("price") is not None),
+        "n_with_change": sum(1 for row in held if row.get("chg") is not None),
+        "n_with_move": sum(1 for row in held if row.get("dpx") is not None),
+        "n_with_flow": sum(1 for row in bonds if row.get("ddm") is not None),
+        "n_with_ytd": sum(1 for row in held if row.get("dpx_y") is not None),
+        "n_left": sum(1 for row in bonds if row.get("left")),
+        "dur": _wavg([(row.get("dur"), row.get("demand") or 0) for row in held]),
+        "demand": round(sum(row.get("demand") or 0 for row in held), 0) if held else None,
         "move_as_of": max(move_counts, key=move_counts.get) if move_counts else None,
+        "ytd_as_of": max(ytd_counts, key=ytd_counts.get) if ytd_counts else None,
         "funds": funds_out,
         "sectors": sector_rows,
         "issuers": issuer_rows,
@@ -687,8 +854,12 @@ def assemble(fund_results, prior_bonds):
             "Individual bonds held by the scanned iShares and SPDR books. "
             "Industry is the fund sector. Yield is yield-to-worst when the file prints it, else yield-to-maturity. "
             "Demand is market value inside those funds, not TRACE volume and not the amount outstanding. "
+            "Demand change is that market value minus the previous holdings date, summed the same way. "
             "A blank yield was not printed. Duration is modified duration when the file prints it, else the duration column, never estimated. "
-            "Price and yield changes are versus the previous holdings date that same feed lists, usually the prior month-end, and only for a bond that was in both files. "
+            "Price and yield changes are versus the previous holdings date that same feed lists, usually the prior month-end. "
+            "The longer window is the earliest earlier date that feed still lists, usually the prior year-end. "
+            "A bond marked left was in the previous file and is not in this one; its price is that last print, not a live price. "
+            "Versus-industry is the bond yield minus its industry average, not an option-adjusted spread. "
             "CUSIPs are not republished. This is not every corporate bond outstanding."
         ),
     }
