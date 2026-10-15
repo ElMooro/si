@@ -18,7 +18,7 @@ import math
 import re
 from datetime import date, datetime
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 # kind "oas" is stored by FRED in percent; the packet converts it to basis points.
 # kind "yield" stays in percent. A missing series is skipped, never invented.
@@ -241,6 +241,7 @@ def euro_book(bonds, today_iso):
     }
 
 
+
 def _tokens(name):
     cleaned = re.sub(r"[^A-Z0-9 ]", " ", (name or "").upper())
     return [tok for tok in cleaned.split() if tok not in _STOP and len(tok) > 2]
@@ -404,11 +405,12 @@ def coverage_block():
         "us": "FINRA TRACE corporate and Rule 144A market breadth, sentiment and capped volume. This is the whole disseminated US corporate tape rolled up by grade, not a sample. Individual CUSIPs are not in the public aggregate API.",
         "euro_issues": "Every bond on the ECB weekly CSPP/PEPP corporate holdings list: ISIN, issuer, coupon, maturity and the purchasing national central bank. It is the Eurosystem book, not every euro corporate outstanding.",
         "international_indices": "ICE BofA option-adjusted spread and yield sleeves on FRED for US ratings and tenors, Euro high yield, emerging-market corporates, EM high grade and Asia USD. A sleeve that FRED does not publish is omitted, not zeroed.",
-        "companies": "Individual bonds inside public daily holdings: iShares broad USD investment-grade and high-yield (plus the liquid and short books), EM corporate and EM high-yield, euro investment-grade and high-yield, convertibles, floating-rate, the iShares Core euro corporate UCITS book, corporate lines of the iShares core international aggregate (local market currency: euro, sterling, Canada, yen and others), and SPDR international corporate. Industry is the fund's sector. Yield is yield-to-worst when the file prints it, otherwise yield-to-maturity. Demand is market value held by those funds, not TRACE volume and not the amount outstanding. CUSIPs are not republished.",
+        "companies": "Individual bonds inside public daily holdings: iShares broad USD investment-grade and high-yield (plus the liquid and short books), EM corporate and EM high-yield, euro investment-grade and high-yield, convertibles, floating-rate, the iShares Core euro corporate UCITS book, corporate lines of the iShares core international aggregate (local market currency: euro, sterling, Canada, yen and others), and SPDR international corporate. Industry is the fund's sector. Yield is yield-to-worst when the file prints it, otherwise yield-to-maturity. Duration is modified duration when the file prints it, otherwise the duration column, and it is not estimated. Price and yield changes use the previous date that same holdings feed lists, usually the prior month-end. Demand is market value held by those funds, not TRACE volume and not the amount outstanding. CUSIPs are not republished.",
         "not_issue_level": [
             "TRACE CUSIP blotter (public aggregate API has no prints; no CUSIP licence)",
             "A yield the holdings file does not print (left blank, not estimated)",
-            "A yield change before this desk has a previous snapshot of that bond",
+            "A duration the holdings file does not print (not estimated from coupon and maturity)",
+            "A price or yield move for a bond that was not in the previous holdings date",
             "Bonds no scanned fund holds",
         ],
     }
@@ -444,14 +446,21 @@ def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sou
         if count:
             extra = " The company book lists %s bonds from %s issuers." % (count, issues.get("n_issuers") or 0)
             changed = issues.get("n_with_change") or 0
-            if changed:
+            moved = issues.get("n_with_move") or 0
+            if moved:
+                extra += " Price moves versus %s cover %s bonds." % (issues.get("move_as_of") or "the previous holdings date", moved)
+            elif changed:
                 extra += " Yield changes versus the previous snapshot cover %s bonds." % changed
             else:
-                extra += " Yield changes print after the next snapshot; this run has the level only."
+                extra += " Price and yield moves stay blank until a previous holdings date is available."
+            if issues.get("n_with_dur"):
+                extra += " Modified duration is printed on %s bonds." % issues.get("n_with_dur")
             packet["read"] = packet["read"].rstrip() + extra
     return packet
 
 
 def iso_now(now=None):
+
     moment = now or datetime.utcnow()
     return moment.strftime("%Y-%m-%dT%H:%M:%SZ"), moment.date().isoformat()
+

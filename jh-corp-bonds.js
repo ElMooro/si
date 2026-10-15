@@ -2,7 +2,7 @@
 (function () {
   var root = document.getElementById("root");
   var ts = document.getElementById("ts");
-  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false };
+  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false, need: "" };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
@@ -17,6 +17,12 @@
     if (v == null || !isFinite(Number(v))) return "—";
     var n = Number(v);
     var cls = n > 0 ? "t-neg" : n < 0 ? "t-pos" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
+  }
+  function signedPx(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-pos" : n < 0 ? "t-neg" : "t-mute";
     return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
   }
   function money(v) {
@@ -36,13 +42,73 @@
     return String(av).localeCompare(String(bv));
   }
   function sectorBars(rows, labelKey) {
-    var list = (rows || []).filter(function (r) { return r.demand != null; }).slice(0, 18);
+    var list = (rows || []).filter(function (r) { return r.demand != null; }).slice(0, 40);
     if (!list.length) return "<p class='note'>No demand rows in this packet.</p>";
     var max = Math.max.apply(null, list.map(function (r) { return r.demand; }));
     return '<div class="bars">' + list.map(function (r) {
       var width = Math.max(2, Math.round(100 * r.demand / max));
       var name = r[labelKey] || "Not labelled";
-      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div><div class="bar-val">' + money(r.demand) + "</div></div>";
+      var extra = "";
+      if (r.dur != null) extra += " · " + num(r.dur, 1) + "y";
+      if (r.rate != null) extra += " · " + num(r.rate, 2) + "%";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div><div class="bar-val">' + money(r.demand) + extra + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function wavg(rows, key) {
+    var total = 0, weight = 0;
+    rows.forEach(function (row) {
+      if (row[key] == null || !row.demand) return;
+      total += Number(row[key]) * Number(row.demand);
+      weight += Number(row.demand);
+    });
+    return weight ? total / weight : null;
+  }
+  function durationView(bonds) {
+    var bins = [[0, 1, "0–1y"], [1, 3, "1–3y"], [3, 5, "3–5y"], [5, 7, "5–7y"], [7, 10, "7–10y"], [10, 15, "10–15y"], [15, 25, "15–25y"], [25, 80, "25y+"]];
+    var buckets = bins.map(function (bin) {
+      var group = bonds.filter(function (b) { return b.dur != null && b.dur >= bin[0] && b.dur < bin[1]; });
+      var demand = group.reduce(function (sum, b) { return sum + (b.demand || 0); }, 0);
+      return { label: bin[2], n: group.length, demand: demand, dur: wavg(group, "dur"), rate: wavg(group, "rate") };
+    }).filter(function (row) { return row.n; });
+    var years = {};
+    bonds.forEach(function (b) {
+      if (!b.maturity) return;
+      var year = String(b.maturity).slice(0, 4);
+      if (!/^\d{4}$/.test(year)) return;
+      var bucket = years[year] || (years[year] = { label: year, n: 0, demand: 0, _d: [], _r: [] });
+      bucket.n += 1;
+      if (b.demand) bucket.demand += b.demand;
+    });
+    var wall = Object.keys(years).sort().map(function (year) {
+      var group = bonds.filter(function (b) { return String(b.maturity || "").slice(0, 4) === year; });
+      return { label: year, demand: years[year].demand, dur: wavg(group, "dur"), rate: wavg(group, "rate"), n: years[year].n };
+    });
+    var countries = {};
+    bonds.forEach(function (b) {
+      var name = b.country || "Not labelled";
+      var bucket = countries[name] || (countries[name] = { label: name, demand: 0 });
+      bucket.demand += b.demand || 0;
+    });
+    var countryRows = Object.keys(countries).map(function (name) {
+      var group = bonds.filter(function (b) { return (b.country || "Not labelled") === name; });
+      return { label: name, demand: countries[name].demand, dur: wavg(group, "dur"), rate: wavg(group, "rate") };
+    }).sort(function (a, b) { return b.demand - a.demand; }).slice(0, 12);
+    var covered = bonds.filter(function (b) { return b.dur != null; }).length;
+    return '<div class="split"><div class="panel"><h3>Duration <span class="tag">' + num(covered, 0) + " bonds · modified duration, demand on the curve</span></h3>" + sectorBars(buckets, "label") + '</div>'
+      + '<div class="panel"><h3>Maturity wall <span class="tag">demand by maturity year</span></h3>' + sectorBars(wall, "label") + "</div></div>"
+      + '<div class="panel"><h3>Where the bonds sit <span class="tag">demand by country · duration and yield are holdings-weighted</span></h3>' + sectorBars(countryRows, "label") + "</div>";
+  }
+  function moveBars(rows) {
+    var list = (rows || []).filter(function (r) { return r.dpx != null && r.sector; });
+    if (!list.length) return "<p class='note'>No price change yet. The level is on the table; the move needs a previous holdings date.</p>";
+    var worst = list.slice(0, 8);
+    var best = list.slice(-8).reverse();
+    var show = worst.concat(best.filter(function (row) { return worst.indexOf(row) < 0; }));
+    var max = Math.max.apply(null, show.map(function (r) { return Math.abs(r.dpx); }));
+    return '<div class="bars">' + show.map(function (r) {
+      var width = Math.max(2, Math.round(100 * Math.abs(r.dpx) / max));
+      var cls = r.dpx < 0 ? " hot" : " up";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(r.sector) + '">' + esc(r.sector) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.dpx > 0 ? "+" : "") + num(r.dpx, 2) + "</div></div>";
     }).join("") + "</div>";
   }
   function issueBonds(book) {
@@ -50,7 +116,8 @@
     return (book.bonds || []).filter(function (b) {
       if (state.sector !== "ALL" && (b.sector || "") !== state.sector) return false;
       if (state.book !== "ALL" && b.book !== state.book) return false;
-      if (state.onlyChg && b.chg == null) return false;
+      if (state.need === "chg" && b.chg == null) return false;
+      if (state.need === "dpx" && b.dpx == null) return false;
       if (!q) return true;
       return (b.issuer + " " + (b.country || "") + " " + (b.sector || "")).toLowerCase().indexOf(q) >= 0;
     });
@@ -80,21 +147,26 @@
     var bookOpts = '<option value="ALL">All books</option>' + Object.keys(books).sort().map(function (name) {
       return '<option value="' + esc(name) + '"' + (state.book === name ? " selected" : "") + ">" + esc(name) + "</option>";
     }).join("");
-    function on(sort, dir, only) {
-      return state.sort === sort && state.dir === dir && !!state.onlyChg === !!only ? " on" : "";
+    function on(sort, dir, need) {
+      return state.sort === sort && state.dir === dir && state.need === (need || "") ? " on" : "";
     }
     var presets = '<div class="chips">'
-      + '<button class="chip' + on("sector", "asc", false) + '" data-sort="sector" data-dir="asc">Industry A–Z</button>'
-      + '<button class="chip' + on("sector", "desc", false) + '" data-sort="sector" data-dir="desc">Industry Z–A</button>'
-      + '<button class="chip' + on("chg", "desc", true) + '" data-sort="chg" data-dir="desc" data-chg="1">Biggest rate increase</button>'
-      + '<button class="chip' + on("chg", "asc", true) + '" data-sort="chg" data-dir="asc" data-chg="1">Biggest rate decrease</button>'
-      + '<button class="chip' + on("demand", "desc", false) + '" data-sort="demand" data-dir="desc">Demand by company</button>'
-      + '<button class="chip' + on("rate", "desc", false) + '" data-sort="rate" data-dir="desc">Highest yield</button>'
-      + '<button class="chip' + on("rate", "asc", false) + '" data-sort="rate" data-dir="asc">Lowest yield</button>'
+      + '<button class="chip' + on("dpx", "desc", "dpx") + '" data-sort="dpx" data-dir="desc" data-need="dpx">Pumped</button>'
+      + '<button class="chip' + on("dpx", "asc", "dpx") + '" data-sort="dpx" data-dir="asc" data-need="dpx">Dumped</button>'
+      + '<button class="chip' + on("chg", "desc", "chg") + '" data-sort="chg" data-dir="desc" data-need="chg">Yield up</button>'
+      + '<button class="chip' + on("chg", "asc", "chg") + '" data-sort="chg" data-dir="asc" data-need="chg">Yield down</button>'
+      + '<button class="chip' + on("dur", "desc", "") + '" data-sort="dur" data-dir="desc">Longest duration</button>'
+      + '<button class="chip' + on("dur", "asc", "") + '" data-sort="dur" data-dir="asc">Shortest duration</button>'
+      + '<button class="chip' + on("sector", "asc", "") + '" data-sort="sector" data-dir="asc">Industry A–Z</button>'
+      + '<button class="chip' + on("sector", "desc", "") + '" data-sort="sector" data-dir="desc">Industry Z–A</button>'
+      + '<button class="chip' + on("demand", "desc", "") + '" data-sort="demand" data-dir="desc">Demand by company</button>'
+      + '<button class="chip' + on("rate", "desc", "") + '" data-sort="rate" data-dir="desc">Highest yield</button>'
+      + '<button class="chip' + on("rate", "asc", "") + '" data-sort="rate" data-dir="asc">Lowest yield</button>'
       + "</div>";
     var filters = '<div class="chips">' + presets + '</div><div class="chips">'
       + '<select class="search" id="sec">' + sectorOpts + "</select>"
       + '<select class="search" id="book">' + bookOpts + "</select>"
+
       + '<input class="search" id="iq" placeholder="Issuer, industry, country" value="' + esc(state.iq) + '">'
       + "</div>";
     var all = sortedIssues(book);
@@ -103,23 +175,29 @@
       var mark = state.sort === key ? (state.dir === "asc" ? " ↑" : " ↓") : "";
       return '<th data-col="' + key + '" style="cursor:pointer">' + label + mark + "</th>";
     }
-    var head = "<tr>" + th("issuer", "Issuer") + th("sector", "Industry") + th("country", "Country") + th("book", "Book") + th("ccy", "Ccy") + th("coupon", "Coupon") + th("maturity", "Maturity") + th("rate", "Yield") + th("chg", "Yield chg") + th("demand", "Demand") + "</tr>";
+    var head = "<tr>" + th("issuer", "Issuer") + th("sector", "Industry") + th("country", "Country") + th("book", "Book") + th("ccy", "Ccy") + th("coupon", "Coupon") + th("maturity", "Maturity") + th("dur", "Duration") + th("price", "Price") + th("dpx", "Px Δ") + th("rate", "Yield") + th("chg", "Yield Δ") + th("demand", "Demand") + "</tr>";
     var body = rows.map(function (b) {
       var chgBp = b.chg == null ? null : b.chg * 100;
-      return "<tr><td>" + esc(b.issuer) + "</td><td>" + esc(b.sector || "—") + "</td><td>" + esc(b.country || "—") + "</td><td class='t-mute'>" + esc(b.book || "") + "</td><td>" + esc(b.ccy || "—") + "</td><td>" + num(b.coupon, 2) + "</td><td>" + esc(b.maturity || "—") + "</td><td>" + (b.rate == null ? "<span class='t-mute'>—</span>" : num(b.rate, 2) + "%") + "</td><td>" + signed(chgBp, 1) + "</td><td>" + money(b.demand) + "</td></tr>";
+      return "<tr><td>" + esc(b.issuer) + "</td><td>" + esc(b.sector || "—") + "</td><td>" + esc(b.country || "—") + "</td><td class='t-mute'>" + esc(b.book || "") + "</td><td>" + esc(b.ccy || "—") + "</td><td>" + num(b.coupon, 2) + "</td><td>" + esc(b.maturity || "—") + "</td><td>" + (b.dur == null ? "<span class='t-mute'>—</span>" : num(b.dur, 2)) + "</td><td>" + (b.price == null ? "<span class='t-mute'>—</span>" : num(b.price, 2)) + "</td><td>" + signedPx(b.dpx, 2) + "</td><td>" + (b.rate == null ? "<span class='t-mute'>—</span>" : num(b.rate, 2) + "%") + "</td><td>" + signed(chgBp, 1) + "</td><td>" + money(b.demand) + "</td></tr>";
     }).join("");
     var more = all.length > rows.length
       ? '<p class="note"><button class="chip" id="imore">Show more (' + rows.length + " of " + all.length + ")</button></p>"
       : '<p class="note">' + rows.length + " bonds in this filter.</p>";
-    var changeNote = book.n_with_change
-      ? (num(book.n_with_change, 0) + " bonds have a yield change versus the previous snapshot.")
-      : "Yield change is blank on this run because there is no previous snapshot yet. The level is real. The change prints on the next desk run.";
-    return '<div class="panel"><h3>Demand by industry <span class="tag">' + num(book.n_sectors, 0) + " industries · " + money(book.demand) + " held</span></h3>" + sectorBars(sectors, "sector") + "</div>"
+    var since = book.move_as_of ? " since " + book.move_as_of : "";
+    var changeNote = book.n_with_move
+      ? (num(book.n_with_move, 0) + " bonds moved" + since + ". Pumped is price up. Dumped is price down. Yield change is that same window, in basis points; up is red because a higher yield is the selloff.")
+      : "No earlier holdings date came back, so pumped and dumped stay blank. Yield and duration on the row are the level the file printed.";
+    var curve = durationView(book.bonds || []);
+    var moved = sectors.filter(function (r) { return r.dpx != null; }).slice().sort(function (a, b) { return a.dpx - b.dpx; });
+    var moveChart = moveBars(moved);
+    return curve
+      + '<div class="panel"><h3>Who got hit, by industry <span class="tag">demand-weighted price change' + esc(since) + "</span></h3>" + moveChart + "</div>"
+      + '<div class="panel"><h3>Demand by industry <span class="tag">' + num(book.n_sectors, 0) + " industries · " + money(book.demand) + " held · duration " + (book.dur == null ? "—" : num(book.dur, 2) + "y") + "</span></h3>" + sectorBars(sectors, "sector") + "</div>"
       + '<div class="panel"><h3>Demand by company <span class="tag">largest issuers in the scanned funds</span></h3>' + sectorBars(issuers, "issuer") + "</div>"
-      + '<div class="panel"><h3>Every scanned bond <span class="tag">' + num(book.n_bonds, 0) + " bonds · " + num(book.n_issuers, 0) + " issuers · " + esc(book.as_of || "") + "</span></h3>"
+      + '<div class="panel"><h3>Every scanned bond <span class="tag">' + num(book.n_bonds, 0) + " bonds · " + num(book.n_with_dur, 0) + " with duration · " + num(book.n_issuers, 0) + " issuers · " + esc(book.as_of || "") + "</span></h3>"
       + filters
       + "<div class='scroll'><table>" + head + body + "</table></div>" + more
-      + "<p class='note'>" + changeNote + " Yield is yield-to-worst when the file prints it, else yield-to-maturity, in percent. The change column is basis points; up is red because a higher yield is stress. Demand is market value inside the scanned funds, summed when more than one fund holds the bond. " + esc(book.note || "") + "</p></div>";
+      + "<p class='note'>" + changeNote + " Duration is modified duration when the file prints it, in years. Price is the holding's price. A blank cell was not printed and was not estimated. Demand is market value inside the scanned funds, summed when more than one fund holds the bond. " + esc(book.note || "") + "</p></div>";
   }
 
   function rowBy(list, key, value) {
@@ -217,6 +295,7 @@
 
   function countries(euro) {
     var rows = (euro && euro.by_country) || [];
+
     var max = rows.reduce(function (m, r) { return Math.max(m, r.n); }, 1);
     return '<div class="bars">' + rows.map(function (r) {
       var on = state.country === r.country ? " hot" : "";
@@ -303,7 +382,8 @@
       btn.onclick = function () {
         state.sort = btn.getAttribute("data-sort");
         state.dir = btn.getAttribute("data-dir") || "desc";
-        state.onlyChg = btn.getAttribute("data-chg") === "1";
+        state.need = btn.getAttribute("data-need") || "";
+        state.onlyChg = state.need === "chg";
         state.ishow = 200;
         render(p);
       };
@@ -314,6 +394,7 @@
         if (state.sort === key) state.dir = state.dir === "asc" ? "desc" : "asc";
         else { state.sort = key; state.dir = key === "issuer" || key === "sector" || key === "country" || key === "maturity" || key === "book" || key === "ccy" ? "asc" : "desc"; }
         state.onlyChg = false;
+        state.need = "";
         state.ishow = 200;
         render(p);
       };
@@ -342,3 +423,4 @@
     })
     .catch(function (err) { fail(err && err.message ? err.message : "fetch failed"); });
 })();
+

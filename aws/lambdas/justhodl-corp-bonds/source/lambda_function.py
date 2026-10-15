@@ -33,7 +33,7 @@ def _get(url, timeout=40):
         return resp.read().decode("utf-8", "replace")
 
 
-def _get_bytes(url, timeout=25):
+def _get_bytes(url, timeout=40):
     # urlopen's timeout resets on every socket read, so a trickled file can
     # outlive it. The monotonic deadline is the real cap, plus one blocked read.
     req = urllib.request.Request(url, headers={
@@ -50,29 +50,18 @@ def _get_bytes(url, timeout=25):
             if not block:
                 break
             total += len(block)
-            if total > 25000000:
+            if total > 40000000:
                 raise TimeoutError("oversized")
             chunks.append(block)
         return b"".join(chunks)
 
 
 def _one_fund(fund):
-    try:
-        blob = _get_bytes(fund["url"])
-    except Exception as exc:
-        return fund, [], type(exc).__name__, None
-    try:
-        if fund["kind"] == "ssga":
-            rows, as_of = issues.parse_ssga(blob, fund)
-        else:
-            rows, as_of = issues.parse_ishares(blob.decode("utf-8", "replace"), fund)
-    except Exception as exc:
-        return fund, [], "parse %s" % type(exc).__name__, None
-    return fund, rows, "live" if rows else "empty", as_of
+    return issues.load_fund(fund, _get_bytes)
 
 
 def fetch_issues(prior_bonds):
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=6) as pool:
         results = list(pool.map(_one_fund, issues.FUNDS))
     return issues.assemble(results, prior_bonds)
 

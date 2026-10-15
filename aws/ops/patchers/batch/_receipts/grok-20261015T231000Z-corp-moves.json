@@ -1,0 +1,81 @@
+{
+ "apply_run_id": "38821235677",
+ "at": "2026-10-15T23:04:09Z",
+ "batch": "grok-20261015T231000Z-corp-moves",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 21082,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "880030553df53f0131e9e5e48c688aef81d0a78a76d0a6c9e94417c479e8e5a5",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_core.py"
+  },
+  {
+   "bytes": 28960,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "6fc314ef28c8c99e5a63abed4b49f6e85024aaf71f5c152622f934a40847a190",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_issues.py"
+  },
+  {
+   "bytes": 9652,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "65e71faad35ae37dd7f566559e6a6effc6ce0954f8462d7a96daa53e1f322ac6",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/lambda_function.py"
+  },
+  {
+   "bytes": 2186,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "5b79b8bac596dc66a6a7c4c0780e075beb95ca1709d29f860676759a81383b7d",
+   "target": "aws/ops/pending/grok_corp_bonds_moves_publish.py"
+  },
+  {
+   "bytes": 7077,
+   "changed": true,
+   "check": "html document",
+   "how": "whole",
+   "sha256": "8525b758c531f08036eb3004c0ad2233478b5bb4b1a8dcaaa3dffdae1fae89f5",
+   "target": "corpbonds.html"
+  },
+  {
+   "bytes": 29322,
+   "changed": true,
+   "check": "node --check",
+   "how": "parts",
+   "sha256": "47b1216e451693e0998b128eb6b0cf98406e45417432f4ad4aedaf6e5a1522f4",
+   "target": "jh-corp-bonds.js"
+  }
+ ],
+ "functions": [
+  "justhodl-corp-bonds"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/38821235677.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "grok",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "corp bonds movers and modified duration",
+ "ops_scripts": [
+  "aws/ops/pending/grok_corp_bonds_moves_publish.py"
+ ],
+ "pages": [
+  "corpbonds.html",
+  "jh-corp-bonds.js"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-corp-bonds.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/grok_corp_bonds_moves_publish.py"
+ ],
+ "workers": []
+}

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import io
 import math
 import re
@@ -119,6 +120,31 @@ def _cell(row, *names):
     return None
 
 
+def _printed(row, *names):
+    """First cell that is actually a print, skipping the file's dash for 'not published'."""
+    for name in names:
+        if name not in row or row[name] in (None, ""):
+            continue
+        if str(row[name]).strip() in ("-", "—", "N/A", "n/a", "#N/A"):
+            continue
+        return row[name]
+    return None
+
+
+def _yyyymmdd(raw):
+    if raw is None or raw == "":
+        return None
+    if isinstance(raw, float) and raw == int(raw):
+        raw = int(raw)
+    if isinstance(raw, int):
+        text = str(raw)
+    else:
+        text = str(raw).strip()
+    if re.fullmatch(r"\d{8}", text):
+        return "%s-%s-%s" % (text[0:4], text[4:6], text[6:8])
+    return _date(text)
+
+
 def _keep_sector(sector):
     return (sector or "").strip().lower() not in _SKIP_SECTOR
 
@@ -208,8 +234,9 @@ def parse_ishares(text, fund):
             "ytw": _cell(raw, "Yield to Worst (%)"),
             "demand": _cell(raw, "Market Value"),
             "price": _cell(raw, "Price"),
-            "dur": _cell(raw, "Duration"),
+            "dur": _printed(raw, "Mod. Duration", "Duration"),
             "isin": _cell(raw, "ISIN"),
+
             "ccy": _cell(raw, "Market Currency") or _cell(raw, "Currency"),
             "country": _cell(raw, "Location"),
         }
@@ -291,6 +318,143 @@ def parse_ssga(blob, fund):
     return out, as_of
 
 
+
+_API = (
+    "https://www.blackrock.com/varnish-api/blk-one01-product-data/product-data"
+    "/api/v2/get-product-data?appType=PRODUCT_PAGE&appSubType=ISHARES"
+    "&targetSite=%s&locale=%s&portfolioId=%s&userType=individual&component=holdings"
+)
+
+
+def _api_url(fund, ymd=None):
+    match = re.search(r"/products/(\d+)/", fund.get("url") or "")
+    if not match:
+        return None
+    uk = "/uk/" in (fund.get("url") or "")
+    url = _API % ("uk-ishares" if uk else "us-ishares", "en_GB" if uk else "en_US", match.group(1))
+    if ymd:
+        url += "&asOfDate=" + ymd
+    return url
+
+
+def parse_api(payload, fund):
+    """BlackRock product-data holdings. Identifiers stay inside this process."""
+    try:
+        pts = payload["componentsByNameMap"]["holdings"]["containersByNameMap"]["all"]["dataPointsByNameMap"]
+    except Exception:
+        return [], None, []
+
+    def col(name):
+        value = (pts.get(name) or {}).get("value")
+        return value if isinstance(value, list) else []
+
+    names = col("issueName")
+    as_of = _yyyymmdd((pts.get("asOfDate") or {}).get("value"))
+    dates = []
+    for raw in col("dateList"):
+        iso = _yyyymmdd(raw)
+        if iso and iso not in dates:
+            dates.append(iso)
+    if not names:
+        return [], as_of, dates
+
+    def at(name, index):
+        seq = col(name)
+        return seq[index] if index < len(seq) else None
+
+    rows = []
+    for index in range(len(names)):
+        modified = _num(at("modifiedDuration", index))
+        effective = _num(at("duration", index))
+        mapped = {
+            "issuer": at("issueName", index),
+            "sector": at("sectorName", index),
+            "asset": at("assetClass", index),
+            "maturity": _yyyymmdd(at("maturityDate", index)),
+            "coupon": at("couponRate", index),
+            "ytm": at("yieldToMaturity", index),
+            "ytw": at("yieldToWorst", index),
+            "demand": at("marketValue", index),
+            "price": at("unitPrice", index),
+            "dur": modified if modified is not None else effective,
+            "isin": at("isin", index),
+            "ccy": at("marketCurrencyCode", index) or at("currencyCode", index),
+            "country": at("countryOfRisk", index),
+        }
+        row = _row_from(mapped, fund)
+        if row:
+            rows.append(row)
+    return rows, as_of, dates
+
+
+def _attach_prior(rows, prior_rows, prior_asof):
+    index = {}
+    for old in prior_rows:
+        isin = old.get("isin")
+        if isin and isin not in index:
+            index[isin] = old
+    for row in rows:
+        old = index.get(row.get("isin"))
+        if not old:
+            continue
+        if old.get("price") is not None:
+            row["prior_price"] = old["price"]
+        rate = old.get("ytw") if old.get("ytw") is not None else old.get("ytm")
+        if rate is not None:
+            row["prior_rate"] = rate
+        row["prior_asof"] = prior_asof
+
+
+def _load_api(fund, get_bytes):
+    url = _api_url(fund)
+    if not url:
+        return None
+    blob = get_bytes(url)
+    if not blob or blob[:1] not in (b"{", b"["):
+        return None
+    rows, as_of, dates = parse_api(json.loads(blob.decode("utf-8")), fund)
+    if not rows:
+        return None
+    priors = [day for day in dates if as_of and day < as_of]
+    prior_asof = max(priors) if priors else None
+    if prior_asof:
+        try:
+            blob = get_bytes(_api_url(fund, prior_asof.replace("-", "")))
+            prows, got, _ = parse_api(json.loads(blob.decode("utf-8")), fund)
+            if prows and got and got != as_of:
+                _attach_prior(rows, prows, got)
+        except Exception:
+            pass
+    return fund, rows, "api", as_of
+
+
+def load_fund(fund, get_bytes):
+    """Latest holdings, plus the previous date the same feed lists (usually month-end)."""
+    if fund.get("kind") == "ssga":
+        try:
+            blob = get_bytes(fund["url"])
+        except Exception as exc:
+            return fund, [], type(exc).__name__, None
+        try:
+            rows, as_of = parse_ssga(blob, fund)
+        except Exception as exc:
+            return fund, [], "parse %s" % type(exc).__name__, None
+        return fund, rows, "live" if rows else "empty", as_of
+    loaded = None
+    try:
+        loaded = _load_api(fund, get_bytes)
+    except Exception:
+        loaded = None
+    if loaded and loaded[1]:
+        return loaded
+    try:
+        blob = get_bytes(fund["url"])
+        rows, as_of = parse_ishares(blob.decode("utf-8", "replace"), fund)
+    except Exception as exc:
+        return fund, [], type(exc).__name__, None
+    return fund, rows, "csv" if rows else "empty", as_of
+
+
 def _name_key(row):
     coupon = "" if row.get("coupon") is None else ("%.3f" % row["coupon"])
     return "|".join([norm_issuer(row.get("issuer")), row.get("maturity") or "", coupon, row.get("ccy") or ""])
@@ -368,19 +532,36 @@ def assemble(fund_results, prior_bonds):
         display = sorted(parts, key=lambda part: (-(part.get("demand") or 0), len(part.get("issuer") or "")))[0]
         country = next((part["country"] for part in parts if part.get("country")), "") or display.get("country") or ""
         ccy = next((part["ccy"] for part in parts if part.get("ccy")), "") or ""
+
         maturity = next((part["maturity"] for part in parts if part.get("maturity")), None)
         coupon = next((part["coupon"] for part in parts if part.get("coupon") is not None), None)
-        price = next((part["price"] for part in sorted(parts, key=lambda part: -(part.get("demand") or 0)) if part.get("price") is not None), None)
-        dur = next((part["dur"] for part in parts if part.get("dur") is not None), None)
+        def _best(pred):
+            pool = [part for part in parts if pred(part)]
+            pool.sort(key=lambda part: -(part.get("demand") or 0))
+            return pool[0] if pool else None
+
+        rate_part = _best(lambda part: part.get("ytw") is not None or part.get("ytm") is not None)
+        if rate_part is not None:
+            rate = rate_part.get("ytw") if rate_part.get("ytw") is not None else rate_part.get("ytm")
+        price_part = _best(lambda part: part.get("price") is not None)
+        price = price_part.get("price") if price_part else None
+        dur_part = _best(lambda part: part.get("dur") is not None)
+        dur = dur_part.get("dur") if dur_part else None
         book_demand = defaultdict(float)
         for part in parts:
             if part.get("demand"):
                 book_demand[part["book"]] += part["demand"]
         book = max(book_demand, key=book_demand.get) if book_demand else parts[0]["book"]
         key = _public_key(group["token"])
+        has_file_prior = any(part.get("prior_asof") for part in parts)
         chg = None
-        if rate is not None and key in prior and prior[key] is not None:
+        if rate is not None and rate_part is not None and rate_part.get("prior_rate") is not None:
+            chg = round(rate - rate_part["prior_rate"], 3)
+        elif rate is not None and not has_file_prior and key in prior and prior[key] is not None:
             chg = round(rate - prior[key], 3)
+        dpx = None
+        if price is not None and price_part is not None and price_part.get("prior_price") is not None:
+            dpx = round(price - price_part["prior_price"], 2)
         item = {
             "k": key,
             "issuer": display["issuer"],
@@ -392,6 +573,8 @@ def assemble(fund_results, prior_bonds):
             "rate": rate,
             "chg": chg,
             "price": price,
+            "dpx": dpx,
+            "_move": ((rate_part or {}).get("prior_asof") or (price_part or {}).get("prior_asof")) if (chg is not None or dpx is not None) else None,
             "demand": demand,
             "dur": dur,
             "book": book,
@@ -404,7 +587,7 @@ def assemble(fund_results, prior_bonds):
     for bond in bonds:
         bucket = issuers.setdefault(bond["_norm"], {
             "issuer": bond["issuer"], "sector": bond["sector"], "country": bond["country"],
-            "n": 0, "demand": 0.0, "rates": [], "chgs": [], "books": set(), "countries": set(),
+            "n": 0, "demand": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": [], "books": set(), "countries": set(),
         })
         bucket["n"] += 1
         if bond.get("demand"):
@@ -413,6 +596,10 @@ def assemble(fund_results, prior_bonds):
             bucket["rates"].append((bond["rate"], bond.get("demand") or 0))
         if bond.get("chg") is not None:
             bucket["chgs"].append((bond["chg"], bond.get("demand") or 0))
+        if bond.get("dur") is not None:
+            bucket["durs"].append((bond["dur"], bond.get("demand") or 0))
+        if bond.get("dpx") is not None:
+            bucket["dpxs"].append((bond["dpx"], bond.get("demand") or 0))
         if bond.get("book"):
             bucket["books"].add(bond["book"])
         if bond.get("country"):
@@ -431,6 +618,8 @@ def assemble(fund_results, prior_bonds):
             "demand": round(bucket["demand"], 0) if bucket["demand"] else None,
             "rate": _wavg(bucket["rates"]),
             "chg": _wavg(bucket["chgs"]),
+            "dur": _wavg(bucket["durs"]),
+            "dpx": _wavg(bucket["dpxs"]),
             "books": sorted(bucket["books"]),
         })
     issuer_rows.sort(key=lambda row: (-(row["demand"] or 0), row["issuer"]))
@@ -438,7 +627,7 @@ def assemble(fund_results, prior_bonds):
     sectors = {}
     for bond in bonds:
         label = bond.get("sector") or ""
-        bucket = sectors.setdefault(label, {"sector": label or None, "n": 0, "issuers": set(), "demand": 0.0, "rates": [], "chgs": []})
+        bucket = sectors.setdefault(label, {"sector": label or None, "n": 0, "issuers": set(), "demand": 0.0, "rates": [], "chgs": [], "durs": [], "dpxs": []})
         bucket["n"] += 1
         bucket["issuers"].add(bond["_norm"])
         if bond.get("demand"):
@@ -447,6 +636,10 @@ def assemble(fund_results, prior_bonds):
             bucket["rates"].append((bond["rate"], bond.get("demand") or 0))
         if bond.get("chg") is not None:
             bucket["chgs"].append((bond["chg"], bond.get("demand") or 0))
+        if bond.get("dur") is not None:
+            bucket["durs"].append((bond["dur"], bond.get("demand") or 0))
+        if bond.get("dpx") is not None:
+            bucket["dpxs"].append((bond["dpx"], bond.get("demand") or 0))
     sector_rows = []
     for bucket in sectors.values():
         sector_rows.append({
@@ -456,10 +649,16 @@ def assemble(fund_results, prior_bonds):
             "demand": round(bucket["demand"], 0) if bucket["demand"] else None,
             "rate": _wavg(bucket["rates"]),
             "chg": _wavg(bucket["chgs"]),
+            "dur": _wavg(bucket["durs"]),
+            "dpx": _wavg(bucket["dpxs"]),
         })
     sector_rows.sort(key=lambda row: (-(row["demand"] or 0), row["sector"] or ""))
 
+    move_counts = {}
     for bond in bonds:
+        stamp = bond.pop("_move", None)
+        if stamp:
+            move_counts[stamp] = move_counts.get(stamp, 0) + 1
         bond.pop("_norm", None)
         for key in list(bond):
             if bond[key] is None or bond[key] == "":
@@ -471,8 +670,13 @@ def assemble(fund_results, prior_bonds):
         "n_issuers": len(issuer_rows),
         "n_sectors": sum(1 for row in sector_rows if row.get("sector")),
         "n_with_rate": sum(1 for row in bonds if row.get("rate") is not None),
+        "n_with_dur": sum(1 for row in bonds if row.get("dur") is not None),
+        "n_with_price": sum(1 for row in bonds if row.get("price") is not None),
         "n_with_change": sum(1 for row in bonds if row.get("chg") is not None),
+        "n_with_move": sum(1 for row in bonds if row.get("dpx") is not None),
+        "dur": _wavg([(row.get("dur"), row.get("demand") or 0) for row in bonds]),
         "demand": round(sum(row.get("demand") or 0 for row in bonds), 0) if bonds else None,
+        "move_as_of": max(move_counts, key=move_counts.get) if move_counts else None,
         "funds": funds_out,
         "sectors": sector_rows,
         "issuers": issuer_rows,
@@ -483,7 +687,9 @@ def assemble(fund_results, prior_bonds):
             "Individual bonds held by the scanned iShares and SPDR books. "
             "Industry is the fund sector. Yield is yield-to-worst when the file prints it, else yield-to-maturity. "
             "Demand is market value inside those funds, not TRACE volume and not the amount outstanding. "
-            "A blank yield was not printed. Yield change is versus the previous desk snapshot of the same bond. "
+            "A blank yield was not printed. Duration is modified duration when the file prints it, else the duration column, never estimated. "
+            "Price and yield changes are versus the previous holdings date that same feed lists, usually the prior month-end, and only for a bond that was in both files. "
             "CUSIPs are not republished. This is not every corporate bond outstanding."
         ),
     }
+

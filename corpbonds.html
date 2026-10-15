@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Corp Bonds — companies, TRACE, euro book, credit sleeves · JustHodl.AI</title>
-<meta name="description" content="Individual corporate bonds in the US and international markets, sorted by industry, yield change and fund demand, plus the FINRA TRACE tape, the ECB holdings list and ICE BofA sleeves.">
+<meta name="description" content="Which corporate bonds pumped and which dumped since the last holdings date, with modified duration across the US, euro and international books.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%8A%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -40,11 +40,12 @@ main{padding:20px;max-width:1680px;margin:0 auto}
 .panel h3 .tag{font-family:var(--font-mono);font-size:10px;color:var(--text-mute);font-weight:400}
 .read{background:var(--panel-2);border-left:3px solid var(--accent);padding:11px 15px;font-size:12.5px;color:var(--text-dim);border-radius:0 4px 4px 0;margin:0 0 14px 0;line-height:1.55}
 .bars{display:flex;flex-direction:column;gap:6px}
-.bar-row{display:grid;grid-template-columns:148px 1fr 92px;gap:8px;align-items:center}
+.bar-row{display:grid;grid-template-columns:148px 1fr 168px;gap:8px;align-items:center}
 .bar-name{font-family:var(--font-mono);font-size:11px;color:var(--text-dim)}
 .bar-track{height:16px;background:var(--panel-2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
 .bar-fill{height:100%;background:linear-gradient(90deg,rgba(34,211,238,.35),var(--info))}
 .bar-fill.hot{background:linear-gradient(90deg,rgba(255,61,90,.35),var(--neg))}
+.bar-fill.up{background:linear-gradient(90deg,rgba(0,230,118,.35),var(--pos))}
 .bar-fill.warm{background:linear-gradient(90deg,rgba(251,191,36,.35),var(--gold))}
 .bar-val{font-family:var(--font-mono);font-size:11px;text-align:right}
 table{width:100%;border-collapse:collapse;font-size:12px}
@@ -79,11 +80,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <main>
   <div class="intro">
     <h2>Corporate bonds, company by company</h2>
-    <p>Sort every bond in the scanned US, euro, sterling, Canada, Japan and emerging-market fund books by industry, yield, and who holds the most. Biggest yield increase and decrease use the change since the previous snapshot. Demand is market value inside those funds, by sector and by company. TRACE, the ECB list and the ICE sleeves stay underneath. A missing print stays blank. No call and no sizing.</p>
+    <p>Pumped is the price up since the previous holdings date, dumped is the price down. Sort industry either way, or by duration. Duration is modified duration where the file prints it. Demand is market value inside the scanned funds, by sector and by company. A missing print stays blank. No call and no sizing.</p>
   </div>
   <div id="root" class="loading">Pulling the corp bonds packet…</div>
 </main>
-<script src="/jh-corp-bonds.js?v=20261015c"></script>
+<script src="/jh-corp-bonds.js?v=20261015d"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body>
