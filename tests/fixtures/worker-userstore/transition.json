@@ -3,7 +3,7 @@
     "cloudflare/workers/justhodl-data-proxy/src/index.js": {
       "before_path": "tests/fixtures/worker-userstore/index.js.before.txt",
       "before_sha256": "776a546c1bb0b3d5fa2d525349cc34ebbb6bdf14c3d0f4dcb504efa905ac53b0",
-      "after_sha256": "4c4c7c9bb4ebec4bea6a733c722bda35991e8ea1ac3500d9a35d1dcbd41b4c99",
+      "after_sha256": "128f5848c65c334aaddc03b668de0f0a025a7b14fb69e6a00ac555a42dae1015",
       "replacements": [
         {
           "before": "    // GET /workspace/home — load the signed-in user's home workspace.",
@@ -24,10 +24,6 @@
         {
           "before": "          opMargin: pick(\"operatingProfitMarginTTM\"), fcfYield: pick(\"freeCashFlowYieldTTM\"),",
           "after": "          opMargin: pick(\"operatingProfitMarginTTM\"), fcfYield: pick(\"freeCashFlowYieldTTM\"),\n          peg: pick(\"priceToEarningsGrowthRatioTTM\", \"pegRatioTTM\", \"forwardPriceToEarningsGrowthRatioTTM\"),\n          evToEbitda: pick(\"enterpriseValueMultipleTTM\", \"evToEBITDATTM\"), evToSales: pick(\"evToSalesTTM\"),\n          cusip: prof.cusip || null, isin: prof.isin || null, isEtf: !!prof.isEtf, isFund: !!prof.isFund,\n          image: prof.image || null, website: prof.website || null, ipoDate: prof.ipoDate || null,\n          lastDividend: prof.lastDividend != null ? prof.lastDividend : (prof.lastDiv != null ? prof.lastDiv : null),\n          sharesOutstanding: quote.sharesOutstanding || null, employees: prof.fullTimeEmployees || null,"
-        },
-        {
-          "after": "        const yUrl = range === \"max\"",
-          "before": "        const yUrl = range === \"max\" || forceYahoo"
         }
       ]
     }
