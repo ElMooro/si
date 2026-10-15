@@ -42,14 +42,14 @@ TENOR_BUCKETS = (("1Y", 0.0, 1.75), ("3Y", 1.75, 4.0), ("5Y", 4.0, 6.0), ("7Y", 
 FIVE_YEAR = ("5Y", 4.0, 6.0)
 LIQUID_MIN_TRADES_30D = 10
 LIQUID_MIN_DAYS_30D = 4
-MIN_CURVE_PRINTS = 1          # uncapped prints per tenor needed for the curve-shape sign test
+MIN_CURVE_PRINTS = 1          # prints per tenor needed for the curve-shape sign test (capped blocks count at the cap)
 CURVE_CROSS_MAX_RATIO = 4.0   # curve-shape test only when the coupon-crossing alternative would need long/short > 4x
 MIN_CASH_PCT = 0.02           # |upfront| below this share of notional is not a market upfront (fees, zero-cost novations)
 MIN_QUOTE_BP = 5.0            # a single-name "quoted" spread below this is a mis-filed field, not a market level
 SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this log-distance of the trailing anchor
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
-LONG_ANCHOR_DAYS = 180        # a name's own earlier resolved level may still pick a branch when the two branches are far apart
+LONG_ANCHOR_DAYS = 365        # a name's own earlier resolved level may still pick a branch when the two branches are far apart
 TRAILING_COUPON_DAYS = 90     # window for the trailing two-coupon intersection
 COMOVE_DAYS = 150             # window for the index co-movement sign test
 COMOVE_MIN_PAIRS = 20         # consecutive-day pairs needed for the co-movement test
@@ -996,8 +996,8 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
         st = quote_status(trade, rate_pct)
         if st == "confirmed" or (st == "soft" and (anchor_bp is None or _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG)):
             return [(trade["quoted_bp"], "quoted")]
-        if st == "soft":
-            return []   # plausible but contradicts what this name has been trading at: unresolved, not wrong
+        # a soft quote that contradicts the anchor is not a quote.  Fall through to the upfront when the
+        # print carries one (the cap is a usable notional).  A bare coupon with no cash still returns [].
     if trade["price"] is not None and trade["coupon_bp"]:
         s = price_to_spread_bp(trade["price"], trade["coupon_bp"], trade["tenor"], rate_pct)
         return [(s, "price")] if s else []
@@ -1110,10 +1110,11 @@ def day_anchor(trades, rate_pct, trailing_anchor):
         return statistics.median(soft), "quoted", trail_q      # unconfirmed quotes, but consistent with the name's own history
     if soft:
         return statistics.median(soft), "quoted", "inferred"   # unconfirmed and nothing to check them against
-    # candidates from uncapped derived prints (exact notional)
+    # derived candidates.  A capped block is measured at the disclosed cap (median error ~0.05% of notional).
+    # Quoted prints already returned above, so a cap never out-votes a quote.
     derived = []
     for t in five:
-        if t["capped"] or t["quoted_bp"] is not None or t["price"] is not None:
+        if t["quoted_bp"] is not None or t["price"] is not None:
             continue
         cands = candidate_spreads(t, rate_pct)
         if cands:
@@ -1145,7 +1146,7 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     # curve shape: with one coupon, the wrong branch reflects the curve around the coupon and inverts its slope
     all_derived = []
     for t in trades:
-        if t.get("package") or t["capped"] or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
+        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
             continue
         cands = candidate_spreads(t, rate_pct)
         if len(cands) == 2:
@@ -1230,7 +1231,7 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
         spread_basis = None
     cand = {}
     for t in five:
-        if t.get("package") or t["capped"] or t["quoted_bp"] is not None or t["price"] is not None:
+        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None:
             continue
         cs = candidate_spreads(t, rate_pct)
         if len(cs) == 2:
@@ -1402,7 +1403,7 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7):
 
     Evidence order: median of the last <=5 priced days in the last 7 days (source 'trailing') >
     trailing two-coupon intersection over 90 days ('multi_coupon_trailing', firm) >
-    the name's own last resolved level within 180 days, usable only when the branches sit far apart ('trailing_long') >
+    the name's own last resolved level within 365 days, usable only when the branches sit far apart ('trailing_long') >
     index co-movement of the two unresolved branches ('comove', inferred)."""
     out = {}
     as_of = date.fromisoformat(as_of_iso)
@@ -1757,7 +1758,7 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         "method": {"model": "ISDA flat-hazard, recovery %.0f%%, discount = 5Y Treasury par - %.0fbp (swap proxy), accrued added back" % (RECOVERY_SENIOR * 100, SWAP_PROXY_OFFSET_PCT * 100),
                    "liquid_rule": ">=%d prints on >=%d days in the trailing 30 days" % (LIQUID_MIN_TRADES_30D, LIQUID_MIN_DAYS_30D),
                    "spread_rule": "median of quoted prints when >=2 quoted, else median of quoted + sign-resolved derived prints; ambiguous prints counted but unpriced",
-                   "sign_rule": "evidence order: same-day quoted prints > two-coupon intersection > single feasible branch (uncapped) > trailing 7-day anchor > trailing 90-day two-coupon intersection > the name's own resolved level within 180 days (only when the two branches sit >e^1 apart) > index co-movement of the two branches over 150 days (>=20 day-pairs, corr >=0.3 vs <=0; inferred) > curve-shape (>=3y gap, <300bp); nothing else",
+                   "sign_rule": "evidence order: same-day quoted prints > two-coupon intersection > single feasible branch (capped blocks counted at the disclosed cap, and they never out-vote a quote) > trailing 7-day anchor > trailing 90-day two-coupon intersection > the name's own resolved level within 365 days (only when the two branches sit >e^1 apart) > index co-movement of the two branches over 150 days (>=20 day-pairs, corr >=0.3 vs <=0; inferred) > curve-shape (>=3y gap, <300bp); nothing else",
                    "universe_rule": "every entity in the public tape is listed: priced names (liquid or thin) with a level, active-but-unpriced names (>=%d prints in 30 days) with both feasible branches, dormant names with their last dated level; sovereign coverage is measured against %d known sovereign issuers" % (MIN_UNPRICED_PRINTS_30D, len({v[0] for v in SOVEREIGNS.values()})),
                    "quote_rule": "a Spread-Leg-1 value counts as a quote if it agrees with the print's own upfront; unconfirmed quotes must be >=%.0fbp and within %.0f%% log-distance of the name's trailing anchor (none available: accepted, sign evidence 'inferred')" % (MIN_QUOTE_BP, 100 * SOFT_QUOTE_GATE_LOG),
                    "stale_rule": "levels older than %d calendar days are not shown as current; such names appear in the unpriced list with their last dated level" % STALE_MAX_DAYS,

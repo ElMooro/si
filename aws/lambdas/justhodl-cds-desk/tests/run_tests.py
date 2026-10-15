@@ -511,6 +511,55 @@ def test_v160_risk_layers_attach_and_stay_descriptive():
     assert set(L.IMF_LAYER_SOURCES) == set(RL.IMF_ARA) | set(RL.IMF_GDD)
 
 
+def test_capped_block_is_measured_at_the_cap_and_never_outvotes_a_quote():
+    """A block notional is the disclosed cap, not a reason to drop the print.  It still cannot set the anchor when a quote exists."""
+    wide = C.normalize_trade(derived_row(900, **{"Notional amount-Leg 1": "5,000,000+"}), "sec")
+    assert wide["capped"] is True and len(C.candidate_spreads(wide, RATE)) == 1
+    anchor, src, quality = C.day_anchor([wide], RATE, None)
+    assert src == "single_branch" and quality == "firm" and anchor is not None
+    measured = C._measure([wide], RATE, None)
+    assert measured["spread_5y"] is not None and measured["anchor_source"] == "single_branch"
+    # two feasible branches on a capped block stay unsigned — the cap is not a side
+    amb = C.normalize_trade(derived_row(140, **{"Notional amount-Leg 1": "5,000,000+"}), "sec")
+    assert C.day_anchor([amb], RATE, None) == (None, None, None)
+    cand = C._measure([amb], RATE, None)["cand"]
+    assert cand and cand["100"][0] > 100 > cand["100"][1]
+    quote = C.normalize_trade(quoted_row(112), "sec")
+    anchor, src, quality = C.day_anchor([wide, quote], RATE, None)
+    assert src == "quoted" and anchor == 112
+
+
+def test_contradicted_soft_quote_falls_through_to_the_upfront():
+    """A Spread-Leg 1 value far from the name's anchor is not a quote, but the print's own upfront still has two branches."""
+    trade = C.normalize_trade(derived_row(400, coupon_bp=100.0, **{"Spread-Leg 1": "0.01", "Spread notation-Leg 1": "3"}), "sec")
+    assert C.quote_status(trade, RATE) == "soft"
+    cands = C.candidate_spreads(trade, RATE, 1000.0)
+    assert cands and cands[0][1] != "quoted"
+    assert any(abs(v - 400) < 8 for v, _b in cands), cands
+    # a bare coupon with no cash, far from the anchor, is still unresolved
+    bare = C.normalize_trade(quoted_row(100), "sec")
+    assert C.candidate_spreads(bare, RATE, 1000.0) == []
+
+
+def test_own_firm_level_anchors_for_a_year_when_branches_are_far():
+    """PG&E-shaped: last firm print ~8 months ago, today's two branches far apart.  180 days dropped it; 365 days keeps it."""
+    assert C.LONG_ANCHOR_DAYS == 365
+    series = {
+        "2025-10-15": {"n": 3, "n5": 3, "np": 3, "s": 109.0, "sb": "quoted", "q": 2, "amb": 0, "nm": 10.0, "aq": "firm", "as": "quoted", "cd": None},
+        "2026-10-01": {"n": 4, "n5": 4, "np": 0, "s": None, "q": 0, "amb": 4, "nm": 20.0, "cd": {"500": [917.0, 190.0]}},
+    }
+    bank = {"version": C.VERSION, "series": {"PGE": series}, "meta": {"PGE": {"kind": "corp", "raw": "PG&E", "ccy": {"USD": 4}}}, "entity_map": {}, "days": ["2025-10-15", "2026-10-01"]}
+    anc = C.anchors_from_bank(bank, "2026-10-02")
+    assert anc["PGE"][2] == "trailing_long" and anc["PGE"][0] == 109.0
+    # resolved with that anchor: 190 is near 109, 917 is not, and the branches are far enough for an old anchor
+    trade = C.normalize_trade(derived_row(190, coupon_bp=500.0, day="2026-10-01"), "sec")
+    spread, basis = C.resolve_spread(trade, RATE, 109.0, far_only=True)
+    assert basis == "derived" and spread is not None and abs(spread - 190) < 15
+    stale = {"version": C.VERSION, "series": {"PGE": {"2025-08-01": series["2025-10-15"], "2026-10-01": series["2026-10-01"]}},
+             "meta": bank["meta"], "entity_map": {}, "days": ["2025-08-01", "2026-10-01"]}
+    assert "PGE" not in C.anchors_from_bank(stale, "2026-10-02")
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0
