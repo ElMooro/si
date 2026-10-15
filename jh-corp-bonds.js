@@ -1,4 +1,3 @@
-@@PART 1/2@@
 /* Corp bonds desk. Reads data/corp-bonds.json. Descriptive only. */
 (function () {
   var root = document.getElementById("root");
@@ -138,4 +137,77 @@
     (euro.issuers || []).forEach(function (row) { issuers[row.issuer] = row; });
     var chips = '<div class="chips"><button class="chip' + (state.country === "ALL" ? " on" : "") + '" data-ccy="ALL">All countries</button>' +
       (euro.by_country || []).map(function (r) {
-@@END 1@@
+        return '<button class="chip' + (state.country === r.country ? " on" : "") + '" data-ccy="' + esc(r.country) + '">' + esc(r.country) + " " + r.n + "</button>";
+      }).join("") + "</div>";
+    var head = "<tr><th>Maturity</th><th>Years</th><th>Issuer</th><th>ISIN</th><th>Cpn</th><th>NCB</th><th>CDS 5Y</th></tr>";
+    var body = rows.map(function (b) {
+      var cds = issuers[b.issuer] || {};
+      var cdsCell = cds.cds_bp != null ? num(cds.cds_bp, 0) + " bp" : "<span class='t-mute'>—</span>";
+      return "<tr><td>" + esc(b.maturity) + "</td><td>" + num(b.years, 1) + "</td><td>" + esc(b.issuer) + "</td><td class='t-mute'>" + esc(b.isin) + "</td><td>" + num(b.coupon, 3) + "</td><td>" + esc(b.country) + "</td><td class='t-gold' title='" + esc(cds.cds_name || "") + "'>" + cdsCell + "</td></tr>";
+    }).join("");
+    var more = all.length > rows.length ? '<p class="note"><button class="chip" id="more">Show all ' + all.length + " bonds</button></p>" : '<p class="note">' + rows.length + " of " + all.length + " bonds in this filter.</p>";
+    return chips + '<input class="search" id="q" placeholder="Issuer or ISIN" value="' + esc(state.q) + '">' +
+      "<div class='scroll'><table>" + head + body + "</table></div>" + more;
+  }
+
+  function issuerTable(euro) {
+    var rows = (euro.issuers || []).slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 40);
+    var head = "<tr><th>Issuer</th><th>NCB</th><th>Bonds</th><th>Coupon</th><th>Nearest</th><th>CDS</th></tr>";
+    var body = rows.map(function (r) {
+      var cpn = r.coupon_min == null ? "—" : num(r.coupon_min, 2) + (r.coupon_max != r.coupon_min ? "–" + num(r.coupon_max, 2) : "");
+      return "<tr><td>" + esc(r.issuer) + "</td><td>" + esc(r.country) + "</td><td>" + r.n + "</td><td>" + cpn + "</td><td>" + esc(r.nearest || "") + "</td><td class='t-gold'>" + (r.cds_bp != null ? num(r.cds_bp, 0) + " bp" : "—") + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div>";
+  }
+
+  function coverage(p) {
+    var c = p.coverage || {};
+    var misses = ((p.sources || {}).fred) || {};
+    var missed = Object.keys(misses).filter(function (k) { return misses[k] !== "live"; });
+    return "<p>" + esc(c.us || "") + "</p><p>" + esc(c.euro_issues || "") + "</p><p>" + esc(c.international_indices || "") + "</p><p class='note'>Not issue-level: " + esc((c.not_issue_level || []).join(" · ")) + "</p>" +
+      (missed.length ? "<p class='note'>FRED sleeves that did not print this run: " + esc(missed.join(", ")) + "</p>" : "");
+  }
+
+  function render(p) {
+    var euro = p.euro || {};
+    ts.textContent = "as of " + (p.as_of || "") + " · " + String(p.generated_at || "").replace("T", " ").slice(0, 16) + "Z · v" + (p.version || "");
+    root.innerHTML =
+      '<div class="read">' + esc(p.read || "") + "</div>" +
+      kpis(p) +
+      '<div class="panel"><h3>Global corporate sleeves <span class="tag">ICE BofA OAS, wider = more stress</span></h3>' + sleeveChart(p) + "</div>" +
+      '<div class="panel"><h3>Sleeve changes <span class="tag">bp for OAS, percent for yields</span></h3>' + sleeveTable(p) + "</div>" +
+      '<div class="panel"><h3>US TRACE tape <span class="tag">every disseminated corporate print, rolled up</span></h3>' + tracePanel(p) + "</div>" +
+      '<div class="split"><div class="panel"><h3>Euro maturity wall <span class="tag">' + num(euro.n_bonds, 0) + " bonds</span></h3>" + wall(euro) + '</div><div class="panel"><h3>Euro book by purchasing NCB</h3>' + countries(euro) + "</div></div>" +
+      '<div class="panel"><h3>Issuers <span class="tag">' + num(p.cds_matched_issuers, 0) + " joined to the CDS desk</span></h3>" + issuerTable(euro) + "</div>" +
+      '<div class="panel"><h3>Every listed euro bond <span class="tag">' + esc(euro.source_url || "ECB CSPP/PEPP") + "</span></h3>" + bondTable(euro) + "</div>" +
+      '<div class="panel"><h3>What this engine covers — and what it refuses to invent</h3>' + coverage(p) + "</div>";
+    bind(p);
+  }
+
+  function bind(p) {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ccy]"), function (btn) {
+      btn.onclick = function () { state.country = btn.getAttribute("data-ccy"); state.show = 250; render(p); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function (btn) {
+      btn.onclick = function () { state.tab = btn.getAttribute("data-tab"); render(p); };
+    });
+    var q = document.getElementById("q");
+    if (q) q.oninput = function () { state.q = q.value; state.show = 250; render(p); q.focus(); };
+    var more = document.getElementById("more");
+    if (more) more.onclick = function () { state.show = 100000; render(p); };
+  }
+
+  function fail(msg) {
+    root.className = "";
+    root.innerHTML = '<div class="panel"><h3>Corp bonds packet is not up yet</h3><p class="note">' + esc(msg) + "</p><p class='note'>The engine writes data/corp-bonds.json on its schedule. This page does not invent a tape while that file is missing.</p></div>";
+  }
+
+  fetch("/data/corp-bonds.json?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (p) {
+      if (!p || p.engine !== "justhodl-corp-bonds") throw new Error("unexpected packet");
+      root.className = "";
+      render(p);
+    })
+    .catch(function (err) { fail(err && err.message ? err.message : "fetch failed"); });
+})();

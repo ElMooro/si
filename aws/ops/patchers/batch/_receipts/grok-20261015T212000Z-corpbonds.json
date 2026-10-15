@@ -1,0 +1,89 @@
+{
+ "apply_run_id": "38800044186",
+ "at": "2026-10-15T20:12:44Z",
+ "batch": "grok-20261015T212000Z-corpbonds",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 1081,
+   "changed": true,
+   "check": "json",
+   "how": "whole",
+   "sha256": "342057e70015f04acbf0503dcbc67e0e942e9b59b26f9891a252fa90a1076d6d",
+   "target": "aws/lambdas/justhodl-corp-bonds/config.json"
+  },
+  {
+   "bytes": 18935,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "9c044448472de37af811c244683c3f8bb3a8d874ee3568d6a952f65588950759",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_core.py"
+  },
+  {
+   "bytes": 7244,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "8bb784991a3d20665e11a4fddc8dcde7d588603a00ec443ad437f1d610b90ae3",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/lambda_function.py"
+  },
+  {
+   "bytes": 4234,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "06236106b0e020a8718c18e95a4c5cf6962265d9b260af03fb8e92b4dec98e2b",
+   "target": "aws/lambdas/justhodl-corp-bonds/tests/run_tests.py"
+  },
+  {
+   "bytes": 2055,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "43f2f782be7d95b6a046993bd41b4d681bab55d5584223296dbf250f65dc6853",
+   "target": "aws/ops/pending/grok_corp_bonds_launch.py"
+  },
+  {
+   "bytes": 7112,
+   "changed": true,
+   "check": "html document",
+   "how": "whole",
+   "sha256": "f64e4af7273cd7f5855443da4f92b5dbae2104d030f7f7a3be1d8d3e53e98651",
+   "target": "corpbonds.html"
+  },
+  {
+   "bytes": 14345,
+   "changed": true,
+   "check": "node --check",
+   "how": "parts",
+   "sha256": "50c8a971b89104f1926b82cdc7c90a2d42f808c4f96459c2180f10db9eab7630",
+   "target": "jh-corp-bonds.js"
+  }
+ ],
+ "functions": [
+  "justhodl-corp-bonds"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/38800044186.json",
+ "handoff_ref": "ops-evidence",
+ "lane": "grok",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "corp bonds engine: TRACE tape, ECB issue book, ICE sleeves, corpbonds.html, one launch",
+ "ops_scripts": [
+  "aws/ops/pending/grok_corp_bonds_launch.py"
+ ],
+ "pages": [
+  "corpbonds.html",
+  "jh-corp-bonds.js"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-corp-bonds.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/grok_corp_bonds_launch.py"
+ ],
+ "workers": []
+}
