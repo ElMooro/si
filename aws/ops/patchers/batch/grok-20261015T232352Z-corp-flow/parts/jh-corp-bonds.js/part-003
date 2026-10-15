@@ -1,0 +1,152 @@
+@@PART 3/4@@
+    return '<div class="kpi-grid">' + cards.map(function (c) {
+      return '<div class="kpi ' + c[3] + '"><div class="label">' + esc(c[0]) + '</div><div class="val">' + c[1] + '</div><div class="sub">' + c[2] + "</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function sleeveChart(p) {
+    var rows = (p.sleeves || []).filter(function (r) { return r.kind === "oas" && r.level != null; });
+    if (!rows.length) return '<p class="note">No OAS sleeves in this packet yet.</p>';
+    var max = Math.max.apply(null, rows.map(function (r) { return r.level; }));
+    return '<div class="bars">' + rows.map(function (r) {
+      var hot = r.pct_5y != null && r.pct_5y >= 80;
+      var warm = r.pct_5y != null && r.pct_5y >= 60 && r.pct_5y < 80;
+      var cls = hot ? "hot" : warm ? "warm" : "";
+      var width = Math.max(2, Math.round(100 * r.level / max));
+      return '<div class="bar-row"><div class="bar-name">' + esc(r.label) + '</div><div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + num(r.level, 0) + " bp</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function sleeveTable(p) {
+    var rows = p.sleeves || [];
+    if (!rows.length) return '<p class="note">Sleeves still loading.</p>';
+    var head = "<tr><th>Sleeve</th><th>Region</th><th></th><th>Level</th><th>1d</th><th>5d</th><th>1m</th><th>3m</th><th>1y</th><th>5y pct</th><th>As of</th></tr>";
+    var body = rows.map(function (r) {
+      var unit = r.unit === "bp" ? " bp" : "%";
+      return "<tr><td>" + esc(r.label) + "</td><td class='t-mute'>" + esc(r.region) + "</td><td class='t-mute'>" + esc(r.fred) + "</td><td>" + num(r.level, r.unit === "bp" ? 0 : 2) + unit + "</td><td>" + signed(r.chg_1d, 1) + "</td><td>" + signed(r.chg_5d, 1) + "</td><td>" + signed(r.chg_21d, 1) + "</td><td>" + signed(r.chg_63d, 1) + "</td><td>" + signed(r.chg_252d, 1) + "</td><td>" + num(r.pct_5y, 0) + "</td><td class='t-mute'>" + esc(r.as_of) + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div><p class='note'>OAS is basis points. A wider spread is stress, so positive changes are red. 5y pct is where today's level sits inside the sleeve's own trailing five years. Gold and red bars on the chart are the 60th and 80th percentiles.</p>";
+  }
+
+  function breadthTable(block) {
+    var rows = (block && block.rows) || [];
+    if (!rows.length) return "<p class='note'>This tape did not answer.</p>";
+    var head = "<tr><th>Grade</th><th>Up</th><th>Down</th><th>Unch</th><th>Trades</th><th>Volume</th><th>52w high</th><th>52w low</th></tr>";
+    var body = rows.map(function (r) {
+      return "<tr><td>" + esc(r.category) + "</td><td class='t-pos'>" + num(r.advances, 0) + "</td><td class='t-neg'>" + num(r.declines, 0) + "</td><td>" + num(r.unchanged, 0) + "</td><td>" + num(r.trades, 0) + "</td><td>" + num(r.volume, 1) + "</td><td>" + num(r.high_52w, 0) + "</td><td>" + num(r.low_52w, 0) + "</td></tr>";
+    }).join("");
+    return "<table>" + head + body + "</table><p class='note'>As of " + esc(block.as_of || "") + ". " + esc(block.volume_unit || "") + ".</p>";
+  }
+
+  function flowTable(block) {
+    var rows = (block && block.rows) || [];
+    if (!rows.length) return "<p class='note'>No customer-flow rows.</p>";
+    var interesting = rows.filter(function (r) {
+      return /buy|sell|all/i.test(r.side || "");
+    });
+    var head = "<tr><th>Grade</th><th>Side</th><th>Trades</th><th>Transactions</th><th>Volume</th></tr>";
+    var body = interesting.map(function (r) {
+      var cls = /buy/i.test(r.side) ? "t-pos" : /sell/i.test(r.side) ? "t-neg" : "";
+      return "<tr><td>" + esc(r.category) + "</td><td class='" + cls + "'>" + esc(r.side) + "</td><td>" + num(r.trades, 0) + "</td><td>" + num(r.transactions, 0) + "</td><td>" + num(r.volume, 1) + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div>";
+  }
+
+  function tracePanel(p) {
+    var trace = p.trace || {};
+    var book = state.tab === "144a" ? (trace.rule_144a || {}) : (trace.corporate || {});
+    var chips = '<div class="chips"><button class="chip' + (state.tab === "registered" ? " on" : "") + '" data-tab="registered">Registered corporates</button><button class="chip' + (state.tab === "144a" ? " on" : "") + '" data-tab="144a">Rule 144A</button></div>';
+    return chips + '<div class="split"><div><h3 style="margin-top:0">Breadth <span class="tag">' + esc((book.breadth || {}).as_of || "") + '</span></h3>' + breadthTable(book.breadth) + '</div><div><h3 style="margin-top:0">Who is lifting <span class="tag">customer buy vs sell</span></h3>' + flowTable(book.sentiment) + "</div></div>";
+  }
+
+  function wall(euro) {
+    var rows = (euro && euro.maturity_wall) || [];
+    if (!rows.length) return "<p class='note'>No euro maturity wall yet.</p>";
+    var max = Math.max.apply(null, rows.map(function (r) { return r.n; }));
+    return '<div class="wall" title="Bonds maturing each year">' + rows.map(function (r) {
+      var h = Math.max(4, Math.round(110 * r.n / max));
+      var label = String(r.year).slice(2);
+      return '<i style="height:' + h + 'px" title="' + esc(r.year) + ": " + r.n + '"><span>' + (rows.length > 18 && Number(label) % 2 ? "" : label) + "</span></i>";
+    }).join("") + "</div>";
+  }
+
+  function countries(euro) {
+    var rows = (euro && euro.by_country) || [];
+
+    var max = rows.reduce(function (m, r) { return Math.max(m, r.n); }, 1);
+    return '<div class="bars">' + rows.map(function (r) {
+      var on = state.country === r.country ? " hot" : "";
+      return '<div class="bar-row"><div class="bar-name">' + esc(r.country) + '</div><div class="bar-track"><div class="bar-fill' + on + '" style="width:' + Math.round(100 * r.n / max) + '%"></div></div><div class="bar-val">' + num(r.n, 0) + "</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function filteredBonds(euro) {
+    var q = state.q.trim().toLowerCase();
+    return ((euro && euro.bonds) || []).filter(function (b) {
+      if (state.country !== "ALL" && b.country !== state.country) return false;
+      if (!q) return true;
+      return (b.issuer + " " + b.isin).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  function bondTable(euro) {
+    var all = filteredBonds(euro);
+    var rows = all.slice(0, state.show);
+    var issuers = {};
+    (euro.issuers || []).forEach(function (row) { issuers[row.issuer] = row; });
+    var chips = '<div class="chips"><button class="chip' + (state.country === "ALL" ? " on" : "") + '" data-ccy="ALL">All countries</button>' +
+      (euro.by_country || []).map(function (r) {
+        return '<button class="chip' + (state.country === r.country ? " on" : "") + '" data-ccy="' + esc(r.country) + '">' + esc(r.country) + " " + r.n + "</button>";
+      }).join("") + "</div>";
+    var head = "<tr><th>Maturity</th><th>Years</th><th>Issuer</th><th>ISIN</th><th>Cpn</th><th>NCB</th><th>CDS 5Y</th></tr>";
+    var body = rows.map(function (b) {
+      var cds = issuers[b.issuer] || {};
+      var cdsCell = cds.cds_bp != null ? num(cds.cds_bp, 0) + " bp" : "<span class='t-mute'>—</span>";
+      return "<tr><td>" + esc(b.maturity) + "</td><td>" + num(b.years, 1) + "</td><td>" + esc(b.issuer) + "</td><td class='t-mute'>" + esc(b.isin) + "</td><td>" + num(b.coupon, 3) + "</td><td>" + esc(b.country) + "</td><td class='t-gold' title='" + esc(cds.cds_name || "") + "'>" + cdsCell + "</td></tr>";
+    }).join("");
+    var more = all.length > rows.length ? '<p class="note"><button class="chip" id="more">Show all ' + all.length + " bonds</button></p>" : '<p class="note">' + rows.length + " of " + all.length + " bonds in this filter.</p>";
+    return chips + '<input class="search" id="q" placeholder="Issuer or ISIN" value="' + esc(state.q) + '">' +
+      "<div class='scroll'><table>" + head + body + "</table></div>" + more;
+  }
+
+  function issuerTable(euro) {
+    var rows = (euro.issuers || []).slice().sort(function (a, b) { return b.n - a.n; }).slice(0, 40);
+    var head = "<tr><th>Issuer</th><th>NCB</th><th>Bonds</th><th>Coupon</th><th>Nearest</th><th>CDS</th></tr>";
+    var body = rows.map(function (r) {
+      var cpn = r.coupon_min == null ? "—" : num(r.coupon_min, 2) + (r.coupon_max != r.coupon_min ? "–" + num(r.coupon_max, 2) : "");
+      return "<tr><td>" + esc(r.issuer) + "</td><td>" + esc(r.country) + "</td><td>" + r.n + "</td><td>" + cpn + "</td><td>" + esc(r.nearest || "") + "</td><td class='t-gold'>" + (r.cds_bp != null ? num(r.cds_bp, 0) + " bp" : "—") + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div>";
+  }
+
+  function coverage(p) {
+    var c = p.coverage || {};
+    var misses = ((p.sources || {}).fred) || {};
+    var missed = Object.keys(misses).filter(function (k) { return misses[k] !== "live"; });
+    return "<p>" + esc(c.us || "") + "</p><p>" + esc(c.companies || "") + "</p><p>" + esc(c.euro_issues || "") + "</p><p>" + esc(c.international_indices || "") + "</p><p class='note'>Not in this book: " + esc((c.not_issue_level || []).join(" · ")) + "</p>" +
+      (missed.length ? "<p class='note'>FRED sleeves that did not print this run: " + esc(missed.join(", ")) + "</p>" : "");
+  }
+
+  function render(p) {
+    var euro = p.euro || {};
+    ts.textContent = "as of " + (p.as_of || "") + " · " + String(p.generated_at || "").replace("T", " ").slice(0, 16) + "Z · v" + (p.version || "");
+    root.innerHTML =
+      '<div class="read">' + esc(p.read || "") + "</div>" +
+      kpis(p) +
+      companyPanel(p) +
+      '<div class="panel"><h3>Global corporate sleeves <span class="tag">ICE BofA OAS, wider = more stress</span></h3>' + sleeveChart(p) + "</div>" +
+      '<div class="panel"><h3>Sleeve changes <span class="tag">bp for OAS, percent for yields</span></h3>' + sleeveTable(p) + "</div>" +
+      '<div class="panel"><h3>US TRACE tape <span class="tag">every disseminated corporate print, rolled up</span></h3>' + tracePanel(p) + "</div>" +
+      '<div class="split"><div class="panel"><h3>Euro maturity wall <span class="tag">' + num(euro.n_bonds, 0) + " bonds</span></h3>" + wall(euro) + '</div><div class="panel"><h3>Euro book by purchasing NCB</h3>' + countries(euro) + "</div></div>" +
+      '<div class="panel"><h3>Issuers <span class="tag">' + num(p.cds_matched_issuers, 0) + " joined to the CDS desk</span></h3>" + issuerTable(euro) + "</div>" +
+      '<div class="panel"><h3>Every listed euro bond <span class="tag">' + esc(euro.source_url || "ECB CSPP/PEPP") + "</span></h3>" + bondTable(euro) + "</div>" +
+      '<div class="panel"><h3>What this engine covers — and what it refuses to invent</h3>' + coverage(p) + "</div>";
+    bind(p);
+  }
+
+  function bind(p) {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ccy]"), function (btn) {
+      btn.onclick = function () { state.country = btn.getAttribute("data-ccy"); state.show = 250; render(p); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function (btn) {
+@@END 3@@
