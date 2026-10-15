@@ -1,6 +1,3 @@
-executing-against: f247bca1a41ad595c201022a64760bdeeae6adea
-waiting ResourceNotFoundException
-waiting ResourceNotFoundException
-function Active Successful KUYjq6kznScHSFe5
-invoke 200 None {"ok": true, "key": "data/corp-bonds.json", "bytes": 225938, "as_of": "2026-10-15", "sleeves": 23, "euro_bonds": 1293, "euro_issuers": 323, "cds_matched": 26, "trace": {"corporate_breadth": "live 32 rows", "corporate_sentiment": "live 288 rows", "m144a_breadth": "live 32 rows", "m144a_sentiment": "live 288 rows", "capped": "unavailable"}}
-{"engine": "justhodl-corp-bonds", "as_of": "2026-10-15", "bytes": 225938, "sleeves": 23, "euro_bonds": 1293, "euro_issuers": 323, "cds_matched": 26, "read": "US high-yield OAS is 325.0 bp, at the 77.0 percentile of its own 5-year range. IG is 84.0 bp, so the HY-IG gap is 241.0 bp. TRACE corporate issues 5802 up / 6575 down on 2026-10-14."}
+executing-against: f35eb13898f3554870d67f26e2c57fbc32c48961
+publish failed: {'errorType': 'Sandbox.Timedout', 'errorMessage': 'RequestId: 8dd7605a-b8f4-4193-8764-077753711c16 Error: Task timed out after 300.00 seconds'}
+❌ OPS-FAIL: aws/ops/pending/grok_corp_bonds_issues_publish.py
