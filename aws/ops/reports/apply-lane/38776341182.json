@@ -1,0 +1,29 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "38776341182",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/38776341182",
+ "base_sha": "bbc463d5427be4c1bb0a2ff49eafdae9dd689819",
+ "result_sha": "abf020a38d6d1a4a873ca5c0f220dabcce74baba",
+ "patchers": [
+  "grok_cds_tab.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "chart.html",
+  "jh-cds-desk.js",
+  "jh-chart-engine.js",
+  "jh-chart-tvrail.js"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-10-15T17:19:42Z"
+}
