@@ -1,0 +1,32 @@
+@@PART 3/3@@
+        else { state.sort = key; state.dir = key === "issuer" || key === "sector" || key === "country" || key === "maturity" || key === "book" || key === "ccy" ? "asc" : "desc"; }
+        state.onlyChg = false;
+        state.ishow = 200;
+        render(p);
+      };
+    });
+    var sec = document.getElementById("sec");
+    if (sec) sec.onchange = function () { state.sector = sec.value; state.ishow = 200; render(p); };
+    var book = document.getElementById("book");
+    if (book) book.onchange = function () { state.book = book.value; state.ishow = 200; render(p); };
+    var iq = document.getElementById("iq");
+    if (iq) iq.oninput = function () { state.iq = iq.value; state.ishow = 200; render(p); var again = document.getElementById("iq"); if (again) { again.focus(); again.selectionStart = again.selectionEnd = again.value.length; } };
+    var imore = document.getElementById("imore");
+    if (imore) imore.onclick = function () { state.ishow += 400; render(p); };
+  }
+
+  function fail(msg) {
+    root.className = "";
+    root.innerHTML = '<div class="panel"><h3>Corp bonds packet is not up yet</h3><p class="note">' + esc(msg) + "</p><p class='note'>The engine writes data/corp-bonds.json on its schedule. This page does not invent a tape while that file is missing.</p></div>";
+  }
+
+  fetch("/data/corp-bonds.json?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (p) {
+      if (!p || p.engine !== "justhodl-corp-bonds") throw new Error("unexpected packet");
+      root.className = "";
+      render(p);
+    })
+    .catch(function (err) { fail(err && err.message ? err.message : "fetch failed"); });
+})();
+@@END 3@@
