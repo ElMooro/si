@@ -1,3 +1,3 @@
-executing-against: 47481e453bba371e24d0637b103d189628296c30
-invoke 200 None {'ok': True, 'key': 'data/corp-bonds.json', 'bytes': 6825708, 'as_of': '2026-10-15', 'sleeves': 0, 'euro_bonds': 1293, 'euro_issuers': 323, 'issue_bonds': 22693, 'issue_issuers': 5009, 'issue_changes': 21403, 'cds_matched': 26, 'trace': {'corporate_breadth': 'live 32 rows', 'corporate_sentiment': 'live 288 rows', 'm144a_breadth': 'live 32 rows', 'm144a_sentiment': 'live 288 rows', 'capped': 'unavailable'}}
-{"version": "1.2.0", "n_bonds": 22693, "n_with_dur": 22662, "n_with_move": 18956, "n_with_change": 21403, "dur": 4.684, "move_as_of": "2026-09-30", "as_of": "2026-10-14", "sample_keys": ["book", "ccy", "chg", "country", "coupon", "demand", "dpx", "dur", "issuer", "k", "maturity", "price", "rate", "sector"]}
+executing-against: d4c51c1d3a25e98cc4cd853977ec6eaba23e797e
+justhodl-corp-bonds did not take the flow build
+❌ OPS-FAIL: aws/ops/pending/grok_corp_bonds_flow_publish.py
