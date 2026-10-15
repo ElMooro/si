@@ -1,0 +1,187 @@
+@@PART 1/4@@
+/* Corp bonds desk. Reads data/corp-bonds.json. Descriptive only. */
+(function () {
+  var root = document.getElementById("root");
+  var ts = document.getElementById("ts");
+  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false, need: "", form: "" };
+
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
+    return ({ "&": "\u0026amp;", "<": "\u0026lt;", ">": "\u0026gt;", '"': "\u0026quot;", "'": "\u0026#39;" })[c];
+    });
+  }
+  function num(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    return Number(v).toLocaleString("en-US", { maximumFractionDigits: d == null ? 0 : d, minimumFractionDigits: d == null ? 0 : d });
+  }
+  function signed(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-neg" : n < 0 ? "t-pos" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
+  }
+  function signedPx(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-pos" : n < 0 ? "t-neg" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
+  }
+  function gapBp(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v) * 100;
+    var cls = n > 5 ? "t-gold" : n < -5 ? "t-info" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, 0) + "</span>";
+  }
+  function money(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var abs = Math.abs(n);
+    if (abs >= 1e9) return (n / 1e9).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + "bn";
+    if (abs >= 1e6) return (n / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "m";
+    return num(n, 0);
+  }
+  function signedMoney(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-pos" : n < 0 ? "t-neg" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + money(n) + "</span>";
+  }
+  function cmp(a, b, key) {
+    var av = a[key], bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === "number" && typeof bv === "number") return av - bv;
+    return String(av).localeCompare(String(bv));
+  }
+  function sectorBars(rows, labelKey) {
+    var list = (rows || []).filter(function (r) { return r.demand != null; }).slice(0, 40);
+    if (!list.length) return "<p class='note'>No demand rows in this packet.</p>";
+    var max = Math.max.apply(null, list.map(function (r) { return r.demand; }));
+    return '<div class="bars">' + list.map(function (r) {
+      var width = Math.max(2, Math.round(100 * r.demand / max));
+      var name = r[labelKey] || "Not labelled";
+      var extra = "";
+      if (r.dur != null) extra += " · " + num(r.dur, 1) + "y";
+      if (r.rate != null) extra += " · " + num(r.rate, 2) + "%";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div><div class="bar-val">' + money(r.demand) + extra + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function wavg(rows, key) {
+    var total = 0, weight = 0;
+    rows.forEach(function (row) {
+      if (row[key] == null || !row.demand) return;
+      total += Number(row[key]) * Number(row.demand);
+      weight += Number(row.demand);
+    });
+    return weight ? total / weight : null;
+  }
+  function durationView(bonds) {
+    bonds = (bonds || []).filter(function (b) { return !b.left; });
+    var bins = [[0, 1, "0–1y"], [1, 3, "1–3y"], [3, 5, "3–5y"], [5, 7, "5–7y"], [7, 10, "7–10y"], [10, 15, "10–15y"], [15, 25, "15–25y"], [25, 80, "25y+"]];
+    var buckets = bins.map(function (bin) {
+      var group = bonds.filter(function (b) { return b.dur != null && b.dur >= bin[0] && b.dur < bin[1]; });
+      var demand = group.reduce(function (sum, b) { return sum + (b.demand || 0); }, 0);
+      return { label: bin[2], n: group.length, demand: demand, dur: wavg(group, "dur"), rate: wavg(group, "rate") };
+    }).filter(function (row) { return row.n; });
+    var years = {};
+    bonds.forEach(function (b) {
+      if (!b.maturity) return;
+      var year = String(b.maturity).slice(0, 4);
+      if (!/^\d{4}$/.test(year)) return;
+      var bucket = years[year] || (years[year] = { label: year, n: 0, demand: 0, _d: [], _r: [] });
+      bucket.n += 1;
+      if (b.demand) bucket.demand += b.demand;
+    });
+    var wall = Object.keys(years).sort().map(function (year) {
+      var group = bonds.filter(function (b) { return String(b.maturity || "").slice(0, 4) === year; });
+      return { label: year, demand: years[year].demand, dur: wavg(group, "dur"), rate: wavg(group, "rate"), n: years[year].n };
+    });
+    var countries = {};
+    bonds.forEach(function (b) {
+      var name = b.country || "Not labelled";
+      var bucket = countries[name] || (countries[name] = { label: name, demand: 0 });
+      bucket.demand += b.demand || 0;
+    });
+    var countryRows = Object.keys(countries).map(function (name) {
+      var group = bonds.filter(function (b) { return (b.country || "Not labelled") === name; });
+      return { label: name, demand: countries[name].demand, dur: wavg(group, "dur"), rate: wavg(group, "rate") };
+    }).sort(function (a, b) { return b.demand - a.demand; }).slice(0, 12);
+    var covered = bonds.filter(function (b) { return b.dur != null; }).length;
+    return '<div class="split"><div class="panel"><h3>Duration <span class="tag">' + num(covered, 0) + " bonds · modified duration, demand on the curve</span></h3>" + sectorBars(buckets, "label") + '</div>'
+      + '<div class="panel"><h3>Maturity wall <span class="tag">demand by maturity year</span></h3>' + sectorBars(wall, "label") + "</div></div>"
+      + '<div class="panel"><h3>Where the bonds sit <span class="tag">demand by country · duration and yield are holdings-weighted</span></h3>' + sectorBars(countryRows, "label") + "</div>";
+  }
+  function moveBars(rows) {
+    var list = (rows || []).filter(function (r) { return r.dpx != null && r.sector; });
+    if (!list.length) return "<p class='note'>No price change yet. The level is on the table; the move needs a previous holdings date.</p>";
+    var worst = list.slice(0, 8);
+    var best = list.slice(-8).reverse();
+    var show = worst.concat(best.filter(function (row) { return worst.indexOf(row) < 0; }));
+    var max = Math.max.apply(null, show.map(function (r) { return Math.abs(r.dpx); }));
+    return '<div class="bars">' + show.map(function (r) {
+      var width = Math.max(2, Math.round(100 * Math.abs(r.dpx) / max));
+      var cls = r.dpx < 0 ? " hot" : " up";
+      var name = r.label || r.sector || r.issuer || "";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.dpx > 0 ? "+" : "") + num(r.dpx, 2) + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function flowBars(rows) {
+    var list = (rows || []).filter(function (r) { return r.ddm != null; });
+    if (!list.length) return "<p class='note'>No demand change yet. That needs the previous holdings file.</p>";
+    var worst = list.slice(0, 8);
+    var best = list.slice(-8).reverse();
+    var show = worst.concat(best.filter(function (row) { return worst.indexOf(row) < 0; }));
+    var max = Math.max.apply(null, show.map(function (r) { return Math.abs(r.ddm); }));
+    return '<div class="bars">' + show.map(function (r) {
+      var width = Math.max(2, Math.round(100 * Math.abs(r.ddm) / max));
+      var cls = r.ddm < 0 ? " hot" : " up";
+      var name = r.label || r.sector || r.issuer || "";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + (r.ddm > 0 ? "+" : "") + money(r.ddm) + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function issueBonds(book) {
+    var q = state.iq.trim().toLowerCase();
+    return (book.bonds || []).filter(function (b) {
+      if (state.sector !== "ALL" && (b.sector || "") !== state.sector) return false;
+      if (state.book !== "ALL" && b.book !== state.book) return false;
+      if (state.form === "144A" && String(b.issuer || "").indexOf("144A") < 0) return false;
+      if (state.form === "RegS" && String(b.issuer || "").toUpperCase().indexOf("REGS") < 0) return false;
+      if (state.need === "chg" && b.chg == null) return false;
+      if (state.need === "dpx" && b.dpx == null) return false;
+      if (state.need === "credit" && (b.left || b.dpx == null || b.dur == null || b.dur < 0.75)) return false;
+      if (state.need === "ddm" && b.ddm == null) return false;
+      if (state.need === "left" && !b.left) return false;
+      if (state.need === "vs" && b.vs == null) return false;
+      if (state.need === "ytd" && b.dpx_y == null) return false;
+      if (state.need === "issued" && String(b.issued || "") < "2026-01-01") return false;
+      if (!q) return true;
+      return (b.issuer + " " + (b.country || "") + " " + (b.sector || "")).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  function sortedIssues(book) {
+    var rows = issueBonds(book).slice();
+    var dir = state.dir === "asc" ? 1 : -1;
+    rows.sort(function (a, b) {
+      var base = cmp(a, b, state.sort);
+      if (base === 0) base = cmp(a, b, "issuer");
+      return base * dir;
+    });
+    return rows;
+  }
+  function companyPanel(p) {
+    var book = p.issues;
+    if (!book || book.status === "unavailable" || !(book.bonds || []).length) {
+      return '<div class="panel"><h3>Company book</h3><p class="note">The holdings files did not print this run. Nothing here is filled in with a zero.</p></div>';
+    }
+    var sectors = (book.sectors || []).slice().filter(function (r) { return r.sector; }).sort(function (a, b) { return (b.demand || 0) - (a.demand || 0); });
+    var issuers = (book.issuers || []).slice().sort(function (a, b) { return (b.demand || 0) - (a.demand || 0); });
+    var sectorOpts = '<option value="ALL">All industries</option>' + sectors.map(function (r) {
+      return '<option value="' + esc(r.sector) + '"' + (state.sector === r.sector ? " selected" : "") + ">" + esc(r.sector) + "</option>";
+    }).join("");
+    var books = {};
+    (book.bonds || []).forEach(function (b) { if (b.book) books[b.book] = 1; });
+    var bookOpts = '<option value="ALL">All books</option>' + Object.keys(books).sort().map(function (name) {
+      return '<option value="' + esc(name) + '"' + (state.book === name ? " selected" : "") + ">" + esc(name) + "</option>";
+    }).join("");
+@@END 1@@
