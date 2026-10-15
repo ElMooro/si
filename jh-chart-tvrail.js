@@ -223,6 +223,7 @@
       etf: ["ETF Desk", "/etf.html"],
       strong: ["Strength vs S&P 500", "/strong.html"],
       bonds: ["Bonds & Yields", "/bonds.html"],
+      cds: ["CDS · credit default swaps", "/cds.html"],
       "13f": ["13F · Institutional book", "/13f.html"],
       sc: ["Selling climax · Wyckoff daily", "/wyckoff-desk.html?tab=sc"],
       capit: ["Capitulation · panic volume at the lows", "/wyckoff-desk.html?tab=capit"],

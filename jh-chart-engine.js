@@ -5059,6 +5059,7 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
+      "<button class='wsico wsdesk' id=btn-cds title='Credit default swaps'><span class=g>CDS</span><span class=l>CDS</span></button>"+
       "<button class='wsico wsdesk' id=btn-13f title='13F · Institutional holdings'><span class=g>🏦</span><span class=l>13F</span></button>"+
       "<button class='wsico wsdesk' id=btn-wysc title='Selling climax · Wyckoff daily'><span class=g>SC</span><span class=l>Climax</span></button>"+
       "<button class='wsico wsdesk' id=btn-capit title='Capitulation · panic volume at the lows'><span class=g>Cap</span><span class=l>Capit</span></button>"+
@@ -5114,6 +5115,7 @@ else if(o.id==="rvol"){
     var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
     var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
+    var bcds=document.getElementById("btn-cds"); if(bcds) bcds.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("cds"); };
     var b13f=document.getElementById("btn-13f"); if(b13f) b13f.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("13f"); };
     var bsc=document.getElementById("btn-wysc"); if(bsc) bsc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sc"); };
     var bcap=document.getElementById("btn-capit"); if(bcap) bcap.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("capit"); };

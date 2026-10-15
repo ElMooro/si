@@ -115,7 +115,40 @@ function peelHeatRail(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+
+function peelCdsHtml(raw,file){
+ const AFTER='43e361e7de3e46fd7c557a7e1b6cf3063a85c3a6c86af812de15adb40c89e5e9';
+ const BEFORE='edc3fb88fa09756baeccf417bb3afbad86dbd83f8aa1a38beac3c5c6cb7caa7a';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ const from='&cds=20261015';
+ assert.equal(raw.split(from).length,3,'chart.html cds cache');
+ raw=raw.split(from).join('');
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function peelCdsEngine(raw,file){
+ const AFTER='7754e62723a02db9a310408d0ab2e1becdd25da18322190a076f4512c3c5ae3c';
+ const BEFORE='245e9b8d541a5c7de5d96bd3990d07ecfc6735c6f41f2604b455a0ff3585c993';
+ const BTN='      "<button class=\'wsico wsdesk\' id=btn-cds title=\'Credit default swaps\'><span class=g>CDS</span><span class=l>CDS</span></button>"+\n';
+ const CLICK='    var bcds=document.getElementById("btn-cds"); if(bcds) bcds.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("cds"); };\n';
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js cds button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js cds click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelCdsRail(raw,file){
+ const AFTER='34a1101d55ae2e2eeb91b5f06c801aaf1ca85c34040ac4dce680a48b120d062b';
+ const BEFORE='33c541f77bf942b178814ea115bb51aa65407e89dfe4d5daa3dd3cee5aabd1c3';
+ const LINE='      cds: ["CDS · credit default swaps", "/cds.html"],\n';
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js cds meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
