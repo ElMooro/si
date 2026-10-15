@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-15T21:29:28.306900+00:00",
+  "observed_at": "2026-10-15T21:29:34.524391+00:00",
   "runs": [
     {
       "id": 38809086430,
@@ -154,18 +154,18 @@
       "id": 38808481227,
       "path": ".github/workflows/pages.yml",
       "head_sha": "f2d9067590f5f0281d47a517559c8f0903a1da67",
-      "status": "in_progress",
+      "status": "queued",
       "conclusion": null,
       "created_at": "2026-10-15T21:15:34Z",
-      "updated_at": "2026-10-15T21:22:12Z",
+      "updated_at": "2026-10-15T21:29:21Z",
       "jobs": [
         {
           "id": 116678220497,
           "name": "build",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "success",
           "started_at": "2026-10-15T21:22:11Z",
-          "completed_at": null,
+          "completed_at": "2026-10-15T21:29:19Z",
           "steps": [
             {
               "number": 1,
@@ -362,49 +362,75 @@
             {
               "number": 25,
               "name": "Final built page syntax gate",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-15T21:29:05Z",
-              "completed_at": null
+              "completed_at": "2026-10-15T21:29:13Z"
             },
             {
               "number": 26,
               "name": "Block repository-only directories in public artifact",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:13Z",
+              "completed_at": "2026-10-15T21:29:13Z"
             },
             {
               "number": 27,
               "name": "Stamp every page and asset in commit-bound build manifest",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:13Z",
+              "completed_at": "2026-10-15T21:29:13Z"
             },
             {
               "number": 28,
               "name": "Run actions/upload-pages-artifact@v3",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:13Z",
+              "completed_at": "2026-10-15T21:29:16Z"
             },
             {
               "number": 55,
               "name": "Post Set up Node 22",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:16Z",
+              "completed_at": "2026-10-15T21:29:16Z"
             },
             {
               "number": 56,
               "name": "Post Run actions/checkout@v4",
-              "status": "pending",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:16Z",
+              "completed_at": "2026-10-15T21:29:16Z"
+            },
+            {
+              "number": 57,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-15T21:29:16Z",
+              "completed_at": "2026-10-15T21:29:16Z"
+            }
+          ]
+        },
+        {
+          "id": 116681346440,
+          "name": "deploy",
+          "status": "in_progress",
+          "conclusion": null,
+          "started_at": "2026-10-15T21:29:23Z",
+          "completed_at": null,
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-10-15T21:29:24Z",
               "completed_at": null
             }
           ]
