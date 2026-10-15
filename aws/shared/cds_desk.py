@@ -1398,12 +1398,29 @@ def _comove_anchor(series, ref_series, start_iso, as_of_iso):
     return None
 
 
+
+def _median_branch_picks(anchor_bp, cd):
+    """True when one stored median branch is within 70% (log) of anchor_bp and the other is BRANCH_FAR_LOG further.
+    This is the same far-only test resolve_spread applies to a single print, applied to the day's median branches."""
+    if anchor_bp is None or not cd:
+        return False
+    for pair in cd.values():
+        if not pair or len(pair) < 2 or not pair[0] or not pair[1]:
+            continue
+        d0, d1 = _log_dist(pair[0], anchor_bp), _log_dist(pair[1], anchor_bp)
+        best, other = (d0, d1) if d0 <= d1 else (d1, d0)
+        if best <= 0.7 and other - best >= BRANCH_FAR_LOG:
+            return True
+    return False
+
+
 def anchors_from_bank(bank, as_of_iso, lookback_days=7):
     """Trailing anchor per entity/index -> (anchor_bp, quality, source).
 
     Evidence order: median of the last <=5 priced days in the last 7 days (source 'trailing') >
     trailing two-coupon intersection over 90 days ('multi_coupon_trailing', firm) >
-    the name's own last resolved level within 365 days, usable only when the branches sit far apart ('trailing_long') >
+    the name's own last resolved level within 365 days, usable only when the branches sit far apart ('trailing_long';
+    firm, or an earlier inferred level which stays inferred) >
     index co-movement of the two unresolved branches ('comove', inferred)."""
     out = {}
     as_of = date.fromisoformat(as_of_iso)
@@ -1438,16 +1455,29 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7):
             if pairs and pairs[0][0] < 0.2 and (len(pairs) == 1 or pairs[1][0] > 0.5):
                 out[name] = (0.5 * (pairs[0][1] + pairs[0][2]), "firm", "multi_coupon_trailing")
                 continue
-        # the name's own earlier resolved level (firm evidence only); resolve_spread demands far-apart branches for it
+        # the name's own earlier resolved level; resolve_spread demands far-apart branches for it.
+        # A firm (or quoted) level outranks an inferred one. An inferred level — curve shape, a carried
+        # trailing print — may sign a later print only when the stored branches are far enough apart that
+        # the other side is not a plausible continuation. It stays inferred, and if it cannot discriminate
+        # the latest branches, index co-movement still gets its turn.
         old = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None and (row.get("aq") == "firm" or row.get("q"))]
         if old:
             out[name] = (statistics.median([row["s"] for d, row in old[-5:]]), "firm", "trailing_long")
+            continue
+        old_inf = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None]
+        anchor_inf = statistics.median([row["s"] for d, row in old_inf[-5:]]) if old_inf else None
+        latest_cd = next((row.get("cd") for d, row in reversed(rows) if d < as_of_iso and row.get("cd")), None)
+        if anchor_inf is not None and _median_branch_picks(anchor_inf, latest_cd):
+            out[name] = (anchor_inf, "inferred", "trailing_long")
             continue
         info = meta.get(key) or {}
         grp = classify_entity(info.get("kind"), key, info.get("ccy") or {})["group"]
         cm = _comove_anchor(series, series_map.get("IDX:" + COMOVE_INDEX.get(grp, "CDX.NA.IG")), start_comove, as_of_iso)
         if cm:
             out[name] = (cm[0], "inferred", "comove")
+            continue
+        if anchor_inf is not None:
+            out[name] = (anchor_inf, "inferred", "trailing_long")
     return out
 
 
@@ -1758,7 +1788,7 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         "method": {"model": "ISDA flat-hazard, recovery %.0f%%, discount = 5Y Treasury par - %.0fbp (swap proxy), accrued added back" % (RECOVERY_SENIOR * 100, SWAP_PROXY_OFFSET_PCT * 100),
                    "liquid_rule": ">=%d prints on >=%d days in the trailing 30 days" % (LIQUID_MIN_TRADES_30D, LIQUID_MIN_DAYS_30D),
                    "spread_rule": "median of quoted prints when >=2 quoted, else median of quoted + sign-resolved derived prints; ambiguous prints counted but unpriced",
-                   "sign_rule": "evidence order: same-day quoted prints > two-coupon intersection > single feasible branch (capped blocks counted at the disclosed cap, and they never out-vote a quote) > trailing 7-day anchor > trailing 90-day two-coupon intersection > the name's own resolved level within 365 days (only when the two branches sit >e^1 apart) > index co-movement of the two branches over 150 days (>=20 day-pairs, corr >=0.3 vs <=0; inferred) > curve-shape (>=3y gap, <300bp); nothing else",
+                   "sign_rule": "evidence order: same-day quoted prints > two-coupon intersection > single feasible branch (capped blocks counted at the disclosed cap, and they never out-vote a quote) > trailing 7-day anchor > trailing 90-day two-coupon intersection > the name's own resolved level within 365 days (firm, or an earlier inferred level which stays inferred; only when the two branches sit >e^1 apart) > index co-movement of the two branches over 150 days (>=20 day-pairs, corr >=0.3 vs <=0; inferred) > curve-shape (>=3y gap, <300bp); nothing else",
                    "universe_rule": "every entity in the public tape is listed: priced names (liquid or thin) with a level, active-but-unpriced names (>=%d prints in 30 days) with both feasible branches, dormant names with their last dated level; sovereign coverage is measured against %d known sovereign issuers" % (MIN_UNPRICED_PRINTS_30D, len({v[0] for v in SOVEREIGNS.values()})),
                    "quote_rule": "a Spread-Leg-1 value counts as a quote if it agrees with the print's own upfront; unconfirmed quotes must be >=%.0fbp and within %.0f%% log-distance of the name's trailing anchor (none available: accepted, sign evidence 'inferred')" % (MIN_QUOTE_BP, 100 * SOFT_QUOTE_GATE_LOG),
                    "stale_rule": "levels older than %d calendar days are not shown as current; such names appear in the unpriced list with their last dated level" % STALE_MAX_DAYS,

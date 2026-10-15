@@ -560,6 +560,33 @@ def test_own_firm_level_anchors_for_a_year_when_branches_are_far():
     assert "PGE" not in C.anchors_from_bank(stale, "2026-10-02")
 
 
+def test_inferred_own_level_signs_a_later_far_branch():
+    """Belgium-shaped. The only resolved level is inferred, three weeks old, and the next prints are capped
+    blocks the old writer stored with no side. The near branch is kept; a close pair is not."""
+    series = {
+        "2026-09-16": {"n": 6, "n5": 6, "np": 6, "s": 17.59, "sb": "derived", "q": 0, "amb": 3, "nm": 8.0,
+                       "aq": "inferred", "as": "curve_shape", "cd": {"100": [197.8, 19.7]}},
+        "2026-10-08": {"n": 1, "n5": 1, "np": 0, "s": None, "q": 0, "amb": 1, "nm": 5.0, "cd": {"100": [173.9, 32.5]}},
+    }
+    meta = {"KINGDOM OF BELGIUM": {"kind": "sov", "raw": "Kingdom of Belgium", "ccy": {"EUR": 4}}}
+    bank = {"version": C.VERSION, "series": {"KINGDOM OF BELGIUM": series}, "meta": meta, "entity_map": {}, "days": ["2026-09-16", "2026-10-08"]}
+    anc = C.anchors_from_bank(bank, "2026-10-09")
+    assert anc["KINGDOM OF BELGIUM"][2] == "trailing_long" and anc["KINGDOM OF BELGIUM"][1] == "inferred"
+    assert abs(anc["KINGDOM OF BELGIUM"][0] - 17.59) < 0.01
+    trade = C.normalize_trade(derived_row(32.5, coupon_bp=100.0, day="2026-10-08"), "sec")
+    spread, basis = C.resolve_spread(trade, RATE, anc["KINGDOM OF BELGIUM"][0], far_only=True)
+    assert basis == "derived" and spread is not None and abs(spread - 32.5) < 8, (spread, basis)
+    near = {"2026-09-16": series["2026-09-16"], "2026-10-08": {"n": 1, "n5": 1, "np": 0, "s": None, "q": 0, "amb": 1, "cd": {"100": [140.0, 70.0]}}}
+    bank_near = {"version": C.VERSION, "series": {"AVIS": near}, "meta": {"AVIS": {"kind": "corp", "raw": "Avis", "ccy": {"USD": 2}}}, "entity_map": {}, "days": ["2026-09-16", "2026-10-08"]}
+    assert C._median_branch_picks(17.59, near["2026-10-08"]["cd"]) is False
+    offered = C.anchors_from_bank(bank_near, "2026-10-09")["AVIS"]
+    assert offered[2] == "trailing_long" and offered[1] == "inferred"
+    close = C.normalize_trade(derived_row(80, coupon_bp=100.0, day="2026-10-08"), "sec")
+    cands = C.candidate_spreads(close, RATE)
+    if len(cands) == 2 and abs(C.math.log(cands[0][0] / cands[1][0])) < C.BRANCH_FAR_LOG:
+        assert C.resolve_spread(close, RATE, 17.59, far_only=True)[0] is None
+
+
 if __name__ == "__main__":
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0
