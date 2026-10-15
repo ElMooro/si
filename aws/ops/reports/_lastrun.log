@@ -1,3 +1,5 @@
-executing-against: f35eb13898f3554870d67f26e2c57fbc32c48961
-publish failed: {'errorType': 'Sandbox.Timedout', 'errorMessage': 'RequestId: 8dd7605a-b8f4-4193-8764-077753711c16 Error: Task timed out after 300.00 seconds'}
-❌ OPS-FAIL: aws/ops/pending/grok_corp_bonds_issues_publish.py
+executing-against: 71274e0cb8a1b01ee176c34c8819844cc7a7dfdd
+timeout 600 update Successful
+invoke 200 Unhandled {'errorType': 'Sandbox.Timedout', 'errorMessage': 'RequestId: 31c7ed84-da94-4447-8d4a-09757ea4092e Error: Task timed out after 600.00 seconds'}
+publish failed
+❌ OPS-FAIL: aws/ops/pending/grok_corp_bonds_issues_publish2.py
