@@ -1,0 +1,23 @@
+{
+  "function_name": "justhodl-corp-bonds",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": ["x86_64"],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Corp bonds desk: full FINRA TRACE corporate and 144A tape (breadth, sentiment, capped volume), every bond on the ECB CSPP/PEPP holdings list, and ICE BofA US/Euro/EM/Asia corporate sleeves from FRED. Descriptive only. Owns data/corp-bonds.json.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-corp-bonds-daily",
+    "cron": "cron(15 15,20 ? * MON-FRI *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Rebuild the corp bonds packet after the TRACE day and the ICE BofA FRED print; second pass catches a late ECB file",
+    "input": {"action": "publish"},
+    "retry_policy": {"MaximumRetryAttempts": 2, "MaximumEventAgeInSeconds": 3600}
+  }
+}

@@ -1,0 +1,141 @@
+@@PART 1/2@@
+/* Corp bonds desk. Reads data/corp-bonds.json. Descriptive only. */
+(function () {
+  var root = document.getElementById("root");
+  var ts = document.getElementById("ts");
+  var state = { country: "ALL", q: "", show: 250, tab: "registered" };
+
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
+    return ({ "&": "\u0026amp;", "<": "\u0026lt;", ">": "\u0026gt;", '"': "\u0026quot;", "'": "\u0026#39;" })[c];
+    });
+  }
+  function num(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    return Number(v).toLocaleString("en-US", { maximumFractionDigits: d == null ? 0 : d, minimumFractionDigits: d == null ? 0 : d });
+  }
+  function signed(v, d) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var cls = n > 0 ? "t-neg" : n < 0 ? "t-pos" : "t-mute";
+    return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
+  }
+  function rowBy(list, key, value) {
+    for (var i = 0; i < (list || []).length; i++) if (list[i][key] === value) return list[i];
+    return null;
+  }
+
+  function kpis(p) {
+    var sleeves = p.sleeves || [];
+    var ig = rowBy(sleeves, "id", "us_ig");
+    var hy = rowBy(sleeves, "id", "us_hy");
+    var em = rowBy(sleeves, "id", "em");
+    var asia = rowBy(sleeves, "id", "asia_usd");
+    var euro = p.euro || {};
+    var breadth = (((p.trace || {}).corporate || {}).breadth || {}).rows || [];
+    var all = rowBy(breadth, "category", "all securities");
+    var cards = [
+      ["US IG OAS", ig ? num(ig.level, 0) + " bp" : "—", ig ? "5y pct " + num(ig.pct_5y, 0) : "FRED", "info"],
+      ["US HY OAS", hy ? num(hy.level, 0) + " bp" : "—", hy ? signed(hy.chg_5d, 1) + " bp / 5d" : "FRED", "neg"],
+      ["EM corp OAS", em ? num(em.level, 0) + " bp" : "—", em ? em.as_of : "FRED", "gold"],
+      ["Asia USD OAS", asia ? num(asia.level, 0) + " bp" : "—", asia ? "5y pct " + num(asia.pct_5y, 0) : "FRED", "accent"],
+      ["Euro bonds", num(euro.n_bonds, 0), num(euro.n_issuers, 0) + " issuers · " + (euro.file_date || "ECB"), "info"],
+      ["TRACE issues", all ? num((all.advances || 0) + (all.declines || 0) + (all.unchanged || 0), 0) : "—", all ? num(all.advances, 0) + " up / " + num(all.declines, 0) + " down" : "tape", "pos"]
+    ];
+    return '<div class="kpi-grid">' + cards.map(function (c) {
+      return '<div class="kpi ' + c[3] + '"><div class="label">' + esc(c[0]) + '</div><div class="val">' + c[1] + '</div><div class="sub">' + c[2] + "</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function sleeveChart(p) {
+    var rows = (p.sleeves || []).filter(function (r) { return r.kind === "oas" && r.level != null; });
+    if (!rows.length) return '<p class="note">No OAS sleeves in this packet yet.</p>';
+    var max = Math.max.apply(null, rows.map(function (r) { return r.level; }));
+    return '<div class="bars">' + rows.map(function (r) {
+      var hot = r.pct_5y != null && r.pct_5y >= 80;
+      var warm = r.pct_5y != null && r.pct_5y >= 60 && r.pct_5y < 80;
+      var cls = hot ? "hot" : warm ? "warm" : "";
+      var width = Math.max(2, Math.round(100 * r.level / max));
+      return '<div class="bar-row"><div class="bar-name">' + esc(r.label) + '</div><div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + width + '%"></div></div><div class="bar-val">' + num(r.level, 0) + " bp</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function sleeveTable(p) {
+    var rows = p.sleeves || [];
+    if (!rows.length) return '<p class="note">Sleeves still loading.</p>';
+    var head = "<tr><th>Sleeve</th><th>Region</th><th></th><th>Level</th><th>1d</th><th>5d</th><th>1m</th><th>3m</th><th>1y</th><th>5y pct</th><th>As of</th></tr>";
+    var body = rows.map(function (r) {
+      var unit = r.unit === "bp" ? " bp" : "%";
+      return "<tr><td>" + esc(r.label) + "</td><td class='t-mute'>" + esc(r.region) + "</td><td class='t-mute'>" + esc(r.fred) + "</td><td>" + num(r.level, r.unit === "bp" ? 0 : 2) + unit + "</td><td>" + signed(r.chg_1d, 1) + "</td><td>" + signed(r.chg_5d, 1) + "</td><td>" + signed(r.chg_21d, 1) + "</td><td>" + signed(r.chg_63d, 1) + "</td><td>" + signed(r.chg_252d, 1) + "</td><td>" + num(r.pct_5y, 0) + "</td><td class='t-mute'>" + esc(r.as_of) + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div><p class='note'>OAS is basis points. A wider spread is stress, so positive changes are red. 5y pct is where today's level sits inside the sleeve's own trailing five years. Gold and red bars on the chart are the 60th and 80th percentiles.</p>";
+  }
+
+  function breadthTable(block) {
+    var rows = (block && block.rows) || [];
+    if (!rows.length) return "<p class='note'>This tape did not answer.</p>";
+    var head = "<tr><th>Grade</th><th>Up</th><th>Down</th><th>Unch</th><th>Trades</th><th>Volume</th><th>52w high</th><th>52w low</th></tr>";
+    var body = rows.map(function (r) {
+      return "<tr><td>" + esc(r.category) + "</td><td class='t-pos'>" + num(r.advances, 0) + "</td><td class='t-neg'>" + num(r.declines, 0) + "</td><td>" + num(r.unchanged, 0) + "</td><td>" + num(r.trades, 0) + "</td><td>" + num(r.volume, 1) + "</td><td>" + num(r.high_52w, 0) + "</td><td>" + num(r.low_52w, 0) + "</td></tr>";
+    }).join("");
+    return "<table>" + head + body + "</table><p class='note'>As of " + esc(block.as_of || "") + ". " + esc(block.volume_unit || "") + ".</p>";
+  }
+
+  function flowTable(block) {
+    var rows = (block && block.rows) || [];
+    if (!rows.length) return "<p class='note'>No customer-flow rows.</p>";
+    var interesting = rows.filter(function (r) {
+      return /buy|sell|all/i.test(r.side || "");
+    });
+    var head = "<tr><th>Grade</th><th>Side</th><th>Trades</th><th>Transactions</th><th>Volume</th></tr>";
+    var body = interesting.map(function (r) {
+      var cls = /buy/i.test(r.side) ? "t-pos" : /sell/i.test(r.side) ? "t-neg" : "";
+      return "<tr><td>" + esc(r.category) + "</td><td class='" + cls + "'>" + esc(r.side) + "</td><td>" + num(r.trades, 0) + "</td><td>" + num(r.transactions, 0) + "</td><td>" + num(r.volume, 1) + "</td></tr>";
+    }).join("");
+    return "<div class='scroll'><table>" + head + body + "</table></div>";
+  }
+
+  function tracePanel(p) {
+    var trace = p.trace || {};
+    var book = state.tab === "144a" ? (trace.rule_144a || {}) : (trace.corporate || {});
+    var chips = '<div class="chips"><button class="chip' + (state.tab === "registered" ? " on" : "") + '" data-tab="registered">Registered corporates</button><button class="chip' + (state.tab === "144a" ? " on" : "") + '" data-tab="144a">Rule 144A</button></div>';
+    return chips + '<div class="split"><div><h3 style="margin-top:0">Breadth <span class="tag">' + esc((book.breadth || {}).as_of || "") + '</span></h3>' + breadthTable(book.breadth) + '</div><div><h3 style="margin-top:0">Who is lifting <span class="tag">customer buy vs sell</span></h3>' + flowTable(book.sentiment) + "</div></div>";
+  }
+
+  function wall(euro) {
+    var rows = (euro && euro.maturity_wall) || [];
+    if (!rows.length) return "<p class='note'>No euro maturity wall yet.</p>";
+    var max = Math.max.apply(null, rows.map(function (r) { return r.n; }));
+    return '<div class="wall" title="Bonds maturing each year">' + rows.map(function (r) {
+      var h = Math.max(4, Math.round(110 * r.n / max));
+      var label = String(r.year).slice(2);
+      return '<i style="height:' + h + 'px" title="' + esc(r.year) + ": " + r.n + '"><span>' + (rows.length > 18 && Number(label) % 2 ? "" : label) + "</span></i>";
+    }).join("") + "</div>";
+  }
+
+  function countries(euro) {
+    var rows = (euro && euro.by_country) || [];
+    var max = rows.reduce(function (m, r) { return Math.max(m, r.n); }, 1);
+    return '<div class="bars">' + rows.map(function (r) {
+      var on = state.country === r.country ? " hot" : "";
+      return '<div class="bar-row"><div class="bar-name">' + esc(r.country) + '</div><div class="bar-track"><div class="bar-fill' + on + '" style="width:' + Math.round(100 * r.n / max) + '%"></div></div><div class="bar-val">' + num(r.n, 0) + "</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function filteredBonds(euro) {
+    var q = state.q.trim().toLowerCase();
+    return ((euro && euro.bonds) || []).filter(function (b) {
+      if (state.country !== "ALL" && b.country !== state.country) return false;
+      if (!q) return true;
+      return (b.issuer + " " + b.isin).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  function bondTable(euro) {
+    var all = filteredBonds(euro);
+    var rows = all.slice(0, state.show);
+    var issuers = {};
+    (euro.issuers || []).forEach(function (row) { issuers[row.issuer] = row; });
+    var chips = '<div class="chips"><button class="chip' + (state.country === "ALL" ? " on" : "") + '" data-ccy="ALL">All countries</button>' +
+      (euro.by_country || []).map(function (r) {
+@@END 1@@

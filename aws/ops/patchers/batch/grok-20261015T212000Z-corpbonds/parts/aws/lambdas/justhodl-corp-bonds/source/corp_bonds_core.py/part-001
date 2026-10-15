@@ -1,0 +1,216 @@
+@@PART 1/3@@
+"""Corp bonds measurements. Descriptive only: no calls, no sizing.
+
+Three public layers, each labelled with what it actually covers:
+
+* United States — FINRA TRACE corporate and Rule 144A breadth, sentiment and
+  capped volume. That is the whole disseminated tape, rolled up by grade.
+  The public aggregate API does not include a CUSIP blotter (CUSIP licence).
+* Euro area — every bond on the ECB's weekly CSPP/PEPP holdings list
+  (ISIN, issuer, coupon, maturity, purchasing national central bank).
+* International indices — ICE BofA corporate OAS and yield sleeves on FRED
+  for the markets that do not publish an issue-level public tape.
+"""
+from __future__ import annotations
+
+import csv
+import io
+import math
+import re
+from datetime import date, datetime
+
+VERSION = "1.0.0"
+
+# kind "oas" is stored by FRED in percent; the packet converts it to basis points.
+# kind "yield" stays in percent. A missing series is skipped, never invented.
+SLEEVES = (
+    {"id": "us_ig", "label": "US IG", "region": "United States", "market": "corporate", "kind": "oas", "fred": "BAMLC0A0CM"},
+    {"id": "us_aaa", "label": "US AAA", "region": "United States", "market": "corporate", "kind": "oas", "fred": "BAMLC0A1CAAA"},
+    {"id": "us_aa", "label": "US AA", "region": "United States", "market": "corporate", "kind": "oas", "fred": "BAMLC0A2CAA"},
+    {"id": "us_a", "label": "US A", "region": "United States", "market": "corporate", "kind": "oas", "fred": "BAMLC0A3CA"},
+    {"id": "us_bbb", "label": "US BBB", "region": "United States", "market": "corporate", "kind": "oas", "fred": "BAMLC0A4CBBB"},
+    {"id": "us_hy", "label": "US HY", "region": "United States", "market": "high yield", "kind": "oas", "fred": "BAMLH0A0HYM2"},
+    {"id": "us_bb", "label": "US BB", "region": "United States", "market": "high yield", "kind": "oas", "fred": "BAMLH0A1HYBB"},
+    {"id": "us_b", "label": "US B", "region": "United States", "market": "high yield", "kind": "oas", "fred": "BAMLH0A2HYB"},
+    {"id": "us_ccc", "label": "US CCC", "region": "United States", "market": "high yield", "kind": "oas", "fred": "BAMLH0A3HYC"},
+    {"id": "us_ig_yield", "label": "US IG yield", "region": "United States", "market": "corporate", "kind": "yield", "fred": "BAMLC0A0CMEY"},
+    {"id": "us_hy_yield", "label": "US HY yield", "region": "United States", "market": "high yield", "kind": "yield", "fred": "BAMLH0A0HYM2EY"},
+    {"id": "us_1_3", "label": "US IG 1-3Y", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC1A0C13Y"},
+    {"id": "us_3_5", "label": "US IG 3-5Y", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC2A0C35Y"},
+    {"id": "us_5_7", "label": "US IG 5-7Y", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC3A0C57Y"},
+    {"id": "us_7_10", "label": "US IG 7-10Y", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC4A0C710Y"},
+    {"id": "us_10_15", "label": "US IG 10-15Y", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC7A0C1015Y"},
+    {"id": "us_15p", "label": "US IG 15Y+", "region": "United States", "market": "tenor", "kind": "oas", "fred": "BAMLC8A0C15PY"},
+    {"id": "euro_hy", "label": "Euro HY", "region": "Euro area", "market": "high yield", "kind": "oas", "fred": "BAMLHE00EHYIOAS"},
+    {"id": "euro_hy_yield", "label": "Euro HY yield", "region": "Euro area", "market": "high yield", "kind": "yield", "fred": "BAMLHE00EHYIEY"},
+    {"id": "em", "label": "EM corporate", "region": "Emerging markets", "market": "corporate", "kind": "oas", "fred": "BAMLEMCBPIOAS"},
+    {"id": "em_hg", "label": "EM high grade", "region": "Emerging markets", "market": "corporate", "kind": "oas", "fred": "BAMLEMIBHGCRPIOAS"},
+    {"id": "asia_usd", "label": "Asia USD", "region": "Asia", "market": "corporate", "kind": "oas", "fred": "BAMLEMALLCRPIASIAUSOAS"},
+    {"id": "em_euro_yield", "label": "EM euro yield", "region": "Emerging markets", "market": "corporate", "kind": "yield", "fred": "BAMLEMEBCRPIEEY"},
+    {"id": "sterling", "label": "Sterling corporate", "region": "United Kingdom", "market": "corporate", "kind": "oas", "fred": "BAMLSE00ECLIOAS"},
+)
+
+_STOP = {
+    "INC", "INCORPORATED", "CORP", "CORPORATION", "CO", "COMPANY", "LTD", "LIMITED",
+    "PLC", "GROUP", "THE", "SA", "SPA", "NV", "AG", "SE", "BV", "SARL", "SRL",
+    "HOLDINGS", "HOLDING", "INTERNATIONAL", "FINANCE", "FINANCIAL", "AND",
+}
+
+
+def _num(value):
+    if type(value) not in (int, float) or isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _round(value, places=2):
+    number = _num(value)
+    if number is None:
+        return None
+    return round(number, places)
+
+
+def parse_fred_csv(text):
+    """Return sorted (iso date, float) observations. Dots and blanks are gaps."""
+    rows = []
+    if not text or text.lstrip().startswith("<"):
+        return rows
+    for line in text.splitlines():
+        if not line or line.startswith("DATE") or "," not in line:
+            continue
+        day, raw = line.split(",", 1)
+        raw = raw.strip().strip('"')
+        if len(day) != 10 or raw in ("", "."):
+            continue
+        try:
+            value = float(raw)
+            date.fromisoformat(day)
+        except ValueError:
+            continue
+        if math.isfinite(value):
+            rows.append((day, value))
+    rows.sort()
+    return rows
+
+
+def _lag(points, sessions):
+    if len(points) <= sessions:
+        return None
+    return points[-1][1] - points[-1 - sessions][1]
+
+
+def sleeve_stats(spec, points, today_iso):
+    """Changes are in the same unit as `level` (bp for OAS, percent for yield)."""
+    if not points:
+        return None
+    day, last = points[-1]
+    scale = 100.0 if spec["kind"] == "oas" else 1.0
+    level = last * scale
+    window = [p for p in points if p[0] >= _shift_years(day, 5)]
+    base = window or points
+    rank = sum(1 for _, value in base if value <= last)
+    pct = (100.0 * rank / len(base)) if base else None
+    def chg(sessions):
+        delta = _lag(points, sessions)
+        return _round(delta * scale, 2) if delta is not None else None
+    return {
+        "id": spec["id"],
+        "label": spec["label"],
+        "region": spec["region"],
+        "market": spec["market"],
+        "kind": spec["kind"],
+        "unit": "bp" if spec["kind"] == "oas" else "pct",
+        "fred": spec["fred"],
+        "as_of": day,
+        "level": _round(level, 2),
+        "chg_1d": chg(1),
+        "chg_5d": chg(5),
+        "chg_21d": chg(21),
+        "chg_63d": chg(63),
+        "chg_252d": chg(252),
+        "pct_5y": _round(pct, 1),
+        "n": len(points),
+        "stale_days": _day_gap(day, today_iso),
+    }
+
+
+def _shift_years(day_iso, years):
+    y, m, d = (int(x) for x in day_iso.split("-"))
+    try:
+        return date(y - years, m, d).isoformat()
+    except ValueError:
+        return date(y - years, m, 28).isoformat()
+
+
+def _day_gap(left, right):
+    try:
+        return (date.fromisoformat(right) - date.fromisoformat(left)).days
+    except ValueError:
+        return None
+
+
+def parse_ecb_holdings(text):
+    """ECB CSPP/PEPP weekly list. Header: NCB,ISIN,ISSUER,MATURITY DATE,COUPON RATE."""
+    if not text:
+        return []
+    sample = text.lstrip()[:80]
+    if "ISIN" not in sample.upper() or sample.startswith("<"):
+        return []
+    out = []
+    seen = set()
+    reader = csv.reader(io.StringIO(text))
+    header = next(reader, None)
+    if not header:
+        return []
+    for row in reader:
+        if len(row) < 5:
+            continue
+        ncb, isin, issuer, maturity, coupon = (cell.strip() for cell in row[:5])
+        if len(isin) < 12 or isin in seen:
+            continue
+        try:
+            date.fromisoformat(maturity)
+        except ValueError:
+            continue
+        try:
+            coupon_value = float(coupon) if coupon not in ("", ".") else None
+        except ValueError:
+            coupon_value = None
+        seen.add(isin)
+        out.append({
+            "country": ncb.upper(),
+            "isin": isin.upper(),
+            "issuer": issuer,
+            "maturity": maturity,
+            "coupon": coupon_value,
+        })
+    return out
+
+
+def _years(maturity, today_iso):
+    try:
+        return round((date.fromisoformat(maturity) - date.fromisoformat(today_iso)).days / 365.25, 2)
+    except ValueError:
+        return None
+
+
+def euro_book(bonds, today_iso):
+    """Issue-level euro book plus country, issuer and maturity-wall rolls."""
+    countries = {}
+    issuers = {}
+    wall = {}
+    packed = []
+    for bond in bonds:
+        years = _years(bond["maturity"], today_iso)
+        row = dict(bond)
+        row["years"] = years
+        packed.append(row)
+        countries[bond["country"]] = countries.get(bond["country"], 0) + 1
+        year = bond["maturity"][:4]
+@@END 1@@

@@ -1,0 +1,42 @@
+{
+ "complete": true,
+ "lane": "grok",
+ "note": "corp bonds engine: TRACE tape, ECB issue book, ICE sleeves, corpbonds.html, one launch",
+ "files": [
+  {
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_core.py",
+   "first_line": "\"\"\"Corp bonds measurements. Descriptive only: no calls, no sizing.",
+   "last_line": "return moment.strftime(\"%Y-%m-%dT%H:%M:%SZ\"), moment.date().isoformat()"
+  },
+  {
+   "target": "aws/lambdas/justhodl-corp-bonds/source/lambda_function.py",
+   "first_line": "\"\"\"justhodl-corp-bonds \u2014 US TRACE tape, ECB euro issue book, ICE BofA sleeves.",
+   "last_line": "return publish()"
+  },
+  {
+   "target": "aws/lambdas/justhodl-corp-bonds/config.json",
+   "first_line": "{",
+   "last_line": "}"
+  },
+  {
+   "target": "aws/lambdas/justhodl-corp-bonds/tests/run_tests.py",
+   "first_line": "\"\"\"Dependency-free checks for the corp bonds measurements.\"\"\"",
+   "last_line": "print(\"corp bonds tests ok\", date.today().isoformat())"
+  },
+  {
+   "target": "corpbonds.html",
+   "first_line": "<!doctype html>",
+   "last_line": "</html>"
+  },
+  {
+   "target": "jh-corp-bonds.js",
+   "first_line": "/* Corp bonds desk. Reads data/corp-bonds.json. Descriptive only. */",
+   "last_line": "})();"
+  },
+  {
+   "target": "aws/ops/pending/grok_corp_bonds_launch.py",
+   "first_line": "\"\"\"Wait for justhodl-corp-bonds, publish once, and prove data/corp-bonds.json.\"\"\"",
+   "last_line": "main()"
+  }
+ ]
+}
