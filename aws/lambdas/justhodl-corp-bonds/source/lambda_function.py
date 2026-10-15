@@ -1,4 +1,4 @@
-"""justhodl-corp-bonds — US TRACE tape, ECB euro issue book, ICE BofA sleeves.
+"""justhodl-corp-bonds — company holdings, TRACE tape, ECB book, ICE sleeves.
 
 Owns data/corp-bonds.json. Measurement only. A failed feed is recorded in
 sources and left out of the page; it is never filled with a zero.
@@ -7,18 +7,20 @@ import json
 import os
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
 
 import corp_bonds_core as core
+import corp_bonds_issues as issues
 import finra_trace
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 PACKET_KEY = os.environ.get("PACKET_KEY", "data/corp-bonds.json")
 CDS_KEY = "data/cds-desk.json"
 ECB_INDEX = "https://www.ecb.europa.eu/mopo/implement/app/html/index.en.html"
-UA = "justhodl-corp-bonds/%s (+https://justhodl.ai)" % core.VERSION
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 FRED = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s"
 
 s3 = boto3.client("s3")
@@ -28,6 +30,36 @@ def _get(url, timeout=40):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/csv,text/html,*/*"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", "replace")
+
+
+def _get_bytes(url, timeout=45):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": UA,
+        "Accept": "text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read()
+
+
+def _one_fund(fund):
+    try:
+        blob = _get_bytes(fund["url"])
+    except Exception as exc:
+        return fund, [], type(exc).__name__, None
+    try:
+        if fund["kind"] == "ssga":
+            rows, as_of = issues.parse_ssga(blob, fund)
+        else:
+            rows, as_of = issues.parse_ishares(blob.decode("utf-8", "replace"), fund)
+    except Exception as exc:
+        return fund, [], "parse %s" % type(exc).__name__, None
+    return fund, rows, "live" if rows else "empty", as_of
+
+
+def fetch_issues(prior_bonds):
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(_one_fund, issues.FUNDS))
+    return issues.assemble(results, prior_bonds)
 
 
 def _get_json(key):
@@ -142,7 +174,9 @@ def fetch_trace():
 
 def publish():
     generated_at, today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), date.today().isoformat()
-    sources = {"fred": {}, "ecb": {}, "trace": {}, "cds": "not joined"}
+    sources = {"fred": {}, "ecb": {}, "trace": {}, "cds": "not joined", "issues": {}}
+    prior = _get_json(PACKET_KEY) or {}
+    prior_bonds = ((prior.get("issues") or {}).get("bonds")) or []
     sleeves = []
     for spec in core.SLEEVES:
         points, status = fetch_fred(spec)
@@ -167,7 +201,13 @@ def publish():
         sources["cds"] = "joined %s issuers from data/cds-desk.json" % cds_matched
     trace = fetch_trace()
     sources["trace"] = trace.get("status")
-    packet = core.build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sources)
+    try:
+        issue_book = fetch_issues(prior_bonds)
+        sources["issues"] = {row["id"]: "%s %s" % (row["status"], row["n"]) for row in issue_book.get("funds") or []}
+    except Exception as exc:
+        issue_book = None
+        sources["issues"] = "error %s" % type(exc).__name__
+    packet = core.build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sources, issue_book)
     body = json.dumps(packet, separators=(",", ":"), default=str).encode()
     s3.put_object(
         Bucket=BUCKET, Key=PACKET_KEY, Body=body,
@@ -181,6 +221,9 @@ def publish():
         "sleeves": len(packet["sleeves"]),
         "euro_bonds": euro.get("n_bonds"),
         "euro_issuers": euro.get("n_issuers"),
+        "issue_bonds": (issue_book or {}).get("n_bonds"),
+        "issue_issuers": (issue_book or {}).get("n_issuers"),
+        "issue_changes": (issue_book or {}).get("n_with_change"),
         "cds_matched": cds_matched,
         "trace": sources["trace"],
     }

@@ -2,7 +2,7 @@
 (function () {
   var root = document.getElementById("root");
   var ts = document.getElementById("ts");
-  var state = { country: "ALL", q: "", show: 250, tab: "registered" };
+  var state = { country: "ALL", q: "", show: 250, tab: "registered", sort: "demand", dir: "desc", sector: "ALL", book: "ALL", iq: "", ishow: 200, onlyChg: false };
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
@@ -19,6 +19,109 @@
     var cls = n > 0 ? "t-neg" : n < 0 ? "t-pos" : "t-mute";
     return '<span class="' + cls + '">' + (n > 0 ? "+" : "") + num(n, d) + "</span>";
   }
+  function money(v) {
+    if (v == null || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var abs = Math.abs(n);
+    if (abs >= 1e9) return (n / 1e9).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + "bn";
+    if (abs >= 1e6) return (n / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1, minimumFractionDigits: 1 }) + "m";
+    return num(n, 0);
+  }
+  function cmp(a, b, key) {
+    var av = a[key], bv = b[key];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === "number" && typeof bv === "number") return av - bv;
+    return String(av).localeCompare(String(bv));
+  }
+  function sectorBars(rows, labelKey) {
+    var list = (rows || []).filter(function (r) { return r.demand != null; }).slice(0, 18);
+    if (!list.length) return "<p class='note'>No demand rows in this packet.</p>";
+    var max = Math.max.apply(null, list.map(function (r) { return r.demand; }));
+    return '<div class="bars">' + list.map(function (r) {
+      var width = Math.max(2, Math.round(100 * r.demand / max));
+      var name = r[labelKey] || "Not labelled";
+      return '<div class="bar-row"><div class="bar-name" title="' + esc(name) + '">' + esc(name) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + width + '%"></div></div><div class="bar-val">' + money(r.demand) + "</div></div>";
+    }).join("") + "</div>";
+  }
+  function issueBonds(book) {
+    var q = state.iq.trim().toLowerCase();
+    return (book.bonds || []).filter(function (b) {
+      if (state.sector !== "ALL" && (b.sector || "") !== state.sector) return false;
+      if (state.book !== "ALL" && b.book !== state.book) return false;
+      if (state.onlyChg && b.chg == null) return false;
+      if (!q) return true;
+      return (b.issuer + " " + (b.country || "") + " " + (b.sector || "")).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  function sortedIssues(book) {
+    var rows = issueBonds(book).slice();
+    var dir = state.dir === "asc" ? 1 : -1;
+    rows.sort(function (a, b) {
+      var base = cmp(a, b, state.sort);
+      if (base === 0) base = cmp(a, b, "issuer");
+      return base * dir;
+    });
+    return rows;
+  }
+  function companyPanel(p) {
+    var book = p.issues;
+    if (!book || book.status === "unavailable" || !(book.bonds || []).length) {
+      return '<div class="panel"><h3>Company book</h3><p class="note">The holdings files did not print this run. Nothing here is filled in with a zero.</p></div>';
+    }
+    var sectors = (book.sectors || []).slice().filter(function (r) { return r.sector; }).sort(function (a, b) { return (b.demand || 0) - (a.demand || 0); });
+    var issuers = (book.issuers || []).slice().sort(function (a, b) { return (b.demand || 0) - (a.demand || 0); });
+    var sectorOpts = '<option value="ALL">All industries</option>' + sectors.map(function (r) {
+      return '<option value="' + esc(r.sector) + '"' + (state.sector === r.sector ? " selected" : "") + ">" + esc(r.sector) + "</option>";
+    }).join("");
+    var books = {};
+    (book.bonds || []).forEach(function (b) { if (b.book) books[b.book] = 1; });
+    var bookOpts = '<option value="ALL">All books</option>' + Object.keys(books).sort().map(function (name) {
+      return '<option value="' + esc(name) + '"' + (state.book === name ? " selected" : "") + ">" + esc(name) + "</option>";
+    }).join("");
+    function on(sort, dir, only) {
+      return state.sort === sort && state.dir === dir && !!state.onlyChg === !!only ? " on" : "";
+    }
+    var presets = '<div class="chips">'
+      + '<button class="chip' + on("sector", "asc", false) + '" data-sort="sector" data-dir="asc">Industry A–Z</button>'
+      + '<button class="chip' + on("sector", "desc", false) + '" data-sort="sector" data-dir="desc">Industry Z–A</button>'
+      + '<button class="chip' + on("chg", "desc", true) + '" data-sort="chg" data-dir="desc" data-chg="1">Biggest rate increase</button>'
+      + '<button class="chip' + on("chg", "asc", true) + '" data-sort="chg" data-dir="asc" data-chg="1">Biggest rate decrease</button>'
+      + '<button class="chip' + on("demand", "desc", false) + '" data-sort="demand" data-dir="desc">Demand by company</button>'
+      + '<button class="chip' + on("rate", "desc", false) + '" data-sort="rate" data-dir="desc">Highest yield</button>'
+      + '<button class="chip' + on("rate", "asc", false) + '" data-sort="rate" data-dir="asc">Lowest yield</button>'
+      + "</div>";
+    var filters = '<div class="chips">' + presets + '</div><div class="chips">'
+      + '<select class="search" id="sec">' + sectorOpts + "</select>"
+      + '<select class="search" id="book">' + bookOpts + "</select>"
+      + '<input class="search" id="iq" placeholder="Issuer, industry, country" value="' + esc(state.iq) + '">'
+      + "</div>";
+    var all = sortedIssues(book);
+    var rows = all.slice(0, state.ishow);
+    function th(key, label) {
+      var mark = state.sort === key ? (state.dir === "asc" ? " ↑" : " ↓") : "";
+      return '<th data-col="' + key + '" style="cursor:pointer">' + label + mark + "</th>";
+    }
+    var head = "<tr>" + th("issuer", "Issuer") + th("sector", "Industry") + th("country", "Country") + th("book", "Book") + th("ccy", "Ccy") + th("coupon", "Coupon") + th("maturity", "Maturity") + th("rate", "Yield") + th("chg", "Yield chg") + th("demand", "Demand") + "</tr>";
+    var body = rows.map(function (b) {
+      var chgBp = b.chg == null ? null : b.chg * 100;
+      return "<tr><td>" + esc(b.issuer) + "</td><td>" + esc(b.sector || "—") + "</td><td>" + esc(b.country || "—") + "</td><td class='t-mute'>" + esc(b.book || "") + "</td><td>" + esc(b.ccy || "—") + "</td><td>" + num(b.coupon, 2) + "</td><td>" + esc(b.maturity || "—") + "</td><td>" + (b.rate == null ? "<span class='t-mute'>—</span>" : num(b.rate, 2) + "%") + "</td><td>" + signed(chgBp, 1) + "</td><td>" + money(b.demand) + "</td></tr>";
+    }).join("");
+    var more = all.length > rows.length
+      ? '<p class="note"><button class="chip" id="imore">Show more (' + rows.length + " of " + all.length + ")</button></p>"
+      : '<p class="note">' + rows.length + " bonds in this filter.</p>";
+    var changeNote = book.n_with_change
+      ? (num(book.n_with_change, 0) + " bonds have a yield change versus the previous snapshot.")
+      : "Yield change is blank on this run because there is no previous snapshot yet. The level is real. The change prints on the next desk run.";
+    return '<div class="panel"><h3>Demand by industry <span class="tag">' + num(book.n_sectors, 0) + " industries · " + money(book.demand) + " held</span></h3>" + sectorBars(sectors, "sector") + "</div>"
+      + '<div class="panel"><h3>Demand by company <span class="tag">largest issuers in the scanned funds</span></h3>' + sectorBars(issuers, "issuer") + "</div>"
+      + '<div class="panel"><h3>Every scanned bond <span class="tag">' + num(book.n_bonds, 0) + " bonds · " + num(book.n_issuers, 0) + " issuers · " + esc(book.as_of || "") + "</span></h3>"
+      + filters
+      + "<div class='scroll'><table>" + head + body + "</table></div>" + more
+      + "<p class='note'>" + changeNote + " Yield is yield-to-worst when the file prints it, else yield-to-maturity, in percent. The change column is basis points; up is red because a higher yield is stress. Demand is market value inside the scanned funds, summed when more than one fund holds the bond. " + esc(book.note || "") + "</p></div>";
+  }
+
   function rowBy(list, key, value) {
     for (var i = 0; i < (list || []).length; i++) if (list[i][key] === value) return list[i];
     return null;
@@ -164,7 +267,7 @@
     var c = p.coverage || {};
     var misses = ((p.sources || {}).fred) || {};
     var missed = Object.keys(misses).filter(function (k) { return misses[k] !== "live"; });
-    return "<p>" + esc(c.us || "") + "</p><p>" + esc(c.euro_issues || "") + "</p><p>" + esc(c.international_indices || "") + "</p><p class='note'>Not issue-level: " + esc((c.not_issue_level || []).join(" · ")) + "</p>" +
+    return "<p>" + esc(c.us || "") + "</p><p>" + esc(c.companies || "") + "</p><p>" + esc(c.euro_issues || "") + "</p><p>" + esc(c.international_indices || "") + "</p><p class='note'>Not in this book: " + esc((c.not_issue_level || []).join(" · ")) + "</p>" +
       (missed.length ? "<p class='note'>FRED sleeves that did not print this run: " + esc(missed.join(", ")) + "</p>" : "");
   }
 
@@ -174,6 +277,7 @@
     root.innerHTML =
       '<div class="read">' + esc(p.read || "") + "</div>" +
       kpis(p) +
+      companyPanel(p) +
       '<div class="panel"><h3>Global corporate sleeves <span class="tag">ICE BofA OAS, wider = more stress</span></h3>' + sleeveChart(p) + "</div>" +
       '<div class="panel"><h3>Sleeve changes <span class="tag">bp for OAS, percent for yields</span></h3>' + sleeveTable(p) + "</div>" +
       '<div class="panel"><h3>US TRACE tape <span class="tag">every disseminated corporate print, rolled up</span></h3>' + tracePanel(p) + "</div>" +
@@ -195,6 +299,33 @@
     if (q) q.oninput = function () { state.q = q.value; state.show = 250; render(p); q.focus(); };
     var more = document.getElementById("more");
     if (more) more.onclick = function () { state.show = 100000; render(p); };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-sort]"), function (btn) {
+      btn.onclick = function () {
+        state.sort = btn.getAttribute("data-sort");
+        state.dir = btn.getAttribute("data-dir") || "desc";
+        state.onlyChg = btn.getAttribute("data-chg") === "1";
+        state.ishow = 200;
+        render(p);
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-col]"), function (th) {
+      th.onclick = function () {
+        var key = th.getAttribute("data-col");
+        if (state.sort === key) state.dir = state.dir === "asc" ? "desc" : "asc";
+        else { state.sort = key; state.dir = key === "issuer" || key === "sector" || key === "country" || key === "maturity" || key === "book" || key === "ccy" ? "asc" : "desc"; }
+        state.onlyChg = false;
+        state.ishow = 200;
+        render(p);
+      };
+    });
+    var sec = document.getElementById("sec");
+    if (sec) sec.onchange = function () { state.sector = sec.value; state.ishow = 200; render(p); };
+    var book = document.getElementById("book");
+    if (book) book.onchange = function () { state.book = book.value; state.ishow = 200; render(p); };
+    var iq = document.getElementById("iq");
+    if (iq) iq.oninput = function () { state.iq = iq.value; state.ishow = 200; render(p); var again = document.getElementById("iq"); if (again) { again.focus(); again.selectionStart = again.selectionEnd = again.value.length; } };
+    var imore = document.getElementById("imore");
+    if (imore) imore.onclick = function () { state.ishow += 400; render(p); };
   }
 
   function fail(msg) {

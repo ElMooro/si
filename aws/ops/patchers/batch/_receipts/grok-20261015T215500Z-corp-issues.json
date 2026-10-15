@@ -1,9 +1,81 @@
 {
- "apply_run_id": "38807369118",
- "at": "2026-10-15T21:07:25Z",
+ "apply_run_id": "38807787926",
+ "at": "2026-10-15T21:10:43Z",
  "batch": "grok-20261015T215500Z-corp-issues",
- "handoff_path": "aws/ops/reports/apply-lane/38807369118.json",
+ "changed": true,
+ "config": [],
+ "docs": [],
+ "files": [
+  {
+   "bytes": 20404,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "480406529d9df7dd8f57651d689248ecd34341c94d9c4f87517c61636bb83bbe",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_core.py"
+  },
+  {
+   "bytes": 21067,
+   "changed": true,
+   "check": "py_compile",
+   "how": "parts",
+   "sha256": "6be7e4bf94e133002bc1f88c66113aac956a5644801724d73ae650ee1182ba3a",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/corp_bonds_issues.py"
+  },
+  {
+   "bytes": 8985,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "dd9f5c722ebbc81475c124d6aa179a2a4ec42b6af61d6cfbd3ea8b21948435a8",
+   "target": "aws/lambdas/justhodl-corp-bonds/source/lambda_function.py"
+  },
+  {
+   "bytes": 2092,
+   "changed": true,
+   "check": "py_compile",
+   "how": "whole",
+   "sha256": "f4bb1aea1b42a9d2fa2093a2e96872ec62eee421c4661b07efc76f1fe4c4c898",
+   "target": "aws/ops/pending/grok_corp_bonds_issues_publish.py"
+  },
+  {
+   "bytes": 7128,
+   "changed": true,
+   "check": "html document",
+   "how": "whole",
+   "sha256": "be25a548e937e7f78943f19340a5ec6ec7660289e9c2260df94e0146957a672b",
+   "target": "corpbonds.html"
+  },
+  {
+   "bytes": 23579,
+   "changed": true,
+   "check": "node --check",
+   "how": "parts",
+   "sha256": "82b28bb38ea46f17dfe6a88518bb07e501822008cab0a27c66cbabcc09ea19bf",
+   "target": "jh-corp-bonds.js"
+  }
+ ],
+ "functions": [
+  "justhodl-corp-bonds"
+ ],
+ "handoff_path": "aws/ops/reports/apply-lane/38807787926.json",
  "handoff_ref": "ops-evidence",
- "reason": "listed in manifest.files but not uploaded: aws/lambdas/justhodl-corp-bonds/source/corp_bonds_core.py, aws/lambdas/justhodl-corp-bonds/source/corp_bonds_issues.py, aws/lambdas/justhodl-corp-bonds/source/lambda_function.py, corpbonds.html",
- "status": "rejected"
+ "lane": "grok",
+ "means": "assembly evidence only; NOT proof of a deploy",
+ "note": "corp bonds company book: holdings yields, industry, demand, rate change",
+ "ops_scripts": [
+  "aws/ops/pending/grok_corp_bonds_issues_publish.py"
+ ],
+ "pages": [
+  "corpbonds.html",
+  "jh-corp-bonds.js"
+ ],
+ "shared": [],
+ "status": "assembled",
+ "verify": [
+  "https://justhodl.ai/data/ops/releases/justhodl-corp-bonds.json  (commit must equal the apply-lane commit)",
+  "pages.yml run for the apply-lane commit",
+  "aws/ops/reports/latest/<N>_<slug>.md for aws/ops/pending/grok_corp_bonds_issues_publish.py"
+ ],
+ "workers": []
 }

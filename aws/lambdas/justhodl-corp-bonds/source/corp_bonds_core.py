@@ -18,7 +18,7 @@ import math
 import re
 from datetime import date, datetime
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 # kind "oas" is stored by FRED in percent; the packet converts it to basis points.
 # kind "yield" stays in percent. A missing series is skipped, never invented.
@@ -404,15 +404,17 @@ def coverage_block():
         "us": "FINRA TRACE corporate and Rule 144A market breadth, sentiment and capped volume. This is the whole disseminated US corporate tape rolled up by grade, not a sample. Individual CUSIPs are not in the public aggregate API.",
         "euro_issues": "Every bond on the ECB weekly CSPP/PEPP corporate holdings list: ISIN, issuer, coupon, maturity and the purchasing national central bank. It is the Eurosystem book, not every euro corporate outstanding.",
         "international_indices": "ICE BofA option-adjusted spread and yield sleeves on FRED for US ratings and tenors, Euro high yield, emerging-market corporates, EM high grade and Asia USD. A sleeve that FRED does not publish is omitted, not zeroed.",
+        "companies": "Individual bonds inside public daily holdings: iShares broad USD investment-grade and high-yield (plus the liquid and short books), EM corporate and EM high-yield, euro investment-grade and high-yield, convertibles, floating-rate, the iShares Core euro corporate UCITS book, corporate lines of the iShares core international aggregate (local market currency: euro, sterling, Canada, yen and others), and SPDR international corporate. Industry is the fund's sector. Yield is yield-to-worst when the file prints it, otherwise yield-to-maturity. Demand is market value held by those funds, not TRACE volume and not the amount outstanding. CUSIPs are not republished.",
         "not_issue_level": [
-            "US CUSIP blotter (CUSIP licence; TRACE public files are aggregates)",
-            "Sterling, Canada, Japan and China single-name prints",
-            "Euro corporates outside the published Eurosystem list",
+            "TRACE CUSIP blotter (public aggregate API has no prints; no CUSIP licence)",
+            "A yield the holdings file does not print (left blank, not estimated)",
+            "A yield change before this desk has a previous snapshot of that bond",
+            "Bonds no scanned fund holds",
         ],
     }
 
 
-def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sources):
+def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sources, issues=None):
     live = [row for row in sleeves if row]
     as_of_candidates = [row["as_of"] for row in live if row.get("as_of")]
     if euro and euro.get("bonds"):
@@ -420,7 +422,9 @@ def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sou
     breadth = ((trace.get("corporate") or {}).get("breadth") or {})
     if breadth.get("as_of"):
         as_of_candidates.append(breadth["as_of"])
-    return {
+    if issues and issues.get("as_of"):
+        as_of_candidates.append(issues["as_of"])
+    packet = {
         "engine": "justhodl-corp-bonds",
         "version": VERSION,
         "generated_at": generated_at,
@@ -434,6 +438,18 @@ def build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sou
         "cds_matched_issuers": cds_matched,
         "sources": sources,
     }
+    if issues:
+        packet["issues"] = issues
+        count = issues.get("n_bonds") or 0
+        if count:
+            extra = " The company book lists %s bonds from %s issuers." % (count, issues.get("n_issuers") or 0)
+            changed = issues.get("n_with_change") or 0
+            if changed:
+                extra += " Yield changes versus the previous snapshot cover %s bonds." % changed
+            else:
+                extra += " Yield changes print after the next snapshot; this run has the level only."
+            packet["read"] = packet["read"].rstrip() + extra
+    return packet
 
 
 def iso_now(now=None):
