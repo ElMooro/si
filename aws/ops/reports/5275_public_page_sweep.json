@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "abf020a38d6d1a4a873ca5c0f220dabcce74baba",
-  "observed_at": "2026-10-15T17:29:05.385300+00:00",
-  "ok": false,
+  "observed_at": "2026-10-15T17:34:19.079116+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "calibration/index.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "abf020a38d6d1a4a873ca5c0f220dabcce74baba": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -830,12 +828,13 @@
     },
     {
       "route": "calibration/index.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "abf020a38d6d1a4a873ca5c0f220dabcce74baba",
+      "inspector_present": true,
+      "bytes_read": 32286,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "calls.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38776402860,
+  "deployment_run_id": 38777592375,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-15T17:29:05.394265+00:00"
+  "check_finished_at": "2026-10-15T17:34:19.088239+00:00"
 }
