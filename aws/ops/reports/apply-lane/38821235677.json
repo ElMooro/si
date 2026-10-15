@@ -1,0 +1,29 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "38821235677",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/38821235677",
+ "base_sha": "dc91ed1f048062680cafbc8c556bc7bbb469744a",
+ "result_sha": "47481e453bba371e24d0637b103d189628296c30",
+ "patchers": [],
+ "targets": [
+  "justhodl-corp-bonds"
+ ],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "corpbonds.html",
+  "jh-corp-bonds.js"
+ ],
+ "ops_scripts": [
+  "aws/ops/pending/grok_corp_bonds_moves_publish.py"
+ ],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "success",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "success",
+ "deploy_run_id": "38821287107",
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-10-15T23:04:24Z"
+}
