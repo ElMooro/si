@@ -5,6 +5,7 @@ sources and left out of the page; it is never filled with a zero.
 """
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -32,13 +33,27 @@ def _get(url, timeout=40):
         return resp.read().decode("utf-8", "replace")
 
 
-def _get_bytes(url, timeout=45):
+def _get_bytes(url, timeout=25):
+    # urlopen's timeout resets on every socket read, so a trickled file can
+    # outlive it. The monotonic deadline is the real cap, plus one blocked read.
     req = urllib.request.Request(url, headers={
         "User-Agent": UA,
         "Accept": "text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*",
     })
+    deadline = time.monotonic() + timeout
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read()
+        chunks, total = [], 0
+        while True:
+            if time.monotonic() > deadline:
+                raise TimeoutError(url)
+            block = resp.read(1 << 16)
+            if not block:
+                break
+            total += len(block)
+            if total > 25000000:
+                raise TimeoutError("oversized")
+            chunks.append(block)
+        return b"".join(chunks)
 
 
 def _one_fund(fund):
@@ -177,6 +192,10 @@ def publish():
     sources = {"fred": {}, "ecb": {}, "trace": {}, "cds": "not joined", "issues": {}}
     prior = _get_json(PACKET_KEY) or {}
     prior_bonds = ((prior.get("issues") or {}).get("bonds")) or []
+    # Holdings files overlap FRED, the euro book and TRACE. They were sequential
+    # before, and that sum crossed the 300s task limit before the packet was written.
+    issue_pool = ThreadPoolExecutor(max_workers=1)
+    issue_future = issue_pool.submit(fetch_issues, prior_bonds)
     sleeves = []
     for spec in core.SLEEVES:
         points, status = fetch_fred(spec)
@@ -202,11 +221,13 @@ def publish():
     trace = fetch_trace()
     sources["trace"] = trace.get("status")
     try:
-        issue_book = fetch_issues(prior_bonds)
+        issue_book = issue_future.result()
         sources["issues"] = {row["id"]: "%s %s" % (row["status"], row["n"]) for row in issue_book.get("funds") or []}
     except Exception as exc:
         issue_book = None
         sources["issues"] = "error %s" % type(exc).__name__
+    finally:
+        issue_pool.shutdown(wait=False, cancel_futures=True)
     packet = core.build_packet(generated_at, today_iso, sleeves, trace, euro, cds_matched, sources, issue_book)
     body = json.dumps(packet, separators=(",", ":"), default=str).encode()
     s3.put_object(

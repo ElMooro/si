@@ -4,7 +4,7 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
-  "timeout": 300,
+  "timeout": 600,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Corp bonds desk: full FINRA TRACE corporate and 144A tape (breadth, sentiment, capped volume), every bond on the ECB CSPP/PEPP holdings list, and ICE BofA US/Euro/EM/Asia corporate sleeves from FRED. Descriptive only. Owns data/corp-bonds.json.",
