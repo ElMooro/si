@@ -26,6 +26,11 @@
     "justhodl-v9-evening",
     "justhodl-v9-morning"
   ],
+  "schedule": {
+    "rule_name": "justhodl-daily-8am",
+    "cron": "cron(0 13 ? * MON-FRI *)",
+    "description": "Once daily Mon-Fri at 8AM ET for cost control (replaced frequent 5min auto-refresh)"
+  },
   "last_modified": "2026-03-05T03:23:09.000+0000",
   "code_size": 29532,
   "files_imported": 1,
