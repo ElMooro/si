@@ -290,9 +290,20 @@ def enforce_drift(ctx, stage, now):
     def needs_redo(e):
         if ctx.time_left() < 60:
             return None
-        check = lv.is_applied_fn(e["lever"])
         try:
-            return e if e.get("status") == "failed" or (check and not check(ctx, e)) else None
+            if e.get("status") == "failed":
+                return e
+            if e["lever"] == "lambda":
+                cur = lv.reserved_of(ctx, e["id"])
+                if cur == 0:
+                    return None
+                # Someone set this function's concurrency during the hold (an ops script, another lane).
+                # The hold wins now; their value becomes what the 1st-of-month restore puts back.
+                e["before"] = {"reserved": cur}
+                e["drift_seen_at"] = now.isoformat()
+                return e
+            check = lv.is_applied_fn(e["lever"])
+            return e if (check and not check(ctx, e)) else None
         except Exception as ex:  # noqa: BLE001
             if lv.err_code(ex) in ("ResourceNotFoundException", "ValidationException"):
                 e["status"] = "gone"
@@ -471,7 +482,10 @@ def tick(event, context, trigger):
     del obs[:-72]
 
     try:
-        out["fuse"] = check_fuse(ctx, state, cfg, baseline, now, enforce)
+        if state.get("stage") == "FREEZE":
+            out["fuse"] = {"checked": False, "reason": "frozen - nothing can run"}  # saves the metric reads
+        else:
+            out["fuse"] = check_fuse(ctx, state, cfg, baseline, now, enforce)
     except Exception as e:  # noqa: BLE001 - the cap path must run even if metrics are unreadable
         ctx.log("fuse check failed: %s" % lv.err_code(e))
         out["fuse"] = {"error": lv.err_code(e)}

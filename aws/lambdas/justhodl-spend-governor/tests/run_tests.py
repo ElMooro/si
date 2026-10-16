@@ -371,6 +371,20 @@ def test_partial_restore_keeps_the_freeze():
     check(r["stage"] == "FREEZE", "a partial release does not pretend the freeze is over")
 
 
+def test_drift_during_freeze_rethrottles_and_keeps_the_new_value():
+    w = world(FLEET, actual=480)
+    set_control(w)
+    gov.lambda_handler({"action": "tick"}, Context())
+    w["lambda"].fns["justhodl-gamma"]["reserved"] = 2  # an ops script changed it mid-freeze
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 0, "drift is re-throttled on the next tick")
+    check(st["ledger"]["lambda:justhodl-gamma"]["before"] == {"reserved": 2}, "the mid-freeze value is what gets restored")
+    check(out["fuse"].get("reason", "").startswith("frozen"), "no fuse metric reads while frozen")
+    gov.lambda_handler({"action": "restore"}, Context())
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 2, "restore puts back the value set during the freeze")
+
+
 def test_cap_raise_releases():
     w = world(FLEET, actual=480)
     set_control(w)

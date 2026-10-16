@@ -340,8 +340,55 @@ def instance_allowed(policy: Dict[str, Any], instance_type: str, family: str) ->
     return "%s is not in policy.%s (edit the allow list on the AI page)" % (instance_type, key)
 
 
-def mtd_sagemaker_cost(ce) -> Dict[str, Any]:
-    """Month-to-date SageMaker spend from Cost Explorer (real bill data, ~24h lag)."""
+MTD_CACHE_KEY = "ai/cost/mtd-sagemaker.json"
+MTD_CACHE_TTL_S = 6 * 3600
+_cache_s3 = None
+
+
+def _cache_target():
+    """(s3 client, private bucket) for the month-to-date cache, or (None, None) when unavailable."""
+    global _cache_s3
+    import os
+    bucket = os.environ.get("AI_PRIVATE_BUCKET")
+    if not bucket:
+        return None, None
+    try:
+        if _cache_s3 is None:
+            import boto3
+            _cache_s3 = boto3.client("s3")
+        return _cache_s3, bucket
+    except Exception:
+        return None, None
+
+
+def mtd_sagemaker_cost(ce, s3=None, bucket=None) -> Dict[str, Any]:
+    """Month-to-date SageMaker spend from Cost Explorer (real bill data, ~24h lag).
+
+    ops 6528 (2026-10-16): cached for 6 h in the private bucket.  Every hourly inventory and almost every
+    10-minute pipeline tick called Cost Explorer (~168 calls/day, ~$1.68/day at $0.01 a call) for a number
+    Cost Explorer itself only refreshes about three times a day.  A miss or an error is never cached."""
+    if s3 is None or not bucket:
+        s3, bucket = _cache_target()
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if s3 is not None and bucket:
+        cached = _get_json(s3, bucket, MTD_CACHE_KEY) or {}
+        try:
+            age = (datetime.now(timezone.utc) - datetime.fromisoformat(str(cached.get("fetched_at")))).total_seconds()
+            if cached.get("month") == month and cached.get("usd_mtd") is not None and 0 <= age < MTD_CACHE_TTL_S:
+                return dict(cached, cached=True)
+        except (TypeError, ValueError):
+            pass
+    result = _mtd_from_cost_explorer(ce)
+    result["month"] = month
+    if s3 is not None and bucket and result.get("usd_mtd") is not None:
+        try:
+            _put_json(s3, bucket, MTD_CACHE_KEY, result)
+        except Exception:
+            pass
+    return result
+
+
+def _mtd_from_cost_explorer(ce) -> Dict[str, Any]:
     try:
         today = datetime.now(timezone.utc).date()
         start = today.replace(day=1)
