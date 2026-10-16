@@ -1,0 +1,37 @@
+{
+ "op": 6528,
+ "ran_at": "2026-10-16T23:10:20.262840+00:00",
+ "rule_before": {
+  "ScheduleExpression": "rate(5 minutes)",
+  "State": "ENABLED",
+  "Description": "AUDIT P2 \u2014 scan fleet error rates + DLQ depth every 5 minutes"
+ },
+ "rule_after": {
+  "ScheduleExpression": "rate(1 hour)",
+  "State": "ENABLED",
+  "Description": "AUDIT P2 - fleet error rates + DLQ depth hourly (ops 6528; was every 5 minutes)"
+ },
+ "governor": {
+  "mode": "enforce",
+  "stage": "FREEZE",
+  "stage_since": "2026-10-16T22:53:03.699511+00:00",
+  "held": {
+   "FREEZE/lambda": 914,
+   "FREEZE/smasync": 1
+  },
+  "cap": 3500.0,
+  "cap_source": "override:2026-10"
+ },
+ "ledger_not_applied": [
+  {
+   "key": "smasync:endpoint/jh-owned-coder-async/variant/owned",
+   "error": "ValidationException",
+   "status": "failed"
+  }
+ ],
+ "plan": {},
+ "invoking_last_15min": {
+  "justhodl-spend-governor": 1
+ },
+ "account_throttles_1h": 29
+}
