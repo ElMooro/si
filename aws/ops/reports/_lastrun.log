@@ -1,7 +1,13 @@
-executing-against: 7fd15bcd772abc8769ea7f4cba454a0a737afba1
-Could not disable justhodl-v9-auto-refresh: An error occurred (ResourceNotFoundException) when calling the DisableRule operation: Rule justhodl-v9-auto-refresh does not exist on EventBus default.
-Confirmed/updated justhodl-daily-8am to daily Mon-Fri
-Lambda memory: 768, timeout: 900
-Reserved concurrency set to 1
-justhodl-daily-8am: State=ENABLED, Expr=cron(0 13 ? * MON-FRI *)
-Could not describe justhodl-v9-auto-refresh: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-v9-auto-refresh does not exist on EventBus default.
+executing-against: 48b8e1434cab8f7f78869e69d1b867a98469e53c
+=== Forcing once-daily schedules ===
+Set justhodl-vix-curve-30min → cron(0 13 ? * MON-FRI *) for justhodl-vix-curve
+Set justhodl-katlin-permission-refresh → cron(0 13 ? * MON-FRI *) for justhodl-katlin
+
+=== Setting reserved concurrency = 1 ===
+Concurrency=1 set on justhodl-vix-curve
+Concurrency=1 set on justhodl-katlin
+Concurrency=1 set on justhodl-13f-positions
+Concurrency=1 set on justhodl-crypto-intel
+Concurrency=1 set on justhodl-repo-monitor
+
+=== Done. Verify in EventBridge and Lambda console. ===
