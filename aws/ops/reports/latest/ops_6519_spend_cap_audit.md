@@ -1,0 +1,53 @@
+# ops 6519 - $500 hard cap: read-only spend-surface audit
+
+**Status:** success  
+**Duration:** 103.0s  
+**Finished:** 2026-10-16T19:36:01+00:00  
+
+## Data
+
+| metric | value |
+|---|---|
+| mtd_total_unblended | 2351.12 |
+| prev_month_total | 633.36 |
+| avg_daily_mtd | 148.69 |
+| avg_daily_last3 | 553.09 |
+| forecast_rest_of_month_mean | 3041.536 |
+| residual_floor_usd_day | 20.6534 |
+| lambda_est_usd_7d_total | 1995.56 |
+
+## Log
+## Spend
+
+- `19:36:01` MTD AWS Lambda                                    $1783.38
+- `19:36:01` MTD Amazon Simple Storage Service                 $358.36
+- `19:36:01` MTD AmazonCloudWatch                              $121.21
+- `19:36:01` MTD CloudWatch Events                             $31.54
+- `19:36:01` MTD AWS Cost Explorer                             $23.55
+- `19:36:01` MTD Amazon SageMaker                              $17.32
+- `19:36:01` MTD Amazon Simple Queue Service                   $6.58
+- `19:36:01` MTD Amazon DynamoDB                               $3.60
+- `19:36:01` MTD AWS Secrets Manager                           $1.76
+- `19:36:01` MTD Amazon Route 53                               $1.50
+- `19:36:01` MTD Amazon EC2 Container Registry (ECR)           $1.33
+- `19:36:01` MTD EC2 - Other                                   $0.62
+## Budgets
+
+- `19:36:01` JustHodl-Monthly-Hard-Cap-500 limit=500.0 actual=2351.123 forecast=3041.536 notifications=4
+- `19:36:01` My Monthly Cost Budget limit=150.0 actual=2351.123 forecast=3041.536 notifications=5
+- `19:36:01` budget actions: []
+## Surfaces
+
+- `19:36:01` lambda: {"count": 924, "reserved_histogram": {"unset": 858, "1": 46, "10": 5, "0": 8, "3": 1, "100": 1, "5": 3, "20": 1, "2": 1}, "account_limit": 1000, "unreserved": 764, "role_counts": {"MacroFinancialIntelligenceRole": 1, "aiapi-market-analyzer-role-04o8b4dk": 1, "bls-api-role": 1, "chatgpt-agent-self-modify": 1, "daily-liquidity-role": 1, "economyapi-lambda-role": 2, "justhodl-factory-grader-role": 1, "justhodl-student-rsi-role": 1, "lambda-execution-role": 909, "lambda-role": 1, "liquidity-agent-role-v2": 1, "ofr-lambda-role": 1, "openbb-lambda-role": 2, "scrapeMacroData-role-9pweui52": 1}, "memory_total_mb": 740928}
+- `19:36:01` eventbridge: {"buses": ["default", "justhodl-system-events"], "rules_total": 592, "enabled": 558, "disabled": 34, "managed_rules": 0, "enabled_with_lambda_targets": 555, "lambda_target_count": 562}
+- `19:36:01` scheduler: total=431 enabled=429 roles={'justhodl-scheduler-role': 15}
+- `19:36:01` esm: 0  s3->lambda notifications: 8
+- `19:36:01` sagemaker endpoints: [["jh-owned-coder-async", "InService", true, ["ml.g5.xlarge"]], ["jh-ai-tensorflow-tcembedding-bert-en-uncased-l-12-h-768", "InService", false, ["serverless"]], ["jh-ai-clf-jh-ai-brain-clf-20260910-180837-297", "InService", false, ["serverless"]]]
+## Identity / alerts
+
+- `19:36:01` runner: arn:aws:iam::857687956942:user/github-actions-justhodl
+- `19:36:01` simulation: {"budgets:ViewBudget": "allowed", "budgets:ModifyBudget": "allowed", "ce:GetCostAndUsage": "allowed", "ce:GetCostForecast": "allowed", "sns:CreateTopic": "allowed", "sns:SetTopicAttributes": "allowed", "sns:Subscribe": "allowed", "sns:Publish": "allowed", "lambda:CreateFunction": "allowed", "lambda:AddPermission": "allowed", "lambda:PutFunctionConcurrency": "allowed", "lambda:DeleteFunctionConcurrency": "allowed", "lambda:TagResource": "allowed", "lambda:InvokeFunction": "allowed", "scheduler:CreateSchedule": "allowed", "scheduler:UpdateSchedule": "allowed", "scheduler:GetSchedule": "allowed", "cloudwatch:PutMetricAlarm": "allowed", "cloudwatch:PutMetricData": "allowed", "events:DisableRule": "allowed", "events:EnableRule": "allowed", "s3:PutObject": "allowed", "s3:GetObject": "allowed", "organizations:DescribeOrganization": "allowed", "iam:CreateRole@gov-role": "allowed", "iam:PutRolePolicy@gov-role": "allowed", "iam:PassRole@gov-role": "allowed", "iam:GetRole@gov-role": "allowed", "iam:TagRole@gov-role": "allowed", "iam:UpdateAssumeRolePolicy@gov-role": "allowed", "iam:PassRole@scheduler-role": "allowed"}
+- `19:36:01` iam: {"JustHodl-Budgets-Action-Role": {"exists": false, "code": "NoSuchEntity"}, "justhodl-scheduler-role": {"exists": true, "trust": [{"Service": "scheduler.amazonaws.com"}]}, "justhodl-spend-governor-role": {"exists": false, "code": "NoSuchEntity"}, "lambda-execution-role": {"exists": true, "trust": [{"Service": "lambda.amazonaws.com"}]}, "JustHodl-Budget-Exceeded-Deny": {"exists": true, "attached_roles": [], "attached_users": [], "attached_groups": []}}
+- `19:36:01` sns: {"JustHodl-Alerts": [], "justhodl-fleet-alerts": [{"protocol": "lambda", "endpoint": "justhodl-guardrail-notify", "pending": false}]}
+- `19:36:01` telegram ssm: {'ok': False, 'error': 'HTTP Error 401: Unauthorized'} runner-secret: None
+- `19:36:01` ✅ wrote aws/ops/reports/6519.json
