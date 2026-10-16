@@ -1,13 +1,22 @@
-executing-against: 48b8e1434cab8f7f78869e69d1b867a98469e53c
-=== Forcing once-daily schedules ===
-Set justhodl-vix-curve-30min → cron(0 13 ? * MON-FRI *) for justhodl-vix-curve
-Set justhodl-katlin-permission-refresh → cron(0 13 ? * MON-FRI *) for justhodl-katlin
+executing-against: 5c2a7d8dd0c610ec33e108bcd7b5a8a9de6d52f5
+=== Forcing residual high-frequency items to once daily ===
+Disabled frequent rule justhodl-dex-scanner-15min
+Set daily justhodl-dex-scanner-daily for justhodl-dex-scanner
+Set daily justhodl-student-rsi-daily for justhodl-student-rsi
+Set daily justhodl-chain-resumer-daily for justhodl-chain-resumer
+Disabled frequent rule justhodl-price-redundancy-15min
+Set daily justhodl-price-redundancy-daily for justhodl-price-redundancy
+Error processing justhodl-symdir/justhodl-symdir-warm: Parameter validation failed:
+Missing required parameter in input: "FlexibleTimeWindow"
+Missing required parameter in input: "ScheduleExpression"
+Missing required parameter in input: "Target"
 
-=== Setting reserved concurrency = 1 ===
-Concurrency=1 set on justhodl-vix-curve
-Concurrency=1 set on justhodl-katlin
-Concurrency=1 set on justhodl-13f-positions
-Concurrency=1 set on justhodl-crypto-intel
-Concurrency=1 set on justhodl-repo-monitor
+=== Setting reserved concurrency = 1 on residuals ===
+Concurrency=1 on justhodl-dex-scanner
+Concurrency=1 on justhodl-student-rsi
+Concurrency=1 on justhodl-chain-resumer
+Concurrency=1 on justhodl-price-redundancy
+Concurrency=1 on justhodl-symdir
+Concurrency=1 on justhodl-cboe-options-chain
 
-=== Done. Verify in EventBridge and Lambda console. ===
+=== Residual force-daily complete. ===
