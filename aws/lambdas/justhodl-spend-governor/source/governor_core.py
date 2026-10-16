@@ -1,0 +1,204 @@
+"""justhodl-spend-governor - pure decision logic (no AWS calls; unit-tested in tests/run_tests.py).
+
+Why a governor and not an AWS Budget Action: AWS has no native hard cap. Budget Actions can only attach
+IAM/SCP policies or stop EC2/RDS, cannot stop scheduled or event-driven Lambda invocations, and fire
+after the money is spent.  Billing data also lags (Budgets/Cost Explorer refresh ~3x a day), and some
+charges continue even when every engine is stopped (storage, data transfer for the site, alarms).
+
+So the governor works on lines computed BELOW the cap:
+
+    reserve   = residual/day x days_left + baseline/day x lag_days + safety
+    freeze_at = cap - reserve                    (floored at min_freeze_fraction x cap)
+    brake_at  = freeze_at - max(brake_gap_usd, baseline/day x brake_gap_days)
+
+  * BRAKE  (MTD >= brake_at):  shed the most expensive load (top Lambda spenders, SageMaker, EC2/RDS...)
+  * FREEZE (MTD >= freeze_at): throttle everything except a small exempt set
+  * FUSE   (any time):         a runaway function (guard alarm in ALARM and the function alone burning
+                               >= runaway_fn_usd_day) is throttled within the hour, cap or no cap
+
+Once BRAKE/FREEZE is entered it holds until the month rolls over, the cap is RAISED, or an operator
+releases it - never because the moving lines drift (that would flap).  FUSE entries are only lifted
+by an operator, because the 1st of the month does not fix a runaway.
+"""
+from datetime import datetime, timedelta, timezone
+
+VERSION = "1.0.0"
+STAGES = ("NORMAL", "BRAKE", "FREEZE")
+LEVEL = {s: i for i, s in enumerate(STAGES)}
+
+DEFAULTS = {
+    "lag_days": 1.0,              # spend already incurred but not yet in billing data
+    "safety_usd": 10.0,           # flat margin under the cap
+    "brake_gap_usd": 40.0,        # brake at least this far below the freeze line ...
+    "brake_gap_days": 2.0,        # ... or this many days of baseline spend, whichever is larger
+    "min_freeze_fraction": 0.5,   # the freeze line never drops below 50% of the cap
+    "min_brake_fraction": 0.4,
+    "hysteresis_usd": 10.0,       # a cap raise must clear the crossed line by this much to release
+    "residual_default_usd_day": 3.0,
+    "baseline_default_usd_day": 20.0,
+    "runaway_fn_usd_day": 20.0,   # a single function burning faster than this during a guard alarm is a runaway
+    "runaway_total_factor": 3.0,  # ... and the fleet as a whole must exceed 3x its normal daily spend
+    "brake_shed_share": 0.8,      # BRAKE throttles the top Lambda spenders covering 80% of Lambda cost
+    "brake_max_functions": 40,
+    "brake_min_fn_usd_day": 0.05,
+}
+
+PERSISTENT_USAGE_PATTERNS = (
+    # charges that keep accruing with every engine stopped
+    "timedstorage", "storage", "hostedzone", "alarmmonitorusage", "metricmonitorusage", "kms-keys",
+    "secret", "ebs:volumeusage", "ebs:snapshot", "datatransfer-out", "requests-tier2", "dashboards",
+    "studio:volumeusage", "pitrstorage", "storagelens",
+)
+
+
+def as_utc(ts):
+    if isinstance(ts, datetime):
+        return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+    t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def month_key(now):
+    return now.strftime("%Y-%m")
+
+
+def month_start(now):
+    return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
+def next_month_start(now):
+    return (month_start(now) + timedelta(days=32)).replace(day=1)
+
+
+def days_left(now):
+    return max(0.0, (next_month_start(now) - now).total_seconds() / 86400.0)
+
+
+def merged_cfg(overrides=None):
+    cfg = dict(DEFAULTS)
+    for k, v in (overrides or {}).items():
+        if k in DEFAULTS and isinstance(v, (int, float)) and not isinstance(v, bool):
+            cfg[k] = float(v)
+    return cfg
+
+
+def effective_cap(budget_limit, control, now):
+    """The AWS Budget amount is the single source of truth; a per-month override may replace it."""
+    ov = ((control or {}).get("cap_overrides") or {}).get(month_key(now))
+    if isinstance(ov, dict) and isinstance(ov.get("cap_usd"), (int, float)) and ov["cap_usd"] > 0:
+        return float(ov["cap_usd"]), "override:" + month_key(now)
+    if budget_limit is None:
+        return None, "missing"
+    return float(budget_limit), "budget"
+
+
+def median(values):
+    v = sorted(float(x) for x in values)
+    if not v:
+        return None
+    n = len(v)
+    return v[n // 2] if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2.0
+
+
+def baseline_from_daily(daily_totals, today, cfg):
+    """Robust daily spend: median of the last 14 COMPLETE days (a multi-day spike cannot drag it)."""
+    complete = [v for d, v in sorted(daily_totals.items()) if d < today.isoformat()][-14:]
+    m = median(complete)
+    return (m, "median14") if m is not None else (cfg["baseline_default_usd_day"], "default")
+
+
+def residual_from_usage(daily_usage, today, cfg):
+    """Persistent (non-stoppable) spend per day: MIN over the last 7 complete days, so a transient
+    storage balloon that lifecycle is already purging does not set the floor for a whole month."""
+    per_day = []
+    for d, usage in sorted(daily_usage.items()):
+        if d >= today.isoformat():
+            continue
+        per_day.append(sum(float(v) for k, v in usage.items()
+                           if any(p in k.lower() for p in PERSISTENT_USAGE_PATTERNS)))
+    per_day = per_day[-7:]
+    return (min(per_day), "min7") if per_day else (cfg["residual_default_usd_day"], "default")
+
+
+def thresholds(cap, mtd, now, baseline, residual, cfg):
+    dl = days_left(now)
+    lag_buffer = max(baseline, residual) * cfg["lag_days"]
+    reserve = residual * dl + lag_buffer + cfg["safety_usd"]
+    freeze_floor = cap * cfg["min_freeze_fraction"]
+    freeze_at = max(cap - reserve, freeze_floor)
+    gap = max(cfg["brake_gap_usd"], baseline * cfg["brake_gap_days"])
+    brake_at = min(max(freeze_at - gap, cap * cfg["min_brake_fraction"]), freeze_at)
+    projected = mtd + max(baseline, residual) * (dl + cfg["lag_days"])
+    frozen_eom = mtd + lag_buffer + residual * dl  # where the month lands if frozen right now
+    return {
+        "cap": round(cap, 2), "mtd": round(mtd, 2), "days_left": round(dl, 2),
+        "baseline_usd_day": round(baseline, 2), "residual_usd_day": round(residual, 2),
+        "lag_buffer": round(lag_buffer, 2), "reserve": round(reserve, 2),
+        "freeze_at": round(freeze_at, 2), "brake_at": round(brake_at, 2),
+        "freeze_line_floored": cap - reserve < freeze_floor,
+        "projected_eom": round(projected, 2), "frozen_eom": round(frozen_eom, 2),
+        "cap_at_risk_even_frozen": frozen_eom > cap,
+    }
+
+
+def decide(stage, mtd, th, cap_at_stage, cfg, suppressed=False):
+    """Return (next_stage, reason).  Escalates immediately; de-escalates only on a cap raise."""
+    stage = stage if stage in LEVEL else "NORMAL"
+    if suppressed:
+        return "NORMAL", "suppressed by operator release"
+    target = "FREEZE" if mtd >= th["freeze_at"] else "BRAKE" if mtd >= th["brake_at"] else "NORMAL"
+    if LEVEL[target] > LEVEL[stage]:
+        line = th["freeze_at"] if target == "FREEZE" else th["brake_at"]
+        return target, "MTD $%.2f >= %s line $%.2f (cap $%.2f)" % (mtd, target.lower(), line, th["cap"])
+    if LEVEL[target] < LEVEL[stage]:
+        cap_then = float(cap_at_stage if cap_at_stage is not None else th["cap"])
+        crossed = th["freeze_at"] if stage == "FREEZE" else th["brake_at"]
+        if th["cap"] > cap_then and mtd < crossed - cfg["hysteresis_usd"]:
+            return target, "cap raised $%.2f -> $%.2f; MTD $%.2f clears the %s line" % (cap_then, th["cap"], mtd, stage.lower())
+        return stage, "holding %s until the 1st, a cap raise, or an operator release" % stage
+    return stage, "steady"
+
+
+def rank_brake_targets(costs, exempt, cfg, always=()):
+    """costs: {function: usd_per_day}.  Top spenders covering brake_shed_share of the total, plus always-list."""
+    total = sum(v for k, v in costs.items() if k not in exempt and v > 0)
+    picked, covered = [], 0.0
+    for fn, usd in sorted(costs.items(), key=lambda kv: -kv[1]):
+        if fn in exempt or usd < cfg["brake_min_fn_usd_day"]:
+            continue
+        if total and covered / total >= cfg["brake_shed_share"]:
+            break
+        if len(picked) >= int(cfg["brake_max_functions"]):
+            break
+        picked.append(fn)
+        covered += usd
+    for fn in always:
+        if fn not in exempt and fn not in picked:
+            picked.append(fn)
+    return picked
+
+
+def runaway_functions(costs_per_day, baseline, exempt, cfg):
+    """Functions to throttle by the FUSE: each alone >= runaway_fn_usd_day, and the fleet total far above normal."""
+    total = sum(costs_per_day.values())
+    if total < max(cfg["runaway_fn_usd_day"], baseline * cfg["runaway_total_factor"]):
+        return []
+    return sorted((fn for fn, usd in costs_per_day.items()
+                   if usd >= cfg["runaway_fn_usd_day"] and fn not in exempt),
+                  key=lambda fn: -costs_per_day[fn])
+
+
+def is_exempt(fn, control, self_name):
+    c = control or {}
+    if fn == self_name:
+        return True
+    if fn in set(c.get("exempt_functions") or []):
+        return True
+    return any(fn.startswith(p) for p in (c.get("exempt_prefixes") or []) if p)
+
+
+def lambda_cost_per_day(duration_ms, invocations, memory_mb, arch, hours):
+    """USD/day implied by `hours` of CloudWatch Duration/Invocations sums."""
+    price = 0.0000133334 if arch == "arm64" else 0.0000166667
+    usd = (duration_ms / 1000.0) * (memory_mb / 1024.0) * price + invocations * 2e-7
+    return usd * (24.0 / hours) if hours else 0.0
