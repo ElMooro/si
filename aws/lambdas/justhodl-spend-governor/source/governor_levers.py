@@ -51,8 +51,14 @@ def reserved_of(ctx, fn):
 
 
 def lambda_snapshot(ctx, names):
-    """{fn: reserved or None} read concurrently; functions that vanished are dropped."""
+    """{fn: reserved or None} read concurrently; functions that vanished are dropped.
+
+    Lambda's control plane allows ~15 requests/s per account, shared with every other caller, so a
+    ~900-function snapshot takes a minute or more.  Past the time guard the remaining names are left
+    for the next tick instead of letting discovery eat the whole invocation."""
     def one(fn):
+        if ctx.time_left() < 240:
+            return fn, None, "deferred"
         try:
             return fn, reserved_of(ctx, fn), None
         except Exception as e:  # noqa: BLE001
@@ -60,7 +66,7 @@ def lambda_snapshot(ctx, names):
     out, errs = {}, {}
     with cf.ThreadPoolExecutor(max_workers=8) as ex:
         for fn, val, err in ex.map(one, names):
-            if err == "ResourceNotFoundException":
+            if err in ("ResourceNotFoundException", "deferred"):
                 continue
             if err:
                 errs[fn] = err

@@ -46,13 +46,20 @@ DEFAULT_CONTROL = {
     "thresholds": {},
     "fuse_interval_h": 6,
 }
-BOTO_CFG = Config(retries={"max_attempts": 10, "mode": "adaptive"}, connect_timeout=10, read_timeout=60)
+# standard (not adaptive) retries: adaptive mode rate-limits the CLIENT after throttles, and one expected
+# throttle (the canary probe) or an API burst must never slow every later call in a warm container
+BOTO_CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=60)
+PROBE_CFG = Config(retries={"max_attempts": 1}, connect_timeout=10, read_timeout=30)  # a throttle is the expected answer
 _clients = {}
 
 
 def client(name):
+    """'lambda-probe' is a no-retry Lambda client for calls whose expected answer is a throttle."""
     if name not in _clients:
-        _clients[name] = boto3.client(name, region_name=REGION, config=BOTO_CFG)
+        if name == "lambda-probe":
+            _clients[name] = boto3.client("lambda", region_name=REGION, config=PROBE_CFG)
+        else:
+            _clients[name] = boto3.client(name, region_name=REGION, config=BOTO_CFG)
     return _clients[name]
 
 
@@ -270,7 +277,7 @@ def apply_entries(ctx, entries, enforce, now):
 
 def enforce_drift(ctx, stage, now):
     """Re-apply ledger entries something undid (RDS auto-start, a reset concurrency) and retry failures."""
-    redo = []
+    todo = []
     for e in list(ctx.ledger.values()):
         if e.get("stage") not in ("BRAKE", "FREEZE", "FUSE") or e.get("restorable") is False:
             continue
@@ -278,13 +285,21 @@ def enforce_drift(ctx, stage, now):
             continue
         if e["lever"] == "lambda" and ctx.exempt(e["id"]):
             continue
+        todo.append(e)
+
+    def needs_redo(e):
+        if ctx.time_left() < 60:
+            return None
         check = lv.is_applied_fn(e["lever"])
         try:
-            if e.get("status") == "failed" or (check and not check(ctx, e)):
-                redo.append(e)
+            return e if e.get("status") == "failed" or (check and not check(ctx, e)) else None
         except Exception as ex:  # noqa: BLE001
             if lv.err_code(ex) in ("ResourceNotFoundException", "ValidationException"):
                 e["status"] = "gone"
+            return None
+
+    with cf.ThreadPoolExecutor(max_workers=8) as ex:
+        redo = [e for e in ex.map(needs_redo, todo) if e is not None]
     out = apply_entries(ctx, redo, True, now) if redo else {}
     for e in redo:
         if e["status"] == "applied":
@@ -323,8 +338,28 @@ def restore_entries(ctx, predicate, now):
     return counts, done
 
 
+def recent_invocations(ctx, names, minutes=20):
+    """Invocation count per function over the last `minutes` - a burst that already ended is not a runaway."""
+    end = now_utc().replace(second=0, microsecond=0)
+    q = [{"Id": "i%d" % i, "ReturnData": True, "MetricStat": {
+        "Metric": {"Namespace": "AWS/Lambda", "MetricName": "Invocations",
+                   "Dimensions": [{"Name": "FunctionName", "Value": fn}]},
+        "Period": minutes * 60, "Stat": "Sum"}} for i, fn in enumerate(names)]
+    vals = {}
+    for i in range(0, len(q), 500):
+        r = client("cloudwatch").get_metric_data(MetricDataQueries=q[i:i + 500],
+                                                 StartTime=end - timedelta(minutes=minutes), EndTime=end)
+        for res in r["MetricDataResults"]:
+            vals[res["Id"]] = sum(res.get("Values") or [])
+    return {fn: vals.get("i%d" % i, 0.0) for i, fn in enumerate(names)}
+
+
 def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
-    """Runaway fuse: independent of the monthly cap, throttles single functions burning far above normal."""
+    """Runaway fuse: independent of the monthly cap, throttles single functions burning far above normal.
+
+    Two strikes (v1.0.1): a function must be hot (>= runaway_fn_usd_day over the LAST HOUR, still invoking
+    in the last 20 minutes, fleet far above normal) at two consecutive checks 0.8-3 h apart.  A legitimate
+    batch spike or a storm that already ended never trips it; a real runaway is held within ~2 hours."""
     fz = state.setdefault("fuse", {})
     alarms = {}
     try:
@@ -336,14 +371,25 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
     last = fz.get("checked_at")
     age_h = (now - core.as_utc(last)).total_seconds() / 3600.0 if last else 1e9
     interval = float(ctx.control.get("fuse_interval_h") or 6)
-    if not (force or (firing and age_h >= 0.8) or age_h >= interval):
-        return {"checked": False, "firing": firing}
-    costs = lambda_costs(ctx, 2)
+    suspects = fz.get("suspects") or {}
+    if not (force or ((firing or suspects) and age_h >= 0.8) or age_h >= interval):
+        return {"checked": False, "firing": firing, "suspects": sorted(suspects)}
+    costs = lambda_costs(ctx, 1)
     exempt = {n for n in costs if ctx.exempt(n)}
-    run = core.runaway_functions(costs, baseline, exempt, cfg)
+    hot = core.runaway_functions(costs, baseline, exempt, cfg)
+    if hot:
+        active = recent_invocations(ctx, hot)
+        hot = [fn for fn in hot if active.get(fn, 0) > 0]
+    # strike two only counts against a strike one 0.8-3 h old
+    confirmed = [fn for fn in hot if fn in suspects
+                 and 0.8 <= (now - core.as_utc(suspects[fn])).total_seconds() / 3600.0 <= 3.0]
+    fz["suspects"] = {fn: (suspects[fn] if fn in suspects and fn not in confirmed and
+                           (now - core.as_utc(suspects[fn])).total_seconds() / 3600.0 <= 3.0 else now.isoformat())
+                      for fn in hot if fn not in confirmed}
     top = sorted(costs.items(), key=lambda kv: -kv[1])[:8]
     fz.update({"checked_at": now.isoformat(), "firing": firing, "fleet_usd_day": round(sum(costs.values()), 2),
                "top": [(k, round(v, 2)) for k, v in top]})
+    run = confirmed
     new = [fn for fn in run if ("lambda:" + fn) not in ctx.ledger]
     if not enforce:
         seen = fz.get("monitor_notified") or {}
@@ -351,7 +397,7 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
             return {"checked": True, "firing": firing, "runaway": run, "new": new, "notified": False}
         fz["monitor_notified"] = {"day": now.date().isoformat(), "fns": sorted(set(new) | set(seen.get("fns") or []))}
     if not new:
-        return {"checked": True, "firing": firing, "runaway": run, "new": []}
+        return {"checked": True, "firing": firing, "runaway": run, "new": [], "suspects": sorted(fz["suspects"])}
     entries = lv.lambda_discover(ctx, "FUSE", new)
     counts = apply_entries(ctx, entries, enforce, now)
     lines = ["Runaway fuse %s %d function(s) burning far above normal:" % ("throttled" if enforce else "would throttle", len(new))]
@@ -563,8 +609,11 @@ def action_restore(event, context):
     only = set(event.get("only_ids") or [])
     counts, done = restore_entries(ctx, lambda e: e.get("stage") in stages and (not only or e["id"] in only), now)
     hours = float(event.get("suppress_hours") or 0)
-    state.update({"stage": "NORMAL", "stage_since": now.isoformat(), "cap_at_stage": None,
-                  "suppress_until": (now + timedelta(hours=hours)).isoformat() if hours > 0 else None})
+    still_held = any(e.get("stage") in ("BRAKE", "FREEZE") for e in ctx.ledger.values())
+    if not still_held:
+        state.update({"stage": "NORMAL", "stage_since": now.isoformat(), "cap_at_stage": None})
+    if hours > 0:
+        state["suppress_until"] = (now + timedelta(hours=hours)).isoformat()
     state.setdefault("released", []).extend(
         {"key": e["key"], "status": e["status"], "stage": e.get("stage"), "at": now.isoformat()} for e in done)
     s3_put_json("state.json", state)
@@ -572,7 +621,8 @@ def action_restore(event, context):
                              "reason": event.get("reason")}, now)
     notify("JustHodl spend governor: restored", ["Operator restore: %s; suppress %.1fh; fuse included: %s" % (
         json.dumps(counts), hours, include_fuse)], "enforce")
-    return {"restored": counts, "remaining_in_ledger": len(ctx.ledger), "suppress_until": state["suppress_until"]}
+    return {"restored": counts, "remaining_in_ledger": len(ctx.ledger), "stage": state.get("stage"),
+            "suppress_until": state.get("suppress_until")}
 
 
 def action_selftest(event, context):
@@ -587,7 +637,7 @@ def action_selftest(event, context):
     applied = lv.reserved_of(ctx, fn)
     invoke = None
     try:
-        r = client("lambda").invoke(FunctionName=fn, InvocationType="RequestResponse", Payload=b"{}")
+        r = client("lambda-probe").invoke(FunctionName=fn, InvocationType="RequestResponse", Payload=b"{}")
         invoke = {"status": r.get("StatusCode"), "error": r.get("FunctionError")}
     except ClientError as ex:
         invoke = {"error": lv.err_code(ex)}

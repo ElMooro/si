@@ -122,9 +122,10 @@ class FakeCE:
 
 
 class FakeCW:
-    def __init__(self, alarm_state="OK", durations=None):
+    def __init__(self, alarm_state="OK", durations=None, ended=()):
         self.alarm_state = alarm_state
         self.durations = durations or {}
+        self.ended = set(ended)  # burned in the past hour but no invocations in the last minutes
         self.metrics = []
 
     def describe_alarms(self, AlarmNames):
@@ -138,6 +139,8 @@ class FakeCW:
             per_h = self.durations.get(fn, 0.0)
             hours = (EndTime - StartTime).total_seconds() / 3600.0
             v = per_h * hours if m["MetricName"] == "Duration" else (10.0 * hours if per_h else 0.0)
+            if m["MetricName"] == "Invocations" and hours < 0.5 and fn in self.ended:
+                v = 0.0
             out.append({"Id": q["Id"], "Values": [v]})
         return {"MetricDataResults": out}
 
@@ -184,9 +187,10 @@ class Context:
         return 600000
 
 
-def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0):
+def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0, ended=()):
     w = {"lambda": FakeLambda(fns), "budgets": FakeBudgets(limit, actual), "ce": FakeCE(daily),
-         "cloudwatch": FakeCW(alarm, durations), "s3": FakeS3(), "sns": FakeSNS()}
+         "cloudwatch": FakeCW(alarm, durations, ended), "s3": FakeS3(), "sns": FakeSNS()}
+    w["lambda-probe"] = w["lambda"]
     gov._clients.clear()
     gov.client = lambda name: w.get(name) or w.setdefault(name, Empty())
     return w
@@ -315,20 +319,56 @@ def test_month_rollover_restores_cap_but_not_fuse():
     check(fz["justhodl-alpha"]["reserved"] == 0, "runaway-fuse hold survives the month boundary")
 
 
-def test_runaway_fuse():
+def age_fuse(w, hours=1.0):
+    """Pretend the previous fuse check (and every suspect) happened `hours` ago."""
+    st = state_of(w)
+    then = (gov.now_utc() - timedelta(hours=hours)).isoformat()
+    st["fuse"]["checked_at"] = then
+    st["fuse"]["suspects"] = {k: then for k in (st["fuse"].get("suspects") or {})}
+    w["s3"].put_object(Bucket="b", Key=gov.PREFIX + "state.json", Body=json.dumps(st).encode())
+
+
+def test_runaway_fuse_two_strikes():
     durations = {"justhodl-alpha": 900000000.0, "justhodl-gamma": 10000.0}  # ms per hour
     w = world(FLEET, actual=50, alarm="ALARM", durations=durations)
     set_control(w)
     out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["fuse"].get("new") == [] and out["fuse"].get("suspects") == ["justhodl-alpha"],
+          "strike one only marks the runaway as a suspect")
+    check(w["lambda"].fns["justhodl-alpha"].get("reserved") is None, "nothing throttled on strike one")
+    age_fuse(w)
+    out = gov.lambda_handler({"action": "tick"}, Context())
     st = state_of(w)
-    check(out["fuse"].get("new") == ["justhodl-alpha"], "fuse throttles the runaway during a guard alarm")
+    check(out["fuse"].get("new") == ["justhodl-alpha"], "strike two (0.8-3 h later) throttles the runaway")
     check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and st["ledger"]["lambda:justhodl-alpha"]["stage"] == "FUSE",
           "fuse entry recorded with stage FUSE")
     check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5 and out["stage"] == "NORMAL", "nothing else touched")
     gov.lambda_handler({"action": "restore"}, Context())
     check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "plain restore keeps fuse holds")
-    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
-    check(w["lambda"].fns["justhodl-alpha"]["reserved"] is None, "include_fuse releases it")
+    r = gov.lambda_handler({"action": "restore", "include_fuse": True, "only_ids": ["justhodl-alpha"]}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] is None and r["stage"] == "NORMAL", "include_fuse + only_ids releases it")
+
+
+def test_fuse_ignores_a_storm_that_already_ended():
+    """ops 6523 regression: a 2 h window still held the pre-quarantine storm and re-throttled fixed engines."""
+    durations = {"justhodl-alpha": 900000000.0}
+    w = world(FLEET, actual=50, alarm="ALARM", durations=durations, ended=("justhodl-alpha",))
+    set_control(w)
+    gov.lambda_handler({"action": "fuse_check"}, Context())
+    age_fuse(w)
+    out = gov.lambda_handler({"action": "fuse_check"}, Context())
+    check(out.get("new") == [] and not out.get("suspects"), "no suspect, no throttle once invocations stopped")
+    check(w["lambda"].fns["justhodl-alpha"].get("reserved") is None, "fixed engine left running")
+
+
+def test_partial_restore_keeps_the_freeze():
+    w = world(FLEET, actual=480)
+    set_control(w)
+    gov.lambda_handler({"action": "tick"}, Context())
+    r = gov.lambda_handler({"action": "restore", "only_ids": ["justhodl-gamma"]}, Context())
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5 and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0,
+          "only the named function is released")
+    check(r["stage"] == "FREEZE", "a partial release does not pretend the freeze is over")
 
 
 def test_cap_raise_releases():
