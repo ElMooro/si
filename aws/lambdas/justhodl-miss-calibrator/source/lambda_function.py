@@ -75,6 +75,26 @@ TELEGRAM_CHAT_ID = "8678089260"
 s3 = boto3.client("s3", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
 
+# Loop breaker (ops 6520, 2026-10-16).  This engine CONSUMES near_miss.extreme (the event
+# coordinator routes it here); it used to RE-EMIT it as well, which made a self-sustaining
+# EventBridge loop (~33M invocations, ~$450/day of Lambda, Oct 12-16).  Event-triggered runs are
+# now debounced against the last proposals write and never publish events of their own.
+EVENT_DEBOUNCE_S = 6 * 3600
+
+
+def event_triggered(event) -> bool:
+    """True for runs started by the event coordinator rather than the weekly schedule."""
+    return isinstance(event, dict) and (event.get("triggered_by") == "justhodl-event-coordinator"
+                                        or "trigger_event" in event)
+
+
+def output_age_s() -> float:
+    try:
+        lm = s3.head_object(Bucket=BUCKET, Key=OUTPUT_KEY)["LastModified"]
+        return (datetime.now(timezone.utc) - lm).total_seconds()
+    except Exception:
+        return float("inf")
+
 
 def safe_load(key: str) -> dict:
     try:
@@ -163,6 +183,13 @@ def send_telegram(text: str):
 @track_errors
 def handler(event, context):
     started = datetime.now(timezone.utc)
+    from_event = event_triggered(event)
+    if from_event:
+        age = output_age_s()
+        if age < EVENT_DEBOUNCE_S:
+            print(f"[miss-cal] event-triggered run debounced (proposals written {int(age)}s ago)")
+            return {"statusCode": 200, "body": json.dumps({"ok": True, "debounced": True,
+                                                           "output_age_s": int(age)})}
 
     miss_summary = safe_load(KEY_MISS_SUMMARY)
     scorecard    = safe_load(KEY_SCORECARD)
@@ -357,11 +384,12 @@ def handler(event, context):
     # ─── Emit events for downstream coordination ────────────────────────
     # When we generate HIGH-confidence proposals, the system needs to know
     # immediately so engines can opt in or operator can review.
+    # Scheduled runs only: an event-triggered run publishing again is how the loop started.
     try:
         from system_events import publish, publish_many
         events_to_publish = []
-        
-        for p in proposals:
+
+        for p in (proposals if not from_event else []):
             if p.get("confidence") == "HIGH":
                 events_to_publish.append((
                     "calibrator.proposal_high_confidence",
@@ -375,22 +403,9 @@ def handler(event, context):
                     },
                 ))
         
-        # Also emit near_miss.extreme for signals with extreme near-miss counts (>= 50)
-        for sig_type, count in (near_by_signal or {}).items():
-            try:
-                count_int = int(count)
-            except (TypeError, ValueError):
-                continue
-            if count_int >= 50:
-                events_to_publish.append((
-                    "near_miss.extreme",
-                    {
-                        "signal_type": sig_type,
-                        "count":       count_int,
-                        "window":      "30d",
-                    },
-                ))
-        
+        # near_miss.extreme is NOT emitted here any more (ops 6520): this engine is that event's
+        # consumer, and re-emitting it made the coordinator invoke this engine again, forever.
+
         if events_to_publish:
             # publish_many caps at 10 events per call
             for i in range(0, len(events_to_publish), 10):

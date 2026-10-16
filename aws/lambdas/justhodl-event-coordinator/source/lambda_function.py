@@ -543,6 +543,29 @@ def send_telegram_alert(event_name: str, detail: dict) -> bool:
         return False
 
 
+def _engine_id(name) -> str:
+    """'justhodl-miss-calibrator' / 'justhodl.miss-calibrator' / 'miss-calibrator' -> 'miss-calibrator'."""
+    s = str(name or "").strip()
+    for p in ("justhodl.", "justhodl-"):
+        if s.startswith(p):
+            s = s[len(p):]
+    return s
+
+
+def is_self_loop(target_fn: str, detail: dict, source=None) -> bool:
+    """True when routing would invoke the very engine that produced the event.
+
+    ops 6520 (2026-10-16): miss-calibrator re-emitted near_miss.extreme, which this router sent
+    straight back to miss-calibrator -> ~33M invocations in 7 days.  EventBridge hops reset Lambda's
+    recursion lineage, so AWS's 16-hop breaker never fires; the router has to refuse the cycle itself.
+    """
+    producer = _engine_id((detail or {}).get("_source_engine")) or _engine_id(source)
+    return bool(producer) and producer != "?" and producer == _engine_id(target_fn)
+
+
+AUDIT_MAX_BYTES = 5_000_000  # a day-log larger than this stops growing (storm guard, see write_audit)
+
+
 def write_audit(event_name: str, detail: dict, route_result: dict):
     """Append-only audit log of all routed events. Used for postmortem and
     learning what triggered what."""
@@ -562,6 +585,12 @@ def write_audit(event_name: str, detail: dict, route_result: dict):
             existing = obj["Body"].read()
         except s3.exceptions.NoSuchKey:
             pass
+        # Storm guard (ops 6520): every append rewrites the whole day-log and the bucket is
+        # versioned, so the stored bytes grow with the SQUARE of the day's event count.  Past
+        # AUDIT_MAX_BYTES the day-log stops growing; the event is still routed and logged.
+        if len(existing) >= AUDIT_MAX_BYTES:
+            print(f"[coordinator] audit day-log at {len(existing)} bytes - append skipped (storm guard)")
+            return
         new_body = existing + (json.dumps(entry, default=str) + "\n").encode("utf-8")
         s3.put_object(Bucket=BUCKET, Key=key, Body=new_body,
                        ContentType="application/x-ndjson")
@@ -612,6 +641,10 @@ def handler(event, context):
     }
     
     for fn in route.get("invoke") or []:
+        if is_self_loop(fn, detail, source):
+            # Never route an event back to the engine that emitted it (ops 6520 loop guard).
+            result["invokes"].append({"fn": fn, "ok": True, "skipped": "self_loop_guard"})
+            continue
         if fn in delivery["accepted"]:
             ir = {"ok": True, "status": 202, "accepted_on_previous_attempt": True}
         else:
