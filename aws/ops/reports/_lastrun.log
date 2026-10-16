@@ -1,34 +1,25 @@
-executing-against: e3231876fc0ce1d8f65ea51089cea16c5b87f942
-ops 6519 - $500 hard cap: read-only spend-surface audit
-── Spend ──
-[19:36:01] MTD AWS Lambda                                    $1783.38
-[19:36:01] MTD Amazon Simple Storage Service                 $358.36
-[19:36:01] MTD AmazonCloudWatch                              $121.21
-[19:36:01] MTD CloudWatch Events                             $31.54
-[19:36:01] MTD AWS Cost Explorer                             $23.55
-[19:36:01] MTD Amazon SageMaker                              $17.32
-[19:36:01] MTD Amazon Simple Queue Service                   $6.58
-[19:36:01] MTD Amazon DynamoDB                               $3.60
-[19:36:01] MTD AWS Secrets Manager                           $1.76
-[19:36:01] MTD Amazon Route 53                               $1.50
-[19:36:01] MTD Amazon EC2 Container Registry (ECR)           $1.33
-[19:36:01] MTD EC2 - Other                                   $0.62
-── Budgets ──
-[19:36:01] JustHodl-Monthly-Hard-Cap-500 limit=500.0 actual=2351.123 forecast=3041.536 notifications=4
-[19:36:01] My Monthly Cost Budget limit=150.0 actual=2351.123 forecast=3041.536 notifications=5
-[19:36:01] budget actions: []
-── Surfaces ──
-[19:36:01] lambda: {"count": 924, "reserved_histogram": {"unset": 858, "1": 46, "10": 5, "0": 8, "3": 1, "100": 1, "5": 3, "20": 1, "2": 1}, "account_limit": 1000, "unreserved": 764, "role_counts": {"MacroFinancialIntelligenceRole": 1, "aiapi-market-analyzer-role-04o8b4dk": 1, "bls-api-role": 1, "chatgpt-agent-self-modify": 1, "daily-liquidity-role": 1, "economyapi-lambda-role": 2, "justhodl-factory-grader-role": 1, "justhodl-student-rsi-role": 1, "lambda-execution-role": 909, "lambda-role": 1, "liquidity-agent-role-v2": 1, "ofr-lambda-role": 1, "openbb-lambda-role": 2, "scrapeMacroData-role-9pweui52": 1}, "memory_total_mb": 740928}
-[19:36:01] eventbridge: {"buses": ["default", "justhodl-system-events"], "rules_total": 592, "enabled": 558, "disabled": 34, "managed_rules": 0, "enabled_with_lambda_targets": 555, "lambda_target_count": 562}
-[19:36:01] scheduler: total=431 enabled=429 roles={'justhodl-scheduler-role': 15}
-[19:36:01] esm: 0  s3->lambda notifications: 8
-[19:36:01] sagemaker endpoints: [["jh-owned-coder-async", "InService", true, ["ml.g5.xlarge"]], ["jh-ai-tensorflow-tcembedding-bert-en-uncased-l-12-h-768", "InService", false, ["serverless"]], ["jh-ai-clf-jh-ai-brain-clf-20260910-180837-297", "InService", false, ["serverless"]]]
-── Identity / alerts ──
-[19:36:01] runner: arn:aws:iam::857687956942:user/github-actions-justhodl
-[19:36:01] simulation: {"budgets:ViewBudget": "allowed", "budgets:ModifyBudget": "allowed", "ce:GetCostAndUsage": "allowed", "ce:GetCostForecast": "allowed", "sns:CreateTopic": "allowed", "sns:SetTopicAttributes": "allowed", "sns:Subscribe": "allowed", "sns:Publish": "allowed", "lambda:CreateFunction": "allowed", "lambda:AddPermission": "allowed", "lambda:PutFunctionConcurrency": "allowed", "lambda:DeleteFunctionConcurrency": "allowed", "lambda:TagResource": "allowed", "lambda:InvokeFunction": "allowed", "scheduler:CreateSchedule": "allowed", "scheduler:UpdateSchedule": "allowed", "scheduler:GetSchedule": "allowed", "cloudwatch:PutMetricAlarm": "allowed", "cloudwatch:PutMetricData": "allowed", "events:DisableRule": "allowed", "events:EnableRule": "allowed", "s3:PutObject": "allowed", "s3:GetObject": "allowed", "organizations:DescribeOrganization": "allowed", "iam:CreateRole@gov-role": "allowed", "iam:PutRolePolicy@gov-role": "allowed", "iam:PassRole@gov-role": "allowed", "iam:GetRole@gov-role": "allowed", "iam:TagRole@gov-role": "allowed", "iam:UpdateAssumeRolePolicy@gov-role": "allowed", "iam:PassRole@scheduler-role": "allowed"}
-[19:36:01] iam: {"JustHodl-Budgets-Action-Role": {"exists": false, "code": "NoSuchEntity"}, "justhodl-scheduler-role": {"exists": true, "trust": [{"Service": "scheduler.amazonaws.com"}]}, "justhodl-spend-governor-role": {"exists": false, "code": "NoSuchEntity"}, "lambda-execution-role": {"exists": true, "trust": [{"Service": "lambda.amazonaws.com"}]}, "JustHodl-Budget-Exceeded-Deny": {"exists": true, "attached_roles": [], "attached_users": [], "attached_groups": []}}
-[19:36:01] sns: {"JustHodl-Alerts": [], "justhodl-fleet-alerts": [{"protocol": "lambda", "endpoint": "justhodl-guardrail-notify", "pending": false}]}
-[19:36:01] telegram ssm: {'ok': False, 'error': 'HTTP Error 401: Unauthorized'} runner-secret: None
-[19:36:01] ✅ wrote aws/ops/reports/6519.json
+executing-against: 5c7b82b99799c08f6f0d24c80f14681c1f16d8ec
+ops 6520 - break the miss-calibrator <-> event-coordinator loop
+[19:44:47] ✅ ledger written data/ops/event-loop-quarantine-6520.json: {"justhodl-miss-calibrator": {"reserved": null, "event_invoke_config": null}, "justhodl-event-coordinator": {"reserved": null, "event_invoke_config": null}}
+[19:44:48] ✅ justhodl-miss-calibrator reserved=0 eic={'MaximumRetryAttempts': 0, 'MaximumEventAgeInSeconds': 60, 'DestinationConfig': {'OnSuccess': {}, 'OnFailure': {}}}
+[19:44:48] ✅ justhodl-event-coordinator reserved=0 eic={'MaximumRetryAttempts': 0, 'MaximumEventAgeInSeconds': 60, 'DestinationConfig': {'OnSuccess': {}, 'OnFailure': {}}}
+[19:44:48] ✅ lifecycle ops6520-purge-dead-versions-system-events present (rules now 10)
+── Measurements ──
+[19:44:49] justhodl-miss-calibrator invocations/h last 6: [('10-16 13:44', 101991.0), ('10-16 14:44', 100569.0), ('10-16 15:44', 99774.0), ('10-16 16:44', 98676.0), ('10-16 17:44', 97367.0), ('10-16 18:44', 97150.0)]
+[19:44:50] justhodl-event-coordinator invocations/h last 6: [('10-16 13:44', 177648.0), ('10-16 14:44', 173553.0), ('10-16 15:44', 171059.0), ('10-16 16:44', 169416.0), ('10-16 17:44', 169852.0), ('10-16 18:44', 168262.0)]
+[19:44:50] coordinator AsyncEventAge max (ms) last hours: [('10-16 15:44', 21600000.0), ('10-16 16:44', 21600001.0), ('10-16 17:44', 21600283.0), ('10-16 18:44', 21599999.0)]
+[19:44:51] BucketSizeBytes GB by day: [('09-30', 712.49), ('10-01', 729.09), ('10-02', 749.15), ('10-03', 767.33), ('10-04', 823.91), ('10-05', 965.9), ('10-06', 823.93), ('10-07', 843.95), ('10-08', 857.67), ('10-09', 879.98), ('10-10', 891.84), ('10-11', 921.73), ('10-12', 24653.67), ('10-13', 61148.73), ('10-14', 105871.84)]
+[19:44:51] NumberOfObjects (millions) by day: [('09-30', 2.96), ('10-01', 3.02), ('10-02', 3.1), ('10-03', 3.15), ('10-04', 3.25), ('10-05', 3.44), ('10-06', 3.41), ('10-07', 3.49), ('10-08', 3.56), ('10-09', 3.65), ('10-10', 3.69), ('10-11', 3.75), ('10-12', 9.11), ('10-13', 12.11), ('10-14', 16.35)]
+[19:44:52] system-events/audit/2026-10-16.jsonl -> {'current_mb': 25.96, 'versions_sampled': 1000, 'truncated': True, 'sample_gb': 25.96}
+[19:44:52] system-events/audit/2026-10-15.jsonl -> {'current_mb': 30.85, 'versions_sampled': 1000, 'truncated': True, 'sample_gb': 30.84}
+[19:44:52] system-events/audit/2026-10-14.jsonl -> {'current_mb': 30.7, 'versions_sampled': 1000, 'truncated': True, 'sample_gb': 30.69}
+[19:44:52] system-events/audit/2026-10-13.jsonl -> {'current_mb': 33.2, 'versions_sampled': 1000, 'truncated': True, 'sample_gb': 33.2}
+[19:44:52] system-events/audit/2026-10-12.jsonl -> {'current_mb': 22.04, 'versions_sampled': 1000, 'truncated': True, 'sample_gb': 22.04}
+[19:44:52] system-events/audit/2026-10-11.jsonl -> {'current_mb': 0.03, 'versions_sampled': 44, 'truncated': False, 'sample_gb': 0.0}
+[19:48:52] justhodl-miss-calibrator 1-min invocations around quarantine: [('10-16 19:39', 1580.0), ('10-16 19:40', 1638.0), ('10-16 19:41', 1623.0), ('10-16 19:42', 1570.0), ('10-16 19:43', 1614.0), ('10-16 19:44', 1278.0)]
+[19:48:52] justhodl-miss-calibrator 1-min throttles: [('10-16 19:39', 43.0), ('10-16 19:40', 36.0), ('10-16 19:41', 41.0), ('10-16 19:42', 25.0), ('10-16 19:43', 40.0), ('10-16 19:44', 366.0), ('10-16 19:45', 141.0)]
+[19:48:53] justhodl-event-coordinator 1-min invocations around quarantine: [('10-16 19:39', 2856.0), ('10-16 19:40', 2838.0), ('10-16 19:41', 2831.0), ('10-16 19:42', 2865.0), ('10-16 19:43', 2808.0), ('10-16 19:44', 2247.0)]
+[19:48:53] justhodl-event-coordinator 1-min throttles: [('10-16 19:39', 52.0), ('10-16 19:40', 58.0), ('10-16 19:41', 52.0), ('10-16 19:42', 73.0), ('10-16 19:43', 63.0), ('10-16 19:44', 409.0), ('10-16 19:45', 124.0)]
+[19:48:53] ✅ wrote aws/ops/reports/6520.json
 
-→ Report written to aws/ops/reports/latest/ops_6519_spend_cap_audit.md
+→ Report written to aws/ops/reports/latest/ops_6520_stop_event_loop.md
