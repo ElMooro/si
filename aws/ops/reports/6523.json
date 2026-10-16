@@ -1,0 +1,239 @@
+{
+ "op": 6523,
+ "ran_at": "2026-10-16T20:58:38.474412+00:00",
+ "schedule": {
+  "expr": "cron(7 * * * ? *)",
+  "state": "ENABLED",
+  "role_sim": "allowed"
+ },
+ "selftest": {
+  "ok": true,
+  "function": "justhodl-spend-governor-canary",
+  "before": null,
+  "applied": 0,
+  "invoke_while_throttled": {
+   "error": "TooManyRequestsException"
+  },
+  "restore": "restored",
+  "after": null
+ },
+ "status": {
+  "version": "1.0.0",
+  "mode": "monitor",
+  "stage": "NORMAL",
+  "stage_since": "2026-10-16T20:59:55.078098+00:00",
+  "cap": 3500.0,
+  "cap_source": "override:2026-10",
+  "budget_limit": 500.0,
+  "budget_actual": 2351.123,
+  "budget_forecast": 3041.536,
+  "thresholds": {
+   "cap": 3500.0,
+   "mtd": 2351.12,
+   "days_left": 15.13,
+   "baseline_usd_day": 24.46,
+   "residual_usd_day": 3.92,
+   "lag_buffer": 24.46,
+   "reserve": 93.74,
+   "freeze_at": 3406.26,
+   "brake_at": 3357.35,
+   "freeze_line_floored": false,
+   "projected_eom": 2745.52,
+   "frozen_eom": 2434.86,
+   "cap_at_risk_even_frozen": false
+  },
+  "held": {},
+  "suppress_until": null,
+  "fuse": {},
+  "last": null
+ },
+ "plan_freeze": {
+  "stage": "FREEZE",
+  "would_act_on": {
+   "lambda": 914,
+   "smasync": 1
+  },
+  "sample": {
+   "lambda": [
+    "MLPredictor",
+    "alphavantage-market-agent",
+    "alphavantage-technical-analysis",
+    "autonomous-ai-processor",
+    "bea-economic-agent",
+    "benzinga-news-agent",
+    "bls-employment-api-v2",
+    "bls-labor-agent",
+    "bond-indices-agent",
+    "census-economic-agent",
+    "cftc-futures-positioning-agent",
+    "chatgpt-agent-api",
+    "coinmarketcap-agent",
+    "daily-liquidity-report",
+    "dollar-strength-agent",
+    "ecb",
+    "ecb-auto-updater",
+    "ecb-data-daily-updater",
+    "economyapi",
+    "eia-energy-agent",
+    "enhanced-repo-agent",
+    "fedliquidityapi",
+    "fmp-fundamentals-agent",
+    "fmp-stock-picks-agent",
+    "fred-ice-bofa-api"
+   ],
+   "smasync": [
+    "endpoint/jh-owned-coder-async/variant/owned"
+   ]
+  },
+  "exempt": [
+   "justhodl-dr-snapshot",
+   "justhodl-guardrail-notify",
+   "justhodl-spend-governor",
+   "justhodl-supabase-keepalive"
+  ],
+  "logs": []
+ },
+ "plan_brake": {
+  "stage": "BRAKE",
+  "would_act_on": {
+   "lambda": 5,
+   "smasync": 1
+  },
+  "sample": {
+   "lambda": [
+    "justhodl-ai",
+    "justhodl-event-coordinator",
+    "justhodl-factory-grader",
+    "justhodl-miss-calibrator",
+    "justhodl-student-rsi"
+   ],
+   "smasync": [
+    "endpoint/jh-owned-coder-async/variant/owned"
+   ]
+  },
+  "exempt": [
+   "justhodl-dr-snapshot",
+   "justhodl-guardrail-notify",
+   "justhodl-spend-governor",
+   "justhodl-supabase-keepalive"
+  ],
+  "logs": [
+   "brake picks 5 Lambdas (top: justhodl-miss-calibrator, justhodl-event-coordinator, justhodl-ai, justhodl-student-rsi, justhodl-factory-grader)"
+  ]
+ },
+ "tick_monitor": {
+  "trigger": "ops",
+  "mode": "monitor",
+  "version": "1.0.0",
+  "fuse": {
+   "checked": true,
+   "firing": [],
+   "runaway": [
+    "justhodl-miss-calibrator",
+    "justhodl-event-coordinator"
+   ],
+   "new": [
+    "justhodl-miss-calibrator",
+    "justhodl-event-coordinator"
+   ],
+   "counts": {
+    "planned": 2
+   }
+  },
+  "stage_before": "NORMAL",
+  "decision": "NORMAL",
+  "reason": "steady",
+  "thresholds": {
+   "cap": 3500.0,
+   "mtd": 2351.12,
+   "days_left": 15.12,
+   "baseline_usd_day": 24.46,
+   "residual_usd_day": 3.92,
+   "lag_buffer": 24.46,
+   "reserve": 93.73,
+   "freeze_at": 3406.27,
+   "brake_at": 3357.35,
+   "freeze_line_floored": false,
+   "projected_eom": 2745.5,
+   "frozen_eom": 2434.86,
+   "cap_at_risk_even_frozen": false,
+   "cap_source": "override:2026-10",
+   "baseline_source": "median14",
+   "residual_source": "min7",
+   "budget_limit": 500.0,
+   "budget_forecast": 3041.536,
+   "sources": {
+    "budget_actual": 2351.123,
+    "ce_mtd": 2351.1235
+   }
+  },
+  "stage": "NORMAL",
+  "ledger_size": 0,
+  "logs": []
+ },
+ "tick_enforce": {
+  "trigger": "ops",
+  "mode": "enforce",
+  "version": "1.0.0",
+  "fuse": {
+   "checked": false,
+   "firing": []
+  },
+  "stage_before": "NORMAL",
+  "decision": "NORMAL",
+  "reason": "steady",
+  "thresholds": {
+   "cap": 3500.0,
+   "mtd": 2351.12,
+   "days_left": 15.12,
+   "baseline_usd_day": 24.46,
+   "residual_usd_day": 3.92,
+   "lag_buffer": 24.46,
+   "reserve": 93.73,
+   "freeze_at": 3406.27,
+   "brake_at": 3357.35,
+   "freeze_line_floored": false,
+   "projected_eom": 2745.5,
+   "frozen_eom": 2434.86,
+   "cap_at_risk_even_frozen": false,
+   "cap_source": "override:2026-10",
+   "baseline_source": "median14",
+   "residual_source": "min7",
+   "budget_limit": 500.0,
+   "budget_forecast": 3041.536,
+   "sources": {
+    "budget_actual": 2351.123,
+    "ce_mtd": 2351.1235
+   }
+  },
+  "stage": "NORMAL",
+  "ledger_size": 0,
+  "logs": []
+ },
+ "fuse": {
+  "checked": true,
+  "firing": [],
+  "runaway": [
+   "justhodl-miss-calibrator",
+   "justhodl-event-coordinator"
+  ],
+  "new": [
+   "justhodl-miss-calibrator",
+   "justhodl-event-coordinator"
+  ],
+  "counts": {
+   "applied": 2
+  }
+ },
+ "alarms": [
+  [
+   "justhodl-spend-governor-errors",
+   "INSUFFICIENT_DATA"
+  ],
+  [
+   "justhodl-spend-governor-heartbeat",
+   "INSUFFICIENT_DATA"
+  ]
+ ],
+ "governor_reserved": 1
+}

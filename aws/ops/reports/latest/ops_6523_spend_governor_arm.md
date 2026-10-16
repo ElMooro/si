@@ -1,0 +1,27 @@
+# ops 6523 - arm the spend governor
+
+**Status:** success  
+**Duration:** 154.6s  
+**Finished:** 2026-10-16T21:01:13+00:00  
+
+## Log
+- `20:58:39` ✅ governor live by content: {"state": "Active", "update": "Successful", "role": "arn:aws:iam::857687956942:role/justhodl-spend-governor-role", "version_ok": true}
+- `20:58:39` ✅ governor reserved concurrency 1
+- `20:58:40` ✅ Budgets topic -> governor subscription confirmed
+- `20:58:40` schedule exists: cron(7 * * * ? *) ENABLED -> justhodl-spend-governor
+- `20:58:41` ✅ hourly tick schedule verified (cron(7 * * * ? *))
+## Live proofs
+
+- `20:59:55` ✅ selftest on canary: {"ok": true, "function": "justhodl-spend-governor-canary", "before": null, "applied": 0, "invoke_while_throttled": {"error": "TooManyRequestsException"}, "restore": "restored", "after": null}
+- `20:59:56` cap $3500.0 (override:2026-10) | MTD $2351.12 | brake $3357.35 | freeze $3406.26 | baseline $24.46/day | residual $3.92/day | projected $2745.52
+- `21:00:22` plan FREEZE would act on {"lambda": 914, "smasync": 1}; logs []
+- `21:00:22` exempt: ['justhodl-dr-snapshot', 'justhodl-guardrail-notify', 'justhodl-spend-governor', 'justhodl-supabase-keepalive']
+- `21:00:46` plan BRAKE would act on {"lambda": 5, "smasync": 1}; logs ['brake picks 5 Lambdas (top: justhodl-miss-calibrator, justhodl-event-coordinator, justhodl-ai, justhodl-student-rsi, justhodl-factory-grader)']
+- `21:00:57` tick (monitor): decision=NORMAL stage=NORMAL reason=steady
+## Enforce
+
+- `21:00:57` ✅ control.json mode=enforce (overrides: {"2026-10": {"cap_usd": 3500.0, "reason": "October was already ~$2.4k when the cap was armed (ops 6519/6520: miss-calibrator <-> event-coordinator loop). The override keeps the rest of October a runaway-only guard; the $500 budget applies from 2026-11-01."}})
+- `21:00:57` ✅ tick (enforce): decision=NORMAL stage=NORMAL reason=steady
+- `21:01:07` fuse: {"checked": true, "firing": [], "runaway": ["justhodl-miss-calibrator", "justhodl-event-coordinator"], "new": ["justhodl-miss-calibrator", "justhodl-event-coordinator"]}
+- `21:01:12` ✅ alarms: [('justhodl-spend-governor-errors', 'INSUFFICIENT_DATA'), ('justhodl-spend-governor-heartbeat', 'INSUFFICIENT_DATA')]
+- `21:01:13` ✅ wrote aws/ops/reports/6523.json
