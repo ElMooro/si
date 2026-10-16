@@ -1,0 +1,57 @@
+{
+ "op": 6522,
+ "ran_at": "2026-10-16T20:18:00.674692+00:00",
+ "bucket": true,
+ "role": {
+  "policy_bytes": 2842,
+  "statements": 12
+ },
+ "gov_topic": "arn:aws:sns:us-east-1:857687956942:justhodl-spend-governor",
+ "budget": {
+  "limit": {
+   "Amount": "500.0",
+   "Unit": "USD"
+  },
+  "actual": {
+   "Amount": "2351.123",
+   "Unit": "USD"
+  },
+  "end_before": "2027-10-01 00:00:00+00:00",
+  "end_after": "2087-06-15 00:00:00+00:00",
+  "limit_after": {
+   "Amount": "500.0",
+   "Unit": "USD"
+  },
+  "notifications": 5,
+  "sns_added_to": [
+   "ACTUAL 100.0%",
+   "ACTUAL 50.0%",
+   "ACTUAL 80.0%",
+   "FORECASTED 100.0%"
+  ],
+  "n_emails": 1
+ },
+ "email_channel": {
+  "r***": "confirmation email sent"
+ },
+ "control": {
+  "mode": "monitor",
+  "exempt_functions": [
+   "justhodl-guardrail-notify",
+   "justhodl-supabase-keepalive",
+   "justhodl-dr-snapshot"
+  ],
+  "exempt_prefixes": [],
+  "brake_always": [
+   "justhodl-ai",
+   "justhodl-student-rsi",
+   "justhodl-factory-grader"
+  ],
+  "thresholds": {},
+  "fuse_interval_h": 6,
+  "written_by": "ops 6522",
+  "written_at": "2026-10-16T20:18:06.794234+00:00"
+ },
+ "orphan_deny_policy_attachments": 0,
+ "role_visible": true
+}

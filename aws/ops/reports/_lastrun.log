@@ -1,13 +1,14 @@
-executing-against: 813f0a42c4cab790a2ba0acd439a633c2b195ef7
-ops 6521 - gated un-quarantine of the event loop pair
-[20:04:36] ✅ gate coordinator.is_self_loop
-[20:04:36] ✅ gate coordinator.audit_cap
-[20:04:36] ✅ gate calibrator.debounce
-[20:04:36] ✅ gate calibrator.no_reemission
-[20:04:37] ✅ justhodl-miss-calibrator restored: reserved=None eic=None
-[20:04:37] ✅ justhodl-event-coordinator restored: reserved=None eic=None
-[20:14:41] justhodl-miss-calibrator invocations/min after restore: []
-[20:14:41] justhodl-event-coordinator invocations/min after restore: []
-[20:14:41] ✅ quarantine lifted; 10-minute watch clean: {"justhodl-miss-calibrator": null, "justhodl-event-coordinator": null}
+executing-against: 7b20f4658259593f1a509dbf6f6a431c0e0567ae
+ops 6522 - spend governor substrate
+[20:18:01] ✅ bucket justhodl-ops-private-857687956942 created
+[20:18:02] ✅ role justhodl-spend-governor-role created
+[20:18:03] ✅ topic arn:aws:sns:us-east-1:857687956942:justhodl-spend-governor ready (Budgets may publish)
+[20:18:03] ✅ budget end date 2027-10-01 00:00:00+00:00 -> open-ended
+[20:18:05] ✅ SNS subscriber added to: ACTUAL 100.0%, ACTUAL 50.0%, ACTUAL 80.0%, FORECASTED 100.0%
+[20:18:05] ✅ 90%% ACTUAL notification added (email + SNS)
+[20:18:06] ✅ fleet-alerts email channel: {"r***": "confirmation email sent"}
+[20:18:06] ✅ control.json written (mode=monitor, Oct override $3500)
+[20:18:07] orphan policy JustHodl-Budget-Exceeded-Deny attachments: 0 (left untouched)
+[20:18:17] ✅ wrote aws/ops/reports/6522.json
 
-→ Report written to aws/ops/reports/latest/ops_6521_event_loop_unquarantine.md
+→ Report written to aws/ops/reports/latest/ops_6522_spend_governor_substrate.md
