@@ -1,3 +1,7 @@
-executing-against: 7f8733a65fc850c56b447d2d3a3642e4573fddd9
-invoke 200 None {'ok': True, 'key': 'data/corp-bonds.json', 'bytes': 8798264, 'as_of': '2026-10-15', 'sleeves': 0, 'euro_bonds': 1293, 'euro_issuers': 323, 'issue_bonds': 22693, 'issue_issuers': 5020, 'issue_changes': 21280, 'cds_matched': 26, 'trace': {'corporate_breadth': 'live 36 rows', 'corporate_sentiment': 'live 324 rows', 'm144a_breadth': 'live 36 rows', 'm144a_sentiment': 'live 324 rows', 'capped': 'unavailable'}}
-{"version": "1.3.0", "n_bonds": 22693, "n_left": 67, "n_with_dur": 22662, "n_with_move": 18956, "n_with_flow": 22709, "n_with_ytd": 16022, "dur": 4.684, "move_as_of": "2026-09-30", "ytd_as_of": "2025-12-31", "as_of": "2026-10-14", "sample_keys": ["book", "ccy", "chg", "chg_y", "country", "coupon", "ddm", "demand", "dpx", "dpx_y", "dur", "issued", "issuer", "k", "maturity", "nf", "pct", "price", "rate", "sector", "vs"], "leaked": 0}
+executing-against: 7fd15bcd772abc8769ea7f4cba454a0a737afba1
+Could not disable justhodl-v9-auto-refresh: An error occurred (ResourceNotFoundException) when calling the DisableRule operation: Rule justhodl-v9-auto-refresh does not exist on EventBus default.
+Confirmed/updated justhodl-daily-8am to daily Mon-Fri
+Lambda memory: 768, timeout: 900
+Reserved concurrency set to 1
+justhodl-daily-8am: State=ENABLED, Expr=cron(0 13 ? * MON-FRI *)
+Could not describe justhodl-v9-auto-refresh: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-v9-auto-refresh does not exist on EventBus default.
