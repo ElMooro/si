@@ -1,0 +1,29 @@
+{
+ "op": 6521,
+ "ran_at": "2026-10-16T20:04:34.782811+00:00",
+ "gate": {
+  "coordinator.is_self_loop": true,
+  "coordinator.audit_cap": true,
+  "calibrator.debounce": true,
+  "calibrator.no_reemission": true
+ },
+ "before": {
+  "justhodl-miss-calibrator": {
+   "reserved": null,
+   "event_invoke_config": null
+  },
+  "justhodl-event-coordinator": {
+   "reserved": null,
+   "event_invoke_config": null
+  }
+ },
+ "restored_at": "2026-10-16T20:04:37.811293+00:00",
+ "post_restore_invocations_1m": {
+  "justhodl-miss-calibrator": [],
+  "justhodl-event-coordinator": []
+ },
+ "final": {
+  "justhodl-miss-calibrator": null,
+  "justhodl-event-coordinator": null
+ }
+}
