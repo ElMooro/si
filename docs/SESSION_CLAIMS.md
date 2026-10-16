@@ -232,3 +232,9 @@ ENGINE BRAIN (no new data): official-demand composite (TIC monthly
 - 2026-10-05 ChatGPT: ops 6488 accepted source c1167100eb9302ef2c154d6fb1df0e2761e9c190, all 33 native source/shared files and unchanged controls. All 644 regional Fed histories independently replayed, including 567 additions and eleven qualified watchlist alternatives. Exact served build and desktop/mobile plots checked. Coverage 7,045 routed / 3,700 unresolved. No producer invocation, IAM/schedule change or private/account read.
 
 - 2026-10-05 ChatGPT: reserve ops 6489 for read-only regional macro chart release acceptance. Exact native code/receipt/unchanged controls only; no producer invocation, private/account/credential reads, IAM or schedule changes. Stage607 candidate tests pending.
+
+- 2026-10-16 Claude: ops 6519-6528 used. Event loop (miss-calibrator <-> event-coordinator) fixed; spend governor
+  `justhodl-spend-governor` live in enforce mode on budget JustHodl-Monthly-Hard-Cap-500 ($500 from 2026-11-01);
+  fleet FROZEN until 2026-11-01 00:07 UTC on Khalid's instruction (ops 6525). Cost cuts shipping: AI engine
+  Cost Explorer 6h cache, fleet-error-monitor hourly v1.2.0. Do not complete the JustHodl-Budget-Exceeded-Deny
+  Budget Action (see docs/ops/SPEND_GOVERNOR.md). Next free ops number: read STATE.md.

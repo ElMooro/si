@@ -91,6 +91,9 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
 
 * 2026-10-12..16: miss-calibrator <-> event-coordinator loop, ~$450/day Lambda + S3 0.9 -> 106 TB of
   noncurrent audit copies; October MTD $2,351 when found. Fixed by ops 6520/6521 (see docs/EVENT_BUS.md).
-* October 2026 runs with `cap_overrides["2026-10"] = $3,500` (runaway-only guard); $500 from 2026-11-01.
-* Normal run-rate before the loop was ~$24/day (~$730/month) - above $500. Until that comes down, expect
-  BRAKE around the 15th-18th and FREEZE around the 18th-21st of each month.
+* October 2026 runs with `cap_overrides["2026-10"] = $3,500`; $500 from 2026-11-01.
+* 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
+  914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.
+* Normal run-rate before the loop was ~$24/day (~$730/month) - above $500. Cuts shipped 2026-10-16:
+  justhodl-ai caches Cost Explorer 6 h (~$1.6/day), fleet-error-monitor hourly v1.2.0 (~$5.5/day).
+  If the run-rate still exceeds ~$16/day the governor will BRAKE late in the month.

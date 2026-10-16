@@ -1,5 +1,13 @@
 # Deploy lane — how a change reaches AWS (v2, 2026-09-11)
 
+> **⛔ FLEET FROZEN until 2026-11-01 00:07 UTC (Khalid's decision, 2026-10-16).** October's AWS bill was
+> blown by an EventBridge loop (ops 6519-6521), so `justhodl-spend-governor` holds every Lambda at reserved
+> concurrency 0 (ledgered, restored exactly on the 1st). Deploys still work; **invoking any engine returns
+> TooManyRequestsException** and schedules are throttled. Do **not** reset concurrency on engines to "fix"
+> them: the governor re-applies the hold every hour and keeps your value for the restore. To run something
+> now, add it to `exempt_functions` in `s3://justhodl-ops-private-857687956942/spend-governor/control.json`
+> and ask Khalid. From November the $500 cap is enforced automatically. Runbook: `docs/ops/SPEND_GOVERNOR.md`.
+
 Push to `main` **is** the deploy. There is no laptop-side AWS step. Everything AWS
 happens on the GitHub Actions runner, which holds the credentials.
 
