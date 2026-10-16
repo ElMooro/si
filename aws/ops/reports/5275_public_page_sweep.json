@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "0e576c80104dd8c3915efc32c819d222dffc7ff6",
-  "observed_at": "2026-10-16T22:34:01.705590+00:00",
-  "ok": false,
+  "observed_at": "2026-10-16T22:47:16.445673+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "capital-flow-radar.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "0e576c80104dd8c3915efc32c819d222dffc7ff6": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -870,12 +868,13 @@
     },
     {
       "route": "capital-flow-radar.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "0e576c80104dd8c3915efc32c819d222dffc7ff6",
+      "inspector_present": true,
+      "bytes_read": 15135,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "capital-flow.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 38975962336,
+  "deployment_run_id": 38977176474,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-16T22:34:01.714930+00:00"
+  "check_finished_at": "2026-10-16T22:47:16.453815+00:00"
 }
