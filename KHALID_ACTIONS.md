@@ -6,6 +6,15 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0. Confirm the AWS alert email (1 click) - added 2026-10-16
+
+AWS sent an email titled **"AWS Notification - Subscription Confirmation"** for topic `justhodl-fleet-alerts`.
+Click **Confirm subscription**. Until you do, the runaway alarms and the $500 spend governor's stage changes
+(BRAKE / FREEZE / restore) only reach Telegram, whose bot token has been returning 401. AWS Budgets' own
+50/80/90/100% emails already reach you without confirmation.
+
+Runbook: `docs/ops/SPEND_GOVERNOR.md`.
+
 ### 1. PAT Rotation — ⚠️ 6 DAYS OVERDUE (was due 2026-05-25)
 
 The fine-grained PAT on `justhodl-dex-scanner` Lambda was set with 30-day expiration on 2026-04-25 and is now past expiration. Dex scanner may be failing silently.

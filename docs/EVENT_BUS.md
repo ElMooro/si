@@ -47,7 +47,7 @@ schedule — they react to events on the bus.
 | Engine | Events Emitted | Trigger Condition |
 |---|---|---|
 | `outcome-checker` | `outcome.resolved` | After processing > 0 signals |
-| `miss-calibrator` | `calibrator.proposal_high_confidence`, `near_miss.extreme` | Per HIGH proposal; counts ≥ 50 |
+| `miss-calibrator` | `calibrator.proposal_high_confidence` | Per HIGH proposal, weekly scheduled run only (it no longer emits `near_miss.extreme` - see Loop safety) |
 | `signal-scorecard` | `signal.promoted`, `signal.deprecated` | When a signal newly enters/exits promoted/deprecated status |
 | `cross-asset-regime` | `regime.changed` | When `regime_change` variable is non-empty |
 | `calibrator` | `calibrator.weights_updated` | After SSM weights write |
@@ -160,6 +160,9 @@ Each line is one JSON record:
 The `system-health.html` dashboard reads today's file and renders it
 live alongside the audit findings.
 
+The day-log is rewritten on every append and the bucket is versioned, so it is capped at 5 MB per
+day (appends beyond that are skipped and logged); see Loop safety.
+
 ---
 
 ## Dedupe
@@ -172,6 +175,29 @@ multiple times (which it can do under at-least-once semantics).
 The cache is scoped to a warm Lambda container, so cold starts reset it.
 That's fine — duplicates are only a problem within the same execution
 window.
+
+---
+
+## Loop safety (ops 6520, 2026-10-16)
+
+**Incident.** `miss-calibrator` both consumed `near_miss.extreme` (routed to it by the coordinator) and
+re-emitted it on every run, so each run re-invoked itself through the bus: ~33M invocations in 7 days,
+~$450/day of Lambda from Oct 12 to 16. EventBridge hops reset Lambda's recursion lineage, so AWS's
+16-hop recursive-loop breaker never fired. Every routed event also rewrote the whole day audit log in the
+versioned bucket, taking it from 0.9 TB to 106 TB of noncurrent copies.
+
+**Rules, enforced in code:**
+
+1. An engine never emits an event it consumes. `miss-calibrator` runs triggered by the coordinator are
+   debounced 6 h and publish nothing.
+2. The coordinator refuses to route an event back to the engine that produced it
+   (`is_self_loop()` compares `detail._source_engine` / `source` with the target); the invoke is recorded
+   as `skipped: self_loop_guard`. Tests: `tests/test_event_coordinator_loop_guard.py`.
+3. The audit day-log stops growing at 5 MB (`AUDIT_MAX_BYTES`); `system-events/` has a 1-day
+   noncurrent-version expiry (`ops6520-purge-dead-versions-system-events`).
+4. Longer cycles (A -> coordinator -> B -> coordinator -> A) are not caught by rule 2; the spend governor's
+   runaway fuse (`docs/ops/SPEND_GOVERNOR.md`) throttles any function that burns far above normal for two
+   consecutive hourly checks.
 
 ---
 
