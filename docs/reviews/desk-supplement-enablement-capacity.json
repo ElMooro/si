@@ -1,0 +1,180 @@
+{
+  "disabled_slice": {
+    "reviewed_head": "5899e09a8c02c6795c505dd68d495e43e5cfbe2b",
+    "merge_commit": "d00f52a256815d6798988f23abec68afd0e15d4d",
+    "merged_tree": "0e5a69a1ef0a1eddd3627fb690fd7384765b2449",
+    "deployment_run": 36812617926,
+    "activation_performed": false,
+    "workflow_evidence": {
+      "databaseId": 36812617926,
+      "headSha": "d00f52a256815d6798988f23abec68afd0e15d4d",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ElMooro/si/actions/runs/36812617926"
+    },
+    "receipt_verification": {
+      "url": "https://justhodl.ai/data/ops/releases/justhodl-etf-global-desk.json",
+      "verified": false,
+      "http_status": 403,
+      "error_type": "HTTPError",
+      "alternate_origin_used": false
+    },
+    "retained_workflow_artifact": {
+      "artifact_id": 11140447160,
+      "size_in_bytes": 366,
+      "name": "lambda-release-evidence-d00f52a256815d6798988f23abec68afd0e15d4d",
+      "download_status": 403,
+      "contents_verified": false
+    },
+    "runtime_source_hashes_verified": false,
+    "live_environment_switch_verified": false,
+    "activated_coverage_verified": false,
+    "expected_source_hashes_from_reviewed_commit": {
+      "aws/shared/etf_desk_model.py": "56938722dec09268dfa8b1042b68308a9e6f593d5ec85cd54f4465c0e63d53e9",
+      "aws/shared/etf_desk_store.py": "3fba26e742d01f587d3e67caab15f170beb93e4a515a0d7897c85a09a7818aa1",
+      "aws/lambdas/justhodl-etf-global-desk/source/lambda_function.py": "a7d82a77e0562679c98598ebad2bb32d3555eaabf993b763764866cc4fd5f6ca"
+    },
+    "verification_limit": "Workflow succeeded at exact merge SHA. Normal-TLS receipt read and ordinary GitHub artifact download returned 403; no alternate origin, denied-source bypass or AWS probe attempted. Expected source hashes are local reviewed bytes, not verified deployed hashes."
+  },
+  "live_retained_scenario": {
+    "accessible": false,
+    "reason": "Prior normal-TLS public desk GET returned HTTP 403. No denied-source bypass, alternate origin, AWS call, probe or producer invocation used. Supplied live row counts are not a reconstructed live scenario."
+  },
+  "committed_historical_runtime": {
+    "path": "aws/ops/reports/latest/ops_5986_etf_desk_native_acceptance.md",
+    "commit": "75a74752350f6e5182bec63ab9917023bd4424d2",
+    "execution_profile": {
+      "execution_id": "6b6daccc-4ba8-42b2-b760-639c3e119b60",
+      "managed_reports": [
+        {
+          "duration_ms": 159623.16,
+          "billed_duration_ms": 160023.0,
+          "memory_mb": 4096.0,
+          "max_memory_mb": 942.0
+        }
+      ],
+      "completed_request": true
+    },
+    "scope": "Historical September 21 existing desk; not current enabled end-to-end capacity",
+    "runtime_package": {
+      "code_sha256": "IaKwi3IH3r5A9Wx5zcfUEwvVFjZOCSoloeg4XBCIPHc=",
+      "source_files_checked": 17,
+      "handler_bytes": 2408,
+      "timeout": 900,
+      "memory_mb": 4096,
+      "receipt": {
+        "status": "matched",
+        "commit": "75a74752350f6e5182bec63ab9917023bd4424d2"
+      },
+      "schedules": [
+        {
+          "kind": "EventBridge rule",
+          "name": "justhodl-etf-global-desk-daily",
+          "state": "ENABLED",
+          "expression": "cron(20 22 * * ? *)",
+          "native_targets": 1
+        }
+      ],
+      "function_name": "justhodl-etf-global-desk",
+      "runtime": "python3.12",
+      "handler": "lambda_function.lambda_handler",
+      "architectures": [
+        "x86_64"
+      ],
+      "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+      "ephemeral_storage_mb": 512
+    }
+  },
+  "synthetic_measurements": [
+    {
+      "accumulator_including_comparison_seconds": 1.2081946939999852,
+      "aws_calls": 0,
+      "case": "disjoint-all-qualified",
+      "current_rows": 22809,
+      "finish_in_memory_writer_seconds": 0.5222264299998187,
+      "lambda_capacity_established": false,
+      "manifest_bytes": 83918,
+      "network_latency_measured": false,
+      "pages": 356,
+      "payload_bytes": 26147918,
+      "peak_process_rss_mib": 350.74609375,
+      "prior_rows": 25252,
+      "put_attempts": 357,
+      "records": 70870,
+      "replay_including_comparison_seconds": 1.4996636979999494,
+      "replay_network_gets_in_cache_fit_fixture": 0,
+      "replay_put_attempts": 0,
+      "synthetic": true,
+      "vendor_requests": 0,
+      "write_readback_gets": 357
+    },
+    {
+      "accumulator_including_comparison_seconds": 1.3014166720001867,
+      "aws_calls": 0,
+      "case": "disjoint-all-qualified",
+      "current_rows": 33333,
+      "finish_in_memory_writer_seconds": 0.7002912999998898,
+      "lambda_capacity_established": false,
+      "manifest_bytes": 114225,
+      "network_latency_measured": false,
+      "pages": 501,
+      "payload_bytes": 36891265,
+      "peak_process_rss_mib": 482.12890625,
+      "prior_rows": 33334,
+      "put_attempts": 502,
+      "records": 100000,
+      "replay_including_comparison_seconds": 1.9714640219999637,
+      "replay_network_gets_in_cache_fit_fixture": 0,
+      "replay_put_attempts": 0,
+      "synthetic": true,
+      "vendor_requests": 0,
+      "write_readback_gets": 502
+    }
+  ],
+  "publication_hard_caps": {
+    "records": 100000,
+    "observations": 300000,
+    "payload_bytes": 50331648,
+    "pages": 768,
+    "manifest_objects": 1,
+    "direct_put_attempts_per_compile": 769,
+    "direct_verified_readbacks_per_compile": 769,
+    "daily_publications_per_30_days": 30,
+    "direct_put_attempts_per_30_days": 23070,
+    "direct_readbacks_per_30_days": 23070,
+    "max_new_summary_payload_bytes_per_30_days_if_unique": 1509949440,
+    "vendor_requests_added": 0,
+    "invocations_added": 0,
+    "schedules_added": 0,
+    "replay_put_attempts": 0,
+    "notes": "Caps exclude existing input/output/run objects and SDK retries. Retained replay can read summary objects and evicted baseline objects if the 768-MiB cache does not fit; zero network replay GETs is only measured in the synthetic fixture. No egress/price/billing estimate."
+  },
+  "capacity_status": {
+    "current_live_capacity_established": false,
+    "lambda_timeout_seconds": 900,
+    "lambda_memory_mib": 4096,
+    "historical_timeout_arithmetic_margin_seconds": 740.37684,
+    "historical_memory_arithmetic_margin_mib": 3154.0,
+    "writer_workers": 6,
+    "writer_pending_limit": 12,
+    "cache_mib": 768,
+    "network_connect_timeout_seconds": 5,
+    "network_read_timeout_seconds": 20,
+    "network_config_max_attempts": 2,
+    "worst_case_769_object_nominal_parallel_waves": 129,
+    "notes": "Historical subtraction is not a usable present margin. Local RSS cannot be added to the old Lambda peak to certify capacity. Byte/count limits do not bound wall time. Slow calls/retries can exhaust 900 seconds. Existing collection deadline reserves 360 seconds nominally, but retained compile/replay has no independent wall-time admission check."
+  },
+  "config_validation": {
+    "exact_only_delta": {
+      "environment": {
+        "ETF_OWNERSHIP_SUMMARY_ENABLED": "true"
+      }
+    },
+    "explicit_false_rollback_resolution_verified": true,
+    "schedules_memory_timeout_preserved": true,
+    "focused_tests": 8,
+    "focused_subtests": 27,
+    "config_validator": "passed",
+    "preflight": "passed"
+  }
+}
