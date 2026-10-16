@@ -1,0 +1,11 @@
+{
+  "function_name": "justhodl-spend-governor-canary",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "memory": 128,
+  "timeout": 5,
+  "architectures": ["x86_64"],
+  "description": "ops 6522 - no-op canary for the spend governor's live kill-switch selftest (throttle, verify refusal, restore exactly)",
+  "env": {}
+}
