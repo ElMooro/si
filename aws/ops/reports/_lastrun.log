@@ -1,22 +1,71 @@
-executing-against: 5c2a7d8dd0c610ec33e108bcd7b5a8a9de6d52f5
-=== Forcing residual high-frequency items to once daily ===
-Disabled frequent rule justhodl-dex-scanner-15min
-Set daily justhodl-dex-scanner-daily for justhodl-dex-scanner
-Set daily justhodl-student-rsi-daily for justhodl-student-rsi
-Set daily justhodl-chain-resumer-daily for justhodl-chain-resumer
-Disabled frequent rule justhodl-price-redundancy-15min
-Set daily justhodl-price-redundancy-daily for justhodl-price-redundancy
-Error processing justhodl-symdir/justhodl-symdir-warm: Parameter validation failed:
-Missing required parameter in input: "FlexibleTimeWindow"
-Missing required parameter in input: "ScheduleExpression"
-Missing required parameter in input: "Target"
+executing-against: 5544790fac6e98a8a730e50893be661ca479f734
+=== Final residual force daily ===
 
-=== Setting reserved concurrency = 1 on residuals ===
-Concurrency=1 on justhodl-dex-scanner
-Concurrency=1 on justhodl-student-rsi
-Concurrency=1 on justhodl-chain-resumer
-Concurrency=1 on justhodl-price-redundancy
-Concurrency=1 on justhodl-symdir
-Concurrency=1 on justhodl-cboe-options-chain
+--- justhodl-dex-scanner ---
+  mem=256 timeout=120
+  concurrency=1 set
+  rule justhodl-dex-scanner-15min: rate(15 minutes)
+    -> daily
+  rule justhodl-scanner-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-scanner-15min does not exist on EventBus default.
+  rule justhodl-dex-scanner-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-dex-scanner-5min does not exist on EventBus default.
+  rule justhodl-scanner-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-scanner-5min does not exist on EventBus default.
+  rule justhodl-dex-scanner-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-dex-scanner-1min does not exist on EventBus default.
+  rule justhodl-scanner-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-scanner-1min does not exist on EventBus default.
+  rule justhodl-dex-scanner-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-dex-scanner-30min does not exist on EventBus default.
+  rule justhodl-scanner-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-scanner-30min does not exist on EventBus default.
+  rule justhodl-dex-scanner-15min: cron(0 13 ? * MON-FRI *)
 
-=== Residual force-daily complete. ===
+--- justhodl-student-rsi ---
+  mem=512 timeout=120
+  concurrency=1 set
+  rule justhodl-student-rsi-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-student-rsi-15min does not exist on EventBus default.
+  rule justhodl-rsi-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-rsi-15min does not exist on EventBus default.
+  rule justhodl-student-rsi-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-student-rsi-5min does not exist on EventBus default.
+  rule justhodl-rsi-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-rsi-5min does not exist on EventBus default.
+  rule justhodl-student-rsi-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-student-rsi-1min does not exist on EventBus default.
+  rule justhodl-rsi-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-rsi-1min does not exist on EventBus default.
+  rule justhodl-student-rsi-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-student-rsi-30min does not exist on EventBus default.
+  rule justhodl-rsi-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-rsi-30min does not exist on EventBus default.
+
+--- justhodl-chain-resumer ---
+  mem=256 timeout=120
+  concurrency=1 set
+  rule justhodl-chain-resumer-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-chain-resumer-15min does not exist on EventBus default.
+  rule justhodl-resumer-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-resumer-15min does not exist on EventBus default.
+  rule justhodl-chain-resumer-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-chain-resumer-5min does not exist on EventBus default.
+  rule justhodl-resumer-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-resumer-5min does not exist on EventBus default.
+  rule justhodl-chain-resumer-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-chain-resumer-1min does not exist on EventBus default.
+  rule justhodl-resumer-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-resumer-1min does not exist on EventBus default.
+  rule justhodl-chain-resumer-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-chain-resumer-30min does not exist on EventBus default.
+  rule justhodl-resumer-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-resumer-30min does not exist on EventBus default.
+
+--- justhodl-symdir ---
+  mem=6144 timeout=900
+  concurrency=1 set
+  rule justhodl-symdir-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-15min does not exist on EventBus default.
+  rule justhodl-symdir-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-15min does not exist on EventBus default.
+  rule justhodl-symdir-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-5min does not exist on EventBus default.
+  rule justhodl-symdir-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-5min does not exist on EventBus default.
+  rule justhodl-symdir-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-1min does not exist on EventBus default.
+  rule justhodl-symdir-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-1min does not exist on EventBus default.
+  rule justhodl-symdir-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-30min does not exist on EventBus default.
+  rule justhodl-symdir-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-symdir-30min does not exist on EventBus default.
+  sched justhodl-symdir-warm: rate(5 minutes)
+    -> daily
+  sched justhodl-symdir-fredupdates: rate(15 minutes)
+    -> daily
+  sched justhodl-symdir-codelists: rate(20 minutes)
+    -> daily
+
+--- justhodl-sec-13f ---
+  mem=768 timeout=300
+  concurrency=1 set
+  rule justhodl-sec-13f-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-sec-13f-15min does not exist on EventBus default.
+  rule justhodl-13f-15min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-13f-15min does not exist on EventBus default.
+  rule justhodl-sec-13f-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-sec-13f-5min does not exist on EventBus default.
+  rule justhodl-13f-5min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-13f-5min does not exist on EventBus default.
+  rule justhodl-sec-13f-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-sec-13f-1min does not exist on EventBus default.
+  rule justhodl-13f-1min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-13f-1min does not exist on EventBus default.
+  rule justhodl-sec-13f-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-sec-13f-30min does not exist on EventBus default.
+  rule justhodl-13f-30min: An error occurred (ResourceNotFoundException) when calling the DescribeRule operation: Rule justhodl-13f-30min does not exist on EventBus default.
+=== Final residual done ===
