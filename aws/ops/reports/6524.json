@@ -1,0 +1,186 @@
+{
+ "op": 6524,
+ "ran_at": "2026-10-16T21:07:55.015223+00:00",
+ "timings_s": {
+  "release_false_positive": 0.9,
+  "selftest": 2.1,
+  "status": 0.3,
+  "plan_freeze": 20.2,
+  "tick": 0.5
+ },
+ "release_false_positive": {
+  "restored": {
+   "restored": 2
+  },
+  "remaining_in_ledger": 0,
+  "suppress_until": null
+ },
+ "after_release": {
+  "justhodl-miss-calibrator": null,
+  "justhodl-event-coordinator": null
+ },
+ "schedule": {
+  "expr": "cron(7 * * * ? *)",
+  "state": "ENABLED"
+ },
+ "alarms": [
+  [
+   "justhodl-spend-governor-errors",
+   "OK"
+  ],
+  [
+   "justhodl-spend-governor-heartbeat",
+   "OK"
+  ]
+ ],
+ "selftest": {
+  "ok": true,
+  "function": "justhodl-spend-governor-canary",
+  "before": null,
+  "applied": 0,
+  "invoke_while_throttled": {
+   "error": "TooManyRequestsException"
+  },
+  "restore": "restored",
+  "after": null
+ },
+ "status": {
+  "version": "1.0.1",
+  "mode": "enforce",
+  "stage": "NORMAL",
+  "stage_since": "2026-10-16T21:07:55.261557+00:00",
+  "cap": 3500.0,
+  "cap_source": "override:2026-10",
+  "budget_limit": 500.0,
+  "budget_actual": 2351.123,
+  "budget_forecast": 3041.536,
+  "thresholds": {
+   "cap": 3500.0,
+   "mtd": 2351.12,
+   "days_left": 15.12,
+   "baseline_usd_day": 24.46,
+   "residual_usd_day": 3.92,
+   "lag_buffer": 24.46,
+   "reserve": 93.71,
+   "freeze_at": 3406.29,
+   "brake_at": 3357.37,
+   "freeze_line_floored": false,
+   "projected_eom": 2745.36,
+   "frozen_eom": 2434.83,
+   "cap_at_risk_even_frozen": false
+  },
+  "held": {},
+  "suppress_until": null,
+  "fuse": {
+   "checked_at": "2026-10-16T21:00:57.878798+00:00",
+   "firing": [],
+   "fleet_usd_day": 168.57,
+   "monitor_notified": {
+    "day": "2026-10-16",
+    "fns": [
+     "justhodl-event-coordinator",
+     "justhodl-miss-calibrator"
+    ]
+   },
+   "top": [
+    [
+     "justhodl-miss-calibrator",
+     108.49
+    ],
+    [
+     "justhodl-event-coordinator",
+     45.2
+    ],
+    [
+     "justhodl-polygon-options-flow",
+     1.9
+    ],
+    [
+     "justhodl-tradingview",
+     1.66
+    ],
+    [
+     "justhodl-symdir",
+     1.31
+    ],
+    [
+     "justhodl-fleet-error-monitor",
+     1.17
+    ],
+    [
+     "justhodl-ai",
+     1.11
+    ],
+    [
+     "justhodl-sdmx-walker",
+     0.87
+    ]
+   ]
+  },
+  "last": {
+   "decision": "NORMAL",
+   "logs": [],
+   "mode": "enforce",
+   "mtd": 2351.12,
+   "reason": "steady",
+   "thresholds": {
+    "baseline_source": "median14",
+    "baseline_usd_day": 24.46,
+    "brake_at": 3357.37,
+    "budget_forecast": 3041.536,
+    "budget_limit": 500.0,
+    "cap": 3500.0,
+    "cap_at_risk_even_frozen": false,
+    "cap_source": "override:2026-10",
+    "days_left": 15.12,
+    "freeze_at": 3406.29,
+    "freeze_line_floored": false,
+    "frozen_eom": 2434.84,
+    "lag_buffer": 24.46,
+    "mtd": 2351.12,
+    "projected_eom": 2745.39,
+    "reserve": 93.71,
+    "residual_source": "min7",
+    "residual_usd_day": 3.92,
+    "sources": {
+     "budget_actual": 2351.123,
+     "ce_mtd": 2351.1235
+    }
+   }
+  }
+ },
+ "plan_freeze": {
+  "would_act_on": {
+   "lambda": 914,
+   "smasync": 1
+  },
+  "exempt": [
+   "justhodl-dr-snapshot",
+   "justhodl-guardrail-notify",
+   "justhodl-spend-governor",
+   "justhodl-supabase-keepalive"
+  ],
+  "logs": [],
+  "function_error": null,
+  "body": null
+ },
+ "after_tick_false_positives": {
+  "justhodl-miss-calibrator": null,
+  "justhodl-event-coordinator": null
+ },
+ "tick": {
+  "decision": "NORMAL",
+  "stage": "NORMAL",
+  "reason": "steady",
+  "fuse": {
+   "checked": false,
+   "firing": [],
+   "suspects": []
+  },
+  "mode": "enforce",
+  "ledger_size": 0,
+  "logs": [],
+  "function_error": null,
+  "body": null
+ }
+}

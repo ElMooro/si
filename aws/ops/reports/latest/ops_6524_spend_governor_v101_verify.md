@@ -1,0 +1,17 @@
+# ops 6524 - spend governor v1.0.1 live verification
+
+**Status:** success  
+**Duration:** 90.7s  
+**Finished:** 2026-10-16T21:09:25+00:00  
+
+## Log
+- `21:07:56` ✅ released 6523 fuse false positives: {"restored": {"restored": 2}, "remaining_in_ledger": 0, "suppress_until": null} -> {'justhodl-miss-calibrator': None, 'justhodl-event-coordinator': None}
+- `21:09:00` ✅ v1.0.1 live by content
+- `21:09:02` wiring: reserved=1, schedule cron(7 * * * ? *) ENABLED, alarms [('justhodl-spend-governor-errors', 'OK'), ('justhodl-spend-governor-heartbeat', 'OK')], mode enforce
+## Timed live actions
+
+- `21:09:04` ✅ selftest 2.1s: {"ok": true, "function": "justhodl-spend-governor-canary", "before": null, "applied": 0, "invoke_while_throttled": {"error": "TooManyRequestsException"}, "restore": "restored", "after": null}
+- `21:09:04` status 0.3s: mode=enforce stage=NORMAL cap=$3500.0 (override:2026-10) MTD=$2351.12 brake=$3357.37 freeze=$3406.29 baseline=$24.46/d residual=$3.92/d projected=$2745.36
+- `21:09:25` plan FREEZE 20.2s: {"would_act_on": {"lambda": 914, "smasync": 1}, "exempt": ["justhodl-dr-snapshot", "justhodl-guardrail-notify", "justhodl-spend-governor", "justhodl-supabase-keepalive"], "logs": [], "function_error": null, "body": null}
+- `21:09:25` tick 0.5s: {"decision": "NORMAL", "stage": "NORMAL", "reason": "steady", "fuse": {"checked": false, "firing": [], "suspects": []}, "mode": "enforce", "ledger_size": 0, "logs": [], "function_error": null, "body": null}
+- `21:09:25` ✅ timings: {"release_false_positive": 0.9, "selftest": 2.1, "status": 0.3, "plan_freeze": 20.2, "tick": 0.5}
