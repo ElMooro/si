@@ -1,22 +1,361 @@
-executing-against: 82b76efe31b1897ec25fbe0915cbdb3fcb4e8a09
-ops 6525 - freeze the fleet until 2026-11-01 (Khalid's decision)
-[22:53:03] account invocations/min before: [('22:44', 49), ('22:45', 19), ('22:46', 7), ('22:47', 2), ('22:48', 1), ('22:49', 9), ('22:50', 12), ('22:51', 6)]
-[22:54:26] ✅ force FREEZE: {"stage": "FREEZE", "applied": {"applied": 914, "failed": 1}, "logs": []}
-[22:54:35] ✅ plan FREEZE after the force: {} (exempt ['justhodl-dr-snapshot', 'justhodl-guardrail-notify', 'justhodl-spend-governor', 'justhodl-supabase-keepalive'])
-[22:54:35] ✅ governor status: {"mode": "enforce", "stage": "FREEZE", "stage_since": "2026-10-16T22:53:03.699511+00:00", "cap": 3500.0, "cap_source": "override:2026-10", "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}}
-[23:03:35] account invocations/min around the freeze: [('22:51', 8), ('22:52', 2), ('22:53', 12), ('22:54', 3)]
-[23:03:35] account throttles/min around the freeze: [('22:51', 0), ('22:52', 0), ('22:53', 0), ('22:54', 0), ('22:56', 2), ('22:58', 4)]
+executing-against: ba54e81639e146aaa7cd128356a781aae5fc6cb4
+ops 6527 - attribute the pre-loop baseline (read-only)
+── Cost Explorer ──
+[23:06:56] normal-window total $23.65/day over 22 days
+[23:06:56]   AmazonCloudWatch                 CW:Requests                              $  7.396/day  qty 785100.36
+[23:06:56]   Amazon Simple Storage Service    DataTransfer-Out-Bytes                   $  4.700/day  qty 56.73
+[23:06:56]   AWS Lambda                       Lambda-GB-Second                         $  3.928/day  qty 253888.28
+[23:06:56]   AWS Cost Explorer                USE1-APIRequest                          $  1.714/day  qty 171.45
+[23:06:56]   Amazon Simple Storage Service    Requests-Tier1                           $  1.505/day  qty 300957.95
+[23:06:56]   AmazonCloudWatch                 CW:MetricMonitorUsage                    $  0.942/day  qty 3.59
+[23:06:56]   Amazon SageMaker                 USE1-AsyncInf:ml.g5.xlarge               $  0.618/day  qty 0.44
+[23:06:56]   Amazon Simple Storage Service    TimedStorage-ByteHrs                     $  0.588/day  qty 25.55
+[23:06:56]   Amazon Simple Storage Service    Requests-Tier2                           $  0.464/day  qty 1159770.36
+[23:06:56]   Amazon SageMaker                 USE1-Train:ml.g5.2xlarge                 $  0.405/day  qty 0.27
+[23:06:56]   AWS Lambda                       Lambda-GB-Second-ARM                     $  0.229/day  qty 17187.96
+[23:06:56]   Amazon DynamoDB                  WriteRequestUnits                        $  0.190/day  qty 303867.91
+[23:06:56]   Amazon SageMaker                 USE1-TrSpt:ml.g5.2xlarge                 $  0.165/day  qty 0.11
+[23:06:56]   AWS Secrets Manager              USE1-AWSSecretsManager-Secrets           $  0.118/day  qty 0.3
+[23:06:56]   Amazon EC2 Container Registry (E TimedStorage-ByteHrs                     $  0.089/day  qty 0.89
+[23:06:56]   AmazonCloudWatch                 CW:AlarmMonitorUsage                     $  0.086/day  qty 1.31
+[23:06:56]   Amazon Route 53                  HostedZone                               $  0.068/day  qty 0.14
+[23:06:56]   Amazon Simple Storage Service    TimedStorage-SIA-ByteHrs                 $  0.059/day  qty 4.76
+[23:06:56]   Amazon Simple Storage Service    Requests-Tier4                           $  0.050/day  qty 4981.64
+[23:06:56]   Amazon DynamoDB                  ReadRequestUnits                         $  0.046/day  qty 371128.2
+[23:06:56]   AmazonCloudWatch                 CW:GMD-Metrics                           $  0.044/day  qty 4388.14
+[23:06:56]   EC2 - Other                      EBS:VolumeUsage.gp3                      $  0.042/day  qty 0.52
+[23:06:56]   Amazon Simple Storage Service    USW2-Requests-SIA-Tier1                  $  0.035/day  qty 3511.18
+[23:06:56]   AWS Lambda                       DataTransfer-Out-Bytes                   $  0.024/day  qty 0.31
+[23:06:56]   Amazon DynamoDB                  USE1-TimedPITRStorage-ByteHrs            $  0.023/day  qty 0.11
+[23:06:56] AmazonCloudWatch by operation:
+[23:06:56]     GetMetricStatistics                CW:Requests                        $  7.395/day  qty/day 784901.1
+[23:06:56]     MetricStorage                      CW:MetricMonitorUsage              $  0.927/day  qty/day 3.5
+[23:06:56]     Unknown                            CW:AlarmMonitorUsage               $  0.086/day  qty/day 1.3
+[23:06:56]     GetMetricData                      CW:GMD-Metrics                     $  0.044/day  qty/day 4388.1
+[23:06:56]     MetricStorage:AWS/Logs-EMF         CW:MetricMonitorUsage              $  0.008/day  qty/day 0.0
+[23:06:56]     MetricStorage:AWS/SES              CW:MetricMonitorUsage              $  0.006/day  qty/day 0.0
+[23:06:56]     GetMetricData                      CW:MetricInsightAlarmUsage         $  0.003/day  qty/day 0.0
+[23:06:56]     PutMetricData                      CW:Requests                        $  0.002/day  qty/day 199.2
+[23:06:56]     trib/receiver/prometheusreceiver   CW:OTEL:Bytes                      $  0.001/day  qty/day 0.0
+[23:06:56] Amazon Simple Storage Service by operation:
+[23:06:56]     GetObject                          DataTransfer-Out-Bytes             $  4.697/day  qty/day 56.7
+[23:06:56]     PutObject                          Requests-Tier1                     $  1.127/day  qty/day 225345.6
+[23:06:56]     StandardStorage                    TimedStorage-ByteHrs               $  0.588/day  qty/day 25.5
+[23:06:56]     GetObject                          Requests-Tier2                     $  0.448/day  qty/day 1120747.4
+[23:06:56]     ListBucket                         Requests-Tier1                     $  0.372/day  qty/day 74398.2
+[23:06:56]     StandardIAStorage                  TimedStorage-SIA-ByteHrs           $  0.059/day  qty/day 4.8
+[23:06:56]     S3-SIATransition                   Requests-Tier4                     $  0.050/day  qty/day 4962.5
+[23:06:56]     PutObject                          USW2-Requests-SIA-Tier1            $  0.035/day  qty/day 3511.2
+[23:06:56]     StorageLens                        USE1-StorageLens-ObjCount          $  0.019/day  qty/day 94359.6
+[23:06:56]     GetObject                          Retrieval-SIA                      $  0.018/day  qty/day 1.7
+[23:06:57] AWS Lambda by operation:
+[23:06:57]     Invoke                             Lambda-GB-Second                   $  3.928/day  qty/day 253888.3
+[23:06:57]     Invoke                             Lambda-GB-Second-ARM               $  0.229/day  qty/day 17188.0
+[23:06:57]     Invoke                             DataTransfer-Out-Bytes             $  0.024/day  qty/day 0.3
+[23:06:57]     Invoke                             USE1-USW2-AWS-Out-Bytes            $  0.012/day  qty/day 0.6
+[23:06:57]     Invoke                             Lambda-Storage-GB-Second           $  0.002/day  qty/day 53167.9
+[23:06:57]     Invoke                             Lambda-Storage-GB-Second-ARM       $  0.000/day  qty/day 29.6
+[23:06:57]     Invoke                             USE1-EUC1-AWS-Out-Bytes            $  0.000/day  qty/day 0.0
+[23:06:57]     Invoke                             USE1-UGW1-AWS-Out-Bytes            $  0.000/day  qty/day 0.0
+[23:06:57] Amazon SageMaker by operation:
+[23:06:57]     RunInstance                        USE1-AsyncInf:ml.g5.xlarge         $  0.618/day  qty/day 0.4
+[23:06:57]     RunInstance                        USE1-Train:ml.g5.2xlarge           $  0.405/day  qty/day 0.3
+[23:06:57]     RunInstance                        USE1-TrSpt:ml.g5.2xlarge           $  0.165/day  qty/day 0.1
+[23:06:57]     CreateVolume-Gp3                   USE1-Studio:VolumeUsage.gp3        $  0.018/day  qty/day 0.2
+[23:06:57]     Serverless                         USE1-ServerlessInf:Mem-4GB         $  0.004/day  qty/day 47.9
+[23:06:57]     Invoke-Endpoint                    USE1-Hst:Data-Bytes-In             $  0.000/day  qty/day 0.0
+[23:06:57]     Invoke-Endpoint                    USE1-Hst:Data-Bytes-Out            $  0.000/day  qty/day 0.0
+── CloudTrail - Cost Explorer callers ──
+── Invocations ──
+[23:07:28] fleet invocations/day 26139; top: [('justhodl-symdir', 7350.8), ('justhodl-sdmx-walker', 1825.2), ('justhodl-student-rsi', 1440.0), ('justhodl-equity-research', 1364.8), ('justhodl-boj-full', 1105.0), ('justhodl-tv-bars', 1052.5), ('justhodl-a2a-bus', 952.6), ('justhodl-edgar-insiders', 575.8), ('justhodl-wl-series-api', 557.0), ('justhodl-fundamental-graphs', 499.5), ('openbb-websocket-handler', 447.0), ('justhodl-event-coordinator', 445.7)]
+[23:07:28] pollers invocations/day: {'justhodl-fleet-error-monitor': 289.2, 'justhodl-ai': 170.4, 'justhodl-health-monitor': 3.0, 'justhodl-event-flow-monitor': 26.0, 'justhodl-import-sentinel': 144.0, 'justhodl-cost-anomaly': 1.0, 'justhodl-fleet-integrity': 1.1, 'justhodl-fleet-monitor': 9.0, 'justhodl-fleet-freshness-monitor': 56.0, 'justhodl-feed-heartbeat': 41.0}
+── S3 access logs ──
+[23:07:28] bucket logging: {'target': 'justhodl-s3-access-logs-857687956942', 'prefix': 'live/', 'format': {'PartitionedPrefix': {'PartitionDateSource': 'EventTime'}}}
+[23:07:28] log objects for 2026-10-10T15:00:00+00:00: 0 (prefix live/857687956942/us-east-1/justhodl-dashboard-live/2026/10/10/2026-10-10-15-)
+[23:07:28] ⚠ no logs for the sample hour; first keys under the prefix: [('live/857687956942/us-east-1/justhodl-dashboard-live/2026/09/14/2026-09-14-00-00-00-281456C4585EB158', '2026-09-15T00:55:37+00:00'), ('live/857687956942/us-east-1/justhodl-dashboard-live/2026/09/14/2026-09-14-00-00-00-44CB71AF33AA4008', '2026-09-15T00:46:12+00:00'), ('live/857687956942/us-east-1/justhodl-dashboard-live/2026/09/14/2026-09-14-00-00-00-44E09BEC1E1A82D9', '2026-09-15T00:38:33+00:00'), ('live/857687956942/us-east-1/justhodl-dashboard-live/2026/09/14/2026-09-14-00-00-00-44E3B9BAC174F0E6', '2026-09-15T00:57:34+00:00'), ('live/857687956942/us-east-1/justhodl-dashboard-live/2026/09/14/2026-09-14-00-00-00-44F0126B96059735', '2026-09-15T00:46:03+00:00')]
+── Section errors ──
+[23:07:28] ⚠ cloudtrail_ce: AccessDeniedException: An error occurred (AccessDeniedException) when calling the LookupEvents operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: cloudtrail:LookupEvents because no identity-based policy allows the cloudtrail:LookupEvents action
+[23:07:28] ✅ wrote aws/ops/reports/6527.json
 
-→ Report written to aws/ops/reports/latest/ops_6525_october_freeze.md
+→ Report written to aws/ops/reports/latest/ops_6527_baseline_cost_attribution.md
+ops 6526 - delete the loop's dead audit-log versions
+[23:07:29] BucketSizeBytes(Standard) TB by day: [('10-11', 0.92), ('10-12', 24.65), ('10-13', 61.15), ('10-14', 105.87), ('10-15', 145.39)]
+[23:07:29] day-logs in scope: [('2026-10-10.jsonl', 0.0), ('2026-10-11.jsonl', 0.0), ('2026-10-12.jsonl', 22.0), ('2026-10-13.jsonl', 33.2), ('2026-10-14.jsonl', 30.7), ('2026-10-15.jsonl', 30.8), ('2026-10-16.jsonl', 26.0)]
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+delete batch failed: An error occurred (SlowDown) when calling the DeleteObjects operation: Please reduce your request rate.
+
+→ Report written to aws/ops/reports/latest/ops_6526_purge_audit_versions.md
 Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/pending/ops_6525_october_freeze.py", line 138, in <module>
+  File "/home/runner/work/si/si/aws/ops/pending/ops_6526_purge_audit_versions.py", line 161, in <module>
     main()
-  File "/home/runner/work/si/si/aws/ops/pending/ops_6525_october_freeze.py", line 118, in main
-    still = invoking_functions(names, frozen_at + timedelta(minutes=4), end)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/si/si/aws/ops/pending/ops_6525_october_freeze.py", line 72, in invoking_functions
-    r = cw.get_metric_data(**kw)
-        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_6526_purge_audit_versions.py", line 132, in main
+    results = list(listers.map(lambda ks: purge_key(ks[0], ks[1], deleter), keys))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_6526_purge_audit_versions.py", line 132, in <lambda>
+    results = list(listers.map(lambda ks: purge_key(ks[0], ks[1], deleter), keys))
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/si/si/aws/ops/pending/ops_6526_purge_audit_versions.py", line 71, in purge_key
+    page = s3.list_object_versions(**kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
     return self._make_api_call(operation_name, kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -25,505 +364,5 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^^^^^^^^
   File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
     raise error_class(parsed_response, operation_name)
-botocore.errorfactory.ValidationException: An error occurred (ValidationError) when calling the GetMetricData operation: The parameter MetricDataQueries.member.1.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.2.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.3.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.4.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.5.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.6.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.7.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.8.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.9.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.10.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.11.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.12.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.13.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.14.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.15.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.16.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.17.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.18.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.19.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.20.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.21.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.22.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.23.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.24.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.25.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.26.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.27.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.28.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.29.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.30.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.31.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.32.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.33.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.34.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.35.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.36.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.37.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.38.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.39.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.40.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.41.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.42.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.43.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.44.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.45.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.46.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.47.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.48.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.49.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.50.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.51.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.52.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.53.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.54.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.55.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.56.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.57.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.58.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.59.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.60.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.61.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.62.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.63.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.64.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.65.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.66.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.67.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.68.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.69.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.70.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.71.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.72.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.73.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.74.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.75.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.76.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.77.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.78.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.79.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.80.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.81.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.82.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.83.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.84.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.85.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.86.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.87.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.88.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.89.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.90.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.91.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.92.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.93.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.94.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.95.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.96.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.97.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.98.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.99.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.100.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.101.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.102.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.103.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.104.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.105.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.106.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.107.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.108.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.109.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.110.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.111.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.112.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.113.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.114.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.115.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.116.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.117.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.118.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.119.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.120.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.121.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.122.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.123.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.124.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.125.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.126.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.127.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.128.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.129.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.130.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.131.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.132.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.133.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.134.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.135.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.136.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.137.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.138.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.139.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.140.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.141.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.142.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.143.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.144.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.145.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.146.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.147.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.148.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.149.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.150.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.151.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.152.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.153.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.154.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.155.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.156.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.157.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.158.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.159.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.160.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.161.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.162.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.163.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.164.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.165.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.166.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.167.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.168.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.169.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.170.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.171.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.172.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.173.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.174.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.175.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.176.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.177.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.178.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.179.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.180.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.181.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.182.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.183.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.184.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.185.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.186.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.187.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.188.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.189.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.190.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.191.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.192.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.193.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.194.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.195.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.196.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.197.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.198.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.199.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.200.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.201.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.202.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.203.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.204.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.205.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.206.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.207.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.208.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.209.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.210.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.211.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.212.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.213.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.214.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.215.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.216.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.217.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.218.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.219.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.220.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.221.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.222.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.223.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.224.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.225.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.226.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.227.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.228.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.229.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.230.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.231.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.232.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.233.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.234.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.235.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.236.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.237.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.238.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.239.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.240.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.241.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.242.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.243.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.244.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.245.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.246.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.247.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.248.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.249.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.250.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.251.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.252.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.253.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.254.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.255.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.256.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.257.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.258.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.259.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.260.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.261.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.262.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.263.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.264.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.265.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.266.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.267.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.268.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.269.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.270.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.271.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.272.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.273.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.274.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.275.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.276.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.277.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.278.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.279.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.280.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.281.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.282.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.283.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.284.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.285.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.286.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.287.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.288.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.289.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.290.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.291.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.292.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.293.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.294.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.295.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.296.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.297.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.298.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.299.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.300.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.301.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.302.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.303.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.304.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.305.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.306.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.307.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.308.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.309.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.310.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.311.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.312.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.313.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.314.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.315.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.316.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.317.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.318.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.319.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.320.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.321.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.322.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.323.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.324.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.325.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.326.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.327.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.328.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.329.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.330.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.331.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.332.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.333.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.334.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.335.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.336.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.337.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.338.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.339.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.340.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.341.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.342.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.343.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.344.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.345.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.346.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.347.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.348.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.349.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.350.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.351.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.352.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.353.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.354.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.355.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.356.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.357.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.358.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.359.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.360.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.361.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.362.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.363.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.364.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.365.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.366.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.367.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.368.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.369.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.370.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.371.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.372.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.373.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.374.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.375.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.376.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.377.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.378.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.379.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.380.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.381.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.382.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.383.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.384.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.385.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.386.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.387.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.388.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.389.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.390.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.391.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.392.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.393.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.394.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.395.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.396.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.397.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.398.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.399.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.400.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.401.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.402.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.403.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.404.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.405.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.406.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.407.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.408.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.409.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.410.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.411.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.412.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.413.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.414.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.415.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.416.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.417.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.418.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.419.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.420.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.421.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.422.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.423.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.424.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.425.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.426.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.427.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.428.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.429.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.430.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.431.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.432.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.433.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.434.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.435.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.436.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.437.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.438.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.439.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.440.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.441.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.442.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.443.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.444.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.445.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.446.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.447.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.448.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.449.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.450.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.451.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.452.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.453.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.454.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.455.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.456.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.457.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.458.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.459.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.460.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.461.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.462.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.463.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.464.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.465.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.466.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.467.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.468.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.469.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.470.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.471.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.472.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.473.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.474.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.475.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.476.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.477.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.478.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.479.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.480.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.481.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.482.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.483.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.484.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.485.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.486.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.487.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.488.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.489.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.490.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.491.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.492.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.493.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.494.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.495.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.496.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.497.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.498.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.499.MetricStat.Period must be a multiple of 60.
-The parameter MetricDataQueries.member.500.MetricStat.Period must be a multiple of 60.
-
-❌ OPS-FAIL: aws/ops/pending/ops_6525_october_freeze.py
+botocore.exceptions.ClientError: An error occurred (SlowDown) when calling the ListObjectVersions operation: Please reduce your request rate.
+❌ OPS-FAIL: aws/ops/pending/ops_6526_purge_audit_versions.py
