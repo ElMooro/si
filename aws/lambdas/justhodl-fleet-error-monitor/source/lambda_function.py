@@ -1,8 +1,8 @@
 """
 justhodl-fleet-error-monitor
 ============================
-Runs every 5 minutes. For each Lambda in the account:
-  1. Pull CloudWatch Invocations + Errors over last 15 min
+Runs hourly (ops 6528; was every 5 minutes). For each Lambda in the account:
+  1. Pull CloudWatch Errors + Throttles over the last hour (Invocations only when either is non-zero)
   2. Compute error rate
   3. If rate > 5% AND invocations >= 5, emit alert
   4. Pull the latest ERROR log line via filter_log_events
@@ -25,7 +25,7 @@ from public_brain_projection import fleet_error_category, sanitize_public
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ACCOUNT = '857687956942'
 BUCKET = os.environ.get('S3_BUCKET', 'justhodl-dashboard-live')
@@ -94,14 +94,33 @@ def fetch_last_error_log(fn_name, lookback_min=LOOKBACK_MINUTES):
         return None
 
 
+def is_paused(fn_name):
+    """Reserved concurrency 0 = deliberately paused (a quarantine ledger or the spend governor): throttles are expected."""
+    try:
+        return lam.get_function_concurrency(FunctionName=fn_name).get('ReservedConcurrentExecutions') == 0
+    except Exception:
+        return False
+
+
 def check_lambda(fn_name, include_log_context=True):
-    """Check one Lambda. Returns alert dict or None."""
+    """Check one Lambda. Returns alert dict or None.
+
+    v1.2.0 (ops 6528): every GetMetricStatistics call is billed ($0.01 per 1,000) and the 5-minute cadence read
+    3 metrics x ~924 functions about 288 times a day (~$6/day, most of the CloudWatch bill).  Errors and Throttles
+    are read first; when both are zero no alert is possible, so Invocations is only read for the few functions
+    that need an error rate.  Same alerts, one third fewer reads, at an hourly cadence."""
     if fn_name in EXCLUDE:
         return None
-    
-    invocations = fetch_cw_metric('Invocations', 'AWS/Lambda', fn_name)
+
     errors = fetch_cw_metric('Errors', 'AWS/Lambda', fn_name)
     throttles = fetch_cw_metric('Throttles', 'AWS/Lambda', fn_name)
+    invocations = 0
+    if errors is not None and throttles is not None:
+        if errors == 0 and throttles == 0:
+            return None
+        if errors == 0 and is_paused(fn_name):
+            return None
+        invocations = fetch_cw_metric('Invocations', 'AWS/Lambda', fn_name)
     if any(value is None for value in (invocations, errors, throttles)):
         return {'lambda': fn_name, 'severity': 'WARNING', 'metric_status': 'UNAVAILABLE',
                 'error_category': 'METRIC_READ_UNAVAILABLE', 'invocations': invocations,
