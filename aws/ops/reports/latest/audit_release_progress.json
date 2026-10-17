@@ -1,6 +1,342 @@
 {
-  "observed_at": "2026-10-17T11:42:14.370237+00:00",
+  "observed_at": "2026-10-17T11:57:14.013593+00:00",
   "runs": [
+    {
+      "id": 39030179623,
+      "path": ".github/workflows/pages.yml",
+      "head_sha": "1d0269c031d76c43c4d1d46f3890bb26fe0ae94e",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-17T11:49:49Z",
+      "updated_at": "2026-10-17T11:56:47Z",
+      "jobs": [
+        {
+          "id": 117388899697,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-17T11:49:52Z",
+          "completed_at": "2026-10-17T11:56:33Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:49:53Z",
+              "completed_at": "2026-10-17T11:49:53Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:49:53Z",
+              "completed_at": "2026-10-17T11:50:05Z"
+            },
+            {
+              "number": 3,
+              "name": "Set up Node 22",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:50:05Z",
+              "completed_at": "2026-10-17T11:50:06Z"
+            },
+            {
+              "number": 4,
+              "name": "Block published credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:50:06Z",
+              "completed_at": "2026-10-17T11:50:39Z"
+            },
+            {
+              "number": 5,
+              "name": "Brain publication boundaries",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:50:39Z",
+              "completed_at": "2026-10-17T11:50:40Z"
+            },
+            {
+              "number": 6,
+              "name": "Frontend + worker behavioural tests",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:50:40Z",
+              "completed_at": "2026-10-17T11:53:41Z"
+            },
+            {
+              "number": 7,
+              "name": "Public page source syntax and regression gate",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:41Z",
+              "completed_at": "2026-10-17T11:53:48Z"
+            },
+            {
+              "number": 8,
+              "name": "Required sovereign page dependency reaches the artifact",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:48Z",
+              "completed_at": "2026-10-17T11:53:48Z"
+            },
+            {
+              "number": 9,
+              "name": "Engine wiring registry must match what the pages declare (audit 2026-09-08 C-6)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:48Z",
+              "completed_at": "2026-10-17T11:53:49Z"
+            },
+            {
+              "number": 10,
+              "name": "Forbid [object Object] / undefined% literals in any page (page-gate, now blocking)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:49Z",
+              "completed_at": "2026-10-17T11:53:50Z"
+            },
+            {
+              "number": 11,
+              "name": "Offline build boundary regression gate",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:50Z",
+              "completed_at": "2026-10-17T11:53:51Z"
+            },
+            {
+              "number": 12,
+              "name": "Public artifact boundary regression",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:51Z",
+              "completed_at": "2026-10-17T11:53:51Z"
+            },
+            {
+              "number": 13,
+              "name": "Assemble lean site artifact",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:53:51Z",
+              "completed_at": "2026-10-17T11:56:02Z"
+            },
+            {
+              "number": 14,
+              "name": "Build standalone workspace engines from chart-pro (universe-heatmap.html, macro-economic-data.html, assets/jh-workspaces.*)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:02Z",
+              "completed_at": "2026-10-17T11:56:02Z"
+            },
+            {
+              "number": 15,
+              "name": "Bake section numbers into every page + ship home layout/registry (ops 5200)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:02Z",
+              "completed_at": "2026-10-17T11:56:02Z"
+            },
+            {
+              "number": 16,
+              "name": "Preserve homepage source (offline; no market snapshot)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:02Z",
+              "completed_at": "2026-10-17T11:56:02Z"
+            },
+            {
+              "number": 17,
+              "name": "CI gate \u2014 template leaks + dead-paint ratchet",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:02Z",
+              "completed_at": "2026-10-17T11:56:03Z"
+            },
+            {
+              "number": 18,
+              "name": "Bake right-rail source references (offline)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:03Z",
+              "completed_at": "2026-10-17T11:56:03Z"
+            },
+            {
+              "number": 19,
+              "name": "Bake engine directory (source references; availability unchecked)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:03Z",
+              "completed_at": "2026-10-17T11:56:10Z"
+            },
+            {
+              "number": 20,
+              "name": "Preserve provider page source (offline; no live inventory snapshot)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:10Z",
+              "completed_at": "2026-10-17T11:56:10Z"
+            },
+            {
+              "number": 21,
+              "name": "Reskin legacy palette -> Amber (all pages; index+screener untouched)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:10Z",
+              "completed_at": "2026-10-17T11:56:11Z"
+            },
+            {
+              "number": 22,
+              "name": "Content-hash stamp ALL shared JS/CSS (html + dynamic in-JS refs)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:11Z",
+              "completed_at": "2026-10-17T11:56:11Z"
+            },
+            {
+              "number": 23,
+              "name": "Bake SEO layer (canonical/OG/description + sitemap)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:11Z",
+              "completed_at": "2026-10-17T11:56:12Z"
+            },
+            {
+              "number": 24,
+              "name": "Build complete producer-to-page data contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:12Z",
+              "completed_at": "2026-10-17T11:56:21Z"
+            },
+            {
+              "number": 25,
+              "name": "Final built page syntax gate",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:21Z",
+              "completed_at": "2026-10-17T11:56:29Z"
+            },
+            {
+              "number": 26,
+              "name": "Block repository-only directories in public artifact",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:29Z",
+              "completed_at": "2026-10-17T11:56:29Z"
+            },
+            {
+              "number": 27,
+              "name": "Stamp every page and asset in commit-bound build manifest",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:29Z",
+              "completed_at": "2026-10-17T11:56:29Z"
+            },
+            {
+              "number": 28,
+              "name": "Run actions/upload-pages-artifact@v3",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:29Z",
+              "completed_at": "2026-10-17T11:56:31Z"
+            },
+            {
+              "number": 55,
+              "name": "Post Set up Node 22",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:31Z",
+              "completed_at": "2026-10-17T11:56:31Z"
+            },
+            {
+              "number": 56,
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:31Z",
+              "completed_at": "2026-10-17T11:56:31Z"
+            },
+            {
+              "number": 57,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:31Z",
+              "completed_at": "2026-10-17T11:56:31Z"
+            }
+          ]
+        },
+        {
+          "id": 117390077514,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-17T11:56:37Z",
+          "completed_at": "2026-10-17T11:56:46Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:37Z",
+              "completed_at": "2026-10-17T11:56:38Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:38Z",
+              "completed_at": "2026-10-17T11:56:44Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:44Z",
+              "completed_at": "2026-10-17T11:56:44Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:44Z",
+              "completed_at": "2026-10-17T11:56:44Z"
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-17T11:56:44Z",
+              "completed_at": "2026-10-17T11:56:44Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-17T11:56:44Z",
+              "completed_at": "2026-10-17T11:56:45Z"
+            }
+          ]
+        },
+        {
+          "id": 117390114705,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-17T11:56:47Z",
+          "completed_at": "2026-10-17T11:56:46Z",
+          "steps": []
+        }
+      ]
+    },
     {
       "id": 39029390061,
       "path": ".github/workflows/pages.yml",
