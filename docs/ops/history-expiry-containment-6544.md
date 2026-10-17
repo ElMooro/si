@@ -34,9 +34,13 @@ the known target before/after, exact-other-fields-preserved result, transition
 default, allowlisted expiration scopes, source/run metadata and fixed failure codes.
 No raw SDK errors, object inventories, private values, billing or credential reads
 are published. Other enabled expiration rules are inspected but never changed;
-Only the user-named empty, `data/` and `system-events/` prefixes and named rule IDs
-may be public. Other identifiers/prefixes are withheld, including otherwise plain
-alphanumeric text. Tag/size-qualified scopes are explicitly qualified.
+The containment publishes only the user-named empty, `data/` and `system-events/`
+prefixes and named rule IDs. The separate read-only verifier additionally permits
+exact matches of fixed public literals from ops5027, ops5024, ops5164, ops5166,
+ops5306 and the 2026-04-25 archive lifecycle source. Source candidates are not
+evidence that a rule is installed: only a fresh live exact match identifies it.
+Other identifiers/prefixes are withheld, including otherwise plain alphanumeric
+text. Tag/size-qualified scopes are explicitly qualified.
 
 Disabling this rule preserves remaining versions after S3 propagation; it cannot
 recover versions already permanently deleted. Other expiration rules may remain
@@ -44,3 +48,21 @@ active, so this is not a claim that all history is protected. Existing retention
 and storage charges outside this one rule remain unchanged.
 
 Validation: `PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests -p test_retention_6544.py -v`.
+
+## Completed containment
+
+PR114 merged as `48449c14ae7d3563b752e8bfc57b0c8caf7831a3` after independent
+exact-head review. Direct runner [38997304708](https://github.com/ElMooro/si/actions/runs/38997304708)
+recorded Enabled to Disabled at 2026-10-17 03:03:52 UTC: one PUT, four GETs,
+two exact postreads, every other rule/field and transition-default unchanged.
+Its immutable public receipt is commit `1afe7863e45f4a501673a96631bda191bacf9399`,
+`aws/ops/reports/latest/ops_6544_disable_6541_history_expiry.md`.
+
+Separate [read-only runner 38997377347](https://github.com/ElMooro/si/actions/runs/38997377347)
+confirmed Disabled at 03:05:04 UTC with zero PUTs and four GETs. Its receipt is
+commit `9a80b0fc7cad23ef5c6a3ddb6796069d99f360ee`, same directory,
+`ops_6544_disable_6541_history_expiry_readback.md`. Independent release review
+validated both pinned runs and report commits. Enabled one-day noncurrent
+expiration remained on `data/` and `system-events/`; two other rule scopes were
+withheld. The supplemental verifier identifies only exact public-source matches.
+No further lifecycle write is authorized or needed for that inspection.
