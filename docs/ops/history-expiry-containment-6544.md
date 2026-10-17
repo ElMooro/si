@@ -31,10 +31,12 @@ operation without a stale rollback or repeated mutation.
 
 Full before/after configuration stays in memory. Public evidence includes only
 the known target before/after, exact-other-fields-preserved result, transition
-default, sanitized expiration scopes, source/run metadata and fixed failure codes.
+default, allowlisted expiration scopes, source/run metadata and fixed failure codes.
 No raw SDK errors, object inventories, private values, billing or credential reads
 are published. Other enabled expiration rules are inspected but never changed;
-tag/size-qualified or unsafe-text scopes are explicitly qualified/withheld.
+Only the user-named empty, `data/` and `system-events/` prefixes and named rule IDs
+may be public. Other identifiers/prefixes are withheld, including otherwise plain
+alphanumeric text. Tag/size-qualified scopes are explicitly qualified.
 
 Disabling this rule preserves remaining versions after S3 propagation; it cannot
 recover versions already permanently deleted. Other expiration rules may remain

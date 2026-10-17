@@ -24,6 +24,9 @@ REPORT = 'ops_6544_disable_6541_history_expiry'
 RULE_BODY = {'ID': RULE_ID, 'Filter': {'Prefix': ''},
              'NoncurrentVersionExpiration': {'NoncurrentDays': 1, 'NewerNoncurrentVersions': 10}}
 MAX_READS = 12
+# Only scopes already named in the user-authorized containment may be public.
+PUBLIC_PREFIXES = frozenset({'', 'data/', 'system-events/'})
+PUBLIC_RULE_IDS = frozenset({RULE_ID, 'ops6520-purge-dead-versions-system-events'})
 
 
 class Stop(Exception):
@@ -63,8 +66,8 @@ def target(value):
     return next(r for r in value['Rules'] if r.get('ID') == RULE_ID)
 
 
-def safe_text(value):
-    if type(value) is str and len(value) <= 256 and re.fullmatch(r'[A-Za-z0-9_./* -]*', value):
+def safe_text(value, allowed):
+    if type(value) is str and value in allowed:
         return value
     return 'WITHHELD'
 
@@ -72,7 +75,7 @@ def safe_text(value):
 def scope_rows(value):
     """Only requested retention configuration, never object inventories or inputs."""
     rows = []
-    for rule in value['Rules']:
+    for index, rule in enumerate(value['Rules']):
         if rule.get('ID') == RULE_ID or rule.get('Status') != 'Enabled':
             continue
         actions = {k: rule[k] for k in ('Expiration', 'NoncurrentVersionExpiration') if k in rule}
@@ -82,7 +85,8 @@ def scope_rows(value):
         if not isinstance(filt, dict):
             raise Stop('MALFORMED_FILTER')
         prefix = rule.get('Prefix', filt.get('Prefix', (filt.get('And') or {}).get('Prefix', '')))
-        row = {'id': safe_text(rule.get('ID')), 'prefix': safe_text(prefix),
+        row = {'rule_index': index, 'id': safe_text(rule.get('ID'), PUBLIC_RULE_IDS),
+               'prefix': safe_text(prefix, PUBLIC_PREFIXES),
                'tag_or_size_qualified': bool(set(filt) - {'Prefix'}), 'expiration': {}}
         for name, action in actions.items():
             row['expiration'][name] = {k: v.isoformat() if type(v) is datetime else v

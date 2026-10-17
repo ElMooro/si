@@ -186,17 +186,19 @@ class RetentionContainmentTests(unittest.TestCase):
         self.assertEqual(result['put_attempts'], 1)
 
     def test_retention_scope_only_exposes_requested_safe_configuration(self):
-        value = fixture('Disabled')
-        value['Rules'].append({'ID': CANARY + '@example.invalid', 'Status': 'Enabled',
-                               'Filter': {'And': {'Prefix': 'private@example.invalid',
-                                                  'Tags': [{'Key': CANARY, 'Value': CANARY}]}},
-                               'NoncurrentVersionExpiration': {'NoncurrentDays': 8}})
-        result = self.run_case(FakeS3(value), verify_only=True)
-        rows = result['remaining_enabled_expirations']
-        self.assertEqual(rows[-1]['id'], 'WITHHELD')
-        self.assertEqual(rows[-1]['prefix'], 'WITHHELD')
-        self.assertTrue(rows[-1]['tag_or_size_qualified'])
-        self.assertEqual(rows[0]['prefix'], 'system-events/')
+        for private in [CANARY, 'customer/private-prefix', 'private@example.invalid']:
+            value = fixture('Disabled')
+            value['Rules'].append({'ID': private, 'Status': 'Enabled',
+                                   'Filter': {'And': {'Prefix': private,
+                                                      'Tags': [{'Key': CANARY, 'Value': CANARY}]}},
+                                   'NoncurrentVersionExpiration': {'NoncurrentDays': 8}})
+            result = self.run_case(FakeS3(value), verify_only=True)
+            self.assertNotIn(private, json.dumps(result))
+            rows = result['remaining_enabled_expirations']
+            self.assertEqual(rows[-1]['id'], 'WITHHELD')
+            self.assertEqual(rows[-1]['prefix'], 'WITHHELD')
+            self.assertTrue(rows[-1]['tag_or_size_qualified'])
+            self.assertEqual(rows[0]['prefix'], 'system-events/')
 
     def test_read_only_entrypoint_cannot_select_mutating_mode(self):
         text = (PATH.parent / 'verify_6544_history_expiry.py').read_text()
