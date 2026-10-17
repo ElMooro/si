@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "4aa4ada6f3b1f72fa2611b1a2238fd59c58e1f8b",
-  "observed_at": "2026-10-17T03:58:20.616167+00:00",
-  "ok": false,
+  "observed_at": "2026-10-17T04:25:25.437249+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "signal-intelligence.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "4aa4ada6f3b1f72fa2611b1a2238fd59c58e1f8b": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -5000,12 +4998,13 @@
     },
     {
       "route": "signal-intelligence.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "4aa4ada6f3b1f72fa2611b1a2238fd59c58e1f8b",
+      "inspector_present": true,
+      "bytes_read": 21445,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "signal-orthogonality.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39000428963,
+  "deployment_run_id": 39001984141,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-17T03:58:20.624821+00:00"
+  "check_finished_at": "2026-10-17T04:25:25.446788+00:00"
 }
