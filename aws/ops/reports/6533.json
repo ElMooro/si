@@ -1,0 +1,131 @@
+{
+ "op": 6533,
+ "ran_at": "2026-10-17T01:27:53.598318+00:00",
+ "errors": {
+  "endpoint": "ClientError: An error occurred (AccessDeniedException) when calling the DescribeScheduledActions operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: application-autoscaling:DescribeScheduledActions on resource: arn:aws:application-autoscaling:us-east-1:8576879569"
+ },
+ "status": {
+  "version": "1.0.3",
+  "mode": "enforce",
+  "stage": "FREEZE",
+  "stage_since": "2026-10-16T22:53:03.699511+00:00",
+  "cap": 500.0,
+  "cap_source": "budget",
+  "held": {
+   "FREEZE/lambda": 914,
+   "FREEZE/smasync": 1
+  }
+ },
+ "smasync_entry": {
+  "status": "failed",
+  "error": "ValidationException",
+  "error_msg": "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms",
+  "failed_at": "2026-10-17T01:07:37.734218+00:00",
+  "applied_at": null,
+  "scale_down_note": null,
+  "scaled_down_from": null,
+  "before": {
+   "desired": 0,
+   "endpoint": "jh-owned-coder-async",
+   "max": 1,
+   "min": 0,
+   "suspended": {
+    "DynamicScalingInSuspended": false,
+    "DynamicScalingOutSuspended": false,
+    "ScheduledScalingSuspended": false
+   },
+   "variant": "owned"
+  }
+ },
+ "state_updated_at": "2026-10-17T01:07:37.734218+00:00",
+ "last_tick": {
+  "decision": "FREEZE",
+  "logs": [],
+  "mode": "enforce",
+  "mtd": 2604.3,
+  "reason": "steady",
+  "thresholds": {
+   "baseline_source": "median14",
+   "baseline_usd_day": 25.4,
+   "brake_at": 355.19,
+   "budget_forecast": 3041.538,
+   "budget_limit": 500.0,
+   "cap": 500.0,
+   "cap_at_risk_even_frozen": true,
+   "cap_source": "budget",
+   "days_left": 14.95,
+   "freeze_at": 406.0,
+   "freeze_line_floored": false,
+   "frozen_eom": 2688.3,
+   "lag_buffer": 25.4,
+   "mtd": 2604.3,
+   "projected_eom": 3009.53,
+   "reserve": 94.0,
+   "residual_source": "min7",
+   "residual_usd_day": 3.92,
+   "sources": {
+    "budget_actual": 2604.298,
+    "ce_mtd": 2351.1235
+   }
+  }
+ },
+ "ledger_failures": [
+  {
+   "key": "smasync:endpoint/jh-owned-coder-async/variant/owned",
+   "status": "failed",
+   "error": "ValidationException",
+   "error_msg": "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms"
+  }
+ ],
+ "endpoint": {
+  "status": "InService",
+  "config": "jh-owned-coder-cfg-16k-20260918200057",
+  "variants": [
+   {
+    "VariantName": "owned",
+    "CurrentInstanceCount": 0,
+    "DesiredInstanceCount": 0
+   }
+  ],
+  "last_modified": "2026-10-15 08:06:16.424000+00:00",
+  "instance_types": [
+   "ml.g5.xlarge"
+  ]
+ },
+ "scalable_target": [
+  {
+   "MinCapacity": 0,
+   "MaxCapacity": 1,
+   "SuspendedState": {
+    "DynamicScalingInSuspended": false,
+    "DynamicScalingOutSuspended": false,
+    "ScheduledScalingSuspended": false
+   },
+   "RoleARN": "arn:aws:iam::857687956942:role/aws-service-role/sagemaker.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_SageMakerEndpoint"
+  }
+ ],
+ "policies": [
+  {
+   "name": "jh-owned-coder-wake",
+   "type": "StepScaling",
+   "alarms": [
+    "jh-owned-coder-has-backlog"
+   ]
+  },
+  {
+   "name": "jh-owned-coder-backlog",
+   "type": "TargetTrackingScaling",
+   "alarms": [
+    "TargetTracking-endpoint/jh-owned-coder-async/variant/owned-AlarmHigh-03c32acc-5efd-4f35-a692-46f1ca5a6df9",
+    "TargetTracking-endpoint/jh-owned-coder-async/variant/owned-AlarmLow-27b44ff3-d259-4d64-b799-164fdeced99d"
+   ]
+  }
+ ],
+ "error_monitor": {
+  "lookback": "60",
+  "rule": "rate(1 hour)",
+  "rule_state": "ENABLED",
+  "last_modified": "2026-10-17T00:31:56.000+0000"
+ },
+ "ai_last_modified": "2026-10-16T23:10:59.000+0000"
+}

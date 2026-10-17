@@ -1,20 +1,38 @@
-executing-against: 9aa1b059788a7d6d76b6374fb5eb917cc38e1e17
-budget_before {"limit": 500.0, "actual": 2604.3}
-override_removed {"cap_usd": 3500.0, "reason": "October was already ~$2.4k when the cap was armed (ops 6519/6520: miss-calibrator <-> event-coordinator loop). The override keeps the rest of October a runaway-only guard; the $500 budget applies from 2026-11-01."}
-status_before {"stage": "FREEZE", "cap": 500.0, "cap_source": "budget", "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}, "budget_actual": 2604.298, "mode": "enforce"}
-forced {"stage": "FREEZE", "applied": {}}
-status_after {"stage": "FREEZE", "cap": 500.0, "cap_source": "budget", "budget_limit": 500.0, "budget_actual": 2604.298, "budget_forecast": 3041.538, "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}, "thresholds": {"cap": 500.0, "mtd": 2604.3, "days_left": 14.97, "baseline_usd_day": 25.4, "residual_usd_day": 3.92, "lag_buffer": 25.4, "reserve": 94.05, "freeze_at": 405.95, "brake_at": 355.15, "freeze_line_floored": false, "projected_eom": 3009.83, "frozen_eom": 2688.35, "cap_at_risk_even_frozen": true}, "stage_since": "2026-10-16T22:53:03.699511+00:00", "mode": "enforce"}
-invocations_20m {}
-non_exempt_invocations {}
-OK fleet frozen under the $500 budget
+executing-against: 4bbc1ba60cb20a533e43021c1f14800292e37c5a
+ops 6533 - governor v1.0.3, owned endpoint suspension, Oct 16 cost cuts live
+── Governor ──
+[01:27:55] governor status: {"version": "1.0.3", "mode": "enforce", "stage": "FREEZE", "stage_since": "2026-10-16T22:53:03.699511+00:00", "cap": 500.0, "cap_source": "budget", "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}}
+[01:27:55] state updated 2026-10-17T01:07:37.734218+00:00; smasync ledger entry: {"status": "failed", "error": "ValidationException", "error_msg": "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms", "failed_at": "2026-10-17T01:07:37.734218+00:00", "applied_at": null, "scale_down_note": null, "scaled_down_from": null, "before": {"desired": 0, "endpoint": "jh-owned-coder-async", "max": 1, "min": 0, "suspended": {"DynamicScalingInSuspended": false, "DynamicScalingOutSuspended": false, "ScheduledScalingSuspended": false}, "variant": "owned"}}
+[01:27:55] ⚠ ledger entries failing: [{"key": "smasync:endpoint/jh-owned-coder-async/variant/owned", "status": "failed", "error": "ValidationException", "error_msg": "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms"}]
+── Owned SageMaker endpoint ──
+[01:27:56] endpoint: {"status": "InService", "config": "jh-owned-coder-cfg-16k-20260918200057", "variants": [{"VariantName": "owned", "CurrentInstanceCount": 0, "DesiredInstanceCount": 0}], "last_modified": "2026-10-15 08:06:16.424000+00:00", "instance_types": ["ml.g5.xlarge"]}
+[01:27:56] scalable target: [{"MinCapacity": 0, "MaxCapacity": 1, "SuspendedState": {"DynamicScalingInSuspended": false, "DynamicScalingOutSuspended": false, "ScheduledScalingSuspended": false}, "RoleARN": "arn:aws:iam::857687956942:role/aws-service-role/sagemaker.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_SageMakerEndpoint"}]
+[01:27:56] scaling policies: [{"name": "jh-owned-coder-wake", "type": "StepScaling", "alarms": ["jh-owned-coder-has-backlog"]}, {"name": "jh-owned-coder-backlog", "type": "TargetTrackingScaling", "alarms": ["TargetTracking-endpoint/jh-owned-coder-async/variant/owned-AlarmHigh-03c32acc-5efd-4f35-a692-46f1ca5a6df9", "TargetTracking-endpoint/jh-owned-coder-async/variant/owned-AlarmLow-27b44ff3-d259-4d64-b799-164fdeced99d"]}]
+[01:27:56] ⚠ endpoint: ClientError: An error occurred (AccessDeniedException) when calling the DescribeScheduledActions operation: User: arn:aws:iam::857687956942:user/github-actions-justhodl is not authorized to perform: application-autoscaling:DescribeScheduledActions on resource: arn:aws:application-autoscaling:us-east-1:8576879569
+── Cost-cut deploys ──
+[01:27:57] fleet-error-monitor: {"lookback": "60", "rule": "rate(1 hour)", "rule_state": "ENABLED", "last_modified": "2026-10-17T00:31:56.000+0000"}
+[01:27:57] justhodl-ai LastModified 2026-10-16T23:10:59.000+0000 (bc19de21 deploy ran 2026-10-16T23:06Z)
+[01:27:57] ✅ all checks passed
+
+→ Report written to aws/ops/reports/latest/ops_6533_verify_governor_v103_and_endpoint.md
 ops 6529 - gentle purge + egress attribution
 ── Egress / access logs (read-only) ──
-[00:50:16] log day folders present: ['2026/09/14', '2026/09/15', '2026/09/16', '2026/09/17', '2026/09/18', '2026/09/19', '2026/09/20', '2026/09/21', '2026/09/22', '2026/09/23', '2026/09/24', '2026/09/25', '2026/09/26', '2026/09/27', '2026/09/28', '2026/09/29', '2026/09/30', '2026/10/01', '2026/10/02', '2026/10/03', '2026/10/04', '2026/10/05', '2026/10/06', '2026/10/07', '2026/10/08', '2026/10/09', '2026/10/10', '2026/10/11', '2026/10/12', '2026/10/13', '2026/10/14', '2026/10/15', '2026/10/16', '2026/10/17']
-[00:50:17] target bucket policy allows logging.s3.amazonaws.com: True; encryption {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}, "BucketKeyEnabled": false, "BlockedEncryptionTypes": {"EncryptionType": ["SSE-C"]}; ownership {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]}
-[00:50:17] newest log day 2026/10/17: 7 objects, last delivered 2026-10-17T00:47:05+00:00
-[00:50:17] egress sample hour 2026-10-17-00 (7 log objects): GB by requester [('anonymous', 0.017)]
-[00:50:17]   GB by client: [('-', 0.01), ('Mozilla', 0.008)]
-[00:50:17]   GB by key prefix: [('data/chokepoint.json', 0.01), ('data/share-flows.json', 0.008), ('data/buzz-velocity.json', 0.0), ('data/market-tape.json', 0.0), ('data/investor-lenses/FREKF.json', 0.0), ('equity-research/AIDX.TO.json', 0.0), ('data/backlog.json', 0.0)]
-[00:50:17]   GB by IP /16: [('162.158.*', 0.01), ('17.166.*', 0.008), ('172.71.*', 0.0), ('172.68.*', 0.0), ('104.22.*', 0.0), ('108.162.*', 0.0)]
+[01:27:58] log day folders present: ['2026/09/14', '2026/09/15', '2026/09/16', '2026/09/17', '2026/09/18', '2026/09/19', '2026/09/20', '2026/09/21', '2026/09/22', '2026/09/23', '2026/09/24', '2026/09/25', '2026/09/26', '2026/09/27', '2026/09/28', '2026/09/29', '2026/09/30', '2026/10/01', '2026/10/02', '2026/10/03', '2026/10/04', '2026/10/05', '2026/10/06', '2026/10/07', '2026/10/08', '2026/10/09', '2026/10/10', '2026/10/11', '2026/10/12', '2026/10/13', '2026/10/14', '2026/10/15', '2026/10/16', '2026/10/17']
+[01:27:59] target bucket policy allows logging.s3.amazonaws.com: True; encryption {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}, "BucketKeyEnabled": false, "BlockedEncryptionTypes": {"EncryptionType": ["SSE-C"]}; ownership {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]}
+[01:27:59] newest log day 2026/10/17: 1043 objects, last delivered 2026-10-17T01:27:59+00:00
+[01:28:04] egress sample hour 2026-10-17-00 (1043 log objects): GB by requester [('anonymous', 0.721), ('user/github-actions-justhodl', 0.0)]
+[01:28:04]   GB by client: [('-', 0.464), ('Mozilla', 0.256), ('aws-cli', 0.0), ('Lightpanda', 0.0)]
+[01:28:04]   GB by key prefix: [('data/best-setups.json', 0.147), ('data/etf-desk-research.json', 0.106), ('data/hiring-velocity.json', 0.068), ('data/share-flows.json', 0.053), ('data/earnings-quality.json', 0.04), ('data/risk-gate.json', 0.035), ('data/estimate-revisions.json', 0.033), ('data/buyback-engine.json', 0.028)]
+[01:28:04]   GB by IP /16: [('17.166.*', 0.222), ('104.22.*', 0.177), ('162.158.*', 0.067), ('172.71.*', 0.048), ('104.23.*', 0.04), ('172.68.*', 0.038)]
 ── Gentle purge ──
-[00:50:17] day-logs in scope (newest first): [('2026-10-16.jsonl', 26.0), ('2026-10-15.jsonl', 30.8), ('2026-10-14.jsonl', 30.7), ('2026-10-13.jsonl', 33.2), ('2026-10-12.jsonl', 22.0)]
+[01:28:04] day-logs in scope (newest first): [('2026-10-16.jsonl', 26.0), ('2026-10-15.jsonl', 30.8), ('2026-10-14.jsonl', 30.7), ('2026-10-13.jsonl', 33.2), ('2026-10-12.jsonl', 22.0)]
+[02:23:00] 2026-10-16.jsonl: listed 349752, deleted 349394, kept_larger 357, errors 0, pages 350, complete True
+[02:23:00] 2026-10-15.jsonl: listed 653059, deleted 652951, kept_larger 107, errors 0, pages 654, complete True
+[02:23:00] 2026-10-14.jsonl: listed 3213377, deleted 3213370, kept_larger 6, errors 0, pages 3214, complete True
+[02:23:00] 2026-10-13.jsonl: listed 2811297, deleted 2811218, kept_larger 78, errors 0, pages 2812, complete True
+[02:23:00] 2026-10-12.jsonl: listed 1531000, deleted 1530558, kept_larger 441, errors 0, pages 1531, complete False
+[02:23:01] ✅ current day-logs intact: True
+[02:23:01] ✅ deleted 8557491 noncurrent versions this run (errors 0)
+[02:23:01] ✅ wrote aws/ops/reports/6529.json
+
+→ Report written to aws/ops/reports/latest/ops_6529_purge_gently_and_egress_logs.md
