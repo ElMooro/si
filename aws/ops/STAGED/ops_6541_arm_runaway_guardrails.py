@@ -15,7 +15,7 @@ is additive (merge, never replace), and the reversal is listed at the bottom of 
      justhodl-event-breaker-{open,unavailable}, justhodl-s3-live-bucket-size -> governor + justhodl-fleet-alerts
   G. AWS Budgets JustHodl-Daily-Spend-Guard ($40/day actual -> the same e-mail as the monthly budget + governor);
      Cost Anomaly subscription threshold $100 & 40% -> $25 & 20%
-  H. S3 justhodl-dashboard-live: bucket-wide noncurrent-version bound (keep the 10 newest, expire older after 1 day)
+  H. Read-only check of the history-expiry containment authorized on 2026-10-17; never re-enable deletion.
   I. end to end: alarm justhodl-runaway-invocations forced to ALARM -> SNS -> governor fast fuse -> its decision
      record lands in S3; then back to OK
 """
@@ -321,20 +321,15 @@ def anomaly(r):
 
 # H ─────────────────────────────────────────────────────────────────────────────────────────────
 def lifecycle(r):
+    # Khalid, 2026-10-17 02:52:14 UTC: disable this automatic history deletion.
+    # Keep this old arming operation read-only here so a rerun cannot undo ops6544.
     rule_id = "ops6541-bound-noncurrent-versions"
     rules = s3.get_bucket_lifecycle_configuration(Bucket=LIVE_BUCKET).get("Rules", [])
-    rules = [x for x in rules if x.get("ID") != rule_id]
-    rules.append({"ID": rule_id, "Status": "Enabled", "Filter": {"Prefix": ""},
-                  "NoncurrentVersionExpiration": {"NoncurrentDays": 1, "NewerNoncurrentVersions": 10}})
-    s3.put_bucket_lifecycle_configuration(Bucket=LIVE_BUCKET, LifecycleConfiguration={"Rules": rules})
-    for _ in range(12):  # lifecycle reads are eventually consistent
-        got = s3.get_bucket_lifecycle_configuration(Bucket=LIVE_BUCKET).get("Rules", [])
-        mine = [x for x in got if x.get("ID") == rule_id]
-        if mine:
-            r.ok("lifecycle %s present (%d rules total): %s" % (rule_id, len(got), mine[0].get("NoncurrentVersionExpiration")))
-            return {"rules": len(got)}
-        time.sleep(5)
-    raise RuntimeError("lifecycle rule not visible after 60 s")
+    mine = [x for x in rules if x.get("ID") == rule_id]
+    if len(mine) > 1 or (mine and mine[0].get("Status") != "Disabled"):
+        raise RuntimeError("history-expiry containment requires ops6544; this operation cannot arm it")
+    r.ok("history-expiry rule disabled or absent; no lifecycle write performed")
+    return {"history_expiry_arming": "prohibited", "lifecycle_write": False}
 
 
 # I ─────────────────────────────────────────────────────────────────────────────────────────────
