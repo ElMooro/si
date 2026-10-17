@@ -2,7 +2,7 @@
 
 ```json
 {
-  "checked_at": "2026-10-17T03:05:04.264115+00:00",
+  "checked_at": "2026-10-17T03:11:06.579297+00:00",
   "failure_code": null,
   "op": 6544,
   "other_rules_and_fields_unchanged": true,
@@ -29,8 +29,8 @@
           "NoncurrentDays": 1
         }
       },
-      "id": "WITHHELD",
-      "prefix": "WITHHELD",
+      "id": "ops5027-purge-dead-versions-providers",
+      "prefix": "data/providers/",
       "rule_index": 7,
       "tag_or_size_qualified": false
     },
@@ -43,7 +43,7 @@
           "NoncurrentDays": 1
         }
       },
-      "id": "WITHHELD",
+      "id": "ops5164-purge-dead-versions-data",
       "prefix": "data/",
       "rule_index": 8,
       "tag_or_size_qualified": false
@@ -64,7 +64,7 @@
     }
   ],
   "schema": "retention-containment.v1",
-  "source_sha": "1afe7863e45f4a501673a96631bda191bacf9399",
+  "source_sha": "c8dd9f035b78f663f2a7b7777002ad42cb543cc6",
   "status": "VERIFIED_DISABLED",
   "target_after": {
     "Filter": {
