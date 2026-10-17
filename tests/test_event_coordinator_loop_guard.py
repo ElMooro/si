@@ -62,7 +62,8 @@ class LoopGuardTests(unittest.TestCase):
                            'BUCKET': 'b', 's3': FakeS3(),
                            'ROUTES': {'near_miss.extreme': {'invoke': ['justhodl-miss-calibrator', 'justhodl-other'],
                                                             'notify': False, 'audit': False}},
-                           'send_telegram_alert': lambda *a: True})
+                           'send_telegram_alert': lambda *a: True,
+                           'breaker_allow': lambda fn, ev, now=None: {'allow': True}})
 
     def event(self, producer='miss-calibrator', source='justhodl.miss-calibrator'):
         return {'id': 'e-1', 'detail-type': 'near_miss.extreme', 'source': source,

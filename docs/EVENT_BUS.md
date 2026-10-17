@@ -184,7 +184,7 @@ window.
 re-emitted it on every run, so each run re-invoked itself through the bus: ~33M invocations in 7 days,
 ~$450/day of Lambda from Oct 12 to 16. EventBridge hops reset Lambda's recursion lineage, so AWS's
 16-hop recursive-loop breaker never fired. Every routed event also rewrote the whole day audit log in the
-versioned bucket, taking it from 0.9 TB to 106 TB of noncurrent copies.
+versioned bucket, taking it from 0.9 TB to 145 TB of noncurrent copies.
 
 **Rules, enforced in code:**
 
@@ -195,9 +195,23 @@ versioned bucket, taking it from 0.9 TB to 106 TB of noncurrent copies.
    as `skipped: self_loop_guard`. Tests: `tests/test_event_coordinator_loop_guard.py`.
 3. The audit day-log stops growing at 5 MB (`AUDIT_MAX_BYTES`); `system-events/` has a 1-day
    noncurrent-version expiry (`ops6520-purge-dead-versions-system-events`).
-4. Longer cycles (A -> coordinator -> B -> coordinator -> A) are not caught by rule 2; the spend governor's
-   runaway fuse (`docs/ops/SPEND_GOVERNOR.md`) throttles any function that burns far above normal for two
-   consecutive hourly checks.
+4. Longer cycles (A -> coordinator -> B -> coordinator -> A) are not caught by rule 2. Since 2026-10-17 they
+   are stopped three other ways (full runbook: `docs/ops/RUNAWAY_GUARDRAILS.md`):
+   * **Deploy gate.** `scripts/event_graph.py` maps every publisher, every route, every bus rule and every
+     direct `lambda.invoke`; `tests/deployment/test_event_graph_acyclic.py` runs on every Lambda deploy and
+     fails while any cycle passes through the bus. Direct invoke chains (self-continuations) must be listed
+     with their stop condition in `config/loop-allowlist.json`. A new bus rule goes into
+     `config/eventbridge-bus-rules.json` in the same commit.
+   * **Circuit breaker.** Each route target has an hourly invoke budget in DynamoDB table
+     `justhodl-event-breaker` (default 30/h, alpha-compass 60, engine-signal-map 90, miss-calibrator 6;
+     300/h for the whole coordinator). Past it the invoke is skipped and acknowledged, `BREAKER_OPEN` is
+     logged once, and alarm `justhodl-event-breaker-open` wakes the spend governor and e-mails. Fail-closed.
+   * **Fast fuse.** Sustained-runaway alarms reach the spend governor through SNS and it throttles the
+     hottest sustained burners in seconds (`docs/ops/SPEND_GOVERNOR.md`).
+
+**Adding a route:** add it to `ROUTES`, then run `python3 scripts/event_graph.py`. Exit 0 = no loop. If the
+target publishes an event that leads back to the producer, change the design; the gate cannot be allowlisted
+for bus loops. Give a new busy target its own budget in `BREAKER_PER_HOUR` (2x its busiest normal hour).
 
 ---
 

@@ -1,0 +1,12 @@
+{
+  "_doc": "Rules on the EventBridge bus justhodl-system-events, as exported from AWS by ops 6534 (2026-10-17). scripts/event_graph.py treats a rule that sends a detail-type straight to a Lambda as an event edge. Any op that adds a rule on this bus must add it here in the same commit; the coordinator's own catch-all rule is listed for completeness and ignored by the analyzer.",
+  "exported_at": "2026-10-17T01:30:18Z",
+  "rules": [
+    {
+      "name": "justhodl-events-to-coordinator",
+      "pattern": {"source": [{"prefix": "justhodl."}]},
+      "detail_types": [],
+      "targets": ["justhodl-event-coordinator"]
+    }
+  ]
+}

@@ -29,6 +29,7 @@ brake_at  = freeze_at - max($40, 2 days of baseline)
 | BRAKE | MTD >= brake_at | throttles the Lambdas that make up 80% of the last 72 h of Lambda cost + `brake_always` (justhodl-ai, student-rsi, factory-grader); suspends SageMaker async endpoints to zero; deletes real-time endpoints (config kept); stops SageMaker jobs, notebooks, Studio apps; stops EC2, RDS; pauses App Runner; scales ECS to 0 |
 | FREEZE | MTD >= freeze_at | reserved concurrency 0 on every non-exempt function, event source mappings disabled, everything in BRAKE |
 | FUSE | any time | a single function burning >= $20/day over the last hour, still invoking in the last 20 min, with the fleet far above normal, at two consecutive checks 0.8-3 h apart, is throttled |
+| FAST FUSE (v1.1.0) | a sustained-runaway alarm goes to ALARM | within seconds: every function burning >= $20/day over the alarm's 15 minutes, carrying >= 10% of the fleet's burn, and at that rate in each 5-minute bucket (a burst that ended never qualifies) is throttled - top 5 per alarm, held as FUSE |
 
 BRAKE/FREEZE hold until **the 1st of the month (UTC)**, **a budget raise**, or **an operator release** -
 never because the moving lines drift. FUSE holds survive the 1st and are only lifted by an operator, because
@@ -46,7 +47,8 @@ Exempt by default: `justhodl-spend-governor`, `justhodl-guardrail-notify`, `just
 | What | Where |
 |---|---|
 | Engine | `aws/lambdas/justhodl-spend-governor/` (role `justhodl-spend-governor-role`, reserved concurrency 1) |
-| Triggers | Scheduler `justhodl-spend-governor-tick` `cron(7 * * * ? *)`; SNS `justhodl-spend-governor` (only AWS Budgets may publish) |
+| Triggers | Scheduler `justhodl-spend-governor-tick` `cron(7 * * * ? *)`; SNS `justhodl-spend-governor` (AWS Budgets notices -> tick; CloudWatch alarms `justhodl-runaway-*`, `justhodl-event-breaker-open`, `justhodl-s3-live-bucket-size` -> fast fuse) |
+| Runaway alarms (ops 6541) | `justhodl-runaway-concurrency` (account avg > 100 for 3x5 min), `justhodl-runaway-invocations` (> 8,000 per 5 min, 3x), `justhodl-runaway-duration` (> 20M ms per 5 min, 3x) - normal Sep 15-Oct 11 never held above 17.7 / 5,303 / 4.8M for 15 min; the Oct 12 storm held 760 / 35,302 / 227M |
 | State | `s3://justhodl-ops-private-857687956942/spend-governor/state.json` (private, versioned) |
 | Control | `s3://justhodl-ops-private-857687956942/spend-governor/control.json` - `mode` (monitor/enforce), `cap_overrides` per month, `exempt_functions`, `exempt_prefixes`, `brake_always`, `thresholds` |
 | Audit | `spend-governor/events/<ts>-<kind>.json` (every escalation, restore, fuse trip) |
@@ -70,6 +72,9 @@ aws lambda invoke --function-name justhodl-spend-governor --cli-binary-format ra
 # release everything the cap holds and stay released for 24 h
 aws lambda invoke --function-name justhodl-spend-governor --cli-binary-format raw-in-base64-out \
   --payload '{"action":"restore","suppress_hours":24}' /dev/stdout
+# run the fast fuse now, exactly as a runaway alarm would (it only throttles sustained burners)
+aws lambda invoke --function-name justhodl-spend-governor --cli-binary-format raw-in-base64-out \
+  --payload '{"action":"fast_fuse"}' /dev/stdout
 # release one runaway-fuse hold after the cause is fixed
 aws lambda invoke --function-name justhodl-spend-governor --cli-binary-format raw-in-base64-out \
   --payload '{"action":"restore","include_fuse":true,"only_ids":["justhodl-xyz"]}' /dev/stdout

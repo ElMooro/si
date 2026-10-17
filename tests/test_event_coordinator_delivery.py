@@ -30,7 +30,8 @@ class DeliveryTests(unittest.TestCase):
             'governed_target':lambda fn:fn, 'lam':SimpleNamespace(invoke=invoke),
             'ROUTES':{'regime.changed':{'invoke':['target-a','target-b'],'notify':True,'audit':True}},
             'send_telegram_alert':lambda *args:self.notifications.append(args) or True,
-            'write_audit':lambda *args:self.audits.append(args)}
+            'write_audit':lambda *args:self.audits.append(args),
+            'breaker_allow':lambda fn, ev, now=None:{'allow':True}}
         names={'_payload_hash','delivery_state','invoke_target','handler','_engine_id','is_self_loop'}
         tree=ast.parse(SOURCE.read_text(encoding='utf-8'))
         nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in names]

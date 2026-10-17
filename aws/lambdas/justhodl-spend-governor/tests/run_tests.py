@@ -122,10 +122,11 @@ class FakeCE:
 
 
 class FakeCW:
-    def __init__(self, alarm_state="OK", durations=None, ended=()):
+    def __init__(self, alarm_state="OK", durations=None, ended=(), burst=()):
         self.alarm_state = alarm_state
         self.durations = durations or {}
         self.ended = set(ended)  # burned in the past hour but no invocations in the last minutes
+        self.burst = set(burst)  # the whole window's burn landed in its first bucket (a burst that ended)
         self.metrics = []
 
     def describe_alarms(self, AlarmNames):
@@ -141,7 +142,13 @@ class FakeCW:
             v = per_h * hours if m["MetricName"] == "Duration" else (10.0 * hours if per_h else 0.0)
             if m["MetricName"] == "Invocations" and hours < 0.5 and fn in self.ended:
                 v = 0.0
-            out.append({"Id": q["Id"], "Values": [v]})
+            period = q["MetricStat"].get("Period") or int(hours * 3600)
+            n = max(1, int(round(hours * 3600 / period)))
+            vals = [v / n] * n
+            if fn in self.burst and n > 1:
+                vals = [v] + [0.0] * (n - 1)
+            out.append({"Id": q["Id"], "Values": vals,
+                        "Timestamps": [StartTime + timedelta(seconds=period * k) for k in range(n)]})
         return {"MetricDataResults": out}
 
     def put_metric_data(self, **kw):
@@ -187,9 +194,9 @@ class Context:
         return 600000
 
 
-def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0, ended=()):
+def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0, ended=(), burst=()):
     w = {"lambda": FakeLambda(fns), "budgets": FakeBudgets(limit, actual), "ce": FakeCE(daily),
-         "cloudwatch": FakeCW(alarm, durations, ended), "s3": FakeS3(), "sns": FakeSNS()}
+         "cloudwatch": FakeCW(alarm, durations, ended, burst), "s3": FakeS3(), "sns": FakeSNS()}
     w["lambda-probe"] = w["lambda"]
     gov._clients.clear()
     gov.client = lambda name: w.get(name) or w.setdefault(name, Empty())
@@ -481,6 +488,71 @@ def test_smasync_lever():
     gov.apply_entries(ctx, [e], True, datetime(2026, 10, 17, 1, tzinfo=timezone.utc))
     check(e["status"] == "applied" and "error" not in e and "error_msg" not in e,
           "a later success clears the old error")
+
+
+def alarm_record(name="justhodl-runaway-concurrency", state="ALARM"):
+    msg = {"AlarmName": name, "NewStateValue": state, "NewStateReason": "Threshold Crossed: 3 datapoints"}
+    return {"Records": [{"EventSource": "aws:sns", "Sns": {"Message": json.dumps(msg)}}]}
+
+
+def test_fast_fuse_selection():
+    cfg = core.merged_cfg()
+    costs = {"loop": 400.0, "other": 30.0, "small": 1.0}
+    b = {"loop": [390.0, 410.0, 400.0], "other": [90.0, 0.0, 0.0]}
+    check(core.fast_fuse_targets(costs, b, set(), cfg) == ["loop"],
+          "fast fuse picks the sustained burner, not a 5% sharer whose burn already stopped")
+    check(core.fast_fuse_targets(costs, b, {"loop"}, cfg) == [], "an exempt function is never fast-fused")
+    check(core.fast_fuse_targets({"burst": 300.0}, {"burst": [900.0, 0.0, 0.0]}, set(), cfg) == [],
+          "a burst that ended inside the window (the 2026-10-10 654-copy fan-out) is ignored")
+    check(core.fast_fuse_targets({"a": 15.0}, {"a": [15.0, 15.0, 15.0]}, set(), cfg) == [],
+          "below the $20/day floor nothing is fused")
+    many = {"f%d" % i: 100.0 for i in range(9)}
+    check(len(core.fast_fuse_targets(many, {k: [100.0] * 3 for k in many}, set(), cfg)) == 5,
+          "at most 5 functions per alarm")
+
+
+def test_alarm_runs_the_fast_fuse():
+    durations = {"justhodl-alpha": 900000000.0, "justhodl-gamma": 10000.0}  # ms per hour: ~$180/day vs pennies
+    w = world(FLEET, actual=50, durations=durations)
+    set_control(w)
+    out = gov.lambda_handler(alarm_record(), Context())
+    st = state_of(w)
+    check(out.get("new") == ["justhodl-alpha"] and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0,
+          "a sustained-runaway alarm throttles the runaway in the same invocation (%s)" % out.get("new"))
+    check(st["ledger"]["lambda:justhodl-alpha"]["stage"] == "FUSE", "fast-fuse hold is a FUSE entry (survives the 1st)")
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "fast fuse leaves every other function alone")
+    check(any("STOPPED" in m["Subject"] for m in w["sns"].sent), "fast fuse sends a notification")
+    again = gov.lambda_handler(alarm_record("justhodl-runaway-duration"), Context())
+    check(again.get("checked") is False, "a second alarm within 5 minutes does not re-run the fast fuse")
+    ok = gov.lambda_handler(alarm_record(state="OK"), Context())
+    check(ok.get("action") == "none", "an OK transition does nothing")
+    guard = gov.lambda_handler(alarm_record("justhodl-guard-lambda-concurrency"), Context())
+    check(guard.get("action") == "none", "short-window guard alarms never trigger the fast fuse")
+    r = gov.lambda_handler({"action": "restore", "include_fuse": True, "only_ids": ["justhodl-alpha"]}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] is None, "operator restore releases a fast-fuse hold")
+
+
+def test_fast_fuse_ignores_a_burst_that_ended():
+    w = world(FLEET, actual=50, durations={"justhodl-alpha": 900000000.0}, burst=("justhodl-alpha",))
+    set_control(w)
+    out = gov.lambda_handler(alarm_record(), Context())
+    check(out.get("new") == [] and w["lambda"].fns["justhodl-alpha"].get("reserved") is None,
+          "a function whose burn stopped inside the alarm window is not throttled")
+
+
+def test_fast_fuse_monitor_mode_changes_nothing():
+    w = world(FLEET, actual=50, durations={"justhodl-alpha": 900000000.0})
+    set_control(w, mode="monitor")
+    gov.lambda_handler(alarm_record(), Context())
+    check(w["lambda"].fns["justhodl-alpha"].get("reserved") is None, "monitor mode reports, never throttles")
+
+
+def test_budgets_sns_still_ticks():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    out = gov.lambda_handler({"Records": [{"EventSource": "aws:sns", "Sns": {"Message": "AWS Budget Notification"}}]},
+                             Context())
+    check(out.get("trigger") == "budget-sns", "a plain-text Budgets notice still runs a tick")
 
 
 def test_plan_is_read_only():

@@ -37,6 +37,13 @@ CE_INTERVAL_H = float(os.environ.get("CE_INTERVAL_H", "6"))
 GUARD_ALARMS = ("justhodl-guard-lambda-invocations-1h", "justhodl-guard-lambda-concurrency",
                 "justhodl-guard-lambda-recursion-dropped-account")
 CANARY_PREFIX = "justhodl-spend-governor-canary"
+# v1.1.0: CloudWatch alarms that mean "the fleet has been far above normal for 15 minutes" (thresholds
+# calibrated by ops 6534 from Sep 15 - Oct 11 vs the Oct 12-16 storm).  Their ALARM notification reaches this
+# function through SNS justhodl-spend-governor and runs the fast fuse.  The older GUARD_ALARMS fire on short
+# legitimate bursts too (2026-10-10 16:33, a 4-minute fan-out), so they only speed up the hourly fuse.
+RUNAWAY_ALARMS = ("justhodl-runaway-concurrency", "justhodl-runaway-invocations", "justhodl-runaway-duration",
+                  "justhodl-event-breaker-open", "justhodl-s3-live-bucket-size")
+FAST_FUSE_MIN_GAP_S = 300
 DEFAULT_CONTROL = {
     "mode": "monitor",
     "exempt_functions": ["justhodl-guardrail-notify", "justhodl-supabase-keepalive", "justhodl-dr-snapshot"],
@@ -422,6 +429,106 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
     return {"checked": True, "firing": firing, "runaway": run, "new": new, "counts": counts}
 
 
+def sns_alarm(event):
+    """The CloudWatch alarm notification inside an SNS record, or None (AWS Budgets sends plain text)."""
+    try:
+        msg = json.loads(event["Records"][0]["Sns"].get("Message") or "")
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+    return msg if isinstance(msg, dict) and msg.get("AlarmName") else None
+
+
+def lambda_cost_buckets(ctx, names, minutes=15, period=300, lag_min=2):
+    """USD/day per function for each `period` bucket of the last `minutes` (ending lag_min ago: Lambda metrics
+    land 1-3 minutes late, and a half-filled newest bucket must not hide a runaway).  Missing bucket = 0."""
+    fns = {f["name"]: f for f in lv.list_functions(ctx)}
+    end = now_utc().replace(second=0, microsecond=0) - timedelta(minutes=lag_min)
+    start = end - timedelta(minutes=minutes)
+    q = []
+    for i, fn in enumerate(names):
+        for tag, metric in (("d", "Duration"), ("n", "Invocations")):
+            q.append({"Id": "%s%d" % (tag, i), "ReturnData": True, "MetricStat": {
+                "Metric": {"Namespace": "AWS/Lambda", "MetricName": metric,
+                           "Dimensions": [{"Name": "FunctionName", "Value": fn}]},
+                "Period": period, "Stat": "Sum"}})
+    raw = {}
+    for i in range(0, len(q), 500):
+        r = client("cloudwatch").get_metric_data(MetricDataQueries=q[i:i + 500], StartTime=start, EndTime=end)
+        for res in r["MetricDataResults"]:
+            raw[res["Id"]] = {str(t): v for t, v in zip(res.get("Timestamps") or [], res.get("Values") or [])}
+    n_buckets = max(1, int(minutes * 60 // period))
+    out = {}
+    for i, fn in enumerate(names):
+        f = fns.get(fn) or {"mem": 128, "arch": "x86_64"}
+        d, n = raw.get("d%d" % i, {}), raw.get("n%d" % i, {})
+        rates = [core.lambda_cost_per_day(d.get(t, 0.0), n.get(t, 0.0), f["mem"], f["arch"], period / 3600.0)
+                 for t in sorted(set(d) | set(n))][-n_buckets:]
+        out[fn] = [0.0] * (n_buckets - len(rates)) + rates
+    return out
+
+
+def fast_fuse(ctx, state, cfg, now, enforce, alarm):
+    """v1.1.0: stop a runaway within minutes of a sustained-runaway alarm instead of the hourly two-strike fuse.
+
+    2026-10-12: justhodl-guard-lambda-concurrency went to ALARM at 09:18, three minutes into the loop, and stayed
+    there 4.4 days - its notification reached only an unconfirmed e-mail and a dead Telegram bot, and nothing
+    acted on it.  Now the alarm itself is the trigger."""
+    ff = state.setdefault("fast_fuse", {})
+    last = ff.get("at")
+    if last and (now - core.as_utc(last)).total_seconds() < FAST_FUSE_MIN_GAP_S:
+        return {"checked": False, "reason": "fast fuse ran %ds ago" % (now - core.as_utc(last)).total_seconds()}
+    name = alarm.get("AlarmName")
+    costs = lambda_costs(ctx, 0.25)
+    exempt = {n for n in costs if ctx.exempt(n)}
+    total = sum(costs.values())
+    floor = cfg["runaway_fn_usd_day"]
+    hot = [fn for fn, usd in sorted(costs.items(), key=lambda kv: -kv[1])
+           if fn not in exempt and usd >= floor and usd >= cfg["fast_fuse_min_share"] * total][:10]
+    buckets = lambda_cost_buckets(ctx, hot) if hot else {}
+    picks = core.fast_fuse_targets(costs, buckets, exempt, cfg)
+    new = [fn for fn in picks if ("lambda:" + fn) not in ctx.ledger]
+    top = [(k, round(v, 2)) for k, v in sorted(costs.items(), key=lambda kv: -kv[1])[:8]]
+    ff.update({"at": now.isoformat(), "alarm": name, "fleet_usd_day": round(total, 2), "hot": hot,
+               "picks": picks, "new": new, "top": top,
+               "buckets": {fn: [round(x, 1) for x in buckets.get(fn, [])] for fn in hot}})
+    if not new:
+        record_event("fast-fuse-check", {"alarm": name, "fleet_usd_day": round(total, 2), "hot": hot, "picks": picks,
+                                         "top": top, "enforce": enforce}, now)
+        return {"checked": True, "alarm": name, "fleet_usd_day": round(total, 2), "hot": hot, "picks": picks,
+                "new": []}
+    entries = lv.lambda_discover(ctx, "FUSE", new)
+    counts = apply_entries(ctx, entries, enforce, now)
+    lines = ["Alarm %s: the fleet has been far above normal for 15 minutes." % name,
+             "Fast fuse %s %d function(s) burning in every 5-minute bucket of the window:" % (
+                 "throttled" if enforce else "would throttle", len(new))]
+    lines += ["  %s  ~$%.0f/day  buckets %s" % (fn, costs[fn], [round(x) for x in buckets.get(fn, [])]) for fn in new]
+    lines += ["Fleet Lambda rate ~$%.0f/day. Nothing else was touched." % total,
+              "Reversal after the cause is fixed: invoke justhodl-spend-governor "
+              "{\"action\":\"restore\",\"include_fuse\":true,\"only_ids\":[\"<function>\"]}."]
+    notify("JustHodl runaway STOPPED: %s" % ", ".join(new[:3]), lines, "enforce" if enforce else "monitor")
+    record_event("fast-fuse", {"alarm": name, "functions": new, "costs": {fn: costs[fn] for fn in new},
+                               "buckets": {fn: buckets.get(fn) for fn in new}, "counts": counts,
+                               "enforce": enforce}, now)
+    return {"checked": True, "alarm": name, "fleet_usd_day": round(total, 2), "picks": picks, "new": new,
+            "counts": counts}
+
+
+def alarm_trigger(event, context, alarm):
+    now = now_utc()
+    name, alarm_state = alarm.get("AlarmName"), alarm.get("NewStateValue")
+    if name not in RUNAWAY_ALARMS or alarm_state != "ALARM":
+        return {"trigger": "alarm", "alarm": name, "state": alarm_state, "action": "none"}
+    control = load_control()
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    cfg = core.merged_cfg(control.get("thresholds"))
+    res = fast_fuse(ctx, state, cfg, now, control.get("mode") == "enforce", alarm)
+    state.update({"version": core.VERSION, "updated_at": now.isoformat()})
+    s3_put_json("state.json", state)
+    res.update({"trigger": "alarm", "alarm": name, "logs": ctx.logs[-10:]})
+    return res
+
+
 def month_rollover(ctx, state, now, mode):
     old = state.get("month")
     record_event("month-close", {"month": old, "stage": state.get("stage"), "ledger_size": len(ctx.ledger),
@@ -667,6 +774,9 @@ def action_selftest(event, context):
 def lambda_handler(event, context):
     event = event if isinstance(event, dict) else {}
     if event.get("Records") and str(event["Records"][0].get("EventSource", "")).lower() == "aws:sns":
+        alarm = sns_alarm(event)
+        if alarm:
+            return alarm_trigger(event, context, alarm)
         return tick(event, context, "budget-sns")
     action = event.get("action", "tick")
     if action == "tick":
@@ -681,6 +791,9 @@ def lambda_handler(event, context):
         return action_restore(event, context)
     if action == "selftest":
         return action_selftest(event, context)
+    if action == "fast_fuse":  # manual / verification entry point: same path as a runaway alarm
+        return alarm_trigger(event, context, {"AlarmName": event.get("alarm") or RUNAWAY_ALARMS[0],
+                                              "NewStateValue": "ALARM", "manual": True})
     if action == "fuse_check":
         now = now_utc()
         control = load_control()

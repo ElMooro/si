@@ -15,6 +15,8 @@ So the governor works on lines computed BELOW the cap:
   * FREEZE (MTD >= freeze_at): throttle everything except a small exempt set
   * FUSE   (any time):         a runaway function (guard alarm in ALARM and the function alone burning
                                >= runaway_fn_usd_day) is throttled within the hour, cap or no cap
+  * FAST FUSE (v1.1.0):        a sustained runaway alarm (15 min far above normal) reaches the governor
+                               through SNS and the hottest sustained burners are throttled in seconds
 
 Once BRAKE/FREEZE is entered it holds until the month rolls over, the cap is RAISED, or an operator
 releases it - never because the moving lines drift (that would flap).  FUSE entries are only lifted
@@ -22,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.0.3"
+VERSION = "1.1.0"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -38,6 +40,8 @@ DEFAULTS = {
     "baseline_default_usd_day": 20.0,
     "runaway_fn_usd_day": 20.0,   # a single function burning faster than this during a guard alarm is a runaway
     "runaway_total_factor": 3.0,  # ... and the fleet as a whole must exceed 3x its normal daily spend
+    "fast_fuse_min_share": 0.10,  # fast fuse (v1.1.0): a function must carry >= 10% of the fleet's burn ...
+    "fast_fuse_max_fns": 5.0,     # ... and at most the 5 hottest are throttled per alarm
     "brake_shed_share": 0.8,      # BRAKE throttles the top Lambda spenders covering 80% of Lambda cost
     "brake_max_functions": 40,
     "brake_min_fn_usd_day": 0.05,
@@ -186,6 +190,21 @@ def runaway_functions(costs_per_day, baseline, exempt, cfg):
     return sorted((fn for fn, usd in costs_per_day.items()
                    if usd >= cfg["runaway_fn_usd_day"] and fn not in exempt),
                   key=lambda fn: -costs_per_day[fn])
+
+
+def fast_fuse_targets(costs_per_day, buckets, exempt, cfg):
+    """Functions the FAST fuse throttles once a sustained runaway alarm fires (v1.1.0).
+
+    The alarm already proves the fleet has been far above normal for 15 minutes, so unlike the hourly fuse there
+    is no second strike: a function qualifies when it burned >= runaway_fn_usd_day over the alarm window, carries
+    >= fast_fuse_min_share of the fleet's burn, and every 5-minute bucket of the window stayed at that rate (a
+    burst that already ended - the 2026-10-10 16:30 fan-out of 654 copies for ~4 minutes - never qualifies)."""
+    total = sum(costs_per_day.values())
+    floor = cfg["runaway_fn_usd_day"]
+    picks = [fn for fn, usd in sorted(costs_per_day.items(), key=lambda kv: -kv[1])
+             if fn not in exempt and usd >= floor and usd >= cfg["fast_fuse_min_share"] * total]
+    picks = [fn for fn in picks if buckets.get(fn) and min(buckets[fn]) >= floor]
+    return picks[:int(cfg["fast_fuse_max_fns"])]
 
 
 def is_exempt(fn, control, self_name):

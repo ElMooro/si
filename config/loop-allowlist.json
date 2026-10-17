@@ -1,0 +1,33 @@
+{
+  "_doc": "Deliberate Lambda invoke chains that scripts/event_graph.py reports as cycles. Each entry must name the stop condition that ends the chain. An EVENT loop (a cycle through the event bus) can never be listed here: tests/deployment/test_event_graph_acyclic.py fails every deploy while one exists. Added 2026-10-17 after the miss-calibrator / coordinator loop (docs/ops/POSTMORTEM_2026-10_EVENT_LOOP.md).",
+  "invoke_cycles": [
+    {
+      "nodes": ["justhodl-13f-clone-alpha"],
+      "stop": "continues only while not complete and hop < MAX_HOPS, and only with SELF_CHAIN=on (default off: the state machine drives it)"
+    },
+    {
+      "nodes": ["justhodl-a2a-bus", "justhodl-backend-agent"],
+      "stop": "the bus wakes the backend agent only for turns NOT sent by claude*; the agent posts as claude-backend, so its own posts never wake it again"
+    },
+    {
+      "nodes": ["justhodl-equity-research"],
+      "stop": "kickoff mode starts ONE async worker run for a request; the worker run is not in kickoff mode"
+    },
+    {
+      "nodes": ["justhodl-fundamental-census"],
+      "stop": "walk chains while depth + 1 < CHAIN_MAX, then fires one aggregate phase"
+    },
+    {
+      "nodes": ["justhodl-sdmx-walker"],
+      "stop": "the cron run fans out one async run per agency; an agency run (event carries the agency) never fans out"
+    },
+    {
+      "nodes": ["justhodl-tv-bars"],
+      "stop": "fanout mode starts N shard runs in refresh mode; refresh runs never fan out"
+    },
+    {
+      "nodes": ["justhodl-symdir"],
+      "stop": "codelists fan-out skips shards whose state says left == 0; shard runs and the ustbank kick do not fan out"
+    }
+  ]
+}

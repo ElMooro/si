@@ -58,6 +58,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 import boto3
+from botocore.exceptions import ClientError
 from governed_targets import governed_target, function_identity
 
 from _sentry_lite import track_errors
@@ -563,6 +564,59 @@ def is_self_loop(target_fn: str, detail: dict, source=None) -> bool:
     return bool(producer) and producer != "?" and producer == _engine_id(target_fn)
 
 
+# ─── Circuit breaker (2026-10-17, after the Oct 12-16 loop) ─────────────
+# A durable budget of invocations per target per clock hour, shared by every copy of this function through
+# DynamoDB (the in-memory dedupe above is per warm container: 700 concurrent copies had 700 private caches).
+# Past the budget the target's route is OPEN until the hour turns: the invoke is skipped, the event is still
+# acknowledged and audited, and one BREAKER_OPEN line per target-hour per container feeds the CloudWatch
+# metric filter -> alarm -> spend governor + e-mail.  Fail-closed: no budget answer, no invoke (every route
+# here is advisory coordination; a lost nudge is cheap, an unbounded one cost $2,300).
+# Budgets: >= 2x each target's busiest normal hour Sep 1 - Oct 11 (ops 6534); miss-calibrator runs weekly.
+BREAKER_TABLE = os.environ.get("EVENT_BREAKER_TABLE", "justhodl-event-breaker")
+BREAKER_DEFAULT_PER_HOUR = 30
+BREAKER_PER_HOUR = {"justhodl-alpha-compass": 60, "justhodl-engine-signal-map": 90, "justhodl-miss-calibrator": 6}
+BREAKER_GLOBAL_PER_HOUR = 300
+BREAKER_TTL_S = 3 * 86400
+ddb = boto3.client("dynamodb", region_name=REGION)
+_breaker_logged = set()
+
+
+def _breaker_take(key: str, limit: int, now: datetime) -> str:
+    """Atomically take one unit of `key`'s hourly budget. Returns ok | open | unavailable:<code>."""
+    try:
+        ddb.update_item(
+            TableName=BREAKER_TABLE, Key={"pk": {"S": key}},
+            UpdateExpression="SET expires_at = if_not_exists(expires_at, :exp) ADD n :one",
+            ConditionExpression="attribute_not_exists(n) OR n < :limit",
+            ExpressionAttributeValues={":one": {"N": "1"}, ":limit": {"N": str(int(limit))},
+                                       ":exp": {"N": str(int(now.timestamp()) + BREAKER_TTL_S)}})
+        return "ok"
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "ClientError")
+        return "open" if code == "ConditionalCheckFailedException" else "unavailable:" + code
+    except Exception as e:  # noqa: BLE001 - fail closed on anything unexpected
+        return "unavailable:" + type(e).__name__
+
+
+def breaker_allow(target: str, event_name: str, now: datetime = None) -> dict:
+    """Per-target budget first (a hot target cannot spend the global budget), then the fleet-wide one."""
+    now = now or datetime.now(timezone.utc)
+    hour = now.strftime("%Y%m%d%H")
+    for key, limit in (("%s#%s" % (target, hour), BREAKER_PER_HOUR.get(target, BREAKER_DEFAULT_PER_HOUR)),
+                       ("global#%s" % hour, BREAKER_GLOBAL_PER_HOUR)):
+        state = _breaker_take(key, limit, now)
+        if state == "ok":
+            continue
+        kind = "BREAKER_OPEN" if state == "open" else "BREAKER_UNAVAILABLE"
+        if (kind, key) not in _breaker_logged:
+            _breaker_logged.add((kind, key))
+            print("[coordinator] %s target=%s event=%s key=%s limit=%s state=%s" % (
+                kind, target, event_name, key, limit, state))
+        return {"allow": False, "reason": "breaker_open" if state == "open" else "breaker_unavailable",
+                "key": key, "limit": limit, "state": state}
+    return {"allow": True}
+
+
 AUDIT_MAX_BYTES = 5_000_000  # a day-log larger than this stops growing (storm guard, see write_audit)
 
 
@@ -648,6 +702,11 @@ def handler(event, context):
         if fn in delivery["accepted"]:
             ir = {"ok": True, "status": 202, "accepted_on_previous_attempt": True}
         else:
+            gate = breaker_allow(fn, event_name)
+            if not gate["allow"]:
+                # Acknowledged, not retried: a retry would only knock on the same open breaker.
+                result["invokes"].append({"fn": fn, "ok": True, "skipped": gate["reason"], "breaker": gate})
+                continue
             ir = invoke_target(fn, event_name, detail)
             if ir.get("ok") is True:
                 delivery["accepted"].add(fn)
