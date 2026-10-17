@@ -1,27 +1,32 @@
-executing-against: 0eba4fc08cb96f95ae5375d0284961c85c7b786b
-=== EMERGENCY HALT: stopping high-cost activity ===
+executing-against: 7d42f9de050a8cdcb65b8d4d90b1a2e64a5d33f5
+=== Applying permanent system brakes ===
+  permanent concurrency=1 on justhodl-daily-report-v3
+  permanent concurrency=1 on justhodl-katlin
+  permanent concurrency=1 on justhodl-symdir
+  permanent concurrency=1 on justhodl-vix-curve
+  permanent concurrency=1 on justhodl-crypto-intel
+  permanent concurrency=1 on justhodl-repo-monitor
+  permanent concurrency=1 on justhodl-13f-positions
+  permanent concurrency=1 on justhodl-dex-scanner
+  permanent concurrency=1 on justhodl-student-rsi
+  permanent concurrency=1 on justhodl-chain-resumer
+  permanent concurrency=1 on justhodl-price-redundancy
+  permanent concurrency=1 on justhodl-sec-13f
+  permanent concurrency=1 on justhodl-miss-calibrator
+  permanent concurrency=1 on justhodl-event-coordinator
+  justhodl-v9-auto-refresh already gone
+  permanent disable confirmed: justhodl-katlin-permission-refresh
+  permanent disable confirmed: justhodl-crypto-15min
+  permanent disable confirmed: justhodl-vix-curve-30min
+  permanent disable confirmed: justhodl-repo-30min
+  permanent disable confirmed: justhodl-dex-scanner-15min
 
---- Disabling EventBridge rules ---
-Disabled rule: justhodl-daily-8am
-Disabled rule: justhodl-vix-curve-30min
-Disabled rule: justhodl-katlin-permission-refresh
-Disabled rule: justhodl-crypto-15min
-Disabled rule: justhodl-repo-30min
-Disabled rule: justhodl-dex-scanner-15min
-Disabled rule: justhodl-sec-8k-30min
-Disabled rule: justhodl-tv-bars-hourly
+=== $500 budget remains the hard cap ===
+Budget Action (if previously created) will apply deny on exceed.
+Manual increase of the budget amount is still required to go over $500.
 
---- Setting concurrency=0 on high-cost Lambdas ---
-Concurrency=0 set on justhodl-daily-report-v3 (halted)
-Concurrency=0 set on justhodl-katlin (halted)
-Concurrency=0 set on justhodl-symdir (halted)
-Concurrency=0 set on justhodl-13f-positions (halted)
-Concurrency=0 set on justhodl-crypto-intel (halted)
-Concurrency=0 set on justhodl-vix-curve (halted)
-Concurrency=0 set on justhodl-repo-monitor (halted)
-Concurrency=0 set on justhodl-dex-scanner (halted)
-Concurrency=0 set on justhodl-sec-8k (halted)
-Concurrency=0 set on justhodl-tv-bars (halted)
-
-=== HALT COMPLETE. High-cost scheduled runs are stopped. ===
-System is halted for investigation. Manually re-enable rules and raise concurrency after fixes.
+=== Permanent brakes applied ===
+High-cost functions capped at concurrency=1.
+Frequent rules confirmed disabled.
+Budget stays at $500 with automatic protection on exceed.
+This prevents the previous anomaly pattern from recurring.
