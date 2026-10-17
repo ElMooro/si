@@ -205,6 +205,33 @@ class RetentionContainmentTests(unittest.TestCase):
         self.assertIn('main(verify_only=True)', text)
         self.assertNotIn('boto3', text)
 
+    def test_read_only_public_source_scope_matches_are_exact_and_still_private(self):
+        path = PATH.parent / 'verify_6544_history_expiry.py'
+        spec = importlib.util.spec_from_file_location('retention6544_readback', path)
+        verifier = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {'ops_6544_disable_6541_history_expiry': op}):
+            spec.loader.exec_module(verifier)
+        original = op.main
+        with patch.object(op, 'PUBLIC_PREFIXES', op.PUBLIC_PREFIXES), \
+             patch.object(op, 'PUBLIC_RULE_IDS', op.PUBLIC_RULE_IDS):
+            with patch.object(op, 'main', return_value=0) as runner:
+                self.assertEqual(verifier.main(), 0)
+                runner.assert_called_once_with(verify_only=True)
+            self.assertIs(op.main, original)
+            value = fixture('Disabled')
+            for prefix in verifier.PUBLIC_SOURCE_PREFIXES | {CANARY, 'data/providers/' + CANARY}:
+                value['Rules'].append({'ID': CANARY, 'Status': 'Enabled',
+                    'Filter': {'Prefix': prefix}, 'Expiration': {'Days': 30}})
+            fake = FakeS3(value)
+            result = self.run_case(fake, verify_only=True)
+            self.assertTrue(result['verified'])
+            self.assertEqual(result['put_attempts'], 0)
+            rows = result['remaining_enabled_expirations']
+            self.assertTrue(all(kind == 'get' for kind, _ in fake.calls))
+            self.assertTrue(verifier.PUBLIC_SOURCE_PREFIXES <= {r['prefix'] for r in rows})
+            self.assertEqual(sum(r['prefix'] == 'WITHHELD' for r in rows), 2)
+            self.assertTrue(all(r['id'] == 'WITHHELD' for r in rows[1:]))
+
     def test_nonrunner_cli_is_nonzero_without_sdk_or_environment_echo(self):
         p = subprocess.run([sys.executable, '-S', str(PATH)], capture_output=True, text=True,
                            env={'AWS_ACCESS_KEY_ID': CANARY}, check=False)
