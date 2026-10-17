@@ -102,6 +102,7 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
   `smasync:endpoint/jh-owned-coder-async/variant/owned` failed with a bare ValidationException). The message
   was "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms" -
   Application Auto Scaling checks the CALLER for the scaling policy's alarms; ops 6542 granted them.
+* S3 egress (~$4.70/day of the normal ~$21/day; ops 6543, 2026-10-17): website data traffic, not engines. Oct 10: ~15 GB/day of internet GETs (Cloudflare 10.9, direct-to-S3 browsers 3.4, the Actions runner 1.1); top files data/backlog.json, earnings-quality, estimate-revisions, share-flows, best-setups. On Oct 15 one Mac browser on Apple's relay network pulled data/best-setups.json straight from S3 at ~10.7 GB/day. Access logs deliver fine: EventTime-partitioned names carry no hour, so sample whole days.
 * v1.1.0 (2026-10-17): fast fuse - runaway alarms reach the governor through SNS and sustained burners are
   throttled in seconds (`docs/ops/RUNAWAY_GUARDRAILS.md`). v1.1.1: every tick checks that the runaway alarms
   still exist, are enabled and still notify the governor; problems are e-mailed once a day.
