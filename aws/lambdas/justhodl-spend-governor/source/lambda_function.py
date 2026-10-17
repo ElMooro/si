@@ -44,6 +44,7 @@ CANARY_PREFIX = "justhodl-spend-governor-canary"
 RUNAWAY_ALARMS = ("justhodl-runaway-concurrency", "justhodl-runaway-invocations", "justhodl-runaway-duration",
                   "justhodl-event-breaker-open", "justhodl-s3-live-bucket-size")
 FAST_FUSE_MIN_GAP_S = 300
+GOV_TOPIC_SUFFIX = ":justhodl-spend-governor"
 DEFAULT_CONTROL = {
     "mode": "monitor",
     "exempt_functions": ["justhodl-guardrail-notify", "justhodl-supabase-keepalive", "justhodl-dr-snapshot"],
@@ -513,6 +514,30 @@ def fast_fuse(ctx, state, cfg, now, enforce, alarm):
             "counts": counts}
 
 
+def guardrail_check(ctx, state, now, mode):
+    """v1.1.1: the guardrails watch themselves.  A runaway alarm that is deleted, disabled or no longer points at
+    this function silently removes the fast fuse - report it (once a day) instead of finding out in a storm."""
+    found = {a["AlarmName"]: a for a in client("cloudwatch").describe_alarms(
+        AlarmNames=list(RUNAWAY_ALARMS)).get("MetricAlarms", [])}
+    problems = []
+    for name in RUNAWAY_ALARMS:
+        a = found.get(name)
+        if not a:
+            problems.append("%s is missing" % name)
+        elif a.get("ActionsEnabled") is False:
+            problems.append("%s has its actions disabled" % name)
+        elif not any(str(x).endswith(GOV_TOPIC_SUFFIX) for x in a.get("AlarmActions") or []):
+            problems.append("%s no longer notifies the governor" % name)
+    g = state.setdefault("guardrails", {})
+    g.update({"checked_at": now.isoformat(), "problems": problems})
+    if problems and g.get("notified_day") != now.date().isoformat():
+        g["notified_day"] = now.date().isoformat()
+        notify("JustHodl guardrails degraded: %d problem(s)" % len(problems),
+               problems + ["Re-arm with ops 6541 (aws/ops/STAGED/ops_6541_arm_runaway_guardrails.py, direct lane); "
+                           "runbook docs/ops/RUNAWAY_GUARDRAILS.md."], mode)
+    return {"problems": problems}
+
+
 def alarm_trigger(event, context, alarm):
     now = now_utc()
     name, alarm_state = alarm.get("AlarmName"), alarm.get("NewStateValue")
@@ -598,6 +623,11 @@ def tick(event, context, trigger):
     except Exception as e:  # noqa: BLE001 - the cap path must run even if metrics are unreadable
         ctx.log("fuse check failed: %s" % lv.err_code(e))
         out["fuse"] = {"error": lv.err_code(e)}
+
+    try:
+        out["guardrails"] = guardrail_check(ctx, state, now, mode)
+    except Exception as e:  # noqa: BLE001 - a monitoring read must never block the cap path
+        ctx.log("guardrail check failed: %s" % lv.err_code(e))
 
     sup = state.get("suppress_until")
     suppressed = bool(sup) and core.as_utc(sup) > now

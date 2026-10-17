@@ -127,10 +127,13 @@ class FakeCW:
         self.durations = durations or {}
         self.ended = set(ended)  # burned in the past hour but no invocations in the last minutes
         self.burst = set(burst)  # the whole window's burn landed in its first bucket (a burst that ended)
+        self.deleted = set()     # alarms someone removed
         self.metrics = []
 
     def describe_alarms(self, AlarmNames):
-        return {"MetricAlarms": [{"AlarmName": n, "StateValue": self.alarm_state} for n in AlarmNames]}
+        return {"MetricAlarms": [{"AlarmName": n, "StateValue": self.alarm_state, "ActionsEnabled": True,
+                                  "AlarmActions": ["arn:aws:sns:us-east-1:1:justhodl-spend-governor"]}
+                                 for n in AlarmNames if n not in self.deleted]}
 
     def get_metric_data(self, MetricDataQueries, StartTime, EndTime, **kw):
         out = []
@@ -553,6 +556,21 @@ def test_budgets_sns_still_ticks():
     out = gov.lambda_handler({"Records": [{"EventSource": "aws:sns", "Sns": {"Message": "AWS Budget Notification"}}]},
                              Context())
     check(out.get("trigger") == "budget-sns", "a plain-text Budgets notice still runs a tick")
+
+
+def test_guardrails_watch_themselves():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out.get("guardrails", {}).get("problems") == [], "all runaway alarms present -> no problem reported")
+    w["cloudwatch"].deleted.add("justhodl-runaway-concurrency")
+    n = len(w["sns"].sent)
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["guardrails"]["problems"] == ["justhodl-runaway-concurrency is missing"], "a deleted alarm is reported")
+    check(any("guardrails degraded" in m["Subject"] for m in w["sns"].sent[n:]), "and e-mailed")
+    m = len(w["sns"].sent)
+    gov.lambda_handler({"action": "tick"}, Context())
+    check(not any("guardrails degraded" in x["Subject"] for x in w["sns"].sent[m:]), "at most once a day")
 
 
 def test_plan_is_read_only():
