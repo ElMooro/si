@@ -1,4 +1,4 @@
-"""ops 6532 - verify the Oct 16-17 deploys; read why the owned SageMaker endpoint's suspension fails.
+"""ops 6533 - verify the Oct 16-17 deploys; read why the owned SageMaker endpoint's suspension fails.
 
 Read-only except one governor status invoke (read-only action).
   1. justhodl-spend-governor reports version 1.0.3 (commit 7d2adf2b) and is still FROZEN with its holds
@@ -28,14 +28,14 @@ STATE_BUCKET = "justhodl-ops-private-857687956942"
 EP, VARIANT = "jh-owned-coder-async", "owned"
 RID = "endpoint/%s/variant/%s" % (EP, VARIANT)
 DIM = "sagemaker:variant:DesiredInstanceCount"
-OUT_JSON = ROOT / "aws" / "ops" / "reports" / "6532.json"
+OUT_JSON = ROOT / "aws" / "ops" / "reports" / "6533.json"
 CFG = Config(retries={"max_attempts": 6, "mode": "standard"}, read_timeout=120)
 lam = boto3.client("lambda", region_name=REGION, config=CFG)
 s3 = boto3.client("s3", region_name=REGION, config=CFG)
 sm = boto3.client("sagemaker", region_name=REGION, config=CFG)
 aas = boto3.client("application-autoscaling", region_name=REGION, config=CFG)
 ev = boto3.client("events", region_name=REGION, config=CFG)
-out = {"op": 6532, "ran_at": datetime.now(timezone.utc).isoformat(), "errors": {}}
+out = {"op": 6533, "ran_at": datetime.now(timezone.utc).isoformat(), "errors": {}}
 FAILS = []
 
 
@@ -114,8 +114,8 @@ def deploys(r):
 
 
 def main():
-    with report("ops_6532_verify_governor_v103_and_endpoint") as r:
-        r.heading("ops 6532 - governor v1.0.3, owned endpoint suspension, Oct 16 cost cuts live")
+    with report("ops_6533_verify_governor_v103_and_endpoint") as r:
+        r.heading("ops 6533 - governor v1.0.3, owned endpoint suspension, Oct 16 cost cuts live")
         r.section("Governor")
         step("governor", governor, r)
         r.section("Owned SageMaker endpoint")
