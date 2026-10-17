@@ -1,50 +1,20 @@
-executing-against: 7d2adf2b6cd5d3ef1133150aa66fb809e16f619c
-ops 6531 - where a storm-time run spent its time (read-only)
-── Calibrator runs, Oct 15 12:00 UTC ──
-[00:45:56] justhodl-miss-calibrator run (REPORT RequestId: f6901f45-d53e-41b9-be59-d3aca914d8ce Duration: 17760.90 ms Billed Duration: 17761 ms Memory ):
-[00:45:56]     +  6880 ms (step   6880 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_threshold_proposals: An error occurred (ThrottlingException
-[00:45:56]     + 17430 ms (step  10550 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_recurring_tickers: An error occurred (ThrottlingException) 
-[00:45:56]     + 17677 ms (step    247 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:45:56]     + 17677 ms (step      0 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-[00:45:56] justhodl-miss-calibrator run (REPORT RequestId: 1dc08ac8-95dc-4cfe-8059-17dc9fafb9e6 Duration: 6989.69 ms Billed Duration: 6990 ms Memory Si):
-[00:45:56]     +  6646 ms (step   6646 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_recurring_tickers: An error occurred (ThrottlingException) 
-[00:45:56]     +  6908 ms (step    262 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-[00:45:56]     +  6908 ms (step      0 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:45:58] justhodl-miss-calibrator run (REPORT RequestId: 54bcc25d-edc9-41a7-9bfb-4495466c849a Duration: 17628.42 ms Billed Duration: 17629 ms Memory ):
-[00:45:58]     + 10644 ms (step  10644 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_threshold_proposals: An error occurred (ThrottlingException
-[00:45:58]     + 17278 ms (step   6634 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_recurring_tickers: An error occurred (ThrottlingException) 
-[00:45:58]     + 17536 ms (step    258 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-[00:45:58]     + 17536 ms (step      0 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:45:58] justhodl-miss-calibrator run (REPORT RequestId: ef237ff5-ad9f-4038-b0b6-bf86765cdc5f Duration: 10760.67 ms Billed Duration: 10761 ms Memory ):
-[00:45:58]     +  9671 ms (step   9671 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_threshold_proposals: An error occurred (ThrottlingException
-[00:45:58]     + 10641 ms (step    970 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:45:58]     + 10641 ms (step      0 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-[00:46:01] justhodl-miss-calibrator run (REPORT RequestId: e85fd10c-bbfe-4852-aa58-14187fd755a1 Duration: 14868.15 ms Billed Duration: 14869 ms Memory ):
-[00:46:01]     +  6170 ms (step   6170 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_threshold_proposals: An error occurred (ThrottlingException
-[00:46:01]     + 14536 ms (step   8366 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_recurring_tickers: An error occurred (ThrottlingException) 
-[00:46:01]     + 14781 ms (step    245 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:46:01]     + 14781 ms (step      0 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-[00:46:01] justhodl-miss-calibrator run (REPORT RequestId: 95f420f0-eeae-493b-9dfa-92190355e055 Duration: 18809.04 ms Billed Duration: 18810 ms Memory ):
-[00:46:01]     + 10050 ms (step  10050 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_threshold_proposals: An error occurred (ThrottlingException
-[00:46:01]     + 18477 ms (step   8427 ms)  [miss-cal] ssm put fail /justhodl/calibration/miss_recurring_tickers: An error occurred (ThrottlingException) 
-[00:46:01]     + 18735 ms (step    258 ms)  [miss-cal] telegram: HTTP Error 401: Unauthorized
-[00:46:01]     + 18735 ms (step      0 ms)  [miss-cal] 3 proposals, 50 universe candidates, 0 skipped deprecated
-── Coordinator runs, Oct 15 12:00 UTC ──
-[00:46:05] justhodl-event-coordinator run (REPORT RequestId: 04e5a06c-0d5c-4f1b-8243-a6c30fdfc5f8 Duration: 968.71 ms Billed Duration: 969 ms Memory Size):
-[00:46:05]     +   298 ms (step    298 ms)  [coordinator] telegram err: HTTP Error 401: Unauthorized
-[00:46:05]     +   968 ms (step    670 ms)  [coordinator] routed event=near_miss.extreme invokes=1
-[00:46:05] justhodl-event-coordinator run (REPORT RequestId: 8b87fa25-a106-4e76-88e2-7bc8ec059e08 Duration: 1036.45 ms Billed Duration: 1037 ms Memory Si):
-[00:46:05]     +   329 ms (step    329 ms)  [coordinator] telegram err: HTTP Error 401: Unauthorized
-[00:46:05]     +  1035 ms (step    706 ms)  [coordinator] routed event=near_miss.extreme invokes=1
-[00:46:08] justhodl-event-coordinator run (REPORT RequestId: a1d6c6ed-b564-4cbe-998d-5e63ed50d6dd Duration: 1086.66 ms Billed Duration: 1087 ms Memory Si):
-[00:46:08]     +   324 ms (step    324 ms)  [coordinator] telegram err: HTTP Error 401: Unauthorized
-[00:46:08]     +  1085 ms (step    761 ms)  [coordinator] routed event=near_miss.extreme invokes=1
-[00:46:08] justhodl-event-coordinator run (REPORT RequestId: 1bf677c6-eeee-4765-be03-ded55cca6347 Duration: 1132.65 ms Billed Duration: 1133 ms Memory Si):
-[00:46:08]     +   320 ms (step    320 ms)  [coordinator] telegram err: HTTP Error 401: Unauthorized
-[00:46:08]     +  1131 ms (step    811 ms)  [coordinator] routed event=near_miss.extreme invokes=1
-── When runs slowed down (Oct 12) ──
-[00:46:08] justhodl-miss-calibrator avg Duration ms per 5 min: [('09:15', 15373), ('09:20', 15419), ('09:25', 15366), ('09:30', 15407), ('09:35', 14941), ('09:40', 15357), ('09:45', 15381), ('09:50', 15366), ('09:55', 15392), ('10:00', 15433), ('10:05', 15454), ('10:10', 15419), ('10:15', 15428), ('10:20', 15467), ('10:25', 15352), ('10:30', 15473), ('10:35', 15443), ('10:40', 15383), ('10:45', 15336), ('10:50', 15352), ('10:55', 15445)]
-[00:46:08] justhodl-event-coordinator avg Duration ms per 5 min: [('09:15', 1348), ('09:20', 1510), ('09:25', 1667), ('09:30', 1580), ('09:35', 971), ('09:40', 1435), ('09:45', 1368), ('09:50', 1484), ('09:55', 1461), ('10:00', 1260), ('10:05', 1355), ('10:10', 1720), ('10:15', 1742), ('10:20', 1747), ('10:25', 1923), ('10:30', 2046), ('10:35', 2169), ('10:40', 1822), ('10:45', 1837), ('10:50', 1797), ('10:55', 1807)]
-[00:46:08] ✅ wrote aws/ops/reports/6531.json
-
-→ Report written to aws/ops/reports/latest/ops_6531_storm_run_timelines.md
+executing-against: 9aa1b059788a7d6d76b6374fb5eb917cc38e1e17
+budget_before {"limit": 500.0, "actual": 2604.3}
+override_removed {"cap_usd": 3500.0, "reason": "October was already ~$2.4k when the cap was armed (ops 6519/6520: miss-calibrator <-> event-coordinator loop). The override keeps the rest of October a runaway-only guard; the $500 budget applies from 2026-11-01."}
+status_before {"stage": "FREEZE", "cap": 500.0, "cap_source": "budget", "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}, "budget_actual": 2604.298, "mode": "enforce"}
+forced {"stage": "FREEZE", "applied": {}}
+status_after {"stage": "FREEZE", "cap": 500.0, "cap_source": "budget", "budget_limit": 500.0, "budget_actual": 2604.298, "budget_forecast": 3041.538, "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}, "thresholds": {"cap": 500.0, "mtd": 2604.3, "days_left": 14.97, "baseline_usd_day": 25.4, "residual_usd_day": 3.92, "lag_buffer": 25.4, "reserve": 94.05, "freeze_at": 405.95, "brake_at": 355.15, "freeze_line_floored": false, "projected_eom": 3009.83, "frozen_eom": 2688.35, "cap_at_risk_even_frozen": true}, "stage_since": "2026-10-16T22:53:03.699511+00:00", "mode": "enforce"}
+invocations_20m {}
+non_exempt_invocations {}
+OK fleet frozen under the $500 budget
+ops 6529 - gentle purge + egress attribution
+── Egress / access logs (read-only) ──
+[00:50:16] log day folders present: ['2026/09/14', '2026/09/15', '2026/09/16', '2026/09/17', '2026/09/18', '2026/09/19', '2026/09/20', '2026/09/21', '2026/09/22', '2026/09/23', '2026/09/24', '2026/09/25', '2026/09/26', '2026/09/27', '2026/09/28', '2026/09/29', '2026/09/30', '2026/10/01', '2026/10/02', '2026/10/03', '2026/10/04', '2026/10/05', '2026/10/06', '2026/10/07', '2026/10/08', '2026/10/09', '2026/10/10', '2026/10/11', '2026/10/12', '2026/10/13', '2026/10/14', '2026/10/15', '2026/10/16', '2026/10/17']
+[00:50:17] target bucket policy allows logging.s3.amazonaws.com: True; encryption {"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}, "BucketKeyEnabled": false, "BlockedEncryptionTypes": {"EncryptionType": ["SSE-C"]}; ownership {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]}
+[00:50:17] newest log day 2026/10/17: 7 objects, last delivered 2026-10-17T00:47:05+00:00
+[00:50:17] egress sample hour 2026-10-17-00 (7 log objects): GB by requester [('anonymous', 0.017)]
+[00:50:17]   GB by client: [('-', 0.01), ('Mozilla', 0.008)]
+[00:50:17]   GB by key prefix: [('data/chokepoint.json', 0.01), ('data/share-flows.json', 0.008), ('data/buzz-velocity.json', 0.0), ('data/market-tape.json', 0.0), ('data/investor-lenses/FREKF.json', 0.0), ('equity-research/AIDX.TO.json', 0.0), ('data/backlog.json', 0.0)]
+[00:50:17]   GB by IP /16: [('162.158.*', 0.01), ('17.166.*', 0.008), ('172.71.*', 0.0), ('172.68.*', 0.0), ('104.22.*', 0.0), ('108.162.*', 0.0)]
+── Gentle purge ──
+[00:50:17] day-logs in scope (newest first): [('2026-10-16.jsonl', 26.0), ('2026-10-15.jsonl', 30.8), ('2026-10-14.jsonl', 30.7), ('2026-10-13.jsonl', 33.2), ('2026-10-12.jsonl', 22.0)]
