@@ -1,6 +1,27 @@
-executing-against: 8aee1c2d532a245838cd78ab5075c907001799de
-budget {"limit": 500.0, "actual": 2604.3, "forecast": 3041.54}
-override_absent {}
-mode enforce
-status {"version": "1.1.1", "mode": "enforce", "stage": "FREEZE", "stage_since": "2026-10-16T22:53:03.699511+00:00", "cap": 500.0, "cap_source": "budget", "budget_limit": 500.0, "budget_actual": 2604.298, "budget_forecast": 3041.538, "held": {"FREEZE/lambda": 914, "FREEZE/smasync": 1}, "thresholds": {"cap": 500.0, "mtd": 2604.3, "days_left": 14.9, "baseline_usd_day": 25.4, "residual_usd_day": 3.92, "lag_buffer": 25.4, "reserve": 93.79, "freeze_at": 406.21, "brake_at": 355.41, "freeze_line_floored": false, "projected_eom": 3008.15, "frozen_eom": 2688.09, "cap_at_risk_even_frozen": true}, "suppress_until": null}
-OK frozen at the $500 budget
+executing-against: 0eba4fc08cb96f95ae5375d0284961c85c7b786b
+=== EMERGENCY HALT: stopping high-cost activity ===
+
+--- Disabling EventBridge rules ---
+Disabled rule: justhodl-daily-8am
+Disabled rule: justhodl-vix-curve-30min
+Disabled rule: justhodl-katlin-permission-refresh
+Disabled rule: justhodl-crypto-15min
+Disabled rule: justhodl-repo-30min
+Disabled rule: justhodl-dex-scanner-15min
+Disabled rule: justhodl-sec-8k-30min
+Disabled rule: justhodl-tv-bars-hourly
+
+--- Setting concurrency=0 on high-cost Lambdas ---
+Concurrency=0 set on justhodl-daily-report-v3 (halted)
+Concurrency=0 set on justhodl-katlin (halted)
+Concurrency=0 set on justhodl-symdir (halted)
+Concurrency=0 set on justhodl-13f-positions (halted)
+Concurrency=0 set on justhodl-crypto-intel (halted)
+Concurrency=0 set on justhodl-vix-curve (halted)
+Concurrency=0 set on justhodl-repo-monitor (halted)
+Concurrency=0 set on justhodl-dex-scanner (halted)
+Concurrency=0 set on justhodl-sec-8k (halted)
+Concurrency=0 set on justhodl-tv-bars (halted)
+
+=== HALT COMPLETE. High-cost scheduled runs are stopped. ===
+System is halted for investigation. Manually re-enable rules and raise concurrency after fixes.
