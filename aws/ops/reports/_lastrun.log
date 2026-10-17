@@ -1,32 +1,26 @@
-executing-against: 7d42f9de050a8cdcb65b8d4d90b1a2e64a5d33f5
-=== Applying permanent system brakes ===
-  permanent concurrency=1 on justhodl-daily-report-v3
-  permanent concurrency=1 on justhodl-katlin
-  permanent concurrency=1 on justhodl-symdir
-  permanent concurrency=1 on justhodl-vix-curve
-  permanent concurrency=1 on justhodl-crypto-intel
-  permanent concurrency=1 on justhodl-repo-monitor
-  permanent concurrency=1 on justhodl-13f-positions
-  permanent concurrency=1 on justhodl-dex-scanner
-  permanent concurrency=1 on justhodl-student-rsi
-  permanent concurrency=1 on justhodl-chain-resumer
-  permanent concurrency=1 on justhodl-price-redundancy
-  permanent concurrency=1 on justhodl-sec-13f
-  permanent concurrency=1 on justhodl-miss-calibrator
-  permanent concurrency=1 on justhodl-event-coordinator
-  justhodl-v9-auto-refresh already gone
-  permanent disable confirmed: justhodl-katlin-permission-refresh
-  permanent disable confirmed: justhodl-crypto-15min
-  permanent disable confirmed: justhodl-vix-curve-30min
-  permanent disable confirmed: justhodl-repo-30min
-  permanent disable confirmed: justhodl-dex-scanner-15min
+executing-against: 50e298acf507a541196d18adf2a1453ecd7fac5f
+=== Additional permanent safeguards ===
+Created daily-run marker example: ops/safeguards/daily-run-markers/example-2026-10-17.json
+Freeze reinforced on justhodl-miss-calibrator
+Freeze reinforced on justhodl-event-coordinator
+Freeze reinforced on justhodl-katlin
 
-=== $500 budget remains the hard cap ===
-Budget Action (if previously created) will apply deny on exceed.
-Manual increase of the budget amount is still required to go over $500.
+=== Safeguards applied ===
+- Daily early-exit marker pattern established.
+- Critical engines remain frozen at concurrency=0.
+- $500 budget + Budget Action remains the hard spend stop.
+- Event loop guard and chain MAX_HOPS=12 are active.
+- data.html protected by versioning.
+System stays fully frozen. These layers prevent recurrence.
+=== Hard daily caps + data.html lock ===
+Hard cap (frozen concurrency=0) on justhodl-daily-report-v3
+Hard cap (frozen concurrency=0) on justhodl-katlin
+Hard cap (frozen concurrency=0) on justhodl-symdir
+Hard cap (frozen concurrency=0) on justhodl-miss-calibrator
+Hard cap (frozen concurrency=0) on justhodl-event-coordinator
+Versioning enabled on justhodl-dashboard-live (protects data.html from permanent deletion)
+data.html is protected by versioning. Permanent deletion is blocked.
+Hard daily caps are enforced via once-daily schedules + concurrency limits.
 
-=== Permanent brakes applied ===
-High-cost functions capped at concurrency=1.
-Frequent rules confirmed disabled.
-Budget stays at $500 with automatic protection on exceed.
-This prevents the previous anomaly pattern from recurring.
+=== Brakes and lock applied. System remains FROZEN. ===
+No engine can run more than once per day. data.html cannot be permanently deleted.
