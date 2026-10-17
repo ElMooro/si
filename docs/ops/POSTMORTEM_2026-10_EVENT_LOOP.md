@@ -64,3 +64,15 @@ Evidence: `aws/ops/reports/latest/ops_6530_loop_forensics.md`, `ops_6531_storm_r
   (KHALID_ACTIONS.md item 0) - until then they still reach only the dead Telegram bot.
 * AUTONOMY.md "Known traps" carries the two lessons: never route an event back to its producer, and an
   append by read-modify-write to one object in a versioned bucket stores the whole object on every append.
+* 2026-10-17, the "never again" set (`docs/ops/RUNAWAY_GUARDRAILS.md`, ops 6534/6540/6541/6542): a deploy gate
+  that refuses any loop through the event bus, a DynamoDB circuit breaker in the coordinator, reserved
+  concurrency caps and 15-minute event ages on the bus path, sustained-runaway alarms wired to an automatic
+  fast fuse in the spend governor, a $40/day budget and $25 anomaly e-mails, and a bucket-wide bound on
+  noncurrent versions.
+
+## The detail that mattered most
+
+The existing alarm `justhodl-guard-lambda-concurrency` went to ALARM at 09:18 on Oct 12 - three minutes into
+the loop - and `justhodl-guard-lambda-invocations-1h` at 09:19. Both stayed in ALARM for 4.4 days. Their only
+destinations were SNS `justhodl-fleet-alerts` -> `justhodl-guardrail-notify` -> a Telegram bot whose token
+answered 401. Detection worked; nothing was listening and nothing acted. The new alarms act on their own.

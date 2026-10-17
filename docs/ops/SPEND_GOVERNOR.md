@@ -99,7 +99,12 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
   docs/EVENT_BUS.md; forensics in ops 6530/6531 reports).
 * v1.0.3 (2026-10-17): a failed lever keeps the service's error message in the ledger (`error_msg`), and the
   SageMaker async scale-down is decided on the endpoint's current state (ops 6525 left
-  `smasync:endpoint/jh-owned-coder-async/variant/owned` failed with a bare ValidationException).
+  `smasync:endpoint/jh-owned-coder-async/variant/owned` failed with a bare ValidationException). The message
+  was "User is missing the following permissions: cloudwatch:PutMetricAlarm, cloudwatch:DeleteAlarms" -
+  Application Auto Scaling checks the CALLER for the scaling policy's alarms; ops 6542 granted them.
+* v1.1.0 (2026-10-17): fast fuse - runaway alarms reach the governor through SNS and sustained burners are
+  throttled in seconds (`docs/ops/RUNAWAY_GUARDRAILS.md`). v1.1.1: every tick checks that the runaway alarms
+  still exist, are enabled and still notify the governor; problems are e-mailed once a day.
 * October 2026 runs with `cap_overrides["2026-10"] = $3,500`; $500 from 2026-11-01.
 * 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
   914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.

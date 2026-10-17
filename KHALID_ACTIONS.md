@@ -10,8 +10,10 @@ This file tracks items that require **your direct action** (registration, creden
 
 AWS sent an email titled **"AWS Notification - Subscription Confirmation"** for topic `justhodl-fleet-alerts`.
 Click **Confirm subscription**. Until you do, the runaway alarms and the $500 spend governor's stage changes
-(BRAKE / FREEZE / restore) only reach Telegram, whose bot token has been returning 401. AWS Budgets' own
-50/80/90/100% emails already reach you without confirmation.
+(BRAKE / FREEZE / restore / runaway stopped) only reach Telegram, whose bot token has been returning 401. AWS
+Budgets' own 50/80/90/100% and $40/day emails and the Cost Anomaly emails already reach you without
+confirmation. The link expires 3 days after it was sent (Oct 16); if it has, tell Claude and it resends it.
+Nothing else is needed: the alarms already stop a runaway on their own (docs/ops/RUNAWAY_GUARDRAILS.md).
 
 Runbook: `docs/ops/SPEND_GOVERNOR.md`.
 

@@ -109,5 +109,19 @@ python3 scripts/event_graph.py            # the loop map; exit 1 = a loop or an 
 python3 scripts/event_graph.py --json     # full graph
 ```
 
-Evidence: ops 6534 / 6540 (audit + calibration), ops 6541 (arming + end-to-end alarm test), reports in
-`aws/ops/reports/latest/`.
+## Proof (2026-10-17, reports in `aws/ops/reports/latest/`)
+
+* Gate: the pre-fix calibrator source fails it; the fleet passes (926 functions, 20 publishers, 33 routes, 37
+  edges, 7 documented invoke chains, 0 bus loops); deploy-lambdas 3e977c6f ran it in the preflight and passed.
+* Breaker: on real DynamoDB the coordinator's conditional ADD answered ok, ok, open at limit 2 (ops 6541);
+  `tests/test_event_coordinator_breaker.py` (8 tests) in the coordinator's deploy gate.
+* Caps: all 10 set; the freeze ledger now restores coordinator 10, a2a-bus 5, alpha-compass 3, the others
+  2 / miss-calibrator 1 on Nov 1 (ops 6541).
+* Alarm -> governor, for real: `justhodl-s3-live-bucket-size` went to ALARM at 01:55:02 on creation (the bucket
+  still held the loop's copies), CloudWatch published to the governor topic the same second and the governor
+  wrote `spend-governor/events/20261017T015502Z-fast-fuse-check.json` (frozen fleet: nothing hot). A synthetic
+  alarm through SNS produced `...020050Z-fast-fuse-check.json` (ops 6542). Fast-fuse throttling itself is
+  proven against moto CloudWatch data (700 copies of a 512 MB function = $505/day -> throttled, a quiet
+  function untouched) and by 9 governor unit checks.
+* Self-check: the governor's guardrail check reports no problems (all five alarms present, enabled, wired).
+* Calibration: ops 6534 (Sep 15 - Oct 11 vs Oct 12-16) and ops 6540 (the old alarms' history).
