@@ -122,6 +122,6 @@ python3 scripts/event_graph.py --json     # full graph
   wrote `spend-governor/events/20261017T015502Z-fast-fuse-check.json` (frozen fleet: nothing hot). A synthetic
   alarm through SNS produced `...020050Z-fast-fuse-check.json` (ops 6542). Fast-fuse throttling itself is
   proven against moto CloudWatch data (700 copies of a 512 MB function = $505/day -> throttled, a quiet
-  function untouched) and by 9 governor unit checks.
+  function untouched) and by 16 governor unit checks.
 * Self-check: the governor's guardrail check reports no problems (all five alarms present, enabled, wired).
 * Calibration: ops 6534 (Sep 15 - Oct 11 vs Oct 12-16) and ops 6540 (the old alarms' history).
