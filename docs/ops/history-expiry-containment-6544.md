@@ -66,3 +66,34 @@ validated both pinned runs and report commits. Enabled one-day noncurrent
 expiration remained on `data/` and `system-events/`; two other rule scopes were
 withheld. The supplemental verifier identifies only exact public-source matches.
 No further lifecycle write is authorized or needed for that inspection.
+
+## Remaining live expiration scopes
+
+PR115 merged as `c8dd9f035b78f663f2a7b7777002ad42cb543cc6`; its tree exactly
+matches independently reviewed head `40d0bd72b9065068c9b227061abf7a7f131f5319`.
+[Read-only runner 38997768205](https://github.com/ElMooro/si/actions/runs/38997768205)
+confirmed the following at 2026-10-17 03:11:06 UTC with zero PUTs, four GETs,
+target still Disabled and every other lifecycle field/header unchanged.
+[Immutable public receipt](https://github.com/ElMooro/si/blob/dd565e7f5f497f31debd1e22554408bb1c63c381/aws/ops/reports/latest/ops_6544_disable_6541_history_expiry_readback.md).
+
+| Zero-based rule index | Exact live prefix | Exact public rule ID | Enabled expiration |
+|---|---|---|---|
+| 2 | WITHHELD | WITHHELD | Current-object expiration: 30 days |
+| 7 | `data/providers/` | `ops5027-purge-dead-versions-providers` | Noncurrent: 1 day; expired delete markers |
+| 8 | `data/` | `ops5164-purge-dead-versions-data` | Noncurrent: 1 day; expired delete markers |
+| 9 | `system-events/` | `ops6520-purge-dead-versions-system-events` | Noncurrent: 1 day; expired delete markers |
+
+None of these four scopes is tag/size-qualified. `data/providers/` is also under
+the enabled `data/` rule. These rules were inspected and preserved, never disabled.
+Index 2 did not match any finite public literal; its exact scope and overlap remain
+unidentified in public evidence. No more candidate guessing or lifecycle writes
+were performed. This incomplete scope identification does not block the verified
+exact-rule containment, but blocks an all-history-protection conclusion.
+
+The source and supplemental read-only projection passed independent exact-head
+reviews; the final synthetic suite passed 18 tests, preflight had zero warnings,
+secret scanning had zero findings, and both commit inventories matched their
+reviewed trees. No user-object access, engine invocation or fleet restoration was
+needed. The only AWS mutation across all three runs was the one authorized
+lifecycle Status change in the first run. Previously deleted versions remain
+unrecovered; no savings or total-cost-cap result is claimed.
