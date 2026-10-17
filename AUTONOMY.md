@@ -112,6 +112,16 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
 
 ## Known traps (all hit at least once — don't re-learn them)
 
+- **Event loops cost $2,300 in 4.4 days (2026-10-12..16, docs/ops/POSTMORTEM_2026-10_EVENT_LOOP.md)**:
+  never route an event back to the engine that emits it, and never "fix" a dedupe key without asking what the
+  old key was accidentally containing. miss-calibrator emitted near_miss.extreme x3 per run, the coordinator
+  ran miss-calibrator on near_miss.extreme (wired 2026-05-31); a 60-s content-hash dedupe killed every Monday
+  run's chain within seconds for 4.5 months; 42bedb1c (Oct 7) keyed dedupe on the EventBridge event id and
+  the next Monday run went exponential (x3 per lap) and pinned all 764 unreserved Lambda slots. AWS's
+  recursive-loop detection does not follow EventBridge. A read-modify-write append to one S3 object in a
+  VERSIONED bucket stores the whole object again on every append (0.9 -> 145 TB). The coordinator now skips
+  self-loops and caps the audit day-log; the spend governor's runaway fuse would stop a repeat in ~2 h.
+
 - **Canary #9 (rail carloads by commodity) is BLOCKED — do not re-probe**
   (ops 3752/3753, 2026-07-23). Evidence: FRED carries only the two AGGREGATE
   indices already in freight-pulse (RAILFRTCARLOADSD11 / RAILFRTINTERMODALD11)
