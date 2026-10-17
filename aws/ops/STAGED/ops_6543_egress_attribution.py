@@ -3,7 +3,7 @@
 ops 6529 proved the server access logs deliver (folders Sep 14 -> today) but sampled only the newest hour,
 which is inside the fleet freeze: 17 MB/hour, all anonymous through Cloudflare. Egress was ~55 GB/day on
 Oct 12-16 and ~57 GB/day on normal days, so the downloader is something the freeze stopped. This op samples
-whole hours of a normal day (Oct 10: 03, 13, 21 UTC) and one storm hour (Oct 15 13 UTC) and attributes
+a normal day (Oct 10) and a storm day (Oct 15) evenly across each day's log objects and attributes
 GET bytes by requester class, user agent, referer, key prefix and source network. In-region GETs by Lambda
 roles are free; anonymous/Cloudflare and anything from outside AWS is the billed egress.
 """
@@ -46,17 +46,22 @@ def requester_class(req, ip):
     return req.split(":")[-1][:40]
 
 
-def sample_hour(r, tb, base, day, tag):
+def sample_day(r, tb, base, day, n_sample=4000):
+    """EventTime-partitioned log objects are all named <YYYY-MM-DD>-00-00-00-<random>: there is no hour in the
+    name, so sample evenly across the whole day's listing and scale by objects listed / objects read."""
     keys, token = [], None
     while True:
-        kw = {"Bucket": tb, "Prefix": base + day + "/" + tag, "MaxKeys": 1000}
+        kw = {"Bucket": tb, "Prefix": base + day + "/", "MaxKeys": 1000}
         if token:
             kw["ContinuationToken"] = token
         resp = s3.list_objects_v2(**kw)
         keys += [o["Key"] for o in resp.get("Contents", [])]
-        if not resp.get("IsTruncated") or len(keys) >= 20000:
+        if not resp.get("IsTruncated") or len(keys) >= 600000:
             break
         token = resp.get("NextContinuationToken")
+    step_n = max(1, len(keys) // n_sample)
+    sample = keys[::step_n][:n_sample]
+    scale = len(keys) / float(len(sample) or 1)
 
     def read(k):
         try:
@@ -67,7 +72,7 @@ def sample_hour(r, tb, base, day, tag):
     by_class, by_ua, by_ref, by_prefix, by_net, by_key = (Counter() for _ in range(6))
     gets, total = 0, 0
     with cf.ThreadPoolExecutor(max_workers=32) as ex:
-        for text in ex.map(read, keys):
+        for text in ex.map(read, sample):
             for line in text.splitlines():
                 m = LOG_RE.match(line)
                 if not m or m.group(7) != "REST.GET.OBJECT":
@@ -84,17 +89,17 @@ def sample_hour(r, tb, base, day, tag):
                     by_prefix["/".join(key.split("/")[:2])] += b
                     by_key[key] += b
                     by_net[".".join(ip.split(".")[:2]) + ".*"] += b
-    gb = lambda c, n=8: [(k, round(v / 1e9, 3)) for k, v in c.most_common(n)]  # noqa: E731
+    gbd = lambda c, n=8: [(k, round(v * scale / 1e9, 2)) for k, v in c.most_common(n)]  # noqa: E731  GB/day
     billed = sum(v for k, v in by_class.items() if not k.startswith("lambda/"))
-    r.log("%s: %d log objects, %d GETs, %.2f GB total, %.2f GB not-from-Lambda (x24 = %.1f GB/day)" % (
-        tag, len(keys), gets, total / 1e9, billed / 1e9, billed * 24 / 1e9))
-    r.log("   by requester class: %s" % gb(by_class))
-    r.log("   non-Lambda by user agent: %s" % gb(by_ua, 6))
-    r.log("   non-Lambda by referer host: %s" % gb(by_ref, 6))
-    r.log("   non-Lambda by key prefix: %s" % gb(by_prefix, 10))
-    r.log("   non-Lambda top keys: %s" % gb(by_key, 8))
-    r.log("   non-Lambda by network /16: %s" % gb(by_net, 6))
-    return billed
+    r.log("%s: %d log objects (read %d, x%.1f), GET bytes/day all %.1f GB, not-from-Lambda %.1f GB" % (
+        day, len(keys), len(sample), scale, total * scale / 1e9, billed * scale / 1e9))
+    r.log("   GB/day by requester class: %s" % gbd(by_class))
+    r.log("   non-Lambda GB/day by user agent: %s" % gbd(by_ua, 6))
+    r.log("   non-Lambda GB/day by referer host: %s" % gbd(by_ref, 6))
+    r.log("   non-Lambda GB/day by key prefix: %s" % gbd(by_prefix, 10))
+    r.log("   non-Lambda GB/day top keys: %s" % gbd(by_key, 8))
+    r.log("   non-Lambda GB/day by network /16: %s" % gbd(by_net, 6))
+    return billed * scale
 
 
 def main():
@@ -127,17 +132,17 @@ def main():
         r.log("top of the log prefix: %s | %s" % ([p["Prefix"] for p in flat.get("CommonPrefixes", [])][:10],
                                                   [o["Key"] for o in flat.get("Contents", [])][:5]))
         done = 0
-        for day, tag in HOURS:
-            r.section(tag)
+        for day in ("2026/10/10", "2026/10/15"):
+            r.section(day)
             try:
-                sample_hour(r, tb, base, day, tag)
+                sample_day(r, tb, base, day)
                 done += 1
             except Exception as e:  # noqa: BLE001
-                r.warn("%s failed: %s" % (tag, str(e)[:200]))
+                r.warn("%s failed: %s" % (day, str(e)[:200]))
         if not done:
-            r.fail("no hour could be sampled")
+            r.fail("no day could be sampled")
             sys.exit(1)
-        r.ok("sampled %d hours" % done)
+        r.ok("sampled %d days" % done)
     sys.exit(0)
 
 
