@@ -8,6 +8,14 @@
 > now, add it to `exempt_functions` in `s3://justhodl-ops-private-857687956942/spend-governor/control.json`
 > and ask Khalid. From November the $500 cap is enforced automatically. Runbook: `docs/ops/SPEND_GOVERNOR.md`.
 
+> **🔁 Event-loop gate (every lane, every Lambda deploy, 2026-10-17).** `tests/deployment/test_event_graph_acyclic.py`
+> fails the deploy while any Lambda can trigger itself through the event bus (publish -> coordinator route ->
+> ... -> itself). Before adding a route in the coordinator's `ROUTES`, an event a consumer re-publishes, a rule on
+> bus `justhodl-system-events`, or a self-invoking chain, run `python3 scripts/event_graph.py` (exit 0 = no loop).
+> A deliberate invoke chain needs its stop condition in `config/loop-allowlist.json`; a bus loop cannot be
+> allowlisted. Runtime backstops: the coordinator's circuit breaker and the governor's fast fuse
+> (`docs/ops/RUNAWAY_GUARDRAILS.md`).
+
 Push to `main` **is** the deploy. There is no laptop-side AWS step. Everything AWS
 happens on the GitHub Actions runner, which holds the credentials.
 

@@ -119,8 +119,10 @@ api.github.com / raw.githubusercontent.com. It does NOT have egress to
   run's chain within seconds for 4.5 months; 42bedb1c (Oct 7) keyed dedupe on the EventBridge event id and
   the next Monday run went exponential (x3 per lap) and pinned all 764 unreserved Lambda slots. AWS's
   recursive-loop detection does not follow EventBridge. A read-modify-write append to one S3 object in a
-  VERSIONED bucket stores the whole object again on every append (0.9 -> 145 TB). The coordinator now skips
-  self-loops and caps the audit day-log; the spend governor's runaway fuse would stop a repeat in ~2 h.
+  VERSIONED bucket stores the whole object again on every append (0.9 -> 145 TB). The old guard alarms DID fire
+  at 09:18 (3 min in) - they only reached a dead Telegram bot and nothing acted. Now: deploy gate
+  (scripts/event_graph.py), coordinator circuit breaker, sustained-runaway alarms -> governor fast fuse
+  (~20 min), bucket-wide noncurrent bound. Runbook docs/ops/RUNAWAY_GUARDRAILS.md.
 
 - **Canary #9 (rail carloads by commodity) is BLOCKED — do not re-probe**
   (ops 3752/3753, 2026-07-23). Evidence: FRED carries only the two AGGREGATE

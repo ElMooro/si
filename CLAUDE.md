@@ -18,4 +18,9 @@ This repo is driven autonomously by Claude. Session protocol, in order:
    confirm the ticker/chart/panel actually changed, and quote that proof.
    "I deployed it" is not verification.
 
+6. **No event loops (2026-10-17, after the $2,300 Oct 12-16 loop).** Any change to event
+   publishing, coordinator `ROUTES`, bus rules or a self-invoking chain: run
+   `python3 scripts/event_graph.py` first (exit 0 = no loop). The deploy gate
+   enforces it; runtime guardrails are in `docs/ops/RUNAWAY_GUARDRAILS.md`.
+
 Khalid runs nothing locally. Real data only. Audit before building.

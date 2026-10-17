@@ -107,7 +107,7 @@ def table(r):
                          AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"}],
                          KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}],
                          Tags=[{"Key": "system", "Value": "justhodl-event-bus"},
-                               {"Key": "purpose", "Value": "coordinator circuit breaker (ops 6541)"}])
+                               {"Key": "purpose", "Value": "coordinator circuit breaker - ops 6541"}])
         ddb.get_waiter("table_exists").wait(TableName=TABLE, WaiterConfig={"Delay": 5, "MaxAttempts": 40})
         r.ok("table %s created" % TABLE)
     ttl = ddb.describe_time_to_live(TableName=TABLE)["TimeToLiveDescription"]
@@ -365,6 +365,15 @@ def end_to_end(r):
     return {"record": found[0]}
 
 
+def smasync_note(r):
+    """Governor v1.0.3+ keeps the AWS error message of a failed lever (the owned endpoint's suspension)."""
+    st = json.loads(s3.get_object(Bucket=STATE_BUCKET, Key="spend-governor/state.json")["Body"].read())
+    e = (st.get("ledger") or {}).get("smasync:endpoint/jh-owned-coder-async/variant/owned") or {}
+    r.log("smasync ledger entry: %s" % json.dumps({k: e.get(k) for k in ("status", "error", "error_msg", "failed_at",
+                                                                         "scale_down_note", "applied_at")}))
+    return e.get("status")
+
+
 def main():
     with report("ops_6541_arm_runaway_guardrails") as r:
         r.heading("ops 6541 - arm the runaway guardrails and prove them")
@@ -390,6 +399,8 @@ def main():
         if not any(c for _, c in errors.values()):
             r.section("I. End to end: forced alarm -> governor")
             step("end_to_end", r, end_to_end, critical=True)
+        r.section("Note: owned SageMaker endpoint lever")
+        step("smasync", r, smasync_note)
         r.section("Reversal")
         r.log("caps: put_function_concurrency back / governor ledger; alarms: delete_alarms justhodl-runaway-*, "
               "justhodl-event-breaker-*, justhodl-s3-live-bucket-size; budget: delete_budget %s; lifecycle: drop rule "
