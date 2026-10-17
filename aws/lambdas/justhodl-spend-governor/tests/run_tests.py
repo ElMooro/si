@@ -415,6 +415,74 @@ def test_sns_trigger_and_selftest():
     check("error" in bad and w["lambda"].fns["justhodl-alpha"].get("reserved") is None, "selftest refuses real engines")
 
 
+class FakeAAS:
+    def __init__(self, refuse=None):
+        self.registered, self.refuse = [], refuse
+
+    def register_scalable_target(self, **kw):
+        if self.refuse:
+            raise ClientError({"Error": {"Code": "ValidationException", "Message": self.refuse}}, "RegisterScalableTarget")
+        self.registered.append(kw)
+
+
+class FakeSM:
+    def __init__(self, running, status="InService", refuse=None):
+        self.running, self.status, self.refuse, self.updates = running, status, refuse, []
+
+    def describe_endpoint(self, EndpointName):
+        return {"EndpointStatus": self.status, "ProductionVariants": [
+            {"VariantName": "owned", "CurrentInstanceCount": self.running, "DesiredInstanceCount": self.running}]}
+
+    def update_endpoint_weights_and_capacities(self, **kw):
+        if self.refuse:
+            raise ClientError({"Error": {"Code": "ValidationException", "Message": self.refuse}}, "UpdateEndpoint")
+        self.updates.append(kw)
+
+
+def smasync_entry(desired=1):
+    return lv.entry("smasync", "endpoint/ep/variant/owned", "FREEZE",
+                    {"endpoint": "ep", "variant": "owned", "min": 0, "max": 1, "suspended": lv.NO_SUSPEND,
+                     "desired": desired})
+
+
+def test_smasync_lever():
+    def ctx_of(aas, sm):
+        return types.SimpleNamespace(c=lambda name: {"application-autoscaling": aas, "sagemaker": sm}[name])
+    aas, sm = FakeAAS(), FakeSM(running=0)
+    e = smasync_entry(desired=1)  # snapshot said 1, the endpoint has since drained to 0
+    lv.smasync_apply(ctx_of(aas, sm), e)
+    check(aas.registered and aas.registered[0]["SuspendedState"]["DynamicScalingOutSuspended"] is True
+          and aas.registered[0]["SuspendedState"]["DynamicScalingInSuspended"] is False,
+          "smasync suspends scale-out and leaves scale-in live")
+    check(not sm.updates, "no capacity update for an endpoint already at 0 (decided on current state, not snapshot)")
+    aas, sm = FakeAAS(), FakeSM(running=1, refuse="Cannot update in-progress endpoint")
+    e = smasync_entry()
+    lv.smasync_apply(ctx_of(aas, sm), e)
+    check(aas.registered and "in-progress" in e.get("scale_down_note", ""),
+          "a refused scale-down is a note, the suspension still counts (%s)" % e.get("scale_down_note"))
+    aas, sm = FakeAAS(), FakeSM(running=2)
+    e = smasync_entry()
+    lv.smasync_apply(ctx_of(aas, sm), e)
+    check(sm.updates and sm.updates[0]["DesiredWeightsAndCapacities"][0]["DesiredInstanceCount"] == 0
+          and e.get("scaled_down_from") == 2, "a running InService variant is dropped to 0 now")
+    aas, sm = FakeAAS(), FakeSM(running=1, status="Updating")
+    e = smasync_entry()
+    lv.smasync_apply(ctx_of(aas, sm), e)
+    check(not sm.updates and "Updating" in e.get("scale_down_note", ""), "no capacity update while Updating")
+    # full apply path: a refused registration is recorded with the service's own message
+    ctx = types.SimpleNamespace(c=lambda name: {"application-autoscaling": FakeAAS(refuse="why it failed"),
+                                                "sagemaker": FakeSM(0)}[name],
+                                time_left=lambda: 600, ledger={})
+    e = smasync_entry()
+    gov.apply_entries(ctx, [e], True, datetime(2026, 10, 17, tzinfo=timezone.utc))
+    check(e["status"] == "failed" and e["error"] == "ValidationException" and e["error_msg"] == "why it failed",
+          "failed apply keeps the error message in the ledger (%s)" % e.get("error_msg"))
+    ctx.c = lambda name: {"application-autoscaling": FakeAAS(), "sagemaker": FakeSM(0)}[name]
+    gov.apply_entries(ctx, [e], True, datetime(2026, 10, 17, 1, tzinfo=timezone.utc))
+    check(e["status"] == "applied" and "error" not in e and "error_msg" not in e,
+          "a later success clears the old error")
+
+
 def test_plan_is_read_only():
     w = world(FLEET, actual=10)
     set_control(w)

@@ -27,6 +27,13 @@ def err_code(e):
     return type(e).__name__
 
 
+def err_msg(e):
+    """The service's own explanation (a code alone - 'ValidationException' - says nothing actionable)."""
+    if isinstance(e, ClientError):
+        return str(e.response.get("Error", {}).get("Message") or "")[:300]
+    return str(e)[:300]
+
+
 def entry(lever, rid, stage, before, restorable=True, **extra):
     d = {"key": "%s:%s" % (lever, rid), "lever": lever, "id": rid, "stage": stage, "before": before,
          "restorable": restorable, "status": "planned"}
@@ -203,13 +210,28 @@ def smasync_discover(ctx, stage):
 
 
 def smasync_apply(ctx, e):
+    """Suspend scale-OUT only: a queued request can no longer wake an instance, while scale-in stays live so a
+    running instance still drains to 0 on its own.  The immediate drop to 0 is best effort and decided on the
+    endpoint's CURRENT state, not the snapshot (a retry hours later must not resend a stale capacity update):
+    SageMaker refuses capacity updates while the endpoint is Updating, and scale-in gets there anyway."""
     b = e["before"]
     ctx.c("application-autoscaling").register_scalable_target(
         ServiceNamespace="sagemaker", ResourceId=e["id"], ScalableDimension=DIM,
         MinCapacity=int(b["min"]), MaxCapacity=int(b["max"]), SuspendedState=ASYNC_SUSPEND)
-    if int(b.get("desired") or 0) > 0:
-        ctx.c("sagemaker").update_endpoint_weights_and_capacities(
-            EndpointName=b["endpoint"], DesiredWeightsAndCapacities=[{"VariantName": b["variant"], "DesiredInstanceCount": 0}])
+    e.pop("scale_down_note", None)
+    try:
+        d = ctx.c("sagemaker").describe_endpoint(EndpointName=b["endpoint"])
+        v = next((x for x in d.get("ProductionVariants", []) if x.get("VariantName") == b["variant"]), {})
+        running = int(v.get("CurrentInstanceCount") or 0)
+        if running > 0 and d.get("EndpointStatus") == "InService":
+            ctx.c("sagemaker").update_endpoint_weights_and_capacities(
+                EndpointName=b["endpoint"],
+                DesiredWeightsAndCapacities=[{"VariantName": b["variant"], "DesiredInstanceCount": 0}])
+            e["scaled_down_from"] = running
+        elif running > 0:
+            e["scale_down_note"] = "endpoint %s; scale-in drains it" % d.get("EndpointStatus")
+    except Exception as ex:  # noqa: BLE001 - the suspension above is the part that matters
+        e["scale_down_note"] = "%s: %s" % (err_code(ex), err_msg(ex))
 
 
 def smasync_is_applied(ctx, e):

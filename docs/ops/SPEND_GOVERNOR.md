@@ -89,8 +89,12 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
 
 ## History
 
-* 2026-10-12..16: miss-calibrator <-> event-coordinator loop, ~$450/day Lambda + S3 0.9 -> 106 TB of
-  noncurrent audit copies; October MTD $2,351 when found. Fixed by ops 6520/6521 (see docs/EVENT_BUS.md).
+* 2026-10-12..16: miss-calibrator <-> event-coordinator loop, ~$450/day Lambda + S3 0.9 -> 145 TB of
+  noncurrent audit copies; Oct 12-16 cost $2,369 vs ~$21/day normal. Fixed by ops 6520/6521 (see
+  docs/EVENT_BUS.md; forensics in ops 6530/6531 reports).
+* v1.0.3 (2026-10-17): a failed lever keeps the service's error message in the ledger (`error_msg`), and the
+  SageMaker async scale-down is decided on the endpoint's current state (ops 6525 left
+  `smasync:endpoint/jh-owned-coder-async/variant/owned` failed with a bare ValidationException).
 * October 2026 runs with `cap_overrides["2026-10"] = $3,500`; $500 from 2026-11-01.
 * 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
   914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.

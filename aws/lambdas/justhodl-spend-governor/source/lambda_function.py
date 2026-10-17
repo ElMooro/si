@@ -258,8 +258,10 @@ def apply_entries(ctx, entries, enforce, now):
         try:
             lv.apply_fn(e["lever"])(ctx, e)
             e.update(status="applied", applied_at=now.isoformat())
+            e.pop("error", None)
+            e.pop("error_msg", None)
         except Exception as ex:  # noqa: BLE001
-            e.update(status="failed", error=lv.err_code(ex))
+            e.update(status="failed", error=lv.err_code(ex), error_msg=lv.err_msg(ex), failed_at=now.isoformat())
         return e
 
     fast = [e for e in entries if e["lever"] in ("lambda", "esm")]
@@ -333,7 +335,7 @@ def restore_entries(ctx, predicate, now):
             if lv.err_code(ex) in ("ResourceNotFoundException",):
                 e["status"] = "skipped_gone"
             else:
-                e.update(status="restore_failed", error=lv.err_code(ex))
+                e.update(status="restore_failed", error=lv.err_code(ex), error_msg=lv.err_msg(ex))
         return e
 
     lam = [e for e in picked if e["lever"] == "lambda"]
