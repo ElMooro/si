@@ -106,7 +106,26 @@ def main():
             r.fail("server access logging is off")
             sys.exit(1)
         base = "%s%s/%s/%s/" % (tp, ACCOUNT, REGION, BUCKET)
-        r.log("logs: s3://%s/%s" % (tb, base))
+        r.log("logs: s3://%s/%s format=%s" % (tb, base, lg.get("TargetObjectKeyFormat")))
+        # what a day folder actually holds (ops 6543 run 1 found no object under <day>/<YYYY-MM-DD-HH>)
+        for day in ("2026/10/05", "2026/10/10", "2026/10/15", "2026/10/16", "2026/10/17"):
+            keys, token = [], None
+            while True:
+                kw = {"Bucket": tb, "Prefix": base + day + "/", "MaxKeys": 1000}
+                if token:
+                    kw["ContinuationToken"] = token
+                resp = s3.list_objects_v2(**kw)
+                keys += [(o["Key"], o["Size"], o["LastModified"]) for o in resp.get("Contents", [])]
+                if not resp.get("IsTruncated") or len(keys) >= 50000:
+                    break
+                token = resp.get("NextContinuationToken")
+            hours = Counter(k.split("/")[-1][:13] for k, _, _ in keys)
+            r.log("%s: %d objects, %.1f MB, first %s, last %s, hours %s" % (
+                day, len(keys), sum(sz for _, sz, _ in keys) / 1e6, keys[0][0].split("/")[-1] if keys else None,
+                keys[-1][0].split("/")[-1] if keys else None, sorted(hours.items())[:6]))
+        flat = s3.list_objects_v2(Bucket=tb, Prefix=tp, MaxKeys=20, Delimiter="/")
+        r.log("top of the log prefix: %s | %s" % ([p["Prefix"] for p in flat.get("CommonPrefixes", [])][:10],
+                                                  [o["Key"] for o in flat.get("Contents", [])][:5]))
         done = 0
         for day, tag in HOURS:
             r.section(tag)
