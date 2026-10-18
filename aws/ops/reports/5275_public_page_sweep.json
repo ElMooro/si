@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "91ef2241201c205e7e1445c74c529ac93f616d54",
-  "observed_at": "2026-10-18T14:34:31.956944+00:00",
-  "ok": true,
+  "observed_at": "2026-10-18T14:45:26.294081+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 599,
+  "failed_routes": [
+    "backtests.html"
+  ],
   "source_equivalent_builds": {
     "91ef2241201c205e7e1445c74c529ac93f616d54": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 598,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -508,13 +510,12 @@
     },
     {
       "route": "backtests.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "91ef2241201c205e7e1445c74c529ac93f616d54",
-      "inspector_present": true,
-      "bytes_read": 17711,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "baggers.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39136019633,
+  "deployment_run_id": 39136937615,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-18T14:34:31.965927+00:00"
+  "check_finished_at": "2026-10-18T14:45:26.302633+00:00"
 }
