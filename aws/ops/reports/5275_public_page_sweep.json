@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "91ef2241201c205e7e1445c74c529ac93f616d54",
-  "observed_at": "2026-10-18T12:29:00.538688+00:00",
-  "ok": true,
+  "observed_at": "2026-10-18T13:01:37.118388+00:00",
+  "ok": false,
   "routes_checked": 600,
-  "verified_routes": 600,
-  "failed_routes": [],
+  "verified_routes": 599,
+  "failed_routes": [
+    "capital-return.html"
+  ],
   "source_equivalent_builds": {
     "91ef2241201c205e7e1445c74c529ac93f616d54": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 599,
+  "embedded_inspection_routes": 598,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -898,13 +900,12 @@
     },
     {
       "route": "capital-return.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "91ef2241201c205e7e1445c74c529ac93f616d54",
-      "inspector_present": true,
-      "bytes_read": 15041,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "capitulation.html",
@@ -6018,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39126939745,
+  "deployment_run_id": 39129276123,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-18T12:29:00.547508+00:00"
+  "check_finished_at": "2026-10-18T13:01:37.127654+00:00"
 }
