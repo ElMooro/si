@@ -1,0 +1,114 @@
+# Freeze resume - brings back the scheduled GitHub jobs switched off for the October 2026 freeze.
+#
+# Khalid froze the fleet for the rest of October (2026-10-16, ops 6525). On 2026-10-19 he had the 11 scheduled
+# GitHub jobs that touch AWS switched off too (disabled through the Actions API; their files are untouched).
+# The spend governor restores the AWS engines at 2026-11-01 00:07 UTC. This workflow re-enables the 11 jobs
+# right after - only once the governor reports it has left FREEZE - then disables itself. The 03:23 and 06:23
+# runs are retries in case GitHub drops a scheduled run; once all 11 are back every run is a no-op.
+# pages.yml and ops-retention.yml were never switched off (they do not touch AWS).
+name: Freeze resume (GitHub jobs)
+
+on:
+  schedule:
+    - cron: '23 0,3,6 1 11 *'   # 2026-11-01 (the date guard below keeps it to 2026)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'check = show states; resume = enable once the governor is out of FREEZE; force = enable now'
+        required: true
+        default: check
+        type: choice
+        options: [check, resume, force]
+      only:
+        description: 'optional: comma-separated subset of the frozen workflow files (default: all 11)'
+        required: false
+        default: ''
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: freeze-resume
+  cancel-in-progress: false
+
+jobs:
+  resume:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Resume the frozen jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          MODE: ${{ inputs.mode }}
+          ONLY: ${{ inputs.only }}
+        shell: bash   # GitHub runs it as bash -eo pipefail: every command below is -e safe
+        run: |
+          set -uo pipefail
+          # the 11 scheduled jobs that touch AWS, switched off 2026-10-19
+          FROZEN="capital-structure-source-refresh.yml factory-code-exam.yml factory-exam.yml factory-market-exam.yml factory-official-prints.yml factory-reasoning-exam.yml market-bank-refresh.yml market-bank-seed.yml section-registry.yml statement-source-refresh.yml watchlist-insights.yml"
+          if [ "$EVENT" = "schedule" ]; then
+            MODE=resume
+            if [ "$(date -u +%Y-%m)" != "2026-11" ]; then echo "Only for the 2026-11-01 resume; nothing to do."; exit 0; fi
+          fi
+          MODE="${MODE:-check}"
+          LIST="$FROZEN"
+          if [ -n "${ONLY:-}" ]; then
+            LIST=""
+            for wf in ${ONLY//,/ }; do
+              case " $FROZEN " in
+                *" $wf "*) LIST="${LIST:+$LIST }$wf" ;;
+                *) echo "::error::$wf is not one of the frozen jobs"; exit 1 ;;
+              esac
+            done
+          fi
+          state() { gh api "repos/$REPO/actions/workflows/$1" --jq .state 2>/dev/null || echo unreadable; }
+          show() { for wf in $LIST; do printf '%-40s %s\n' "$wf" "$(state "$wf")"; done; }
+
+          stage=unknown
+          for _ in 1 2 3 4 5 6; do   # the governor has reserved concurrency 1: a running tick answers 429
+            if aws lambda invoke --function-name justhodl-spend-governor --cli-binary-format raw-in-base64-out \
+                 --cli-read-timeout 300 --payload '{"action":"status"}' /tmp/gov.json >/tmp/invoke.json 2>/tmp/invoke.err; then
+              stage="$(jq -r '.stage // "unknown"' /tmp/gov.json 2>/dev/null || echo unknown)"
+              break
+            fi
+            grep -q TooManyRequests /tmp/invoke.err || break
+            sleep 30
+          done
+          echo "::notice::spend governor stage: $stage"
+          echo "Before:"
+          show
+
+          if [ "$MODE" = "check" ]; then exit 0; fi
+          if [ "$MODE" = "resume" ] && { [ "$stage" = "FREEZE" ] || [ "$stage" = "unknown" ]; }; then
+            echo "::warning::governor stage is $stage - the jobs stay off until it releases the freeze"
+            exit 1
+          fi
+
+          for wf in $LIST; do
+            if [ "$(state "$wf")" != "active" ]; then
+              gh api -X PUT "repos/$REPO/actions/workflows/$wf/enable" >/dev/null || echo "::error::could not enable $wf"
+            fi
+          done
+          echo "After:"
+          show
+          off=""
+          for wf in $LIST; do
+            if [ "$(state "$wf")" != "active" ]; then off="${off:+$off }$wf"; fi
+          done
+          if [ -n "$off" ]; then echo "::error::still off: $off"; exit 1; fi
+          echo "::notice::re-enabled: $LIST"
+          if [ -z "${ONLY:-}" ]; then   # full resume done: this workflow has no further job
+            if gh api -X PUT "repos/$REPO/actions/workflows/freeze-resume.yml/disable" >/dev/null; then
+              echo "::notice::freeze-resume disabled itself"
+            else
+              echo "::warning::could not disable freeze-resume (the date guard keeps it inert after November)"
+            fi
+          fi

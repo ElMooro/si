@@ -6,7 +6,8 @@
 # It asks GitHub to run ops 6545 on the AWS runner (the only machine with AWS keys), waits for it, and prints
 # the verdict.  ops 6545 reads every Lambda's concurrency, who ran in the last 20 min / 24 h, SageMaker, EC2,
 # ECS, RDS, App Runner and Step Functions.  If it finds anything on, it has the spend governor re-apply the
-# freeze (restored exactly on Nov 1) and checks again.
+# freeze (restored exactly on Nov 1) and checks again.  Then it confirms the 11 scheduled GitHub jobs that touch
+# AWS are switched off (they come back on Nov 1 through .github/workflows/freeze-resume.yml).
 #
 # GitHub login: uses the one Git already has (Git Credential Manager, the ElMooro account).  The token is
 # never printed.  Needs only git and curl, both part of Git for Windows.  Exit 0 = all off, 1 = something on.
@@ -18,6 +19,9 @@ WORKFLOW="run-ops-direct.yml"
 SCRIPT="STAGED/ops_6545_fleet_off_check.py"
 REPORT="aws/ops/reports/latest/ops_6545_fleet_off_check.md"
 API="https://api.github.com/repos/$REPO"
+GH_JOBS="capital-structure-source-refresh.yml factory-code-exam.yml factory-exam.yml factory-market-exam.yml
+         factory-official-prints.yml factory-reasoning-exam.yml market-bank-refresh.yml market-bank-seed.yml
+         section-registry.yml statement-source-refresh.yml watchlist-insights.yml"
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 2; }
 
@@ -95,7 +99,27 @@ verdict="$(printf '%s\n' "$md" | grep -E 'ALL ENGINES OFF|STILL ON' | tail -n 1 
 printf '%s\n\n' "${verdict:-no verdict line - open the full report}"
 printf '%s\n' "$md" | grep -E 'governor v|last governor tick|every non-exempt|non-exempt functions that can run|invocations [0-9]{2}:[0-9]{2}-|in the last 24 h|endpoint |running:|concurrency unreadable|cannot prove|Cost Explorer shows|still billing|exempt by design|re-held after|governor tick:|governor force' \
   | sed -E 's/^- `[0-9:]+` /  /' | cut -c1-240
+
+echo
+echo "GitHub scheduled jobs that touch AWS:"
+on_jobs="" n_off=0
+for wf in $GH_JOBS; do
+  st="$(gh_api GET "/actions/workflows/$wf" | http_body | first_str state)"
+  if [ "$st" = "active" ]; then on_jobs="$on_jobs $wf"; else n_off=$((n_off + 1)); fi
+done
+if [ -z "$on_jobs" ]; then
+  echo "  ✅ all $n_off are switched off"
+else
+  echo "  ✗ still on:$on_jobs"
+fi
+resume="$(gh_api GET "/actions/workflows/freeze-resume.yml" | http_body | first_str state)"
+case "$resume" in
+  active) echo "  Nov 1 auto-resume: armed (turns them back on once the governor lifts the freeze)" ;;
+  *)      echo "  Nov 1 auto-resume: ${resume:-not found}" ;;
+esac
+
 echo
 echo "Full report: https://github.com/$REPO/blob/main/$REPORT"
 echo "Run log:     https://github.com/$REPO/actions/runs/$run_id"
-case "$verdict" in *"ALL ENGINES OFF"*) exit 0 ;; *) exit 1 ;; esac
+case "$verdict" in *"ALL ENGINES OFF"*) [ -z "$on_jobs" ] && exit 0 ;; esac
+exit 1

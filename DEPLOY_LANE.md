@@ -7,6 +7,11 @@
 > them: the governor re-applies the hold every hour and keeps your value for the restore. To run something
 > now, add it to `exempt_functions` in `s3://justhodl-ops-private-857687956942/spend-governor/control.json`
 > and ask Khalid. From November the $500 cap is enforced automatically. Runbook: `docs/ops/SPEND_GOVERNOR.md`.
+> **GitHub side (2026-10-19, Khalid):** the 11 scheduled workflows that touch AWS (capital-structure-source-refresh,
+> factory-code-exam, factory-exam, factory-market-exam, factory-official-prints, factory-reasoning-exam,
+> market-bank-refresh, market-bank-seed, section-registry, statement-source-refresh, watchlist-insights) are
+> disabled through the Actions API (files untouched). `.github/workflows/freeze-resume.yml` re-enables them on
+> 2026-11-01 once the governor has left FREEZE. Do not re-enable them by hand; check: `scripts/justhodl-engines-off-check.sh`.
 
 > **🔁 Event-loop gate (every lane, every Lambda deploy, 2026-10-17).** `tests/deployment/test_event_graph_acyclic.py`
 > fails the deploy while any Lambda can trigger itself through the event bus (publish -> coordinator route ->

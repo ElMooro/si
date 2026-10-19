@@ -109,6 +109,11 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
 * October 2026 runs with `cap_overrides["2026-10"] = $3,500`; $500 from 2026-11-01.
 * 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
   914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.
+* 2026-10-19: ops 6545 proved the freeze live (922 of 926 Lambdas at 0, only the 4 exempt ran in 24 h; 19 lane
+  changes during the freeze were re-held by drift, the slowest after 28 min). On Khalid's instruction the 11
+  scheduled GitHub workflows that touch AWS were disabled too; `.github/workflows/freeze-resume.yml` re-enables
+  them 2026-11-01 (00:23, retries 03:23/06:23 UTC) only once this governor reports a stage other than FREEZE,
+  then disables itself. One-command check from Git Bash: `scripts/justhodl-engines-off-check.sh`.
 * Normal run-rate before the loop was ~$24/day (~$730/month) - above $500. Cuts shipped 2026-10-16:
   justhodl-ai caches Cost Explorer 6 h (~$1.6/day), fleet-error-monitor hourly v1.2.0 (~$5.5/day).
   If the run-rate still exceeds ~$16/day the governor will BRAKE late in the month.
