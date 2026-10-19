@@ -1,12 +1,12 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "91ef2241201c205e7e1445c74c529ac93f616d54",
-  "observed_at": "2026-10-18T23:58:15.406942+00:00",
+  "observed_at": "2026-10-19T00:53:49.973749+00:00",
   "ok": false,
   "routes_checked": 600,
   "verified_routes": 599,
   "failed_routes": [
-    "pre-pump-radar.html"
+    "rebalance-radar.html"
   ],
   "source_equivalent_builds": {
     "91ef2241201c205e7e1445c74c529ac93f616d54": true
@@ -4400,12 +4400,13 @@
     },
     {
       "route": "pre-pump-radar.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "91ef2241201c205e7e1445c74c529ac93f616d54",
+      "inspector_present": true,
+      "bytes_read": 323855,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "predictability.html",
@@ -4569,13 +4570,12 @@
     },
     {
       "route": "rebalance-radar.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "91ef2241201c205e7e1445c74c529ac93f616d54",
-      "inspector_present": true,
-      "bytes_read": 14168,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "regime-map.html",
@@ -6019,7 +6019,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39178130631,
+  "deployment_run_id": 39182265593,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-18T23:58:15.415478+00:00"
+  "check_finished_at": "2026-10-19T00:53:49.980024+00:00"
 }
