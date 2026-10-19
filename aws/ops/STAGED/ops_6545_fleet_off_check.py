@@ -65,6 +65,14 @@ SM_JOBS = [("training", "list_training_jobs", "TrainingJobSummaries", "TrainingJ
 # keys whose findings mean "something can run or is running" -> act, and RED if still there afterwards
 ON_KEYS = ("governor_not_frozen", "governor_stale", "can_run", "unreadable", "invoked_20m", "sagemaker",
            "sm_jobs", "sm_notebooks", "sm_apps", "hyperpod", "ec2", "ecs", "rds", "apprunner", "sfn", "esm")
+RED_ONLY = ("unverified",)  # cannot be fixed by the governor; reported, never acted on
+
+# a service the runner cannot list is proven off by billing instead (Cost Explorer service names)
+CE_NAME = {"EC2": "Amazon Elastic Compute Cloud - Compute", "ECS": "Amazon Elastic Container Service",
+           "RDS": "Amazon Relational Database Service", "App Runner": "AWS App Runner",
+           "Step Functions": "AWS Step Functions"}
+UNREADABLE = set()
+BILLED_SINCE_FREEZE = {}  # service -> USD on days after the freeze (None = Cost Explorer unreadable)
 
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=60)
 _clients = {}
@@ -389,6 +397,7 @@ def other_compute(r, F, is_exempt):
             fn()
         except Exception as e:  # noqa: BLE001 - one service must never hide the others
             r.warn("%s unreadable: %s" % (label, err(e)))
+            UNREADABLE.add(label)
 
     def ec2():
         ins = [i for p in c("ec2").get_paginator("describe_instances").paginate(
@@ -496,8 +505,12 @@ def schedules_and_cost(r):
             tot = sum(v for _, v in g)
             r.log("still billing %s: $%.2f - %s" % (t["TimePeriod"]["Start"], tot, ", ".join(
                 "%s $%.2f" % (k, v) for k, v in g if v >= 0.05)))
+            if t["TimePeriod"]["Start"] > FREEZE_AT.date().isoformat():
+                for k, v in g:
+                    BILLED_SINCE_FREEZE[k] = BILLED_SINCE_FREEZE.get(k, 0.0) + v
     except Exception as e:  # noqa: BLE001
         r.warn("Cost Explorer unreadable: %s" % err(e))
+        BILLED_SINCE_FREEZE[None] = None
 
 
 # --------------------------------------------------------------------- main --
@@ -525,6 +538,23 @@ def main():
             r.warn("CloudWatch unreadable: %s" % err(e))
         r.section("Schedules and what still bills")
         schedules_and_cost(r)
+
+        by_bill, unverified = [], []
+        for label in sorted(UNREADABLE):
+            usd = BILLED_SINCE_FREEZE.get(CE_NAME.get(label, label), 0.0)
+            if None in BILLED_SINCE_FREEZE or label not in CE_NAME:
+                unverified.append("%s (unreadable, no billing check)" % label)
+            elif usd >= 0.01:
+                unverified.append("%s (unreadable, billed $%.2f since the freeze)" % (label, usd))
+            else:
+                by_bill.append(label)
+        if by_bill:
+            one = len(by_bill) == 1
+            r.ok("%s: the runner cannot list %s, and Cost Explorer shows $0.00 for %s since the freeze" % (
+                " and ".join(by_bill), "it" if one else "them", "it" if one else "them"))
+        if unverified:
+            r.fail("cannot prove off: %s" % ", ".join(unverified))
+            F["unverified"] = unverified
 
         found = {k: F[k] for k in ON_KEYS if F.get(k)}
         if found:
@@ -554,6 +584,7 @@ def main():
             still = {k: after[k] for k in ON_KEYS if after.get(k)}
         else:
             still = {}
+        still.update({k: F[k] for k in RED_ONLY if F.get(k)})
 
         r.section("Verdict")
         if still:
@@ -562,8 +593,10 @@ def main():
         # The ✗ lines above are the BEFORE state; the verdict is the state after the re-assert, so a fleet that
         # is off now must not render as Status: failure.
         r._failed = False
-        r.ok("ALL ENGINES OFF - every non-exempt Lambda held at reserved concurrency 0, no SageMaker / EC2 / ECS / "
-             "RDS / App Runner / Step Functions compute up, governor FREEZE (auto-restore 2026-11-01 00:07 UTC)%s" % (
+        listed = [x for x in ("SageMaker", "EC2", "ECS", "RDS", "App Runner", "Step Functions") if x not in UNREADABLE]
+        r.ok("ALL ENGINES OFF - every non-exempt Lambda held at reserved concurrency 0; no %s compute up%s; governor "
+             "FREEZE (auto-restore 2026-11-01 00:07 UTC)%s" % (
+                 " / ".join(listed), ("; %s off by billing ($0.00 since the freeze)" % " / ".join(by_bill)) if by_bill else "",
                  "; re-asserted by this op" if found else ""))
     sys.exit(0)
 
