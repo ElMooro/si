@@ -1,21 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d",
-  "observed_at": "2026-10-19T13:55:15.400622+00:00",
-  "ok": false,
+  "observed_at": "2026-10-19T14:25:15.275560+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 596,
-  "failed_routes": [
-    "futures-research.html",
-    "insiders.html",
-    "market-map.html",
-    "master-board.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 595,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -2673,12 +2668,13 @@
     },
     {
       "route": "futures-research.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "RemoteDisconnected",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d",
+      "inspector_present": true,
+      "bytes_read": 16804,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "fx-research.html",
@@ -3232,12 +3228,13 @@
     },
     {
       "route": "insiders.html",
-      "status": "UNAVAILABLE",
-      "http_status": 503,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "HTTPError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d",
+      "inspector_present": true,
+      "bytes_read": 49264,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "institutional-footprint.html",
@@ -3711,12 +3708,13 @@
     },
     {
       "route": "market-map.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "RemoteDisconnected",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d",
+      "inspector_present": true,
+      "bytes_read": 19733,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "market-measurements.html",
@@ -3740,12 +3738,13 @@
     },
     {
       "route": "master-board.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "URLError",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "42e992c91d2d8d728bbabaf54b74b7bdd12dca7d",
+      "inspector_present": true,
+      "bytes_read": 37638,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "master-rank.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39263022842,
+  "deployment_run_id": 39267539392,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-19T13:55:15.409928+00:00"
+  "check_finished_at": "2026-10-19T14:25:15.284989+00:00"
 }
