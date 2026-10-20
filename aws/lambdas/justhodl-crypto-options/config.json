@@ -11,7 +11,7 @@
   "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
   "schedule": {
     "rule_name": "justhodl-crypto-options-hourly",
-    "cron": "cron(25 * * * ? *)",
+    "cron": "cron(25 2 * * ? *)",
     "description": "Crypto options surface hourly at :25"
   }
 }

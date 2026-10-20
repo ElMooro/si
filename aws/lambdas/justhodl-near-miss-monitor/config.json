@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "near-miss-monitor-hourly",
-    "cron": "cron(30 * * * ? *)",
+    "cron": "cron(30 22 * * ? *)",
     "description": "Near-miss monitor — every hour at :30, ahead of signal-board (:15) and alpha-compass (:50)"
   }
 }

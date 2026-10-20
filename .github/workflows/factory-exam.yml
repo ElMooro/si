@@ -6,7 +6,7 @@
 name: Factory exam grade
 on:
   schedule:
-    - cron: '9,39 * * * *'
+    - cron: '39 5 * * *'   # once a day (Khalid 2026-10-20); the exam tick that feeds it is daily too
   workflow_dispatch:
     inputs:
       burst:

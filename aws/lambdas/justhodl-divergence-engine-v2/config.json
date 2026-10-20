@@ -21,7 +21,7 @@
   "eventbridge_rules": [
     {
       "name": "divergence-v2-2hourly",
-      "schedule": "rate(2 hours)",
+      "schedule": "cron(0 17 * * ? *)",
       "state": "ENABLED"
     }
   ],

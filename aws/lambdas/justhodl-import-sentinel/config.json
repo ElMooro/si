@@ -11,7 +11,7 @@
   },
   "schedule": {
     "name": "justhodl-import-sentinel-10min",
-    "expression": "rate(10 minutes)",
+    "expression": "cron(52 20 * * ? *)",
     "description": "Import pipeline health sweep every 10 minutes"
   },
   "tags": {

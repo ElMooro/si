@@ -13,7 +13,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-merger-arb-2x",
-    "cron": "cron(40 13,21 * * ? *)",
+    "cron": "cron(40 21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Merger-arb spread desk - twice daily 13:40 and 21:40 UTC via Amazon EventBridge Scheduler. Scheduler is the go-forward path; the classic 300-rule EventBridge pool is saturated."

@@ -88,7 +88,7 @@ class OfflinePages(unittest.TestCase):
             self.assertIn("scripts/run_offline_bake.py " + baker, workflow)
             self.assertNotIn("run: python3 scripts/" + baker + ".py", workflow)
         self.assertEqual(workflow.count(" --offline"), 4)
-        self.assertIn("cron: '*/15 * * * *'", workflow)
+        self.assertIn("cron: '17 5 * * *'", workflow)  # once a day (cadence floor, 2026-10-20)
 
     def test_engine_directory_copy_does_not_turn_unknown_count_into_zero(self):
         source = (ROOT / "engines.html").read_text(encoding="utf-8")

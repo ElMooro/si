@@ -15,7 +15,7 @@
   ],
   "schedule": {
     "rule_name": "crisis-composite-hourly",
-    "cron": "cron(15 * * * ? *)",
+    "cron": "cron(15 15 * * ? *)",
     "description": "Public original-source Crisis research hourly refresh"
   }
 }

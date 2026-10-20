@@ -23,7 +23,7 @@
   "eventbridge_rules": [
     {
       "name": "divergence-interpreter-4hourly",
-      "schedule": "cron(30 0/4 * * ? *)",
+      "schedule": "cron(30 13 * * ? *)",
       "state": "ENABLED"
     }
   ],

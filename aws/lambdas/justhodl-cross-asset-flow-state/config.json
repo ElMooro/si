@@ -11,7 +11,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Recorded cross-asset evidence composition with exact parent runs and dated measurement families; no allocation authority.",
   "schedule": {
-    "expression": "rate(2 hours)",
+    "expression": "cron(29 3 * * ? *)",
     "name": "justhodl-cross-asset-flow-state-2h",
     "description": "Synthesize cross-asset flow every 2h"
   }

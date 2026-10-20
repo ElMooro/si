@@ -15,7 +15,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-portfolio-risk-hourly",
-    "cron": "cron(43 * * * ? *)",
+    "cron": "cron(43 23 * * ? *)",
     "description": "Every hour at :43 - 3 min after portfolio-snapshot (:40) so snapshot is fresh"
   }
 }

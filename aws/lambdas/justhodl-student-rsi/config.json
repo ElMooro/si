@@ -12,7 +12,7 @@
   "env": {"FACTORY_PRIVATE_BUCKET": "justhodl-ai-857687956942", "FACTORY_PUBLIC_BUCKET": "justhodl-dashboard-live"},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-student-rsi-1m",
-    "cron": "rate(1 minute)",
+    "cron": "cron(40 9 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Bounded Gear A tick; private pause control; no model training"

@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-crypto-liquidity-daily",
-    "cron": "cron(0 12,22 * * ? *)",
+    "cron": "cron(0 22 * * ? *)",
     "description": "12:00 + 22:00 UTC daily (crypto trades weekends)"
   }
 }

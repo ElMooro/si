@@ -32,7 +32,7 @@ on:
       - "css/**"
       - ".github/workflows/pages.yml"
   schedule:
-    - cron: '*/15 * * * *'   # retained site build cadence; source-only, no live feed probes
+    - cron: '17 5 * * *'   # once a day (Khalid 2026-10-20): every run purged the whole Cloudflare cache, 96x/day; pushes still deploy at once
   workflow_dispatch:
     inputs:
       retry_count:

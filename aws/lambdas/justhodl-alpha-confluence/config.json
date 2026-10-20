@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-alpha-confluence-hourly",
-    "cron": "cron(12 * * * ? *)",
+    "cron": "cron(12 20 * * ? *)",
     "description": "Hourly at :12 — 5 min after alpha-score (:07) so latest data is read"
   }
 }

@@ -15,7 +15,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-dollar-radar-6h",
-    "cron": "cron(15 1,7,13,19 * * ? *)",
+    "cron": "cron(15 19 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Dollar original-source research every six hours; reconstruct pinned canonical observations, retain evidence and publish after replay."

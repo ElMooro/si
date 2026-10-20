@@ -25,7 +25,7 @@
   "memory": 512,
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-ka-metrics-hourly",
-    "cron": "rate(1 hour)",
+    "cron": "cron(46 13 * * ? *)",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "timezone": "UTC",
     "state": "ENABLED",

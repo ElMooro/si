@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-alpha-score-hourly",
-    "cron": "cron(7 * * * ? *)",
+    "cron": "cron(7 15 * * ? *)",
     "description": "Hourly at :07 — lands after sentiment/smart-money/screener refreshes (which all run at :00 or :15)"
   }
 }

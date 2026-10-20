@@ -11,7 +11,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Complete derived public source inventory with retained inputs, independent replay and explicit investment abstention.",
   "environment": {},
-  "schedule": "cron(15 0/6 * * ? *)",
+  "schedule": "cron(15 2 * * ? *)",
   "preserved_schedule_reference": {
     "rule_name": "signal-board-3h",
     "cron": "cron(15 0/6 * * ? *)",

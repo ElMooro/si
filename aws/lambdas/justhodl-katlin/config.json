@@ -34,7 +34,7 @@
   "eventbridge_schedulers_extra": [
     {
       "schedule_name": "justhodl-katlin-permission-refresh",
-      "expression": "rate(15 minutes)",
+      "expression": "cron(17 21 * * ? *)",
       "timezone": "UTC",
       "input": {
         "mode": "permission_refresh"

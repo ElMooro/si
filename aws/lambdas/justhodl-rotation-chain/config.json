@@ -10,7 +10,7 @@
   "description": "Sector rotation chain detection: lead-lag correlation across pre-defined value chains (AI, EV, GLP-1, reshoring, defense, quantum, uranium). Identifies next-up tickers when leader tier is rotating.",
   "schedule": {
     "rule_name": "rotation-chain-2x-daily",
-    "cron": "cron(0 12,20 * * ? *)",
+    "cron": "cron(0 20 * * ? *)",
     "description": "Rotation chain — twice daily at 12 + 20 UTC"
   }
 }

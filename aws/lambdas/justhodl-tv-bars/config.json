@@ -16,7 +16,7 @@
   },
   "schedule": {
     "name": "justhodl-tv-bars-hourly",
-    "expression": "rate(1 hour)",
+    "expression": "cron(11 23 * * ? *)",
     "description": "Hourly tranche until the ICE worklist converges, then maintenance"
   }
 }

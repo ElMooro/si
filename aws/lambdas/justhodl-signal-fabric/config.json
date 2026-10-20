@@ -7,7 +7,7 @@
   "description": "Compatibility signal fabric and feature bus with root evidence IDs, transaction/family dedupe, and downstream-view self-exclusion",
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-signal-fabric-hourly",
-    "cron": "cron(5 * * * ? *)",
+    "cron": "cron(5 21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Hourly at :05 before best-setups :10; best-setups is excluded from fabric evidence to prevent feedback"

@@ -18,7 +18,7 @@
   },
   "schedule": {
     "rule_name": "carry-surface-4h",
-    "cron": "rate(4 hours)",
+    "cron": "cron(26 5 * * ? *)",
     "description": "Retain and verify original carry research every 4 hours"
   }
 }

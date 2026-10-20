@@ -11,7 +11,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-ticker-deep-research-hourly",
-    "cron": "cron(5 * * * ? *)",
+    "cron": "cron(5 9 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Per-ticker AI research dossiers hourly at :05"

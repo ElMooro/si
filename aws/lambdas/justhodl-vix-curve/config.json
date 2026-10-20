@@ -11,7 +11,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "schedule": "cron(0,30 13-21 ? * MON-FRI *)",
+  "schedule": "cron(0 21 ? * MON-FRI *)",
   "environment_keys": [
     "S3_BUCKET",
     "S3_KEY",

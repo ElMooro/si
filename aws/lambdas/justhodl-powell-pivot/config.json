@@ -10,7 +10,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-powell-pivot-4h",
-    "cron": "cron(0 12,16,20 ? * MON-FRI *)",
+    "cron": "cron(0 20 ? * MON-FRI *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Powell-Pivot Language Engine every 4h during US market hours weekdays"

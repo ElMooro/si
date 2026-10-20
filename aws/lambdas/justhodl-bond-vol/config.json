@@ -15,5 +15,5 @@
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Bond Vol Composite hourly :15"
   },
-  "schedule": "cron(15 * * * ? *)"
+  "schedule": "cron(15 18 * * ? *)"
 }

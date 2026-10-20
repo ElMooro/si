@@ -19,7 +19,7 @@
   },
   "schedule": {
     "rule_name": "fleet-monitor-3h",
-    "cron": "cron(20 */3 * * ? *)",
+    "cron": "cron(20 3 * * ? *)",
     "description": "Full-Fleet Observability \u2014 every 3 hours"
   }
 }

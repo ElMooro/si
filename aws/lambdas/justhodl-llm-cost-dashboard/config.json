@@ -13,7 +13,7 @@
   },
   "schedule": {
     "rule_name": "justhodl-llm-cost-dashboard-hourly",
-    "cron": "cron(5 * * * ? *)",
+    "cron": "cron(5 5 * * ? *)",
     "description": "Hourly at :05 — refresh LLM cost ledger aggregation"
   }
 }

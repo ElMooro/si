@@ -39,7 +39,7 @@
   "memory": 768,
   "schedule": {
     "name": "justhodl-sec-13f-daily",
-    "expression": "rate(30 minutes)",
+    "expression": "cron(52 1 * * ? *)",
     "description": "13F filing detector \u2014 every 30 min 24/7; triggers positions rebuild on new accessions (rule name kept for cap-safety, cadence is 30m)"
   }
 }

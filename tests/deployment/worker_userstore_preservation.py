@@ -18,7 +18,20 @@ def peel_heat_range(raw, file):
     assert hashlib.sha256(raw.encode()).hexdigest() == _HEAT_BEFORE, file
     return raw
 
+def peel_edge_revalidate(raw, file):
+    """ops 6551 (2026-10-20): revalidated edge copies; same peel as peelEdgeRevalidate in the .cjs helper.  Without it
+    every Lambda deploy failed this gate from commit 12246d7f on (the JS chain was taught, this one was not)."""
+    t = json.loads((R/'tests/fixtures/worker-edge-revalidate/transition.json').read_bytes())
+    if file != t['path'] or hashlib.sha256(raw.encode()).hexdigest() != t['after_sha256']:
+        return raw
+    for e in reversed(t['replacements']):
+        assert raw.count(e['after']) == 1, "edge revalidate hunk"
+        raw = raw.replace(e['after'], e['before'], 1)
+    assert hashlib.sha256(raw.encode()).hexdigest() == t['before_sha256'], file
+    return raw
+
 def normalize(raw,file):
+    raw = peel_edge_revalidate(raw, file)
     raw = peel_heat_range(raw, file)
     t=json.loads((R/'tests/fixtures/worker-userstore/transition.json').read_bytes())['entries'].get(file)
     if not t:

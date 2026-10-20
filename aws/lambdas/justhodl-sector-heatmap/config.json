@@ -5,7 +5,7 @@
   "description": "Sector Heatmap \u2014 Finviz-style S&P 500 treemap with intraday change + breadth",
   "schedule": {
     "rule_name": "sector-heatmap-30m",
-    "cron": "cron(*/30 13-21 ? * MON-FRI *)",
+    "cron": "cron(18 19 * * ? *)",
     "description": "Sector Heatmap refresh every 30 min during US market hours"
   }
 }

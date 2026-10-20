@@ -12,7 +12,7 @@
   "description": "Complete-source theme roster and availability evidence; ranking, allocations and notifications withheld. Original schedule preserved.",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(20,50 * * * ? *)",
+    "expression": "cron(20 18 * * ? *)",
     "name": "justhodl-theme-cascade-twice-per-hour",
     "description": "Every 30 min \u2014 5 min after velocity-acceleration runs"
   }

@@ -10,7 +10,7 @@
   "description": "v2: Per-ticker search velocity. Wikipedia pageviews PRIMARY (free, unlimited, no IP blocks). Google Trends FALLBACK best-effort. Outputs data/ticker-trends.json (~2-3min runtime).",
   "schedule": {
     "rule_name": "ticker-trends-2x-daily",
-    "cron": "cron(0 13,21 * * ? *)",
+    "cron": "cron(0 21 * * ? *)",
     "description": "Per-ticker search velocity — 2x daily 13/21 UTC (after forward-orders + rotation-chain so future-intel has all 4 signals)"
   }
 }

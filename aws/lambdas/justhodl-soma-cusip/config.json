@@ -16,7 +16,7 @@
  },
  "schedule": {
   "name": "justhodl-soma-cusip-3h",
-  "expression": "cron(41 */3 * * ? *)",
+  "expression": "cron(41 6 * * ? *)",
   "description": "SOMA per-CUSIP convergence -- every 3h until 1,206x2 pairs done, then weekly upkeep"
  }
 }

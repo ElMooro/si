@@ -10,7 +10,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-forced-selling-bounce-30min",
-    "cron": "cron(0/30 13-21 ? * MON-FRI *)",
+    "cron": "cron(50 21 ? * MON-FRI *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Forced-Selling Bounce every 30 min during US trading 13-21 UTC"

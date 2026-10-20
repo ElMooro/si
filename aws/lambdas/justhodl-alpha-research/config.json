@@ -16,7 +16,7 @@
   "inherit_env": true,
   "schedule": {
     "rule_name": "justhodl-alpha-research-6h",
-    "cron": "rate(6 hours)",
+    "cron": "cron(30 21 * * ? *)",
     "description": "Refresh Alpha Scoreboard research enrichment every 6h"
   }
 }

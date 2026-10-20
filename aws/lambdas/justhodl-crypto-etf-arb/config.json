@@ -9,7 +9,7 @@
   "env": {"S3_BUCKET": "justhodl-dashboard-live"},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-crypto-etf-arb-30min",
-    "cron": "cron(0,30 13-21 ? * MON-FRI *)",
+    "cron": "cron(0 21 ? * MON-FRI *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Crypto ETF arb 30-min during US market hours"

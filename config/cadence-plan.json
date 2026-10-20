@@ -1,0 +1,7069 @@
+{
+ "actions": [
+  {
+   "after": {
+    "expr": "cron(50 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 */3 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 22,
+   "functions": [
+    "justhodl-alpha-compass"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "alpha-compass-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-backtest-harness"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "backtest-harness-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-backtest-harness-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-behavior-mirror"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "behavior-mirror-weekly",
+   "op": "disable",
+   "reason": "same job already runs from behavior-mirror-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(48 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(5 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "benzinga-news-agent",
+    "justhodl-gdelt-full"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "benzinga-news-agent-warm",
+   "op": "retime",
+   "reason": "288/active day (~288.0/day avg) -> once a day; target(s) justhodl-gdelt-full already run from another trigger",
+   "remove_functions": [
+    "justhodl-gdelt-full"
+   ]
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 10,14,18,22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-buzz-velocity"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "buzz-velocity-4x-daily",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 */6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-canary-grid"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "canary-grid-daily",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 */3 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 9,
+   "functions": [
+    "justhodl-capitulation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "capitulation-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(26 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-carry-surface",
+    "justhodl-census-us"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "carry-surface-4h",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-carry-surface-sched, justhodl-census-us-15min"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-causality-scanner"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "causality-scanner-weekly",
+   "op": "disable",
+   "reason": "same job already runs from causality-scanner-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13,17,21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-cds-proxy"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "cds-proxy-tri-daily",
+   "op": "retime",
+   "reason": "3/active day (~2.1/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(48 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "cftc-futures-positioning-agent"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "cftc-cot-weekly-update",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 */3 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-conviction-engine"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "conviction-engine-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 8,
+   "functions": [
+    "justhodl-crisis-composite"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "crisis-composite-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(32 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(3 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-cross-asset-confirm"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "cross-asset-confirm-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 */6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-narratives"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "crypto-narratives-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(5 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 */3 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-deal-scanner"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "deal-scanner-daily",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 0/4 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-divergence-interpreter"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "divergence-interpreter-4hourly",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 2 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 2 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-engine-contribution"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "engine-contribution-weekly",
+   "op": "disable",
+   "reason": "same job already runs from engine-contribution-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(40 13 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 13 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-estimate-revisions"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "estrev-daily-am",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-estimate-revisions-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(40 17 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 17 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-estimate-revisions"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "estrev-daily-pm",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-estimate-revisions-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-event-flow-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "event-flow-monitor-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(28 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fed-nlp"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "fed-nlp-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 14,18,22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-finviz-groups"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "finviz-groups-3x",
+   "op": "retime",
+   "reason": "3/active day (~3.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14,18,21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-finviz-signals"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "finviz-signals-3x",
+   "op": "retime",
+   "reason": "switched off, but 3/active day (~3.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(39 3 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-fleet-error-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "fleet-error-monitor-5min",
+   "op": "disable",
+   "reason": "same job already runs from fleet-error-monitor-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(57 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "fleet-freshness-monitor-30min",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 3 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 */3 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-fleet-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "fleet-monitor-3h",
+   "op": "disable",
+   "reason": "same job already runs from fleet-monitor-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(36 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "fmp-stock-picks-agent"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "fmp-movers-hourly",
+   "op": "disable",
+   "reason": "same job already runs from fmp-stock-picks-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(49 11 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-gap-metrics"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "gap-metrics-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-gap-metrics-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(15 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 6,18 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-global-sovereign"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "global-sovereign-12h",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(6 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(6 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-capital-inflows"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "jh-capital-inflows-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-capital-inflows-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(3 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 8,
+   "functions": [
+    "justhodl-stress-index"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "jsi-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(21 16 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 6,
+   "functions": [
+    "justhodl-13f-positions"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-13f-positions-sched",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 18 ? * THU,FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 18 ? * THU,FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-aaii-sentiment"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-aaii-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-aaii-sentiment-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(5 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 0,4,8,12,16,20 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 20,
+   "functions": [
+    "justhodl-ai-brief"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-ai-brief-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(12 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(12 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-alpha-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-alpha-confluence-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-alpha-research"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-alpha-research-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(7 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(7 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 3,
+   "functions": [
+    "justhodl-alpha-score"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-alpha-score-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(33 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(33 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-anomaly-detector"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-anomaly-detector-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(5 13 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(5 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-auction-crisis-detector"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-auction-crisis-backstop",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-auction-crisis-active"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-audit-loop"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-audit-loop-2h",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-backend-agent"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-backend-agent-15min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(44 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-backfill-orchestrator"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-backfill-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-best-setups"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-best-setups-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(59 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-bis-gleif"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-bis-gleif-weekly",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-bond-trace"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-bond-trace-cadence",
+   "op": "disable",
+   "reason": "same job already runs from bond-trace-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-breadth-thrust"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-breadth-thrust-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-breadth-thrust-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(31 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 21,
+   "functions": [
+    "justhodl-calls-research-audit"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-calls-research-audit-15m",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(13 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-canary-macro"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-canary-macro-hourly",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 17,
+   "functions": [
+    "justhodl-canary-warroom"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-canary-warroom-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-capital-flow-radar"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-capital-flow-radar-sched",
+   "op": "disable",
+   "reason": "same job already runs from capital-flow-radar-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(50 20 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 20 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-catalyst-skew-premove"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-catalyst-skew-premove-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-catalyst-skew-premove-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(5 16 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5,35 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 6,
+   "functions": [
+    "justhodl-cboe-options-chain"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-cboe-options-chain-schedule",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(47 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-cftc-full-datasets"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-cftc-full-daily",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 13 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(35 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-coinbase-premium"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-coinbase-premium-hourly",
+   "op": "retime",
+   "reason": "switched off, but 24/active day (~24.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 6 ? * * *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 6 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-corporate-actions"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-corporate-actions-schedule",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-corporate-actions-schedule"
+  },
+  {
+   "after": {
+    "expr": "cron(10 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(10 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-credit-stress"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-credit-stress-cadence",
+   "op": "disable",
+   "reason": "same job already runs from credit-stress-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(29 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-cross-asset-flow-state"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-cross-asset-flow-state-2h",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-cross-asset-rv"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-cross-asset-rv-cadence",
+   "op": "disable",
+   "reason": "same job already runs from cross-asset-rv-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(2 17 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-crypto-intel"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-15min",
+   "op": "retime",
+   "reason": "switched off, but 96/active day (~96.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-basis"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-basis-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(12 16 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 6,
+   "functions": [
+    "justhodl-crypto-cycle-risk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-cycle-risk-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13,23 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 7,
+   "functions": [
+    "justhodl-crypto-emergence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-emergence-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(57 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-funding"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-funding-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12,22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-liquidity"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-crypto-liquidity-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(28 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-cusip-map-rebuild"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-cusip-map-rebuild-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 ? * WED *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * WED *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-dark-pool"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-dark-pool-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-dark-pool-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(7 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(7 13-21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-dealer-gex"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-dealer-gex-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-dealer-gex-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(18 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-devils-advocate"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-devils-advocate-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-earnings-iv-crush"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-earnings-iv-crush-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-earnings-iv-crush-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(39 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-engine-conflicts"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-engine-conflicts-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(41 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-eurostat-oecd"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-eurostat-oecd-weekly",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 13 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(35 13 ? * MON *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-factor-decomposition"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-factor-decomp-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-factor-decomposition-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(50 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-feed-catalog"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-feed-catalog-cadence",
+   "op": "disable",
+   "reason": "same job already runs from feed-catalog-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(39 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fiat-peg-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fiat-peg-monitor-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(34 2 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-error-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-error-6h",
+   "op": "retime",
+   "reason": "switched off, but 24/active day (~24.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(59 1 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(3 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-freshness-hourly",
+   "op": "retime",
+   "reason": "switched off, but 8/active day (~8.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(56 1 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(3 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-freshness-monitor-sched",
+   "op": "retime",
+   "reason": "switched off, but 8/active day (~8.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 8 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 8 ? * MON *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-fleet-integrity"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-integrity-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-d1-scan-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-monitor-6h",
+   "op": "retime",
+   "reason": "switched off, but 4/active day (~4.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(47 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fleet-monitor-sched",
+   "op": "retime",
+   "reason": "switched off, but 4/active day (~4.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-flow-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-flow-confluence-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-flow-confluence-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(4 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "15f27b50e7b4fe8d",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-fred-catalog"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fred-catalog-5min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(34 8 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(3 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-freshness-30m",
+   "op": "retime",
+   "reason": "switched off, but 8/active day (~8.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-fx-intelligence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-fx-intelligence-sched",
+   "op": "disable",
+   "reason": "same job already runs from fx-intelligence-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(43 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-gdelt-sentiment"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-gdelt-sentiment-30min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(31 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-global-expansion"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-global-expansion-hourly",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 20 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 20 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-gold-equity-rotation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-gold-equity-rotation-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-gold-equity-rotation-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-hot-money"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-hot-money-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-hot-money-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-insider-buyback-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-insider-buyback-confluence-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-insider-buyback-confluence-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(10 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-insider-trades"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-insider-trades-30min",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(51 16 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-intelligence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-intel-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-intel-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(5 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(5 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-liquidity-flow"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-liquidity-flow-cadence",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-liquidity-flow-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(5 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-llm-cost-dashboard"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-llm-cost-dashboard-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(43 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-llm-health"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-llm-health-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-ma-tracker"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-ma-tracker-hourly",
+   "op": "disable",
+   "reason": "same job already runs from ma-tracker-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-microcap-float-squeeze"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-microcap-float-squeeze-daily",
+   "op": "disable",
+   "reason": "same job already runs from tick:daily-eve"
+  },
+  {
+   "after": {
+    "expr": "cron(40 20 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 20 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-money-flow-state"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-money-flow-state-sched",
+   "op": "disable",
+   "reason": "same job already runs from money-flow-state-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(27 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 7,
+   "functions": [
+    "justhodl-narrative-vs-tape"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-narrative-vs-tape-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 4 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 4 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-nyfed-full-history"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-nyfed-full-history-nightly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-full-history-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(27 3 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-nyfed-markets-full"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-nyfed-markets-full-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-markets-full-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(28 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-nyfed-markets-full"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-nyfed-markets-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-markets-full-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(36 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 3,
+   "functions": [
+    "justhodl-oecd-cli"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-oecd-cli-weekly",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(3 2 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-ofr-stfm"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-ofr-stfm-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-ofr-stfm-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-onchain-ratios"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-onchain-ratios-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-onchain-ratios-6h"
+  },
+  {
+   "after": {
+    "expr": "cron(20 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-options-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-options-confluence-hourly",
+   "op": "retime",
+   "reason": "switched off, but 24/active day (~24.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(32 2 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-options-gamma"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-options-gamma-30min",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-options-gamma-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 23 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-outcome-checker"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-outcome-checker-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-outcome-checker-4h"
+  },
+  {
+   "after": {
+    "expr": "cron(3 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-peru-copper"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-peru-copper-daily",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-plumbing-aggregator"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-plumbing-aggregator-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-plumbing-panel"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-plumbing-panel-weekly",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-polygon-futures-curves"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-polygon-futures-curves-daily",
+   "op": "disable",
+   "reason": "same job already runs from polygon-futures-curves-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(15 19 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 14,15,16,17,18,19 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-polygon-options-flow"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-polygon-options-flow-hourly",
+   "op": "retime",
+   "reason": "6/active day (~4.3/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 11,17,23 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 15,
+   "functions": [
+    "justhodl-portfolio-catalysts"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-portfolio-catalysts-3x-daily",
+   "op": "retime",
+   "reason": "3/active day (~3.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(43 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(43 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-portfolio-risk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-portfolio-risk-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-portfolio-sizer"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-portfolio-sizer-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(40 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-portfolio-snapshot"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-portfolio-snapshot-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(9 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-position-sizer"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-position-sizer-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(27 8 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-price-redundancy"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-price-redundancy-15min",
+   "op": "retime",
+   "reason": "switched off, but 96/active day (~96.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(52 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "8e2c6fab14446f48",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-signal-harvester"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-prospective-capture-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-prospective-evaluator"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-prospective-evaluator-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(38 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-provider-catalog"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-provider-catalog-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-redflag-alerter"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-redflag-alerter-30min",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13,21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-regime-map"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-regime-map-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(54 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-repo-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-repo-30min",
+   "op": "retime",
+   "reason": "switched off, but 48/active day (~48.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-risk-gate"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-risk-gate-hourly",
+   "op": "disable",
+   "reason": "same job already runs from risk-gate-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(45 12 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 12 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-risk-regime"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-risk-regime-daily",
+   "op": "disable",
+   "reason": "same job already runs from risk-regime-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(35 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(35 21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-rotation-radar"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-rotation-radar-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-rotation-radar-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(40 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(5 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-sdmx-walker"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sdmx-walker-hourly",
+   "op": "retime",
+   "reason": "288/active day (~288.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(7 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-sec-10kq"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sec-10kq-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(52 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-sec-13f"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sec-13f-daily",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-sec-8k"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sec-8k-30min",
+   "op": "retime",
+   "reason": "switched off, but 48/active day (~48.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(10,40 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sec-8k-enrich"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sec-8k-enrich-schedule",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sec-8k-enrich-schedule"
+  },
+  {
+   "after": {
+    "expr": "cron(16 1 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(12 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sec-bulk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sec-bulk-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sec-bulk-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sector-emergence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sector-emergence-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sector-emergence-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(38 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(38 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-sector-rotation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sector-rotation-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(55 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "04b0fefc38dca103",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-series-extractor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-series-extractor-5min",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-short-interest"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-short-interest-6h",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-short-interest-schedule"
+  },
+  {
+   "after": {
+    "expr": "cron(15 21 ? * MON,WED *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 ? * MON,WED *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-short-interest"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-short-interest-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-short-interest-schedule"
+  },
+  {
+   "after": {
+    "expr": "cron(45 20 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 20 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-skew-tail-hedging"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-skew-tail-hedging-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-skew-tail-hedging-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * TUE *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sovereign-fiscal"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-sovereign-fiscal-sched",
+   "op": "disable",
+   "reason": "same job already runs from sovereign-fiscal-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(30 13 ? * TUE-SAT *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 ? * TUE-SAT *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-squeeze-fuel"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-squeeze-fuel-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-squeeze-fuel-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(6 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-stablecoin-flow"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-stablecoin-flow-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-stablecoin-flow-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(51 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-stock-screener"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-stock-screener-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 13 ? * TUE-SAT *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 13 ? * TUE-SAT *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-supply-chain-graph"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-supply-chain-graph-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-supply-chain-graph-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * TUE-SAT *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * TUE-SAT *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-tail-risk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-tail-risk-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-tail-risk-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(3 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-taiwan-moea"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-taiwan-moea-daily",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(44 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-te-fred-mirror"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-te-fred-mirror-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20,50 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-theme-cascade"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-theme-cascade-twice-per-hour",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(25 21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-theme-rotation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-theme-rotation-sched",
+   "op": "disable",
+   "reason": "same job already runs from theme-rotation-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 18 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 6,18 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-ticker-360"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-ticker-360-schedule",
+   "op": "retime",
+   "reason": "switched off, but 2/active day (~2.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(5 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 0/6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 6,
+   "functions": [
+    "justhodl-ticket-ai-rationale"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-ticket-ai-rationale-hourly",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 15,
+   "functions": [
+    "justhodl-trade-logger"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-trade-logger-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 20 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0/10 14-20 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 6,
+   "functions": [
+    "justhodl-trade-ticket-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-trade-ticket-monitor-10min",
+   "op": "retime",
+   "reason": "42/active day (~30.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 19 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 14,15,16,17,18,19 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 5,
+   "functions": [
+    "justhodl-trade-tickets"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-trade-tickets-hourly",
+   "op": "retime",
+   "reason": "6/active day (~4.3/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(11 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "DISABLED"
+   },
+   "bus": "default",
+   "depth": 13,
+   "functions": [
+    "justhodl-tv-bars"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-tv-bars-hourly",
+   "op": "retime",
+   "reason": "switched off, but 24/active day (~24.0/day avg) if it were switched back on -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(46 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-upside-thesis"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-upside-thesis-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(27 11 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 1,
+   "functions": [
+    "justhodl-warm-bridge"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-warm-bridge-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 6 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 6 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-xbrl-fundamentals"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "justhodl-xbrl-fundamentals-schedule",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-xbrl-fundamentals-schedule"
+  },
+  {
+   "after": {
+    "expr": "cron(30 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 14,
+   "functions": [
+    "justhodl-near-miss-monitor"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "near-miss-monitor-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 7 ? * * *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 7 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-research-backtest"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "null",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-research-backtest-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(56 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "enhanced-repo-agent"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "repo-metrics-15min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12,20 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-rotation-chain"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "rotation-chain-2x-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 17 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-financial-secretary"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "secretary-4h-scan",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-financial-secretary-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(45 20 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sector-capital-fusion"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "sector-capital-fusion-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sector-capital-fusion-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(20 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-sector-flow-state"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "sector-flow-state-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sector-flow-state-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(15 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 0/6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-signal-board"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "signal-board-3h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * THU *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * THU *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-tic-flows"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "tic-flows-thu",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-tic-flows-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13,21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "depth": 0,
+   "functions": [
+    "justhodl-ticker-trends"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "ticker-trends-2x-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 21 ? * TUE-SAT *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 ? * TUE-SAT *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-tv-watchlist-tracker"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "tv-watchlist-tracker-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-tv-watchlist-tracker-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(50 22 ? * TUE-SAT *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 22 ? * TUE-SAT *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": "default",
+   "functions": [
+    "justhodl-wl-fusion"
+   ],
+   "group": null,
+   "kind": "rule",
+   "name": "wl-fusion-daily",
+   "op": "disable",
+   "reason": "same job already runs from wl-fusion-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(30 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-activity-nowcast"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "activity-nowcast-sched",
+   "op": "disable",
+   "reason": "same job already runs from activity-nowcast-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 14,
+   "functions": [
+    "justhodl-alpha-alerts"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "alpha-alerts-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(12 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(12 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-alpha-confluence"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "alpha-confluence-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-alpha-confluence-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(30 11 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-alpha-daily-brief"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "alpha-daily-brief-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-alpha-daily-brief"
+  },
+  {
+   "after": {
+    "expr": "cron(45 13 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-alpha-decay"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "alpha-decay-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-alpha-decay-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-behavior-mirror"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "behavior-mirror-sched",
+   "op": "disable",
+   "reason": "same job already runs from behavior-mirror-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(45 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-best-ideas"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "best-ideas-sched",
+   "op": "disable",
+   "reason": "same job already runs from best-ideas-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(30 13 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-beta-laggard"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "beta-laggard-sched",
+   "op": "disable",
+   "reason": "same job already runs from beta-laggard-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(35 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 */6 * * ? *)",
+    "input_sha": "114163182dca793c",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-brief-compiler"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "brief-compiler-event-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 */6 * * ? *)",
+    "input_sha": "e30ff40c41bff5bc",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-brief-compiler"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "brief-compiler-market-tape-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 */6 * * ? *)",
+    "input_sha": "0c3d28227a741de3",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-brief-compiler"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "brief-compiler-plumbing-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 17 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 */3 * * ? *)",
+    "input_sha": "693d76017e758888",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-brief-compiler"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "brief-compiler-verdict-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * THU *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * THU *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-capital-inflows"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "capital-inflows-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-capital-inflows-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-causality-scanner"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "causality-scanner-sched",
+   "op": "disable",
+   "reason": "same job already runs from causality-scanner-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(0 7 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 0/6 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-cb-stance"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "cb-stance-sched",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 15 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 15 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-chokepoint"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "chokepoint-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-chokepoint-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(35 10 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-coinbase-premium"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "coinbase-premium-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-concentration-liquidity"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "concentration-liquidity-sched",
+   "op": "disable",
+   "reason": "same job already runs from concentration-liquidity-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-convexity-scorer"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "convexity-scorer-sched",
+   "op": "disable",
+   "reason": "same job already runs from convexity-scorer-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-cot-tracker"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "cot-tracker-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-cot-tracker-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(25 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-basis"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-basis-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-crypto-basis-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(15 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-dvol"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-dvol-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 23 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-etf-flows"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-etf-flows-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-crypto-etf-flows-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(40 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-exchange-flows"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-exchange-flows-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-crypto-exchange-flows-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(15 4 ? * * *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 * ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-funding"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-funding-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-crypto-funding-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(37 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-gex"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-gex-sched",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 */6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-narratives"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-narratives-sched",
+   "op": "disable",
+   "reason": "same job already runs from crypto-narratives-6h"
+  },
+  {
+   "after": {
+    "expr": "cron(25 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-options"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-options-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-options-surface"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-options-surface-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-stablecoin-peg"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "crypto-stablecoin-peg-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 15 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 15 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-cyclical-bagger"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "cyclical-bagger-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-cyclical-bagger-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(15 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-debate-engine"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "debate-engine-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-debate-engine-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 6 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-dr-snapshot"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "dr-snapshot-sched",
+   "op": "disable",
+   "reason": "same job already runs from dr-snapshot-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 10 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 10 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-earnings-sentiment"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "earnings-sentiment-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-earnings-sentiment-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 2 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 2 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-engine-contribution"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "engine-contribution-sched",
+   "op": "disable",
+   "reason": "same job already runs from engine-contribution-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(0 4 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 4 ? * TUE *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-engine-robustness"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "engine-robustness-sched",
+   "op": "disable",
+   "reason": "same job already runs from engine-robustness-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 23 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-fedwatch-rate-probability"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "fedwatch-rate-probability-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-fedwatch-rate-probability-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14,18,21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 13,
+   "functions": [
+    "justhodl-finviz-signals"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "finviz-signals-sched",
+   "op": "retime",
+   "reason": "3/active day (~3.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14,22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-finviz-universe"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "finviz-universe-sched",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(26 7 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(3 hours)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-fleet-freshness-monitor"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "fleet-freshness-monitor-sched",
+   "op": "disable",
+   "reason": "same job already runs from fleet-freshness-monitor-30min"
+  },
+  {
+   "after": {
+    "expr": "cron(15 7 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 0/3 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-global-markets"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "global-markets-sched",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 8 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 */4 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-google-trends"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "google-trends-sched",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-hot-stocks-digest"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "hot-stocks-digest-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-hot-stocks-digest-am"
+  },
+  {
+   "after": {
+    "expr": "cron(10 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 1,7,13,19 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-house-ptr-extract"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "house-ptr-extract-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-hyperliquid-perps"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "hyperliquid-perps-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 23 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 23 ? * TUE *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-inventory-drawdown"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "inventory-drawdown-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-inventory-drawdown-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(0 6 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 6 ? * TUE *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-13f-price-divergence"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-13f-price-divergence-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-13f-price-divergence-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(30 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-accum-composite"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-accum-composite-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-accum-composite-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 1,7,13,19 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 13,
+   "functions": [
+    "justhodl-ai-brief-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ai-brief-router-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(7 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(7 * * * ? *)",
+    "input_sha": "04e797a6f3540eb4",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-ai"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ai-inventory",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(37 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(10 minutes)",
+    "input_sha": "5ab442f910ac4c80",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-ai"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ai-pipeline",
+   "op": "retime",
+   "reason": "144/active day (~144.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-ai-website-synthesis"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ai-website-synthesis-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 11 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 2,
+   "functions": [
+    "justhodl-auction-crisis-ai"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-auction-crisis-ai-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 16 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(35 16 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-auction-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-auction-desk-late",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-auction-desk-buyback"
+  },
+  {
+   "after": {
+    "expr": "cron(15 9 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 9 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-auction-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-auction-desk-morning",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-auction-desk-buyback"
+  },
+  {
+   "after": {
+    "expr": "cron(40 13 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 13 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-auction-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-auction-desk-results",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-auction-desk-buyback"
+  },
+  {
+   "after": {
+    "expr": "cron(0 3 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 3 ? * SUN *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-beneish"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-beneish-weekly",
+   "op": "disable",
+   "reason": "same job already runs from beneish-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(48 13 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-bloomberg-v8"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bloomberg-v8-hourly",
+   "op": "disable",
+   "reason": "same job already runs from tick:daily-17utc"
+  },
+  {
+   "after": {
+    "expr": "cron(31 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "c52089cf74db2609",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-boj-full"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-boj-full-fanout",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-bond-vol"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bond-vol-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 16 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 16 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-bond-warroom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bond-warroom-close",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-bond-warroom-after-auction"
+  },
+  {
+   "after": {
+    "expr": "cron(30 7 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 7 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-bond-warroom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bond-warroom-early",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-bond-warroom-after-auction"
+  },
+  {
+   "after": {
+    "expr": "cron(15 19 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 19 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-bond-warroom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bond-warroom-evening",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-bond-warroom-after-auction"
+  },
+  {
+   "after": {
+    "expr": "cron(0 10 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 10 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-bond-warroom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-bond-warroom-mid",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-bond-warroom-after-auction"
+  },
+  {
+   "after": {
+    "expr": "cron(0 13 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-buyback-yield-ranking"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-buyback-yield-ranking-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-buyback-yield-ranking-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 4 ? * TUE-SAT *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 1,4 ? * TUE-SAT *)",
+    "input_sha": "e3c1d12b16b9f17d",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-cds-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-cds-desk-daily",
+   "op": "retime",
+   "reason": "2/active day (~1.4/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "5a2d68128a5e70b9",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-census-us"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-census-econ-dispatch",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(11 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-census-us"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-census-us-15min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-cftc-deep-view"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-cftc-deep-view-fri",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-cftc-deep-view-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(36 6 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(5 minutes)",
+    "input_sha": "43ac42533d24e936",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-chain-resumer"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-chain-resumer-5min",
+   "op": "retime",
+   "reason": "288/active day (~288.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 7 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 7 ? * TUE *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-consensus-bottom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-consensus-bottom-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-consensus-bottom-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(44 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(*/30 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-convergence-radar"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-convergence-radar-30min",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 20 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 15,20 ? * MON-FRI *)",
+    "input_sha": "efc970594eeb7ef5",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-corp-bonds"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-corp-bonds-daily",
+   "op": "retime",
+   "reason": "2/active day (~1.4/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 0/2 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 11,
+   "functions": [
+    "justhodl-correlation-break-trade-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-corr-break-trades-2h",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14,16,18,20 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 16,
+   "functions": [
+    "justhodl-cro-escalation"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-cro-escalation-intraday",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0,30 13-21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-crypto-etf-arb"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-crypto-etf-arb-30min",
+   "op": "retime",
+   "reason": "18/active day (~12.9/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(47 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-crypto-opportunities"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-crypto-opportunities-4h",
+   "op": "disable",
+   "reason": "same job already runs from crypto-opportunities-4h"
+  },
+  {
+   "after": {
+    "expr": "cron(0 23 ? * TUE *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 23 ? * TUE *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-cta-trend-exhaust"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-cta-trend-exhaust-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-cta-trend-exhaust-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-distribution-composite"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-distribution-composite-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-distribution-composite-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * SUN *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-divcut-warning"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-divcut-warning-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-divcut-warning-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(15 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 1,7,13,19 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-dollar-radar"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-dollar-radar-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 13 ? * WED *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 ? * WED *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-earnings-quality"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-earnings-quality-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-earnings-quality-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(38 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-ecb-deep"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ecb-deep-10min",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-engine-fusion"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-engine-fusion-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 4 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 4 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-etf-issuer-holdings"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-etf-issuer-holdings-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-etf-issuer-holdings-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(45 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 17,
+   "functions": [
+    "justhodl-fed-pivot-factor-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-fed-pivot-factor-router-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "4ac174b6a305fbc6",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-feed-heartbeat"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-feed-heartbeat-schedule",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0/30 13-21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-forced-selling-bounce"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-forced-selling-bounce-30min",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-forced-selling-bounce-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(50 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 21 ? * MON-FRI *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-forward-orders"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-forward-orders-daily",
+   "op": "disable",
+   "reason": "same job already runs from forward-orders-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(30 14 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 14 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-gap-fill-confirm"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-gap-fill-confirm-daily",
+   "op": "disable",
+   "reason": "same job already runs from jh-gap-fill-confirm-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(7 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(6 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-gdelt-full"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-gdelt-full-30m",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 19 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 1,7,13,19 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 8,
+   "functions": [
+    "justhodl-global-stress"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-global-stress-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 12 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 12 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-grid-queue"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-grid-queue-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-grid-queue-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(40 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(40 0/2 * * ? *)",
+    "input_sha": "dea84f663d7ab2a8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 6,
+   "functions": [
+    "justhodl-13f-positions"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-holdings-originals-research",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(10 5 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-impact-graph"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-impact-graph-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-impact-graph-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(52 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(10 minutes)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 14,
+   "functions": [
+    "justhodl-import-sentinel"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-import-sentinel-10min",
+   "op": "retime",
+   "reason": "144/active day (~144.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(20 14 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-insider-industry-cluster"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-insider-industry-cluster-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-insider-industry-cluster-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(28 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-jhsignal-bridge"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-jhsignal-bridge-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(46 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-ka-metrics"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ka-metrics-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(17 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "876173fbf3263324",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 18,
+   "functions": [
+    "justhodl-katlin"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-katlin-permission-refresh",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-khalid"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-khalid-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(42 3 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-khalid-metrics"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-khalid-metrics-hourly",
+   "op": "disable",
+   "reason": "same job already runs from tick:daily-morn"
+  },
+  {
+   "after": {
+    "expr": "cron(20 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-khalid-risk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-khalid-risk-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0/15 13-21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 9,
+   "functions": [
+    "justhodl-live-pulse"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-live-pulse-15m",
+   "op": "retime",
+   "reason": "36/active day (~25.7/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(11 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(5 minutes)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 14,
+   "functions": [
+    "justhodl-market-tape"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-market-tape-5min",
+   "op": "retime",
+   "reason": "288/active day (~288.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 15,
+   "functions": [
+    "justhodl-master-allocator"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-master-allocator-3h",
+   "op": "retime",
+   "reason": "8/active day (~8.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(40 13,21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-merger-arb"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-merger-arb-2x",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(25 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 2,
+   "functions": [
+    "justhodl-momentum-leaders"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-momentum-leaders-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 4 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 4 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-nyfed-full-history"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-nyfed-full-history-nightly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-full-history-daily"
+  },
+  {
+   "after": {
+    "expr": "rate(24 hours)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(24 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-nyfed-markets-full"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-nyfed-markets-hourly-s",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-markets-full-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(22 5 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(22 5 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-nyfed-repo-deep"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-nyfed-repo-deep-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-nyfed-repo-deep-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(53 10 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(15 minutes)",
+    "input_sha": "c6b72f42bcb29e57",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-sdmx-walker"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-oecd-retry-hourly",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 21 ? * MON-FRI *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-options-analytics"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-options-analytics-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-options-analytics-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(25 20 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(25 20 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-options-flow"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-options-flow-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-options-flow-30m"
+  },
+  {
+   "after": {
+    "expr": "cron(20 10 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 2,
+   "functions": [
+    "justhodl-pair-trades"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-pair-trades-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 20 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12,16,20 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-powell-pivot"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-powell-pivot-4h",
+   "op": "retime",
+   "reason": "3/active day (~2.1/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(12 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(12,42 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-prepump-summary"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-prepump-summary-30min",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(58 7 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0/15 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-public-archive-index"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-public-archive-index-15min",
+   "op": "retime",
+   "reason": "96/active day (~96.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 2,
+   "functions": [
+    "justhodl-pump-mechanics"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-pump-mechanics-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(10 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 3,
+   "functions": [
+    "justhodl-pump-positioning"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-pump-positioning-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 11,13,21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 14,
+   "functions": [
+    "justhodl-readthrough"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-readthrough-sched",
+   "op": "retime",
+   "reason": "3/active day (~2.1/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 0/2 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 16,
+   "functions": [
+    "justhodl-regime-conditional-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-regime-conditional-router-2h",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * MON *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-reit-nav-discount"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-reit-nav-discount-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-reit-nav-discount-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(10 6 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(10 6 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-repo"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-repo-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-repo-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(35 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 13,21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-repo-market"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-repo-market-daily",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(2 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "7d8b33998dbe73c3",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 3,
+   "functions": [
+    "justhodl-daily-report-v3"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-report-research-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 12 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 12 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-risk-regime"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-risk-regime-daily",
+   "op": "disable",
+   "reason": "same job already runs from risk-regime-sched"
+  },
+  {
+   "after": {
+    "expr": "cron(10 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10,40 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 1,
+   "functions": [
+    "justhodl-sec-8k-enrich"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-sec-8k-enrich-schedule",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 9 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 9 ? * MON *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-sec-bulk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-sec-bulk-weekly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-sec-bulk-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(46 18 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(46 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-sector-tilt"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-sector-tilt-research-hourly",
+   "op": "disable",
+   "reason": "same job already runs from tick:4hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(5 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(5 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-signal-fabric"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-signal-fabric-hourly",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-signal-fabric-cadence"
+  },
+  {
+   "after": {
+    "expr": "cron(55 16 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(55 * * * ? *)",
+    "input_sha": "1d9f655b445f9d8d",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 7,
+   "functions": [
+    "justhodl-smart-money-cluster"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-smart-money-cluster-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * MON *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * MON *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-spac-floor-warrant"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-spac-floor-warrant-weekly",
+   "op": "disable",
+   "reason": "same job already runs from jh-spac-floor-warrant-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(16 20 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(* 13-20 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 16,
+   "functions": [
+    "justhodl-streaming-fanout"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-streaming-fanout-1min",
+   "op": "retime",
+   "reason": "480/active day (~342.9/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(40 9 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "rate(1 minute)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-student-rsi"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-student-rsi-1m",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-student-rsi-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(6 8 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(4 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-supabase-keepalive"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-supabase-keepalive",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 7 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 7 ? * SUN *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-symbol-dictionary"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-symbol-dictionary-daily",
+   "op": "disable",
+   "reason": "same job already runs from symbol-dictionary-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(44 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "de0e92a6f18e8226",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 15,
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-symdir-fredfresh",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(38 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(1 hour)",
+    "input_sha": "bd01777c53e6445b",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 15,
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-symdir-titles",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 */6 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 3,
+   "functions": [
+    "justhodl-theme-classifier"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-theme-classifier-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(50 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-thesis-engine"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-thesis-engine-daily",
+   "op": "disable",
+   "reason": "same job already runs from thesis-engine-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 6,18 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-ticker-360"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ticker-360-schedule",
+   "op": "retime",
+   "reason": "2/active day (~2.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(5 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 2,
+   "functions": [
+    "justhodl-ticker-deep-research"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-ticker-deep-research-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 21 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 21 ? * MON-FRI *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-treasury-noise"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-treasury-noise-daily",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-treasury-noise-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(20 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 0,6,12,16,20 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 14,
+   "functions": [
+    "justhodl-us10y-sentinel"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-us10y-sentinel-5x",
+   "op": "retime",
+   "reason": "5/active day (~5.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(35 1 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 */4 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-valuations-agent"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-valuations-research-4h",
+   "op": "retime",
+   "reason": "6/active day (~6.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 * * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-velocity-acceleration"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-velocity-acceleration-hourly",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 0,6,12,18 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 10,
+   "functions": [
+    "justhodl-vol-radar"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-vol-radar-6h",
+   "op": "retime",
+   "reason": "4/active day (~4.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(2 hours)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-worldbank-full"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "justhodl-worldbank-full-2h",
+   "op": "retime",
+   "reason": "12/active day (~12.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(20 14 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 7,
+   "functions": [
+    "justhodl-khalid-adaptive"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "khalid-adaptive-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 11 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-macro-calendar"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "macro-calendar-sched",
+   "op": "disable",
+   "reason": "same job already runs from macro-calendar-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 22 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-meta-improver"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "meta-improver-sched",
+   "op": "disable",
+   "reason": "same job already runs from meta-improver-weekly"
+  },
+  {
+   "after": {
+    "expr": "cron(0 5 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 * ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-news-velocity"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "news-velocity-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 11 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-news-wire"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "news-wire-sched",
+   "op": "disable",
+   "reason": "same job already runs from news-wire-15m"
+  },
+  {
+   "after": {
+    "expr": "cron(30 15 ? * SUN *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 15 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-opportunity-calibrator"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "opportunity-calibrator-sched",
+   "op": "disable",
+   "reason": "same job already runs from opportunity-calibrator-daily-resurrected"
+  },
+  {
+   "after": {
+    "expr": "cron(20 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 5,
+   "functions": [
+    "justhodl-options-confluence"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "options-confluence-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 10 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-page-ai"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "page-ai-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-page-ai-wave"
+  },
+  {
+   "after": {
+    "expr": "cron(43 19 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(43 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-portfolio-risk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "portfolio-risk-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-portfolio-risk-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(45 19 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-portfolio-sizer"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "portfolio-sizer-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-portfolio-sizer-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(40 21 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(40 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-portfolio-snapshot"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "portfolio-snapshot-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-portfolio-snapshot-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-premortem-engine"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "premortem-engine-sched",
+   "op": "disable",
+   "reason": "same job already runs from premortem-engine-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(30 18 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 * ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-reversal-radar"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "reversal-radar-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(30 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(30 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-smart-money-holdings"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "smart-money-holdings-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-smart-money-holdings-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(0 14 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-smart-money-tracker"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "smart-money-tracker-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-smart-money-tracker-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(25 15 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 * ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 4,
+   "functions": [
+    "justhodl-stress-scenarios"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "stress-scenarios-sched",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(45 11 ? * * *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(45 11 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-tax-plan"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "tax-plan-sched",
+   "op": "disable",
+   "reason": "same job already runs from tax-plan-daily"
+  },
+  {
+   "after": {
+    "expr": "cron(50 22 * * ? *)",
+    "state": "DISABLED"
+   },
+   "before": {
+    "expr": "cron(50 * * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "functions": [
+    "justhodl-trade-logger"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "trade-logger-sched",
+   "op": "disable",
+   "reason": "same job already runs from justhodl-trade-logger-hourly"
+  },
+  {
+   "after": {
+    "expr": "cron(57 20 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "rate(30 minutes)",
+    "input_sha": "92bce430c6069c39",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 13,
+   "functions": [
+    "justhodl-tradingview"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "tradingview-fred-native-rotation",
+   "op": "retime",
+   "reason": "48/active day (~48.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(15 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 * * * ? *)",
+    "input_sha": "70eac8778287687c",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 13,
+   "functions": [
+    "justhodl-tradingview"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "tradingview-native-price-rotation",
+   "op": "retime",
+   "reason": "24/active day (~24.0/day avg) -> once a day"
+  },
+  {
+   "after": {
+    "expr": "cron(0 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0,30 13-21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "depth": 0,
+   "functions": [
+    "justhodl-vix-curve"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "name": "vix-curve-sched",
+   "op": "retime",
+   "reason": "18/active day (~12.9/day avg) -> once a day"
+  }
+ ],
+ "fanout_removals": {
+  "15min": [
+   "justhodl-bloomberg-v8",
+   "justhodl-data-collector",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-nobrainer-tracker",
+   "justhodl-regime-composite",
+   "justhodl-reports-builder",
+   "justhodl-synthetic-monitor",
+   "justhodl-vol-regime",
+   "justhodl-whats-changed"
+  ],
+  "every_6h": [
+   "justhodl-ab-test",
+   "justhodl-smart-money-cluster"
+  ],
+  "hourly": [
+   "justhodl-bloomberg-v8",
+   "justhodl-data-collector",
+   "justhodl-health-monitor",
+   "justhodl-market-interpreter",
+   "justhodl-nobrainer-tracker",
+   "justhodl-regime-composite",
+   "justhodl-reports-builder",
+   "justhodl-synthetic-monitor",
+   "justhodl-vol-regime",
+   "justhodl-whats-changed"
+  ]
+ },
+ "repo_edits": {
+  "config_expressions": 125,
+  "config_states": 3,
+  "config_string_schedules": 17,
+  "fanout_files_written": 1,
+  "fanout_removed": 22,
+  "files_written": 143,
+  "manifest_entries": 346,
+  "notes": 1
+ },
+ "rule": "Every engine job runs at most once per 24 hours: a cron expression may fire at most once on any day (minutes x hours <= 1), a rate() expression must be >= 24 hours. A 'job' is one function with one payload; several triggers for one job collapse to one.",
+ "summary": {
+  "ops": {
+   "disable": 152,
+   "keep": 650,
+   "retime": 189
+  },
+  "scheduled_firings_per_day_after": 757.1,
+  "scheduled_firings_per_day_before": 8080.8
+ },
+ "version": 1
+}

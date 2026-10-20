@@ -19,7 +19,7 @@
   },
   "scheduler": {
     "name": "justhodl-chain-resumer-5min",
-    "expr": "rate(5 minutes)",
+    "expr": "cron(36 6 * * ? *)",
     "role": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "input": {"mode": "resume"}
   }

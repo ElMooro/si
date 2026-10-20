@@ -14,7 +14,7 @@
   "env": { "S3_BUCKET": "justhodl-dashboard-live" },
   "schedule": {
     "rule_name": "gap-metrics-daily",
-    "cron": "cron(45 21 * * ? *)",
+    "cron": "cron(49 11 * * ? *)",
     "description": "Gap metrics daily 21:45 UTC (before asset-compass 22:15)"
   }
 }

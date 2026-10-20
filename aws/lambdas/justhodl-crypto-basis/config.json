@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-crypto-basis-hourly",
-    "cron": "cron(25 * * * ? *)",
+    "cron": "cron(25 2 * * ? *)",
     "description": "Hourly futures basis snapshot"
   }
 }

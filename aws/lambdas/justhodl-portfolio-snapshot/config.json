@@ -21,7 +21,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-portfolio-snapshot-hourly",
-    "cron": "cron(40 * * * ? *)",
+    "cron": "cron(40 21 * * ? *)",
     "description": "Every hour at :40 - after confluence (:12), alerts (:20), anomaly (:33), price/data settles"
   },
   "release_validation": {

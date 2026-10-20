@@ -15,7 +15,7 @@
   },
   "schedule": {
     "rule_name": "justhodl-alpha-alerts-hourly",
-    "cron": "cron(20 * * * ? *)",
+    "cron": "cron(20 21 * * ? *)",
     "description": "Every hour at :20 - 8 min after confluence Lambda (:12)"
   }
 }

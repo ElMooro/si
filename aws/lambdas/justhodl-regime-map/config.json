@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-regime-map-daily",
-    "cron": "cron(0 13,21 * * ? *)",
+    "cron": "cron(0 21 * * ? *)",
     "description": "13:00 + 21:00 UTC daily (pre-open + post-close; crypto runs weekends too)"
   }
 }

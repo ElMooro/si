@@ -9,5 +9,5 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Honest multi-factor crypto dump-risk gauge (halving cycle dominant; Fed-transition caveated)",
   "environment_keys": [],
-  "schedule": { "expression": "rate(6 hours)", "name": "justhodl-crypto-cycle-risk-6h", "description": "Crypto cycle dump-risk every 6h" }
+  "schedule": { "expression": "cron(12 16 * * ? *)", "name": "justhodl-crypto-cycle-risk-6h", "description": "Crypto cycle dump-risk every 6h" }
 }

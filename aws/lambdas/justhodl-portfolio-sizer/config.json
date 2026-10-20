@@ -15,7 +15,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-portfolio-sizer-hourly",
-    "cron": "cron(45 * * * ? *)",
+    "cron": "cron(45 19 * * ? *)",
     "description": "Every hour at :45 - 2 min after portfolio-risk (:43) so risk metrics fresh"
   }
 }

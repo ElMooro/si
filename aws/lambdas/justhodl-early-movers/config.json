@@ -10,7 +10,7 @@
   "description": "Early Movers extractor — scores convergence-radar tickers by acceleration / earliness signatures BEFORE pumps occur. Built in response to MRVL +29% 2026-06-02 case study where signals existed but were buried at rank #13. Also writes convergence-radar daily snapshot archive.",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(15,45 * * * ? *)",
+    "expression": "cron(46 19 * * ? *)",
     "name": "justhodl-early-movers-twice-per-hour",
     "description": "Runs every 30 minutes — pre-pump signals are time-sensitive"
   }

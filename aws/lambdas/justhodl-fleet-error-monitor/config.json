@@ -23,7 +23,7 @@
   },
   "schedule": {
     "rule_name": "fleet-error-monitor-5min",
-    "cron": "rate(1 hour)",
+    "cron": "cron(39 3 * * ? *)",
     "description": "AUDIT P2 — scan fleet error rates + DLQ depth hourly (ops 6528; was every 5 minutes)"
   }
 }

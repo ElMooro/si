@@ -28,7 +28,7 @@
   ],
   "schedule": {
     "name": "justhodl-sector-rotation-hourly",
-    "expression": "cron(38 * * * ? *)",
+    "expression": "cron(38 18 * * ? *)",
     "description": "Reconstruct public sector research from canonical stored sources"
   }
 }

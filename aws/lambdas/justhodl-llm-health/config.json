@@ -10,7 +10,7 @@
   "description": "Ping both LLM providers + scan AI outputs for null fields; emit data/llm-health.json so an outage is caught in hours not weeks",
   "inherit_env": {"from_function": "justhodl-brain-sync", "keys": ["ANTHROPIC_KEY"]},
   "schedule": {
-    "expression": "rate(6 hours)",
+    "expression": "cron(43 4 * * ? *)",
     "name": "justhodl-llm-health-6h",
     "description": "LLM provider + AI-output health check every 6 hours"
   }

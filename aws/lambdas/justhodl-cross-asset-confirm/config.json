@@ -16,7 +16,7 @@
     "SIGNAL_BOARD_KEY": "data/signal-board.json",
     "TELEGRAM_CHAT_ID": "8678089260"
   },
-  "schedule": "rate(3 hours)",
+  "schedule": "cron(27 13 * * ? *)",
   "preserved_schedule_reference": {
     "rule_name": "cross-asset-confirm-3h",
     "cron": "rate(3 hours)",

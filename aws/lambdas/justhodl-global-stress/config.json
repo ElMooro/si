@@ -15,7 +15,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-global-stress-6h",
-    "cron": "cron(35 1,7,13,19 * * ? *)",
+    "cron": "cron(35 19 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Global Stress Matrix - every 6h via EventBridge Scheduler, re-scoring equity and bond stress across global markets as price action updates."

@@ -15,7 +15,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-live-pulse-15m",
-    "cron": "cron(0/15 13-21 ? * MON-FRI *)",
+    "cron": "cron(30 21 ? * MON-FRI *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Live Pulse -- every 15 min during US market hours (13:00-21:00 UTC, Mon-Fri)."

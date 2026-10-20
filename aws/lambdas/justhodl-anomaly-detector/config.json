@@ -16,7 +16,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-anomaly-detector-hourly",
-    "cron": "cron(33 * * * ? *)",
+    "cron": "cron(33 8 * * ? *)",
     "description": "Every hour at :33 - after alpha-confluence (:12) and alpha-alerts (:20)"
   }
 }

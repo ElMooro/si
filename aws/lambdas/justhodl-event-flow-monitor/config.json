@@ -10,7 +10,7 @@
   "description": "Institutional-grade event bus health monitor. Watches coordinator audit log, detects silence/spikes/error anomalies, fires Telegram alerts with cool-down.",
   "schedule": {
     "rule_name": "event-flow-monitor-hourly",
-    "cron": "cron(0 * * * ? *)",
+    "cron": "cron(0 5 * * ? *)",
     "description": "Event flow health monitor — hourly on the hour"
   }
 }

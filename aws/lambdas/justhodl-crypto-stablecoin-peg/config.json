@@ -11,7 +11,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-crypto-stablecoin-peg-hourly",
-    "cron": "cron(45 * * * ? *)",
+    "cron": "cron(45 5 * * ? *)",
     "description": "Hourly stablecoin peg check"
   }
 }

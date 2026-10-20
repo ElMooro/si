@@ -16,7 +16,7 @@
  },
  "eventbridge_scheduler": {
   "schedule_name": "justhodl-repo-market-daily",
-  "cron": "cron(35 13,21 * * ? *)",
+  "cron": "cron(35 21 * * ? *)",
   "timezone": "UTC",
   "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
   "description": "Repo Market Desk - 13:35 UTC (after the NY Fed 8am ET reference-rate publication) and 21:35 UTC (post-close + H.4.1 Thursdays)."

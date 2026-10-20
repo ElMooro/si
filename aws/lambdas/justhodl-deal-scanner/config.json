@@ -12,7 +12,7 @@
   "description": "Deal/news scan across US-listed names and ADRs with event taxonomy, counterparty checks, SEC 8-K confirmation, census/13F overlays and a base-rate ledger. Unqualified sector research cannot add signal or allocation votes. Every 3h.",
   "schedule": {
     "rule_name": "deal-scanner-daily",
-    "cron": "cron(5 */3 * * ? *)",
+    "cron": "cron(5 22 * * ? *)",
     "description": "Full-market deal-win scan every 3 hours (live rule cadence \u2014 catches PR dumps around the clock)"
   }
 }

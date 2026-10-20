@@ -11,7 +11,7 @@
   "environment": {"S3_BUCKET": "justhodl-dashboard-live"},
   "schedule": {
     "rule_name": "justhodl-crypto-dvol-hourly",
-    "cron": "cron(15 * * * ? *)",
+    "cron": "cron(15 5 * * ? *)",
     "description": "Crypto DVOL hourly at :15"
   }
 }

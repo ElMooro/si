@@ -11,7 +11,7 @@
   },
   "schedule": {
     "name": "justhodl-stablecoin-flow-sched",
-    "expression": "rate(6 hours)",
+    "expression": "cron(6 6 * * ? *)",
     "description": "Flow-fleet revival (ops 2720)"
   }
 }

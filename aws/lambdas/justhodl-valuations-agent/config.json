@@ -41,7 +41,7 @@
   "description": "Dated valuation inputs replayed from canonical originals. Explicit unavailable fair-value inputs, historical context and user-entered scenarios; no investment score.",
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-valuations-research-4h",
-    "cron": "cron(35 */4 * * ? *)",
+    "cron": "cron(35 1 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Dated valuation research every four hours from retained canonical original responses. HTTP is read-only; no paid AI, account read or notifications."

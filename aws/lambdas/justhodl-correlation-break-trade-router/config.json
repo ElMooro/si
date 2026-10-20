@@ -10,7 +10,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-corr-break-trades-2h",
-    "cron": "cron(15 0/2 * * ? *)",
+    "cron": "cron(15 21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Correlation-Break Trade Router every 2h"

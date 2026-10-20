@@ -16,7 +16,7 @@
   },
   "schedule": {
     "rule_name": "justhodl-provider-catalog-hourly",
-    "cron": "rate(1 hour)",
+    "cron": "cron(38 21 * * ? *)",
     "description": "Hourly provider catalog refresh; existing cadence verified by ops 5283."
   }
 }

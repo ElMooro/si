@@ -66,7 +66,7 @@
    ]
   },
   {
-   "expr": "cron(50 */3 * * ? *)",
+   "expr": "cron(50 23 * * ? *)",
    "kind": "events",
    "name": "alpha-compass-3h",
    "state": "ENABLED",
@@ -153,7 +153,7 @@
    "expr": "cron(20 21 * * ? *)",
    "kind": "events",
    "name": "backtest-harness-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-backtest-harness",
@@ -223,7 +223,7 @@
    "expr": "cron(0 13 ? * SUN *)",
    "kind": "events",
    "name": "behavior-mirror-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-behavior-mirror",
@@ -248,7 +248,7 @@
    ]
   },
   {
-   "expr": "rate(5 minutes)",
+   "expr": "cron(48 4 * * ? *)",
    "kind": "events",
    "name": "benzinga-news-agent-warm",
    "state": "ENABLED",
@@ -257,12 +257,6 @@
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:benzinga-news-agent",
      "id": "1",
      "input": null,
-     "path": null
-    },
-    {
-     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-gdelt-full",
-     "id": "gdelt-full",
-     "input": "{}",
      "path": null
     }
    ]
@@ -338,7 +332,7 @@
    ]
   },
   {
-   "expr": "cron(0 10,14,18,22 * * ? *)",
+   "expr": "cron(0 22 * * ? *)",
    "kind": "events",
    "name": "buzz-velocity-4x-daily",
    "state": "ENABLED",
@@ -352,7 +346,7 @@
    ]
   },
   {
-   "expr": "cron(30 */6 * * ? *)",
+   "expr": "cron(30 15 * * ? *)",
    "kind": "events",
    "name": "canary-grid-daily",
    "state": "ENABLED",
@@ -380,7 +374,7 @@
    ]
   },
   {
-   "expr": "cron(45 */3 * * ? *)",
+   "expr": "cron(45 15 * * ? *)",
    "kind": "events",
    "name": "capitulation-3h",
    "state": "ENABLED",
@@ -394,10 +388,10 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(26 5 * * ? *)",
    "kind": "events",
    "name": "carry-surface-4h",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-carry-surface",
@@ -431,7 +425,7 @@
    "expr": "cron(0 21 ? * SUN *)",
    "kind": "events",
    "name": "causality-scanner-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-causality-scanner",
@@ -470,7 +464,7 @@
    ]
   },
   {
-   "expr": "cron(0 13,17,21 ? * MON-FRI *)",
+   "expr": "cron(0 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "cds-proxy-tri-daily",
    "state": "ENABLED",
@@ -498,7 +492,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(48 6 * * ? *)",
    "kind": "events",
    "name": "cftc-cot-weekly-update",
    "state": "ENABLED",
@@ -638,7 +632,7 @@
    ]
   },
   {
-   "expr": "cron(45 */3 * * ? *)",
+   "expr": "cron(45 23 * * ? *)",
    "kind": "events",
    "name": "conviction-engine-3h",
    "state": "ENABLED",
@@ -666,7 +660,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 15 * * ? *)",
    "kind": "events",
    "name": "crisis-composite-hourly",
    "state": "ENABLED",
@@ -680,7 +674,7 @@
    ]
   },
   {
-   "expr": "rate(3 hours)",
+   "expr": "cron(32 13 * * ? *)",
    "kind": "events",
    "name": "cross-asset-confirm-3h",
    "state": "ENABLED",
@@ -708,7 +702,7 @@
    ]
   },
   {
-   "expr": "cron(0 */6 * * ? *)",
+   "expr": "cron(0 3 * * ? *)",
    "kind": "events",
    "name": "crypto-narratives-6h",
    "state": "ENABLED",
@@ -736,7 +730,7 @@
    ]
   },
   {
-   "expr": "cron(5 */3 * * ? *)",
+   "expr": "cron(5 22 * * ? *)",
    "kind": "events",
    "name": "deal-scanner-daily",
    "state": "ENABLED",
@@ -750,7 +744,7 @@
    ]
   },
   {
-   "expr": "cron(30 0/4 * * ? *)",
+   "expr": "cron(30 13 * * ? *)",
    "kind": "events",
    "name": "divergence-interpreter-4hourly",
    "state": "ENABLED",
@@ -865,7 +859,7 @@
    "expr": "cron(0 2 ? * SUN *)",
    "kind": "events",
    "name": "engine-contribution-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-contribution",
@@ -949,7 +943,7 @@
    "expr": "cron(40 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "estrev-daily-am",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-estimate-revisions",
@@ -963,7 +957,7 @@
    "expr": "cron(40 17 ? * MON-FRI *)",
    "kind": "events",
    "name": "estrev-daily-pm",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-estimate-revisions",
@@ -1002,7 +996,7 @@
    ]
   },
   {
-   "expr": "cron(0 * * * ? *)",
+   "expr": "cron(0 5 * * ? *)",
    "kind": "events",
    "name": "event-flow-monitor-hourly",
    "state": "ENABLED",
@@ -1072,7 +1066,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(28 4 * * ? *)",
    "kind": "events",
    "name": "fed-nlp-6h",
    "state": "ENABLED",
@@ -1114,7 +1108,7 @@
    ]
   },
   {
-   "expr": "cron(15 14,18,22 * * ? *)",
+   "expr": "cron(15 22 * * ? *)",
    "kind": "events",
    "name": "finviz-groups-3x",
    "state": "ENABLED",
@@ -1142,7 +1136,7 @@
    ]
   },
   {
-   "expr": "cron(0 14,18,21 * * ? *)",
+   "expr": "cron(0 21 * * ? *)",
    "kind": "events",
    "name": "finviz-signals-3x",
    "state": "DISABLED",
@@ -1156,10 +1150,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(39 3 * * ? *)",
    "kind": "events",
    "name": "fleet-error-monitor-5min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-error-monitor",
@@ -1170,7 +1164,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(57 7 * * ? *)",
    "kind": "events",
    "name": "fleet-freshness-monitor-30min",
    "state": "ENABLED",
@@ -1184,10 +1178,10 @@
    ]
   },
   {
-   "expr": "cron(20 */3 * * ? *)",
+   "expr": "cron(20 3 * * ? *)",
    "kind": "events",
    "name": "fleet-monitor-3h",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-monitor",
@@ -1198,10 +1192,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(36 6 * * ? *)",
    "kind": "events",
    "name": "fmp-movers-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:fmp-stock-picks-agent",
@@ -1282,10 +1276,10 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(49 11 * * ? *)",
    "kind": "events",
    "name": "gap-metrics-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-gap-metrics",
@@ -1324,7 +1318,7 @@
    ]
   },
   {
-   "expr": "cron(15 6,18 * * ? *)",
+   "expr": "cron(15 18 * * ? *)",
    "kind": "events",
    "name": "global-sovereign-12h",
    "state": "ENABLED",
@@ -1453,7 +1447,7 @@
    "expr": "cron(6 14 * * ? *)",
    "kind": "events",
    "name": "jh-capital-inflows-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-capital-inflows",
@@ -1814,7 +1808,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(3 15 * * ? *)",
    "kind": "events",
    "name": "jsi-6h",
    "state": "ENABLED",
@@ -1856,7 +1850,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(21 16 * * ? *)",
    "kind": "events",
    "name": "justhodl-13f-positions-sched",
    "state": "ENABLED",
@@ -1901,7 +1895,7 @@
    "expr": "cron(0 18 ? * THU,FRI *)",
    "kind": "events",
    "name": "justhodl-aaii-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-aaii-sentiment",
@@ -1954,7 +1948,7 @@
    ]
   },
   {
-   "expr": "cron(5 0,4,8,12,16,20 * * ? *)",
+   "expr": "cron(5 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-ai-brief-4h",
    "state": "ENABLED",
@@ -2010,7 +2004,7 @@
    ]
   },
   {
-   "expr": "cron(12 * * * ? *)",
+   "expr": "cron(12 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-alpha-confluence-hourly",
    "state": "ENABLED",
@@ -2066,7 +2060,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(30 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-alpha-research-6h",
    "state": "ENABLED",
@@ -2080,7 +2074,7 @@
    ]
   },
   {
-   "expr": "cron(7 * * * ? *)",
+   "expr": "cron(7 15 * * ? *)",
    "kind": "events",
    "name": "justhodl-alpha-score-hourly",
    "state": "ENABLED",
@@ -2136,7 +2130,7 @@
    ]
   },
   {
-   "expr": "cron(33 * * * ? *)",
+   "expr": "cron(33 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-anomaly-detector-hourly",
    "state": "ENABLED",
@@ -2223,7 +2217,7 @@
    "expr": "cron(5 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-auction-crisis-backstop",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-auction-crisis-detector",
@@ -2234,7 +2228,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(0 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-audit-loop-2h",
    "state": "ENABLED",
@@ -2248,7 +2242,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(20 9 * * ? *)",
    "kind": "events",
    "name": "justhodl-backend-agent-15min",
    "state": "ENABLED",
@@ -2262,7 +2256,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(44 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-backfill-hourly",
    "state": "ENABLED",
@@ -2332,7 +2326,7 @@
    ]
   },
   {
-   "expr": "cron(10 * * * ? *)",
+   "expr": "cron(10 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-best-setups-hourly",
    "state": "ENABLED",
@@ -2346,7 +2340,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(59 7 * * ? *)",
    "kind": "events",
    "name": "justhodl-bis-gleif-weekly",
    "state": "ENABLED",
@@ -2391,7 +2385,7 @@
    "expr": "cron(0 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-bond-trace-cadence",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-bond-trace",
@@ -2461,7 +2455,7 @@
    "expr": "cron(0 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-breadth-thrust-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-breadth-thrust",
@@ -2528,7 +2522,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(31 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-calls-research-audit-15m",
    "state": "ENABLED",
@@ -2542,7 +2536,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(13 3 * * ? *)",
    "kind": "events",
    "name": "justhodl-canary-macro-hourly",
    "state": "ENABLED",
@@ -2556,7 +2550,7 @@
    ]
   },
   {
-   "expr": "cron(50 * * * ? *)",
+   "expr": "cron(50 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-canary-warroom-hourly",
    "state": "ENABLED",
@@ -2601,7 +2595,7 @@
    "expr": "cron(20 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-capital-flow-radar-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-capital-flow-radar",
@@ -2685,7 +2679,7 @@
    "expr": "cron(50 20 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-catalyst-skew-premove-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-catalyst-skew-premove",
@@ -2696,7 +2690,7 @@
    ]
   },
   {
-   "expr": "cron(5,35 * * * ? *)",
+   "expr": "cron(5 16 * * ? *)",
    "kind": "events",
    "name": "justhodl-cboe-options-chain-schedule",
    "state": "ENABLED",
@@ -2724,7 +2718,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(47 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-cftc-full-daily",
    "state": "ENABLED",
@@ -2752,7 +2746,7 @@
    ]
   },
   {
-   "expr": "cron(35 * * * ? *)",
+   "expr": "cron(35 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-coinbase-premium-hourly",
    "state": "DISABLED",
@@ -2811,7 +2805,7 @@
    "expr": "cron(30 6 ? * * *)",
    "kind": "events",
    "name": "justhodl-corporate-actions-schedule",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-corporate-actions",
@@ -2881,7 +2875,7 @@
    "expr": "cron(10 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-credit-stress-cadence",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-credit-stress",
@@ -2934,7 +2928,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(29 3 * * ? *)",
    "kind": "events",
    "name": "justhodl-cross-asset-flow-state-2h",
    "state": "ENABLED",
@@ -2965,7 +2959,7 @@
    "expr": "cron(45 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-cross-asset-rv-cadence",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-cross-asset-rv",
@@ -2976,10 +2970,10 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(2 17 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-15min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-crypto-intel",
@@ -2990,7 +2984,7 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 2 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-basis-hourly",
    "state": "ENABLED",
@@ -3018,7 +3012,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(12 16 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-cycle-risk-6h",
    "state": "ENABLED",
@@ -3032,7 +3026,7 @@
    ]
   },
   {
-   "expr": "cron(0 13,23 * * ? *)",
+   "expr": "cron(0 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-emergence-daily",
    "state": "ENABLED",
@@ -3088,7 +3082,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(57 4 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-funding-hourly",
    "state": "ENABLED",
@@ -3102,7 +3096,7 @@
    ]
   },
   {
-   "expr": "cron(0 12,22 * * ? *)",
+   "expr": "cron(0 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-crypto-liquidity-daily",
    "state": "ENABLED",
@@ -3172,7 +3166,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(28 1 * * ? *)",
    "kind": "events",
    "name": "justhodl-cusip-map-rebuild-hourly",
    "state": "ENABLED",
@@ -3228,10 +3222,10 @@
    ]
   },
   {
-   "expr": "rate(1 day)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-daily-8am",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-daily-report-v3",
@@ -3273,7 +3267,7 @@
    "expr": "cron(0 14 ? * WED *)",
    "kind": "events",
    "name": "justhodl-dark-pool-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-dark-pool",
@@ -3284,10 +3278,10 @@
    ]
   },
   {
-   "expr": "cron(7 13-21 ? * MON-FRI *)",
+   "expr": "cron(7 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-dealer-gex-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-dealer-gex",
@@ -3340,7 +3334,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(18 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-devils-advocate-6h",
    "state": "ENABLED",
@@ -3354,10 +3348,10 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-dex-scanner-15min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-dex-scanner",
@@ -3455,7 +3449,7 @@
    "expr": "cron(50 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-earnings-iv-crush-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-earnings-iv-crush",
@@ -3564,7 +3558,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(39 19 * * ? *)",
    "kind": "events",
    "name": "justhodl-engine-conflicts-6h",
    "state": "ENABLED",
@@ -3746,7 +3740,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(41 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-eurostat-oecd-weekly",
    "state": "ENABLED",
@@ -3819,7 +3813,7 @@
    "expr": "cron(35 13 ? * MON *)",
    "kind": "events",
    "name": "justhodl-factor-decomp-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-factor-decomposition",
@@ -3875,7 +3869,7 @@
    "expr": "cron(50 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-feed-catalog-cadence",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-feed-catalog",
@@ -3886,7 +3880,7 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(39 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-fiat-peg-monitor-4h",
    "state": "ENABLED",
@@ -3914,7 +3908,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(34 2 * * ? *)",
    "kind": "events",
    "name": "justhodl-fleet-error-6h",
    "state": "DISABLED",
@@ -3928,7 +3922,7 @@
    ]
   },
   {
-   "expr": "rate(3 hours)",
+   "expr": "cron(59 1 * * ? *)",
    "kind": "events",
    "name": "justhodl-fleet-freshness-hourly",
    "state": "DISABLED",
@@ -3942,7 +3936,7 @@
    ]
   },
   {
-   "expr": "rate(3 hours)",
+   "expr": "cron(56 1 * * ? *)",
    "kind": "events",
    "name": "justhodl-fleet-freshness-monitor-sched",
    "state": "DISABLED",
@@ -3959,7 +3953,7 @@
    "expr": "cron(0 8 ? * MON *)",
    "kind": "events",
    "name": "justhodl-fleet-integrity-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fleet-integrity",
@@ -3970,7 +3964,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(0 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-fleet-monitor-6h",
    "state": "DISABLED",
@@ -3984,7 +3978,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(47 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-fleet-monitor-sched",
    "state": "DISABLED",
@@ -4029,7 +4023,7 @@
    "expr": "cron(45 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-flow-confluence-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-flow-confluence",
@@ -4096,7 +4090,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(4 19 * * ? *)",
    "kind": "events",
    "name": "justhodl-fred-catalog-5min",
    "state": "ENABLED",
@@ -4130,7 +4124,7 @@
    ]
   },
   {
-   "expr": "rate(3 hours)",
+   "expr": "cron(34 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-freshness-30m",
    "state": "DISABLED",
@@ -4175,7 +4169,7 @@
    "expr": "cron(0 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-fx-intelligence-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fx-intelligence",
@@ -4200,7 +4194,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(43 3 * * ? *)",
    "kind": "events",
    "name": "justhodl-gdelt-sentiment-30min",
    "state": "ENABLED",
@@ -4214,7 +4208,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(31 4 * * ? *)",
    "kind": "events",
    "name": "justhodl-global-expansion-hourly",
    "state": "ENABLED",
@@ -4273,7 +4267,7 @@
    "expr": "cron(45 20 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-gold-equity-rotation-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-gold-equity-rotation",
@@ -4329,7 +4323,7 @@
    "expr": "cron(0 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-hot-money-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-hot-money",
@@ -4441,7 +4435,7 @@
    "expr": "cron(0 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-insider-buyback-confluence-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-buyback-confluence",
@@ -4494,7 +4488,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(10 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-insider-trades-30min",
    "state": "ENABLED",
@@ -4536,10 +4530,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(51 16 * * ? *)",
    "kind": "events",
    "name": "justhodl-intel-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-intelligence",
@@ -4665,7 +4659,7 @@
    "expr": "cron(5 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-liquidity-flow-cadence",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-liquidity-flow",
@@ -4704,7 +4698,7 @@
    ]
   },
   {
-   "expr": "cron(5 * * * ? *)",
+   "expr": "cron(5 5 * * ? *)",
    "kind": "events",
    "name": "justhodl-llm-cost-dashboard-hourly",
    "state": "ENABLED",
@@ -4718,7 +4712,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(43 4 * * ? *)",
    "kind": "events",
    "name": "justhodl-llm-health-6h",
    "state": "ENABLED",
@@ -4746,10 +4740,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(40 5 * * ? *)",
    "kind": "events",
    "name": "justhodl-ma-tracker-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ma-tracker",
@@ -4882,7 +4876,7 @@
    "expr": "cron(0 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-microcap-float-squeeze-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-microcap-float-squeeze",
@@ -4896,7 +4890,7 @@
    "expr": "cron(40 20 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-money-flow-state-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-money-flow-state",
@@ -4963,7 +4957,7 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(27 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-narrative-vs-tape-4h",
    "state": "ENABLED",
@@ -5022,7 +5016,7 @@
    "expr": "cron(40 4 * * ? *)",
    "kind": "events",
    "name": "justhodl-nyfed-full-history-nightly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-nyfed-full-history",
@@ -5033,10 +5027,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(27 3 * * ? *)",
    "kind": "events",
    "name": "justhodl-nyfed-markets-full-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-nyfed-markets-full",
@@ -5047,10 +5041,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(28 5 * * ? *)",
    "kind": "events",
    "name": "justhodl-nyfed-markets-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-nyfed-markets-full",
@@ -5089,7 +5083,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(36 15 * * ? *)",
    "kind": "events",
    "name": "justhodl-oecd-cli-weekly",
    "state": "ENABLED",
@@ -5103,10 +5097,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(3 2 * * ? *)",
    "kind": "events",
    "name": "justhodl-ofr-stfm-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ofr-stfm",
@@ -5134,7 +5128,7 @@
    "expr": "cron(20 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-onchain-ratios-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-onchain-ratios",
@@ -5215,7 +5209,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-options-confluence-hourly",
    "state": "DISABLED",
@@ -5257,10 +5251,10 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(32 2 * * ? *)",
    "kind": "events",
    "name": "justhodl-options-gamma-30min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-options-gamma",
@@ -5302,7 +5296,7 @@
    "expr": "cron(0 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-outcome-checker-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-outcome-checker",
@@ -5355,7 +5349,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(3 2 * * ? *)",
    "kind": "events",
    "name": "justhodl-peru-copper-daily",
    "state": "ENABLED",
@@ -5369,7 +5363,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(0 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-plumbing-aggregator-hourly",
    "state": "ENABLED",
@@ -5383,7 +5377,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(30 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-plumbing-panel-weekly",
    "state": "ENABLED",
@@ -5456,7 +5450,7 @@
    "expr": "cron(0 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-polygon-futures-curves-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-polygon-futures-curves",
@@ -5467,7 +5461,7 @@
    ]
   },
   {
-   "expr": "cron(15 14,15,16,17,18,19 ? * MON-FRI *)",
+   "expr": "cron(15 19 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-polygon-options-flow-hourly",
    "state": "ENABLED",
@@ -5495,7 +5489,7 @@
    ]
   },
   {
-   "expr": "cron(0 11,17,23 * * ? *)",
+   "expr": "cron(0 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-portfolio-catalysts-3x-daily",
    "state": "ENABLED",
@@ -5509,7 +5503,7 @@
    ]
   },
   {
-   "expr": "cron(43 * * * ? *)",
+   "expr": "cron(43 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-portfolio-risk-hourly",
    "state": "ENABLED",
@@ -5523,7 +5517,7 @@
    ]
   },
   {
-   "expr": "cron(45 * * * ? *)",
+   "expr": "cron(45 19 * * ? *)",
    "kind": "events",
    "name": "justhodl-portfolio-sizer-hourly",
    "state": "ENABLED",
@@ -5537,7 +5531,7 @@
    ]
   },
   {
-   "expr": "cron(40 * * * ? *)",
+   "expr": "cron(40 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-portfolio-snapshot-hourly",
    "state": "ENABLED",
@@ -5551,7 +5545,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(9 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-position-sizer-6h",
    "state": "ENABLED",
@@ -5621,10 +5615,10 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(27 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-price-redundancy-15min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-price-redundancy",
@@ -5635,7 +5629,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(52 9 * * ? *)",
    "kind": "events",
    "name": "justhodl-prospective-capture-hourly",
    "state": "ENABLED",
@@ -5649,7 +5643,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(45 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-prospective-evaluator-hourly",
    "state": "ENABLED",
@@ -5677,7 +5671,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(38 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-provider-catalog-hourly",
    "state": "ENABLED",
@@ -5705,7 +5699,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(30 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-redflag-alerter-30min",
    "state": "ENABLED",
@@ -5761,7 +5755,7 @@
    ]
   },
   {
-   "expr": "cron(0 13,21 * * ? *)",
+   "expr": "cron(0 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-regime-map-daily",
    "state": "ENABLED",
@@ -5789,10 +5783,10 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(54 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-repo-30min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-repo-monitor",
@@ -5879,10 +5873,10 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(50 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-risk-gate-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-gate:live",
@@ -5896,7 +5890,7 @@
    "expr": "cron(45 12 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-risk-regime-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-risk-regime",
@@ -5924,7 +5918,7 @@
    "expr": "cron(35 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-rotation-radar-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-rotation-radar",
@@ -6026,7 +6020,7 @@
    ]
   },
   {
-   "expr": "rate(5 minutes)",
+   "expr": "cron(40 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-sdmx-walker-hourly",
    "state": "ENABLED",
@@ -6054,7 +6048,7 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(7 5 * * ? *)",
    "kind": "events",
    "name": "justhodl-sec-10kq-4h",
    "state": "ENABLED",
@@ -6068,7 +6062,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(52 1 * * ? *)",
    "kind": "events",
    "name": "justhodl-sec-13f-daily",
    "state": "ENABLED",
@@ -6082,10 +6076,10 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(10 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-sec-8k-30min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-8k",
@@ -6096,10 +6090,10 @@
    ]
   },
   {
-   "expr": "cron(10,40 * * * ? *)",
+   "expr": "cron(10 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-sec-8k-enrich-schedule",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-8k-enrich",
@@ -6110,10 +6104,10 @@
    ]
   },
   {
-   "expr": "rate(12 hours)",
+   "expr": "cron(16 1 * * ? *)",
    "kind": "events",
    "name": "justhodl-sec-bulk-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sec-bulk",
@@ -6155,7 +6149,7 @@
    "expr": "cron(20 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-sector-emergence-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sector-emergence",
@@ -6194,7 +6188,7 @@
    ]
   },
   {
-   "expr": "cron(38 * * * ? *)",
+   "expr": "cron(38 18 * * ? *)",
    "kind": "events",
    "name": "justhodl-sector-rotation-hourly",
    "state": "ENABLED",
@@ -6264,7 +6258,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(55 3 * * ? *)",
    "kind": "events",
    "name": "justhodl-series-extractor-5min",
    "state": "ENABLED",
@@ -6327,7 +6321,7 @@
    "expr": "cron(20 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-short-interest-6h",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest",
@@ -6341,7 +6335,7 @@
    "expr": "cron(15 21 ? * MON,WED *)",
    "kind": "events",
    "name": "justhodl-short-interest-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-short-interest",
@@ -6439,7 +6433,7 @@
    "expr": "cron(45 20 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-skew-tail-hedging-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-skew-tail-hedging",
@@ -6495,7 +6489,7 @@
    "expr": "cron(0 14 ? * TUE *)",
    "kind": "events",
    "name": "justhodl-sovereign-fiscal-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sovereign-fiscal",
@@ -6509,7 +6503,7 @@
    "expr": "cron(30 13 ? * TUE-SAT *)",
    "kind": "events",
    "name": "justhodl-squeeze-fuel-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-squeeze-fuel",
@@ -6534,10 +6528,10 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(6 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-stablecoin-flow-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-stablecoin-flow",
@@ -6548,7 +6542,7 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(51 9 * * ? *)",
    "kind": "events",
    "name": "justhodl-stock-screener-4h",
    "state": "ENABLED",
@@ -6607,7 +6601,7 @@
    "expr": "cron(45 13 ? * TUE-SAT *)",
    "kind": "events",
    "name": "justhodl-supply-chain-graph-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-supply-chain-graph",
@@ -6649,7 +6643,7 @@
    "expr": "cron(0 13 ? * TUE-SAT *)",
    "kind": "events",
    "name": "justhodl-tail-risk-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tail-risk",
@@ -6660,7 +6654,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(3 6 * * ? *)",
    "kind": "events",
    "name": "justhodl-taiwan-moea-daily",
    "state": "ENABLED",
@@ -6674,7 +6668,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(44 8 * * ? *)",
    "kind": "events",
    "name": "justhodl-te-fred-mirror-hourly",
    "state": "ENABLED",
@@ -6730,7 +6724,7 @@
    ]
   },
   {
-   "expr": "cron(20,50 * * * ? *)",
+   "expr": "cron(20 18 * * ? *)",
    "kind": "events",
    "name": "justhodl-theme-cascade-twice-per-hour",
    "state": "ENABLED",
@@ -6747,7 +6741,7 @@
    "expr": "cron(25 21 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-theme-rotation-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-theme-rotation",
@@ -6772,7 +6766,7 @@
    ]
   },
   {
-   "expr": "cron(20 6,18 * * ? *)",
+   "expr": "cron(20 18 * * ? *)",
    "kind": "events",
    "name": "justhodl-ticker-360-schedule",
    "state": "DISABLED",
@@ -6786,7 +6780,7 @@
    ]
   },
   {
-   "expr": "cron(5 0/6 * * ? *)",
+   "expr": "cron(5 15 * * ? *)",
    "kind": "events",
    "name": "justhodl-ticket-ai-rationale-hourly",
    "state": "ENABLED",
@@ -6842,7 +6836,7 @@
    ]
   },
   {
-   "expr": "cron(50 * * * ? *)",
+   "expr": "cron(50 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-trade-logger-hourly",
    "state": "ENABLED",
@@ -6856,7 +6850,7 @@
    ]
   },
   {
-   "expr": "cron(0/10 14-20 ? * MON-FRI *)",
+   "expr": "cron(10 20 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-trade-ticket-monitor-10min",
    "state": "ENABLED",
@@ -6870,7 +6864,7 @@
    ]
   },
   {
-   "expr": "cron(25 14,15,16,17,18,19 ? * MON-FRI *)",
+   "expr": "cron(25 19 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-trade-tickets-hourly",
    "state": "ENABLED",
@@ -6926,7 +6920,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(11 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-tv-bars-hourly",
    "state": "DISABLED",
@@ -6968,7 +6962,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(46 7 * * ? *)",
    "kind": "events",
    "name": "justhodl-upside-thesis-6h",
    "state": "ENABLED",
@@ -7080,10 +7074,10 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-vix-curve-30min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-vix-curve",
@@ -7136,7 +7130,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(27 11 * * ? *)",
    "kind": "events",
    "name": "justhodl-warm-bridge-hourly",
    "state": "ENABLED",
@@ -7181,7 +7175,7 @@
    "expr": "cron(0 6 ? * SUN *)",
    "kind": "events",
    "name": "justhodl-xbrl-fundamentals-schedule",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-xbrl-fundamentals",
@@ -7465,7 +7459,7 @@
    ]
   },
   {
-   "expr": "cron(30 * * * ? *)",
+   "expr": "cron(30 22 * * ? *)",
    "kind": "events",
    "name": "near-miss-monitor-hourly",
    "state": "ENABLED",
@@ -7510,7 +7504,7 @@
    "expr": "cron(30 7 ? * * *)",
    "kind": "events",
    "name": "null",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-research-backtest:live",
@@ -7654,7 +7648,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(56 7 * * ? *)",
    "kind": "events",
    "name": "repo-metrics-15min",
    "state": "ENABLED",
@@ -7682,7 +7676,7 @@
    ]
   },
   {
-   "expr": "cron(0 12,20 * * ? *)",
+   "expr": "cron(0 20 * * ? *)",
    "kind": "events",
    "name": "rotation-chain-2x-daily",
    "state": "ENABLED",
@@ -7724,10 +7718,10 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(35 17 * * ? *)",
    "kind": "events",
    "name": "secretary-4h-scan",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-financial-secretary",
@@ -7738,10 +7732,10 @@
    ]
   },
   {
-   "expr": "cron(45 * * * ? *)",
+   "expr": "cron(45 20 * * ? *)",
    "kind": "events",
    "name": "sector-capital-fusion-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sector-capital-fusion",
@@ -7752,10 +7746,10 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 14 * * ? *)",
    "kind": "events",
    "name": "sector-flow-state-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-sector-flow-state",
@@ -7808,7 +7802,7 @@
    ]
   },
   {
-   "expr": "cron(15 0/6 * * ? *)",
+   "expr": "cron(15 2 * * ? *)",
    "kind": "events",
    "name": "signal-board-3h",
    "state": "ENABLED",
@@ -8105,7 +8099,7 @@
    "expr": "cron(0 22 ? * THU *)",
    "kind": "events",
    "name": "tic-flows-thu",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tic-flows",
@@ -8116,7 +8110,7 @@
    ]
   },
   {
-   "expr": "cron(0 13,21 * * ? *)",
+   "expr": "cron(0 21 * * ? *)",
    "kind": "events",
    "name": "ticker-trends-2x-daily",
    "state": "ENABLED",
@@ -8133,7 +8127,7 @@
    "expr": "cron(15 21 ? * TUE-SAT *)",
    "kind": "events",
    "name": "tv-watchlist-tracker-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tv-watchlist-tracker",
@@ -8175,7 +8169,7 @@
    "expr": "cron(50 22 ? * TUE-SAT *)",
    "kind": "events",
    "name": "wl-fusion-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-wl-fusion",
@@ -8206,7 +8200,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "activity-nowcast-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8217,7 +8211,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "alpha-alerts-sched",
@@ -8247,11 +8241,11 @@
    ]
   },
   {
-   "expr": "cron(12 * * * ? *)",
+   "expr": "cron(12 23 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "alpha-confluence-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8266,7 +8260,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "alpha-daily-brief-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8281,7 +8275,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "alpha-decay-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8311,7 +8305,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "behavior-mirror-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8341,7 +8335,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "best-ideas-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8356,7 +8350,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "beta-laggard-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8367,7 +8361,7 @@
    ]
   },
   {
-   "expr": "cron(35 */6 * * ? *)",
+   "expr": "cron(35 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "brief-compiler-event-6h",
@@ -8397,7 +8391,7 @@
    ]
   },
   {
-   "expr": "cron(25 */6 * * ? *)",
+   "expr": "cron(25 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "brief-compiler-market-tape-6h",
@@ -8427,7 +8421,7 @@
    ]
   },
   {
-   "expr": "cron(20 */6 * * ? *)",
+   "expr": "cron(20 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "brief-compiler-plumbing-6h",
@@ -8457,7 +8451,7 @@
    ]
   },
   {
-   "expr": "cron(10 */3 * * ? *)",
+   "expr": "cron(10 17 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "brief-compiler-verdict-3h",
@@ -8491,7 +8485,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "capital-inflows-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8521,7 +8515,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "causality-scanner-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8532,7 +8526,7 @@
    ]
   },
   {
-   "expr": "cron(0 0/6 ? * * *)",
+   "expr": "cron(0 7 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "cb-stance-sched",
@@ -8551,7 +8545,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "chokepoint-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8562,7 +8556,7 @@
    ]
   },
   {
-   "expr": "cron(35 * * * ? *)",
+   "expr": "cron(35 10 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "coinbase-premium-sched",
@@ -8611,7 +8605,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "concentration-liquidity-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8626,7 +8620,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "convexity-scorer-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8656,7 +8650,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "cot-tracker-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8697,11 +8691,11 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-basis-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8742,7 +8736,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-dvol-sched",
@@ -8761,7 +8755,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-etf-flows-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8776,7 +8770,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-exchange-flows-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8787,11 +8781,11 @@
    ]
   },
   {
-   "expr": "cron(15 * ? * * *)",
+   "expr": "cron(15 4 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-funding-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8802,7 +8796,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(37 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-gex-sched",
@@ -8832,11 +8826,11 @@
    ]
   },
   {
-   "expr": "cron(0 */6 * * ? *)",
+   "expr": "cron(0 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-narratives-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8847,7 +8841,7 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 8 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-options-sched",
@@ -8862,7 +8856,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-options-surface-sched",
@@ -8877,7 +8871,7 @@
    ]
   },
   {
-   "expr": "cron(45 * * * ? *)",
+   "expr": "cron(45 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "crypto-stablecoin-peg-sched",
@@ -8896,7 +8890,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "cyclical-bagger-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8926,7 +8920,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "debate-engine-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -8971,7 +8965,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "dr-snapshot-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9001,7 +8995,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "earnings-sentiment-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9016,7 +9010,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "engine-contribution-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9031,7 +9025,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "engine-robustness-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9091,7 +9085,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "fedwatch-rate-probability-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9132,7 +9126,7 @@
    ]
   },
   {
-   "expr": "cron(0 14,18,21 * * ? *)",
+   "expr": "cron(0 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "finviz-signals-sched",
@@ -9147,7 +9141,7 @@
    ]
   },
   {
-   "expr": "cron(0 14,22 * * ? *)",
+   "expr": "cron(0 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "finviz-universe-sched",
@@ -9177,11 +9171,11 @@
    ]
   },
   {
-   "expr": "rate(3 hours)",
+   "expr": "cron(26 7 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "fleet-freshness-monitor-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9267,7 +9261,7 @@
    ]
   },
   {
-   "expr": "cron(15 0/3 ? * * *)",
+   "expr": "cron(15 7 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "global-markets-sched",
@@ -9297,7 +9291,7 @@
    ]
   },
   {
-   "expr": "cron(0 */4 ? * * *)",
+   "expr": "cron(0 8 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "google-trends-sched",
@@ -9331,7 +9325,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "hot-stocks-digest-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9342,7 +9336,7 @@
    ]
   },
   {
-   "expr": "cron(10 1,7,13,19 * * ? *)",
+   "expr": "cron(10 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "house-ptr-extract-6h",
@@ -9357,7 +9351,7 @@
    ]
   },
   {
-   "expr": "cron(10 * * * ? *)",
+   "expr": "cron(10 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "hyperliquid-perps-sched",
@@ -9391,7 +9385,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "inventory-drawdown-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9421,7 +9415,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-13f-price-divergence-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9451,7 +9445,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-accum-composite-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9462,7 +9456,7 @@
    ]
   },
   {
-   "expr": "cron(20 1,7,13,19 * * ? *)",
+   "expr": "cron(20 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ai-brief-router-6h",
@@ -9477,7 +9471,7 @@
    ]
   },
   {
-   "expr": "cron(7 * * * ? *)",
+   "expr": "cron(7 7 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ai-inventory",
@@ -9507,7 +9501,7 @@
    ]
   },
   {
-   "expr": "rate(10 minutes)",
+   "expr": "cron(37 6 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ai-pipeline",
@@ -9552,7 +9546,7 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ai-website-synthesis-hourly",
@@ -9627,7 +9621,7 @@
    ]
   },
   {
-   "expr": "cron(10 * * * ? *)",
+   "expr": "cron(10 11 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-crisis-ai-hourly",
@@ -9661,7 +9655,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-desk-late",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9676,7 +9670,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-desk-morning",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9691,7 +9685,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-desk-results",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9766,7 +9760,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-beneish-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9807,11 +9801,11 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(48 13 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bloomberg-v8-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -9867,7 +9861,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(31 6 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-boj-full-fanout",
@@ -9882,7 +9876,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 14 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-vol-hourly",
@@ -9916,7 +9910,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-warroom-close",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9931,7 +9925,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-warroom-early",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9946,7 +9940,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-warroom-evening",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -9961,7 +9955,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-warroom-mid",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "America/New_York",
    "targets": [
     {
@@ -10036,7 +10030,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-buyback-yield-ranking-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10167,7 +10161,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(10 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-census-econ-dispatch",
@@ -10182,7 +10176,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(11 7 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-census-us-15min",
@@ -10201,7 +10195,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-cftc-deep-view-fri",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10212,7 +10206,7 @@
    ]
   },
   {
-   "expr": "rate(5 minutes)",
+   "expr": "cron(36 6 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-chain-resumer-5min",
@@ -10291,7 +10285,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-consensus-bottom-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10302,7 +10296,7 @@
    ]
   },
   {
-   "expr": "cron(*/30 * * * ? *)",
+   "expr": "cron(44 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-convergence-radar-30min",
@@ -10332,7 +10326,7 @@
    ]
   },
   {
-   "expr": "cron(15 0/2 * * ? *)",
+   "expr": "cron(15 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-corr-break-trades-2h",
@@ -10392,7 +10386,7 @@
    ]
   },
   {
-   "expr": "cron(0 14,16,18,20 * * ? *)",
+   "expr": "cron(0 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-cro-escalation-intraday",
@@ -10407,7 +10401,7 @@
    ]
   },
   {
-   "expr": "cron(0,30 13-21 ? * MON-FRI *)",
+   "expr": "cron(0 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-crypto-etf-arb-30min",
@@ -10422,11 +10416,11 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(47 6 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-crypto-opportunities-4h",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10441,7 +10435,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-cta-trend-exhaust-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10501,7 +10495,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-distribution-composite-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10516,7 +10510,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-divcut-warning-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10557,7 +10551,7 @@
    ]
   },
   {
-   "expr": "cron(15 1,7,13,19 * * ? *)",
+   "expr": "cron(15 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-dollar-radar-6h",
@@ -10636,7 +10630,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-earnings-quality-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10662,7 +10656,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(38 4 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ecb-deep-10min",
@@ -10707,7 +10701,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 2 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-engine-fusion-hourly",
@@ -10726,7 +10720,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-etf-issuer-holdings-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -10797,7 +10791,7 @@
    ]
   },
   {
-   "expr": "cron(45 * * * ? *)",
+   "expr": "cron(45 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-fed-pivot-factor-router-hourly",
@@ -10827,7 +10821,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(15 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-feed-heartbeat-schedule",
@@ -10992,11 +10986,11 @@
    ]
   },
   {
-   "expr": "cron(0/30 13-21 ? * MON-FRI *)",
+   "expr": "cron(50 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-forced-selling-bounce-30min",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11056,7 +11050,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-forward-orders-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11116,7 +11110,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-gap-fill-confirm-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11142,7 +11136,7 @@
    ]
   },
   {
-   "expr": "rate(6 hours)",
+   "expr": "cron(7 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-gdelt-full-30m",
@@ -11202,7 +11196,7 @@
    ]
   },
   {
-   "expr": "cron(35 1,7,13,19 * * ? *)",
+   "expr": "cron(35 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-global-stress-6h",
@@ -11236,7 +11230,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-grid-queue-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11322,7 +11316,7 @@
    ]
   },
   {
-   "expr": "cron(40 0/2 * * ? *)",
+   "expr": "cron(40 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-holdings-originals-research",
@@ -11386,7 +11380,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-impact-graph-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11397,7 +11391,7 @@
    ]
   },
   {
-   "expr": "rate(10 minutes)",
+   "expr": "cron(52 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-import-sentinel-10min",
@@ -11461,7 +11455,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-insider-industry-cluster-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11547,7 +11541,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(28 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-jhsignal-bridge-hourly",
@@ -11562,7 +11556,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(46 13 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ka-metrics-hourly",
@@ -11607,7 +11601,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(17 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-katlin-permission-refresh",
@@ -11622,7 +11616,7 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-khalid-hourly",
@@ -11637,11 +11631,11 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(42 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-khalid-metrics-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -11652,7 +11646,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-khalid-risk-hourly",
@@ -11727,7 +11721,7 @@
    ]
   },
   {
-   "expr": "cron(0/15 13-21 ? * MON-FRI *)",
+   "expr": "cron(30 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-live-pulse-15m",
@@ -11832,7 +11826,7 @@
    ]
   },
   {
-   "expr": "rate(5 minutes)",
+   "expr": "cron(11 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-market-tape-5min",
@@ -11847,7 +11841,7 @@
    ]
   },
   {
-   "expr": "cron(20 0,3,6,9,12,15,18,21 * * ? *)",
+   "expr": "cron(20 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-master-allocator-3h",
@@ -11877,7 +11871,7 @@
    ]
   },
   {
-   "expr": "cron(40 13,21 * * ? *)",
+   "expr": "cron(40 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-merger-arb-2x",
@@ -11922,7 +11916,7 @@
    ]
   },
   {
-   "expr": "cron(25 * * * ? *)",
+   "expr": "cron(25 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-momentum-leaders-hourly",
@@ -11971,7 +11965,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-nyfed-full-history-nightly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12001,7 +11995,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-nyfed-markets-hourly-s",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12016,7 +12010,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-nyfed-repo-deep-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12027,7 +12021,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(53 10 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-oecd-retry-hourly",
@@ -12076,7 +12070,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-options-analytics-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12106,7 +12100,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-options-flow-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12117,7 +12111,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 10 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-pair-trades-hourly",
@@ -12327,7 +12321,7 @@
    ]
   },
   {
-   "expr": "cron(0 12,16,20 ? * MON-FRI *)",
+   "expr": "cron(0 20 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-powell-pivot-4h",
@@ -12372,7 +12366,7 @@
    ]
   },
   {
-   "expr": "cron(12,42 * * * ? *)",
+   "expr": "cron(12 2 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-prepump-summary-30min",
@@ -12417,7 +12411,7 @@
    ]
   },
   {
-   "expr": "cron(0/15 * * * ? *)",
+   "expr": "cron(58 7 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-public-archive-index-15min",
@@ -12447,7 +12441,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 13 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-pump-mechanics-hourly",
@@ -12462,7 +12456,7 @@
    ]
   },
   {
-   "expr": "cron(10 * * * ? *)",
+   "expr": "cron(10 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-pump-positioning-hourly",
@@ -12552,7 +12546,7 @@
    ]
   },
   {
-   "expr": "cron(20 11,13,21 ? * MON-FRI *)",
+   "expr": "cron(20 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-readthrough-sched",
@@ -12582,7 +12576,7 @@
    ]
   },
   {
-   "expr": "cron(0 0/2 * * ? *)",
+   "expr": "cron(0 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-regime-conditional-router-2h",
@@ -12601,7 +12595,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-reit-nav-discount-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12616,7 +12610,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-repo-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12627,7 +12621,7 @@
    ]
   },
   {
-   "expr": "cron(35 13,21 * * ? *)",
+   "expr": "cron(35 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-repo-market-daily",
@@ -12642,7 +12636,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(2 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-report-research-hourly",
@@ -12706,7 +12700,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-risk-regime-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12732,7 +12726,7 @@
    ]
   },
   {
-   "expr": "cron(10,40 * * * ? *)",
+   "expr": "cron(10 12 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-sec-8k-enrich-schedule",
@@ -12766,7 +12760,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-sec-bulk-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12807,11 +12801,11 @@
    ]
   },
   {
-   "expr": "cron(46 * * * ? *)",
+   "expr": "cron(46 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-sector-tilt-research-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12882,11 +12876,11 @@
    ]
   },
   {
-   "expr": "cron(5 * * * ? *)",
+   "expr": "cron(5 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-signal-fabric-hourly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12942,7 +12936,7 @@
    ]
   },
   {
-   "expr": "cron(55 * * * ? *)",
+   "expr": "cron(55 16 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-smart-money-cluster-hourly",
@@ -12976,7 +12970,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-spac-floor-warrant-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13152,7 +13146,7 @@
    ]
   },
   {
-   "expr": "cron(* 13-20 ? * MON-FRI *)",
+   "expr": "cron(16 20 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-streaming-fanout-1min",
@@ -13167,11 +13161,11 @@
    ]
   },
   {
-   "expr": "rate(1 minute)",
+   "expr": "cron(40 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-student-rsi-1m",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13182,7 +13176,7 @@
    ]
   },
   {
-   "expr": "rate(4 hours)",
+   "expr": "cron(6 8 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-supabase-keepalive",
@@ -13231,7 +13225,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symbol-dictionary-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13257,7 +13251,7 @@
    ]
   },
   {
-   "expr": "rate(20 minutes)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-codelists",
@@ -13272,7 +13266,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(44 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-fredfresh",
@@ -13287,7 +13281,7 @@
    ]
   },
   {
-   "expr": "rate(15 minutes)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-fredupdates",
@@ -13302,7 +13296,7 @@
    ]
   },
   {
-   "expr": "rate(1 hour)",
+   "expr": "cron(38 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-titles",
@@ -13332,7 +13326,7 @@
    ]
   },
   {
-   "expr": "rate(5 minutes)",
+   "expr": "cron(0 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-warm",
@@ -13392,7 +13386,7 @@
    ]
   },
   {
-   "expr": "cron(0 */6 * * ? *)",
+   "expr": "cron(0 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-theme-classifier-6h",
@@ -13411,7 +13405,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-thesis-engine-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13437,7 +13431,7 @@
    ]
   },
   {
-   "expr": "cron(20 6,18 * * ? *)",
+   "expr": "cron(20 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ticker-360-schedule",
@@ -13452,7 +13446,7 @@
    ]
   },
   {
-   "expr": "cron(5 * * * ? *)",
+   "expr": "cron(5 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ticker-deep-research-hourly",
@@ -13516,7 +13510,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-treasury-noise-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13572,7 +13566,7 @@
    ]
   },
   {
-   "expr": "cron(20 0,6,12,16,20 * * ? *)",
+   "expr": "cron(20 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-us10y-sentinel-5x",
@@ -13587,7 +13581,7 @@
    ]
   },
   {
-   "expr": "cron(35 */4 * * ? *)",
+   "expr": "cron(35 1 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-valuations-research-4h",
@@ -13602,7 +13596,7 @@
    ]
   },
   {
-   "expr": "cron(30 * * * ? *)",
+   "expr": "cron(30 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-velocity-acceleration-hourly",
@@ -13632,7 +13626,7 @@
    ]
   },
   {
-   "expr": "cron(0 0,6,12,18 * * ? *)",
+   "expr": "cron(0 18 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-vol-radar-6h",
@@ -13707,7 +13701,7 @@
    ]
   },
   {
-   "expr": "rate(2 hours)",
+   "expr": "cron(20 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-worldbank-full-2h",
@@ -13752,7 +13746,7 @@
    ]
   },
   {
-   "expr": "cron(20 * ? * * *)",
+   "expr": "cron(20 14 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "khalid-adaptive-sched",
@@ -13801,7 +13795,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "macro-calendar-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13846,7 +13840,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "meta-improver-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13857,7 +13851,7 @@
    ]
   },
   {
-   "expr": "cron(0 * ? * * *)",
+   "expr": "cron(0 5 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "news-velocity-sched",
@@ -13876,7 +13870,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "news-wire-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13891,7 +13885,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "opportunity-calibrator-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13917,7 +13911,7 @@
    ]
   },
   {
-   "expr": "cron(20 * * * ? *)",
+   "expr": "cron(20 15 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "options-confluence-sched",
@@ -13932,11 +13926,11 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 10 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "page-ai-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13962,11 +13956,11 @@
    ]
   },
   {
-   "expr": "cron(43 * * * ? *)",
+   "expr": "cron(43 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "portfolio-risk-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13977,11 +13971,11 @@
    ]
   },
   {
-   "expr": "cron(45 * * * ? *)",
+   "expr": "cron(45 19 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "portfolio-sizer-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13992,11 +13986,11 @@
    ]
   },
   {
-   "expr": "cron(40 * * * ? *)",
+   "expr": "cron(40 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "portfolio-snapshot-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14011,7 +14005,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "premortem-engine-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14067,7 +14061,7 @@
    ]
   },
   {
-   "expr": "cron(30 * ? * * *)",
+   "expr": "cron(30 18 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "reversal-radar-sched",
@@ -14161,7 +14155,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "smart-money-holdings-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14176,7 +14170,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "smart-money-tracker-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14217,7 +14211,7 @@
    ]
   },
   {
-   "expr": "cron(25 * ? * * *)",
+   "expr": "cron(25 15 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "stress-scenarios-sched",
@@ -14266,7 +14260,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "tax-plan-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14307,11 +14301,11 @@
    ]
   },
   {
-   "expr": "cron(50 * * * ? *)",
+   "expr": "cron(50 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "trade-logger-sched",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -14322,7 +14316,7 @@
    ]
   },
   {
-   "expr": "rate(30 minutes)",
+   "expr": "cron(57 20 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "tradingview-fred-native-rotation",
@@ -14337,7 +14331,7 @@
    ]
   },
   {
-   "expr": "cron(15 * * * ? *)",
+   "expr": "cron(15 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "tradingview-native-price-rotation",
@@ -14412,7 +14406,7 @@
    ]
   },
   {
-   "expr": "cron(0,30 13-21 ? * MON-FRI *)",
+   "expr": "cron(0 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "vix-curve-sched",

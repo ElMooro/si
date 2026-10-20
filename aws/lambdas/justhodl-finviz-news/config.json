@@ -6,7 +6,7 @@
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "schedule": {
     "rule_name": "finviz-news-4x",
-    "cron": "cron(30 12,15,18,21 * * ? *)",
+    "cron": "cron(0 11 * * ? *)",
     "description": "Finviz ticker-tagged news + blogs feed 4x/trading day"
   }
 }

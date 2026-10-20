@@ -9,7 +9,7 @@
   "description": "Complete native 13F disclosure overlap by reporting cohort and instrument scope. Reproducible research; no trade or conviction inference.",
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-smart-money-cluster-hourly",
-    "cron": "cron(55 * * * ? *)",
+    "cron": "cron(55 16 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Refresh disclosure overlap after native SEC collection; unchanged sources retain their original publication clock.",

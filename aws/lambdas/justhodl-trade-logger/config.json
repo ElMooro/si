@@ -14,7 +14,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-trade-logger-hourly",
-    "cron": "cron(50 * * * ? *)",
+    "cron": "cron(50 20 * * ? *)",
     "description": "Every hour at :50 — after debate (12:15 daily), confluence, alpha, regime, options-flow all updated"
   }
 }

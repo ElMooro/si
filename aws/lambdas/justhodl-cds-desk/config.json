@@ -13,7 +13,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-cds-desk-daily",
-    "cron": "cron(0 1,4 ? * TUE-SAT *)",
+    "cron": "cron(0 4 ? * TUE-SAT *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Process the previous trading day's DTCC CDS dissemination files (posted ~00:15 UTC); second pass catches late postings",

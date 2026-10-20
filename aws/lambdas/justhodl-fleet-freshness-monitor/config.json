@@ -20,7 +20,7 @@
   },
   "schedule": {
     "rule_name": "fleet-freshness-monitor-30min",
-    "cron": "rate(30 minutes)",
+    "cron": "cron(57 7 * * ? *)",
     "description": "AUDIT P2 \u2014 detect stale/missing S3 outputs that indicate silent Lambda failures"
   },
   "release_validation": {

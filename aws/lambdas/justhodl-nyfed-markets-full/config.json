@@ -16,7 +16,7 @@
   },
   "schedule": {
     "name": "justhodl-nyfed-markets-full-hourly",
-    "expression": "rate(1 hour)",
+    "expression": "cron(27 3 * * ? *)",
     "description": "NY Fed markets endpoints + PD worklist hourly tranches per docstring (was never wired)"
   }
 }

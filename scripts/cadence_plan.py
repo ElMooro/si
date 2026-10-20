@@ -158,6 +158,21 @@ def load_configs(repo):
                     decl[("rule", r["name"])].append((fn, p, ("eventbridge_rules", i)))
                 elif isinstance(r, str):
                     decl[("rule", r)].append((fn, p, ("eventbridge_rules_name", i)))
+        # Schedules created by launch ops rather than by the deploy workflow ("the workflow handles only the primary
+        # block"): the repo still records them, and a stale record would show the old cadence next to the live one.
+        extra = c.get("eventbridge_scheduler_extra")
+        if isinstance(extra, dict) and extra.get("schedule_name"):
+            decl[("sched", extra["schedule_name"])].append((fn, p, ("eventbridge_scheduler_extra", "cron")))
+        extras = c.get("eventbridge_schedulers_extra")
+        if isinstance(extras, list):
+            for i, e in enumerate(extras):
+                if isinstance(e, dict) and e.get("schedule_name"):
+                    field = "expression" if "expression" in e else "cron" if "cron" in e else None
+                    if field:
+                        decl[("sched", e["schedule_name"])].append((fn, p, ("eventbridge_schedulers_extra", i, field)))
+        own = c.get("scheduler")
+        if isinstance(own, dict) and own.get("name") and own.get("expr"):
+            decl[("sched", own["name"])].append((fn, p, ("scheduler", "expr")))
     return configs, decl
 
 
@@ -172,7 +187,7 @@ def build_plan(snapshot, repo, exempt):
     # one record per (trigger object, target)
     recs = []
     for t in snapshot:
-        if t["state"] != "ENABLED" or not t.get("fn"):
+        if t.get("state") != "ENABLED" or not t.get("fn"):
             continue
         key = (t["kind"], t["name"])
         ik = t.get("ikey") or input_key(t.get("input"))
@@ -256,10 +271,44 @@ def build_plan(snapshot, repo, exempt):
         for r in rs:
             if r["key"][0] == "tick":
                 tick_removals[r["tick"]].append(r["fn"])
+
+    # Switched-off triggers keep their old expression, so one console click (or a script that only flips State) would
+    # bring a 5-minute engine back.  They get the compliant expression too, still DISABLED: zero cost, and it keeps the
+    # repo's config.json (which must equal live for a deploy to pass scripts/check_existing_schedule.py) truthful.
+    planned = {(a["kind"], a["name"]) for a in actions}
+    off = {}
+    for t in snapshot:
+        key = (t["kind"], t["name"])
+        if t.get("state") in (None, "ENABLED") or key in planned or key in exempt_names or not t.get("expr"):
+            continue
+        off.setdefault(key, []).append(t)
+    for key, ts in sorted(off.items()):
+        t = ts[0]
+        try:
+            if not cc.violates(t["expr"]):
+                continue
+        except cc.ExpressionError:
+            continue
+        fns = sorted({x["fn"] for x in ts if x.get("fn")})
+        depth_fn = min([depth.get(f, 0) for f in fns] or [0])
+        actions.append({"kind": t["kind"], "name": t["name"], "bus": t.get("bus"), "group": t.get("group"),
+                        "functions": fns,
+                        "before": {"expr": t["expr"], "state": t["state"], "input_sha": t.get("input_sha") or
+                                   hashlib.sha256((t.get("input") or "").encode()).hexdigest()[:16]},
+                        "op": "retime", "depth": depth_fn,
+                        "reason": "switched off, but %s if it were switched back on -> once a day" % cc.describe(t["expr"]),
+                        "after": {"expr": cc.to_daily(t["expr"], t["name"], depth_fn), "state": t["state"]}})
+    actions.sort(key=lambda a: (a["kind"], a["name"]))
+
+    # what the account looks like once the plan has run: the repo's declarations and manifest must say exactly this
+    final = {(t["kind"], t["name"]): (t.get("expr") or "", t.get("state")) for t in snapshot if t.get("name") and not t.get("err")}
+    for a in actions:
+        if a["op"] in ("retime", "disable"):
+            final[(a["kind"], a["name"])] = (a["after"]["expr"], a["after"]["state"])
     return {"actions": actions, "tick_removals": {k: sorted(set(v)) for k, v in tick_removals.items()},
             "jobs": {j: [r["trigger"]["name"] for r in rs] for j, rs in jobs.items() if len(rs) > 1},
             "keepers": {j: k["trigger"]["name"] for j, k in keepers.items()}, "depth": depth,
-            "configs": configs, "decl": decl, "fanout": fanout}
+            "configs": configs, "decl": decl, "fanout": fanout, "final": final, "exempt": exempt_names}
 
 
 # ---------------------------------------------------------------------------------------------- repo edits --
@@ -399,12 +448,19 @@ def config_paths(locator):
         return ("eventbridge_scheduler", "cron"), ("eventbridge_scheduler", "state")
     if kind == "eventbridge_rules":
         return ("eventbridge_rules", where, "schedule"), ("eventbridge_rules", where, "state")
+    if kind == "eventbridge_scheduler_extra":
+        return ("eventbridge_scheduler_extra", "cron"), ("eventbridge_scheduler_extra", "state")
+    if kind == "eventbridge_schedulers_extra":
+        return ("eventbridge_schedulers_extra", where, locator[2]), ("eventbridge_schedulers_extra", where, "state")
+    if kind == "scheduler":
+        return ("scheduler", "expr"), None
     return None, None
 
 
 def apply_repo(plan, repo):
     """Make the repo say what AWS will say.  Edits only the strings that change; returns counters + notes."""
     by_key = {(a["kind"], a["name"]): a for a in plan["actions"]}
+    final, exempt = plan.get("final") or {}, plan.get("exempt") or set()
     files, stats, notes = {}, Counter(), []
 
     def jf(path):
@@ -414,6 +470,8 @@ def apply_repo(plan, repo):
 
     # 1. engine config.json: schedule / eventbridge_scheduler / eventbridge_rules blocks that name a trigger
     for key, entries in sorted(plan["decl"].items()):
+        if key in exempt:                                    # the control plane stays exactly as written
+            continue
         a = by_key.get(key)
         for fn, path, locator in entries:
             epath, spath = config_paths(locator)
@@ -425,8 +483,12 @@ def apply_repo(plan, repo):
                 continue
             if a and a["op"] in ("retime", "disable"):
                 new = a["after"]["expr"]
-            elif cc.violates(cur):                           # declared but not (or not yet) live, still a violator
-                new = cc.to_daily(cur, key[1], plan["depth"].get(fn, 0))
+            elif cc.violates(cur):                           # declared, not planned, still a violator
+                live_expr = (final.get(key) or ("", None))[0]
+                if live_expr and not cc.violates(live_expr):
+                    new = live_expr                          # the account already runs it once a day: say exactly that
+                else:                                        # not in the account at all: a later deploy would create it
+                    new = cc.to_daily(cur, key[1], plan["depth"].get(fn, 0))
             else:
                 if a and a["before"]["expr"].strip() != cur.strip():
                     notes.append("config differs from live (left as is): %s %s" % (fn, key[1]))
@@ -448,7 +510,7 @@ def apply_repo(plan, repo):
     for f in files.values():
         stats["files_written"] += 1 if f.save() else 0
     mpath = repo / "config/schedule-manifest.json"
-    new_text, n = apply_schedule_manifest(mpath.read_text(encoding="utf-8"), plan["actions"])
+    new_text, n = apply_schedule_manifest(mpath.read_text(encoding="utf-8"), plan["actions"], final)
     if n:
         mpath.write_text(new_text, encoding="utf-8")
         stats["files_written"] += 1
@@ -499,20 +561,46 @@ def apply_fanout(fan, tick_removals):
     return dict(removed_from)
 
 
-def apply_schedule_manifest(text, actions):
+def apply_schedule_manifest(text, actions, final=None):
     """config/schedule-manifest.json text with each retimed / disabled trigger's expr + state replaced, every other
-    byte untouched.  Returns (new_text, entries_changed)."""
+    byte untouched, and the targets a plan removes from a shared rule dropped from that rule's entry.  `final`
+    ({(kind, name): (expr, state)} - the account after the plan) also brings entries the plan does not touch in line
+    with it: the manifest was written 2026-10-08 and later ops switched some of its rules off.
+    Returns (new_text, entries_changed)."""
     f = JsonFile.from_text(text)
     by_key = {(a["kind"], a["name"]): a for a in actions}
-    changed = 0
+    final = final or {}
+    changed, drops = 0, []
     for section, kind in (("rules", "rule"), ("schedules", "sched")):
         for i, entry in enumerate(f.obj.get(section, [])):
-            a = by_key.get((kind, entry.get("name")))
+            key = (kind, entry.get("name"))
+            a = by_key.get(key)
             if a and a["op"] in ("retime", "disable"):
                 c = f.set_string((section, i, "expr"), a["after"]["expr"])
                 c |= f.set_string((section, i, "state"), a["after"]["state"])
                 changed += 1 if c else 0
-    return f.render(), changed
+                if a.get("remove_functions"):
+                    drops.append((section, i, set(a["remove_functions"])))
+            elif key in final and final[key][0] and final[key][1]:
+                c = f.set_string((section, i, "expr"), final[key][0])
+                c |= f.set_string((section, i, "state"), final[key][1])
+                changed += 1 if c else 0
+    out = f.render()
+    if drops:
+        nl = "\n" if out.endswith("\n") else ""
+        parsed = json.loads(out)
+        style = next((ea for ea in (True, False) if json.dumps(parsed, indent=1, ensure_ascii=ea) + nl == out), None)
+        if style is None:
+            raise AssertionError("schedule-manifest.json does not round-trip through json.dumps(indent=1); "
+                                 "removing a target would reformat it")
+        for section, i, fns in drops:
+            tgs = parsed[section][i].get("targets") or []
+            keep = [t for t in tgs if (re.match(r".*:function:([^:]+)", t.get("arn") or "") or [None, None])[1] not in fns]
+            if keep and len(keep) < len(tgs):
+                parsed[section][i]["targets"] = keep
+                changed += 1
+        out = json.dumps(parsed, indent=1, ensure_ascii=style) + nl
+    return out, changed
 
 
 def summarise(plan):

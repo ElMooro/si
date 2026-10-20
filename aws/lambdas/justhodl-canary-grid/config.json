@@ -13,7 +13,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "canary-grid-daily",
-    "cron": "cron(30 */6 * * ? *)",
+    "cron": "cron(30 15 * * ? *)",
     "description": "Global Early-Warning Grid \u2014 every 6 hours (keeps fast funding/FX signals current)"
   }
 }

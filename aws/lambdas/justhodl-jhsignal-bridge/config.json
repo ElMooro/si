@@ -15,7 +15,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-jhsignal-bridge-hourly",
-    "cron": "rate(1 hour)",
+    "cron": "cron(28 3 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "JHSIGNAL bridge hourly (ops 5212) -- adapters over registered engine artifacts"

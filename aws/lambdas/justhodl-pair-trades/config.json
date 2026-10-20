@@ -8,7 +8,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-pair-trades-hourly",
-    "cron": "cron(20 * * * ? *)",
+    "cron": "cron(20 10 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Pair-trade generator hourly at :20"

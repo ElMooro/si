@@ -13,6 +13,13 @@
   "exempt_functions": [],
   "notes": [
     "Enforced by tests/deployment/test_cadence_floor.py on every Lambda deploy and checked daily on the live account by the governor's cadence sentinel.",
+    "GitHub workflow crons and Cloudflare worker crons are held to the same floor by the same test (per file, all cron lines added up).",
     "To let one engine run more often, add its trigger to exempt_triggers with a reason and a cost estimate; the governor still caps it (see docs/ops/SPEND_GOVERNOR.md)."
+  ],
+  "exempt_workflows": [
+    {
+      "file": "freeze-resume.yml",
+      "why": "One-off: three retries on 2026-11-01 only (date-guarded) to switch the frozen GitHub jobs back on after the governor thaws the fleet; it does not run an engine and disables itself."
+    }
   ]
 }

@@ -10,7 +10,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-fed-pivot-factor-router-hourly",
-    "cron": "cron(45 * * * ? *)",
+    "cron": "cron(45 19 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Fed Pivot Factor Router hourly"

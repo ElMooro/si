@@ -6,9 +6,7 @@ name: Market bank refresh
 # custody rule (no fallback after a TradingView refusal) is unchanged. See scripts/refresh_market_banks.py.
 on:
   schedule:
-    - cron: '45 20 * * 1-5'   # 16:45 New York (EDT) -- after the close
-    - cron: '45 21 * * 1-5'   # 16:45 New York (EST) / second pass in EDT
-    - cron: '15 3 * * 2-6'    # overnight catch-up
+    - cron: '45 21 * * 1-5'   # one pass a day (Khalid 2026-10-20): 16:45 New York in EST, 17:45 in EDT -- after the close
   push:
     branches: [main]
     paths:
