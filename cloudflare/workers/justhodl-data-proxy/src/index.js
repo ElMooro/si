@@ -186,15 +186,31 @@ async function verifyStripeSig(payload, sigHeader, secret) {
   } catch (e) { return false; }
 }
 
-async function fetchUpstream(upstreamUrl, ttl) {
+async function fetchUpstream(upstreamUrl, ttl, validators) {
   // Workers rejects cache:no-store combined with cf.cacheTtl (including zero).
   // Fresh reads use the standard bypass alone, without any cf TTL overrides.
-  if (ttl === 0) return fetch(upstreamUrl, { cache: 'no-store' });
+  // `validators` (If-None-Match / If-Modified-Since) only ever accompanies a revalidated edge copy, see below.
+  if (ttl === 0) return fetch(upstreamUrl, validators ? { cache: 'no-store', headers: validators } : { cache: 'no-store' });
   return fetch(upstreamUrl, {
     // A missing object often returns S3 403. Caching it with the future
     // object's hourly TTL can hide a successful first publication for an hour.
     cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '300-599': -1 } },
   });
+}
+
+// ops 6551 (Khalid, 2026-10-20, after a $2,800 October bill): revalidated edge copies of fresh publications.
+// "Fresh" publications used to bypass every cache, so each request re-read the same 1-15 MB file from S3 at
+// $0.09/GB - about 58 GB/day through this route. A body is now kept at the edge and reused ONLY when S3 answers a
+// conditional GET (If-None-Match / If-Modified-Since) with 304 Not Modified. What a visitor receives is therefore
+// exactly what S3 serves at that moment - the freshness contract of the no-store era, with no stale window - while an
+// unchanged 8 MB file costs one 304 (no body, no egress). Enabled by the JH_EDGE_REVALIDATE var; exact reads, the
+// research brief and aliases never take this path; copies live under their own cache namespace.
+const REVALIDATE_MIN_BYTES = 64 * 1024;      // smaller bodies are not worth an edge copy: the 200 costs less than the bookkeeping
+function storedValidators(stored) {
+  const etag = stored.headers.get("ETag"), lastModified = stored.headers.get("Last-Modified");
+  if (etag) return { "If-None-Match": etag };
+  if (lastModified) return { "If-Modified-Since": lastModified };
+  return null;
 }
 
 function mutablePublication(path) {
@@ -2483,18 +2499,34 @@ export default {
     const cache = caches.default;
     let response = ttl > 0 ? await cache.match(cacheKey) : null;
     let cacheStatus = "HIT";
+    // ops 6551: revalidated edge copy (see REVALIDATE_MIN_BYTES). Only mutable publications; never exact reads,
+    // the research brief or the retired aliases, and only when the deploy turned the feature on.
+    const revalidate = !!env && env.JH_EDGE_REVALIDATE === "1" && ttl === 0 && !exactArtifact && !researchBrief
+      && !cissAlias && !crisisAlias && mutablePublication(safePath);
+    const revKey = new Request(`${url.origin}/__${CACHE_VER}-rev-v1__/${safePath}`, { method: "GET" });
+    let stale = null;
+    if (revalidate) { try { stale = await cache.match(revKey); } catch (_) { stale = null; } }
 
     if (!response) {
       cacheStatus = "MISS";
       let upstreamUrl = artifactUpstreamUrl(artifactKey);
       let upstream;
       try {
-        upstream = await fetchUpstream(upstreamUrl, ttl);
+        upstream = await fetchUpstream(upstreamUrl, ttl, stale ? storedValidators(stale) : null);
       } catch (e) {
         return new Response(
           JSON.stringify({ error: "upstream fetch failed", detail: String(e), path: safePath }),
           { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
         );
+      }
+
+      // ops 6551: S3 confirmed the stored copy is the current object - reuse its bytes, no body crossed the wire.
+      if (stale && upstream.status === 304) {
+        const kept = new Headers(stale.headers);
+        kept.set("Cache-Control", "no-store");
+        kept.set("X-Edge-Cache", "REVALIDATED");
+        kept.set("X-Edge-TTL", "0");
+        return new Response(stale.body, { status: 200, headers: kept });
       }
 
       // Backward-compat fallback for callers using legacy paths.
@@ -2567,6 +2599,12 @@ export default {
 
       response = new Response(body, { status: 200, headers: respHeaders });
       if (ttl > 0) ctx.waitUntil(cache.put(cacheKey, response.clone()));
+      else if (revalidate && (etag || lastMod) && body.byteLength >= REVALIDATE_MIN_BYTES && ctx && ctx.waitUntil) {
+        // keep the bytes for the next request's conditional GET; the client still receives no-store
+        const keep = new Headers(respHeaders);
+        keep.set("Cache-Control", "public, max-age=86400");
+        try { ctx.waitUntil(Promise.resolve(cache.put(revKey, new Response(body, { status: 200, headers: keep }))).catch(() => {})); } catch (_) { /* a failed store only costs the next 200 */ }
+      }
     }
 
     const headers = new Headers(response.headers);

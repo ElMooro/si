@@ -1,0 +1,36 @@
+{
+ "path": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+ "why": "ops 6551 (Khalid, 2026-10-20): revalidated edge copies of fresh publications, behind env JH_EDGE_REVALIDATE (see tests/worker-revalidated-publications.test.js). Peeled back to the byte-exact predecessor by tests/helpers/worker-userstore-preservation.cjs.",
+ "before_sha256": "4c4c7c9bb4ebec4bea6a733c722bda35991e8ea1ac3500d9a35d1dcbd41b4c99",
+ "after_sha256": "baea15507e8cb70ee32576b79706138733ffd6dad3ffaae7427e36a18beb2c4e",
+ "replacements": [
+  {
+   "before": "async function fetchUpstream(upstreamUrl, ttl) {\n",
+   "after": "async function fetchUpstream(upstreamUrl, ttl, validators) {\n"
+  },
+  {
+   "before": "  if (ttl === 0) return fetch(upstreamUrl, { cache: 'no-store' });\n",
+   "after": "  // `validators` (If-None-Match / If-Modified-Since) only ever accompanies a revalidated edge copy, see below.\n  if (ttl === 0) return fetch(upstreamUrl, validators ? { cache: 'no-store', headers: validators } : { cache: 'no-store' });\n"
+  },
+  {
+   "before": "",
+   "after": "}\n\n// ops 6551 (Khalid, 2026-10-20, after a $2,800 October bill): revalidated edge copies of fresh publications.\n// \"Fresh\" publications used to bypass every cache, so each request re-read the same 1-15 MB file from S3 at\n// $0.09/GB - about 58 GB/day through this route. A body is now kept at the edge and reused ONLY when S3 answers a\n// conditional GET (If-None-Match / If-Modified-Since) with 304 Not Modified. What a visitor receives is therefore\n// exactly what S3 serves at that moment - the freshness contract of the no-store era, with no stale window - while an\n// unchanged 8 MB file costs one 304 (no body, no egress). Enabled by the JH_EDGE_REVALIDATE var; exact reads, the\n// research brief and aliases never take this path; copies live under their own cache namespace.\nconst REVALIDATE_MIN_BYTES = 64 * 1024;      // smaller bodies are not worth an edge copy: the 200 costs less than the bookkeeping\nfunction storedValidators(stored) {\n  const etag = stored.headers.get(\"ETag\"), lastModified = stored.headers.get(\"Last-Modified\");\n  if (etag) return { \"If-None-Match\": etag };\n  if (lastModified) return { \"If-Modified-Since\": lastModified };\n  return null;\n"
+  },
+  {
+   "before": "",
+   "after": "    // ops 6551: revalidated edge copy (see REVALIDATE_MIN_BYTES). Only mutable publications; never exact reads,\n    // the research brief or the retired aliases, and only when the deploy turned the feature on.\n    const revalidate = !!env && env.JH_EDGE_REVALIDATE === \"1\" && ttl === 0 && !exactArtifact && !researchBrief\n      && !cissAlias && !crisisAlias && mutablePublication(safePath);\n    const revKey = new Request(`${url.origin}/__${CACHE_VER}-rev-v1__/${safePath}`, { method: \"GET\" });\n    let stale = null;\n    if (revalidate) { try { stale = await cache.match(revKey); } catch (_) { stale = null; } }\n"
+  },
+  {
+   "before": "        upstream = await fetchUpstream(upstreamUrl, ttl);\n",
+   "after": "        upstream = await fetchUpstream(upstreamUrl, ttl, stale ? storedValidators(stale) : null);\n"
+  },
+  {
+   "before": "",
+   "after": "      }\n\n      // ops 6551: S3 confirmed the stored copy is the current object - reuse its bytes, no body crossed the wire.\n      if (stale && upstream.status === 304) {\n        const kept = new Headers(stale.headers);\n        kept.set(\"Cache-Control\", \"no-store\");\n        kept.set(\"X-Edge-Cache\", \"REVALIDATED\");\n        kept.set(\"X-Edge-TTL\", \"0\");\n        return new Response(stale.body, { status: 200, headers: kept });\n"
+  },
+  {
+   "before": "",
+   "after": "      else if (revalidate && (etag || lastMod) && body.byteLength >= REVALIDATE_MIN_BYTES && ctx && ctx.waitUntil) {\n        // keep the bytes for the next request's conditional GET; the client still receives no-store\n        const keep = new Headers(respHeaders);\n        keep.set(\"Cache-Control\", \"public, max-age=86400\");\n        try { ctx.waitUntil(Promise.resolve(cache.put(revKey, new Response(body, { status: 200, headers: keep }))).catch(() => {})); } catch (_) { /* a failed store only costs the next 200 */ }\n      }\n"
+  }
+ ]
+}
