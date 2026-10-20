@@ -7,7 +7,7 @@
   "timeout": 900,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/justhodl-spend-governor-role",
-  "description": "v1.2.0 (ops 6556) - $600 monthly cap from budget JustHodl-Monthly-Hard-Cap-600: brake, freeze, runaway + diffuse-storm fuses, daily once-a-day cadence sentinel, egress alert; restores exactly on the 1st",
+  "description": "v1.3.0 (ops 6559) - $600 monthly cap (budget JustHodl-Monthly-Hard-Cap-600): brake/freeze, runaway + diffuse fuses, $50/month per-engine kill switch (manual release only), daily cadence sentinel, egress alert",
   "env": {
     "BUDGET_NAME": "JustHodl-Monthly-Hard-Cap-600",
     "STATE_BUCKET": "justhodl-ops-private-857687956942",

@@ -4,7 +4,14 @@ Triggers
   * EventBridge Scheduler justhodl-spend-governor-tick  cron(7 * * * ? *)        {"action": "tick"}
   * SNS justhodl-spend-governor  <- AWS Budget JustHodl-Monthly-Hard-Cap-600 alerts  -> tick
   * direct invoke from ops: {"action": "status" | "plan" | "force" | "restore" | "selftest" | "fuse_check"
-                             | "cadence_check" | "cadence_restore"}
+                             | "cadence_check" | "cadence_restore" | "caps" | "release_cap" | "cap_selftest"}
+
+v1.3.0 (Khalid, 2026-10-20: "any engine or events that cause $50 in a month shuts down automatically and inform me
+and won't turn on again unless I manually turn it on"): every tick meters each function's month-to-date Lambda cost
+from CloudWatch (Duration x memory + requests, list prices); a function at or past its cap ($50, per-function
+overrides in control.json "engine_caps") is held at concurrency 0 under ledger stage CAP, which NO automatic path
+lifts (not the 1st of the month, not a cap raise, not {"action":"restore"}); only an operator's
+{"action":"release_cap","function":F,"confirm":F,"reason":"..."} does, and the cap then counts from zero again.
 
 v1.2.0 (Khalid, 2026-10-20, after the $2,800 October bill): cap $600; diffuse-storm fuse (a storm spread over many
 functions, none hot enough for the single-function fuse); daily cadence sentinel (every engine at most once per 24 h,
@@ -299,9 +306,9 @@ def enforce_drift(ctx, stage, now):
     """Re-apply ledger entries something undid (RDS auto-start, a reset concurrency) and retry failures."""
     todo = []
     for e in list(ctx.ledger.values()):
-        if e.get("stage") not in ("BRAKE", "FREEZE", "FUSE") or e.get("restorable") is False:
+        if e.get("stage") not in ("BRAKE", "FREEZE", "FUSE", "CAP") or e.get("restorable") is False:
             continue
-        if core.LEVEL.get(e.get("stage"), 2) > core.LEVEL.get(stage, 0) and e.get("stage") != "FUSE":
+        if core.LEVEL.get(e.get("stage"), 2) > core.LEVEL.get(stage, 0) and e.get("stage") not in ("FUSE", "CAP"):
             continue
         if e["lever"] == "lambda" and ctx.exempt(e["id"]):
             continue
@@ -385,7 +392,7 @@ def recent_invocations(ctx, names, minutes=20):
     return {fn: vals.get("i%d" % i, 0.0) for i, fn in enumerate(names)}
 
 
-def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
+def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False, costs=None):
     """Runaway fuse: independent of the monthly cap, throttles single functions burning far above normal.
 
     Two strikes (v1.0.1): a function must be hot (>= runaway_fn_usd_day over the LAST HOUR, still invoking
@@ -403,9 +410,14 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
     age_h = (now - core.as_utc(last)).total_seconds() / 3600.0 if last else 1e9
     interval = float(ctx.control.get("fuse_interval_h") or 6)
     suspects = fz.get("suspects") or {}
+    if costs is not None:                      # v1.3.0: the meter already read this hour - no extra metric cost
+        interval = min(interval, 1.0)
     if not (force or ((firing or suspects) and age_h >= 0.8) or age_h >= interval):
         return {"checked": False, "firing": firing, "suspects": sorted(suspects)}
-    costs = lambda_costs(ctx, 1)
+    if costs is None:
+        costs = lambda_costs(ctx, 1)
+    else:
+        costs = {f["name"]: float(costs.get(f["name"], 0.0)) for f in lv.list_functions(ctx)}
     exempt = {n for n in costs if ctx.exempt(n)}
     hot = core.runaway_functions(costs, baseline, exempt, cfg)
     diffuse = [] if hot else core.diffuse_targets(costs, baseline, exempt, cfg)   # v1.2.0: many-function storm
@@ -601,6 +613,209 @@ def egress_check(state, ce, now, cfg, mode):
     return out
 
 
+# ------------------------------------------------------------ v1.3.0: per-engine monthly cap (kill switch) --
+def _floor5(t):
+    return t.replace(minute=t.minute - t.minute % 5, second=0, microsecond=0)
+
+
+def _metric_sums(fns, metric, start, end, period):
+    """{fn: Sum of `metric` over [start, end)} in `period` buckets, batched so no call exceeds CloudWatch's limits."""
+    points = max(1, int((end - start).total_seconds() // period))
+    per_call = max(20, min(500, 90000 // points))
+    out = {}
+    for i in range(0, len(fns), per_call):
+        chunk = fns[i:i + per_call]
+        q = [{"Id": "m%d" % j, "ReturnData": True, "MetricStat": {
+            "Metric": {"Namespace": "AWS/Lambda", "MetricName": metric, "Dimensions": [{"Name": "FunctionName", "Value": fn}]},
+            "Period": period, "Stat": "Sum"}} for j, fn in enumerate(chunk)]
+        token = None
+        while True:
+            kw = {"MetricDataQueries": q, "StartTime": start, "EndTime": end}
+            if token:
+                kw["NextToken"] = token
+            r = client("cloudwatch").get_metric_data(**kw)
+            for res in r["MetricDataResults"]:
+                fn = chunk[int(res["Id"][1:])]
+                out[fn] = out.get(fn, 0.0) + sum(res.get("Values") or [])
+            token = r.get("NextToken")
+            if not token:
+                break
+    return out
+
+
+def meter(ctx, state, cfg, now, force=False):
+    """Month-to-date Lambda cost per function, accumulated from CloudWatch every meter_interval_h (Invocations for
+    every function, Duration only for the ones that ran: ~$0.01 a read).  Once a day the sum is re-read from the
+    start of the month so late-landing points cannot drift it.  -> {ran, window_h, rate: {fn: usd/day}}"""
+    m = state.setdefault("meter", {})
+    end = _floor5(now - timedelta(minutes=cfg["meter_lag_min"]))
+    month = core.month_key(now)
+    if m.get("month") != month:
+        if m.get("month"):
+            record_event("meter-month-close", {"month": m.get("month"), "mtd": m.get("mtd"), "reads": m.get("reads")}, now)
+        m.clear()
+        m.update({"month": month, "mtd": {}, "rate": {}, "reads": 0, "end": None, "reconciled_day": None})
+    last = core.as_utc(m["end"]) if m.get("end") else None
+    if not force and last is not None and (now - last).total_seconds() < cfg["meter_interval_h"] * 3600 - 120:
+        return {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}}
+    fns = {f["name"]: f for f in lv.list_functions(ctx)}
+    names = sorted(fns)
+    today = now.date().isoformat()
+    reconcile = m.get("reconciled_day") != today or last is None
+    start = core.month_start(now) if reconcile else max(last, end - timedelta(hours=24))
+    if end <= start:
+        return {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}}
+    span = (end - start).total_seconds()
+    period = 3600 if span > 6 * 3600 else 300
+    start = start.replace(minute=0, second=0, microsecond=0) if period == 3600 else start
+    end_r = end.replace(minute=0, second=0, microsecond=0) if period == 3600 else end
+    if end_r <= start:
+        return {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}}
+    inv = _metric_sums(names, "Invocations", start, end_r, period)
+    active = [fn for fn in names if inv.get(fn, 0) > 0]
+    dur = _metric_sums(active, "Duration", start, end_r, period) if active else {}
+    usd = {fn: core.lambda_cost_usd(dur.get(fn, 0.0), inv.get(fn, 0.0), fns[fn]["mem"], fns[fn]["arch"]) for fn in active}
+    hours = (end_r - start).total_seconds() / 3600.0
+    if reconcile:
+        m["mtd"] = {fn: round(v, 6) for fn, v in usd.items() if v}
+        m["reconciled_day"] = today
+    else:
+        mtd = m.setdefault("mtd", {})
+        for fn, v in usd.items():
+            mtd[fn] = round(mtd.get(fn, 0.0) + v, 6)
+    m["rate"] = {fn: round(v * 24.0 / hours, 4) for fn, v in usd.items() if v} if hours else {}
+    m.update({"end": end_r.isoformat(), "reads": int(m.get("reads") or 0) + 1, "last_window_h": round(hours, 2),
+              "last_reconcile": reconcile, "active": len(active)})
+    ctx.log("meter: %s %.1f h window, %d functions ran, fleet $%.2f/day; month-to-date top: %s" % (
+        "reconciled" if reconcile else "incremental", hours, len(active), sum(m["rate"].values()),
+        ", ".join("%s $%.2f" % kv for kv in sorted(m["mtd"].items(), key=lambda kv: -kv[1])[:3])))
+    return {"ran": True, "window_h": hours, "rate": m["rate"], "reconciled": reconcile}
+
+
+def engine_caps(ctx, state, cfg, now, enforce):
+    """Hold every function whose month-to-date Lambda cost reached its cap (stage CAP: manual release only)."""
+    m = state.get("meter") or {}
+    caps = state.setdefault("caps", {})
+    released = caps.get("released") or {}
+    overrides = ctx.control.get("engine_caps") or {}
+    exempt = {fn for fn in (m.get("mtd") or {}) if ctx.exempt(fn)}
+    breaches = core.cap_breaches(m.get("mtd") or {}, overrides, cfg["engine_cap_usd_month"], released, exempt)
+    already = {fn for fn, usd, cap in breaches if (ctx.ledger.get("lambda:" + fn) or {}).get("stage") == "CAP"}
+    new = [(fn, usd, cap) for fn, usd, cap in breaches if fn not in already]
+    out = {"breaches": [(fn, usd, cap) for fn, usd, cap in breaches], "new": [fn for fn, _, _ in new], "counts": {}}
+    if not new:
+        return out
+    if not enforce:
+        seen = caps.get("monitor_notified") or {}
+        if seen.get("day") == now.date().isoformat() and {fn for fn, _, _ in new} <= set(seen.get("fns") or []):
+            return out
+        caps["monitor_notified"] = {"day": now.date().isoformat(), "fns": sorted({fn for fn, _, _ in new} | set(seen.get("fns") or []))}
+    entries, upgraded = [], []
+    for fn, usd, cap in new:
+        e = ctx.ledger.get("lambda:" + fn)
+        if e:                                           # already held by BRAKE / FREEZE / FUSE: the cap outranks them all
+            if enforce:
+                e.update(stage="CAP", capped_from=e.get("stage"), capped_at=now.isoformat(), cap_usd=cap, usd_at_cap=usd)
+            upgraded.append(fn)
+        else:
+            entries += [dict(x, cap_usd=cap, usd_at_cap=usd, capped_at=now.isoformat())
+                        for x in lv.lambda_discover(ctx, "CAP", [fn])]
+    counts = apply_entries(ctx, entries, enforce, now) if entries else {}
+    if upgraded:
+        counts["upgraded"] = len(upgraded)
+    out["counts"] = counts
+    caps.setdefault("history", []).append({"at": now.isoformat(), "functions": [fn for fn, _, _ in new], "enforce": enforce})
+    del caps["history"][:-200]
+    lines = ["%s: %d engine(s) reached the $%.0f-per-month Lambda cost cap and %s:" % (
+        "ENGINE SHUT DOWN" if enforce else "[monitor] engine cap", len(new), cfg["engine_cap_usd_month"],
+        "are now held at concurrency 0" if enforce else "would be held at concurrency 0")]
+    lines += ["  %-44s $%.2f this month (cap $%.0f)" % (fn, usd, cap) for fn, usd, cap in new]
+    lines += ["",
+              "They stay off: not the 1st of the month, not a budget raise, not a plain restore brings them back.",
+              "After you have fixed the cause, re-enable ONE engine with:",
+              "  invoke justhodl-spend-governor {\"action\":\"release_cap\",\"function\":\"<name>\",\"confirm\":\"<name>\",\"reason\":\"...\"}",
+              "(the $%.0f counter then starts again from zero for that engine). Raise one engine's own cap in control.json "
+              "engine_caps. Runbook: docs/ops/SPEND_GOVERNOR.md." % cfg["engine_cap_usd_month"]]
+    notify("JustHodl ENGINE SHUT DOWN: %s" % ", ".join(fn for fn, _, _ in new[:3]), lines, "enforce" if enforce else "monitor")
+    record_event("engine-cap", {"functions": [(fn, usd, cap) for fn, usd, cap in new], "counts": counts, "enforce": enforce}, now)
+    return out
+
+
+def action_caps(event, context):
+    now = now_utc()
+    control = load_control()
+    cfg = core.merged_cfg(control.get("thresholds"))
+    state = s3_get_json("state.json", None) or new_state(now)
+    ledger = state.get("ledger") or {}
+    m = state.get("meter") or {}
+    held = sorted((e["id"], e.get("usd_at_cap"), e.get("capped_at")) for e in ledger.values() if e.get("stage") == "CAP")
+    top = sorted((m.get("mtd") or {}).items(), key=lambda kv: -kv[1])[:25]
+    return {"version": core.VERSION, "cap_usd_month": cfg["engine_cap_usd_month"], "overrides": control.get("engine_caps") or {},
+            "meter": {k: v for k, v in m.items() if k not in ("mtd", "rate")}, "held": held,
+            "released": (state.get("caps") or {}).get("released") or {},
+            "month_to_date_top": [(fn, round(v, 3)) for fn, v in top]}
+
+
+def action_release_cap(event, context):
+    fn = event.get("function")
+    if not fn or event.get("confirm") != fn:
+        return {"error": "release_cap needs function and confirm equal to the function name"}
+    now = now_utc()
+    control = load_control()
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    e = ctx.ledger.get("lambda:" + fn)
+    if not e or e.get("stage") != "CAP":
+        return {"error": "%s is not held by the engine cap" % fn, "stage": (e or {}).get("stage")}
+    prior = e.get("capped_from")
+    if prior in ("BRAKE", "FREEZE", "FUSE") and state.get("stage") in ("BRAKE", "FREEZE"):
+        e.update(stage=prior)                                    # the fleet is still held: hand it back to that hold
+        status = "handed back to %s (the fleet is in %s)" % (prior, state.get("stage"))
+    else:
+        try:
+            status = lv.lambda_restore(ctx, e)
+        except Exception as ex:  # noqa: BLE001
+            return {"error": "restore failed: %s" % lv.err_code(ex)}
+        ctx.ledger.pop(e["key"], None)
+    mtd = float(((state.get("meter") or {}).get("mtd") or {}).get(fn) or 0.0)
+    state.setdefault("caps", {}).setdefault("released", {})[fn] = {"at": now.isoformat(), "mtd_at_release": mtd,
+                                                                    "reason": (event.get("reason") or "")[:300]}
+    s3_put_json("state.json", state)
+    record_event("release-cap", {"function": fn, "status": status, "mtd_at_release": mtd, "reason": event.get("reason")}, now)
+    notify("JustHodl engine re-enabled by operator: %s" % fn,
+           ["%s: %s. Lambda cost so far this month $%.2f; the cap counts from zero again. Reason: %s" % (
+               fn, status, mtd, event.get("reason") or "-")], "enforce")
+    return {"function": fn, "status": status, "mtd_at_release": mtd}
+
+
+def action_cap_selftest(event, context):
+    """Live round trip of the kill switch on the canary: cap -> held -> release_cap -> restored."""
+    fn = event.get("function") or CANARY_PREFIX
+    if not fn.startswith(CANARY_PREFIX):
+        return {"error": "cap_selftest only runs on functions named %s*" % CANARY_PREFIX}
+    now = now_utc()
+    control = load_control()
+    cfg = core.merged_cfg(control.get("thresholds"))
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    before = lv.reserved_of(ctx, fn)
+    state.setdefault("meter", {}).setdefault("mtd", {})[fn] = cfg["engine_cap_usd_month"] + 1.0   # pretend it burned
+    res = engine_caps(ctx, state, cfg, now, True)
+    held = lv.reserved_of(ctx, fn)
+    e = ctx.ledger.get("lambda:" + fn) or {}
+    s3_put_json("state.json", state)
+    rel = action_release_cap({"function": fn, "confirm": fn, "reason": "cap_selftest"}, context)
+    state = s3_get_json("state.json", None)
+    state["meter"]["mtd"].pop(fn, None)
+    (state.get("caps") or {}).get("released", {}).pop(fn, None)
+    s3_put_json("state.json", state)
+    after = lv.reserved_of(ctx, fn)
+    handed_back = str(rel.get("status") or "").startswith("handed back")   # the fleet is frozen: the canary stays held
+    ok = fn in res.get("new", []) and held == 0 and e.get("stage") == "CAP" and (
+        (rel.get("status") == "restored" and after == before) or (handed_back and after == 0))
+    return {"ok": ok, "function": fn, "before": before, "held": held, "ledger_stage": e.get("stage"), "release": rel, "after": after}
+
+
 def action_cadence_restore(event, context):
     now = now_utc()
     state = s3_get_json("state.json", None) or new_state(now)
@@ -666,6 +881,9 @@ def stage_message(stage, reason, th, counts, ctx, state):
     for e in ctx.ledger.values():
         by_lever[e["lever"]] = by_lever.get(e["lever"], 0) + 1
     lines.append("Held now: %s" % json.dumps(by_lever))
+    capped = sorted(e["id"] for e in ctx.ledger.values() if e.get("stage") == "CAP")
+    if capped:
+        lines.append("Held by the $-per-month engine cap (manual release only): %s" % ", ".join(capped))
     return lines
 
 
@@ -700,11 +918,24 @@ def tick(event, context, trigger):
     obs.append([now.isoformat(), round(mtd, 2)])
     del obs[:-72]
 
+    rates = None
+    try:
+        if state.get("stage") == "FREEZE":
+            out["meter"] = {"ran": False, "reason": "frozen - nothing can run"}
+        else:
+            mt = meter(ctx, state, cfg, now)
+            out["meter"] = {k: v for k, v in mt.items() if k != "rate"}
+            rates = mt["rate"] if mt.get("ran") and 0 < mt.get("window_h", 0) <= 3 else None
+            out["caps"] = engine_caps(ctx, state, cfg, now, enforce)
+    except Exception as e:  # noqa: BLE001 - the monthly cap path must run even if metrics are unreadable
+        ctx.log("meter / engine caps failed: %s" % lv.err_code(e))
+        out["meter"] = {"error": lv.err_code(e)}
+
     try:
         if state.get("stage") == "FREEZE":
             out["fuse"] = {"checked": False, "reason": "frozen - nothing can run"}  # saves the metric reads
         else:
-            out["fuse"] = check_fuse(ctx, state, cfg, baseline, now, enforce)
+            out["fuse"] = check_fuse(ctx, state, cfg, baseline, now, enforce, costs=rates)
     except Exception as e:  # noqa: BLE001 - the cap path must run even if metrics are unreadable
         ctx.log("fuse check failed: %s" % lv.err_code(e))
         out["fuse"] = {"error": lv.err_code(e)}
@@ -760,6 +991,8 @@ def tick(event, context, trigger):
         leftovers = [e for e in ctx.ledger.values() if e.get("stage") in ("BRAKE", "FREEZE")]
         if leftovers:  # a restore that failed earlier: keep trying
             out["restore_retry"], _ = restore_entries(ctx, lambda e: e.get("stage") in ("BRAKE", "FREEZE"), now)
+        if enforce and any(e.get("stage") in ("FUSE", "CAP") for e in ctx.ledger.values()):
+            out["drift"] = {"reapplied": enforce_drift(ctx, cur, now)}     # a held engine someone un-throttled by hand
 
     today = now.date().isoformat()
     alerts = state.setdefault("alerts", {})
@@ -809,7 +1042,10 @@ def action_status(event, context):
             "budget_actual": b_actual, "budget_forecast": b_forecast, "thresholds": th, "held": by_stage,
             "suppress_until": state.get("suppress_until"), "fuse": state.get("fuse"), "last": state.get("last"),
             "cadence": {k: v for k, v in (state.get("cadence") or {}).items() if k != "fixed"},
-            "cadence_fixed": len((state.get("cadence") or {}).get("fixed") or [])}
+            "cadence_fixed": len((state.get("cadence") or {}).get("fixed") or []),
+            "engine_cap_usd_month": cfg["engine_cap_usd_month"],
+            "capped": sorted(e["id"] for e in (state.get("ledger") or {}).values() if e.get("stage") == "CAP"),
+            "meter": {k: v for k, v in (state.get("meter") or {}).items() if k not in ("mtd", "rate")}}
 
 
 def action_plan(event, context):
@@ -932,6 +1168,23 @@ def lambda_handler(event, context):
         return dict(res, logs=ctx.logs[-10:])
     if action == "cadence_restore":
         return action_cadence_restore(event, context)
+    if action == "caps":
+        return action_caps(event, context)
+    if action == "meter":                       # forced read (also while frozen): proves the meter path live
+        now = now_utc()
+        control = load_control()
+        state = s3_get_json("state.json", None) or new_state(now)
+        ctx = Ctx(control, state.setdefault("ledger", {}), context)
+        res = meter(ctx, state, core.merged_cfg(control.get("thresholds")), now, force=True)
+        s3_put_json("state.json", state)
+        m = state.get("meter") or {}
+        return {"ran": res.get("ran"), "window_h": res.get("window_h"), "reconciled": res.get("reconciled"),
+                "active": m.get("active"), "reads": m.get("reads"), "fleet_usd_day": round(sum((m.get("rate") or {}).values()), 3),
+                "month_to_date_top": sorted(((m.get("mtd") or {}).items()), key=lambda kv: -kv[1])[:10], "logs": ctx.logs[-5:]}
+    if action == "release_cap":
+        return action_release_cap(event, context)
+    if action == "cap_selftest":
+        return action_cap_selftest(event, context)
     if action == "fuse_check":
         now = now_utc()
         control = load_control()

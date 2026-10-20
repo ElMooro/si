@@ -36,6 +36,10 @@ import governor_levers as lv  # noqa: E402
 import lambda_function as gov  # noqa: E402
 
 FAILS = []
+# The suite runs at a pinned clock just after a month start so the v1.3.0 meter's first read (from the 1st) sees
+# 30 minutes of the synthetic fleet, not three weeks of it: the fuse tests need their runaways under the $50 cap.
+PINNED = datetime(2026, 10, 1, 0, 30, tzinfo=timezone.utc)
+gov.now_utc = lambda: PINNED
 
 
 def check(cond, msg):
@@ -732,7 +736,7 @@ def test_fast_fuse_trips_on_a_sustained_diffuse_storm():
 def test_egress_alert_once_a_day():
     w = world(FLEET, actual=10)
     set_control(w)
-    yday = (datetime.now(timezone.utc) - timedelta(days=1)).date().isoformat()
+    yday = (gov.now_utc() - timedelta(days=1)).date().isoformat()
     w["ce"].usage = {yday: {"USE1-DataTransfer-Out-Bytes": 9.5, "TimedStorage-ByteHrs": 2.0}}
     out = gov.lambda_handler({"action": "tick"}, Context())
     check(out["egress"]["alert"] and out["egress"]["usd"] == 9.5, "yesterday's data-transfer-out above the line is flagged")
@@ -740,6 +744,129 @@ def test_egress_alert_once_a_day():
     gov.lambda_handler({"action": "tick"}, Context())
     check(n == 1 and sum(1 for m in w["sns"].sent if "egress" in m["Subject"]) == 1, "one alert a day")
     check(core.egress_usd_by_day({"d": {"TimedStorage": 1.0}}) == {}, "storage is not egress")
+
+
+# ------------------------------------------------------------- v1.3.0 tests --
+def at(iso):
+    """Pin the governor's clock."""
+    t = datetime.fromisoformat(iso).replace(tzinfo=timezone.utc)
+    gov.now_utc = lambda: t
+    return t
+
+
+def test_meter_accumulates_month_to_date_lambda_cost_and_reconciles_daily():
+    durations = {"justhodl-alpha": 20000000.0, "justhodl-gamma": 1000.0}        # ms per hour at 512 MB
+    w = world(FLEET, actual=10, durations=durations)
+    set_control(w)
+    at("2026-10-20T12:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    m = st["meter"]
+    check(out["meter"]["ran"] and out["meter"]["reconciled"] and m["reads"] == 1, "first read of the month reconciles from the 1st")
+    expected = core.lambda_cost_usd(20000000.0 * m["last_window_h"], 10.0 * m["last_window_h"], 512, "x86_64")
+    check(abs(m["mtd"]["justhodl-alpha"] - expected) < 0.05 * expected, "month-to-date equals duration x memory x price + requests (%.2f vs %.2f)" % (m["mtd"]["justhodl-alpha"], expected))
+    check(m["mtd"].get("justhodl-beta") is None, "a function that never ran has no row (Duration is only read for active functions)")
+    at("2026-10-20T13:07:00")
+    gov.lambda_handler({"action": "tick"}, Context())
+    m2 = state_of(w)["meter"]
+    check(m2["reads"] == 2 and not m2["last_reconcile"] and 0.9 <= m2["last_window_h"] <= 1.1, "an hour later: a one-hour incremental window")
+    check(m2["mtd"]["justhodl-alpha"] > m["mtd"]["justhodl-alpha"], "the increment is added")
+    at("2026-10-20T13:30:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(not out["meter"]["ran"] and state_of(w)["meter"]["reads"] == 2, "23 minutes later: no read (meter_interval_h)")
+    check("fuse" in out and out["fuse"].get("checked") in (True, False), "the fuse path still runs")
+    gov.now_utc = lambda: PINNED
+
+
+def test_engine_cap_shuts_an_engine_down_and_only_release_cap_brings_it_back():
+    durations = {"justhodl-alpha": 20000000.0}                                   # ~$78 month-to-date by Oct 20, ~$0.17 an hour
+    w = world(FLEET, actual=10, durations=durations)
+    set_control(w)
+    at("2026-10-20T12:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check(out["caps"]["new"] == ["justhodl-alpha"], "alpha reached the $50 cap: %s" % json.dumps(out["caps"]["breaches"]))
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and st["ledger"]["lambda:justhodl-alpha"]["stage"] == "CAP", "held at 0 under stage CAP")
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "nothing else touched")
+    msg = [m for m in w["sns"].sent if "ENGINE SHUT DOWN" in m["Subject"]]
+    check(len(msg) == 1 and "release_cap" in msg[0]["Message"] and "justhodl-alpha" in msg[0]["Message"], "Khalid is told, with the exact re-enable command")
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "a plain restore (even with include_fuse) does not lift the cap")
+    w["budgets"].limit = 5000
+    at("2026-10-20T13:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and out["caps"]["new"] == [], "a budget raise does not lift it, and it is not re-reported")
+    at("2026-11-01T00:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check("rollover" in out and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and st["ledger"]["lambda:justhodl-alpha"]["stage"] == "CAP",
+          "the 1st of the month does not lift it")
+    check(st["meter"]["month"] == "2026-11", "the meter starts a fresh month")
+    w["lambda"].fns["justhodl-alpha"]["reserved"] = None                        # someone un-throttles it by hand
+    at("2026-11-01T01:07:00")
+    gov.lambda_handler({"action": "tick"}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "a hand change is re-held on the next tick (NORMAL stage drift)")
+    r = gov.lambda_handler({"action": "release_cap", "function": "justhodl-alpha", "confirm": "nope"}, Context())
+    check("error" in r and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "release needs confirm = function")
+    r = gov.lambda_handler({"action": "release_cap", "function": "justhodl-alpha", "confirm": "justhodl-alpha", "reason": "fixed the loop"}, Context())
+    st = state_of(w)
+    check(r["status"] == "restored" and w["lambda"].fns["justhodl-alpha"]["reserved"] is None and "lambda:justhodl-alpha" not in st["ledger"],
+          "release_cap restores the exact previous value and clears the ledger entry")
+    check(st["caps"]["released"]["justhodl-alpha"]["reason"] == "fixed the loop", "the release is recorded with its reason")
+    at("2026-11-01T02:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["caps"]["new"] == [] and w["lambda"].fns["justhodl-alpha"]["reserved"] is None, "after a release the cap counts from zero: a normal hour does not re-trip it")
+    c = gov.lambda_handler({"action": "caps"}, Context())
+    check(c["cap_usd_month"] == 50.0 and c["held"] == [] and "justhodl-alpha" in c["released"], "caps action reports")
+    gov.now_utc = lambda: PINNED
+
+
+def test_engine_cap_outranks_a_fuse_hold_and_per_function_overrides_apply():
+    durations = {"justhodl-alpha": 20000000.0, "justhodl-gamma": 20000000.0}
+    w = world(FLEET, actual=10, durations=durations)
+    set_control(w, engine_caps={"justhodl-gamma": 500})
+    at("2026-10-20T12:07:00")
+    # alpha is already held by the fuse
+    w["s3"].put_object(Bucket="b", Key=gov.PREFIX + "state.json", Body=json.dumps({
+        "version": core.VERSION, "month": "2026-10", "stage": "NORMAL", "stage_since": "2026-10-01T00:00:00+00:00",
+        "ledger": {"lambda:justhodl-alpha": {"key": "lambda:justhodl-alpha", "lever": "lambda", "id": "justhodl-alpha",
+                                             "stage": "FUSE", "before": {"reserved": None}, "status": "applied"}},
+        "released": [], "ce": {}, "alerts": {}, "observations": [], "fuse": {}}).encode())
+    w["lambda"].fns["justhodl-alpha"]["reserved"] = 0
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check(out["caps"]["new"] == ["justhodl-alpha"] and st["ledger"]["lambda:justhodl-alpha"]["stage"] == "CAP"
+          and st["ledger"]["lambda:justhodl-alpha"]["capped_from"] == "FUSE", "a fuse hold is upgraded to CAP")
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "gamma's own $500 cap is not reached")
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "include_fuse no longer releases it")
+    gov.now_utc = lambda: PINNED
+
+
+def test_engine_cap_monitor_mode_reports_once_and_changes_nothing():
+    w = world(FLEET, actual=10, durations={"justhodl-alpha": 20000000.0})
+    set_control(w, mode="monitor")
+    at("2026-10-20T12:07:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["caps"]["new"] == ["justhodl-alpha"] and w["lambda"].fns["justhodl-alpha"].get("reserved") is None and not w["lambda"].puts,
+          "monitor mode: reported, not held")
+    n = len([m for m in w["sns"].sent if "engine cap" in m["Subject"] or "ENGINE" in m["Subject"]])
+    at("2026-10-20T13:07:00")
+    gov.lambda_handler({"action": "tick"}, Context())
+    check(len([m for m in w["sns"].sent if "engine cap" in m["Subject"] or "ENGINE" in m["Subject"]]) == n == 1, "one notice a day")
+    gov.now_utc = lambda: PINNED
+
+
+def test_cap_selftest_round_trips_the_canary():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    r = gov.lambda_handler({"action": "cap_selftest"}, Context())
+    check(r["ok"] and r["held"] == 0 and r["ledger_stage"] == "CAP" and r["after"] == r["before"], "cap_selftest: held, released, restored (%s)" % json.dumps(r)[:200])
+    st = state_of(w)
+    check("justhodl-spend-governor-canary" not in (st.get("meter") or {}).get("mtd", {}) and "lambda:justhodl-spend-governor-canary" not in st["ledger"],
+          "the self-test leaves no trace")
+    r = gov.lambda_handler({"action": "cap_selftest", "function": "justhodl-alpha"}, Context())
+    check("error" in r, "only the canary may be self-tested")
 
 
 if __name__ == "__main__":

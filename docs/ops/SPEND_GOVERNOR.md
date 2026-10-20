@@ -125,6 +125,26 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
     e-mailed once a day (the October site leak was ~118 GB/day, invisible under the Lambda storm).
   - The once-a-day rollout itself: ops 6552-6554 (341 triggers retimed/disabled, 8,081 -> 759 scheduled
     firings a day, plan in `config/cadence-plan.json`, backups in `backups/cadence-floor/`).
+* v1.3.0 (2026-10-20, Khalid: "any engine or events that cause $50 in a month shuts down automatically and
+  inform me and won't turn on again unless I manually turn it on and address the issue"):
+  - **Meter.** Every hourly tick (not while frozen) reads each function's Invocations since the last read, then
+    Duration for the ones that ran, and adds duration x memory x list price + requests to `state.meter.mtd`;
+    the first read of each day re-reads the whole month so late metric points cannot drift it. ~$0.01 a read
+    (~$8/month). The fuse reuses the same read, so its own hourly metric reads are gone.
+  - **Engine cap (kill switch).** A function whose month-to-date Lambda cost reaches `engine_cap_usd_month`
+    ($50; per-function overrides in `control.json` `"engine_caps": {"justhodl-x": 120}`, 0 = uncapped) is held
+    at concurrency 0 under ledger stage **CAP**. CAP outranks BRAKE / FREEZE / FUSE (an entry already held is
+    upgraded, `capped_from` kept) and **no automatic path lifts it**: not the 1st of the month, not a budget
+    raise, not `{"action":"restore"}` (even with `include_fuse`), not a stage change; a hand change of the
+    concurrency is re-held on the next tick. Khalid is e-mailed "ENGINE SHUT DOWN: <engine>" with the amount
+    and the exact release command. Release, after the cause is fixed:
+    `{"action":"release_cap","function":"<name>","confirm":"<name>","reason":"..."}` - restores the exact
+    previous concurrency and the counter starts again from zero for that engine (`mtd_at_release`).
+    `{"action":"caps"}` lists held engines, overrides, releases and the month-to-date top 25;
+    `{"action":"meter"}` forces a read; `{"action":"cap_selftest"}` round-trips the switch on the canary.
+  - What it does NOT see: S3 request / storage charges an engine causes (the Oct 12-16 S3 balloon is bounded
+    by the lifecycle rule Khalid disabled on Oct 19 and watched by the bucket-size alarm -> fast fuse), and
+    the exempt control plane (the governor itself, guardrail-notify, supabase-keepalive, dr-snapshot).
 * 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
   914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.
 * 2026-10-19: ops 6545 proved the freeze live (922 of 926 Lambdas at 0, only the 4 exempt ran in 24 h; 19 lane

@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -54,6 +54,13 @@ DEFAULTS = {
     "diffuse_min_fn_usd_day": 2.0,
     "diffuse_max_fns": 30.0,
     "egress_alert_usd_day": 5.0,  # v1.2.0: S3 data-transfer-out above this on a complete day is reported (~55 GB)
+    # v1.3.0 engine kill switch (Khalid, 2026-10-20: "any engine or events that cause $50 in a month shuts down
+    # automatically and inform me and won't turn on again unless I manually turn it on"): every function's month-to-
+    # date Lambda cost is metered from CloudWatch every tick; past engine_cap_usd_month it is held at concurrency 0
+    # under ledger stage CAP, which no restore, cap raise or month rollover lifts - only {"action":"release_cap"}.
+    "engine_cap_usd_month": 50.0,
+    "meter_interval_h": 1.0,
+    "meter_lag_min": 3.0,          # Lambda metrics land 1-3 minutes late: the window ends this far in the past
 }
 
 PERSISTENT_USAGE_PATTERNS = (
@@ -251,6 +258,28 @@ def is_exempt(fn, control, self_name):
     if fn in set(c.get("exempt_functions") or []):
         return True
     return any(fn.startswith(p) for p in (c.get("exempt_prefixes") or []) if p)
+
+
+def lambda_cost_usd(duration_ms, invocations, memory_mb, arch):
+    """USD of `duration_ms` of execution at `memory_mb` plus `invocations` requests (list prices, no free tier)."""
+    price = 0.0000133334 if arch == "arm64" else 0.0000166667
+    return (duration_ms / 1000.0) * (memory_mb / 1024.0) * price + invocations * 2e-7
+
+
+def cap_breaches(mtd, caps, default_cap, released, exempt):
+    """-> [(fn, usd_counted, cap)] for every function whose month-to-date Lambda cost, less what had accrued when an
+    operator last released it, reaches its cap.  caps: per-function overrides (0 / None = no cap for that function)."""
+    out = []
+    for fn, usd in mtd.items():
+        if fn in exempt:
+            continue
+        cap = caps.get(fn, default_cap) if isinstance(caps, dict) else default_cap
+        if not cap or cap <= 0:
+            continue
+        counted = usd - float((released.get(fn) or {}).get("mtd_at_release") or 0.0)
+        if counted >= cap:
+            out.append((fn, round(counted, 4), float(cap)))
+    return sorted(out, key=lambda t: -t[1])
 
 
 def lambda_cost_per_day(duration_ms, invocations, memory_mb, arch, hours):

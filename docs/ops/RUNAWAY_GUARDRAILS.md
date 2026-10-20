@@ -23,8 +23,11 @@ that incident; together they cover loops the event bus never sees.
 * **Caps:** coordinator <= 10 concurrent, miss-calibrator <= 1: the loop could hold 11 slots, not 764.
 * **Fast fuse:** the storm held 760 concurrent / 35,302 invocations / 227M ms per 5 min; all three alarms fire 15
   minutes in, the governor throttles both functions in the same invocation. Cost at most ~$6.
+* **Engine cap (v1.3.0):** had the fuses somehow missed it, each of the two functions passes $50 of Lambda cost
+  inside the first two hours of the loop; the next hourly tick switches it off for good ("ENGINE SHUT DOWN"
+  e-mail) and nothing but an operator's `release_cap` turns it back on. Worst case ~$100 + one hour, not $2,530.
 * **Backstops:** the old `justhodl-guard-lambda-concurrency` alarm went to ALARM at 09:18 that morning and the
-  hourly fuse would have held both functions by ~11:07 (~$40); the $40 daily budget e-mails within the day.
+  hourly fuse would have held both functions by ~11:07 (~$40); the $30 daily budget e-mails within the day.
 
 ## Layer 1 - deploy gate
 
@@ -77,6 +80,15 @@ retimed or switched off (8,081 -> 759 scheduled firings a day); `tests/deploymen
 any deploy that declares a faster schedule (engine config, manifest, fan-out tick, GitHub workflow or Worker
 cron); the governor's daily sentinel retimes anything that reappears in the account. Exemptions, each with a
 reason: `config/cadence-floor.json`.
+
+## Layer 3b - per-engine monthly cap (kill switch, v1.3.0)
+
+Every hourly governor tick meters each function's month-to-date Lambda cost from CloudWatch. An engine that
+reaches **$50 in a month** (per-engine overrides in `control.json` `engine_caps`) is held at concurrency 0 under
+ledger stage CAP and Khalid is e-mailed; nothing automatic lifts it - not the 1st, not a budget raise, not a
+restore - only `{"action":"release_cap","function":F,"confirm":F,"reason":"..."}` after the cause is fixed.
+On 2026-10-12 the coordinator and the miss-calibrator would each have hit $50 within the first two hours and
+been switched off for good, with the alert naming them. Details: `docs/ops/SPEND_GOVERNOR.md` (v1.3.0).
 
 ## Layer 4 - fast fuse
 
