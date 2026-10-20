@@ -1,18 +1,16 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "751efff051efaf71e921ab8dfa4e8a18e0cac8ae",
-  "observed_at": "2026-10-20T14:02:02.759659+00:00",
-  "ok": false,
+  "observed_at": "2026-10-20T14:48:38.650038+00:00",
+  "ok": true,
   "routes_checked": 600,
-  "verified_routes": 599,
-  "failed_routes": [
-    "compass.html"
-  ],
+  "verified_routes": 600,
+  "failed_routes": [],
   "source_equivalent_builds": {
     "751efff051efaf71e921ab8dfa4e8a18e0cac8ae": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 598,
+  "embedded_inspection_routes": 599,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -1190,12 +1188,13 @@
     },
     {
       "route": "compass.html",
-      "status": "UNAVAILABLE",
-      "http_status": null,
-      "build_sha": null,
-      "inspector_present": false,
-      "error_type": "RemoteDisconnected",
-      "product_source_matches_release": false
+      "status": "HTML_VERIFIED",
+      "http_status": 200,
+      "build_sha": "751efff051efaf71e921ab8dfa4e8a18e0cac8ae",
+      "inspector_present": true,
+      "bytes_read": 50816,
+      "inspection_mode": "embedded",
+      "product_source_matches_release": true
     },
     {
       "route": "composite/index.html",
@@ -6019,7 +6018,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39434374650,
+  "deployment_run_id": 39441597399,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-20T14:02:02.769551+00:00"
+  "check_finished_at": "2026-10-20T14:48:38.658653+00:00"
 }
