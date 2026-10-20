@@ -168,8 +168,8 @@ invoice in the first days of November; the budget and the engine-cost dashboard 
 | minus fusion custom metrics (switched off) | -0.85 | 108 metrics x $0.30/month |
 | minus the 33 engines switched off / deleted | -0.00 | they cost $0.003/day |
 | plus insider-cluster-scanner back on a daily schedule | +0.02 | 1.5 GB x ~10 min |
-| Platform: storage 1.13, egress ~0.6 (was 1.20 in the morning estimate; most direct-to-S3 reads now go to the edge), factory jobs 1.05, DynamoDB 0.13, alarms/logs 0.24, secrets/ECR/DNS/EBS/KMS/SSM 0.32, unattributed S3 requests 0.40, other metrics 0.12 | 4.00 | platform table (ops 6557) |
-| **Account** | **8.15/day = $244.59 per 30-day month** ($252.74 for 31 days) | |
+| Platform: storage 1.13, egress ~0.6 (was 1.20 in the morning estimate; most direct-to-S3 reads now go to the edge), factory jobs 1.05, DynamoDB 0.13, alarms/logs 0.24, secrets/ECR/DNS/EBS/KMS/SSM/API 0.32, unattributed S3 requests 0.40, S3 other 0.07, other metrics 0.12 | 4.07 | platform table (ops 6557) |
+| **Account** | **8.23/day = $246.90 per 30-day month** ($255.13 for 31 days) | |
 
 Honest band: **$235-$275 a month**. What moves it: site egress (the one line not yet measured after today's
 changes: +/- $0.4/day), S3 noncurrent versions if the lifecycle rule stays off (storage was $0.64/day before Oct 19,
