@@ -918,6 +918,41 @@ def engine_caps(ctx, state, cfg, now, enforce):
     return out
 
 
+def action_hold(event, context):
+    """Operator switch-off: hold a function at concurrency 0 under stage CAP (manual release only) - for engines that
+    have no trigger to disable (API / URL handlers) or that Khalid retired.  {"action":"hold","function":F,"confirm":F,"reason":...}"""
+    fn = event.get("function")
+    if not fn or event.get("confirm") != fn:
+        return {"error": "hold needs function and confirm equal to the function name"}
+    now = now_utc()
+    control = load_control()
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    if ctx.exempt(fn):
+        return {"error": "%s is exempt (control plane)" % fn}
+    e = ctx.ledger.get("lambda:" + fn)
+    if e:
+        if e.get("stage") == "CAP":
+            return {"function": fn, "status": "already held by CAP"}
+        e.update(stage="CAP", capped_from=e.get("stage"), capped_at=now.isoformat(), reason=(event.get("reason") or "")[:300],
+                 operator_hold=True)
+        status = "upgraded from %s" % e["capped_from"]
+    else:
+        entries = [dict(x, capped_at=now.isoformat(), reason=(event.get("reason") or "")[:300], operator_hold=True)
+                   for x in lv.lambda_discover(ctx, "CAP", [fn])]
+        if not entries:
+            try:
+                cur = lv.reserved_of(ctx, fn)
+            except Exception as ex:  # noqa: BLE001
+                return {"error": "function not readable: %s" % lv.err_code(ex)}
+            return {"function": fn, "status": "nothing to do", "reserved": cur}
+        counts = apply_entries(ctx, entries, True, now)
+        status = "held (%s)" % json.dumps(counts)
+    s3_put_json("state.json", state)
+    record_event("operator-hold", {"function": fn, "status": status, "reason": event.get("reason")}, now)
+    return {"function": fn, "status": status, "reserved": lv.reserved_of(ctx, fn)}
+
+
 def action_caps(event, context):
     now = now_utc()
     control = load_control()
@@ -1366,6 +1401,8 @@ def lambda_handler(event, context):
                 "month_to_date_top": sorted(((m.get("mtd") or {}).items()), key=lambda kv: -kv[1])[:10], "logs": ctx.logs[-5:]}
     if action == "release_cap":
         return action_release_cap(event, context)
+    if action == "hold":
+        return action_hold(event, context)
     if action == "release_anomaly":
         return action_release_anomaly(event, context)
     if action == "anomaly_selftest":

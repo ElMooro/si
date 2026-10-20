@@ -875,6 +875,21 @@ def test_engine_cap_monitor_mode_reports_once_and_changes_nothing():
     gov.now_utc = lambda: PINNED
 
 
+def test_operator_hold_is_a_cap_until_release_cap():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    r = gov.lambda_handler({"action": "hold", "function": "justhodl-gamma", "confirm": "justhodl-gamma", "reason": "retired 2026-10-20"}, Context())
+    st = state_of(w)
+    check(r["reserved"] == 0 and st["ledger"]["lambda:justhodl-gamma"]["stage"] == "CAP" and st["ledger"]["lambda:justhodl-gamma"]["before"]["reserved"] == 5, "hold: held at 0 under CAP, previous value kept")
+    gov.lambda_handler({"action": "tick"}, Context())
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 0, "nothing automatic lifts an operator hold")
+    r = gov.lambda_handler({"action": "release_cap", "function": "justhodl-gamma", "confirm": "justhodl-gamma"}, Context())
+    check(r["status"] == "restored" and w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "release_cap restores the previous value")
+    r = gov.lambda_handler({"action": "hold", "function": "justhodl-spend-governor", "confirm": "justhodl-spend-governor"}, Context())
+    check("error" in r, "the governor cannot hold itself")
+
+
 def test_cap_selftest_round_trips_the_canary():
     w = world(FLEET, actual=10)
     set_control(w)
