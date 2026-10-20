@@ -34,7 +34,6 @@ LIVE, PRIVATE = "justhodl-dashboard-live", "justhodl-ops-private-%s" % ACCOUNT
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120)
 COUNT_RULE = "ops6541-bound-noncurrent-versions"
 AGE_RULES = ("ops5027-purge-dead-versions-providers", "ops5164-purge-dead-versions-data", "ops6520-purge-dead-versions-system-events")
-STORM_KEYS = {"data/miss-calibrator-proposals.json"}
 PUBLIC = {"", "data/", "system-events/"}
 SENSITIVE = re.compile(r"private|secret|credential|token|password", re.I)
 
@@ -61,7 +60,13 @@ def summarize(rule):
     return "%s [%s] prefix=%r: %s" % (rule.get("ID"), rule.get("Status"), label(rule_prefix(rule) or ""), "; ".join(bits) or "no action")
 
 
+HISTORY_LIKE = re.compile(r"hist|archive", re.I)
+
+
 def census_guard(r, s3):
+    """ops 6570/6573 census: every key with > 10 old versions is a daily-rewritten OUTPUT (NVDA.json, daily.json,
+    risk.json, fleet.json, hash-named cache entries...) whose older states nothing reads - explicit history lives in
+    its own prefixes as current objects.  Refuse only if a history-like prefix carries many such keys."""
     keys = []
     token = None
     while True:
@@ -76,13 +81,10 @@ def census_guard(r, s3):
     if not keys:
         raise SystemExit("no census found (run ops 6570 first)")
     doc = json.loads(s3.get_object(Bucket=PRIVATE, Key=sorted(keys)[-1])["Body"].read())
-    offenders = []
-    for p in doc["prefixes"]:
-        if p.get("keys_over_10"):
-            others = [(k, n) for k, n in p.get("sample_over_10", []) if k not in STORM_KEYS]
-            if p["keys_over_10"] > len([1 for k, _ in p.get("sample_over_10", []) if k in STORM_KEYS]) or others:
-                offenders.append((label(p["prefix"]), p["keys_over_10"], [(k.split("/")[-1], n) for k, n in others[:3]]))
-    r.log("census %s: %d prefixes; keys with > 10 old versions outside the storm key: %s" % (sorted(keys)[-1].split("/")[-1], len(doc["prefixes"]), offenders or "none"))
+    over = [(p["prefix"], p["keys_over_10"], p["max_versions_key"]) for p in doc["prefixes"] if p.get("keys_over_10")]
+    r.log("census %s: %d prefixes; prefixes with keys > 10 old versions: %s" % (
+        sorted(keys)[-1].split("/")[-1], len(doc["prefixes"]), [(label(p), n, m) for p, n, m in over]))
+    offenders = [(label(p), n) for p, n, m in over if HISTORY_LIKE.search(p) and n > 5]
     return offenders
 
 
@@ -92,7 +94,7 @@ def main():
         r.heading("ops 6571 - old copies capped by count: enable the bucket-wide keep-10 rule, retire the 1-day age rules")
         offenders = census_guard(r, s3)
         if offenders:
-            r.fail("a prefix keeps more than 10 old versions of a key outside the storm key - review before applying: %s" % offenders)
+            r.fail("a history-like prefix keeps more than 10 old versions on many keys - review before applying: %s" % offenders)
             raise SystemExit(1)
         a = s3.get_bucket_lifecycle_configuration(Bucket=LIVE)["Rules"]
         time.sleep(2)
