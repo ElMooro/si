@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "rule": "Every engine job runs at most once per 24 hours: a cron expression may fire at most once on any day (minutes x hours <= 1), a rate() expression must be >= 24 hours. A 'job' is one function with one payload; several triggers for one job collapse to one.",
+  "max_per_day": 1,
+  "set_by": "Khalid, 2026-10-20 (after the $2,800 October bill)",
+  "exempt_triggers": [
+    {
+      "kind": "sched",
+      "name": "justhodl-spend-governor-tick",
+      "why": "Control plane, not an engine: the $600 cap, the runaway fuse and the daily drift check must be evaluated at least hourly or a storm runs for a day before anything reacts. About 24 small invocations a day (<$0.20/day)."
+    }
+  ],
+  "exempt_functions": [],
+  "notes": [
+    "Enforced by tests/deployment/test_cadence_floor.py on every Lambda deploy and checked daily on the live account by the governor's cadence sentinel.",
+    "To let one engine run more often, add its trigger to exempt_triggers with a reason and a cost estimate; the governor still caps it (see docs/ops/SPEND_GOVERNOR.md)."
+  ]
+}
