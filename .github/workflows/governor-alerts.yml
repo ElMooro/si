@@ -71,14 +71,18 @@ jobs:
                   break
           keys = sorted(keys)
           WANT = ("engine-cap", "anomaly", "anomaly-release", "fuse", "fast-fuse", "escalate-", "deescalate-", "force-",
-                  "cadence", "cadence-restore", "error-storm", "release-cap", "operator-hold", "restore", "month-close")
+                  "cadence", "cadence-restore", "error-storm", "release-cap", "operator-hold", "restore", "month-close",
+                  "storage-growth", "storage-fuse", "storage-fuse-versioning", "storage-restore", "s3-spend")
           SKIP = ("fast-fuse-check", "meter-month-close")        # hourly / bookkeeping records: not alerts
           TITLES = {"engine-cap": "ENGINE SHUT DOWN by the $50/month cap", "anomaly": "Anomaly: engine held 6 h",
                     "anomaly-release": "Anomaly hold released", "fuse": "Runaway fuse tripped",
                     "fast-fuse": "Runaway STOPPED (fast fuse)", "cadence": "Cadence sentinel retimed triggers",
                     "cadence-restore": "Cadence restored by operator", "error-storm": "Error storm",
                     "release-cap": "Engine re-enabled by operator", "operator-hold": "Engine held by operator",
-                    "restore": "Fleet restored by operator", "month-close": "Month closed: counters reset"}
+                    "restore": "Fleet restored by operator", "month-close": "Month closed: counters reset",
+                    "storage-growth": "Bucket grew unusually (warn, nothing held)", "storage-fuse": "STORAGE FUSE: writer held",
+                    "storage-fuse-versioning": "STORAGE FUSE second strike: versioning suspended",
+                    "storage-restore": "Bucket versioning re-enabled by operator", "s3-spend": "S3 cost line above $10/day"}
 
           def names(v):
               if isinstance(v, str):
