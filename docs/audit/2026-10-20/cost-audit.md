@@ -47,6 +47,19 @@ fuse (one function far above normal), the fast fuse (CloudWatch alarm -> seconds
 diffuse-storm fuse (fleet >= $75/day with no single hot function). Budget Actions cannot stop Lambdas, which is
 why a function and not an AWS Budget Action does this.
 
+### Per-engine kill switch (governor v1.3.0, ops 6559, same day)
+
+Khalid: "any engine or events that cause $50 in a month shuts down automatically and inform me and won't turn on
+again unless I manually turn it on and address the issue." Every hourly tick now meters each function's
+month-to-date Lambda cost; at $50 the function is held at concurrency 0 under ledger stage CAP, Khalid is
+e-mailed "ENGINE SHUT DOWN: <engine>" with the release command, and nothing automatic lifts it (not the 1st, not a
+budget raise, not a restore; a hand change is re-held). Release: `{"action":"release_cap","function":F,
+"confirm":F,"reason":"..."}` on `justhodl-spend-governor`; per-engine limits in `control.json` `engine_caps`.
+Proven live on the canary (`ops_6559_engine_cap_verify.md`). The first month-to-date read also found the two
+October loop engines over the line - **justhodl-miss-calibrator $1,551 and justhodl-event-coordinator $432 of
+Lambda cost this month - and locked them under CAP**: they will NOT come back with the Nov 1 thaw until Khalid
+releases them (the loop itself was fixed on Oct 17, ops 6520/6521; releasing is his call).
+
 ## 3. Cost per engine (normal window, $/day; projection at once-a-day cadence)
 
 Full table: the dashboard (926 rows; search, sort, flags) and `aws/ops/reports/latest/ops_6557_cost_attribution_data.md`.
@@ -112,6 +125,10 @@ The two heaviest "engines" were monitoring engines polling AWS APIs ($10 of the 
 ## 5. What Khalid must do
 
 1. **Click "Confirm subscription"** in the AWS e-mail for `justhodl-fleet-alerts` (sent 2026-10-20, expires in 3 days).
+   The "ENGINE SHUT DOWN" e-mails go through this topic.
+1b. Decide whether `justhodl-event-coordinator` and `justhodl-miss-calibrator` (locked by the $50 cap for
+   October's loop) come back on Nov 1: say "release the coordinator" / "release the miss-calibrator" and Claude
+   runs `release_cap`; otherwise the event bus stays silent after the thaw.
 2. Optional: a new Telegram bot token for `justhodl-guardrail-notify`.
 3. Decide on routing the pages' data reads through the Worker (0c) and on re-enabling the noncurrent-version
    lifecycle rule on the live bucket.

@@ -21,6 +21,14 @@ the Cost Anomaly e-mails reach you without confirmation. If the link has expired
 `justhodl-guardrail-notify` gets 401 Unauthorized from Telegram. Create a new token with @BotFather and tell
 Claude; the SSM parameter is swapped by an ops script (never paste the token in chat or in the repo).
 
+### 0d. Two engines are locked off by the $50/month cap - decide before Nov 1
+
+`justhodl-miss-calibrator` ($1,551 of Lambda cost in October) and `justhodl-event-coordinator` ($432) crossed the
+new per-engine cap and are held under CAP: the Nov 1 thaw will NOT restore them. The loop they caused was fixed on
+Oct 17 (ops 6520/6521, deploy gate `scripts/event_graph.py`). If you want event routing back on Nov 1, tell
+Claude "release the coordinator and the miss-calibrator" and it runs
+`{"action":"release_cap","function":"<name>","confirm":"<name>"}` for each; the $50 counter then starts from zero.
+
 ### 0c. Site egress: route the remaining direct-to-S3 reads through the Worker (decision)
 
 About 13 GB/day of the live bucket's traffic is browsers (mostly Safari / Apple private relay) fetching
