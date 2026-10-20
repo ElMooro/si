@@ -40,6 +40,17 @@ Claude "release the coordinator and the miss-calibrator" and it runs
 whatever was last written. Say "schedule tape-truth and industry-case daily" and Claude adds one daily schedule
 each (the $50 cap and the anomaly sentinel cover them like any engine); otherwise they stay as they are.
 
+### 0f. Bucket: "keep my data, stop the balloon" - DONE 2026-10-20 (docs/ops/WAREHOUSE_ARCHIVE.md)
+
+Three pieces live and proven: (1) a sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every
+write to the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone
+but the **root user** - if you ever need to remove something from it, that is a console action as root, by design;
+backfill of the existing 1.28 M objects runs as S3 Batch Replication job `de1a80a2-...` (ops 6576 reports progress);
+(2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule); (3) the governor's
+storage fuse (v1.5.0). The daily S3 Inventory lands in the private bucket within 48 h; it is the check that the
+573k storm copies of the audit key and the `data/` storm copies have been expired by the new rule - if S3 is slow
+about it, Claude will propose a one-time manual purge of those old copies (never of a current file).
+
 ### 0c. Site egress - DONE 2026-10-20 (worker routing live)
 
 212 hard-coded S3 data URLs, 13 base constants and 6 preconnects in 158 pages now read `https://justhodl.ai/data/*`

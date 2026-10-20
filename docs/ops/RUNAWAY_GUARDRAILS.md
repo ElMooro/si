@@ -98,6 +98,14 @@ concurrency 0 for six hours and e-mail Khalid; it comes back by itself after the
 month is permanent (CAP, manual release). This catches the slow or diffuse storms the alarms are not tuned for
 and the engine that quietly starts running ten times more than it used to.
 
+## Layer 3d - the bucket itself (v1.5.0, 2026-10-20)
+
+Old copies capped at the 10 newest per file by the bucket-wide lifecycle rule (ops 6571: a storm that rewrites one
+file 10,000 times keeps 10 copies; current files untouched); the governor's storage fuse watches the free daily S3
+metrics (warn >= 150 GB / 20% / 500k objects a day; trip >= 500 GB / 50% / 2 M or two warn days: hottest writer held
+under CAP; second strike: versioning suspended); the warehouse is replicated into a sealed archive bucket nobody but
+the root user can delete from. `docs/ops/WAREHOUSE_ARCHIVE.md`.
+
 ## Layer 4 - fast fuse
 
 | Alarm | Signal (account level, AWS/Lambda) | Threshold, 3 x 5 min | Normal max held 15 min | Oct 12 storm |
