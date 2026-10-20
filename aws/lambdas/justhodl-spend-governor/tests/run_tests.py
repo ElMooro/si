@@ -109,6 +109,7 @@ class FakeCE:
         self.calls = 0
         self.daily_total = daily_total
         self.usage = {}   # {day: {usage_type: usd}} extra grouped rows (v1.2.0 egress test)
+        self.s3_usd = {}  # {day: usd} of the S3 service (v1.5.0 storage fuse)
 
     def get_cost_and_usage(self, TimePeriod, Granularity, Metrics, GroupBy=None, **kw):
         self.calls += 1
@@ -118,7 +119,10 @@ class FakeCE:
         while d < end:
             item = {"TimePeriod": {"Start": d.isoformat(), "End": (d + timedelta(days=1)).isoformat()},
                     "Total": {"UnblendedCost": {"Amount": str(self.daily_total)}}, "Groups": []}
-            if GroupBy:
+            if GroupBy and GroupBy[0].get("Key") == "SERVICE":
+                item["Groups"] = [{"Keys": ["Amazon Simple Storage Service"], "Metrics": {"UnblendedCost": {"Amount": str(self.s3_usd.get(d.isoformat(), 1.0))}}},
+                                  {"Keys": ["AWS Lambda"], "Metrics": {"UnblendedCost": {"Amount": "4"}}}]
+            elif GroupBy:
                 item["Groups"] = [{"Keys": ["TimedStorage-ByteHrs"], "Metrics": {"UnblendedCost": {"Amount": "1.5"}}},
                                   {"Keys": ["Lambda-GB-Second"], "Metrics": {"UnblendedCost": {"Amount": "9"}}}]
                 item["Groups"] += [{"Keys": [k], "Metrics": {"UnblendedCost": {"Amount": str(v)}}}
@@ -138,6 +142,13 @@ class FakeCW:
         self.burst = set(burst)  # the whole window's burn landed in its first bucket (a burst that ended)
         self.deleted = set()     # alarms someone removed
         self.metrics = []
+        self.storage = {}        # {day: {"StandardStorage": bytes, ..., "objects": n}} daily S3 metrics (v1.5.0)
+
+    def get_paginator(self, name):
+        assert name == "list_metrics", name
+        types = sorted({st for d in self.storage.values() for st in d if st != "objects"})
+        return Pager(lambda **k: {"Metrics": [{"MetricName": "BucketSizeBytes", "Dimensions": [
+            {"Name": "BucketName", "Value": k["Dimensions"][0]["Value"]}, {"Name": "StorageType", "Value": st}]} for st in types]})
 
     def rate_at(self, t):
         d = self.durations
@@ -153,6 +164,19 @@ class FakeCW:
 
     def get_metric_data(self, MetricDataQueries, StartTime, EndTime, **kw):
         out = []
+        if MetricDataQueries and MetricDataQueries[0]["MetricStat"]["Metric"]["Namespace"] == "AWS/S3":
+            for q in MetricDataQueries:
+                m = q["MetricStat"]["Metric"]
+                st = m["Dimensions"][1]["Value"]
+                key = "objects" if m["MetricName"] == "NumberOfObjects" else st
+                ts, vals = [], []
+                for day in sorted(self.storage):
+                    d = datetime.fromisoformat(day).replace(tzinfo=timezone.utc)
+                    if StartTime <= d <= EndTime and key in self.storage[day]:
+                        ts.append(d)
+                        vals.append(float(self.storage[day][key]))
+                out.append({"Id": q["Id"], "Timestamps": ts, "Values": vals})
+            return {"MetricDataResults": out}
         for q in MetricDataQueries:
             m = q["MetricStat"]["Metric"]
             fn = m["Dimensions"][0]["Value"]
@@ -186,6 +210,15 @@ class FakeCW:
 class FakeS3:
     def __init__(self):
         self.objects = {}
+        self.versioning = "Enabled"
+        self.versioning_puts = []
+
+    def get_bucket_versioning(self, Bucket):
+        return {"Status": self.versioning}
+
+    def put_bucket_versioning(self, Bucket, VersioningConfiguration):
+        self.versioning = VersioningConfiguration["Status"]
+        self.versioning_puts.append((Bucket, self.versioning))
 
     def get_object(self, Bucket, Key):
         if Key not in self.objects:
@@ -995,6 +1028,139 @@ def test_anomaly_monitor_mode_changes_nothing():
           "monitor mode reports the hold it would make and writes nothing")
     gov.now_utc = lambda: PINNED
 
+
+
+# ------------------------------------------------------------- v1.5.0 tests --
+import storage_fuse as sf  # noqa: E402
+
+GB = 1024.0 ** 3
+
+
+def storage_world(points, meter_daily=None, mode="enforce"):
+    """A fleet with the live bucket's daily metrics {day: gb or (gb, objects)} and a meter daily record injected."""
+    w = world(FLEET, actual=10)
+    set_control(w, mode=mode)
+    for day, v in points.items():
+        g, n = (v if isinstance(v, tuple) else (v, 4000000))
+        w["cloudwatch"].storage[day] = {"StandardStorage": g * GB * 0.8, "StandardIAStorage": g * GB * 0.2, "objects": n}
+    st = gov.new_state(gov.now_utc())
+    st["month"] = "2026-10"
+    st["meter"] = {"month": "2026-10", "daily": meter_daily or {}, "mtd": {fn: 0.5 for fn in (meter_daily or {}).get(max(meter_daily or ["x"]), {})}}
+    w["s3"].put_object(Bucket="b", Key=gov.PREFIX + "state.json", Body=json.dumps(st).encode())
+    return w
+
+
+def test_storage_fuse_levels_are_pure_logic():
+    cfg = core.merged_cfg(None)
+    base = {"2026-10-18": {"gb": 1000.0, "objects": 4000000}}
+    quiet = sf.assess(dict(base, **{"2026-10-19": {"gb": 1040.0, "objects": 4050000}}), cfg, {})
+    warn = sf.assess(dict(base, **{"2026-10-19": {"gb": 1160.0, "objects": 4000000}}), cfg, {})
+    trip = sf.assess(dict(base, **{"2026-10-19": {"gb": 1600.0, "objects": 4000000}}), cfg, {})
+    objs = sf.assess(dict(base, **{"2026-10-19": {"gb": 1000.0, "objects": 6500000}}), cfg, {})
+    two = sf.assess(dict(base, **{"2026-10-19": {"gb": 1160.0, "objects": 4000000}}), cfg, {"warn_days": ["2026-10-18"]})
+    second = sf.assess(dict(base, **{"2026-10-19": {"gb": 1600.0, "objects": 4000000}}), cfg, {"trip_days": ["2026-10-18"]})
+    check([quiet["level"], warn["level"], trip["level"], objs["level"], two["level"], second["level"]] == [None, "warn", "trip", "trip", "trip", "second"],
+          "assess: quiet / warn / trip / objects trip / two warns = trip / trip after trip = second")
+    check(warn["delta_gb"] == 160.0 and warn["delta_pct"] == 16.0 and trip["delta_pct"] == 60.0, "deltas computed in GB and percent")
+    check(sf.assess({"2026-10-19": {"gb": 1.0}}, cfg, {})["level"] is None, "one point: no verdict")
+    daily = {"2026-10-19": {"justhodl-beta": [500.0, 3.0], "justhodl-alpha": [10.0, 0.1], "justhodl-spend-governor": [24.0, 9.0], "justhodl-held": [900.0, 5.0]}}
+    check(sf.pick_writers(daily, "2026-10-19", {"justhodl-spend-governor"}, {"justhodl-held"}, 2) == ["justhodl-beta", "justhodl-alpha"],
+          "pick_writers: hottest by cost, never exempt, never already held")
+    check(sf.pick_writers(daily, "2026-10-20", {"justhodl-spend-governor"}, set(), 1) == ["justhodl-held"], "a day without a record falls back to the latest earlier one")
+    check(sf.s3_usd_by_day({"d": [("Amazon Simple Storage Service", "3.5"), ("AWS Lambda", "9")]}) == {"d": 3.5}, "S3 service line extracted")
+    check(sf.storage_days([("d", "StandardStorage", GB), ("d", "StandardIAStorage", GB), ("d", "NumberOfObjects", 7)]) == {"d": {"gb": 2.0, "objects": 7}},
+          "storage types summed, objects kept")
+
+
+def test_storage_fuse_holds_the_hottest_writer_then_suspends_versioning_on_a_second_strike():
+    daily = {"2026-10-19": {"justhodl-beta": [500.0, 3.0], "justhodl-alpha": [10.0, 0.1], "justhodl-gamma": [50.0, 0.4]},
+             "2026-10-20": {"justhodl-beta": [600.0, 3.5], "justhodl-alpha": [10.0, 0.1], "justhodl-gamma": [50.0, 0.4]}}
+    w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1600.0}, daily)
+    at("2026-10-20T06:30:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    s = out["storage"]
+    check(s["ran"] and s["assessment"]["level"] == "trip" and s["held"] == ["justhodl-beta"], "600 GB in a day: trip, the hottest writer is held (%s)" % json.dumps(s)[:160])
+    check(st["ledger"]["lambda:justhodl-beta"]["stage"] == "CAP" and w["lambda"].fns["justhodl-beta"]["reserved"] == 0 and st["ledger"]["lambda:justhodl-beta"].get("storage_fuse"),
+          "held under CAP at concurrency 0, tagged storage_fuse")
+    check(w["s3"].versioning == "Enabled" and any("STORAGE FUSE" in m["Subject"] for m in w["sns"].sent), "first strike: versioning untouched, notice sent")
+    ev = [k for k in w["s3"].objects if "-storage-fuse.json" in k]
+    check(len(ev) == 1, "storage-fuse event recorded")
+    out2 = gov.lambda_handler({"action": "tick"}, Context())
+    check(out2["storage"] == {"ran": False, "reason": "not due"}, "once a day")
+    # next day: still growing -> second strike
+    w["cloudwatch"].storage["2026-10-20"] = {"StandardStorage": 2200.0 * GB, "StandardIAStorage": 0.0, "objects": 4000000}
+    at("2026-10-21T06:30:00")
+    out3 = gov.lambda_handler({"action": "tick"}, Context())
+    s3 = out3["storage"]
+    check(s3["assessment"]["level"] == "second" and s3["versioning"]["suspended"] and w["s3"].versioning == "Suspended",
+          "second strike: versioning suspended (%s)" % json.dumps(s3.get("versioning")))
+    check(set(s3["held"]) == {"justhodl-alpha", "justhodl-gamma"}, "the next hottest writers are held (beta already held)")
+    r = gov.lambda_handler({"action": "storage_restore"}, Context())
+    check("error" in r and w["s3"].versioning == "Suspended", "storage_restore needs the confirm word")
+    r = gov.lambda_handler({"action": "storage_restore", "confirm": "versioning", "reason": "fixed"}, Context())
+    check(r["after"] == "Enabled" and w["s3"].versioning == "Enabled", "storage_restore re-enables versioning")
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-beta"]["reserved"] == 0, "a storage-fuse hold is a CAP: only release_cap lifts it")
+    r = gov.lambda_handler({"action": "release_cap", "function": "justhodl-beta", "confirm": "justhodl-beta"}, Context())
+    check(r["status"] == "restored" and w["lambda"].fns["justhodl-beta"]["reserved"] == 1, "release_cap restores the writer")
+    gov.now_utc = lambda: PINNED
+
+
+def test_storage_warn_reports_only_and_two_warn_days_trip():
+    daily = {"2026-10-19": {"justhodl-beta": [500.0, 3.0]}, "2026-10-20": {"justhodl-beta": [500.0, 3.0]}}
+    w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1160.0}, daily)
+    at("2026-10-20T06:30:00")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check(out["storage"]["assessment"]["level"] == "warn" and "lambda:justhodl-beta" not in st["ledger"] and w["s3"].versioning == "Enabled",
+          "160 GB in a day: reported, nothing held")
+    check(any("storage:" in m["Subject"] for m in w["sns"].sent) and any("-storage-growth.json" in k for k in w["s3"].objects), "warn notice + event")
+    w["cloudwatch"].storage["2026-10-20"] = {"StandardStorage": 1330.0 * GB, "StandardIAStorage": 0.0, "objects": 4000000}
+    at("2026-10-21T06:30:00")
+    out2 = gov.lambda_handler({"action": "tick"}, Context())
+    check(out2["storage"]["assessment"]["level"] == "trip" and out2["storage"]["held"] == ["justhodl-beta"], "a second warn day in a row trips")
+    gov.now_utc = lambda: PINNED
+
+
+def test_storage_check_waits_for_the_metric_and_runs_once_a_day():
+    w = storage_world({"2026-10-18": 1000.0}, {})
+    at("2026-10-20T03:30:00")
+    check(gov.lambda_handler({"action": "tick"}, Context())["storage"] == {"ran": False, "reason": "not due"}, "before 05:00 UTC: not due")
+    at("2026-10-20T05:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(not s["ran"] and s["reason"].startswith("no point for 2026-10-19"), "yesterday's metric not in yet: retry next tick")
+    w["cloudwatch"].storage["2026-10-19"] = {"StandardStorage": 1005.0 * GB, "StandardIAStorage": 0.0, "objects": 4010000}
+    at("2026-10-20T06:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(s["ran"] and s["assessment"]["level"] is None and s["s3_usd_yesterday"] == 1.0, "quiet day: ran, no level, S3 line read")
+    st = state_of(w)
+    check(st["storage"]["day"] == "2026-10-20" and "2026-10-19" in st["storage"]["days"], "day recorded")
+    r = gov.lambda_handler({"action": "storage_check"}, Context())
+    check(r["ran"] and r["assessment"]["day"] == "2026-10-19" and state_of(w)["storage"]["day"] == "2026-10-20", "storage_check (dry) evaluates without recording")
+    r = gov.lambda_handler({"action": "storage_selftest"}, Context())
+    check(r["ok"] and r["scenarios"]["second"] == "second" and r["live"]["versioning"] == "Enabled", "storage_selftest: scenarios + live read (%s)" % json.dumps(r)[:120])
+    gov.now_utc = lambda: PINNED
+
+
+def test_storage_s3_spend_alert_once_a_day():
+    w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1001.0}, {})
+    w["ce"].s3_usd = {"2026-10-19": 12.25}
+    at("2026-10-20T06:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(s["s3_usd_yesterday"] == 12.25 and any("S3 spend" in m["Subject"] for m in w["sns"].sent) and any("-s3-spend.json" in k for k in w["s3"].objects),
+          "S3 service cost above $10 a day is reported with an event")
+    gov.now_utc = lambda: PINNED
+
+
+def test_storage_fuse_monitor_mode_changes_nothing():
+    daily = {"2026-10-19": {"justhodl-beta": [500.0, 3.0]}}
+    w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1700.0}, daily, mode="monitor")
+    at("2026-10-20T06:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(s["assessment"]["level"] == "trip" and not w["lambda"].puts and w["s3"].versioning == "Enabled" and any("[monitor]" in m["Subject"] for m in w["sns"].sent),
+          "monitor mode: reports the trip, holds nothing")
+    gov.now_utc = lambda: PINNED
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):

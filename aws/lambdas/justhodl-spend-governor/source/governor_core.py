@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.4.2"
+VERSION = "1.5.0"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -77,6 +77,16 @@ DEFAULTS = {
     "anom_error_min": 10.0,        # errors in a window, and ...
     "anom_error_share": 0.5,       # ... errors / invocations at or above this -> an error storm is reported
     "anom_baseline_days": 14.0,
+    # v1.5.0 storage fuse (storage_fuse.py): daily growth of the live bucket from the free S3 metrics
+    "storage_warn_gb": 150.0,          # one-day growth that is reported (the weekly ~140 GB spike sits just under it)
+    "storage_warn_pct": 20.0,
+    "storage_objects_warn": 500000.0,
+    "storage_trip_gb": 500.0,          # one-day growth that holds the hottest writer (or two warn days in a row)
+    "storage_trip_pct": 50.0,
+    "storage_objects_trip": 2000000.0,
+    "storage_hold_top": 1.0,           # writers held on a trip; a second strike holds 3 and suspends versioning
+    "storage_after_hour": 5.0,         # UTC hour after which the previous day's S3 metrics are expected
+    "s3_usd_day_alert": 10.0,          # yesterday's S3 service cost (Cost Explorer) that is reported
 }
 
 PERSISTENT_USAGE_PATTERNS = (

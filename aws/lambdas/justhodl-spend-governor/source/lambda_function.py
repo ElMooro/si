@@ -42,6 +42,7 @@ from botocore.exceptions import ClientError
 import cadence_sentinel as cs
 import governor_core as core
 import governor_levers as lv
+import storage_fuse as sf
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 ACCOUNT = os.environ.get("ACCOUNT_ID", "857687956942")
@@ -55,6 +56,7 @@ CE_INTERVAL_H = float(os.environ.get("CE_INTERVAL_H", "6"))
 GUARD_ALARMS = ("justhodl-guard-lambda-invocations-1h", "justhodl-guard-lambda-concurrency",
                 "justhodl-guard-lambda-recursion-dropped-account")
 CANARY_PREFIX = "justhodl-spend-governor-canary"
+LIVE_BUCKET = os.environ.get("LIVE_BUCKET", "justhodl-dashboard-live")   # v1.5.0 storage fuse watches this bucket
 # v1.1.0: CloudWatch alarms that mean "the fleet has been far above normal for 15 minutes" (thresholds
 # calibrated by ops 6534 from Sep 15 - Oct 11 vs the Oct 12-16 storm).  Their ALARM notification reaches this
 # function through SNS justhodl-spend-governor and runs the fast fuse.  The older GUARD_ALARMS fire on short
@@ -1068,6 +1070,186 @@ def alarm_trigger(event, context, alarm):
     return res
 
 
+# ------------------------------------------------------------------ v1.5.0: storage fuse (the bucket itself) --
+def read_bucket_days(bucket, now):
+    """Free daily S3 metrics for the last 6 days -> {day: {gb, objects}} (every storage type summed)."""
+    cw = client("cloudwatch")
+    types = []
+    for page in cw.get_paginator("list_metrics").paginate(Namespace="AWS/S3", MetricName="BucketSizeBytes",
+                                                         Dimensions=[{"Name": "BucketName", "Value": bucket}]):
+        for m in page.get("Metrics", []):
+            st = next((d["Value"] for d in m.get("Dimensions", []) if d["Name"] == "StorageType"), None)
+            if st and st not in types:
+                types.append(st)
+    queries = [{"Id": "s%d" % i, "MetricStat": {"Metric": {"Namespace": "AWS/S3", "MetricName": "BucketSizeBytes",
+                "Dimensions": [{"Name": "BucketName", "Value": bucket}, {"Name": "StorageType", "Value": st}]},
+                "Period": 86400, "Stat": "Average"}, "ReturnData": True} for i, st in enumerate(types)]
+    queries.append({"Id": "objects", "MetricStat": {"Metric": {"Namespace": "AWS/S3", "MetricName": "NumberOfObjects",
+                    "Dimensions": [{"Name": "BucketName", "Value": bucket}, {"Name": "StorageType", "Value": "AllStorageTypes"}]},
+                    "Period": 86400, "Stat": "Average"}, "ReturnData": True})
+    res = cw.get_metric_data(MetricDataQueries=queries, StartTime=now - timedelta(days=6), EndTime=now, ScanBy="TimestampAscending")
+    points = []
+    for r in res.get("MetricDataResults", []):
+        stype = "NumberOfObjects" if r["Id"] == "objects" else types[int(r["Id"][1:])]
+        for ts, v in zip(r.get("Timestamps", []), r.get("Values", [])):
+            points.append((sf.utc_day(ts), stype, v))
+    return sf.storage_days(points)
+
+
+def s3_spend_yesterday(now):
+    """Cost Explorer by SERVICE for the last 3 days ($0.01) -> {day: S3 usd}."""
+    groups = {}
+    for r in _ce_pages(TimePeriod={"Start": (now - timedelta(days=3)).date().isoformat(), "End": now.date().isoformat()},
+                       Granularity="DAILY", Metrics=["UnblendedCost"], GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}]):
+        for t in r["ResultsByTime"]:
+            groups[t["TimePeriod"]["Start"]] = [(g["Keys"][0], g["Metrics"]["UnblendedCost"]["Amount"]) for g in t.get("Groups", [])]
+    return sf.s3_usd_by_day(groups)
+
+
+def storage_check(ctx, state, cfg, now, enforce, force=False, dry=False):
+    """Once a day: growth of the live bucket -> warn / trip (hold the hottest writer) / second strike (suspend versioning);
+    yesterday's S3 cost line.  `dry` evaluates and reports without recording the day or acting."""
+    st = state.setdefault("storage", {})
+    if not force and not sf.due(st, now, int(cfg["storage_after_hour"])):
+        return {"ran": False, "reason": "not due"}
+    days = read_bucket_days(LIVE_BUCKET, now)
+    yday = (now - timedelta(days=1)).date().isoformat()
+    if yday not in days and not force:
+        st["attempts"] = int(st.get("attempts") or 0) + 1
+        return {"ran": False, "reason": "no point for %s yet" % yday, "days": sorted(days)}
+    a = sf.assess(days, cfg, st)
+    out = {"ran": True, "bucket": LIVE_BUCKET, "assessment": a, "enforce": enforce and not dry}
+    if dry:
+        return out
+    hist = st.setdefault("days", {})
+    hist.update({d: v for d, v in days.items()})
+    for old in sorted(hist)[:-30]:
+        del hist[old]
+    st.update({"day": now.date().isoformat(), "attempts": 0, "last": a})
+    level, day = a.get("level"), a.get("day")
+    if level:
+        st.setdefault("warn_days", [])
+        if day not in st["warn_days"]:
+            st["warn_days"].append(day)
+        del st["warn_days"][:-60]
+    held = []
+    if level == "warn":
+        notify("JustHodl storage: %s grew %+.0f GB (%+.1f%%) on %s" % (LIVE_BUCKET, a["delta_gb"], a["delta_pct"], day),
+               ["%s: now %.0f GB, %d objects. Nothing held; a second day of growth like this holds the hottest writer." % (
+                   a["reason"], a["gb"], a["objects"]), "Runbook: docs/ops/SPEND_GOVERNOR.md (storage fuse)."], "enforce" if enforce else "monitor")
+        record_event("storage-growth", dict(a, bucket=LIVE_BUCKET), now)
+    elif level in ("trip", "second"):
+        st.setdefault("trip_days", [])
+        if day not in st["trip_days"]:
+            st["trip_days"].append(day)
+        del st["trip_days"][:-60]
+        n = 3 if level == "second" else int(cfg["storage_hold_top"])
+        in_ledger = {e["id"] for e in ctx.ledger.values() if e.get("lever") == "lambda" and e.get("stage") in ("CAP", "FUSE", "ANOM")}
+        writers = sf.pick_writers((state.get("meter") or {}).get("daily"), day, {fn for fn in (state.get("meter") or {}).get("mtd", {}) if ctx.exempt(fn)} | {SELF}, in_ledger, n)
+        entries = [dict(x, storage_fuse=True, reason="storage fuse %s on %s: %s" % (level, day, a["reason"]))
+                   for x in lv.lambda_discover(ctx, "CAP", writers)] if writers else []
+        counts = apply_entries(ctx, entries, enforce, now) if entries else {}
+        held = [e["id"] for e in entries]
+        versioning = None
+        if level == "second":
+            versioning = suspend_versioning(st, now, enforce)
+        lines = ["%s: %s" % ("STORAGE FUSE" if enforce else "[monitor] storage fuse", a["reason"]),
+                 "%s: now %.0f GB, %d objects." % (LIVE_BUCKET, a["gb"], a["objects"]),
+                 "Hottest writers of the day %s under CAP (manual release_cap): %s" % ("held" if enforce else "would be held", held or "none identified")]
+        if level == "second":
+            lines.append("Second strike: bucket versioning %s (existing data and versions untouched; {\"action\":\"storage_restore\"} re-enables it)." % (
+                "SUSPENDED" if (versioning or {}).get("suspended") else "would be suspended"))
+        lines.append("Runbook: docs/ops/SPEND_GOVERNOR.md (storage fuse).")
+        notify("JustHodl STORAGE FUSE: %s %+.0f GB" % (LIVE_BUCKET, a["delta_gb"]), lines, "enforce" if enforce else "monitor")
+        record_event("storage-fuse" if level == "trip" else "storage-fuse-versioning",
+                     dict(a, bucket=LIVE_BUCKET, held=held, counts=counts, versioning=versioning, enforce=enforce), now)
+        out.update({"held": held, "counts": counts, "versioning": versioning})
+    try:
+        usd = s3_spend_yesterday(now)
+        st.setdefault("s3_usd", {}).update(usd)
+        for old in sorted(st["s3_usd"])[:-14]:
+            del st["s3_usd"][old]
+        y = usd.get(yday, 0.0)
+        out["s3_usd_yesterday"] = y
+        if y >= cfg["s3_usd_day_alert"] and st.get("s3_spend_day") != now.date().isoformat():
+            st["s3_spend_day"] = now.date().isoformat()
+            notify("JustHodl S3 spend: $%.2f on %s" % (y, yday), ["S3 service cost by day: %s" % json.dumps(dict(sorted(st["s3_usd"].items())[-7:])),
+                                                                 "Storage, requests and egress together. Runbook: docs/ops/SPEND_GOVERNOR.md."], "enforce" if enforce else "monitor")
+            record_event("s3-spend", {"day": yday, "usd": y, "by_day": st["s3_usd"]}, now)
+    except Exception as e:  # noqa: BLE001 - the cost line is informational
+        ctx.log("s3 spend read failed: %s" % lv.err_code(e))
+        out["s3_usd_error"] = lv.err_code(e)
+    return out
+
+
+def suspend_versioning(st, now, enforce):
+    s3 = client("s3")
+    before = s3.get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status")
+    rec = {"before": before, "at": now.isoformat(), "suspended": False}
+    if enforce and before == "Enabled":
+        s3.put_bucket_versioning(Bucket=LIVE_BUCKET, VersioningConfiguration={"Status": "Suspended"})
+        rec["suspended"] = s3.get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status") == "Suspended"
+    st["versioning"] = rec
+    return rec
+
+
+def action_storage_restore(event, context):
+    """Re-enable versioning after a second-strike suspension: {"action":"storage_restore","confirm":"versioning"}."""
+    if event.get("confirm") != "versioning":
+        return {"error": "pass confirm: versioning"}
+    now = now_utc()
+    state = s3_get_json("state.json", None) or new_state(now)
+    st = state.setdefault("storage", {})
+    s3 = client("s3")
+    before = s3.get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status")
+    if before != "Enabled":
+        s3.put_bucket_versioning(Bucket=LIVE_BUCKET, VersioningConfiguration={"Status": "Enabled"})
+    after = s3.get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status")
+    st["versioning"] = {"restored_at": now.isoformat(), "before": before, "after": after, "suspended": False}
+    s3_put_json("state.json", state)
+    record_event("storage-restore", {"before": before, "after": after, "reason": event.get("reason")}, now)
+    return {"before": before, "after": after}
+
+
+def action_storage_check(event, context):
+    """Run the storage check now: {"action":"storage_check"} (dry: evaluate and report only, default true)."""
+    now = now_utc()
+    control = load_control()
+    cfg = core.merged_cfg(control.get("thresholds"))
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    dry = event.get("dry", True) not in (False, "false", 0)
+    out = storage_check(ctx, state, cfg, now, control.get("mode") == "enforce", force=True, dry=dry)
+    if not dry:
+        s3_put_json("state.json", state)
+    return out
+
+
+def action_storage_selftest(event, context):
+    """Pure-logic scenarios through storage_fuse.assess plus the live read path (metrics + versioning status)."""
+    cfg = core.merged_cfg((load_control() or {}).get("thresholds"))
+    base = {"2026-10-18": {"gb": 1000.0, "objects": 4000000}}
+    scen = {
+        "quiet": dict(base, **{"2026-10-19": {"gb": 1010.0, "objects": 4040000}}),
+        "warn": dict(base, **{"2026-10-19": {"gb": 1000.0 + cfg["storage_warn_gb"], "objects": 4000000}}),
+        "trip": dict(base, **{"2026-10-19": {"gb": 1000.0 + cfg["storage_trip_gb"], "objects": 4000000}}),
+        "objects": dict(base, **{"2026-10-19": {"gb": 1000.0, "objects": 4000000 + int(cfg["storage_objects_trip"])}}),
+    }
+    got = {k: sf.assess(v, cfg, {}).get("level") for k, v in scen.items()}
+    got["two_warns"] = sf.assess(scen["warn"], cfg, {"warn_days": ["2026-10-18"]}).get("level")
+    got["second"] = sf.assess(scen["trip"], cfg, {"trip_days": ["2026-10-18"]}).get("level")
+    want = {"quiet": None, "warn": "warn", "trip": "trip", "objects": "trip", "two_warns": "trip", "second": "second"}
+    now = now_utc()
+    live = {}
+    try:
+        days = read_bucket_days(LIVE_BUCKET, now)
+        live["days"] = {d: v for d, v in sorted(days.items())}
+        live["versioning"] = client("s3").get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status")
+    except Exception as e:  # noqa: BLE001
+        live["error"] = lv.err_code(e)
+    return {"ok": got == want and "error" not in live, "scenarios": got, "expected": want, "live": live, "version": core.VERSION}
+
+
 def month_rollover(ctx, state, now, mode):
     old = state.get("month")
     record_event("month-close", {"month": old, "stage": state.get("stage"), "ledger_size": len(ctx.ledger),
@@ -1173,6 +1355,11 @@ def tick(event, context, trigger):
         out["egress"] = egress_check(state, ce, now, cfg, mode)
     except Exception as e:  # noqa: BLE001
         ctx.log("egress check failed: %s" % lv.err_code(e))
+    try:
+        out["storage"] = storage_check(ctx, state, cfg, now, enforce)
+    except Exception as e:  # noqa: BLE001 - the daily storage fuse must never block the cap path
+        ctx.log("storage fuse failed: %s" % lv.err_code(e))
+        out["storage"] = {"error": lv.err_code(e)}
 
     sup = state.get("suppress_until")
     suppressed = bool(sup) and core.as_utc(sup) > now
@@ -1265,7 +1452,8 @@ def action_status(event, context):
             "capped": sorted(e["id"] for e in (state.get("ledger") or {}).values() if e.get("stage") == "CAP"),
             "anomaly_held": sorted((e["id"], e.get("release_after")) for e in (state.get("ledger") or {}).values() if e.get("stage") == "ANOM"),
             "anomalies": {k: v for k, v in (state.get("anomalies") or {}).items() if k != "last"},
-            "meter": {k: v for k, v in (state.get("meter") or {}).items() if k not in ("mtd", "rate")}}
+            "meter": {k: v for k, v in (state.get("meter") or {}).items() if k not in ("mtd", "rate")},
+            "storage": {k: v for k, v in (state.get("storage") or {}).items() if k in ("day", "last", "versioning", "warn_days", "trip_days", "s3_usd")}}
 
 
 def action_plan(event, context):
@@ -1411,6 +1599,12 @@ def lambda_handler(event, context):
         return action_anomaly_selftest(event, context)
     if action == "cap_selftest":
         return action_cap_selftest(event, context)
+    if action == "storage_check":
+        return action_storage_check(event, context)
+    if action == "storage_restore":
+        return action_storage_restore(event, context)
+    if action == "storage_selftest":
+        return action_storage_selftest(event, context)
     if action == "fuse_check":
         now = now_utc()
         control = load_control()

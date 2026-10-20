@@ -165,3 +165,24 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
 * Normal run-rate before the loop was ~$24/day (~$730/month) - above $500. Cuts shipped 2026-10-16:
   justhodl-ai caches Cost Explorer 6 h (~$1.6/day), fleet-error-monitor hourly v1.2.0 (~$5.5/day).
   If the run-rate still exceeds ~$16/day the governor will BRAKE late in the month.
+
+## v1.5.0 (2026-10-20) - storage fuse: brakes for the bucket itself
+
+Khalid: ~500 GB on data.html must never be erased; anomalies must not run the bill up.  Lambda storms stop within
+~2 h (fuses, $50 cap); old copies are capped at 10 per file by the bucket-wide lifecycle rule (ops 6571); what is
+left is a writer creating millions of new objects.  Once a day (first tick at or after 05:00 UTC, when the free daily
+S3 metrics of the previous day are in; retried hourly until they are), `storage_fuse.py` assesses the live bucket:
+
+| Level | Condition (growth over the last complete day) | Action |
+|---|---|---|
+| warn | >= `storage_warn_gb` (150) or `storage_warn_pct` (20%) or `storage_objects_warn` (500k objects) | event `storage-growth` (an issue for Khalid); nothing held |
+| trip | >= `storage_trip_gb` (500) / `storage_trip_pct` (50%) / `storage_objects_trip` (2 M), or a warn day right after a warn day | the hottest writer of that day (meter's daily record, by Lambda cost) held under CAP (manual `release_cap`); event `storage-fuse` |
+| second | a trip the day after a trip | bucket versioning SUSPENDED (no new old copies; every existing object and version untouched), the next three writers held; event `storage-fuse-versioning`; `{"action":"storage_restore","confirm":"versioning"}` re-enables |
+| spend | yesterday's S3 service cost (Cost Explorer by SERVICE, one $0.01 call a day) >= `s3_usd_day_alert` ($10) | event `s3-spend` |
+
+Current objects are never touched by anything here or by the lifecycle rules.  Monitor mode reports and holds
+nothing.  Actions: `storage_check` (dry by default: evaluate and report, record nothing), `storage_selftest`
+(six scenarios through the pure logic + the live read path), `storage_restore`.  Rights: ops 6572 (ListMetrics;
+Get/PutBucketVersioning on the live bucket only).  State: `state.storage` {day, days (30), warn_days, trip_days,
+versioning, s3_usd, last}.  The weekly ~140 GB Monday write (census 2026-10-20) sits under the warn line by design.
+
