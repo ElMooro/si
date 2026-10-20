@@ -7,7 +7,7 @@
   "timeout": 900,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/justhodl-spend-governor-role",
-  "description": "v1.4.0 (ops 6561) - $600 cap (budget JustHodl-Monthly-Hard-Cap-600): brake/freeze, runaway + diffuse fuses, $50/month per-engine kill switch, anomaly sentinel (per-engine baselines, auto-hold/auto-release), cadence sentinel, egress alert",
+  "description": "v1.4.2 (microsecond event stamps; ops 6561) - $600 cap (budget JustHodl-Monthly-Hard-Cap-600): brake/freeze, runaway + diffuse fuses, $50/month per-engine kill switch, anomaly sentinel (per-engine baselines, auto-hold/auto-release), cadence sentinel, egress alert",
   "env": {
     "BUDGET_NAME": "JustHodl-Monthly-Hard-Cap-600",
     "STATE_BUCKET": "justhodl-ops-private-857687956942",

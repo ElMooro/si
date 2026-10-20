@@ -42,11 +42,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pip install --quiet boto3
+          pip install --quiet boto3 >/dev/null
           gh label create governor --repo "$REPO" --color B60205 --force \
             --description "Automatic notice from justhodl-spend-governor (cap / anomaly / fuse / stage)" >/dev/null 2>&1 || true
           python3 - <<'PY'
-          import json, os, subprocess
+          import json, os, re, subprocess
           import boto3
           B = os.environ["BUCKET"]
           REPO, OWNER = os.environ["REPO"], os.environ["OWNER"]
@@ -98,8 +98,9 @@ jobs:
           made = 0
           for key in keys[:BATCH]:
               stem = key.rsplit("/", 1)[-1]
-              kind = stem[17:-5] if stem.endswith(".json") else stem[17:]     # <YYYYMMDDTHHMMSSZ>-<kind>.json
-              if kind in SKIP or not any(kind == w or (w.endswith("-") and kind.startswith(w)) for w in WANT):
+              m = re.match(r"^\d{8}T\d{6}(?:\.\d+)?Z-(.+?)(?:\.json)?$", stem)    # <stamp>-<kind>.json (microsecond stamp since v1.4.2)
+              kind = m.group(1) if m else ""
+              if not kind or kind in SKIP or not any(kind == w or (w.endswith("-") and kind.startswith(w)) for w in WANT):
                   continue
               body = json.loads(s3.get_object(Bucket=B, Key=key)["Body"].read())
               fns = []

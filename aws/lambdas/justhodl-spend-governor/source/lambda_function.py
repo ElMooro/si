@@ -145,7 +145,9 @@ def new_state(now):
 
 
 def record_event(kind, body, now):
-    s3_put_json("events/%s-%s.json" % (now.strftime("%Y%m%dT%H%M%SZ"), kind), dict(body, kind=kind, at=now.isoformat()))
+    """One immutable record per event: events/<YYYYMMDDTHHMMSS.ffffffZ>-<kind>.json.  v1.4.2: microsecond stamp - with
+    a one-second stamp two holds issued in the same second (ops 6563, 20:55:54) overwrote each other."""
+    s3_put_json("events/%sZ-%s.json" % (now.strftime("%Y%m%dT%H%M%S.%f"), kind), dict(body, kind=kind, at=now.isoformat()))
 
 
 def notify(subject, lines, mode):

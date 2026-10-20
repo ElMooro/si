@@ -51,7 +51,7 @@ Exempt by default: `justhodl-spend-governor`, `justhodl-guardrail-notify`, `just
 | Runaway alarms (ops 6541) | `justhodl-runaway-concurrency` (account avg > 100 for 3x5 min), `justhodl-runaway-invocations` (> 8,000 per 5 min, 3x), `justhodl-runaway-duration` (> 20M ms per 5 min, 3x) - normal Sep 15-Oct 11 never held above 17.7 / 5,303 / 4.8M for 15 min; the Oct 12 storm held 760 / 35,302 / 227M |
 | State | `s3://justhodl-ops-private-857687956942/spend-governor/state.json` (private, versioned) |
 | Control | `s3://justhodl-ops-private-857687956942/spend-governor/control.json` - `mode` (monitor/enforce), `cap_overrides` per month, `exempt_functions`, `exempt_prefixes`, `brake_always`, `thresholds` |
-| Audit | `spend-governor/events/<ts>-<kind>.json` (every escalation, restore, fuse trip) |
+| Audit | `spend-governor/events/<YYYYMMDDTHHMMSS.ffffffZ>-<kind>.json` (every escalation, restore, fuse trip, cap, anomaly, hold; microsecond stamp since v1.4.2 so same-second events never collide). Relayed hourly into GitHub issues by `.github/workflows/governor-alerts.yml` |
 | Alerts | SNS `justhodl-fleet-alerts` (email + Telegram) and the Budget's own emails at 50/80/90/100% and forecast 100% |
 | Dead-man alarms | `justhodl-spend-governor-heartbeat` (no tick for 3 h), `justhodl-spend-governor-errors` |
 | Kill-switch canary | `justhodl-spend-governor-canary` - the only function `{"action":"selftest"}` may throttle |
