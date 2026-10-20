@@ -70,8 +70,8 @@ def test_dry_run_then_apply_reach_the_floor_and_update_the_s3_manifests(monkeypa
         (root / "config").mkdir()
         (root / "config/cadence-plan.json").write_text(json.dumps(plan), encoding="utf-8")
         (root / "config/cadence-floor.json").write_text(json.dumps(floor), encoding="utf-8")
-        (root / "config/fanout-manifest.json").write_text("repo copy differs on purpose", encoding="utf-8")
-        (root / "config/schedule-manifest.json").write_text("repo copy differs on purpose", encoding="utf-8")
+        (root / "config/fanout-manifest.json").write_text('{"repo copy": "differs on purpose"}', encoding="utf-8")
+        (root / "config/schedule-manifest.json").write_text('{"repo copy": "differs on purpose"}', encoding="utf-8")
         fake_boto = types.SimpleNamespace(client=lambda svc, **kw: {"events": ev, "scheduler": sc, "s3": s3}[svc])
         sys.modules["boto3"] = fake_boto
         sys.modules.setdefault("botocore", types.ModuleType("botocore"))

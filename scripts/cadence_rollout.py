@@ -47,12 +47,17 @@ def manifest_edits(s3, plan, final, log):
         repo = (ROOT / key).read_text(encoding="utf-8")
         if key.endswith("fanout-manifest.json"):
             fan = json.loads(old)
-            if json.dumps(fan, indent=1, ensure_ascii=False) + "\n" != old:
-                out[key] = (old, None, "S3 copy does not round-trip; left alone - fix by hand")
-                continue
+            style = next(((ind, ea, nl) for ind in (1, 2, None) for ea in (False, True) for nl in ("\n", "")
+                          if json.dumps(fan, indent=ind, ensure_ascii=ea) + nl == old), None)
             removed = cp.apply_fanout(fan, plan["fanout_removals"])
-            new = json.dumps(fan, indent=1, ensure_ascii=False) + "\n"
-            note = "%d function(s) leave a tick" % len(removed)
+            ind, ea, nl = style or (1, False, "\n")
+            new = json.dumps(fan, indent=ind, ensure_ascii=ea) + nl
+            note = "%d function(s) leave a tick%s" % (len(removed), "" if style else " (S3 copy reformatted: no known style)")
+            if json.loads(new) == json.loads(repo):
+                note += "; same content as the committed repo file"
+                log("%s: %s" % (key, note))
+                out[key] = (old, new if new != old else None, note)
+                continue
         else:
             new, n = cp.apply_schedule_manifest(old, plan["actions"], final)
             note = "%d entries changed" % n
