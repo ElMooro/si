@@ -6,15 +6,19 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0. Confirm the AWS alert email (1 click) - re-sent 2026-10-20
+### 0. Confirm the AWS alert email (1 click) - re-sent 2026-10-20; no longer the only channel
 
 The October 16 confirmation link was never clicked and expired, so **no e-mail alerts reached you during the
 $2,800 month**. On 2026-10-20 (ops 6558) a fresh e-mail titled **"AWS Notification - Subscription Confirmation"**
 for topic `justhodl-fleet-alerts` was sent to the same address as your AWS Budgets e-mails. Click **Confirm
-subscription** within 3 days. Until you do, the spend governor's stage changes (BRAKE / FREEZE at the $600 cap),
-the runaway and diffuse-storm fuses, the daily once-a-day cadence sentinel and the S3 egress alert only reach
-Telegram, whose bot token still returns 401 (item 0b). AWS Budgets' own 50/80/90/100% and $30/day e-mails and
-the Cost Anomaly e-mails reach you without confirmation. If the link has expired, tell Claude and it is re-sent.
+subscription** (the link lives 3 days; if it has expired, tell Claude and it is re-sent). Only you can click it.
+
+**Since 2026-10-20 21:32 UTC there is a channel that needs no click:** `.github/workflows/governor-alerts.yml` turns
+every spend-governor event (engine shut down by the $50 cap, anomaly hold / release, fuse trip, BRAKE / FREEZE,
+cadence fix, error storm, operator hold / release) into a GitHub issue labelled `governor` within the hour, and
+GitHub e-mails you as the repository owner (issues #116 and #117 were the first two, real events). Close an issue
+once you have addressed it. AWS Budgets' own 50/80/90/100% and $30/day e-mails and the Cost Anomaly e-mails reach
+you without confirmation as before.
 
 ### 0b. New Telegram bot token (optional, 2 min)
 
@@ -29,13 +33,20 @@ Oct 17 (ops 6520/6521, deploy gate `scripts/event_graph.py`). If you want event 
 Claude "release the coordinator and the miss-calibrator" and it runs
 `{"action":"release_cap","function":"<name>","confirm":"<name>"}` for each; the $50 counter then starts from zero.
 
-### 0c. Site egress: route the remaining direct-to-S3 reads through the Worker (decision)
+### 0e. Two engines have pages and tests but no schedule - say if you want them running
 
-About 13 GB/day of the live bucket's traffic is browsers (mostly Safari / Apple private relay) fetching
-`data/*.json` straight from S3 because hundreds of pages hard-code the bucket URL. Routing them through
-`justhodl.ai/data/*` (the Cloudflare Worker, cached at the edge) would remove most of what is left of the
-$4.70/day egress line. It touches many pages, so it is a decision for you: say "route the pages through the
-worker" and Claude does it behind the page-deploy gates.
+`justhodl-tape-truth` (tape-truth.html) and `justhodl-industry-case` (industry-case.html) were kept out of the
+2026-10-20 deletion because pages and tests bind them, but neither has ever had a trigger, so their pages show
+whatever was last written. Say "schedule tape-truth and industry-case daily" and Claude adds one daily schedule
+each (the $50 cap and the anomaly sentinel cover them like any engine); otherwise they stay as they are.
+
+### 0c. Site egress - DONE 2026-10-20 (worker routing live)
+
+212 hard-coded S3 data URLs, 13 base constants and 6 preconnects in 158 pages now read `https://justhodl.ai/data/*`
+(Cloudflare Worker, edge-cached); Pages run 39501122425 deployed it, ops 6567 verifies the served pages. Eight
+byte-pinned pages (alpha-scoreboard, bonds, correlation, master-rank, opportunities, why, private-artifacts.js,
+jh-ticker-research.js) still read S3 until their preservation chains are extended. The egress saving is confirmed
+from the access logs after Nov 1 (the fleet is frozen until then, so October traffic is not representative).
 
 ### 1. PAT Rotation — ⚠️ 6 DAYS OVERDUE (was due 2026-05-25)
 

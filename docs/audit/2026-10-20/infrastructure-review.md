@@ -89,18 +89,30 @@ openbb-system2-api, ultimate-multi-agent). Zero cost while idle; deleting them i
 from May 2026 (autonomous-ai-processor, global-liquidity-agent-v2, google-trends-agent, multi-agent-orchestrator,
 ultimate-multi-agent) - all in the idle set.
 
-## 4. What I changed and what needs Khalid's word
+## 4. What changed (all verified on AWS or on the served site)
 
-Changed today (all verified): cadence floor; $600 cap; $50/engine kill switch; anomaly sentinel; CloudWatch
-polling and fusion metrics; crawler block + edge copy; public-URL caps; alert channel re-sent.
+Morning (sections 1-3): cadence floor; $600 cap; $50/engine kill switch; anomaly sentinel; CloudWatch polling and
+fusion metrics; crawler block + edge copy; public-URL caps; alert channel re-sent.
 
-Khalid's word needed (each a one-line reply):
-- "switch off the orphans and the broken writers" (11 functions: disable their triggers; reversible);
-- "delete the idle functions" (45 functions, zero cost, housekeeping);
-- "merge the blackswan seven" (a design change: one puller + seven compute steps; a day of work, saves little
-  money but removes seven duplicate writers);
-- "route the pages through the worker" (egress; KHALID_ACTIONS.md 0c);
-- the noncurrent-version lifecycle rule (0d in the action queue), and the two October loop engines under CAP.
+Afternoon, on Khalid's word ("implement every single one of these", 16:16):
+
+| Item | Done | Evidence |
+|---|---|---|
+| **Switch off the orphans and the broken writers** (11) | 8 enabled triggers set DISABLED (full definitions backed up), 3 fan-out memberships removed, 3 API/URL-only functions (macro-financial-intelligence, ofrapi, treasury-api) held at concurrency 0 under the governor's operator hold (stage CAP, manual release) | `ops_6563_retire_engines.md`; `config/retire-plan-2026-10-20.json`, `config/retired-engines.json`; `tests/deployment/test_retired_engines.py` keeps them off |
+| **Delete the idle functions** | **22 deleted** (packages + configuration + URL config + tags backed up to `backups/deleted-functions/20261020T205550Z/`, code moved to `aws/lambdas-retired/`); fleet 926 -> 904. Of the 45 candidates, 21 were kept because a page, a test, a workflow or an engine still names them (5 page-URL handlers: investor-agents, portfolio-admin, push-api, stock-ai-research, openbb-system2-api; 5 test/page-bound: tape-truth, industry-case, earnings, alert-router, ask-desk; 11 referenced in code/workflows: ecb, activist-13d, asymmetric-scorer, brain-sync, calibration-snapshot, daily-macro-report, eurostat-history, history-api, subscribe, tenor-signal-interpreter, transcript-query). **Two deletions were wrong and were reverted the same evening** (ops 6565): `justhodl-insider-cluster-scanner` - no trigger since early August, but `data/insider-clusters.json` is declared by insider-desk.html and read by 22 engines (199 fetches/day) - restored from the backup (package == repo source) and given a daily 13:50 UTC schedule ahead of insider-industry-cluster; `justhodl-warroom-weights` - a *monthly* engine (last run Oct 1) feeding canary-warroom - restored, its monthly schedule had survived. Lesson recorded in the retire plan: "no invocation in 27 days" is not idleness for a monthly job, and "no trigger" is not idleness when consumers exist. The one dangling trigger (multi-agent-orchestrator-schedule -> deleted state machine target) was deleted; the deployed schedule manifest now equals the committed one (ops 6566) | `ops_6563_retire_engines.md`, `ops_6565_restore_two_engines.md`, `ops_6566_schedule_manifest_sync.md` |
+| **Merge the blackswan seven** | One shared resolver ladder `aws/shared/blackswan_resolver.py` (23 functions, verbatim) imported by all seven; each engine shrank by ~800 lines of duplicated code; the seven now run in a fixed daily sequence - blackswan-watch 02:10 UTC fills the warm cache, the six readers follow 03:10-04:25 (manifest `config/blackswan-sequence-2026-10-20.json`), so the warm set is pulled once a day instead of seven times. Deploy 39498043598 green (gate 1,142 tests); contracts review re-bound (`scripts/review_output_roles.py`). Live smoke run after the Nov 1 thaw | commit 09240e69, `ops_6564_blackswan_sequence.md` |
+| **Route the pages through the worker** | 212 S3 data URLs, 13 base constants, 6 preconnects in 158 pages -> `https://justhodl.ai/data/*`; 8 byte-pinned pages left on S3 until their preservation chains are extended. Pages deploy 39501122425 green after the gate fix below; ops 6567 fetches the served pages and the data through the edge | commit 51375e6f, `ops_6567_worker_routing_verify.md` |
+| **Alert channel** | The SNS e-mail still needs Khalid's click, so a click-free channel was added: `.github/workflows/governor-alerts.yml` relays every governor event record into a GitHub issue (label `governor`) hourly; GitHub e-mails the owner. First run opened #116/#117 from real events and exposed a governor bug (same-second events overwrote each other) - fixed, v1.4.2 | run 39501170971 |
+
+**What the gate caught (and why the first Pages deploy failed):** the Pages build regenerates `engine-manifest.json`
+from the Lambda sources; insider-desk.html declared the deleted scanner as its producer, and the blackswan merge
+moved the warm-cache writers out of the files the output-roles review had hashed. Both are now covered by a local
+replica of the build (`scripts/review_output_roles.py` for the review; the runner's Python 3.12 for the hashes).
+
+Still Khalid's word: the noncurrent-version lifecycle rule (storage is growing again), the two October loop engines
+under CAP (KHALID_ACTIONS 0d), tape-truth / industry-case schedules (0e), and the ECB catalog: `justhodl-ecb-full-catalog`
+was deleted as idle, its `data/warm/ecb/catalog.json.gz` (Aug 18) is still read ~1,800 times a day by sdmx-walker and
+symdir; the catalog is a reference list that rarely changes, so this is fine until the SDMX walker needs new series.
 
 ## 5. Performance and accuracy
 

@@ -141,7 +141,13 @@ Dry run any time: `{"action":"fast_fuse"}` (same path as an alarm).
 * e-mail from SNS `justhodl-fleet-alerts` - every alarm above and every governor action - **only after Khalid
   clicks "Confirm subscription"** in the AWS e-mail (KHALID_ACTIONS.md item 0; the Oct 16 link expired unclicked,
   re-sent 2026-10-20 by ops 6558). Telegram (`justhodl-guardrail-notify`) answers 401 Unauthorized: its bot
-  token is dead until Khalid issues a new one.
+  token is dead until Khalid issues a new one;
+* **GitHub issues, no click needed (2026-10-20)**: `.github/workflows/governor-alerts.yml` runs hourly, reads the
+  governor's event records (`spend-governor/events/`, private bucket) newer than its marker and opens one issue per
+  event that matters (engine-cap, anomaly / anomaly-release, fuse / fast-fuse, escalate / deescalate / force,
+  cadence, error-storm, release-cap, operator-hold, restore, month-close), label `governor`, @-mentioning the
+  owner - GitHub e-mails it. Proven on real events (issues #116, #117). Exempt from the cadence floor as control
+  plane. If GitHub itself is down the SNS / Budgets paths still stand.
 
 ## Operating
 

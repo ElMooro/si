@@ -130,8 +130,8 @@ The two heaviest "engines" were monitoring engines polling AWS APIs ($10 of the 
    October's loop) come back on Nov 1: say "release the coordinator" / "release the miss-calibrator" and Claude
    runs `release_cap`; otherwise the event bus stays silent after the thaw.
 2. Optional: a new Telegram bot token for `justhodl-guardrail-notify`.
-3. Decide on routing the pages' data reads through the Worker (0c) and on re-enabling the noncurrent-version
-   lifecycle rule on the live bucket.
+3. ~~Decide on routing the pages' data reads through the Worker (0c)~~ done 2026-10-20 evening (section 7); decide
+   on re-enabling the noncurrent-version lifecycle rule on the live bucket.
 
 ## 6. Caveats
 
@@ -144,3 +144,38 @@ The two heaviest "engines" were monitoring engines polling AWS APIs ($10 of the 
   for egress is an estimate until the access logs confirm it (tomorrow's logs).
 * The fleet stays frozen until the 2026-11-01 00:07 UTC tick; the freeze-resume workflow re-enables the 11
   scheduled GitHub jobs right after. The first full once-a-day day is Nov 1.
+
+## 7. Evening additions (16:16 request) and the new monthly charge
+
+Done after the table above was built (details in `infrastructure-review.md` section 4): orphans / broken writers
+switched off (11), 22 idle functions deleted (two of the 24 reverted the same evening - a scanner that feeds 22
+engines and a monthly engine; see the review), the blackswan seven merged onto one shared resolver and sequenced,
+the pages routed through the Worker, the fusion metrics switched off, and a click-free alert channel (governor
+events -> GitHub issues, hourly).
+
+**October** (the month of the loop): **$2,803.62** through Oct 19 is the exact figure AWS Budgets reports. The
+fleet is frozen for Oct 20-31; frozen days measured $10.13 before today's egress fixes, of which $8.09 was site
+egress (crawler era). With the crawler blocked, the edge copy and the pages routed, a frozen day should run about
+$3-4 (storage $1.13, egress ~$0.6-1, governor meter $0.36, secrets/ECR/DNS/EBS ~$0.3, residual requests), so
+October closes near **$2,850** (between $2,845 and $2,925 if egress does not fall as expected). AWS finalises the
+invoice in the first days of November; the budget and the engine-cost dashboard show the live month-to-date.
+
+**November and after** - the projection, per day and per month (30-day month), from the per-engine model:
+
+| Line | $/day | Basis |
+|---|---|---|
+| Engines at once-a-day cadence (904 functions, 759 scheduled firings/day) | 4.99 | section 3 |
+| minus fusion custom metrics (switched off) | -0.85 | 108 metrics x $0.30/month |
+| minus the 33 engines switched off / deleted | -0.00 | they cost $0.003/day |
+| plus insider-cluster-scanner back on a daily schedule | +0.02 | 1.5 GB x ~10 min |
+| Platform: storage 1.13, egress ~0.6 (was 1.20 in the morning estimate; most direct-to-S3 reads now go to the edge), factory jobs 1.05, DynamoDB 0.13, alarms/logs 0.24, secrets/ECR/DNS/EBS/KMS/SSM 0.32, unattributed S3 requests 0.40, other metrics 0.12 | 4.00 | platform table (ops 6557) |
+| **Account** | **8.15/day = $244.59 per 30-day month** ($252.74 for 31 days) | |
+
+Honest band: **$235-$275 a month**. What moves it: site egress (the one line not yet measured after today's
+changes: +/- $0.4/day), S3 noncurrent versions if the lifecycle rule stays off (storage was $0.64/day before Oct 19,
+$1.13 now and rising: up to +$15/month), and the factory's SageMaker jobs ($31/month, unchanged by anything today).
+What cannot move it past the line: the $600 budget with brake at ~$440 and freeze at ~$480, the $50/month kill
+switch per engine, the hourly runaway fuses and the anomaly sentinel. The two October loop engines stay off (CAP)
+unless released. The number is a projection from measured per-engine costs, not a bill; the first full once-a-day
+month is November, and the governor's `meter` records the actual Lambda spend per engine as it accrues.
+
