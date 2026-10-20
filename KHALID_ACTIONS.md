@@ -6,16 +6,28 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0. Confirm the AWS alert email (1 click) - added 2026-10-16
+### 0. Confirm the AWS alert email (1 click) - re-sent 2026-10-20
 
-AWS sent an email titled **"AWS Notification - Subscription Confirmation"** for topic `justhodl-fleet-alerts`.
-Click **Confirm subscription**. Until you do, the runaway alarms and the $500 spend governor's stage changes
-(BRAKE / FREEZE / restore / runaway stopped) only reach Telegram, whose bot token has been returning 401. AWS
-Budgets' own 50/80/90/100% and $40/day emails and the Cost Anomaly emails already reach you without
-confirmation. The link expires 3 days after it was sent (Oct 16); if it has, tell Claude and it resends it.
-Nothing else is needed: the alarms already stop a runaway on their own (docs/ops/RUNAWAY_GUARDRAILS.md).
+The October 16 confirmation link was never clicked and expired, so **no e-mail alerts reached you during the
+$2,800 month**. On 2026-10-20 (ops 6558) a fresh e-mail titled **"AWS Notification - Subscription Confirmation"**
+for topic `justhodl-fleet-alerts` was sent to the same address as your AWS Budgets e-mails. Click **Confirm
+subscription** within 3 days. Until you do, the spend governor's stage changes (BRAKE / FREEZE at the $600 cap),
+the runaway and diffuse-storm fuses, the daily once-a-day cadence sentinel and the S3 egress alert only reach
+Telegram, whose bot token still returns 401 (item 0b). AWS Budgets' own 50/80/90/100% and $30/day e-mails and
+the Cost Anomaly e-mails reach you without confirmation. If the link has expired, tell Claude and it is re-sent.
 
-Runbook: `docs/ops/SPEND_GOVERNOR.md`.
+### 0b. New Telegram bot token (optional, 2 min)
+
+`justhodl-guardrail-notify` gets 401 Unauthorized from Telegram. Create a new token with @BotFather and tell
+Claude; the SSM parameter is swapped by an ops script (never paste the token in chat or in the repo).
+
+### 0c. Site egress: route the remaining direct-to-S3 reads through the Worker (decision)
+
+About 13 GB/day of the live bucket's traffic is browsers (mostly Safari / Apple private relay) fetching
+`data/*.json` straight from S3 because hundreds of pages hard-code the bucket URL. Routing them through
+`justhodl.ai/data/*` (the Cloudflare Worker, cached at the edge) would remove most of what is left of the
+$4.70/day egress line. It touches many pages, so it is a decision for you: say "route the pages through the
+worker" and Claude does it behind the page-deploy gates.
 
 ### 1. PAT Rotation — ⚠️ 6 DAYS OVERDUE (was due 2026-05-25)
 

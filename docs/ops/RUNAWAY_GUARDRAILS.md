@@ -64,6 +64,20 @@ config on the same functions: 1 retry, 15-minute maximum event age (the storm ke
 events alive). The coordinator's bus-rule target: 2 retries, 15 minutes (EventBridge's default is 24 h / 185).
 During the October freeze the governor holds them at 0; its ledger restores these caps on Nov 1.
 
+Public Function URLs (ops 6558, 2026-10-20): all 153 Function URLs have AuthType NONE, so anyone on the
+internet can invoke them. The 102 heavy ones (>= 2 s average or >= 1 GB; e.g. thesis-engine at 3 GB x 10 min
+= ~$0.03 a call) now have reserved concurrency 2: at most two copies run at once whatever a caller does, so a
+flood costs cents an hour instead of dollars a minute. The governor holds them at 0 until Nov 1 and restores
+them to 2 (recorded in its ledger). If a site feature starts answering 429, raise that one function's reserved
+concurrency (`aws lambda put-function-concurrency`) rather than removing the cap. Lightweight API handlers
+(51 functions) are uncapped. Backup of previous values: `backups/url-caps/` in the private bucket.
+
+Cadence floor (ops 6552-6554, 2026-10-20): every engine runs at most once per 24 hours. 341 triggers were
+retimed or switched off (8,081 -> 759 scheduled firings a day); `tests/deployment/test_cadence_floor.py` fails
+any deploy that declares a faster schedule (engine config, manifest, fan-out tick, GitHub workflow or Worker
+cron); the governor's daily sentinel retimes anything that reappears in the account. Exemptions, each with a
+reason: `config/cadence-floor.json`.
+
 ## Layer 4 - fast fuse
 
 | Alarm | Signal (account level, AWS/Lambda) | Threshold, 3 x 5 min | Normal max held 15 min | Oct 12 storm |
@@ -85,22 +99,29 @@ Dry run any time: `{"action":"fast_fuse"}` (same path as an alarm).
 
 ## Layer 5 - money backstops
 
-* Spend governor (hourly): two-strike runaway fuse, BRAKE/FREEZE against the $500 monthly budget
-  (`docs/ops/SPEND_GOVERNOR.md`).
-* AWS Budgets `JustHodl-Daily-Spend-Guard`: $40/day actual -> e-mail (same address as the monthly budget, no
-  confirmation needed) + the governor. Normal days cost $15-24.
+* Spend governor v1.2.0 (hourly): two-strike runaway fuse, diffuse-storm fuse (fleet >= $75/day with no single
+  hot function), BRAKE/FREEZE against the **$600** monthly budget `JustHodl-Monthly-Hard-Cap-600`
+  (`docs/ops/SPEND_GOVERNOR.md`). With the once-a-day cadence a normal day is projected at ~$10 (~$300/month).
+* AWS Budgets `JustHodl-Daily-Spend-Guard`: $30/day actual -> e-mail (same address as the monthly budget, no
+  confirmation needed) + the governor.
 * Cost Anomaly Detection `Default-Services-Subscription`: daily e-mail at >= $25 and >= 20% impact (was $100 and 40%).
 * `justhodl-s3-live-bucket-size`: Standard storage of `justhodl-dashboard-live` > 2 TB (normal 0.6-1.0 TB).
 * Lifecycle `ops6541-bound-noncurrent-versions` on `justhodl-dashboard-live`: every object keeps its 10 newest
   previous versions; older noncurrent versions expire after 1 day. A rewrite storm on one key can no longer
   accumulate more than a day of copies (`data/` and `system-events/` already expire all noncurrent after 1 day).
+  **Disabled by Khalid on 2026-10-19 (ops 6544)**: noncurrent versions now accumulate again (S3 storage went from
+  $0.64 to $1.13 a day in the frozen window and keeps growing); the bucket-size alarm is the only backstop.
+* S3 egress: the governor e-mails once a day when the previous day's data-transfer-out exceeds $5 (~55 GB).
+  Crawlers (Lightpanda) are denied by bucket policy (ops 6549); the Worker keeps a revalidated edge copy of the
+  large publications (ops 6551), so the site no longer re-reads them from S3 on every request.
 
 ## Alerts reach Khalid by
 
 * e-mail from AWS Budgets and Cost Anomaly Detection (confirmed, direct);
 * e-mail from SNS `justhodl-fleet-alerts` - every alarm above and every governor action - **only after Khalid
-  clicks "Confirm subscription"** in the AWS e-mail (KHALID_ACTIONS.md item 0). Telegram (`justhodl-guardrail-notify`)
-  answers 401 Unauthorized: its bot token is dead until Khalid issues a new one.
+  clicks "Confirm subscription"** in the AWS e-mail (KHALID_ACTIONS.md item 0; the Oct 16 link expired unclicked,
+  re-sent 2026-10-20 by ops 6558). Telegram (`justhodl-guardrail-notify`) answers 401 Unauthorized: its bot
+  token is dead until Khalid issues a new one.
 
 ## Operating
 
