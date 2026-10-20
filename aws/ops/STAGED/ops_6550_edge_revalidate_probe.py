@@ -1,4 +1,4 @@
-"""ops 6550 - read-only proof that the data-proxy's revalidated edge copy works on the live site (ops 6551 deploy).
+"""ops 6550 (rerun after the request.cf rework, commit 12246d7f) - read-only proof that the data-proxy's revalidated edge copy works on the live site (ops 6551 deploy).
 
 Why: 58 GB/day of the bucket's egress is the worker re-reading the same 1-15 MB files from S3.  The worker now keeps
 a copy per Cloudflare location and reuses it only when S3 answers a conditional GET with 304.  This probe checks, from
@@ -22,9 +22,11 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 
 SITE = "https://justhodl.ai"
 S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com"
+# mutable publications (fresh reads): the second answer must be REVALIDATED and never stale
 KEYS = ["data/share-flows.json", "data/best-setups.json", "data/forensic-screen.json",
-        "data/provider-fund-flow-research.json", "data/dark-pool.json", "data/futures-research.json",
-        "data/estimate-revisions.json", "data/buyback-engine.json"]
+        "data/provider-fund-flow-research.json", "data/dark-pool.json", "data/futures-research.json"]
+# ordinary files keep their TTL cache (here 5 minutes at the edge): informational only, no REVALIDATED expected
+ORDINARY = ["data/estimate-revisions.json", "data/buyback-engine.json"]
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36 jh-ops-6550"
 
 
@@ -67,6 +69,12 @@ def main():
                 bad.append("%s second answer status %s" % (key, s2))
             if h4.get("x-edge-cache") == "REVALIDATED":
                 bad.append("%s ?exact=1 used a revalidated copy" % key)
+        for key in ORDINARY:
+            s1, h1 = head("%s/%s" % (SITE, key))
+            s2, h2 = head("%s/%s" % (SITE, key))
+            r.log("%s | ordinary file: %s %s / %s %s cc=%s" % (key, s1, h1.get("x-edge-cache"), s2, h2.get("x-edge-cache"), h2.get("cache-control")))
+            if h2.get("x-edge-cache") == "REVALIDATED":
+                bad.append("%s is not a mutable publication but was REVALIDATED" % key)
         bucket = {ua: head("%s/data/master-ranker.json" % S3, ua)[0] for ua in ("Lightpanda/1.0", UA)}
         r.log("bucket: Lightpanda -> %s (want 403), browser -> %s (want 200)" % (bucket["Lightpanda/1.0"], bucket[UA]))
         if bucket["Lightpanda/1.0"] != 403 or bucket[UA] != 200:
