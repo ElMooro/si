@@ -803,7 +803,7 @@
    "expr": "cron(0 6 ? * MON *)",
    "kind": "events",
    "name": "ecb-weekly-update",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:ecb-auto-updater",
@@ -873,7 +873,7 @@
    "expr": "cron(0 4 ? * TUE *)",
    "kind": "events",
    "name": "engine-robustness-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-engine-robustness",
@@ -4351,7 +4351,7 @@
    "expr": "cron(30 16 ? * WED,THU *)",
    "kind": "events",
    "name": "justhodl-ici-flows-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ici-flows",
@@ -4617,7 +4617,7 @@
    "expr": "cron(56 20 * * ? *)",
    "kind": "events",
    "name": "justhodl-kill-switch-check",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-kill-switch",
@@ -7315,7 +7315,7 @@
    "expr": "rate(1 day)",
    "kind": "events",
    "name": "macro-financial-daily-execution",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:macro-financial-intelligence",
@@ -11305,7 +11305,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-hist-banker-weekly",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -12745,7 +12745,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-sec-bulk-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {
@@ -13495,7 +13495,7 @@
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-transcript-indexer-daily",
-   "state": "ENABLED",
+   "state": "DISABLED",
    "timezone": "UTC",
    "targets": [
     {

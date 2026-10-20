@@ -27,11 +27,9 @@
    "justhodl-sector-earnings-diffusion",
    "justhodl-theme-rotation-engine",
    "justhodl-volatility-squeeze-hunter",
-   "ofrapi",
    "permanent-market-intelligence",
    "scrapeMacroData",
-   "treasury-auto-updater",
-   "ultimate-multi-agent"
+   "treasury-auto-updater"
   ],
   "daily-eve": [
    "bls-employment-api-v2",
@@ -44,7 +42,6 @@
    "justhodl-watchlist-debate"
   ],
   "daily-06utc": [
-   "ecb-data-daily-updater",
    "justhodl-theme-detector"
   ],
   "daily-16utc": [
@@ -117,15 +114,6 @@
    "per_day": 1.0,
    "ticks": [
     "daily-morn"
-   ]
-  },
-  "ecb-data-daily-updater": {
-   "fired_hours": [
-    6
-   ],
-   "per_day": 1.0,
-   "ticks": [
-    "daily-06utc"
    ]
   },
   "justhodl-ab-test": {
@@ -614,15 +602,6 @@
     "daily-17utc"
    ]
   },
-  "ofrapi": {
-   "fired_hours": [
-    11
-   ],
-   "per_day": 1.88,
-   "ticks": [
-    "daily-morn"
-   ]
-  },
   "permanent-market-intelligence": {
    "fired_hours": [
     11
@@ -649,14 +628,6 @@
    "ticks": [
     "daily-morn"
    ]
-  },
-  "ultimate-multi-agent": {
-   "fired_hours": [],
-   "per_day": 3.69,
-   "ticks": [
-    "daily-morn"
-   ],
-   "defaulted": true
   }
  },
  "doctrine": "This is the fan-out router's manifest. config/schedule-manifest.json is the declarative rules/schedules snapshot and must never be written here.",
@@ -710,5 +681,13 @@
     "hourly"
    ]
   }
+ },
+ "retired_2026_10_20": {
+  "why": "Khalid, 2026-10-20: switch off the orphans and the broken writers; delete the idle functions",
+  "removed": [
+   "ecb-data-daily-updater",
+   "ofrapi",
+   "ultimate-multi-agent"
+  ]
  }
 }

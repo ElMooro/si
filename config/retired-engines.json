@@ -1,0 +1,71 @@
+{
+ "generated": "2026-10-20",
+ "source": "docs/audit/2026-10-20/infrastructure-review.md + config/retire-plan-2026-10-20.json (ops 6563)",
+ "switched_off": [
+  "ecb-auto-updater",
+  "ecb-data-daily-updater",
+  "justhodl-engine-robustness",
+  "justhodl-hist-banker",
+  "justhodl-ici-flows",
+  "justhodl-kill-switch",
+  "justhodl-sec-bulk",
+  "justhodl-transcript-indexer",
+  "macro-financial-intelligence",
+  "ofrapi",
+  "treasury-api"
+ ],
+ "deleted": [
+  "aiapi-market-analyzer",
+  "autonomous-ai-processor",
+  "economyapi",
+  "justhodl-ai-council",
+  "justhodl-api-keys-admin",
+  "justhodl-charts-agent",
+  "justhodl-chat-api",
+  "justhodl-ecb-full-catalog",
+  "justhodl-ecb-proxy",
+  "justhodl-email-reports",
+  "justhodl-fleet-auditor",
+  "justhodl-insider-cluster-scanner",
+  "justhodl-prompt-iterator",
+  "justhodl-public-api-demo",
+  "justhodl-screen-backtest",
+  "justhodl-soma-cusip",
+  "justhodl-treasury-proxy",
+  "justhodl-warroom-weights",
+  "macro-report-api",
+  "multi-agent-orchestrator",
+  "nyfed-financial-stability-fetcher",
+  "nyfed-primary-dealer-fetcher",
+  "nyfedapi-isolated",
+  "ultimate-multi-agent"
+ ],
+ "kept_api_handlers": [
+  "justhodl-investor-agents",
+  "justhodl-portfolio-admin",
+  "justhodl-push-api",
+  "justhodl-stock-ai-research",
+  "openbb-system2-api"
+ ],
+ "note": "Switched-off engines keep their code under aws/lambdas/ with every trigger DISABLED (API-only ones held by the governor under CAP). Deleted engines live under aws/lambdas-retired/ with their last deployment package in the private bucket (backups/deleted-functions/). The deploy workflow must never recreate a deleted engine: tests/deployment/test_retired_engines.py.",
+ "kept_tests_or_pages": [
+  "justhodl-alert-router",
+  "justhodl-earnings",
+  "justhodl-industry-case",
+  "justhodl-tape-truth",
+  "justhodl-ask-desk"
+ ],
+ "kept_code_references": [
+  "ecb",
+  "justhodl-activist-13d",
+  "justhodl-asymmetric-scorer",
+  "justhodl-brain-sync",
+  "justhodl-calibration-snapshot",
+  "justhodl-daily-macro-report",
+  "justhodl-eurostat-history",
+  "justhodl-history-api",
+  "justhodl-subscribe",
+  "justhodl-tenor-signal-interpreter",
+  "justhodl-transcript-query"
+ ]
+}

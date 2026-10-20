@@ -1,0 +1,291 @@
+{
+ "generated": "2026-10-20",
+ "reason": "Khalid, 2026-10-20: switch off the orphans and the broken writers; delete the idle functions",
+ "switch_off": {
+  "justhodl-sec-bulk": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "justhodl-sec-bulk-hourly",
+     "bus": "default",
+     "group": null,
+     "state": "DISABLED",
+     "expr": "cron(16 1 * * ? *)"
+    },
+    {
+     "kind": "sched",
+     "name": "justhodl-sec-bulk-daily",
+     "bus": null,
+     "group": "default",
+     "state": "ENABLED",
+     "expr": "cron(20 4 * * ? *)"
+    },
+    {
+     "kind": "sched",
+     "name": "justhodl-sec-bulk-weekly",
+     "bus": null,
+     "group": "default",
+     "state": "DISABLED",
+     "expr": "cron(0 9 ? * MON *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "justhodl-engine-robustness": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "engine-robustness-weekly",
+     "bus": "default",
+     "group": null,
+     "state": "ENABLED",
+     "expr": "cron(0 4 ? * TUE *)"
+    },
+    {
+     "kind": "sched",
+     "name": "engine-robustness-sched",
+     "bus": null,
+     "group": "default",
+     "state": "DISABLED",
+     "expr": "cron(0 4 ? * TUE *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "justhodl-hist-banker": {
+   "triggers": [
+    {
+     "kind": "sched",
+     "name": "justhodl-hist-banker-weekly",
+     "bus": null,
+     "group": "default",
+     "state": "ENABLED",
+     "expr": "cron(45 4 ? * WED *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "justhodl-kill-switch": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "justhodl-kill-switch-check",
+     "bus": "default",
+     "group": null,
+     "state": "ENABLED",
+     "expr": "cron(56 20 * * ? *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "macro-financial-intelligence": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "macro-financial-daily-execution",
+     "bus": "default",
+     "group": null,
+     "state": "ENABLED",
+     "expr": "rate(1 day)"
+    }
+   ],
+   "tick": null,
+   "hold": true
+  },
+  "justhodl-transcript-indexer": {
+   "triggers": [
+    {
+     "kind": "sched",
+     "name": "justhodl-transcript-indexer-daily",
+     "bus": null,
+     "group": "default",
+     "state": "ENABLED",
+     "expr": "cron(0 3 * * ? *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "ecb-auto-updater": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "ecb-weekly-update",
+     "bus": "default",
+     "group": null,
+     "state": "ENABLED",
+     "expr": "cron(0 6 ? * MON *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "ecb-data-daily-updater": {
+   "triggers": [],
+   "tick": "daily-06utc",
+   "hold": false
+  },
+  "justhodl-ici-flows": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "justhodl-ici-flows-weekly",
+     "bus": "default",
+     "group": null,
+     "state": "ENABLED",
+     "expr": "cron(30 16 ? * WED,THU *)"
+    }
+   ],
+   "tick": null,
+   "hold": false
+  },
+  "ofrapi": {
+   "triggers": [],
+   "tick": "daily-morn",
+   "hold": true
+  },
+  "treasury-api": {
+   "triggers": [],
+   "tick": null,
+   "hold": true
+  }
+ },
+ "delete": {
+  "justhodl-ai-council": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-ecb-full-catalog": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-email-reports": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-fleet-auditor": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-insider-cluster-scanner": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-prompt-iterator": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-soma-cusip": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-warroom-weights": {
+   "triggers": [
+    {
+     "kind": "sched",
+     "name": "justhodl-warroom-weights-monthly",
+     "bus": null,
+     "group": "default",
+     "state": "ENABLED",
+     "expr": "cron(10 7 1 * ? *)"
+    }
+   ],
+   "tick": null
+  },
+  "macro-report-api": {
+   "triggers": [],
+   "tick": null
+  },
+  "aiapi-market-analyzer": {
+   "triggers": [],
+   "tick": null
+  },
+  "autonomous-ai-processor": {
+   "triggers": [],
+   "tick": null
+  },
+  "economyapi": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-api-keys-admin": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-charts-agent": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-chat-api": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-ecb-proxy": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-public-api-demo": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-screen-backtest": {
+   "triggers": [],
+   "tick": null
+  },
+  "justhodl-treasury-proxy": {
+   "triggers": [],
+   "tick": null
+  },
+  "multi-agent-orchestrator": {
+   "triggers": [],
+   "tick": null
+  },
+  "nyfed-financial-stability-fetcher": {
+   "triggers": [],
+   "tick": null
+  },
+  "nyfed-primary-dealer-fetcher": {
+   "triggers": [],
+   "tick": null
+  },
+  "nyfedapi-isolated": {
+   "triggers": [],
+   "tick": null
+  },
+  "ultimate-multi-agent": {
+   "triggers": [],
+   "tick": "daily-morn"
+  }
+ },
+ "kept_because_a_page_calls_them": [
+  "justhodl-investor-agents",
+  "justhodl-portfolio-admin",
+  "justhodl-push-api",
+  "justhodl-stock-ai-research",
+  "openbb-system2-api"
+ ],
+ "kept_because_tests_or_pages_depend_on_them": [
+  "justhodl-alert-router",
+  "justhodl-earnings",
+  "justhodl-industry-case",
+  "justhodl-tape-truth",
+  "justhodl-ask-desk"
+ ],
+ "kept_because_code_or_gates_reference_them": [
+  "ecb",
+  "justhodl-activist-13d",
+  "justhodl-asymmetric-scorer",
+  "justhodl-brain-sync",
+  "justhodl-calibration-snapshot",
+  "justhodl-daily-macro-report",
+  "justhodl-eurostat-history",
+  "justhodl-history-api",
+  "justhodl-subscribe",
+  "justhodl-tenor-signal-interpreter",
+  "justhodl-transcript-query"
+ ]
+}
