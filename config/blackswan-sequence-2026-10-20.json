@@ -1,0 +1,132 @@
+{
+ "generated": "2026-10-20",
+ "why": "Khalid, 2026-10-20: merge the blackswan seven - one shared resolver (aws/shared/blackswan_resolver.py) and a fixed daily sequence so the root engine fills the warm cache and the six never re-download",
+ "actions": [
+  {
+   "kind": "sched",
+   "name": "justhodl-blackswan-watch",
+   "group": "default",
+   "functions": [
+    "justhodl-blackswan-watch"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(10 2 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-top-signals",
+   "group": "default",
+   "functions": [
+    "justhodl-top-signals"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(10 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-bottom-signals",
+   "group": "default",
+   "functions": [
+    "justhodl-bottom-signals"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(25 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-dxy-predict",
+   "group": "default",
+   "functions": [
+    "justhodl-dxy-predict"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(40 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-macro-predict",
+   "group": "default",
+   "functions": [
+    "justhodl-macro-predict"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(55 3 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-liq-indicators",
+   "group": "default",
+   "functions": [
+    "justhodl-liq-indicators"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(10 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  },
+  {
+   "kind": "sched",
+   "name": "justhodl-liquidity-reversal",
+   "group": "default",
+   "functions": [
+    "justhodl-liquidity-reversal"
+   ],
+   "op": "retime",
+   "before": {
+    "expr": "rate(24 hours)",
+    "state": "ENABLED"
+   },
+   "after": {
+    "expr": "cron(25 4 * * ? *)",
+    "state": "ENABLED"
+   },
+   "reason": "blackswan family in sequence: the root pulls, the six read the 20 h warm cache"
+  }
+ ]
+}

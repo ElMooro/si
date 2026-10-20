@@ -9786,7 +9786,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(10 2 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-blackswan-watch",
@@ -9996,7 +9996,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(25 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bottom-signals",
@@ -10581,7 +10581,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(40 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-dxy-predict",
@@ -11661,7 +11661,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(10 4 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-liq-indicators",
@@ -11706,7 +11706,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(25 4 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-liquidity-reversal",
@@ -11766,7 +11766,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(55 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-macro-predict",
@@ -13461,7 +13461,7 @@
    ]
   },
   {
-   "expr": "rate(24 hours)",
+   "expr": "cron(10 3 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-top-signals",
