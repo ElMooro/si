@@ -80,7 +80,8 @@ def test_katlin_refresh_provision_preserves_weekly_and_retry_dlq_without_payload
     client=ScheduleClient();before=copy.deepcopy(client.schedules['justhodl-katlin-backtest-weekly'])
     result=release.configure_katlin_refresh(client,ROOT)
     refresh=client.schedules['justhodl-katlin-permission-refresh']
-    assert refresh['ScheduleExpression']=='rate(15 minutes)'
+    configured=next(x for x in release.release_config(ROOT,'justhodl-katlin')['eventbridge_schedulers_extra'] if x['schedule_name']=='justhodl-katlin-permission-refresh')['expression']
+    assert refresh['ScheduleExpression']==configured and 'minutes' not in configured  # once a day since 2026-10-20
     assert refresh['Target']['Arn'].endswith(':live')
     assert refresh['Target']['RetryPolicy']=={'MaximumRetryAttempts':8}
     assert refresh['Target']['DeadLetterConfig']=={'Arn':'dlq'}
@@ -598,12 +599,14 @@ def test_owned_metric_and_public_metadata_contracts_reject_previous_writer_paylo
 
 def test_dedicated_metric_schedulers_require_correct_target_expression_input_and_state():
     functions=['justhodl-ka-metrics','justhodl-khalid-metrics']
+    # the healthy expression is whatever each config declares (once a day since the 2026-10-20 cadence floor)
+    configured={f:release.release_config(ROOT,f)['eventbridge_scheduler']['cron'] for f in functions}
     for failure in (None,'target','expression','input','state','timezone'):
         def get_schedule(**kw):
             function=kw['Name'].removesuffix('-hourly')
             return {'ScheduleExpressionTimezone':'America/New_York' if failure=='timezone' else 'UTC',
                     'State':'DISABLED' if failure=='state' else 'ENABLED',
-                    'ScheduleExpression':'rate(1 day)' if failure=='expression' else 'rate(1 hour)',
+                    'ScheduleExpression':'rate(1 hour)' if failure=='expression' else configured[function],
                     'Target':{'Arn':'arn:aws:lambda:us-east-1:857687956942:function:'+('other' if failure=='target' else function),
                               'Input':'{"mode":"unreviewed"}' if failure=='input' else '{}'}}
         rows=release.observe_schedules({'scheduler':SimpleNamespace(get_schedule=get_schedule)},ROOT,functions)

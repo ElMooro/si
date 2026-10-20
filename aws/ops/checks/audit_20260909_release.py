@@ -522,6 +522,15 @@ def inspect_output(s3, function, key, code, bucket=BUCKET, now=None, not_before=
     return result
 
 
+def cadence_violates(expression):
+    import sys as _sys
+    source=str(Path(__file__).resolve().parents[2]/'lambdas'/'justhodl-spend-governor'/'source')
+    if source not in _sys.path:_sys.path.insert(0,source)
+    import cadence_core
+    try:return cadence_core.violates(expression)
+    except cadence_core.ExpressionError:return True
+
+
 def configure_katlin_refresh(scheduler, root):
     config=release_config(root,'justhodl-katlin');primary=config['eventbridge_scheduler']
     extras=config.get('eventbridge_schedulers_extra',[])
@@ -529,7 +538,8 @@ def configure_katlin_refresh(scheduler, root):
     if len(matches)!=1:raise ValueError('refresh_schedule_spec_missing_or_duplicate')
     spec={**matches[0],'cron':matches[0].get('expression') or matches[0].get('cron'),
           'role_arn':matches[0].get('role_arn') or primary['role_arn'],'state':'ENABLED'}
-    if spec['cron']!='rate(15 minutes)' or spec.get('input')!={'mode':'permission_refresh'} or spec.get('target_alias')!='live':raise ValueError('refresh_schedule_contract_invalid')
+    # 2026-10-20 cadence floor: the refresh runs at the configured once-a-day expression (was rate(15 minutes)).
+    if cadence_violates(spec['cron']) or spec.get('input')!={'mode':'permission_refresh'} or spec.get('target_alias')!='live':raise ValueError('refresh_schedule_contract_invalid')
     group=spec.get('group_name','default');name=spec['schedule_name']
     try:current=scheduler.get_schedule(Name=name,GroupName=group)
     except scheduler.exceptions.ResourceNotFoundException:current={}
@@ -543,7 +553,7 @@ def configure_katlin_refresh(scheduler, root):
     if current:scheduler.update_schedule(**payload)
     else:scheduler.create_schedule(**payload)
     observed=scheduler.get_schedule(Name=name,GroupName=group)
-    if observed.get('State')!='ENABLED' or observed.get('Target',{}).get('Arn')!=target or json.loads(observed.get('Target',{}).get('Input','null'))!={'mode':'permission_refresh'} or observed.get('ScheduleExpression')!='rate(15 minutes)':raise ValueError('refresh_schedule_readback_failed')
+    if observed.get('State')!='ENABLED' or observed.get('Target',{}).get('Arn')!=target or json.loads(observed.get('Target',{}).get('Input','null'))!={'mode':'permission_refresh'} or observed.get('ScheduleExpression')!=spec['cron']:raise ValueError('refresh_schedule_readback_failed')
     weekly_preserved=None
     if weekly is not None:
         after=scheduler.get_schedule(Name=weekly_spec['schedule_name'],GroupName=weekly_spec.get('group_name','default'))
