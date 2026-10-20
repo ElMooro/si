@@ -69,6 +69,15 @@ def err(e):
     return "%s: %s" % (type(e).__name__, str(e)[:200])
 
 
+def mask_ep(ep):
+    """Mask an alert endpoint (email / URL) so the report can say WHO is subscribed without printing the address."""
+    ep = ep or ""
+    if "@" in ep:
+        user, dom = ep.split("@", 1)
+        return user[:2] + "***@" + dom
+    return ep.split(":")[-1][:40] if ep.startswith("arn:") else (ep[:8] + "***" if ep else "")
+
+
 def safe(label, fn, default=None):
     try:
         return fn()
@@ -162,6 +171,9 @@ def lambdas(r):
             "env_keys": sorted((f.get("Environment") or {}).get("Variables", {}).keys())[:40],
         }
     r.log("%d functions" % len(inv))
+    D["lambda_account"] = safe("lambda account settings", lambda: {
+        k: v for k, v in c("lambda").get_account_settings().items() if k in ("AccountLimit", "AccountUsage")}, None)
+    r.log("lambda account: %s" % D["lambda_account"])
 
     def extra(fn):
         out = {}
@@ -284,7 +296,25 @@ def logs(r):
 def triggers(r):
     r.section("4. Triggers")
     rules = []
-    buses = safe("buses", lambda: [b["Name"] for b in pages(c("events"), "list_event_buses", "EventBuses")], ["default"])
+
+    def list_buses():
+        # events.list_event_buses is NOT pageable in boto3 (get_paginator raises OperationNotPageableError, which
+        # safe() would have turned into ["default"] and silently dropped justhodl-system-events, the coordinator bus
+        # where the Oct 12-16 loop lived) - walk NextToken by hand.
+        out, token = [], None
+        while True:
+            kw = {"Limit": 100}
+            if token:
+                kw["NextToken"] = token
+            resp = c("events").list_event_buses(**kw)
+            out += [b["Name"] for b in resp.get("EventBuses", [])]
+            token = resp.get("NextToken")
+            if not token:
+                return out
+
+    buses = safe("buses", list_buses, ["default"])
+    D["buses"] = buses
+    r.log("event buses: %s" % buses)
     for bus in buses:
         for ru in safe("rules " + bus, lambda: pages(c("events"), "list_rules", "Rules", EventBusName=bus), []):
             tg = safe("targets " + ru["Name"], lambda: pages(c("events"), "list_targets_by_rule", "Targets",
@@ -346,13 +376,32 @@ def triggers(r):
                            "sqs": len(n.get("QueueConfigurations", [])), "sns": len(n.get("TopicConfigurations", [])),
                            "eventbridge": "EventBridgeConfiguration" in n}
         ver = safe("ver " + name, lambda: s3r.get_bucket_versioning(Bucket=name).get("Status"), None)
-        D["buckets"][name] = {"region": loc, "versioning": ver, "created": str(b.get("CreationDate"))[:10]}
+
+        def lifecycle():
+            try:
+                lc_rules = s3r.get_bucket_lifecycle_configuration(Bucket=name).get("Rules", [])
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "NoSuchLifecycleConfiguration":
+                    return []
+                raise
+            return [[x.get("ID"), x.get("Status"), (x.get("Filter") or {}).get("Prefix") or x.get("Prefix") or "",
+                     (x.get("NoncurrentVersionExpiration") or {}).get("NoncurrentDays"),
+                     (x.get("Expiration") or {}).get("Days"), bool(x.get("AbortIncompleteMultipartUpload"))]
+                    for x in lc_rules]
+
+        D["buckets"][name] = {"region": loc, "versioning": ver, "created": str(b.get("CreationDate"))[:10],
+                              "lifecycle": safe("lifecycle " + name, lifecycle, None)}
     D["s3_notifications"] = notif
     r.log("buckets: %d; with event notifications: %s" % (len(buckets), sorted(notif)))
 
+    subs = safe("sns", lambda: pages(c("sns"), "list_subscriptions", "Subscriptions"), [])
     D["sns_lambda"] = [[s.get("TopicArn", "").split(":")[-1], s.get("Endpoint", "").split(":")[-1]]
-                       for s in safe("sns", lambda: pages(c("sns"), "list_subscriptions", "Subscriptions"), [])
-                       if s.get("Protocol") == "lambda"]
+                       for s in subs if s.get("Protocol") == "lambda"]
+    # alert reachability: an email/https subscription still PendingConfirmation delivers nothing at all
+    D["sns_alert_subs"] = [[s.get("TopicArn", "").split(":")[-1], s.get("Protocol"), mask_ep(s.get("Endpoint", "")),
+                            "PENDING" if s.get("SubscriptionArn") == "PendingConfirmation" else "confirmed"]
+                           for s in subs if s.get("Protocol") not in ("lambda", "sqs")]
+    r.log("alert subscriptions: %s" % D["sns_alert_subs"])
     D["apigw_rest"] = [a.get("name") for a in safe("apigw", lambda: pages(c("apigateway"), "get_rest_apis", "items"), [])]
     D["apigw_http"] = [a.get("Name") for a in safe("apigwv2", lambda: c("apigatewayv2").get_apis().get("Items", []), [])]
     D["sfn"] = [s["name"] for s in safe("sfn", lambda: pages(c("stepfunctions"), "list_state_machines", "stateMachines"), [])]
@@ -445,6 +494,53 @@ def other(r):
                      (b.get("CalculatedSpend") or {}).get("ForecastedSpend", {}).get("Amount")]
                     for b in safe("budgets", lambda: c("budgets").describe_budgets(AccountId=ACCOUNT).get("Budgets", []), [])]
     r.log("budgets: %s" % D["budgets"])
+
+    # Budgets notifications + actions: who is told at which threshold, and what any Budget Action would do
+    detail = {}
+    for b in safe("budgets list", lambda: c("budgets").describe_budgets(AccountId=ACCOUNT).get("Budgets", []), []):
+        nm = b["BudgetName"]
+        notifs = safe("notifs " + nm, lambda: c("budgets").describe_notifications_for_budget(
+            AccountId=ACCOUNT, BudgetName=nm).get("Notifications", []), [])
+        rows = []
+        for n in notifs:
+            who_ = safe("subscribers " + nm, lambda: c("budgets").describe_subscribers_for_notification(
+                AccountId=ACCOUNT, BudgetName=nm, Notification=n).get("Subscribers", []), [])
+            rows.append([n.get("NotificationType"), n.get("ComparisonOperator"), n.get("Threshold"), n.get("ThresholdType"),
+                         [[s.get("SubscriptionType"), mask_ep(s.get("Address", ""))] for s in who_]])
+        acts = safe("budget actions " + nm, lambda: c("budgets").describe_budget_actions_for_budget(
+            AccountId=ACCOUNT, BudgetName=nm).get("Actions", []), [])
+        detail[nm] = {"notifications": rows,
+                      "actions": [[a.get("ActionType"), a.get("Status"), a.get("ApprovalModel"), a.get("NotificationType"),
+                                   a.get("ActionThreshold")] for a in acts]}
+    D["budget_detail"] = detail
+
+    # AWS Cost Anomaly Detection: monitors, subscriptions (threshold + who is told) and what it caught since Aug 1
+    D["anomaly_monitors"] = safe("anomaly monitors", lambda: [
+        [m.get("MonitorName"), m.get("MonitorType"), m.get("MonitorDimension")]
+        for m in c("ce").get_anomaly_monitors().get("AnomalyMonitors", [])], None)
+    D["anomaly_subs"] = safe("anomaly subscriptions", lambda: [
+        [s.get("SubscriptionName"), s.get("Frequency"), s.get("Threshold"), json.dumps(s.get("ThresholdExpression"))[:200],
+         [mask_ep(x.get("Address", "")) for x in s.get("Subscribers", [])]]
+        for s in c("ce").get_anomaly_subscriptions().get("AnomalySubscriptions", [])], None)
+
+    def anomalies():
+        out, token = [], None
+        while True:
+            kw = {"DateInterval": {"StartDate": "2026-08-01", "EndDate": str(TODAY)}, "MaxResults": 100}
+            if token:
+                kw["NextPageToken"] = token
+            resp = c("ce").get_anomalies(**kw)
+            for a in resp.get("Anomalies", []):
+                out.append([a.get("AnomalyStartDate"), a.get("AnomalyEndDate"),
+                            round(float((a.get("Impact") or {}).get("TotalImpact", 0)), 2),
+                            [[x.get("Service") or "", x.get("UsageType") or ""] for x in (a.get("RootCauses") or [])][:3]])
+            token = resp.get("NextPageToken")
+            if not token:
+                return out
+    D["anomalies"] = safe("anomalies", anomalies, None)
+    r.log("cost anomaly detection: monitors %s | subscriptions %s | anomalies since Aug 1: %s" % (
+        D["anomaly_monitors"], D["anomaly_subs"], len(D["anomalies"] or [])))
+    r.log("budget detail: %s" % json.dumps(detail)[:1500])
     for key in ("state.json", "control.json"):
         D["governor_" + key.split(".")[0]] = safe("gov " + key, lambda: json.loads(
             c("s3").get_object(Bucket=PRIVATE, Key="spend-governor/" + key)["Body"].read()), None)
