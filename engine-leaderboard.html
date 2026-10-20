@@ -29,12 +29,12 @@ h2{font-family:Fraunces,serif;margin:22px 0 4px}
 <h2 class="r">Top failure engines</h2><div style="overflow-x:auto"><table id="bot"></table></div>
 <h2>Full board <button class="btn" id="csv">⬇ CSV</button> <span class="sub" id="cnt"></span></h2>
 <div style="overflow-x:auto"><table id="all"></table></div>
-<div class="sub" style="margin-top:14px">Artifact: <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/engine-leaderboard.json">engine-leaderboard.json</a> · regenerates daily from dynamodb:justhodl-signals · min n=5.</div>
+<div class="sub" style="margin-top:14px">Artifact: <a href="https://justhodl.ai/data/engine-leaderboard.json">engine-leaderboard.json</a> · regenerates daily from dynamodb:justhodl-signals · min n=5.</div>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const row=x=>`<tr><td><a href="${esc(x.link)}" target="_blank">${esc(x.engine)}</a></td><td style="color:${x.win_pct>=55?"var(--buy)":x.win_pct<=45?"var(--avd)":"var(--tx)"}">${x.win_pct}%</td><td>${x.n}</td><td>${x.avg_move_pct??""}</td></tr>`;
 const HDR="<tr><th>engine</th><th>win%</th><th>n</th><th>avg move %</th></tr>";
-(async()=>{const d=await (await fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/engine-leaderboard.json?ts="+Date.now(),{cache:"no-store"})).json();
+(async()=>{const d=await (await fetch("https://justhodl.ai/data/engine-leaderboard.json?ts="+Date.now(),{cache:"no-store"})).json();
 const D=d.distribution||{};
 document.getElementById("hero").innerHTML=`
  <div class="stat"><b>${D.pooled_win_pct??"—"}%</b><div class="sub">pooled win-rate · ${d.n_graded} graded calls</div></div>

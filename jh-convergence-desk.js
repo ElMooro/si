@@ -75,8 +75,8 @@
   }
   async function start(){
     if(!document.getElementById('convergence-desk'))return;
-    const urls={'compound-signals':'https://justhodl-dashboard-live.s3.amazonaws.com/data/compound-signals.json',
-      'compound-history':'https://justhodl-dashboard-live.s3.amazonaws.com/data/compound-history.json'};
+    const urls={'compound-signals':'https://justhodl.ai/data/compound-signals.json',
+      'compound-history':'https://justhodl.ai/data/compound-history.json'};
     const sources=Object.fromEntries(await Promise.all(Object.entries(urls).map(async ([key,url])=>[key,await E.receive(url)])));
     const receipt=sources['compound-signals'],packet=receipt.status==='received'?receipt.data:null,m=model(packet);
     const $=id=>document.getElementById(id),board=$('convergence-board'),sort=$('convergence-sort'),search=$('convergence-search'),more=$('convergence-more');let shown=24,current=[];

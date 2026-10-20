@@ -40,7 +40,7 @@ td{padding:8px 7px;border-bottom:1px solid rgba(28,35,48,.6)}
 const F=(n,d=2)=>n===null||n===undefined||isNaN(n)?'—':Number(n).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
 const P=(n,d=1)=>n===null||n===undefined||isNaN(n)?'—':(n>0?'+':'')+Number(n).toFixed(d)+'%';
 const esc=s=>String(s===null||s===undefined?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/onchain-ratios.json?v='+Date.now(),{cache:'no-store'})
+fetch('https://justhodl.ai/data/onchain-ratios.json?v='+Date.now(),{cache:'no-store'})
  .then(r=>r.json()).then(render)
  .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
 

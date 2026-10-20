@@ -85,7 +85,7 @@ tr:hover td{background:var(--panel2)}
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const S3="https://justhodl.ai/data/";
 const J=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 const SC={2:"s2",1:"s1",0:"s0","-1":"sm1","-2":"sm2"};
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));

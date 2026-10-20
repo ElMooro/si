@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OPEX Calendar | JustHodl</title>
-<link rel="preconnect" href="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com">
+<link rel="preconnect" href="https://justhodl.ai">
 <style>
 :root{
   --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
@@ -184,7 +184,7 @@ td.red{color:var(--red)}
 </div>
 
 <script>
-const FEED_URL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/opex-calendar.json";
+const FEED_URL = "https://justhodl.ai/data/opex-calendar.json";
 
 function fmtPct(x, signed=true){ if(x===null||x===undefined||isNaN(x)) return "--"; return (signed && x>=0 ? "+" : "") + Number(x).toFixed(2) + "%"; }
 function fmt(x, d=2){ if(x===null||x===undefined) return "--"; return Number(x).toFixed(d); }

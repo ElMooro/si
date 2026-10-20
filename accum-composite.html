@@ -34,7 +34,7 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margi
 <script src="/jh-nav-drawer.js" defer></script>
 <script>
 (async function(){try{
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/accum-composite.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/accum-composite.json?t='+Date.now());
 if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable — engine deploying</div>';return;}
 var p=await r.json();
 var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
@@ -64,7 +64,7 @@ document.getElementById('foot').textContent='Method: '+(p.method||'')+' Generate
 <!-- wo4580: impact layer strip (additive) -->
 <div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
 <script src="/assets/impact-strip.js" defer></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/accum-composite.json");});</script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl.ai/data/accum-composite.json");});</script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

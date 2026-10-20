@@ -81,7 +81,7 @@ h1{font-family:Fraunces,serif;font-weight:900;font-size:32px;margin:6px 0 2px}
 <script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json",{cache:"no-store"}).then(r=>r.json()).then(d=>{
+fetch("https://justhodl.ai/data/trend-reversal.json",{cache:"no-store"}).then(r=>r.json()).then(d=>{
  document.getElementById("meta").textContent=`v${d.version} · ${d.generated_at} · ${d.elapsed_s}s`;
  const rows=(d.rows||[]);
  const hot=rows.filter(r=>(r.reversal_score||0)>=30);
@@ -108,7 +108,7 @@ fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal.json
    <div class="vs" style="text-align:center;margin-top:5px">${Object.entries(d.stages||{}).map(([k,v])=>`<span class="pill" style="margin:2px">${k} ${v}</span>`).join("")}</div></div>
   <div style="flex:1;min-width:320px"><div class="vs" style="margin-bottom:4px">breadth history — daily % of universe printing reversal tells</div>
    <svg id="ghist" viewBox="0 0 700 150" style="width:100%"></svg></div></div>`;
- fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/trend-reversal-history.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(H=>{
+ fetch("https://justhodl.ai/data/trend-reversal-history.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(H=>{
   const ds=((H||{}).days||[]).slice(-90);const svg=document.getElementById("ghist");if(!svg)return;
   const W=700,Hh=150,pl=30,pr=52,pt=8,pb=20;
   const X=i=>pl+i*(W-pl-pr)/Math.max(1,ds.length-1),Y=v=>pt+(Hh-pt-pb)*(1-Math.min(40,v)/40);

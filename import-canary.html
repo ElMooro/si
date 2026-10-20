@@ -63,7 +63,7 @@ a{color:var(--accent)}
 (async function(){
 try{
 var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/import-canary.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/import-canary.json?t='+Date.now());
 var d=await r.json();
 var num=function(v,dg){return (v==null)?'—':(v>=0?'+':'')+v.toFixed(dg==null?1:dg);};
 var col=function(v){return v==null?MUT:(v>0?POS:(v<0?NEG:NEU));};

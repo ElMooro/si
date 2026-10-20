@@ -61,7 +61,7 @@ tr:last-child td{border-bottom:none}
 </div>
 <script>
 async function getJSON(){
-  var urls=['data/nowcast-desk.json','https://justhodl.ai/data/nowcast-desk.json','https://justhodl-dashboard-live.s3.amazonaws.com/data/nowcast-desk.json'];
+  var urls=['data/nowcast-desk.json','https://justhodl.ai/data/nowcast-desk.json','https://justhodl.ai/data/nowcast-desk.json'];
   for(var i=0;i<urls.length;i++){try{var r=await fetch(urls[i]+'?cb='+Date.now());if(r.ok)return await r.json();}catch(e){}}
   throw new Error('feed unavailable');
 }

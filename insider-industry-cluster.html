@@ -58,7 +58,7 @@ a{color:var(--accent)}
 (async function(){
 try{
 var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-industry-cluster.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/insider-industry-cluster.json?t='+Date.now());
 var d=await r.json();
 var cov=d.coverage||{};
 var inds=d.industries||[];

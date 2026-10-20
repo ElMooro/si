@@ -83,7 +83,7 @@ The bar is same measure AND same country; auto-wiring on a token match is exactl
 <span class="mono">data-census/paths-ledger.json</span>.</div>
 <script>
 const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/data-census.json',
-'https://s3.amazonaws.com/justhodl-dashboard-live/data/data-census.json'];
+'https://justhodl.ai/data/data-census.json'];
 let D=null,q='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const age=h=>h==null?'—':h<1?Math.round(h*60)+'m':h<48?h.toFixed(1)+'h':(h/24).toFixed(1)+'d';
@@ -92,8 +92,8 @@ const lv=x=>x===true?'<span class="pill p-ok">LIVE</span>':x===false?'<span clas
 const prov=o=>`<div class="path">${o.name?`<b style="color:var(--tx)">${esc(o.name)}</b> · `:''}${esc(o.artifact)} : ${esc(o.path)}${o.value!==undefined?` = <b class="mono" style="color:var(--tx)">${esc(o.value)}</b>`:''} ${lv(o.live)}${o.pulled_from?` <span class="dim">from ${esc(o.pulled_from)}</span>`:''}${o.engine?` <span class="dim">· ${esc(o.engine)}</span>`:''}</div>`;
 let mq='',sq='',eq='',pq='',ENG=[],PGS=[];
 async function loadInv(){
- for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/engine-manifest.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/engine-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();ENG=d.engines||[];break}}catch(e){}}
- for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/page-manifest.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/page-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();PGS=d.pages||[];break}}catch(e){}}
+ for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/engine-manifest.json','https://justhodl.ai/data/engine-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();ENG=d.engines||[];break}}catch(e){}}
+ for(const u of ['https://justhodl-data-proxy.raafouis.workers.dev/data/page-manifest.json','https://justhodl.ai/data/page-manifest.json']){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){const d=await r.json();PGS=d.pages||[];break}}catch(e){}}
  document.getElementById('eng_n').textContent='('+ENG.length+')';
  document.getElementById('pg_n').textContent='('+PGS.length+')';
  renderEng();renderPgs();

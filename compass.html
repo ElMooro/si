@@ -328,8 +328,8 @@ table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
 <div id="jh-strategic" style="max-width:1280px;margin:0 auto 20px;padding:0 24px"></div>
 <script>/* ops 3615: Capital Compass visual dashboard (mockup-grade, reskin-safe tokens) */
 (async function(){try{
-  var r1=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/asset-compass.json?t='+Date.now());
-  var r2=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/forward-returns.json?t='+Date.now());
+  var r1=await fetch('https://justhodl.ai/data/asset-compass.json?t='+Date.now());
+  var r2=await fetch('https://justhodl.ai/data/forward-returns.json?t='+Date.now());
   if(!r1.ok) return; var D=await r1.json(); var FR=r2.ok?await r2.json():{};
   var H=D.horizons||{}; var T=D.verdict_trio||{}; var CP=D.cash_path_pct||{}; var FA=FR.assets||{};
   var keys=Object.keys(H); if(!keys.length) return;
@@ -498,7 +498,7 @@ table.compare tbody tr:hover { background: rgba(255, 255, 255, 0.015); }
 </div>
 
 <script>
-const ENDPOINT = "https://justhodl-dashboard-live.s3.amazonaws.com/data/forward-returns.json";
+const ENDPOINT = "https://justhodl.ai/data/forward-returns.json";
 
 const fmtPct = (v) => v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
 const fmtMoney = (v) => v == null ? "—" : "$" + Math.round(v).toLocaleString();

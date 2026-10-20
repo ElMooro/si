@@ -67,7 +67,7 @@ a{color:var(--accent)}
 (async function(){
 try{
 var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/grid-queue.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/grid-queue.json?t='+Date.now());
 var d=await r.json();
 var q=d.queue||{},pc=d.planned_capacity||{},il=d.industrial_load||{},cov=d.coverage||{};
 var num=function(v,g){return (v==null)?'—':(v>=0?'+':'')+v.toFixed(g==null?1:g);};
@@ -146,7 +146,7 @@ document.getElementById('foot').textContent='Feed data/grid-queue.json · '+(d.a
 <!-- wo4580: impact layer strip (additive) -->
 <div id="jh-impact-strip" style="max-width:1180px;margin:0 auto;padding:0 18px"></div>
 <script src="/assets/impact-strip.js" defer></script>
-<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl-dashboard-live.s3.amazonaws.com/data/grid-queue.json");});</script>
+<script>document.addEventListener("DOMContentLoaded",function(){if(window.jhImpactStripAuto)jhImpactStripAuto("jh-impact-strip","https://justhodl.ai/data/grid-queue.json");});</script>
 <script src="/sidebar.js" defer></script>
 </body>
 </html>

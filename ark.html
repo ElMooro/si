@@ -71,7 +71,7 @@ th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const S3="https://justhodl.ai/data/";
 const fetchJson=(k)=>fetch(S3+k+"?_="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const fmtUSD=v=>{if(!v)return "—";if(v>=1e9)return "$"+(v/1e9).toFixed(2)+"B";if(v>=1e6)return "$"+(v/1e6).toFixed(1)+"M";if(v>=1e3)return "$"+(v/1e3).toFixed(0)+"K";return "$"+Math.round(v)};

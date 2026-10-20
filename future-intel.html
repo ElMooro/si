@@ -142,7 +142,7 @@ tr:hover td{background:var(--panel2)}
 </div>
 
 <script>
-const S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const S3 = "https://justhodl.ai/data/";
 const fetchJson = (k) => fetch(S3 + k + "?_=" + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null);
 const esc = s => String(s == null ? "" : s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 

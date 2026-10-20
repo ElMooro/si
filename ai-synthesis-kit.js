@@ -11,7 +11,7 @@
 (function () {
   if (window.JHAISynth) return;
 
-  var PROXY = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
+  var PROXY = "https://justhodl.ai/data";
   var DEFAULT_KEY = "desk-consensus";
 
   function injectCSS() {

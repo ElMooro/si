@@ -80,7 +80,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING MERGER-ARB BOOK RISK&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/merger-arb-risk.json";
+const S3="https://justhodl.ai/data/merger-arb-risk.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const POSTURE={GREEN:"var(--green)",AMBER:"var(--yellow)",RED:"var(--red)",UNKNOWN:"var(--dim)"};
 function pnlCol(v){return v==null?"var(--dim)":v<0?"var(--red)":v>0?"var(--green)":"var(--mute)";}

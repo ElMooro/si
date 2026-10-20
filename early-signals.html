@@ -176,7 +176,7 @@ h1{margin:2px 0 6px;font-size:23px;font-weight:700;letter-spacing:-.2px}
   </div>
 </div>
 <script>
-const BUCKET = 'https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/';
+const BUCKET = 'https://justhodl.ai/data/';
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmtCap = v => v==null?'—':(v>=1e9?(v/1e9).toFixed(1)+'B':v>=1e6?(v/1e6).toFixed(0)+'M':v.toLocaleString());
 

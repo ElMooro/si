@@ -5,7 +5,7 @@
   if(root&&root.document)api.install(root);
 })(typeof window==='object'?window:null,function(){
   'use strict';
-  const URL='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-credit-engine.json';
+  const URL='https://justhodl.ai/data/liquidity-credit-engine.json';
   const RUN=/^data\/lce-research\/runs\/[a-f0-9]{64}\.json$/;
   const EVIDENCE=/^data\/evidence\/fred\/[a-f0-9]{64}\/[a-f0-9]{64}\.bin\.gz$/;
   const AGE={D:10,W:21,BW:35,M:100,Q:200,SA:370,A:550}, DAY=86400000;

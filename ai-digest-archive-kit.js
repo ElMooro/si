@@ -11,7 +11,7 @@
  */
 (function () {
   if (window.JHAIDigest) return;
-  var S3_BASE = "https://justhodl-dashboard-live.s3.amazonaws.com/data";
+  var S3_BASE = "https://justhodl.ai/data";
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   function jhFetch(path) {
     var ts = "?t=" + Date.now();

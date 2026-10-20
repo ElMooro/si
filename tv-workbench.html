@@ -40,7 +40,7 @@ it fills the moment a v1.5.0 extension <b>Upload</b> lands (browse TradingView, 
 <div id="lists"></div>
 <script>
 const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tv-workbench.json',
-'https://s3.amazonaws.com/justhodl-dashboard-live/data/tv-workbench.json'];
+'https://justhodl.ai/data/tv-workbench.json'];
 let D=null,q='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const st=s=>s==='LIVE'?'<span class="pill p-ok">LIVE</span>':s?'<span class="pill p-bad">'+esc(s)+'</span>':'<span class="pill p-dim">—</span>';

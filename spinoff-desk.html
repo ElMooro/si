@@ -89,7 +89,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
   <p class="timestamp" id="ts"></p>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/";
+const S3="https://justhodl.ai/data/";
 const esc=(s)=>(s==null?"":String(s)).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const num=(v,d=0)=>v==null||isNaN(v)?"&mdash;":Number(v).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const tierColor=(t)=>t==="PRIME SPIN"?"var(--green)":t==="STRONG"?"var(--cyan)":t==="WATCH"?"var(--yellow)":"var(--dim)";

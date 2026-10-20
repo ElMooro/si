@@ -246,8 +246,8 @@ Otherwise: weights logged as "proposed" only, alpha-score uses current.
 <footer><p>Alpha Calibration · #1 · Weekly Sunday 09:00 UTC · institutional self-improvement loop · <a href="/">JustHodl.AI</a></p></footer>
 
 <script>
-const URL_LATEST = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/calibration-latest.json';
-const URL_HISTORY = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/calibration-history.json';
+const URL_LATEST = 'https://justhodl.ai/data/calibration-latest.json';
+const URL_HISTORY = 'https://justhodl.ai/data/calibration-history.json';
 
 function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+Number(n).toFixed(d==null?2:d)+'%';}

@@ -81,7 +81,7 @@ td.r{text-align:right}
   <div id="root"><div class="loading">LOADING HEDGE PLANNER&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/hedge-planner.json";
+const S3="https://justhodl.ai/data/hedge-planner.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)",cyan:"var(--cyan)",dim:"var(--dim)"};
 function pct(v,d){return v==null?"--":(v>0?"+":"")+Number(v).toFixed(d==null?2:d)+"%";}

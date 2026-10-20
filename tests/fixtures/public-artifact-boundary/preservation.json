@@ -1,7 +1,7 @@
 {
   "source_sha256": "c5ffffd09d3df87e4c2d2bec7d0b248cb0dd0447f2590d71cb8b352610b4a1d0",
   "source_bytes": 11430,
-  "candidate_sha256": "265e9dc85e3c168f9ee04cc28d61cd1ee2a7d1a25c2042e40e26bcf5a5ade3c6",
+  "candidate_sha256": "d9775c219eb795a8cb3538ccf03e1ac29c85d907254c2d027b6c7e745e3aa547",
   "edits": [
     [
       "          DENY=\" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site \"",
@@ -14,6 +14,13 @@
     [
       "      - name: Stamp every page and asset in commit-bound build manifest",
       "      - name: Block repository-only directories in public artifact\n        run: python3 scripts/check_public_site_artifact.py _site\n      - name: Stamp every page and asset in commit-bound build manifest"
+    ],
+    [
+      "    - cron: '*/15 * * * *'   # retained site build cadence; source-only, no live feed probes",
+      "    - cron: '17 5 * * *'   # once a day (Khalid 2026-10-20): every run purged the whole Cloudflare cache, 96x/day; pushes still deploy at once"
     ]
+  ],
+  "notes": [
+    "2026-10-20: schedule cron '*/15 * * * *' -> '17 5 * * *' (cadence floor, Khalid); every scheduled run purged the whole Cloudflare cache"
   ]
 }

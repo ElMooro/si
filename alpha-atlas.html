@@ -37,7 +37,7 @@ a{color:var(--acc)}
 <script src="/jh-enhance.js" defer></script><script src="/jh-page-ai.js" defer></script><script src="/jh-nav-drawer.js" defer></script>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-atlas.json?t="+Math.floor(Date.now()/6e5))
+fetch("https://justhodl.ai/data/alpha-atlas.json?t="+Math.floor(Date.now()/6e5))
 .then(r=>r.json()).then(d=>{
   const t=d.totals||{};
   document.getElementById("hero").innerHTML=`

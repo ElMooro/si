@@ -115,7 +115,7 @@ function tierChip(t){var c=t==='STRUCTURALLY_UNDERVALUED'?POS:t==='WATCH'?ACC:MU
  return '<span class="tier" style="background:'+c+'22;color:'+c+';border:1px solid '+c+'55">'+lbl+'</span>';}
 function legDots(n){var s='';for(var i=0;i<5;i++)s+='<span class="legdot'+(i<n?' f':'')+'"></span>';return '<span class="legs">'+s+'</span>';}
 
-fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/chokepoint.json?v='+Date.now(),{cache:'no-store'})
+fetch('https://justhodl.ai/data/chokepoint.json?v='+Date.now(),{cache:'no-store'})
 .then(function(r){return r.json();}).then(function(d){
 // ops 3793: each board renders inside its own guard. Previously ONE unguarded
 // field access (byInd .best on an all-null industry) threw inside the single

@@ -64,7 +64,7 @@ const QC={LEADING:'p-pos',IMPROVING:'p-acc',WEAKENING:'p-neu',LAGGING:'p-neg',BE
 
 let D=null,sortKey='rank',sortDir=1;
 
-fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/rotation-dashboard.json?v='+Date.now(),{cache:'no-store'})
+fetch('https://justhodl.ai/data/rotation-dashboard.json?v='+Date.now(),{cache:'no-store'})
  .then(r=>r.json()).then(d=>{D=d;render();})
  .catch(e=>{document.getElementById('root').innerHTML='<div class="warn">Feed unavailable: '+esc(e.message)+'</div>';});
 

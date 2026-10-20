@@ -34,10 +34,10 @@ details{margin:14px 0;color:var(--tx2);font-size:12.5px}summary{cursor:pointer;c
 <p><b>Regime filtering.</b> Members unfit in the current regime (&lt;52% there) abstain. Slices deepen daily as the ledger's regime_at_log matures.</p>
 <p><b>Self-grading.</b> Every consensus call is written back to dynamodb:justhodl-signals as <code>eng:alpha-council</code> with a 21-day primary window — the council appears on the same <a href="/engine-leaderboard.html">leaderboard</a> it draws from, founding mistakes on the books forever.</p>
 </details>
-<div class="sub">Artifact: <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-council.json">alpha-council.json</a> · regenerates daily 23:55 UTC after the leaderboard.</div>
+<div class="sub">Artifact: <a href="https://justhodl.ai/data/alpha-council.json">alpha-council.json</a> · regenerates daily 23:55 UTC after the leaderboard.</div>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-(async()=>{const d=await (await fetch("https://justhodl-dashboard-live.s3.amazonaws.com/data/alpha-council.json?ts="+Date.now(),{cache:"no-store"})).json();
+(async()=>{const d=await (await fetch("https://justhodl.ai/data/alpha-council.json?ts="+Date.now(),{cache:"no-store"})).json();
 document.getElementById("hero").innerHTML=`
  <div class="stat"><b>${d.n_council}</b><div class="sub">proven seats · ${esc(d.membership_rule)}</div></div>
  <div class="stat"><b>${d.n_consensus}</b><div class="sub">consensus calls open</div></div>

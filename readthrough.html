@@ -160,7 +160,7 @@ function boardTable(rows){
 
 (async function(){
   var d=null;
-  try{var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/readthrough.json?t='+Date.now());if(r.ok)d=await r.json();}catch(e){}
+  try{var r=await fetch('https://justhodl.ai/data/readthrough.json?t='+Date.now());if(r.ok)d=await r.json();}catch(e){}
   if(!d){try{var r2=await fetch('https://justhodl.ai/data/readthrough.json?t='+Date.now());if(r2.ok)d=await r2.json();}catch(e){}}
   var hero=document.getElementById('hero');
   if(!d){hero.innerHTML='<span class="mono" style="color:'+RED+'">Feed unreachable. The engine writes data/readthrough.json — if this persists the run failed; check CloudWatch for justhodl-readthrough.</span>';return;}

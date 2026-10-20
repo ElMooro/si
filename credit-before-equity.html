@@ -70,7 +70,7 @@ var finite=function(v){return typeof v==='number'&&Number.isFinite(v);};
 var count=function(v){return Number.isSafeInteger(v)&&v>=0;};
 var row=function(v){return v&&typeof v==='object'&&!Array.isArray(v);};
 var strings=function(v){return Array.isArray(v)&&v.every(function(x){return typeof x==='string'&&x.trim();});};
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/credit-before-equity.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/credit-before-equity.json?t='+Date.now());
 if(!r.ok)throw new Error('HTTP '+r.status);
 var d=await r.json();
 if(!row(d))throw new Error('Expected an engine packet object');

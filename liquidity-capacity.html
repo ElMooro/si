@@ -78,7 +78,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING LIQUIDITY MONITOR&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/liquidity-capacity.json";
+const S3="https://justhodl.ai/data/liquidity-capacity.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const POSTURE={LIQUID:"var(--green)",MODERATE:"var(--cyan)",TIGHT:"var(--yellow)",ILLIQUID:"var(--red)",UNKNOWN:"var(--dim)"};
 function tcls(t){const k=(t||"").split(" ")[0];return ({T1:"t-T1",T2:"t-T2",T3:"t-T3",T4:"t-T4"})[k]||"t-UN";}

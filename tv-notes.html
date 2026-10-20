@@ -99,7 +99,7 @@ fetch("https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/tools/jh-tv-ex
 var DL = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/tools/jh-tv-extension.zip";
 document.getElementById("dlLink").href = DL;
 function downloadExt(){ window.location.href = DL; }
-var S3 = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+var S3 = "https://justhodl.ai";
 fetch(S3+"/data/tradingview-notes.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{
   document.getElementById("cnt").textContent=d&&d.count!=null?d.count:0;
   if(d&&d.updated)document.getElementById("upd").textContent="Last sync: "+new Date(d.updated).toLocaleString();

@@ -59,7 +59,7 @@
   <div id="theses"></div>
 
   <script>
-    const FEED = "https://justhodl-dashboard-live.s3.amazonaws.com/data/kill-theses.json";
+    const FEED = "https://justhodl.ai/data/kill-theses.json";
 
     function sevClass(s) { return "sev-" + (s || 3); }
     function maxSev(t) { return Math.max(...(t.kill_conditions || []).map(c => c.severity || 0), 0); }

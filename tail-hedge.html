@@ -87,7 +87,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING TAIL HEDGE OVERLAY&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/tail-hedge.json";
+const S3="https://justhodl.ai/data/tail-hedge.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const COL={green:"var(--green)",orange:"var(--orange)",red:"var(--red)"};
 function pct(v,d){return v==null?"--":(v>0?"+":"")+Number(v).toFixed(d==null?2:d)+"%";}

@@ -8,7 +8,7 @@
   if(root&&root.document)api.install(root);
 })(typeof window==='object'?window:null,function(){
   'use strict';
-  const ENDPOINT='https://justhodl-dashboard-live.s3.amazonaws.com/data/liquidity-pulse.json';
+  const ENDPOINT='https://justhodl.ai/data/liquidity-pulse.json';
   const DAY=86400000;
   // Ceilings are display-age checks, not a verified release calendar.
   const SPECS={

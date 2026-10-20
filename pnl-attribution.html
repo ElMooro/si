@@ -83,7 +83,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING P&amp;L ATTRIBUTION&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/pnl-attribution.json";
+const S3="https://justhodl.ai/data/pnl-attribution.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const num=(v,d=2)=>(v==null?"--":(typeof v==="number"?v.toFixed(d):v));
 const sgnp=(v,d=2)=>(v==null?"--":(v>=0?"+":"")+Number(v).toFixed(d)+"%");

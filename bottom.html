@@ -172,7 +172,7 @@ footer{margin:34px 0 10px;padding-top:14px;border-top:1px solid var(--border);co
 
 <script>
 (function () {
-  var FEEDS = ["/data/bottom.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/bottom.json", "https://justhodl-dashboard-live.s3.amazonaws.com/data/bottom.json"];
+  var FEEDS = ["/data/bottom.json", "https://justhodl-data-proxy.raafouis.workers.dev/data/bottom.json", "https://justhodl.ai/data/bottom.json"];
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
   var ago = function (iso) { if (!iso) return ""; var m = Math.round((Date.now() - Date.parse(iso)) / 60000); return isNaN(m) ? "" : m < 60 ? m + "m ago" : m < 2880 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };

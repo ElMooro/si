@@ -71,7 +71,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING FACTOR RISK MODEL&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/factor-risk.json";
+const S3="https://justhodl.ai/data/factor-risk.json";
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
 const num=(v,d=2)=>(v==null?"--":(typeof v==="number"?v.toFixed(d):v));
 const sgn=(v,d=2)=>(v==null?"--":(v>=0?"+":"")+v.toFixed(d));

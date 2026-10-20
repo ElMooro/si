@@ -450,7 +450,7 @@ function v3Table(rows,id){
   h+='</tbody></table></div>';
   if(view.length>n)h+='<div class="v3-dim" style="font-size:11px;padding:5px 2px">showing '+n+' of '+view.length+' — click headers to sort</div>';
   else h+='<div class="v3-dim" style="font-size:11px;padding:5px 2px">click headers to sort</div>';
-  if(tr)h+='<div class="v3-warn">engine truncated: '+tr.toLocaleString()+' total items · <a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">full store ↗</a></div>';
+  if(tr)h+='<div class="v3-warn">engine truncated: '+tr.toLocaleString()+' total items · <a href="https://justhodl.ai/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">full store ↗</a></div>';
   return h;}
 function v3DayChart(days){
   if(!days||!days.length)return '';
@@ -488,7 +488,7 @@ function renderAutoSurface(d){
   h+='<div class="v3-hud">';
   h+='<div class="v3-chip"><div class="v3-cl">COVERAGE CONTRACT</div><div class="v3-cv">'+((cov.total_leaves||0).toLocaleString())+'</div><div class="v3-cs">fields · '+(cov.sections||0)+' sections · '+((cov.truncated_paths||[]).length)+' truncations</div></div>';
   h+='<div class="v3-chip"><div class="v3-cl">RATCHET</div><div class="v3-cv '+(rt.regression?'v3-neg':'v3-pos')+'">'+(rt.regression?'REGRESSION':'OK')+'</div><div class="v3-cs">'+(rt.prev!=null?rt.prev.toLocaleString():'first run')+' → '+(rt.now!=null?rt.now.toLocaleString():'—')+'</div></div>';
-  h+='<div class="v3-chip"><div class="v3-cl">WINDOW STORE</div><div class="v3-cv">'+((st.buys||0).toLocaleString())+' <span class="v3-dim">/</span> '+((st.sells||0).toLocaleString())+'</div><div class="v3-cs"><a href="https://justhodl-dashboard-live.s3.amazonaws.com/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit">buys / sells ↗</a> · hydration '+(cov.backfill_days_complete??'—')+'/'+(cov.backfill_days_target??30)+' days</div></div>';
+  h+='<div class="v3-chip"><div class="v3-cl">WINDOW STORE</div><div class="v3-cv">'+((st.buys||0).toLocaleString())+' <span class="v3-dim">/</span> '+((st.sells||0).toLocaleString())+'</div><div class="v3-cs"><a href="https://justhodl.ai/data/insider-trades-full.json" target="_blank" rel="noopener" style="color:inherit">buys / sells ↗</a> · hydration '+(cov.backfill_days_complete??'—')+'/'+(cov.backfill_days_target??30)+' days</div></div>';
   h+='</div>';
   h+='<div class="v3-tabs">'+tabs.map(t=>'<button class="v3-tab'+(V3S.tab===t[0]?' v3-on':'')+'" data-tab="'+t[0]+'">'+t[1]+'</button>').join('')+'</div>';
   h+='<div class="v3-pane">';

@@ -45,10 +45,10 @@ input{background:#0d1117;border:1px solid var(--line);border-radius:8px;color:va
 <nav aria-label="Catalog pagination"><button id="catalog-prev" type="button">Previous</button> <span id="catalog-range" role="status"></span> <button id="catalog-next" type="button">Next</button></nav>
 <script src="/jh-domain-monitor.js"></script>
 <script>
-const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tradingview.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/tradingview.json'];
+const SRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tradingview.json','https://justhodl.ai/data/tradingview.json'];
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 let D=null,cat='ALL',B=null,DOMIDX={},dom='ALL',pageIndex=0;
-const BSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/domain-barometers.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/domain-barometers.json'];
+const BSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/domain-barometers.json','https://justhodl.ai/data/domain-barometers.json'];
 const COL={MACRO:'#7EA6F0',LIQUIDITY:'#F0B429',RISK:'#E07A6A'};
 function gcol(v){if(typeof v!=='number'||!Number.isFinite(v))return 'var(--dim)';return v>=55?'var(--green)':v>=45?'var(--amber)':'var(--red)'}
 function cov(b){const c=b.coverage;if(!c)return '';const nv=c.not_voting||{};
@@ -135,7 +135,7 @@ document.getElementById('catalog-next').onclick=()=>{pageIndex++;render();};
 load();loadB();
 /* bywatchlist v1-ops4103 — every symbol categorized under YOUR lists,
    exactly as on TradingView; per-list LIVE coverage made visible. */
-const WSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tv-watchlists.json','https://s3.amazonaws.com/justhodl-dashboard-live/data/tv-watchlists.json'];
+const WSRC=['https://justhodl-data-proxy.raafouis.workers.dev/data/tv-watchlists.json','https://justhodl.ai/data/tv-watchlists.json'];
 let WL=null,WIDX={},LISTS=[];
 async function buildWatchlists(){
  for(const u of WSRC){try{const r=await fetch(u+'?v='+Date.now());if(r.ok){WL=await r.json();break}}catch(e){}}

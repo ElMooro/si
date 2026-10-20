@@ -76,7 +76,7 @@ tr:hover td{background:var(--panel2)}
   <div id="root"><div class="loading">LOADING FIRM BOOK&hellip;</div></div>
 </div>
 <script>
-const S3="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/firm-book.json";
+const S3="https://justhodl.ai/data/firm-book.json";
 const pct=v=>(v==null?"--":(v>=0?"+":"")+v.toFixed(2)+"%");
 const grs=v=>(v==null?"--":v.toFixed(2)+"%");
 const esc=s=>String(s==null?"":s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));

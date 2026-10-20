@@ -2,8 +2,8 @@
  * Renders dated source observations and explicitly unqualified heuristics.
  * The separate commentary packet remains an inspection link only.
  */
-const DATA_URL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis.json?t=' + Date.now();
-const AI_URL   = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/auction-crisis-ai.json?t=' + Date.now();
+const DATA_URL = 'https://justhodl.ai/data/auction-crisis.json?t=' + Date.now();
+const AI_URL   = 'https://justhodl.ai/data/auction-crisis-ai.json?t=' + Date.now();
 
 let DATA = null;
 

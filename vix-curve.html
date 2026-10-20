@@ -53,7 +53,7 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 </div>
 <script src="/interp-kit.js"></script>
 <script>
-const URL_="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com/data/vix-curve.json";
+const URL_="https://justhodl.ai/data/vix-curve.json";
 const esc=s=>String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const fmt=v=>typeof v==="number"?(Math.abs(v)<10?v.toFixed(3):v.toFixed(2)):esc(v);
 function cards(obj){

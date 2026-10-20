@@ -96,7 +96,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 <script>
-const S3_BASE="https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
+const S3_BASE="https://justhodl.ai";
 const J=(k)=>fetch(`${S3_BASE}/data/${k}?_=${Date.now()}`).then(r=>r.ok?r.json():null).catch(()=>null);
 const usd=(v)=>v==null?"—":"$"+Number(v).toLocaleString(undefined,{maximumFractionDigits:2});
 const pct=(v,d=1)=>v==null?"—":(v>0?"+":"")+Number(v).toFixed(d)+"%";

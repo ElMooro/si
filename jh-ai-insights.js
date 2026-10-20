@@ -9,14 +9,14 @@
  *
  *   <script src="/jh-ai-insights.js" defer></script>
  *
- * Reads: https://justhodl-dashboard-live.s3.amazonaws.com/data/ai-website-synthesis.json
+ * Reads: https://justhodl.ai/data/ai-website-synthesis.json
  * Cache: 15 minutes (matches the hourly refresh cadence)
  * Page detection: maps current pathname to per_page_focus keys
  * ──────────────────────────────────────────────────────────────── */
 (function () {
   if (window.JHInsights) return;
 
-  var DATA_URL = "https://justhodl-dashboard-live.s3.amazonaws.com/data/ai-website-synthesis.json";
+  var DATA_URL = "https://justhodl.ai/data/ai-website-synthesis.json";
   var CACHE_KEY = "jh_research_status_cache_v2";
   var CACHE_MAX_AGE_MS = 15 * 60 * 1000;  // 15 min
 

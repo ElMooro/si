@@ -179,7 +179,7 @@ footer a{color:var(--text-dim);}
 <footer><p>Trade Journal · #16 · Pattern memory feeds back into #6 calibration · <a href="/">JustHodl.AI</a></p></footer>
 
 <script>
-const URL_JOURNAL = 'https://justhodl-dashboard-live.s3.amazonaws.com/data/trade-journal.json';
+const URL_JOURNAL = 'https://justhodl.ai/data/trade-journal.json';
 
 function esc(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtPct(n,d){if(n==null||isNaN(n))return'—';return(n>=0?'+':'')+n.toFixed(d==null?2:d)+'%';}

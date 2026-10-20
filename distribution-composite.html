@@ -35,7 +35,7 @@ h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margi
 <script src="/assets/impact-strip.js" defer></script>
 <script>
 (async function(){try{
-var r=await fetch('https://justhodl-dashboard-live.s3.amazonaws.com/data/distribution-composite.json?t='+Date.now());
+var r=await fetch('https://justhodl.ai/data/distribution-composite.json?t='+Date.now());
 if(!r.ok){document.getElementById('hero').innerHTML='<div class="card mono">feed unavailable — engine deploying (first run pending)</div>';return;}
 var p=await r.json();
 var AMB='#F0B429',GRN='#6fce8a',RED='#E07A6A',MUT='#5b6479';
