@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -45,6 +45,15 @@ DEFAULTS = {
     "brake_shed_share": 0.8,      # BRAKE throttles the top Lambda spenders covering 80% of Lambda cost
     "brake_max_functions": 40,
     "brake_min_fn_usd_day": 0.05,
+    # v1.2.0 diffuse-storm fuse (Khalid, 2026-10-20): the Oct 12-16 loop was one hot pair, but a storm spread over
+    # many functions each under runaway_fn_usd_day was invisible to both fuses.  When the FLEET burns >= this rate
+    # (normal Lambda spend is ~$4/day; $75/day = ~$2,300/month from Lambda alone) the hottest functions covering
+    # diffuse_share of the burn are throttled, each >= diffuse_min_fn_usd_day, at most diffuse_max_fns.
+    "diffuse_fleet_usd_day": 75.0,
+    "diffuse_share": 0.6,
+    "diffuse_min_fn_usd_day": 2.0,
+    "diffuse_max_fns": 30.0,
+    "egress_alert_usd_day": 5.0,  # v1.2.0: S3 data-transfer-out above this on a complete day is reported (~55 GB)
 }
 
 PERSISTENT_USAGE_PATTERNS = (
@@ -205,6 +214,34 @@ def fast_fuse_targets(costs_per_day, buckets, exempt, cfg):
              if fn not in exempt and usd >= floor and usd >= cfg["fast_fuse_min_share"] * total]
     picks = [fn for fn in picks if buckets.get(fn) and min(buckets[fn]) >= floor]
     return picks[:int(cfg["fast_fuse_max_fns"])]
+
+
+def diffuse_targets(costs_per_day, baseline, exempt, cfg):
+    """v1.2.0: functions to throttle when the fleet as a whole is in a storm that no single function dominates.
+    Empty unless the fleet burns >= diffuse_fleet_usd_day AND >= runaway_total_factor x normal.  Returns the hottest
+    non-exempt functions (each >= diffuse_min_fn_usd_day) until diffuse_share of the fleet burn is covered."""
+    total = sum(costs_per_day.values())
+    if total < max(cfg["diffuse_fleet_usd_day"], baseline * cfg["runaway_total_factor"]):
+        return []
+    picked, covered = [], 0.0
+    for fn, usd in sorted(costs_per_day.items(), key=lambda kv: (-kv[1], kv[0])):
+        if covered >= cfg["diffuse_share"] * total or len(picked) >= int(cfg["diffuse_max_fns"]):
+            break
+        if fn in exempt or usd < cfg["diffuse_min_fn_usd_day"]:
+            continue
+        picked.append(fn)
+        covered += usd
+    return picked
+
+
+def egress_usd_by_day(daily_usage):
+    """{day: USD} of data-transfer-out usage types (site egress from S3 is the one residual that can balloon)."""
+    out = {}
+    for d, usage in daily_usage.items():
+        v = sum(float(x) for k, x in usage.items() if "datatransfer-out" in k.lower())
+        if v:
+            out[d] = round(v, 4)
+    return out
 
 
 def is_exempt(fn, control, self_name):

@@ -2,8 +2,13 @@
 
 Triggers
   * EventBridge Scheduler justhodl-spend-governor-tick  cron(7 * * * ? *)        {"action": "tick"}
-  * SNS justhodl-spend-governor  <- AWS Budget JustHodl-Monthly-Hard-Cap-500 alerts  -> tick
-  * direct invoke from ops: {"action": "status" | "plan" | "force" | "restore" | "selftest" | "fuse_check"}
+  * SNS justhodl-spend-governor  <- AWS Budget JustHodl-Monthly-Hard-Cap-600 alerts  -> tick
+  * direct invoke from ops: {"action": "status" | "plan" | "force" | "restore" | "selftest" | "fuse_check"
+                             | "cadence_check" | "cadence_restore"}
+
+v1.2.0 (Khalid, 2026-10-20, after the $2,800 October bill): cap $600; diffuse-storm fuse (a storm spread over many
+functions, none hot enough for the single-function fuse); daily cadence sentinel (every engine at most once per 24 h,
+anything faster is retimed and recorded); daily S3 egress alert.
 
 Private state (reserved concurrency 1 = single writer):
   s3://$STATE_BUCKET/spend-governor/state.json    stage, ledger of every change with its BEFORE value
@@ -22,13 +27,14 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+import cadence_sentinel as cs
 import governor_core as core
 import governor_levers as lv
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 ACCOUNT = os.environ.get("ACCOUNT_ID", "857687956942")
 SELF = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "justhodl-spend-governor")
-BUDGET_NAME = os.environ.get("BUDGET_NAME", "JustHodl-Monthly-Hard-Cap-500")
+BUDGET_NAME = os.environ.get("BUDGET_NAME", "JustHodl-Monthly-Hard-Cap-600")
 STATE_BUCKET = os.environ.get("STATE_BUCKET", "justhodl-ops-private-857687956942")
 PREFIX = "spend-governor/"
 ALERT_TOPIC = os.environ.get("ALERT_TOPIC_ARN", "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts")
@@ -52,8 +58,12 @@ DEFAULT_CONTROL = {
     "brake_always": ["justhodl-ai", "justhodl-student-rsi", "justhodl-factory-grader"],
     "cap_overrides": {},
     "thresholds": {},
-    "fuse_interval_h": 6,
+    "fuse_interval_h": 2,          # v1.2.0: was 6 - a diffuse storm with no guard alarm is now seen within 2 h
+    "cadence_enforce": True,       # v1.2.0: retime any trigger faster than daily (False = report only)
+    "cadence_exempt": [],          # "rule:<name>" / "sched:<name>" allowed to run more than once a day
+    "cadence_max_fix": 50,
 }
+CADENCE_SELF = "sched:justhodl-spend-governor-tick"
 # standard (not adaptive) retries: adaptive mode rate-limits the CLIENT after throttles, and one expected
 # throttle (the canary probe) or an API burst must never slow every later call in a warm container
 BOTO_CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=60)
@@ -398,6 +408,8 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
     costs = lambda_costs(ctx, 1)
     exempt = {n for n in costs if ctx.exempt(n)}
     hot = core.runaway_functions(costs, baseline, exempt, cfg)
+    diffuse = [] if hot else core.diffuse_targets(costs, baseline, exempt, cfg)   # v1.2.0: many-function storm
+    hot = hot or diffuse
     if hot:
         active = recent_invocations(ctx, hot)
         hot = [fn for fn in hot if active.get(fn, 0) > 0]
@@ -409,7 +421,7 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
                       for fn in hot if fn not in confirmed}
     top = sorted(costs.items(), key=lambda kv: -kv[1])[:8]
     fz.update({"checked_at": now.isoformat(), "firing": firing, "fleet_usd_day": round(sum(costs.values()), 2),
-               "top": [(k, round(v, 2)) for k, v in top]})
+               "top": [(k, round(v, 2)) for k, v in top], "diffuse": bool(diffuse)})
     run = confirmed
     new = [fn for fn in run if ("lambda:" + fn) not in ctx.ledger]
     if not enforce:
@@ -421,12 +433,14 @@ def check_fuse(ctx, state, cfg, baseline, now, enforce, force=False):
         return {"checked": True, "firing": firing, "runaway": run, "new": [], "suspects": sorted(fz["suspects"])}
     entries = lv.lambda_discover(ctx, "FUSE", new)
     counts = apply_entries(ctx, entries, enforce, now)
-    lines = ["Runaway fuse %s %d function(s) burning far above normal:" % ("throttled" if enforce else "would throttle", len(new))]
+    lines = ["Runaway fuse %s %d function(s) burning far above normal%s:" % (
+        "throttled" if enforce else "would throttle", len(new), " (diffuse storm: fleet-level trip)" if diffuse else "")]
     lines += ["  %s  ~$%.0f/day" % (fn, costs[fn]) for fn in new]
     lines += ["Fleet Lambda rate ~$%.0f/day vs normal ~$%.0f/day. Guard alarms: %s" % (sum(costs.values()), baseline, ", ".join(firing) or "none"),
               "Reversal: invoke justhodl-spend-governor {\"action\":\"restore\",\"include_fuse\":true} after the cause is fixed."]
     notify("JustHodl runaway fuse: %s" % ", ".join(new[:3]), lines, "enforce" if enforce else "monitor")
-    record_event("fuse", {"functions": new, "costs": {fn: costs[fn] for fn in new}, "counts": counts, "enforce": enforce}, now)
+    record_event("fuse", {"functions": new, "costs": {fn: costs[fn] for fn in new}, "counts": counts, "enforce": enforce,
+                          "diffuse": bool(diffuse)}, now)
     return {"checked": True, "firing": firing, "runaway": run, "new": new, "counts": counts}
 
 
@@ -487,10 +501,18 @@ def fast_fuse(ctx, state, cfg, now, enforce, alarm):
            if fn not in exempt and usd >= floor and usd >= cfg["fast_fuse_min_share"] * total][:10]
     buckets = lambda_cost_buckets(ctx, hot) if hot else {}
     picks = core.fast_fuse_targets(costs, buckets, exempt, cfg)
+    diffuse = False
+    if not picks:                                   # v1.2.0: a storm spread over many functions, none dominant
+        baseline, _ = core.baseline_from_daily((state.get("ce") or {}).get("daily") or {}, now.date(), cfg)
+        cand = core.diffuse_targets(costs, baseline, exempt, cfg)
+        if cand:
+            buckets = lambda_cost_buckets(ctx, cand)
+            picks = [fn for fn in cand if buckets.get(fn) and min(buckets[fn]) >= cfg["diffuse_min_fn_usd_day"]]
+            diffuse, hot = bool(picks), cand
     new = [fn for fn in picks if ("lambda:" + fn) not in ctx.ledger]
     top = [(k, round(v, 2)) for k, v in sorted(costs.items(), key=lambda kv: -kv[1])[:8]]
     ff.update({"at": now.isoformat(), "alarm": name, "fleet_usd_day": round(total, 2), "hot": hot,
-               "picks": picks, "new": new, "top": top,
+               "picks": picks, "new": new, "top": top, "diffuse": diffuse,
                "buckets": {fn: [round(x, 1) for x in buckets.get(fn, [])] for fn in hot}})
     if not new:
         record_event("fast-fuse-check", {"alarm": name, "fleet_usd_day": round(total, 2), "hot": hot, "picks": picks,
@@ -500,8 +522,8 @@ def fast_fuse(ctx, state, cfg, now, enforce, alarm):
     entries = lv.lambda_discover(ctx, "FUSE", new)
     counts = apply_entries(ctx, entries, enforce, now)
     lines = ["Alarm %s: the fleet has been far above normal for 15 minutes." % name,
-             "Fast fuse %s %d function(s) burning in every 5-minute bucket of the window:" % (
-                 "throttled" if enforce else "would throttle", len(new))]
+             "Fast fuse %s %d function(s) burning in every 5-minute bucket of the window%s:" % (
+                 "throttled" if enforce else "would throttle", len(new), " (diffuse storm)" if diffuse else "")]
     lines += ["  %s  ~$%.0f/day  buckets %s" % (fn, costs[fn], [round(x) for x in buckets.get(fn, [])]) for fn in new]
     lines += ["Fleet Lambda rate ~$%.0f/day. Nothing else was touched." % total,
               "Reversal after the cause is fixed: invoke justhodl-spend-governor "
@@ -536,6 +558,69 @@ def guardrail_check(ctx, state, now, mode):
                problems + ["Re-arm with ops 6541 (aws/ops/STAGED/ops_6541_arm_runaway_guardrails.py, direct lane); "
                            "runbook docs/ops/RUNAWAY_GUARDRAILS.md."], mode)
     return {"problems": problems}
+
+
+def cadence_check(ctx, state, now, mode, force=False):
+    """v1.2.0 daily sentinel: every enabled scheduled trigger at most once per 24 h; faster ones are retimed (enforce)
+    and recorded under state.cadence.fixed so {"action":"cadence_restore"} can put the old expression back."""
+    exempt = {CADENCE_SELF} | set(ctx.control.get("cadence_exempt") or [])
+    enforce = mode == "enforce" and bool(ctx.control.get("cadence_enforce", True))
+    res = cs.run(client("events"), client("scheduler"), exempt, enforce, log=ctx.log,
+                 max_fix=int(ctx.control.get("cadence_max_fix") or 50))
+    c = state.setdefault("cadence", {})
+    fixed = (c.get("fixed") or []) + [dict(f, at=now.isoformat()) for f in res["fixed"]]
+    c.update({"day": now.date().isoformat(), "checked_at": now.isoformat(), "checked": res["checked"],
+              "violators": res["violators"], "fixed": fixed[-300:], "errors": res["errors"]})
+    if res["violators"]:
+        lines = ["%d scheduled trigger(s) could run an engine more than once a day; %s:" % (
+            len(res["violators"]), "retimed to once a day" if enforce else "NOT changed (report only)")]
+        lines += ["  %s %s  %s  -> %s" % (v["kind"], v["name"], v["expr"], v.get("fn") or "?") for v in res["violators"][:40]]
+        lines += ["Rule: config/cadence-floor.json. Undo one: invoke justhodl-spend-governor "
+                  "{\"action\":\"cadence_restore\",\"names\":[\"<name>\"]} and add it to control.json cadence_exempt."]
+        if res["errors"]:
+            lines.append("Errors: %s" % "; ".join(res["errors"][:10]))
+        notify("JustHodl cadence: %d trigger(s) faster than daily" % len(res["violators"]), lines, mode)
+        record_event("cadence", {"violators": res["violators"], "fixed": res["fixed"], "errors": res["errors"],
+                                 "enforce": enforce}, now)
+    return {k: (len(v) if isinstance(v, list) else v) for k, v in res.items()}
+
+
+def egress_check(state, ce, now, cfg, mode):
+    """v1.2.0: S3 data-transfer-out of the last complete day above egress_alert_usd_day is reported once a day
+    (the October 2026 site leak was ~118 GB/day = ~$10/day, invisible under the Lambda storm)."""
+    by_day = core.egress_usd_by_day(ce.get("persistent_by_day") or {})
+    yday = (now - timedelta(days=1)).date().isoformat()
+    usd = by_day.get(yday, 0.0)
+    out = {"day": yday, "usd": usd, "alert": usd >= cfg["egress_alert_usd_day"]}
+    alerts = state.setdefault("alerts", {})
+    if out["alert"] and alerts.get("egress_day") != now.date().isoformat():
+        alerts["egress_day"] = now.date().isoformat()
+        notify("JustHodl egress: $%.2f of data transfer out on %s" % (usd, yday),
+               ["Data-transfer-out charges by day: %s" % json.dumps(dict(sorted(by_day.items())[-7:])),
+                "At $0.09/GB that is ~%.0f GB. Runbook: docs/ops/RUNAWAY_GUARDRAILS.md (site egress)." % (usd / 0.09)], mode)
+    return out
+
+
+def action_cadence_restore(event, context):
+    now = now_utc()
+    state = s3_get_json("state.json", None) or new_state(now)
+    names = set(event.get("names") or [])
+    fixed = (state.get("cadence") or {}).get("fixed") or []
+    done, keep = [], []
+    for f in fixed:
+        if names and f["name"] not in names:
+            keep.append(f)
+            continue
+        try:
+            f["restore"] = cs.restore(f, client("events"), client("scheduler"))
+            done.append(f)
+        except Exception as e:  # noqa: BLE001
+            f["restore"] = "failed:" + lv.err_code(e)
+            keep.append(f)
+    state.setdefault("cadence", {})["fixed"] = keep
+    s3_put_json("state.json", state)
+    record_event("cadence-restore", {"restored": [f["name"] for f in done], "reason": event.get("reason")}, now)
+    return {"restored": [(f["kind"], f["name"], f["before"]["expr"]) for f in done], "remaining": len(keep)}
 
 
 def alarm_trigger(event, context, alarm):
@@ -629,6 +714,17 @@ def tick(event, context, trigger):
     except Exception as e:  # noqa: BLE001 - a monitoring read must never block the cap path
         ctx.log("guardrail check failed: %s" % lv.err_code(e))
 
+    try:
+        if (state.get("cadence") or {}).get("day") != now.date().isoformat():
+            out["cadence"] = cadence_check(ctx, state, now, mode)
+    except Exception as e:  # noqa: BLE001 - the daily sentinel must never block the cap path
+        ctx.log("cadence sentinel failed: %s" % lv.err_code(e))
+        out["cadence"] = {"error": lv.err_code(e)}
+    try:
+        out["egress"] = egress_check(state, ce, now, cfg, mode)
+    except Exception as e:  # noqa: BLE001
+        ctx.log("egress check failed: %s" % lv.err_code(e))
+
     sup = state.get("suppress_until")
     suppressed = bool(sup) and core.as_utc(sup) > now
     cur = state.get("stage", "NORMAL")
@@ -711,7 +807,9 @@ def action_status(event, context):
     return {"version": core.VERSION, "mode": control.get("mode"), "stage": state.get("stage"),
             "stage_since": state.get("stage_since"), "cap": cap, "cap_source": cap_src, "budget_limit": limit,
             "budget_actual": b_actual, "budget_forecast": b_forecast, "thresholds": th, "held": by_stage,
-            "suppress_until": state.get("suppress_until"), "fuse": state.get("fuse"), "last": state.get("last")}
+            "suppress_until": state.get("suppress_until"), "fuse": state.get("fuse"), "last": state.get("last"),
+            "cadence": {k: v for k, v in (state.get("cadence") or {}).items() if k != "fixed"},
+            "cadence_fixed": len((state.get("cadence") or {}).get("fixed") or [])}
 
 
 def action_plan(event, context):
@@ -824,6 +922,16 @@ def lambda_handler(event, context):
     if action == "fast_fuse":  # manual / verification entry point: same path as a runaway alarm
         return alarm_trigger(event, context, {"AlarmName": event.get("alarm") or RUNAWAY_ALARMS[0],
                                               "NewStateValue": "ALARM", "manual": True})
+    if action == "cadence_check":
+        now = now_utc()
+        control = load_control()
+        state = s3_get_json("state.json", None) or new_state(now)
+        ctx = Ctx(control, state.setdefault("ledger", {}), context)
+        res = cadence_check(ctx, state, now, "enforce" if control.get("mode") == "enforce" else "monitor", force=True)
+        s3_put_json("state.json", state)
+        return dict(res, logs=ctx.logs[-10:])
+    if action == "cadence_restore":
+        return action_cadence_restore(event, context)
     if action == "fuse_check":
         now = now_utc()
         control = load_control()

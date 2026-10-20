@@ -104,6 +104,7 @@ class FakeCE:
     def __init__(self, daily_total=20.0):
         self.calls = 0
         self.daily_total = daily_total
+        self.usage = {}   # {day: {usage_type: usd}} extra grouped rows (v1.2.0 egress test)
 
     def get_cost_and_usage(self, TimePeriod, Granularity, Metrics, GroupBy=None, **kw):
         self.calls += 1
@@ -116,6 +117,8 @@ class FakeCE:
             if GroupBy:
                 item["Groups"] = [{"Keys": ["TimedStorage-ByteHrs"], "Metrics": {"UnblendedCost": {"Amount": "1.5"}}},
                                   {"Keys": ["Lambda-GB-Second"], "Metrics": {"UnblendedCost": {"Amount": "9"}}}]
+                item["Groups"] += [{"Keys": [k], "Metrics": {"UnblendedCost": {"Amount": str(v)}}}
+                                   for k, v in self.usage.get(d.isoformat(), {}).items()]
             res.append(item)
             d += timedelta(days=1)
         return {"ResultsByTime": res}
@@ -579,6 +582,164 @@ def test_plan_is_read_only():
     p = gov.lambda_handler({"action": "plan", "stage": "FREEZE"}, Context())
     check(p["would_act_on"].get("lambda") == 4 and not w["lambda"].puts, "plan lists 4 Lambdas and changes nothing")
     check("justhodl-guardrail-notify" in p["exempt"], "plan reports the exempt set")
+
+
+# ------------------------------------------------------------- v1.2.0 tests --
+class FakeEvents:
+    def __init__(self, rules):
+        self.rules = {r["Name"]: dict(r) for r in rules}
+        self.puts = []
+
+    def list_event_buses(self, **kw):
+        return {"EventBuses": [{"Name": "default"}]}
+
+    def get_paginator(self, op):
+        assert op == "list_rules", op
+        return Pager(lambda **k: {"Rules": [dict(r) for r in self.rules.values()]})
+
+    def describe_rule(self, Name, EventBusName="default"):
+        return dict(self.rules[Name])
+
+    def put_rule(self, **kw):
+        self.puts.append(kw["Name"])
+        self.rules[kw["Name"]] = dict(kw)
+        return {}
+
+
+class FakeScheduler:
+    def __init__(self, scheds):
+        self.items = {s["Name"]: dict(s, FlexibleTimeWindow={"Mode": "OFF"},
+                                      Target={"Arn": "arn:aws:lambda:us-east-1:1:function:" + s.pop("fn"),
+                                              "RoleArn": "r", "Input": "{\"token\":\"SYNTHETIC\"}"}) for s in scheds}
+        self.updates = []
+
+    def get_paginator(self, op):
+        if op == "list_schedule_groups":
+            return Pager(lambda **k: {"ScheduleGroups": [{"Name": "default"}]})
+        return Pager(lambda **k: {"Schedules": [{"Name": n, "GroupName": "default", "State": v["State"]}
+                                               for n, v in self.items.items()]})
+
+    def get_schedule(self, Name, GroupName="default"):
+        return dict(self.items[Name], GroupName=GroupName)
+
+    def update_schedule(self, **kw):
+        self.updates.append(kw["Name"])
+        assert kw["Target"].get("Input") == "{\"token\":\"SYNTHETIC\"}", "payload must be passed back whole"
+        self.items[kw["Name"]] = dict(kw)
+        return {}
+
+
+def cadence_world(**kw):
+    w = world(FLEET, actual=10, **kw)
+    w["events"] = FakeEvents([
+        {"Name": "fast-5min", "ScheduleExpression": "rate(5 minutes)", "State": "ENABLED", "Description": "d"},
+        {"Name": "off-fast", "ScheduleExpression": "rate(1 minute)", "State": "DISABLED"},
+        {"Name": "daily", "ScheduleExpression": "cron(0 12 * * ? *)", "State": "ENABLED"},
+        {"Name": "managed", "ScheduleExpression": "rate(1 minute)", "State": "ENABLED", "ManagedBy": "aws"}])
+    w["scheduler"] = FakeScheduler([
+        {"Name": "justhodl-spend-governor-tick", "ScheduleExpression": "cron(7 * * * ? *)", "State": "ENABLED", "fn": "justhodl-spend-governor"},
+        {"Name": "hourly-sched", "ScheduleExpression": "cron(20 * * * ? *)", "State": "ENABLED", "fn": "justhodl-alpha"},
+        {"Name": "allowed-fast", "ScheduleExpression": "rate(10 minutes)", "State": "ENABLED", "fn": "justhodl-beta"}])
+    return w
+
+
+def test_cadence_sentinel_retimes_fast_triggers_once_a_day_and_restores_on_request():
+    w = cadence_world()
+    set_control(w, cadence_exempt=["sched:allowed-fast"])
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    c = out["cadence"]
+    check(c["violators"] == 2 and c["fixed"] == 2 and not c["errors"], "sentinel: 2 violators (5-min rule, hourly schedule), both retimed")
+    check(w["events"].puts == ["fast-5min"] and w["scheduler"].updates == ["hourly-sched"], "exactly those two were written")
+    check(not core_violates(w["events"].rules["fast-5min"]["ScheduleExpression"]) and
+          w["events"].rules["fast-5min"]["State"] == "ENABLED" and w["events"].rules["fast-5min"]["Description"] == "d",
+          "rule retimed to a daily expression, still enabled, description kept")
+    check(w["events"].rules["off-fast"]["ScheduleExpression"] == "rate(1 minute)", "a disabled rule is not a running engine: untouched")
+    check(w["scheduler"].items["justhodl-spend-governor-tick"]["ScheduleExpression"] == "cron(7 * * * ? *)", "own tick exempt")
+    check(w["scheduler"].items["allowed-fast"]["ScheduleExpression"] == "rate(10 minutes)", "control.json cadence_exempt honoured")
+    check(any("cadence" in m["Subject"] for m in w["sns"].sent), "operator told")
+    out2 = gov.lambda_handler({"action": "tick"}, Context())
+    check("cadence" not in out2, "runs once a day")
+    st = gov.lambda_handler({"action": "status"}, Context())
+    check(st["cadence_fixed"] == 2 and st["cadence"]["violators"][0]["name"] in ("fast-5min", "hourly-sched"), "status shows it")
+    r = gov.lambda_handler({"action": "cadence_restore", "names": ["hourly-sched"]}, Context())
+    check(w["scheduler"].items["hourly-sched"]["ScheduleExpression"] == "cron(20 * * * ? *)" and r["remaining"] == 1,
+          "cadence_restore puts the recorded expression back, the other fix stays recorded")
+
+
+def test_cadence_sentinel_monitor_mode_reports_only():
+    w = cadence_world()
+    set_control(w, mode="monitor")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["cadence"]["violators"] == 3 and out["cadence"]["fixed"] == 0 and not w["events"].puts and not w["scheduler"].updates,
+          "monitor mode: 3 reported (allowed-fast not exempt here), nothing written")
+    set_control(w, cadence_enforce=False)
+    w["s3"].objects.pop(gov.PREFIX + "state.json")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["cadence"]["fixed"] == 0 and not w["events"].puts, "cadence_enforce=false: enforce mode still only reports")
+
+
+def core_violates(expr):
+    import cadence_core
+    return cadence_core.violates(expr)
+
+
+def test_diffuse_storm_fuse():
+    cfg = core.merged_cfg()
+    exempt = {"justhodl-spend-governor"}
+    calm = {"f%d" % i: 0.3 for i in range(30)}
+    check(core.diffuse_targets(calm, 4.0, exempt, cfg) == [], "normal fleet: nothing")
+    storm = {"f%d" % i: 4.0 for i in range(30)}          # $120/day spread over 30 functions, none >= $20
+    storm["justhodl-spend-governor"] = 50.0
+    picks = core.diffuse_targets(storm, 4.0, exempt, cfg)
+    check(core.runaway_functions({k: v for k, v in storm.items() if k != "justhodl-spend-governor"}, 4.0, exempt, cfg) == [],
+          "the single-function fuse is blind to it")
+    check(len(picks) == 26 and "justhodl-spend-governor" not in picks, "diffuse fuse picks the hottest covering 60%% of the burn (%d)" % len(picks))
+    picks = core.diffuse_targets({"a": 100.0, "b": 1.0}, 4.0, exempt, cfg)
+    check(picks == ["a"], "a function under diffuse_min_fn_usd_day is never picked")
+    check(core.diffuse_targets(storm, 60.0, exempt, cfg) == [], "a fleet that is normally this busy is not a storm")
+
+
+def test_hourly_fuse_trips_on_a_diffuse_storm():
+    fns = dict(FLEET)
+    fns.update({"justhodl-d%d" % i: {"reserved": None} for i in range(12)})
+    durations = {"justhodl-d%d" % i: 40000000.0 for i in range(12)}     # each ~$8/day at 512 MB: no single runaway, fleet ~$96/day
+    w = world(fns, actual=50, alarm="ALARM", durations=durations)
+    set_control(w)
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["fuse"].get("new") == [] and len(out["fuse"].get("suspects") or []) >= 8, "strike one: the storm's functions become suspects")
+    age_fuse(w)
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(len(out["fuse"].get("new") or []) >= 8 and all(n.startswith("justhodl-d") for n in out["fuse"]["new"]),
+          "strike two: the diffuse storm is throttled (%d functions)" % len(out["fuse"].get("new") or []))
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "a quiet function is untouched")
+    check(any("diffuse" in m["Message"] for m in w["sns"].sent), "the alert says it was a diffuse trip")
+
+
+def test_fast_fuse_trips_on_a_sustained_diffuse_storm():
+    fns = dict(FLEET)
+    fns.update({"justhodl-d%d" % i: {"reserved": None} for i in range(12)})
+    durations = {"justhodl-d%d" % i: 40000000.0 for i in range(12)}
+    w = world(fns, actual=50, alarm="ALARM", durations=durations)
+    set_control(w)
+    out = gov.lambda_handler(alarm_record(), Context())
+    check(out.get("diffuse") is None and len(out.get("new") or []) >= 8, "alarm + no dominant function -> diffuse picks throttled")
+    w2 = world(fns, actual=50, alarm="ALARM", durations=durations, burst=["justhodl-d%d" % i for i in range(12)])
+    set_control(w2)
+    out = gov.lambda_handler(alarm_record(), Context())
+    check(out.get("new") == [], "a diffuse burst that already ended is not throttled")
+
+
+def test_egress_alert_once_a_day():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    yday = (datetime.now(timezone.utc) - timedelta(days=1)).date().isoformat()
+    w["ce"].usage = {yday: {"USE1-DataTransfer-Out-Bytes": 9.5, "TimedStorage-ByteHrs": 2.0}}
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    check(out["egress"]["alert"] and out["egress"]["usd"] == 9.5, "yesterday's data-transfer-out above the line is flagged")
+    n = sum(1 for m in w["sns"].sent if "egress" in m["Subject"])
+    gov.lambda_handler({"action": "tick"}, Context())
+    check(n == 1 and sum(1 for m in w["sns"].sent if "egress" in m["Subject"]) == 1, "one alert a day")
+    check(core.egress_usd_by_day({"d": {"TimedStorage": 1.0}}) == {}, "storage is not egress")
 
 
 if __name__ == "__main__":

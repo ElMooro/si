@@ -106,7 +106,25 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
 * v1.1.0 (2026-10-17): fast fuse - runaway alarms reach the governor through SNS and sustained burners are
   throttled in seconds (`docs/ops/RUNAWAY_GUARDRAILS.md`). v1.1.1: every tick checks that the runaway alarms
   still exist, are enabled and still notify the governor; problems are e-mailed once a day.
-* October 2026 runs with `cap_overrides["2026-10"] = $3,500`; $500 from 2026-11-01.
+* October 2026 runs with `cap_overrides["2026-10"] = $3,500`; **$600 from 2026-11-01** (budget
+  `JustHodl-Monthly-Hard-Cap-600`, ops 6555; the -500 budget is retired by ops 6556).
+* v1.2.0 (2026-10-20, Khalid: "never goes past $600 ... every engine once every 24 hours"):
+  - **Diffuse-storm fuse.** The Oct 12-16 loop was one hot pair, but a storm spread over many functions each
+    under `runaway_fn_usd_day` ($20/day) was invisible to both fuses. When the fleet burns >= `diffuse_fleet_usd_day`
+    ($75/day, ~18x normal) and >= 3x its baseline, the hottest functions covering 60% of the burn (each >= $2/day,
+    at most 30) are throttled: two strikes in the hourly path (now checked every 2 h, `fuse_interval_h`), and in
+    the fast path when every 5-minute bucket of the alarm window stayed hot. Alerts say "diffuse storm".
+  - **Cadence sentinel.** Once a day the governor lists every enabled scheduled rule and Scheduler schedule and
+    checks it with `cadence_core` (the same rules as `tests/deployment/test_cadence_floor.py`). Anything that can
+    fire more than once on a day is retimed to a daily expression (enforce mode, `cadence_enforce`), recorded under
+    `state.cadence.fixed`, and e-mailed. Undo one: `{"action":"cadence_restore","names":["<name>"]}` and add
+    `"<kind>:<name>"` to `control.json cadence_exempt`. The governor's own hourly tick is exempt by construction.
+    Manual run: `{"action":"cadence_check"}`. Rights: ops 6555 (events/scheduler list+retime, PassRole to the
+    Scheduler role only).
+  - **Egress alert.** The last complete day's data-transfer-out above `egress_alert_usd_day` ($5 = ~55 GB) is
+    e-mailed once a day (the October site leak was ~118 GB/day, invisible under the Lambda storm).
+  - The once-a-day rollout itself: ops 6552-6554 (341 triggers retimed/disabled, 8,081 -> 759 scheduled
+    firings a day, plan in `config/cadence-plan.json`, backups in `backups/cadence-floor/`).
 * 2026-10-16 22:53 UTC: Khalid chose to FREEZE the rest of October (ops 6525, `{"action":"force","stage":"FREEZE"}`):
   914 Lambdas + the owned SageMaker async endpoint held; the 2026-11-01 00:07 UTC tick restores them.
 * 2026-10-19: ops 6545 proved the freeze live (922 of 926 Lambdas at 0, only the 4 exempt ran in 24 h; 19 lane

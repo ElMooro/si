@@ -7,9 +7,9 @@
   "timeout": 900,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/justhodl-spend-governor-role",
-  "description": "ops 6522 - monthly AWS spend cap: reads budget JustHodl-Monthly-Hard-Cap-500, brakes then freezes spend below the cap (lag + residual aware), runaway fuse, restores exactly on the 1st",
+  "description": "v1.2.0 (ops 6556) - $600 monthly cap from budget JustHodl-Monthly-Hard-Cap-600: brake, freeze, runaway + diffuse-storm fuses, daily once-a-day cadence sentinel, egress alert; restores exactly on the 1st",
   "env": {
-    "BUDGET_NAME": "JustHodl-Monthly-Hard-Cap-500",
+    "BUDGET_NAME": "JustHodl-Monthly-Hard-Cap-600",
     "STATE_BUCKET": "justhodl-ops-private-857687956942",
     "ALERT_TOPIC_ARN": "arn:aws:sns:us-east-1:857687956942:justhodl-fleet-alerts",
     "ACCOUNT_ID": "857687956942",
