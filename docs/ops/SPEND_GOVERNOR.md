@@ -142,6 +142,16 @@ To keep an engine running through a freeze, add it to `exempt_functions` in `con
     previous concurrency and the counter starts again from zero for that engine (`mtd_at_release`).
     `{"action":"caps"}` lists held engines, overrides, releases and the month-to-date top 25;
     `{"action":"meter"}` forces a read; `{"action":"cap_selftest"}` round-trips the switch on the canary.
+* v1.4.0 (2026-10-20, Khalid: "put a system in place to detect anomalies and fix them automatically"):
+  - **Anomaly sentinel.** The meter keeps a per-day record (invocations, cost) per function for 14 days. Every
+    metered window each engine is compared with the median of its own days: more than 3x a normal day's
+    invocations (floor 200) or cost (floor $1) in one window, or any window >= $5, is anomalous; a new engine
+    with under 3 days of history gets 3x more room. Two anomalous windows in a row (one if >= $5) hold the engine
+    at concurrency 0 under ledger stage **ANOM** with a 6-hour cooldown and an e-mail; after the cooldown it is
+    released by itself (e-mailed again). The third hold in a month becomes a **CAP** hold (manual release). Error
+    storms (>= 10 errors and >= 50% of runs failing in a window) are e-mailed once a day, not held.
+    `{"action":"release_anomaly","function":F}` ends a cooldown early; `{"action":"anomaly_selftest"}` proves the
+    path on the canary. Tunables: `thresholds.anom_*` in control.json.
   - What it does NOT see: S3 request / storage charges an engine causes (the Oct 12-16 S3 balloon is bounded
     by the lifecycle rule Khalid disabled on Oct 19 and watched by the bucket-size alarm -> fast fuse), and
     the exempt control plane (the governor itself, guardrail-notify, supabase-keepalive, dr-snapshot).

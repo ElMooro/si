@@ -6,6 +6,11 @@ Triggers
   * direct invoke from ops: {"action": "status" | "plan" | "force" | "restore" | "selftest" | "fuse_check"
                              | "cadence_check" | "cadence_restore" | "caps" | "release_cap" | "cap_selftest"}
 
+v1.4.0 (Khalid, 2026-10-20: "detect anomalies and fix them automatically"): every metered window each engine is
+compared with its own 14-day baseline (invocations and cost per normal day, plus error share).  Two anomalous windows
+in a row (or one window >= $5) hold it at concurrency 0 for 6 h under stage ANOM, with an e-mail; it is released
+automatically after the cooldown; the third hold in a month becomes a CAP hold (manual release only).
+
 v1.3.0 (Khalid, 2026-10-20: "any engine or events that cause $50 in a month shuts down automatically and inform me
 and won't turn on again unless I manually turn it on"): every tick meters each function's month-to-date Lambda cost
 from CloudWatch (Duration x memory + requests, list prices); a function at or past its cap ($50, per-function
@@ -306,9 +311,9 @@ def enforce_drift(ctx, stage, now):
     """Re-apply ledger entries something undid (RDS auto-start, a reset concurrency) and retry failures."""
     todo = []
     for e in list(ctx.ledger.values()):
-        if e.get("stage") not in ("BRAKE", "FREEZE", "FUSE", "CAP") or e.get("restorable") is False:
+        if e.get("stage") not in ("BRAKE", "FREEZE", "FUSE", "CAP", "ANOM") or e.get("restorable") is False:
             continue
-        if core.LEVEL.get(e.get("stage"), 2) > core.LEVEL.get(stage, 0) and e.get("stage") not in ("FUSE", "CAP"):
+        if core.LEVEL.get(e.get("stage"), 2) > core.LEVEL.get(stage, 0) and e.get("stage") not in ("FUSE", "CAP", "ANOM"):
             continue
         if e["lever"] == "lambda" and ctx.exempt(e["id"]):
             continue
@@ -661,35 +666,207 @@ def meter(ctx, state, cfg, now, force=False):
     fns = {f["name"]: f for f in lv.list_functions(ctx)}
     names = sorted(fns)
     today = now.date().isoformat()
-    reconcile = m.get("reconciled_day") != today or last is None
-    start = core.month_start(now) if reconcile else max(last, end - timedelta(hours=24))
-    if end <= start:
-        return {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}}
-    span = (end - start).total_seconds()
-    period = 3600 if span > 6 * 3600 else 300
-    start = start.replace(minute=0, second=0, microsecond=0) if period == 3600 else start
-    end_r = end.replace(minute=0, second=0, microsecond=0) if period == 3600 else end
-    if end_r <= start:
-        return {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}}
-    inv = _metric_sums(names, "Invocations", start, end_r, period)
-    active = [fn for fn in names if inv.get(fn, 0) > 0]
-    dur = _metric_sums(active, "Duration", start, end_r, period) if active else {}
-    usd = {fn: core.lambda_cost_usd(dur.get(fn, 0.0), inv.get(fn, 0.0), fns[fn]["mem"], fns[fn]["arch"]) for fn in active}
-    hours = (end_r - start).total_seconds() / 3600.0
-    if reconcile:
-        m["mtd"] = {fn: round(v, 6) for fn, v in usd.items() if v}
-        m["reconciled_day"] = today
-    else:
-        mtd = m.setdefault("mtd", {})
-        for fn, v in usd.items():
-            mtd[fn] = round(mtd.get(fn, 0.0) + v, 6)
-    m["rate"] = {fn: round(v * 24.0 / hours, 4) for fn, v in usd.items() if v} if hours else {}
-    m.update({"end": end_r.isoformat(), "reads": int(m.get("reads") or 0) + 1, "last_window_h": round(hours, 2),
-              "last_reconcile": reconcile, "active": len(active)})
-    ctx.log("meter: %s %.1f h window, %d functions ran, fleet $%.2f/day; month-to-date top: %s" % (
-        "reconciled" if reconcile else "incremental", hours, len(active), sum(m["rate"].values()),
-        ", ".join("%s $%.2f" % kv for kv in sorted(m["mtd"].items(), key=lambda kv: -kv[1])[:3])))
-    return {"ran": True, "window_h": hours, "rate": m["rate"], "reconciled": reconcile}
+
+    def read(start, end_r, period):
+        inv = _metric_sums(names, "Invocations", start, end_r, period)
+        active = [fn for fn in names if inv.get(fn, 0) > 0]
+        dur = _metric_sums(active, "Duration", start, end_r, period) if active else {}
+        err = _metric_sums(active, "Errors", start, end_r, period) if active else {}
+        usd = {fn: core.lambda_cost_usd(dur.get(fn, 0.0), inv.get(fn, 0.0), fns[fn]["mem"], fns[fn]["arch"]) for fn in active}
+        return inv, active, err, usd
+
+    out = {"ran": False, "window_h": 0.0, "rate": m.get("rate") or {}, "reconciled": False}
+    # 1. incremental window since the last read (what the anomaly sentinel and the fuse look at)
+    if last is not None:
+        start = max(last, end - timedelta(hours=24))
+        if end > start:
+            inv, active, err, usd = read(start, end, 300)
+            hours = (end - start).total_seconds() / 3600.0
+            mtd = m.setdefault("mtd", {})
+            for fn, v in usd.items():
+                mtd[fn] = round(mtd.get(fn, 0.0) + v, 6)
+            # v1.4.0: per-day record for the anomaly baselines (a window is booked on the day it ends)
+            day = m.setdefault("daily", {}).setdefault(end.date().isoformat(), {})
+            for fn in active:
+                row = day.get(fn) or [0.0, 0.0]
+                day[fn] = [round(row[0] + inv.get(fn, 0.0), 1), round(row[1] + usd.get(fn, 0.0), 6)]
+            for old_day in sorted(m["daily"])[:-int(cfg["anom_baseline_days"]) - 1]:
+                del m["daily"][old_day]
+            m["rate"] = {fn: round(v * 24.0 / hours, 4) for fn, v in usd.items() if v} if hours else {}
+            m.update({"end": end.isoformat(), "reads": int(m.get("reads") or 0) + 1, "last_window_h": round(hours, 2),
+                      "last_reconcile": False, "active": len(active)})
+            out.update({"ran": True, "window_h": hours, "rate": m["rate"],
+                        "window": {"inv": {fn: inv.get(fn, 0.0) for fn in active}, "usd": usd, "err": {fn: err.get(fn, 0.0) for fn in active}}})
+            ctx.log("meter: %.1f h window, %d functions ran, fleet $%.2f/day; month-to-date top: %s" % (
+                hours, len(active), sum(m["rate"].values()),
+                ", ".join("%s $%.2f" % kv for kv in sorted(m["mtd"].items(), key=lambda kv: -kv[1])[:3])))
+    # 2. once a day (and on the first read of a month) the month-to-date sum is re-read from the 1st, so late metric
+    #    points cannot drift it; the daily record above is left alone
+    if m.get("reconciled_day") != today or last is None:
+        start = core.month_start(now)
+        end_r = end.replace(minute=0, second=0, microsecond=0)
+        if end_r > start:
+            inv, active, err, usd = read(start, end_r, 3600)
+            m["mtd"] = {fn: round(v, 6) for fn, v in usd.items() if v}
+            m["reconciled_day"] = today
+            hours = (end_r - start).total_seconds() / 3600.0
+            if last is None:
+                m.update({"end": end_r.isoformat(), "reads": int(m.get("reads") or 0) + 1, "last_window_h": round(hours, 2),
+                          "last_reconcile": True, "active": len(active), "rate": {}})
+                out.update({"ran": True, "window_h": hours, "rate": {}, "reconciled": True})
+            else:
+                m["reads"] = int(m.get("reads") or 0) + 1
+                out["reconciled"] = True
+            ctx.log("meter: reconciled %.1f h from the 1st, %d functions ran; month-to-date top: %s" % (
+                hours, len(active), ", ".join("%s $%.2f" % kv for kv in sorted(m["mtd"].items(), key=lambda kv: -kv[1])[:3])))
+    return out
+
+
+def anomaly_sentinel(ctx, state, cfg, now, enforce, window):
+    """v1.4.0: compare the last metered window of every engine with its own baseline; hold storms for a cooldown."""
+    an = state.setdefault("anomalies", {})
+    m = state.get("meter") or {}
+    exempt = {fn for fn in window["inv"] if ctx.exempt(fn)}
+    base = core.anomaly_baselines(m.get("daily") or {}, now.date().isoformat(), cfg["anom_baseline_days"])
+    found = core.anomalies(window["inv"], window["usd"], window["err"], base, exempt, cfg)
+    suspects = an.get("suspects") or {}
+    holds = an.setdefault("holds", {})          # fn -> count this month
+    if an.get("month") != core.month_key(now):
+        an.update({"month": core.month_key(now), "holds": {}})
+        holds = an["holds"]
+    trip, errors_only, watch = [], [], {}
+    for a in found:
+        fn, kinds = a["fn"], a["kind"].split("+")
+        if kinds == ["errors"]:
+            errors_only.append(a)
+            continue
+        prior = suspects.get(fn)
+        recent = prior and 0.5 <= (now - core.as_utc(prior)).total_seconds() / 3600.0 <= 4.0
+        if "hard" in kinds or recent:
+            trip.append(a)
+        else:
+            watch[fn] = now.isoformat()
+    an["suspects"] = watch
+    an["last"] = {"at": now.isoformat(), "found": found[:50], "baselines": len(base)}
+    held, capped, entries = [], [], []
+    for a in trip:
+        fn = a["fn"]
+        e = ctx.ledger.get("lambda:" + fn)
+        if e:
+            continue                                    # already held by something (FREEZE, FUSE, CAP, ANOM)
+        holds[fn] = int(holds.get(fn, 0)) + 1
+        if holds[fn] >= int(cfg["anom_max_holds_month"]):
+            stage = "CAP"
+            capped.append(fn)
+        else:
+            stage = "ANOM"
+            held.append(fn)
+        extra = {"anomaly": a, "hold_no": holds[fn]}
+        if stage == "ANOM":
+            extra["release_after"] = (now + timedelta(hours=cfg["anom_cooldown_h"])).isoformat()
+        else:
+            extra.update(cap_usd=cfg["engine_cap_usd_month"], usd_at_cap=float((m.get("mtd") or {}).get(fn) or 0.0),
+                         capped_at=now.isoformat(), capped_from="ANOM")
+        entries += [dict(x, **extra) for x in lv.lambda_discover(ctx, stage, [fn])]
+    counts = apply_entries(ctx, entries, enforce, now) if entries else {}
+    if trip:
+        lines = ["%s: %d engine(s) far outside their own normal day%s:" % (
+            "ANOMALY - engine held" if enforce else "[monitor] anomaly", len(trip), "" if enforce else " (nothing changed)")]
+        for a in trip:
+            lines.append("  %-44s %s: %d runs, $%.2f, %d errors in %.1f h (normal day: <= %d runs, $%.2f; %d days of history)%s" % (
+                a["fn"], a["kind"], a["inv"], a["usd"], a["err"], window.get("hours", 1.0), a["limit"]["inv"], a["limit"]["usd"],
+                a["baseline_days"], " -> PERMANENT (3rd hold this month)" if a["fn"] in capped else ""))
+        lines += ["", "Held engines come back by themselves after %.0f h; the third hold in a month stays off until "
+                      "{\"action\":\"release_cap\",\"function\":F,\"confirm\":F}. Release one early: "
+                      "{\"action\":\"release_anomaly\",\"function\":F}. Runbook: docs/ops/SPEND_GOVERNOR.md." % cfg["anom_cooldown_h"]]
+        if errors_only:
+            lines.append("Error storms (reported, not held): " + ", ".join("%s %d/%d" % (a["fn"], a["err"], a["inv"]) for a in errors_only[:10]))
+        notify("JustHodl anomaly: %s" % ", ".join(a["fn"] for a in trip[:3]), lines, "enforce" if enforce else "monitor")
+        record_event("anomaly", {"trip": trip, "held": held, "capped": capped, "counts": counts, "enforce": enforce}, now)
+    elif errors_only:
+        day = now.date().isoformat()
+        seen = an.get("errors_notified") or {}
+        fresh = [a for a in errors_only if a["fn"] not in set(seen.get("fns") or []) or seen.get("day") != day]
+        if fresh:
+            an["errors_notified"] = {"day": day, "fns": sorted({a["fn"] for a in errors_only} | (set(seen.get("fns") or []) if seen.get("day") == day else set()))}
+            notify("JustHodl error storm: %s" % ", ".join(a["fn"] for a in fresh[:3]),
+                   ["%d engine(s) failing most of their runs this hour (reported once a day, not held):" % len(fresh)] +
+                   ["  %-44s %d errors of %d runs" % (a["fn"], a["err"], a["inv"]) for a in fresh[:20]], "enforce" if enforce else "monitor")
+            record_event("error-storm", {"functions": [(a["fn"], a["err"], a["inv"]) for a in fresh]}, now)
+    return {"found": len(found), "suspects": sorted(watch), "held": held, "capped": capped, "errors": [a["fn"] for a in errors_only],
+            "counts": counts}
+
+
+def anomaly_releases(ctx, state, now):
+    """Release ANOM holds whose cooldown has passed (the fix is automatic both ways)."""
+    done = []
+    for e in list(ctx.ledger.values()):
+        if e.get("stage") != "ANOM" or not e.get("release_after"):
+            continue
+        if core.as_utc(e["release_after"]) > now:
+            continue
+        try:
+            status = lv.lambda_restore(ctx, e)
+        except Exception as ex:  # noqa: BLE001
+            ctx.log("anomaly release %s failed: %s" % (e["id"], lv.err_code(ex)))
+            continue
+        ctx.ledger.pop(e["key"], None)
+        done.append((e["id"], status))
+    if done:
+        notify("JustHodl anomaly hold released: %s" % ", ".join(fn for fn, _ in done[:3]),
+               ["Cooldown over; running again at the previous concurrency: %s" % ", ".join("%s (%s)" % d for d in done),
+                "If it storms again it is held again; the third hold this month stays off until you release it."], "enforce")
+        record_event("anomaly-release", {"released": done}, now)
+    return done
+
+
+def action_anomaly_selftest(event, context):
+    """Synthetic storm window for the canary: detection -> hold (ANOM, cooldown) -> release_anomaly -> restored.
+    While the fleet is frozen the canary is already held, so only the detection half runs."""
+    fn = event.get("function") or CANARY_PREFIX
+    if not fn.startswith(CANARY_PREFIX):
+        return {"error": "anomaly_selftest only runs on functions named %s*" % CANARY_PREFIX}
+    now = now_utc()
+    control = load_control()
+    cfg = core.merged_cfg(control.get("thresholds"))
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    window = {"inv": {fn: 10000.0}, "usd": {fn: cfg["anom_hard_usd"] + 1.0}, "err": {fn: 0.0}, "hours": 1.0}
+    base = core.anomaly_baselines((state.get("meter") or {}).get("daily") or {}, now.date().isoformat(), cfg["anom_baseline_days"])
+    found = core.anomalies(window["inv"], window["usd"], window["err"], base, set(), cfg)
+    detected = any(a["fn"] == fn and "hard" in a["kind"] for a in found)
+    frozen = fn in {e["id"] for e in ctx.ledger.values()} or state.get("stage") == "FREEZE"
+    if frozen:
+        return {"ok": detected, "function": fn, "detected": detected, "hold_path": "not exercised (fleet frozen; cap_selftest covers the hold/release ledger path)"}
+    before = lv.reserved_of(ctx, fn)
+    res = anomaly_sentinel(ctx, state, cfg, now, True, window)
+    held = lv.reserved_of(ctx, fn)
+    e = dict(ctx.ledger.get("lambda:" + fn) or {})
+    s3_put_json("state.json", state)
+    rel = action_release_anomaly({"function": fn}, context)
+    state = s3_get_json("state.json", None)
+    an = state.setdefault("anomalies", {})
+    (an.get("holds") or {}).pop(fn, None)                      # the self-test must not count as a real hold
+    s3_put_json("state.json", state)
+    after = lv.reserved_of(ctx, fn)
+    ok = detected and fn in res.get("held", []) and held == 0 and e.get("stage") == "ANOM" and bool(rel.get("released")) and after == before
+    return {"ok": ok, "function": fn, "detected": detected, "before": before, "held": held, "ledger_stage": e.get("stage"),
+            "release_after": e.get("release_after"), "release": rel, "after": after}
+
+
+def action_release_anomaly(event, context):
+    fn = event.get("function")
+    now = now_utc()
+    control = load_control()
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    e = ctx.ledger.get("lambda:" + (fn or ""))
+    if not e or e.get("stage") != "ANOM":
+        return {"error": "%s is not held by the anomaly sentinel" % fn, "stage": (e or {}).get("stage")}
+    e["release_after"] = now.isoformat()
+    done = anomaly_releases(ctx, state, now)
+    s3_put_json("state.json", state)
+    return {"released": done}
 
 
 def engine_caps(ctx, state, cfg, now, enforce):
@@ -924,9 +1101,13 @@ def tick(event, context, trigger):
             out["meter"] = {"ran": False, "reason": "frozen - nothing can run"}
         else:
             mt = meter(ctx, state, cfg, now)
-            out["meter"] = {k: v for k, v in mt.items() if k != "rate"}
+            out["meter"] = {k: v for k, v in mt.items() if k not in ("rate", "window")}
             rates = mt["rate"] if mt.get("ran") and 0 < mt.get("window_h", 0) <= 3 else None
             out["caps"] = engine_caps(ctx, state, cfg, now, enforce)
+            if mt.get("window") and 0 < mt.get("window_h", 0) <= 3:
+                w = dict(mt["window"], hours=mt["window_h"])
+                out["anomalies"] = anomaly_sentinel(ctx, state, cfg, now, enforce, w)
+            out["anomaly_releases"] = anomaly_releases(ctx, state, now)
     except Exception as e:  # noqa: BLE001 - the monthly cap path must run even if metrics are unreadable
         ctx.log("meter / engine caps failed: %s" % lv.err_code(e))
         out["meter"] = {"error": lv.err_code(e)}
@@ -991,7 +1172,7 @@ def tick(event, context, trigger):
         leftovers = [e for e in ctx.ledger.values() if e.get("stage") in ("BRAKE", "FREEZE")]
         if leftovers:  # a restore that failed earlier: keep trying
             out["restore_retry"], _ = restore_entries(ctx, lambda e: e.get("stage") in ("BRAKE", "FREEZE"), now)
-        if enforce and any(e.get("stage") in ("FUSE", "CAP") for e in ctx.ledger.values()):
+        if enforce and any(e.get("stage") in ("FUSE", "CAP", "ANOM") for e in ctx.ledger.values()):
             out["drift"] = {"reapplied": enforce_drift(ctx, cur, now)}     # a held engine someone un-throttled by hand
 
     today = now.date().isoformat()
@@ -1045,6 +1226,8 @@ def action_status(event, context):
             "cadence_fixed": len((state.get("cadence") or {}).get("fixed") or []),
             "engine_cap_usd_month": cfg["engine_cap_usd_month"],
             "capped": sorted(e["id"] for e in (state.get("ledger") or {}).values() if e.get("stage") == "CAP"),
+            "anomaly_held": sorted((e["id"], e.get("release_after")) for e in (state.get("ledger") or {}).values() if e.get("stage") == "ANOM"),
+            "anomalies": {k: v for k, v in (state.get("anomalies") or {}).items() if k != "last"},
             "meter": {k: v for k, v in (state.get("meter") or {}).items() if k not in ("mtd", "rate")}}
 
 
@@ -1183,6 +1366,10 @@ def lambda_handler(event, context):
                 "month_to_date_top": sorted(((m.get("mtd") or {}).items()), key=lambda kv: -kv[1])[:10], "logs": ctx.logs[-5:]}
     if action == "release_cap":
         return action_release_cap(event, context)
+    if action == "release_anomaly":
+        return action_release_anomaly(event, context)
+    if action == "anomaly_selftest":
+        return action_anomaly_selftest(event, context)
     if action == "cap_selftest":
         return action_cap_selftest(event, context)
     if action == "fuse_check":

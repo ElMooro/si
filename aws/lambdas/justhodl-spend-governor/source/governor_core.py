@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -61,6 +61,22 @@ DEFAULTS = {
     "engine_cap_usd_month": 50.0,
     "meter_interval_h": 1.0,
     "meter_lag_min": 3.0,          # Lambda metrics land 1-3 minutes late: the window ends this far in the past
+    # v1.4.0 anomaly sentinel (Khalid, 2026-10-20: "detect anomalies and fix them automatically"): each engine is
+    # compared with its own last-14-day baseline every metered window.  A window with more invocations than
+    # anom_inv_factor x a normal DAY (floor anom_min_inv) or more cost than anom_usd_factor x a normal day (floor
+    # anom_min_usd) is a strike; two consecutive strikes (or one window >= anom_hard_usd) hold the engine at
+    # concurrency 0 for anom_cooldown_h, then it is released automatically; the third hold in a month is permanent
+    # (stage CAP: manual release only).
+    "anom_inv_factor": 3.0,
+    "anom_min_inv": 200.0,
+    "anom_usd_factor": 3.0,
+    "anom_min_usd": 1.0,
+    "anom_hard_usd": 5.0,
+    "anom_cooldown_h": 6.0,
+    "anom_max_holds_month": 3.0,
+    "anom_error_min": 10.0,        # errors in a window, and ...
+    "anom_error_share": 0.5,       # ... errors / invocations at or above this -> an error storm is reported
+    "anom_baseline_days": 14.0,
 }
 
 PERSISTENT_USAGE_PATTERNS = (
@@ -264,6 +280,49 @@ def lambda_cost_usd(duration_ms, invocations, memory_mb, arch):
     """USD of `duration_ms` of execution at `memory_mb` plus `invocations` requests (list prices, no free tier)."""
     price = 0.0000133334 if arch == "arm64" else 0.0000166667
     return (duration_ms / 1000.0) * (memory_mb / 1024.0) * price + invocations * 2e-7
+
+
+def anomaly_baselines(daily, today, days=14):
+    """{fn: (median invocations/day, median usd/day)} over the last `days` complete days of the meter's daily record
+    (a day with no row for a function counts as zero: an engine that never runs has a baseline of nothing)."""
+    keys = sorted(d for d in daily if d < today)[-int(days):]
+    if not keys:
+        return {}
+    fns = set()
+    for d in keys:
+        fns |= set(daily[d])
+    out = {}
+    for fn in fns:
+        inv = [float((daily[d].get(fn) or [0, 0])[0]) for d in keys]
+        usd = [float((daily[d].get(fn) or [0, 0])[1]) for d in keys]
+        out[fn] = (median(inv) or 0.0, median(usd) or 0.0, len(keys))
+    return out
+
+
+def anomalies(window_inv, window_usd, window_err, baselines, exempt, cfg):
+    """Engines whose last metered window is far outside their own normal day.  -> [{fn, kind, inv, usd, err, limit}]"""
+    out = []
+    for fn, inv in window_inv.items():
+        if fn in exempt:
+            continue
+        usd, err = float(window_usd.get(fn, 0.0)), float(window_err.get(fn, 0.0))
+        b_inv, b_usd, n = baselines.get(fn) or (0.0, 0.0, 0)
+        lenient = 3.0 if n < 3 else 1.0                      # a new engine with no history gets room
+        lim_inv = max(cfg["anom_min_inv"] * lenient, cfg["anom_inv_factor"] * b_inv)
+        lim_usd = max(cfg["anom_min_usd"] * lenient, cfg["anom_usd_factor"] * b_usd)
+        kinds = []
+        if usd >= cfg["anom_hard_usd"]:
+            kinds.append("hard")
+        if inv > lim_inv:
+            kinds.append("invocations")
+        if usd > lim_usd:
+            kinds.append("cost")
+        if err >= cfg["anom_error_min"] and inv and err / inv >= cfg["anom_error_share"]:
+            kinds.append("errors")
+        if kinds:
+            out.append({"fn": fn, "kind": "+".join(kinds), "inv": round(inv), "usd": round(usd, 3), "err": round(err),
+                        "limit": {"inv": round(lim_inv), "usd": round(lim_usd, 2)}, "baseline_days": n})
+    return sorted(out, key=lambda a: -a["usd"])
 
 
 def cap_breaches(mtd, caps, default_cap, released, exempt):

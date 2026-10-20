@@ -144,7 +144,7 @@ def lambda_handler(event=None, context=None):
     registry = EngineRegistry.load()
     universe = load_universe()
     s3 = S3Store()
-    metrics = Metrics()
+    metrics = Metrics(enabled=bool(flags.get("FUSION_CLOUDWATCH_METRICS", False)))   # 2026-10-20: off by default
     bus = Bus(enabled=bool(flags.get("FUSION_SIGNAL_BUS_ENABLED", True)), origin_engine=ENGINE, max_depth=int(flags.get("FUSION_MAX_PROPAGATION_DEPTH", 3)))
 
     snapshot, meta = s3.get_json(STATE_KEY)

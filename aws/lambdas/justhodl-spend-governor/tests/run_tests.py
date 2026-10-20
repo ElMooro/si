@@ -132,10 +132,19 @@ class FakeCW:
     def __init__(self, alarm_state="OK", durations=None, ended=(), burst=()):
         self.alarm_state = alarm_state
         self.durations = durations or {}
+        self.timeline = []       # [(datetime, durations)] rate changes over time (v1.4.0 tests); earlier = self.durations
+        self.errors = {}         # {fn: errors per hour}
         self.ended = set(ended)  # burned in the past hour but no invocations in the last minutes
         self.burst = set(burst)  # the whole window's burn landed in its first bucket (a burst that ended)
         self.deleted = set()     # alarms someone removed
         self.metrics = []
+
+    def rate_at(self, t):
+        d = self.durations
+        for when, durations in self.timeline:
+            if t >= when:
+                d = durations
+        return d
 
     def describe_alarms(self, AlarmNames):
         return {"MetricAlarms": [{"AlarmName": n, "StateValue": self.alarm_state, "ActionsEnabled": True,
@@ -147,16 +156,25 @@ class FakeCW:
         for q in MetricDataQueries:
             m = q["MetricStat"]["Metric"]
             fn = m["Dimensions"][0]["Value"]
-            per_h = self.durations.get(fn, 0.0)
             hours = (EndTime - StartTime).total_seconds() / 3600.0
-            v = per_h * hours if m["MetricName"] == "Duration" else (10.0 * hours if per_h else 0.0)
-            if m["MetricName"] == "Invocations" and hours < 0.5 and fn in self.ended:
-                v = 0.0
             period = q["MetricStat"].get("Period") or int(hours * 3600)
             n = max(1, int(round(hours * 3600 / period)))
-            vals = [v / n] * n
+            vals = []
+            for k in range(n):
+                t = StartTime + timedelta(seconds=period * k)
+                per_h = self.rate_at(t).get(fn, 0.0)
+                bh = period / 3600.0
+                if m["MetricName"] == "Duration":
+                    v = per_h * bh
+                elif m["MetricName"] == "Errors":
+                    v = self.errors.get(fn, 0.0) * bh if per_h else 0.0
+                else:
+                    v = 10.0 * bh if per_h else 0.0
+                vals.append(v)
+            if m["MetricName"] == "Invocations" and hours < 0.5 and fn in self.ended:
+                vals = [0.0] * n
             if fn in self.burst and n > 1:
-                vals = [v] + [0.0] * (n - 1)
+                vals = [sum(vals)] + [0.0] * (n - 1)
             out.append({"Id": q["Id"], "Values": vals,
                         "Timestamps": [StartTime + timedelta(seconds=period * k) for k in range(n)]})
         return {"MetricDataResults": out}
@@ -867,6 +885,100 @@ def test_cap_selftest_round_trips_the_canary():
           "the self-test leaves no trace")
     r = gov.lambda_handler({"action": "cap_selftest", "function": "justhodl-alpha"}, Context())
     check("error" in r, "only the canary may be self-tested")
+
+
+# ------------------------------------------------------------- v1.4.0 tests --
+def ticks(w, start_iso, hours, step_h=1.0):
+    """Run hourly ticks from start for `hours` hours; returns the last tick's output."""
+    t0 = datetime.fromisoformat(start_iso).replace(tzinfo=timezone.utc)
+    out = None
+    for i in range(int(hours / step_h)):
+        t = t0 + timedelta(hours=step_h * i)
+        gov.now_utc = lambda t=t: t
+        out = gov.lambda_handler({"action": "tick"}, Context())
+    return out
+
+
+def test_anomaly_sentinel_holds_a_storm_for_a_cooldown_then_releases_and_the_third_time_is_permanent():
+    w = world(FLEET, actual=10, durations={"justhodl-alpha": 100000.0, "justhodl-gamma": 50000.0})   # ~$0.02/day each
+    set_control(w)
+    ticks(w, "2026-10-02T00:30:00", 72)                                   # three quiet days of baseline
+    st = state_of(w)
+    base = core.anomaly_baselines(st["meter"]["daily"], "2026-10-05", 14)
+    check("justhodl-alpha" in base and base["justhodl-alpha"][2] >= 2 and base["justhodl-alpha"][1] < 0.05, "baseline built from the daily record: %s" % str(base.get("justhodl-alpha")))
+    check(not st["ledger"] and not (st.get("anomalies") or {}).get("suspects"), "quiet days: nothing suspected")
+    storm = lambda when, per_h: w["cloudwatch"].timeline.append((datetime.fromisoformat(when).replace(tzinfo=timezone.utc), {"justhodl-alpha": per_h, "justhodl-gamma": 50000.0}))
+    storm("2026-10-04T23:30:00", 200000000.0)                                   # ~$1.67 an hour, 80x its normal day
+    out = ticks(w, "2026-10-05T00:30:00", 1)
+    check(out["anomalies"]["suspects"] == ["justhodl-alpha"] and w["lambda"].fns["justhodl-alpha"].get("reserved") is None, "first anomalous window: suspect only")
+    out = ticks(w, "2026-10-05T01:30:00", 1)
+    st = state_of(w)
+    e = st["ledger"].get("lambda:justhodl-alpha") or {}
+    check(out["anomalies"]["held"] == ["justhodl-alpha"] and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and e.get("stage") == "ANOM",
+          "second window in a row: held at 0 under ANOM")
+    check(e.get("release_after") and e.get("hold_no") == 1, "cooldown recorded")
+    check(any("anomaly" in m["Subject"] for m in w["sns"].sent) and "release_anomaly" in [m for m in w["sns"].sent if "anomaly" in m["Subject"]][0]["Message"], "Khalid told, with the release command")
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "a normal engine is untouched")
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "a plain restore does not lift an anomaly hold")
+    storm("2026-10-05T01:30:00", 100000.0)                                      # the storm stops (it is held anyway)
+    out = ticks(w, "2026-10-05T03:30:00", 1)
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0, "still held inside the cooldown")
+    out = ticks(w, "2026-10-05T08:30:00", 1)
+    st = state_of(w)
+    check(out["anomaly_releases"] and w["lambda"].fns["justhodl-alpha"]["reserved"] is None and "lambda:justhodl-alpha" not in st["ledger"],
+          "released by itself after the cooldown, to the previous concurrency")
+    check(any("released" in m["Subject"] for m in w["sns"].sent), "the release is reported")
+    ticks(w, "2026-10-05T09:30:00", 15)                                        # a quiet rest of the day
+    # second storm: a hard window (>= $5) trips at once
+    storm("2026-10-05T23:30:00", 1000000000.0)                                  # ~$8 an hour
+    out = ticks(w, "2026-10-06T00:30:00", 1)
+    st = state_of(w)
+    check(out["anomalies"]["held"] == ["justhodl-alpha"] and st["ledger"]["lambda:justhodl-alpha"]["hold_no"] == 2, "a >= $5 window is held immediately (hold 2)")
+    r = gov.lambda_handler({"action": "release_anomaly", "function": "justhodl-alpha"}, Context())
+    check(r.get("released") and w["lambda"].fns["justhodl-alpha"]["reserved"] is None, "release_anomaly lifts it early")
+    out = ticks(w, "2026-10-06T01:30:00", 1)
+    st = state_of(w)
+    e = st["ledger"]["lambda:justhodl-alpha"]
+    check(out["anomalies"]["capped"] == ["justhodl-alpha"] and e["stage"] == "CAP" and e.get("capped_from") == "ANOM" and w["lambda"].fns["justhodl-alpha"]["reserved"] == 0,
+          "third hold in a month is permanent (CAP)")
+    out = ticks(w, "2026-10-06T02:30:00", 10)
+    check(w["lambda"].fns["justhodl-alpha"]["reserved"] == 0 and not out.get("anomaly_releases"), "no cooldown release for a CAP")
+    r = gov.lambda_handler({"action": "release_cap", "function": "justhodl-alpha", "confirm": "justhodl-alpha", "reason": "fixed"}, Context())
+    check(r.get("status") == "restored" and w["lambda"].fns["justhodl-alpha"]["reserved"] is None, "only release_cap lifts it")
+    gov.now_utc = lambda: PINNED
+
+
+def test_anomaly_sentinel_respects_a_busy_engines_own_baseline_and_reports_error_storms():
+    w = world(FLEET, actual=10, durations={"justhodl-alpha": 20000000.0})          # a busy engine, ~$4/day every day
+    set_control(w)
+    ticks(w, "2026-10-02T00:30:00", 72)
+    st = state_of(w)
+    check(not st["ledger"] and not (st.get("anomalies") or {}).get("suspects"), "a consistently busy engine is its own normal: no anomaly")
+    w["cloudwatch"].timeline.append((datetime(2026, 10, 4, 23, 30, tzinfo=timezone.utc), {"justhodl-alpha": 40000000.0}))   # 2x: inside 3x its day
+    out = ticks(w, "2026-10-05T00:30:00", 2)
+    check(not out["anomalies"]["held"] and not out["anomalies"]["suspects"], "doubling is not an anomaly (limit is 3x a normal day)")
+    gov.now_utc = lambda: PINNED
+
+
+def test_anomaly_selftest_round_trips_the_canary():
+    w = world(FLEET, actual=10)
+    set_control(w)
+    r = gov.lambda_handler({"action": "anomaly_selftest"}, Context())
+    check(r["ok"] and r["held"] == 0 and r["ledger_stage"] == "ANOM" and r["after"] == r["before"], "anomaly_selftest: detected, held, released, restored (%s)" % json.dumps(r)[:200])
+    st = state_of(w)
+    check("lambda:justhodl-spend-governor-canary" not in st["ledger"] and not (st.get("anomalies") or {}).get("holds"), "no trace left")
+
+
+def test_anomaly_monitor_mode_changes_nothing():
+    w = world(FLEET, actual=10, durations={"justhodl-alpha": 100000.0})
+    set_control(w, mode="monitor")
+    ticks(w, "2026-10-02T00:30:00", 48)
+    w["cloudwatch"].timeline.append((datetime(2026, 10, 3, 23, 30, tzinfo=timezone.utc), {"justhodl-alpha": 1000000000.0}))
+    out = ticks(w, "2026-10-04T00:30:00", 1)
+    check(out["anomalies"]["held"] == ["justhodl-alpha"] and w["lambda"].fns["justhodl-alpha"].get("reserved") is None and not w["lambda"].puts,
+          "monitor mode reports the hold it would make and writes nothing")
+    gov.now_utc = lambda: PINNED
 
 
 if __name__ == "__main__":

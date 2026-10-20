@@ -38,7 +38,7 @@ except Exception:  # pragma: no cover
     def track_errors(fn):
         return fn
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 ENGINE = "jhsignal-bridge"
 MAX_PER_SIGNAL_EVENTS = int(os.environ.get("JH_MAX_PER_SIGNAL_EVENTS", "250"))
 _DDB_READY = {"ok": False}
@@ -61,7 +61,7 @@ def lambda_handler(event=None, context=None):
     universe_doc = load_universe()
     uni = universe_index(universe_doc)
     s3 = S3Store()
-    metrics = Metrics(enabled=(mode == "run"))
+    metrics = Metrics(enabled=(mode == "run" and bool(flags.get("FUSION_CLOUDWATCH_METRICS", False))))   # 2026-10-20: off by default
     bus = Bus(enabled=bool(flags.get("FUSION_SIGNAL_BUS_ENABLED", True)) and mode == "run", origin_engine=ENGINE,
               max_depth=int(flags.get("FUSION_MAX_PROPAGATION_DEPTH", 3)))
     _log(level="info", msg="bridge start", mode=mode, version=VERSION, flags=flags.get("_ssm_override"), **trace)

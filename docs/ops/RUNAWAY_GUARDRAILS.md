@@ -90,6 +90,14 @@ restore - only `{"action":"release_cap","function":F,"confirm":F,"reason":"..."}
 On 2026-10-12 the coordinator and the miss-calibrator would each have hit $50 within the first two hours and
 been switched off for good, with the alert naming them. Details: `docs/ops/SPEND_GOVERNOR.md` (v1.3.0).
 
+## Layer 3c - anomaly sentinel (v1.4.0)
+
+Every hourly metered window, each engine is compared with its own last-14-day baseline (invocations and cost
+per normal day, error share). Two anomalous windows in a row, or one window of $5 or more, hold it at
+concurrency 0 for six hours and e-mail Khalid; it comes back by itself after the cooldown; the third hold in a
+month is permanent (CAP, manual release). This catches the slow or diffuse storms the alarms are not tuned for
+and the engine that quietly starts running ten times more than it used to.
+
 ## Layer 4 - fast fuse
 
 | Alarm | Signal (account level, AWS/Lambda) | Threshold, 3 x 5 min | Normal max held 15 min | Oct 12 storm |

@@ -43,6 +43,7 @@ DEFAULT_FLAGS: Dict[str, Any] = {
     "FUSION_RELIABILITY_WEIGHTING_ENABLED": True,
     "FUSION_CORRELATION_ADJUST_ENABLED": True,
     "FUSION_SHADOW_MODE": True,
+    "FUSION_CLOUDWATCH_METRICS": False,   # 2026-10-20: 108 custom metrics ($29/month) nobody reads; logs carry the same facts
     "FUSION_UI_ENABLED": True,
     "FUSION_EMERGENT_ENTITIES_ENABLED": False,
     "FUSION_SHADOW_LOGGING": True,
