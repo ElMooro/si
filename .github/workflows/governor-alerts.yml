@@ -1,0 +1,145 @@
+# Governor alerts -> GitHub issues (2026-10-20).
+#
+# The spend governor's alerts go to SNS justhodl-fleet-alerts, whose e-mail subscription Khalid has to confirm by
+# clicking a link (the Oct 16 one expired unclicked; a fresh one was sent 2026-10-20).  This workflow is the channel
+# that needs no click: every hour it reads the governor's event records (private bucket, spend-governor/events/)
+# newer than the last one it handled and opens a GitHub issue for each one that matters - an engine shut down by the
+# $50 cap, an anomaly hold or release, a fuse trip, a BRAKE / FREEZE stage change, a cadence fix, an error storm, an
+# operator hold / release.  GitHub e-mails the repository owner for every new issue (@mention + watched repo).
+# Hourly is deliberate: it is control plane, runs no engine, costs nothing (public-repo minutes) and is listed as
+# exempt in config/cadence-floor.json with this reason.  Marker: spend-governor/alerts/github-issues.json.
+name: Governor alerts to issues
+
+on:
+  schedule:
+    - cron: '41 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: governor-alerts
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Relay new governor events as issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          BUCKET: justhodl-ops-private-857687956942
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install --quiet boto3
+          gh label create governor --repo "$REPO" --color B60205 --force \
+            --description "Automatic notice from justhodl-spend-governor (cap / anomaly / fuse / stage)" >/dev/null 2>&1 || true
+          python3 - <<'PY'
+          import json, os, subprocess
+          import boto3
+          B = os.environ["BUCKET"]
+          REPO, OWNER = os.environ["REPO"], os.environ["OWNER"]
+          s3 = boto3.client("s3", region_name="us-east-1")
+          MARKER = "spend-governor/alerts/github-issues.json"
+          PREFIX = "spend-governor/events/"
+          BATCH = 30
+          try:
+              marker = json.loads(s3.get_object(Bucket=B, Key=MARKER)["Body"].read())
+          except Exception:
+              marker = {"last_key": PREFIX + "20261020T200000Z"}   # channel built 2026-10-20; older records were seen by hand
+          last = marker.get("last_key") or PREFIX
+          keys, token = [], None
+          while True:
+              kw = {"Bucket": B, "Prefix": PREFIX, "StartAfter": last}
+              if token:
+                  kw["ContinuationToken"] = token
+              r = s3.list_objects_v2(**kw)
+              keys += [o["Key"] for o in r.get("Contents", [])]
+              token = r.get("NextContinuationToken")
+              if not token:
+                  break
+          keys = sorted(keys)
+          WANT = ("engine-cap", "anomaly", "anomaly-release", "fuse", "fast-fuse", "escalate-", "deescalate-", "force-",
+                  "cadence", "cadence-restore", "error-storm", "release-cap", "operator-hold", "restore", "month-close")
+          SKIP = ("fast-fuse-check", "meter-month-close")        # hourly / bookkeeping records: not alerts
+          TITLES = {"engine-cap": "ENGINE SHUT DOWN by the $50/month cap", "anomaly": "Anomaly: engine held 6 h",
+                    "anomaly-release": "Anomaly hold released", "fuse": "Runaway fuse tripped",
+                    "fast-fuse": "Runaway STOPPED (fast fuse)", "cadence": "Cadence sentinel retimed triggers",
+                    "cadence-restore": "Cadence restored by operator", "error-storm": "Error storm",
+                    "release-cap": "Engine re-enabled by operator", "operator-hold": "Engine held by operator",
+                    "restore": "Fleet restored by operator", "month-close": "Month closed: counters reset"}
+
+          def names(v):
+              if isinstance(v, str):
+                  return [v]
+              if isinstance(v, dict):
+                  for k in ("function", "name", "fn"):
+                      if isinstance(v.get(k), str):
+                          return [v[k]]
+                  return [str(k) for k in v][:8]
+              if isinstance(v, (list, tuple)):
+                  out = []
+                  for x in v:
+                      out += names(x[0] if isinstance(x, (list, tuple)) and x else x)
+                  return out
+              return []
+
+          made = 0
+          for key in keys[:BATCH]:
+              stem = key.rsplit("/", 1)[-1]
+              kind = stem[17:-5] if stem.endswith(".json") else stem[17:]     # <YYYYMMDDTHHMMSSZ>-<kind>.json
+              if kind in SKIP or not any(kind == w or (w.endswith("-") and kind.startswith(w)) for w in WANT):
+                  continue
+              body = json.loads(s3.get_object(Bucket=B, Key=key)["Body"].read())
+              fns = []
+              for field in ("functions", "held", "capped", "new", "function", "restored", "picks"):
+                  if field in body:
+                      fns = names(body[field])
+                      if fns:
+                          break
+              title = TITLES.get(kind)
+              if title is None and kind.startswith("escalate-"):
+                  title = "Spend governor escalated to %s" % kind.split("-", 1)[1].upper()
+              elif title is None and kind.startswith("deescalate-"):
+                  title = "Spend governor back to %s" % kind.split("-", 1)[1].upper()
+              elif title is None and kind.startswith("force-"):
+                  title = "Spend governor forced to %s by operator" % kind.split("-", 1)[1].upper()
+              elif title is None:
+                  title = kind.replace("-", " ").capitalize()
+              if fns:
+                  title += ": " + ", ".join(fns[:4]) + (" +%d" % (len(fns) - 4) if len(fns) > 4 else "")
+              title = "[governor] " + title
+              text = json.dumps(body, indent=1, default=str)
+              if len(text) > 6000:
+                  text = text[:6000] + "\n... (truncated; full record in the private bucket)"
+              md = ("@%s - automatic notice from justhodl-spend-governor, record `%s`.\n\n```json\n%s\n```\n\n"
+                    "Runbook: docs/ops/SPEND_GOVERNOR.md. A capped / held engine stays off until you release it: "
+                    "`{\"action\":\"release_cap\",\"function\":F,\"confirm\":F,\"reason\":\"...\"}` "
+                    "(invoke justhodl-spend-governor). Close this issue once addressed." % (OWNER, key, text))
+              res = subprocess.run(["gh", "issue", "create", "--repo", REPO, "--title", title[:200], "--body", md,
+                                    "--label", "governor"], capture_output=True, text=True)
+              if res.returncode != 0:
+                  res = subprocess.run(["gh", "issue", "create", "--repo", REPO, "--title", title[:200], "--body", md],
+                                       capture_output=True, text=True)
+              print(kind, "->", (res.stdout or res.stderr).strip()[:160])
+              if res.returncode != 0:
+                  raise SystemExit("issue create failed for %s" % key)
+              made += 1
+          if keys:
+              new_last = keys[min(len(keys), BATCH) - 1]
+              s3.put_object(Bucket=B, Key=MARKER, ServerSideEncryption="AES256",
+                            Body=json.dumps({"last_key": new_last, "updated": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+                                             "issues_opened": made}).encode())
+          print("events seen %d (processed %d), issues opened %d" % (len(keys), min(len(keys), BATCH), made))
+          PY

@@ -171,29 +171,12 @@
    "triggers": [],
    "tick": null
   },
-  "justhodl-insider-cluster-scanner": {
-   "triggers": [],
-   "tick": null
-  },
   "justhodl-prompt-iterator": {
    "triggers": [],
    "tick": null
   },
   "justhodl-soma-cusip": {
    "triggers": [],
-   "tick": null
-  },
-  "justhodl-warroom-weights": {
-   "triggers": [
-    {
-     "kind": "sched",
-     "name": "justhodl-warroom-weights-monthly",
-     "bus": null,
-     "group": "default",
-     "state": "ENABLED",
-     "expr": "cron(10 7 1 * ? *)"
-    }
-   ],
    "tick": null
   },
   "macro-report-api": {
@@ -287,5 +270,30 @@
   "justhodl-subscribe",
   "justhodl-tenor-signal-interpreter",
   "justhodl-transcript-query"
- ]
+ ],
+ "restored_2026_10_20": {
+  "justhodl-insider-cluster-scanner": {
+   "why": "data/insider-clusters.json is declared by insider-desk.html and read by 22 engines (199 Lambda fetches/day); the engine had lost its trigger (last output 2026-08-04) and was misclassified idle. Restored from backups/deleted-functions/20261020T205550Z/ and scheduled daily 13:50 UTC ahead of insider-industry-cluster (14:20).",
+   "had": {
+    "triggers": [],
+    "tick": null
+   }
+  },
+  "justhodl-warroom-weights": {
+   "why": "Monthly engine (cron 1st 07:10 UTC, last output 2026-10-01) consumed by justhodl-canary-warroom and canaries.html; 'no invocation in 27 days' is the wrong test for a monthly job. Restored from the same backup; its Scheduler schedule justhodl-warroom-weights-monthly was never deleted.",
+   "had": {
+    "triggers": [
+     {
+      "kind": "sched",
+      "name": "justhodl-warroom-weights-monthly",
+      "bus": null,
+      "group": "default",
+      "state": "ENABLED",
+      "expr": "cron(10 7 1 * ? *)"
+     }
+    ],
+    "tick": null
+   }
+  }
+ }
 }

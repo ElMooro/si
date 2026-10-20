@@ -20,6 +20,10 @@
     {
       "file": "freeze-resume.yml",
       "why": "One-off: three retries on 2026-11-01 only (date-guarded) to switch the frozen GitHub jobs back on after the governor thaws the fleet; it does not run an engine and disables itself."
+    },
+    {
+      "file": "governor-alerts.yml",
+      "why": "Control plane, not an engine: hourly relay of the spend governor's own event records (private bucket) into GitHub issues so the cap / anomaly / fuse notices reach Khalid by e-mail without an SNS confirmation click (2026-10-20). Runs on free public-repo minutes, invokes no Lambda, reads a handful of S3 objects."
     }
   ]
 }

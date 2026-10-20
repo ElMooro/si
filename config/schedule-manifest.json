@@ -7445,20 +7445,6 @@
    ]
   },
   {
-   "expr": "cron(29 14 * * ? *)",
-   "kind": "events",
-   "name": "multi-agent-orchestrator-schedule",
-   "state": "ENABLED",
-   "targets": [
-    {
-     "arn": "arn:aws:states:us-east-1:857687956942:stateMachine:multi-agent-orchestrator",
-     "id": "1",
-     "input": null,
-     "path": null
-    }
-   ]
-  },
-  {
    "expr": "cron(30 22 * * ? *)",
    "kind": "events",
    "name": "near-miss-monitor-hourly",
@@ -11446,6 +11432,21 @@
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-buyback-confluence",
      "input": "{}",
+     "path": null
+    }
+   ]
+  },
+  {
+   "expr": "cron(50 13 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-insider-cluster-scanner-daily",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-insider-cluster-scanner",
+     "input": null,
      "path": null
     }
    ]
