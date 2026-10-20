@@ -87,7 +87,7 @@ def seal_policy(r, s3):
         {"Sid": "NoDeletePathExceptRoot", "Effect": "Deny", "Principal": "*",
          "Action": ["s3:DeleteObject", "s3:DeleteObjectVersion", "s3:ReplicateDelete", "s3:PutBucketVersioning",
                     "s3:PutLifecycleConfiguration", "s3:PutBucketPolicy", "s3:DeleteBucketPolicy", "s3:DeleteBucket",
-                    "s3:PutBucketPublicAccessBlock", "s3:DeleteBucketPublicAccessBlock"],
+                    "s3:PutBucketPublicAccessBlock"],
          "Resource": ["arn:aws:s3:::%s" % ARCHIVE, "arn:aws:s3:::%s/*" % ARCHIVE],
          "Condition": {"ArnNotEquals": {"aws:PrincipalArn": root}}}]}
     if sealed(s3):
