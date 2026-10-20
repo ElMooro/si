@@ -66,10 +66,6 @@ BRAIN_OWNER_STORE = "brain-930ffa48-60a1-4b11-8726-8848d1b827f9"
 # and never change entitlement in the webhook.
 PRICE_PLAN_MAP = '{"price_1TfKrrQ0UPXfFGwHVUfVhyaA":"pro"}'
 
-# ops 6551: keep a revalidated edge copy of large fresh publications (reused only when S3 answers a conditional GET
-# with 304), so an unchanged multi-MB file no longer costs a full S3 read per request. "0" restores the old behaviour.
-JH_EDGE_REVALIDATE = "1"
-
 # Per-user data store (watchlists, flags, settings) for the public site.
 [[kv_namespaces]]
 binding = "USER_DATA"

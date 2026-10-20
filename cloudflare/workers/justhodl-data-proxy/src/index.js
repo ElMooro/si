@@ -203,8 +203,10 @@ async function fetchUpstream(upstreamUrl, ttl, validators) {
 // $0.09/GB - about 58 GB/day through this route. A body is now kept at the edge and reused ONLY when S3 answers a
 // conditional GET (If-None-Match / If-Modified-Since) with 304 Not Modified. What a visitor receives is therefore
 // exactly what S3 serves at that moment - the freshness contract of the no-store era, with no stale window - while an
-// unchanged 8 MB file costs one 304 (no body, no egress). Enabled by the JH_EDGE_REVALIDATE var; exact reads, the
-// research brief and aliases never take this path; copies live under their own cache namespace.
+// unchanged 8 MB file costs one 304 (no body, no egress). Needs no Worker setting (the deployed configuration stays
+// exactly as reviewed): it runs only for requests that arrived through the Cloudflare edge, which is where `request.cf`
+// exists - tests and local previews build plain Requests and keep the old path. Exact reads, the research brief and
+// aliases never take it; copies live under their own cache namespace.
 const REVALIDATE_MIN_BYTES = 64 * 1024;      // smaller bodies are not worth an edge copy: the 200 costs less than the bookkeeping
 function storedValidators(stored) {
   const etag = stored.headers.get("ETag"), lastModified = stored.headers.get("Last-Modified");
@@ -2500,8 +2502,8 @@ export default {
     let response = ttl > 0 ? await cache.match(cacheKey) : null;
     let cacheStatus = "HIT";
     // ops 6551: revalidated edge copy (see REVALIDATE_MIN_BYTES). Only mutable publications; never exact reads,
-    // the research brief or the retired aliases, and only when the deploy turned the feature on.
-    const revalidate = !!env && env.JH_EDGE_REVALIDATE === "1" && ttl === 0 && !exactArtifact && !researchBrief
+    // the research brief or the retired aliases, and only for a request that came through the Cloudflare edge.
+    const revalidate = !!request.cf && ttl === 0 && !exactArtifact && !researchBrief
       && !cissAlias && !crisisAlias && mutablePublication(safePath);
     const revKey = new Request(`${url.origin}/__${CACHE_VER}-rev-v1__/${safePath}`, { method: "GET" });
     let stale = null;

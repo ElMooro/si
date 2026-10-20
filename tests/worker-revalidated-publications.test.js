@@ -2,11 +2,19 @@
 // The copy is reused only when S3 answers a conditional GET with 304, so a visitor always receives what S3 serves
 // right now (no stale window) while an unchanged multi-MB file stops costing a full S3 read ($0.09/GB) per request.
 // Runs the REAL worker module in Node with a Map-backed Cache API and a scripted S3. No network.
+// The feature needs no Worker setting: it runs for requests that came through the Cloudflare edge (`request.cf` is set
+// there), so the deployed Worker configuration stays exactly the reviewed baseline. `edge()` marks a test request so.
 const test = require('node:test'), assert = require('node:assert/strict'), path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const source = pathToFileURL(path.join(__dirname, '../cloudflare/workers/justhodl-data-proxy/src/index.js')).href;
 
-const ON = { JH_EDGE_REVALIDATE: '1' };
+const ENV = {};
+// A request as the Cloudflare edge delivers it: `request.cf` is present (Node's Request has none of its own).
+function edge(url, init) {
+  const request = new Request(url, init || {});
+  Object.defineProperty(request, 'cf', { value: { colo: 'TEST', country: 'US' } });
+  return request;
+}
 const BIG = n => JSON.stringify({ generation: n, rows: 'x'.repeat(90 * 1024) });       // > 64 KB
 const SMALL = n => JSON.stringify({ generation: n });
 
@@ -34,7 +42,7 @@ async function settle(state) { await Promise.all(state.waits.splice(0)); }
 test('first request pulls the object, stores a copy, and the visitor still gets no-store', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: BIG(1), etag: '"e1"' });
-  const r = await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), ON, state.context);
+  const r = await worker.fetch(edge('https://justhodl.ai/data/share-flows.json'), ENV, state.context);
   await settle(state);
   assert.equal(r.status, 200);
   assert.equal(r.headers.get('Cache-Control'), 'no-store');
@@ -51,8 +59,8 @@ test('first request pulls the object, stores a copy, and the visitor still gets 
 test('unchanged object: S3 answers 304 and the stored bytes are served, with no body from S3', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: BIG(1), etag: '"e1"' });
-  await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), ON, state.context); await settle(state);
-  const r = await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/share-flows.json'), ENV, state.context); await settle(state);
+  const r = await worker.fetch(edge('https://justhodl.ai/data/share-flows.json'), ENV, state.context); await settle(state);
   assert.equal(state.calls.length, 2, 'every request still asks S3 (that is what keeps it fresh)');
   assert.equal(state.calls[1].inm, '"e1"');
   assert.equal(state.calls[1].options.cache, 'no-store');
@@ -67,14 +75,14 @@ test('unchanged object: S3 answers 304 and the stored bytes are served, with no 
 test('changed object: the visitor gets the NEW body immediately, never the stored one', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: BIG(1), etag: '"e1"' });
-  await worker.fetch(new Request('https://justhodl.ai/data/best-setups.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/best-setups.json'), ENV, state.context); await settle(state);
   state.object = { body: BIG(2), etag: '"e2"' };                               // an engine republished
-  let r = await worker.fetch(new Request('https://justhodl.ai/data/best-setups.json'), ON, state.context); await settle(state);
+  let r = await worker.fetch(edge('https://justhodl.ai/data/best-setups.json'), ENV, state.context); await settle(state);
   assert.equal(JSON.parse(await r.text()).generation, 2);
   assert.equal(r.headers.get('X-Edge-Cache'), 'MISS');
   assert.equal(state.calls[1].inm, '"e1"');
   assert.equal(state.puts.length, 2, 'the new generation replaces the stored copy');
-  r = await worker.fetch(new Request('https://justhodl.ai/data/best-setups.json'), ON, state.context); await settle(state);
+  r = await worker.fetch(edge('https://justhodl.ai/data/best-setups.json'), ENV, state.context); await settle(state);
   assert.equal(state.calls[2].inm, '"e2"');
   assert.equal(r.headers.get('X-Edge-Cache'), 'REVALIDATED');
   assert.equal(JSON.parse(await r.text()).generation, 2);
@@ -89,8 +97,8 @@ test('Last-Modified is the validator when S3 sends no ETag', async () => {
     if (headers.get('If-Modified-Since') === 'Tue, 20 Oct 2026 06:00:00 GMT') return new Response(null, { status: 304 });
     return new Response(BIG(1), { status: 200, headers: { 'Last-Modified': 'Tue, 20 Oct 2026 06:00:00 GMT' } });
   };
-  await worker.fetch(new Request('https://justhodl.ai/data/dark-pool.json'), ON, state.context); await settle(state);
-  const r = await worker.fetch(new Request('https://justhodl.ai/data/dark-pool.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/dark-pool.json'), ENV, state.context); await settle(state);
+  const r = await worker.fetch(edge('https://justhodl.ai/data/dark-pool.json'), ENV, state.context); await settle(state);
   assert.equal(state.calls[1].ims, 'Tue, 20 Oct 2026 06:00:00 GMT');
   assert.equal(r.headers.get('X-Edge-Cache'), 'REVALIDATED');
 });
@@ -98,9 +106,9 @@ test('Last-Modified is the validator when S3 sends no ETag', async () => {
 test('an object S3 no longer serves is an error, never the stored copy', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: BIG(1), etag: '"e1"' });
-  await worker.fetch(new Request('https://justhodl.ai/data/forensic-screen.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/forensic-screen.json'), ENV, state.context); await settle(state);
   state.status = 403;
-  const r = await worker.fetch(new Request('https://justhodl.ai/data/forensic-screen.json'), ON, state.context);
+  const r = await worker.fetch(edge('https://justhodl.ai/data/forensic-screen.json'), ENV, state.context);
   assert.equal(r.status, 403);
   assert.equal(r.headers.get('Cache-Control'), 'no-store');
 });
@@ -108,8 +116,8 @@ test('an object S3 no longer serves is an error, never the stored copy', async (
 test('small bodies are not stored (the 200 is cheaper than the bookkeeping)', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: SMALL(1), etag: '"s1"' });
-  await worker.fetch(new Request('https://justhodl.ai/data/signal-board.json'), ON, state.context); await settle(state);
-  const r = await worker.fetch(new Request('https://justhodl.ai/data/signal-board.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/signal-board.json'), ENV, state.context); await settle(state);
+  const r = await worker.fetch(edge('https://justhodl.ai/data/signal-board.json'), ENV, state.context); await settle(state);
   assert.equal(state.puts.length, 0);
   assert.equal(state.calls[1].inm, null);
   assert.equal(JSON.parse(await r.text()).generation, 1);
@@ -122,8 +130,8 @@ test('exact reads, the research brief, retired aliases and Range requests never 
     ['/data/ciss.json'], ['/data/defcon.json'], ['/data/share-flows.json', { headers: { Range: 'bytes=0-99' } }],
   ]) {
     const state = setup({ body: BIG(1), etag: '"e1"' });
-    await worker.fetch(new Request('https://justhodl.ai' + p, init || {}), ON, state.context); await settle(state);
-    await worker.fetch(new Request('https://justhodl.ai' + p, init || {}), ON, state.context); await settle(state);
+    await worker.fetch(edge('https://justhodl.ai' + p, init || {}), ENV, state.context); await settle(state);
+    await worker.fetch(edge('https://justhodl.ai' + p, init || {}), ENV, state.context); await settle(state);
     assert.equal(state.puts.length, 0, p + ' must not be stored');
     assert.ok(state.calls.every(c => c.inm === null), p + ' must never send a validator');
   }
@@ -132,24 +140,25 @@ test('exact reads, the research brief, retired aliases and Range requests never 
 test('files outside the mutable-publication list keep their ordinary TTL cache', async () => {
   const worker = (await import(source)).default;
   const state = setup({ body: BIG(1), etag: '"e1"' });
-  await worker.fetch(new Request('https://justhodl.ai/data/some-ordinary-feed.json'), ON, state.context); await settle(state);
+  await worker.fetch(edge('https://justhodl.ai/data/some-ordinary-feed.json'), ENV, state.context); await settle(state);
   assert.ok(state.puts.every(u => !u.includes('-rev-v1__')), 'only mutable publications use the revalidated namespace');
   assert.equal(state.puts.length, 1);
 });
 
-test('the feature is off unless the deploy turns it on', async () => {
+test('a request without request.cf (unit tests, local previews) keeps the plain no-cache path', async () => {
   const worker = (await import(source)).default;
-  for (const env of [{}, { JH_EDGE_REVALIDATE: '0' }]) {
-    const state = setup({ body: BIG(1), etag: '"e1"' });
-    await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), env, state.context); await settle(state);
-    const r = await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), env, state.context); await settle(state);
-    assert.equal(state.puts.length, 0);
-    assert.ok(state.calls.every(c => c.inm === null));
-    assert.equal(r.headers.get('Cache-Control'), 'no-store');
-  }
+  const state = setup({ body: BIG(1), etag: '"e1"' });
+  await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), ENV, state.context); await settle(state);
+  const r = await worker.fetch(new Request('https://justhodl.ai/data/share-flows.json'), ENV, state.context); await settle(state);
+  assert.equal(state.puts.length, 0);
+  assert.ok(state.calls.every(c => c.inm === null));
+  assert.equal(r.headers.get('Cache-Control'), 'no-store');
+  assert.equal(r.headers.get('X-Edge-Cache'), 'MISS');
 });
 
-test('production config turns the feature on', () => {
-  const toml = require('node:fs').readFileSync(path.join(__dirname, '../cloudflare/workers/justhodl-data-proxy/wrangler.toml'), 'utf8');
-  assert.match(toml, /^JH_EDGE_REVALIDATE\s*=\s*"1"\s*$/m);
+test('the Worker configuration declares no setting for this feature (release evidence needs it unchanged)', () => {
+  const fs = require('node:fs');
+  const dir = path.join(__dirname, '../cloudflare/workers/justhodl-data-proxy');
+  assert.ok(!/JH_EDGE_REVALIDATE/.test(fs.readFileSync(path.join(dir, 'wrangler.toml'), 'utf8')));
+  assert.ok(!/env\.JH_EDGE_REVALIDATE/.test(fs.readFileSync(path.join(dir, 'src/index.js'), 'utf8')));
 });
