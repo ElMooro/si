@@ -2648,7 +2648,7 @@
       "page_mapping_scope": "checked-in ownership contract; browser rendering verified separately"
     }
   },
-  "started_at": "2026-09-11T23:13:24.408056+00:00",
+  "started_at": "2026-10-20T18:37:42.852378+00:00",
   "code": {
     "alphavantage-market-agent": {
       "function": "alphavantage-market-agent",
@@ -2673,15 +2673,23 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
       "code_sha256": "/HOYkmZ7amFqcwW5SOAwjXiD/U71cOQLmuKn0Q/PNvM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T15:48:25.000+0000",
+      "last_modified": "2026-10-08T16:17:59.000+0000",
       "handler": "lambda_alphavantage_agent.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Runtime"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Runtime",
+          "expected": "python3.9",
+          "observed": "python3.12"
+        }
+      ]
     },
     "alphavantage-technical-analysis": {
       "function": "alphavantage-technical-analysis",
@@ -2706,15 +2714,23 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
       "code_sha256": "sEftvKYnDKyDu2MmrIUpY5I84B8lDco77ZCSiHUCEB4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T15:48:49.000+0000",
+      "last_modified": "2026-10-08T16:18:04.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Runtime"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Runtime",
+          "expected": "python3.9",
+          "observed": "python3.12"
+        }
+      ]
     },
     "bls-employment-api-v2": {
       "function": "bls-employment-api-v2",
@@ -2733,15 +2749,23 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
       "code_sha256": "8siMB6eodn98fYnaLbG7jiRNSQsbPZ+jltJmBC5LpCM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T17:02:46.000+0000",
+      "last_modified": "2026-10-08T16:18:14.000+0000",
       "handler": "index.handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Runtime"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Runtime",
+          "expected": "nodejs18.x",
+          "observed": "nodejs20.x"
+        }
+      ]
     },
     "fedliquidityapi": {
       "function": "fedliquidityapi",
@@ -2783,8 +2807,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "6c05f3c597ede74820c8f1ee8120cc33546a5820129023517eb0de7eb8dd4dc7",
-          "actual_sha256": "6c05f3c597ede74820c8f1ee8120cc33546a5820129023517eb0de7eb8dd4dc7",
-          "match": true
+          "actual_sha256": "148e05de70c1234cefd157b71f079c707690319c40a3a8e49b691006b6fbc4d1",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -2793,12 +2817,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "paztfxu/t0L65MxUisHmFbXCM9GGaa0tuO7Cy8EPRAM=",
+      "code_sha256": "/4dTtYA1GACk664ZdqoKPLv9mCfJUYZ7nNcD42gBRoU=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T15:20:02.000+0000",
+      "last_modified": "2026-09-15T14:04:23.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -2810,8 +2834,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "1490a5cd80f630b52a5df8f854fa9688560db79aa76ce2db8ad991055b834cbe",
-          "actual_sha256": "1490a5cd80f630b52a5df8f854fa9688560db79aa76ce2db8ad991055b834cbe",
-          "match": true
+          "actual_sha256": "5a5de1579b1ebf079da2a2ccb065dd738c33e20fcd85f70363d84257326162ca",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
@@ -2822,14 +2846,14 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -2840,16 +2864,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "/SnEioccwRFgcRoANUz9kO2WacttjdhMdlkmihjC9/c=",
+      "code_sha256": "B1jJOpzXgC9j5Mr+LteuETCjdOsyMIZuK6vIJC7HM4k=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:53.000+0000",
+      "last_modified": "2026-09-29T20:41:43.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -2861,26 +2885,26 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b80aa3771266815b8bad8fbf815472ccd1247f05cea309f9369f26d3f5472dcf",
-          "actual_sha256": "b80aa3771266815b8bad8fbf815472ccd1247f05cea309f9369f26d3f5472dcf",
-          "match": true
+          "actual_sha256": "9e9ccd76df2d9d1db6eef21b6c0025fcc0735db620b052ddbdf2db59000fb19a",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -2891,16 +2915,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "QzYhRoR7N0vlT1QZo2JU5Kt4xGDbBRblozFXNHrbShg=",
+      "code_sha256": "Zil8+QRu+Pp0EtFiru22zGUYnACfMFRPwWGKT54iolc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:28:12.000+0000",
+      "last_modified": "2026-10-01T20:43:01.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -2912,8 +2936,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "c865e073e7a891d4f8e650dddef83b1dcf95057f60fc7df6e292197c1378b1ac",
-          "actual_sha256": "c865e073e7a891d4f8e650dddef83b1dcf95057f60fc7df6e292197c1378b1ac",
-          "match": true
+          "actual_sha256": "e83a40be334c5440cfdcafb99b411c89c5f616a9411c23ab929f746a112ac7a2",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -2924,20 +2948,20 @@
         {
           "member": "claude_compat.py",
           "expected_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "actual_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "match": true
+          "actual_sha256": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -2948,16 +2972,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "+HWW/EccJEgJDMrqlRzhnSoQBcGJBqqG+7R7Z7YVfbg=",
+      "code_sha256": "CNAU1jPkHl3NbEnufjQi+R7s218uDWMxUYO5Q21dWp0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:15:01.000+0000",
+      "last_modified": "2026-10-08T21:43:45.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -2969,8 +2993,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "53212d26dc56f7ba85714b3c42f572ddb360c1111c281a9190bc7d254a70b1d4",
-          "actual_sha256": "53212d26dc56f7ba85714b3c42f572ddb360c1111c281a9190bc7d254a70b1d4",
-          "match": true
+          "actual_sha256": "c42119d4a57398bf8daa374407d8c6c35214a5d00649963790df7c14bb3a5022",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -2979,12 +3003,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "0GxaDvdW6pZOA56xgbshXCqYhI1UcYpF5/UiWnt4//w=",
+      "code_sha256": "A0kK/mA6V767xR8S9vKLo2Go/Ci9yQSnn6hXgMCiMc4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:01:51.000+0000",
+      "last_modified": "2026-09-28T02:24:06.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3002,8 +3026,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "06b4573a06c984c117a2aee8243c6b9eddff1257626ba30d5d5b6fa7127d5c64",
-          "actual_sha256": "06b4573a06c984c117a2aee8243c6b9eddff1257626ba30d5d5b6fa7127d5c64",
-          "match": true
+          "actual_sha256": "6a30b07d80bd46dc260a016957695c17d6b93978859baab87ce8bf987d556382",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -3024,12 +3048,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "agtPeoG4lppw2cQmt4846GbmZNag5+WvDpqHb9lB5Zs=",
+      "code_sha256": "OOXh+C3Bz989uMkS5we42xUubuD1/kyfDcZAG7TSqJE=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T18:46:24.000+0000",
+      "last_modified": "2026-10-01T15:53:16.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3041,16 +3065,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "ba4e1021b4a415d1912cd3b4ae80e22afb312229e6a448ebdf9096212883ee0e",
-          "actual_sha256": "ba4e1021b4a415d1912cd3b4ae80e22afb312229e6a448ebdf9096212883ee0e",
-          "match": true
+          "actual_sha256": "5900d9b58991b9a4de04b9664dc999be254184e193b2a8d60a3fea2be98bdbd9",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "OG2iUzn26Q6gs0aVCmglYxd5A9soVsaUhdi19CktvKk=",
+      "code_sha256": "aKIlhjnb6yVVFkdMGtaBFn1WErnKPkTEBVqM7pNRV2c=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:15:31.000+0000",
+      "last_modified": "2026-10-02T03:08:52.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3062,16 +3086,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "911cad0d4756e80af3f096a080bad3468d9210c2d8b64c91191521b6f45ab26a",
-          "actual_sha256": "911cad0d4756e80af3f096a080bad3468d9210c2d8b64c91191521b6f45ab26a",
-          "match": true
+          "actual_sha256": "8b36c0206c0e2b6f5b7746c3d9299e489e444b06b97f85422a13261360398867",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "s/ir46ql09wIAodoA0ddLOsGjIKhHfNEv9LE3VeOVdY=",
+      "code_sha256": "zkf/ISp05R3VIHp9A+paRmaSSQkN70w7trAayuqZ5qM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:02:17.000+0000",
+      "last_modified": "2026-09-21T21:14:26.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3083,8 +3107,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b05816b42f077ae0b637866046f9b52414b8d44859b05720ebbdc69c903b3b0b",
-          "actual_sha256": "b05816b42f077ae0b637866046f9b52414b8d44859b05720ebbdc69c903b3b0b",
-          "match": true
+          "actual_sha256": "346ff99d518c171f91fdad7715edc8e33c20dc7fea72992a04018b2ce4e7cbd3",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3093,12 +3117,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "yeArfNKvISpBmDvDVHvy7xTULamxmArSc77gTWs2W+c=",
+      "code_sha256": "op5JR3UY12R6ECzkg6NMCAER/21iGqNxoAEOC+zqy9c=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:02:35.000+0000",
+      "last_modified": "2026-10-01T21:16:21.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3110,26 +3134,26 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "e5296722e0632a45655f6c7150b1dfd0f0a8315683898cf512a50dcf648e3042",
-          "actual_sha256": "e5296722e0632a45655f6c7150b1dfd0f0a8315683898cf512a50dcf648e3042",
-          "match": true
+          "actual_sha256": "c7e881ed59f5a1408372e5e0ff1b198d87b94288bcb6b817268f1ce8f23f0a6e",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3140,16 +3164,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "YfuTDWVJ8eoZ10ajGd55b3p2IUb1q1sJvsHp8M0eIKM=",
+      "code_sha256": "n3y286OmbP4RqxOiPSwudSmw1YmQcDSPjoZ1auQPJ3A=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:20.000+0000",
+      "last_modified": "2026-10-01T20:44:32.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3161,32 +3185,32 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "c8d6ea9d8270c540c984bc81f255548edd9fb8b283f3b5304cf85060a8432ffd",
-          "actual_sha256": "c8d6ea9d8270c540c984bc81f255548edd9fb8b283f3b5304cf85060a8432ffd",
-          "match": true
+          "actual_sha256": "f2a06513c0d7337adf9c0a9b29df18a13217f8a1952b8808e82f5cfe73e6d13a",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "claude_compat.py",
           "expected_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "actual_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "match": true
+          "actual_sha256": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3197,16 +3221,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "SV9AibE7T01JhtnO0ND5CXp2tRx7k33pycY8SqsdvWA=",
+      "code_sha256": "XSusIgNvy1AiW3fi2XMchnUEptBmkJUVgTYXqbSSP5s=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:16:08.000+0000",
+      "last_modified": "2026-10-01T20:44:48.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3218,16 +3242,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "ef3e10b737fab24a6fcd9ad5d8898bc5f8a27c929f5579b097ff4b33c65e2ede",
-          "actual_sha256": "ef3e10b737fab24a6fcd9ad5d8898bc5f8a27c929f5579b097ff4b33c65e2ede",
-          "match": true
+          "actual_sha256": "b589659556db8cf5b75601659b625462f81fd14c60be3b43f211fb334abd7e7b",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "GYsqse1Sx0iDc4KVXhNcgSbIKHMNLNIDg/FhynWBB/k=",
+      "code_sha256": "AZKqWQ9/FbAW5QBSAm2zgH3fA6TVeXCSor0NjPNpLxc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:03:36.000+0000",
+      "last_modified": "2026-09-25T06:28:10.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3239,20 +3263,20 @@
         {
           "member": "_fred_shim.py",
           "expected_sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428",
-          "actual_sha256": "d08c506bffca294140df149d42a4f2895f445029e26c2d51ca1d3de6cc9b3428",
-          "match": true
+          "actual_sha256": "ac2d3d61860d78cb01426117be933c6be7ae4502fc419ee88ce6654a5fb17569",
+          "match": false
         },
         {
           "member": "auction_crisis_v2.py",
           "expected_sha256": "f3bafbd4ca9260c1f506bb33ab752f5a8e4766131fc84e20d814699a2a16b4c4",
-          "actual_sha256": "f3bafbd4ca9260c1f506bb33ab752f5a8e4766131fc84e20d814699a2a16b4c4",
-          "match": true
+          "actual_sha256": "3d534d5fcd8e240df63b305cca6956e659d59c6f967eedecd508385c1230e4e2",
+          "match": false
         },
         {
           "member": "lambda_function.py",
           "expected_sha256": "7f72e8cb4c271e94881aa723db37f052f7e169ff525c2f16be4a4cacfe36a5b6",
-          "actual_sha256": "7f72e8cb4c271e94881aa723db37f052f7e169ff525c2f16be4a4cacfe36a5b6",
-          "match": true
+          "actual_sha256": "856e9981f1533c4ee66ace8c85afbab6816d9e6bf43b6f3a181c89c9b0b408cb",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3261,12 +3285,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "kClLz4v6ZviaJvaW1zeQL6JtfFWqZC2gb66J1E9s32Q=",
+      "code_sha256": "T9oGaUqOYRybxdF8HJOctIVEmprmyfwHg3F2TlYxHR8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:16:23.000+0000",
+      "last_modified": "2026-10-08T21:44:11.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3284,22 +3308,22 @@
         {
           "member": "crisis_scoring.py",
           "expected_sha256": "af5325408b81d8061e30f980117691bc24188b097074ae0e1d9d20c7150241a0",
-          "actual_sha256": "af5325408b81d8061e30f980117691bc24188b097074ae0e1d9d20c7150241a0",
-          "match": true
+          "actual_sha256": "78b395ddf50eb3daf2ca5d95882e92f0d9bf374820917d532fedc9a4803c1702",
+          "match": false
         },
         {
           "member": "lambda_function.py",
           "expected_sha256": "583aed9537686fe50babcc8b93a804d530a4fedf480508c6e089f88570af9bed",
-          "actual_sha256": "583aed9537686fe50babcc8b93a804d530a4fedf480508c6e089f88570af9bed",
-          "match": true
+          "actual_sha256": "3f745047db401f7b9d65ac5186451a5b59dbb689015c41fb423df87801836569",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "yoJbDAZc9gWUQ+lX20Q2dzIxMnlrd1+LcenrGDPDGA0=",
+      "code_sha256": "ApzIt69g6PfJ0cr9V9VoXNBAIdfcPmUq0xI75PsRal8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:16:46.000+0000",
+      "last_modified": "2026-10-08T22:19:31.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3311,34 +3335,34 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5594479585b2ce9115ce73971f991f8a638d52f36268c69434c55c7ddef7f92f",
-          "actual_sha256": "5594479585b2ce9115ce73971f991f8a638d52f36268c69434c55c7ddef7f92f",
-          "match": true
+          "actual_sha256": "b1a4ac902206a2945f45acfdf1a6ecba242c4678104fdf3cd4d179dee781f53e",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "UHdh3Tuvrzz4yi7LktxaB/zKQvxKd5kU0UClzwTWpcs=",
+      "code_sha256": "wKSLRqGUGixgGDu1N8ksadVGJ4aC/bCHh52FXACqGk4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:17:08.000+0000",
+      "last_modified": "2026-10-01T20:46:07.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3383,8 +3407,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "629b856ef967da936a9c3d64a24883876291b787981746d00f60b272deb29c85",
-          "actual_sha256": "629b856ef967da936a9c3d64a24883876291b787981746d00f60b272deb29c85",
-          "match": true
+          "actual_sha256": "579296a4d1dcd157bda20d36d44f9f02df8c41b994e94c7f502b05239ce7ac85",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -3411,14 +3435,14 @@
           "match": true
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "Zv37uZu0glBI5O9C+GWmFsrj5QwJB7MiKe6mRA/zpuo=",
+      "pass": false,
+      "version": "4",
+      "code_sha256": "5yBAepH0aIVwhkXV5O3bwKp8WFS7YqXNdUSjvga4g8E=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:04:04.000+0000",
+      "last_modified": "2026-09-19T04:54:31.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "4",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -3443,16 +3467,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "ZiisHjt2G9PQ+4s53a7o0vBIBz3kLt7pyORrM62kyoc=",
+      "code_sha256": "1bR0rQCZwnlk5Zn59KYLF0KXMZ26I/C6J1GbbmetLoo=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:49.000+0000",
+      "last_modified": "2026-09-11T23:15:53.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3464,8 +3488,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "af6853bf7e8f545c57ee2700d77f81d7c540594b1e0e1986303abe23a12bd649",
-          "actual_sha256": "af6853bf7e8f545c57ee2700d77f81d7c540594b1e0e1986303abe23a12bd649",
-          "match": true
+          "actual_sha256": "7083181b31fb9a1efe606b67e05982e52b374872ebc6b3bd0886fdf11740131c",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3476,8 +3500,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -3488,8 +3512,8 @@
         {
           "member": "signals_emit.py",
           "expected_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
-          "actual_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
-          "match": true
+          "actual_sha256": "4aad4d81f5855bbcc0f1ce314c24fe50f0aa765c7e1b78001c4168bcb2cab0c2",
+          "match": false
         },
         {
           "member": "wl_fusion.py",
@@ -3498,12 +3522,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "YTXGlJ01EcDI7adCbo5En9TpnsqoXx7cqMCHEjXgWbE=",
+      "code_sha256": "Kc9l20n7ZE6UCjQU9s1MfMfXSSzlue3Zac0N1q7hLQw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:17:57.000+0000",
+      "last_modified": "2026-10-02T13:17:13.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3560,8 +3584,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "337ccec8e52737d5bf92d6291988b345bf07f8d1c924d25a4b2fd7447ae0810c",
-          "actual_sha256": "337ccec8e52737d5bf92d6291988b345bf07f8d1c924d25a4b2fd7447ae0810c",
-          "match": true
+          "actual_sha256": "a709cbc8e1c111a1250a1acc81d031acc0ed479e23a58127526dabde13fb63dc",
+          "match": false
         },
         {
           "member": "donor_contract.py",
@@ -3572,16 +3596,16 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "YFiMRu34KhRQxfWvF9k20ok6Rv6QjH/0fYdxuKH040I=",
+      "code_sha256": "ihCEBE/HALHa7KtOMj30WRfTR7Cau4A+Vm+IjXZNumA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:06:05.000+0000",
+      "last_modified": "2026-09-20T11:40:58.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3593,8 +3617,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "54eac112f93fe91fb34e408ab6237d58d295562588416c8ea7f7e258fafb2924",
-          "actual_sha256": "54eac112f93fe91fb34e408ab6237d58d295562588416c8ea7f7e258fafb2924",
-          "match": true
+          "actual_sha256": "4e240e17a0bf166d0d0d2fdeae303b4b96c101bde1f2b98fa1f75374d1864214",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3605,8 +3629,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -3615,12 +3639,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "r6FyUUSvf98gH6ZFSHIYeeX0Ki+N7eSNi4LebGDEfYI=",
+      "code_sha256": "5EwiU48Qe21uhlYUfZEZj1ptPquEpJeafl0nwiDUpP0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:18:24.000+0000",
+      "last_modified": "2026-09-11T23:39:19.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3632,20 +3656,20 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "faca5acf9836aa783aa38acbd234bc1d8c41de2df0e2a22f20fe8ec0391a9a48",
-          "actual_sha256": "faca5acf9836aa783aa38acbd234bc1d8c41de2df0e2a22f20fe8ec0391a9a48",
-          "match": true
+          "actual_sha256": "acbd4e0ea3aff644676e72eefc1f8d31d36f20f881a97e08a8e8a2b36c0e55d3",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3656,16 +3680,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "546yoCalvYgtZYEf0zeNEWZ37CRiB57/jgN3pjkwp1Y=",
+      "code_sha256": "dNGznEzimXCGotVWu3BVYJswTn47O5VAVMGhU75JCZo=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:26:56.000+0000",
+      "last_modified": "2026-10-01T20:47:25.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3677,18 +3701,18 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "117998e6cc8f4404ef2e504f49543d0aef4aafc0d0a6585954efe64585004dfd",
-          "actual_sha256": "117998e6cc8f4404ef2e504f49543d0aef4aafc0d0a6585954efe64585004dfd",
-          "match": true
+          "actual_sha256": "546182d050b407280aa5905d48ea9b6cbfad83ba29535c35c77d951fcce65536",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "wF+07ajOeV7sAzUxvfXcPwPvwxDUOmQ9o7ANFz7Lh2w=",
+      "pass": false,
+      "version": "3",
+      "code_sha256": "eg8unyALYyReE+vpCfbDAl/ftvgZr3qn/t7Jddat51Y=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:07:23.000+0000",
+      "last_modified": "2026-09-20T11:41:24.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "3",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -3701,8 +3725,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5c01a65d1e56352bda461492e48adbf515c69b1d3fed0c7f2f2650c01d25384d",
-          "actual_sha256": "5c01a65d1e56352bda461492e48adbf515c69b1d3fed0c7f2f2650c01d25384d",
-          "match": true
+          "actual_sha256": "9721336fe5eac0d69f89055e0dab93fac3341ccfed3c7e0997962364dfc9d4e0",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -3719,16 +3743,16 @@
         {
           "member": "system_events.py",
           "expected_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "actual_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "match": true
+          "actual_sha256": "f835e9f44e23b2c598b5d3b6ac6968f20cc9a3541da8472f45680c67ef39ae75",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "m6UeIZy3vitnhCVHJruatsEof1nF8bUG3/7ZeVzh96U=",
+      "code_sha256": "6yllCh+SaAmqXcshjEuhnyyldOd84CDq8s9wxB37J5Q=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T03:25:33.000+0000",
+      "last_modified": "2026-10-07T17:17:02.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3740,8 +3764,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "1929872d8d7a332c30936af136de0ae89652226c5bc8310fd3572a387c364e83",
-          "actual_sha256": "1929872d8d7a332c30936af136de0ae89652226c5bc8310fd3572a387c364e83",
-          "match": true
+          "actual_sha256": "29acf26ca3a3df63932cee7e2b81f217ee6e6b8cae288cf4849933a97925191d",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3752,8 +3776,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -3762,12 +3786,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Gt0RICawLFMzjROlitsnMtYC4NOND9RHJY/QEocLB7M=",
+      "code_sha256": "RCun5rpDjYCLobZXRpxqDQ1C5xk2KL1/fion4aOJ8Eg=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:19:16.000+0000",
+      "last_modified": "2026-09-21T22:57:58.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3779,8 +3803,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "41f8e4dde9bbe1f34182372fcfe4a38de4f7dd6c3b336d6d1c7f3345d812302b",
-          "actual_sha256": "41f8e4dde9bbe1f34182372fcfe4a38de4f7dd6c3b336d6d1c7f3345d812302b",
-          "match": true
+          "actual_sha256": "805ead5f4ebb8466af3c63206c3df2888e39c33f517541fe40792693aa57d68f",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
@@ -3791,22 +3815,22 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "OyiJw83Nk7vulKwYn+urTjSOro2HGFJMk8rR5JJcndY=",
+      "code_sha256": "BPmSyNwlWQJz+4HLdYs6lQtlVhO0PfsS4mpTohTr8Fw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:19:42.000+0000",
+      "last_modified": "2026-09-28T04:47:39.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3818,16 +3842,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "021066b32a496d07e8c35c69924f87b652563a9a0ce4aeee09cb7f1a528f6f2b",
-          "actual_sha256": "021066b32a496d07e8c35c69924f87b652563a9a0ce4aeee09cb7f1a528f6f2b",
-          "match": true
+          "actual_sha256": "a941f9bad9f8f0c7fc440ef3ce85ec43fb746949c7d67178e223976f467c7277",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "jVGE5X2lD3maHovxOzVMNHoM1bn/GQkzGAjpeNKTYRA=",
+      "code_sha256": "aA54O7M0qH4mBf2EZiNJQuzd6gqV2qraRHMqGyWl3m4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:20:05.000+0000",
+      "last_modified": "2026-09-28T04:22:33.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3872,8 +3896,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "1b7d9d5f2b89d6f0bc67f63989f7ae32fab9b937e26b63cae083780b09c2e61d",
-          "actual_sha256": "1b7d9d5f2b89d6f0bc67f63989f7ae32fab9b937e26b63cae083780b09c2e61d",
-          "match": true
+          "actual_sha256": "2db7a678f42b8ebe81ebbbc7125afbaaa06a22deac0b03b5f86ac1b6f2d9d6d2",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3882,12 +3906,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "i70OmZIYNGqIbc+3HggdFUuKpnO3k91X/VNUWsrvcFU=",
+      "code_sha256": "64VK2nLtpCfQoWJheBokSwQG1zw7huaYrPbbROqGjG8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:20:20.000+0000",
+      "last_modified": "2026-09-20T17:16:18.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3899,16 +3923,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "0685155573d48257dd8cf55bc240f75a6ead815930e6d18c9db284ab8db66308",
-          "actual_sha256": "0685155573d48257dd8cf55bc240f75a6ead815930e6d18c9db284ab8db66308",
-          "match": true
+          "actual_sha256": "c9200f41cc50b0d77611195b2581325185177c1fcbfd178d18c91f3d51d508b2",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "k84HZ1crFr+ld8o3OyT2IDvDPDpiG1tZToBIiXNRW6w=",
+      "code_sha256": "ER3fl8E5gUgU9tdzSUPGYORImH8kTK1q/smc8LuC/Ds=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:08:45.000+0000",
+      "last_modified": "2026-10-02T10:53:21.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3920,14 +3944,14 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "dd5b820a9b8f72a3dd2664e1ea73ec7658b9284a3cf134fbf84f32654aee64ec",
-          "actual_sha256": "dd5b820a9b8f72a3dd2664e1ea73ec7658b9284a3cf134fbf84f32654aee64ec",
-          "match": true
+          "actual_sha256": "8535e679a9d74fdc109b9796838d4cd71ef64c1bf7d269e77192623610721b5d",
+          "match": false
         },
         {
           "member": "reviewed_contracts.json",
           "expected_sha256": "8c19e0a01ad0f46a3f6dbfdc850d32136b01a63d3f7bc1b9efa5404cc2157f1c",
-          "actual_sha256": "8c19e0a01ad0f46a3f6dbfdc850d32136b01a63d3f7bc1b9efa5404cc2157f1c",
-          "match": true
+          "actual_sha256": "405630368fab6fa523d1010aefe2cd7aef330818a5cc05fb6ce608719be44fbf",
+          "match": false
         },
         {
           "member": "reviewed_contracts.py",
@@ -3944,16 +3968,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "nzfCMG84/EyeR1PUrsVR3SRnjSK0rdKQ8nKkOQsRFn0=",
+      "code_sha256": "5unPK0tL/sPouCGfBIAkbEndSw8B1A930IwSMpU4AVs=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:20:35.000+0000",
+      "last_modified": "2026-10-08T18:12:04.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3965,8 +3989,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "1541eac07c948db5734e7f87ea7b4fb5dd8675c3942a6546b3d755813db6d29b",
-          "actual_sha256": "1541eac07c948db5734e7f87ea7b4fb5dd8675c3942a6546b3d755813db6d29b",
-          "match": true
+          "actual_sha256": "6e217042ac1d189dfc29a43bd89c9723bf979f4729fc7bfa501f724d818745bf",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -3975,12 +3999,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "siM/qRM8vGbIHbsY2W5Ql5QQ5uqekenA1fwagTBf8p8=",
+      "code_sha256": "wTdgUirnGlk/5unbq6woAjqQhkoWZgI8PtdSyuYybJ8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:09:08.000+0000",
+      "last_modified": "2026-09-28T03:02:05.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -3992,8 +4016,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5531d837e41c0684c3a09028dba2b34435701a13d921ca7efca94fa6598f91ae",
-          "actual_sha256": "5531d837e41c0684c3a09028dba2b34435701a13d921ca7efca94fa6598f91ae",
-          "match": true
+          "actual_sha256": "358d2b2f2a572339faaa91612be200259bea51fe684617e509d0b6f6fb71d567",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -4020,12 +4044,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "KaN15PHFPNaCGKe2oOyZREDPQRkupy7JukCeNvIXAho=",
+      "code_sha256": "vAqnKrWdwWmbln/FeB+V6ZLGvGXOq64Rk/ktjOkjRJA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:09:32.000+0000",
+      "last_modified": "2026-10-01T23:39:43.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4136,16 +4160,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "30bf2373b323b40c5b4017b61ffd785f7a2de2aa81ea770cd890aa3b1e05417a",
-          "actual_sha256": "30bf2373b323b40c5b4017b61ffd785f7a2de2aa81ea770cd890aa3b1e05417a",
-          "match": true
+          "actual_sha256": "99f4505f40b32059aa4a44a340d1c9ca9f4df1d11d787a7f0c04caf2fbe85196",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "LBeejMSlUCzFX0xDGU3guEtgUVIISX8PKSLuRjUz5Ec=",
+      "code_sha256": "ipnv/v0Yf+1CmIqOCE6QHG0/OFXGbJj01CDxCvJWyhg=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:10:24.000+0000",
+      "last_modified": "2026-09-19T00:07:08.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4184,28 +4208,28 @@
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "u/rmO6xH03WMSjFYTLhh9ltf6gQN/YXjop+KVuXLx1c=",
+      "code_sha256": "qZKySXVTf4g/7xidFwgYsB5JRIcEM5FiFp2yGe8dbt0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:11:11.000+0000",
+      "last_modified": "2026-10-01T20:50:59.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4217,32 +4241,32 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "0bd565a9893a201899487f8582270755492e41439abdbae89cab6cfc985d2d38",
-          "actual_sha256": "0bd565a9893a201899487f8582270755492e41439abdbae89cab6cfc985d2d38",
-          "match": true
+          "actual_sha256": "6bfd59ae94f9a06683b621292149eb7f45bcdefbf2b71735129d9bd5cc7e56d3",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "claude_compat.py",
           "expected_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "actual_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "match": true
+          "actual_sha256": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4253,8 +4277,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4263,12 +4287,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "YtjNI9PoD5v5RZqfTGrlzmHCIQpLCd415GthvShXqGw=",
+      "code_sha256": "3s3vPGE9nGmDnfOjIedbTVSrhjsNr72smwhiVF06FPI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:08.000+0000",
+      "last_modified": "2026-10-01T20:51:27.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4280,8 +4304,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "39a540d2867d5e81ab9385156bb76bb8721a6c7bc06bac37aafeeb76bd24fe54",
-          "actual_sha256": "39a540d2867d5e81ab9385156bb76bb8721a6c7bc06bac37aafeeb76bd24fe54",
-          "match": true
+          "actual_sha256": "095e2bba2183ee4269a23864c000d2d27f4401a3ae981c4607b5c7d7703e9294",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4292,8 +4316,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4302,12 +4326,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "P4115ZSMpP6OjlXM2WeLQQ7HDI1m9G5HYJQIBaBQG5U=",
+      "code_sha256": "ri+bscjs7BNAT3Y4itvjX4gpEWfDKuWIB6Z+suZfR9Q=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:21:39.000+0000",
+      "last_modified": "2026-09-20T06:29:50.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4346,20 +4370,20 @@
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4368,15 +4392,29 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "BU78YD3XG5bxsJpheXDC2+4Y5Efhcs9Rmd+Wg5dgMRo=",
+      "code_sha256": "bsLONIllmpSheLvBtRw0Se1jtHPzxUJSka45aO9sHRk=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:12:41.000+0000",
+      "last_modified": "2026-10-08T17:31:01.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout",
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 120,
+          "observed": 300
+        },
+        {
+          "field": "MemorySize",
+          "expected": 256,
+          "observed": 512
+        }
+      ]
     },
     "justhodl-engine-conflicts": {
       "function": "justhodl-engine-conflicts",
@@ -4385,8 +4423,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5d9560d64222b2af9cbf5213094d0316be50b663483ca8111d231602a16984a2",
-          "actual_sha256": "5d9560d64222b2af9cbf5213094d0316be50b663483ca8111d231602a16984a2",
-          "match": true
+          "actual_sha256": "e749875c650125b70da99ddab6c0dcfaf47e178998de13398c5e6e4a470cc81d",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4397,8 +4435,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4407,12 +4445,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "p2UF3LhyPhpTLKMcLsebSwC3KMHuCSX1Jf1uaUpXXMk=",
+      "code_sha256": "D0sezLG/Hbbh3CgumIvnzytq0W9mJ8brdVlMRaS5uj0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:22:02.000+0000",
+      "last_modified": "2026-09-20T03:47:57.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4430,8 +4468,8 @@
         {
           "member": "fusion-registry.v1.json",
           "expected_sha256": "98c86ab08a8324e85a885345c950d0cee487dad49d03fdfb6386be7e5c75ef12",
-          "actual_sha256": "98c86ab08a8324e85a885345c950d0cee487dad49d03fdfb6386be7e5c75ef12",
-          "match": true
+          "actual_sha256": "34906709b89ea80d82f324c9318eb6c22b3b891ba964b1e9e9d194647d0453b6",
+          "match": false
         },
         {
           "member": "fusion-schema.v1.json",
@@ -4448,24 +4486,24 @@
         {
           "member": "fusion_engine.py",
           "expected_sha256": "c45ccf16da157192e1207edff7a834a5f84ebbb83980214b344030a13865b58f",
-          "actual_sha256": "c45ccf16da157192e1207edff7a834a5f84ebbb83980214b344030a13865b58f",
-          "match": true
+          "actual_sha256": "d8a34f3aec0e4db0e9cd1f6b7820755c2ec01ce5f115dbc4e4867b046b898c75",
+          "match": false
         },
         {
           "member": "lambda_function.py",
           "expected_sha256": "ff10e19ff554e645e743313f1d7f3086a8e391e4aab44413f2b561397a3adc75",
-          "actual_sha256": "ff10e19ff554e645e743313f1d7f3086a8e391e4aab44413f2b561397a3adc75",
-          "match": true
+          "actual_sha256": "5e6743509c4ec8835f5c38f84f1fe6b41822c3d0b4934d8c9789457f9bb9aeb6",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "GDCkUQXEP90IXWEsyd+qw++qcNlRAyfAolUZAyqCo8c=",
+      "pass": false,
+      "version": "7",
+      "code_sha256": "dmB7Yl8M+aueKEhMrcaNRxs7FO3dHlc92plSZi43mKg=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:13:36.000+0000",
+      "last_modified": "2026-10-07T21:11:37.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "7",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -4478,20 +4516,20 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "fb10207da5d917bfeaad8540e33d0e12c9dbdc92e659cb099a76d263c8758812",
-          "actual_sha256": "fb10207da5d917bfeaad8540e33d0e12c9dbdc92e659cb099a76d263c8758812",
-          "match": true
+          "actual_sha256": "4d3557687cbf2a5c382be32f624d1f3026cf36b7a9309754c4eab82482aa4757",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "24f31bd545b3ac7add99f1b01629231e7d1aac15b208c2f42413fa4e3d45c047",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4502,8 +4540,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4512,12 +4550,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "CSfP7Fic2pdzaov99EhiqtG2yt64hTXStyDdaJU+SVU=",
+      "code_sha256": "+kqT+tuZyxnP6YYQ4I7ZbHl9W6WLMRTmU0nGJVhukkQ=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:22:29.000+0000",
+      "last_modified": "2026-09-25T14:58:03.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4529,8 +4567,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "1c4b0c07c8d4ccfda8d842af27bd7a441bcd8e8ad531ff39b333af711f8d4607",
-          "actual_sha256": "1c4b0c07c8d4ccfda8d842af27bd7a441bcd8e8ad531ff39b333af711f8d4607",
-          "match": true
+          "actual_sha256": "16e4cf62c6c801843ac6646c98927ed73a092bac32352693fa902454f9e0386f",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -4563,15 +4601,29 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "NGkRpVloXENXTS/mdVKi3OoYKIkFR8J+NX+00/Ynexc=",
+      "code_sha256": "5TmGwStu7DZHAy2FoSBrbPHLhDxhm5zdj6kobqQmO+E=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:14:32.000+0000",
+      "last_modified": "2026-10-01T05:32:42.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout",
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 400,
+          "observed": 840
+        },
+        {
+          "field": "MemorySize",
+          "expected": 1536,
+          "observed": 3072
+        }
+      ]
     },
     "justhodl-etf-fund-flows": {
       "function": "justhodl-etf-fund-flows",
@@ -4580,8 +4632,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "4f48673d259ea277b23cf7fc234bc9e19ddf34658ce0690b9c5a7b6942b5f301",
-          "actual_sha256": "4f48673d259ea277b23cf7fc234bc9e19ddf34658ce0690b9c5a7b6942b5f301",
-          "match": true
+          "actual_sha256": "3f8069b4309f3b5dd880b54c568423258d47bb4c4b88caeee4b0e8707e8c0617",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4592,8 +4644,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4602,15 +4654,23 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "JnjtE3gQIYlIXVGcaASoZO3kxtOdO//L0lwKFyvTQQQ=",
+      "code_sha256": "qp2969JgnrgnbJFMY+WlQoj3eZ0aGiRcfeMhGYosv5E=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:22:53.000+0000",
+      "last_modified": "2026-09-21T10:08:29.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "MemorySize",
+          "expected": 1024,
+          "observed": 2048
+        }
+      ]
     },
     "justhodl-etf-true-flows": {
       "function": "justhodl-etf-true-flows",
@@ -4619,14 +4679,14 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "dc764eb4787dd5ffd4dac10e06e93187c5ebaba682d0bbce86ba8ef83420b131",
-          "actual_sha256": "dc764eb4787dd5ffd4dac10e06e93187c5ebaba682d0bbce86ba8ef83420b131",
-          "match": true
+          "actual_sha256": "23202a4e9629afe0e21f1633759c8eb766b577fe6e947a97955f90a7e4eabb65",
+          "match": false
         },
         {
           "member": "edgar.py",
           "expected_sha256": "a3df42b29dec0865061d2e6c983d257bc5d1210fac52bfbe9d61da434f7e07f8",
-          "actual_sha256": "a3df42b29dec0865061d2e6c983d257bc5d1210fac52bfbe9d61da434f7e07f8",
-          "match": true
+          "actual_sha256": "e41c8632a2a40efa89acb0548e076759669ee1a8bc70e1f6a7e172509a5590fe",
+          "match": false
         },
         {
           "member": "impact_mapper.py",
@@ -4641,15 +4701,29 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "grHCwSIgVpMwT0iZ0xgLZhRMIhj02bY9TT64LVnv/5M=",
+      "code_sha256": "A2gmfSVAP7jVsowURPxhxuUOaPCtp5NM0NcPailO7Fc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:14:58.000+0000",
+      "last_modified": "2026-09-30T20:46:57.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout",
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 240,
+          "observed": 900
+        },
+        {
+          "field": "MemorySize",
+          "expected": 512,
+          "observed": 1536
+        }
+      ]
     },
     "justhodl-euro-fragmentation": {
       "function": "justhodl-euro-fragmentation",
@@ -4664,8 +4738,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "05deb778bdf5956eb2a8559a4930a1d70da6731e012913d3c9a354d1b82baaa0",
-          "actual_sha256": "05deb778bdf5956eb2a8559a4930a1d70da6731e012913d3c9a354d1b82baaa0",
-          "match": true
+          "actual_sha256": "4d64aaa0866e38914a570dace01af20e8ecaa061ad4744502c50ce907b3f80e4",
+          "match": false
         },
         {
           "member": "donor_contract.py",
@@ -4676,8 +4750,8 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4686,12 +4760,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "ATBxJmiI1tOFHqPGRZzVqFABO93RshYQsz7oQjIP0v8=",
+      "code_sha256": "wYi423rco8j1Xh65lyUnNBZMoio9TEraxPTYZfDIaFM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:15:25.000+0000",
+      "last_modified": "2026-09-19T04:55:45.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4703,8 +4777,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "69f99375f687abff82d4882e8152bb9b1db75f04fc2a7c55668314cce9b50683",
-          "actual_sha256": "69f99375f687abff82d4882e8152bb9b1db75f04fc2a7c55668314cce9b50683",
-          "match": true
+          "actual_sha256": "ec78b99af16675a930a5cc81f18ed03be4032dd128465d47f53e8588c5258b41",
+          "match": false
         },
         {
           "member": "donor_contract.py",
@@ -4715,34 +4789,46 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         },
         {
           "member": "managed_secret.py",
           "expected_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
           "actual_sha256": "afa2552d71119f547476c327ab2bcbb9329b582591c785781233e4cbc91fa75e",
           "match": true
+        },
+        {
+          "member": "wl_fusion.py",
+          "expected_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "actual_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "match": true
+        },
+        {
+          "member": "wl_series.py",
+          "expected_sha256": "4de814c734052416608200511ff5946419bccabd4387f8c486aabb426c44d358",
+          "actual_sha256": "4de814c734052416608200511ff5946419bccabd4387f8c486aabb426c44d358",
+          "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "GZztnGyycxQgap0b0uMT9onPrT6KQXtmJ0+LxZUiWJM=",
+      "code_sha256": "DeUDxtZVGMkrHxleKwHxgCAAICYqY7PidquG/G5FXRM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:15:51.000+0000",
+      "last_modified": "2026-10-01T20:54:52.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4754,8 +4840,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "4823d0c6dc71936d1026b5f3a885bad465eb80d4c62345602b1f21e05c79d87d",
-          "actual_sha256": "4823d0c6dc71936d1026b5f3a885bad465eb80d4c62345602b1f21e05c79d87d",
-          "match": true
+          "actual_sha256": "e2fb092c7d020201dc44ad5c8241b19988cee4af848b1d13fc1f457ac37262cc",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -4776,12 +4862,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "tfxQeAieJ3vUvW3oUkEpOPa5Buw2CyGjS0vzWf3kMak=",
+      "code_sha256": "7lrXkXdQkZYR/4OeX7wbRCh7885roWSrraulsheXMcc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:12:47.000+0000",
+      "last_modified": "2026-10-17T01:53:13.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4877,8 +4963,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "9b32e36d0a4df5b73cf7a09efdf81116e7b7af803e7866e5d372d2fd183f90f0",
-          "actual_sha256": "9b32e36d0a4df5b73cf7a09efdf81116e7b7af803e7866e5d372d2fd183f90f0",
-          "match": true
+          "actual_sha256": "1fe556399a4d5282decaf47368f2f119614a56cb99c5397562c7bdd4cb4916a8",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4889,8 +4975,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4899,12 +4985,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "9K1H7EnlqAN63AeKM47UL8VH9ab0/YiupJpYfFBcSKk=",
+      "code_sha256": "1H7bOw5sCWlO7RI7rjyFtuchNgMJHPMsn/OPv/R25Ls=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:23:42.000+0000",
+      "last_modified": "2026-10-17T00:31:56.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -4928,8 +5014,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4938,14 +5024,14 @@
           "match": true
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "0TEbJ9Aav1KfhXPRiZxiDBevtCwDkEbCXO7yeQa36xk=",
+      "pass": false,
+      "version": "3",
+      "code_sha256": "HLPh0R+s+GtGtKcZqliWFGmJvDQlKRuOV5VnNDQfGsA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:24:10.000+0000",
+      "last_modified": "2026-09-11T23:21:04.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "3",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -4964,20 +5050,20 @@
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -4988,8 +5074,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -4998,12 +5084,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "yNs3DDZipJmxDmrVoXmQEk4FsDnaM5f6Hy2UIi8FfPI=",
+      "code_sha256": "3l0k3dUVCO1y+FjGAV9PiYePDZzZkXvL/gOdWTlTy3U=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:25:56.000+0000",
+      "last_modified": "2026-10-01T20:56:29.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5054,16 +5140,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "QvDtpsDrNpgSkM8zb6v2Z9x9KXEZgvRqfXB9z5RVzec=",
+      "code_sha256": "nPh7zDlMYp1u6zFTEbaJ4LLsz7bsBOK4OSoPcoqVQSo=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:57.000+0000",
+      "last_modified": "2026-09-11T23:23:19.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5081,10 +5167,10 @@
       ],
       "pass": true,
       "version": "$LATEST",
-      "code_sha256": "njusJPxWUtOduHjiDF+JM+x+N1KekvJkyOE/pF9orD4=",
+      "code_sha256": "Yv8jINPh6l5njKmXTcQKio8IyoS1X9rqBgoOieS4ke0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:18:31.000+0000",
+      "last_modified": "2026-09-24T23:15:35.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5108,16 +5194,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "imlZLlQ901jrezJD/jbXAUe7LpVvV/10yBqgYKsv3VU=",
+      "code_sha256": "RoHm4q+mRe9iY6XWNWjoLeKntjxnB3HXQFkLDK727/Q=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:00.000+0000",
+      "last_modified": "2026-09-11T23:23:43.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5141,20 +5227,20 @@
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5165,16 +5251,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "nNGYlrDSta2YnfEOfn7CEBE2r7RwRDXX+6nRubmTSLE=",
+      "code_sha256": "TsVVG1FBVH+t5G0EHe1teUxKcprvAVlQkRXIv801fh8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T16:30:24.000+0000",
+      "last_modified": "2026-10-01T21:00:35.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5186,8 +5272,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "f190d49d8bd00042074dbf26be6f3ec9fffade3aa9e0bdbe6efe4cd1e754307a",
-          "actual_sha256": "f190d49d8bd00042074dbf26be6f3ec9fffade3aa9e0bdbe6efe4cd1e754307a",
-          "match": true
+          "actual_sha256": "c1ce0b54682992f0b44ecdec4bb605dd5e9b35ef313ca0bb567cb98c2a805f70",
+          "match": false
         },
         {
           "member": "bottom_context.py",
@@ -5208,14 +5294,14 @@
           "match": true
         }
       ],
-      "pass": true,
-      "version": "4",
-      "code_sha256": "915mwv6tABrLyHqOQB/oqEK3DVqhWKf/mc0MJvEFr8g=",
+      "pass": false,
+      "version": "19",
+      "code_sha256": "rmnfoD2e15IkfrNzOYCXq/i7bBQbSNxhLnO/CQr6GGo=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T16:03:05.000+0000",
+      "last_modified": "2026-10-01T15:43:30.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "4",
+      "alias_primary_version": "19",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -5228,8 +5314,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "447be453275870e68ebdcbb7dfdca3e8cbfaea269a32360fae5e018a73d44692",
-          "actual_sha256": "447be453275870e68ebdcbb7dfdca3e8cbfaea269a32360fae5e018a73d44692",
-          "match": true
+          "actual_sha256": "6b9fefd0cd555529d7ec282a717676f446a1fb119490af8fe5db512850562c94",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5238,12 +5324,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "yjBqe42eTL5LQ2ZezyxrOc8OPphZeLptxicG+OjOv74=",
+      "code_sha256": "sohsAV5NXdB0UjWRgCdLi6zBM8suQdGJeCc0PAtc15c=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:27:27.000+0000",
+      "last_modified": "2026-09-20T17:17:32.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5267,42 +5353,42 @@
         {
           "member": "input_registry.json",
           "expected_sha256": "b1205ea1570dbbea28b2ea35d251655ff800b892b204f47f938780472f3a39cf",
-          "actual_sha256": "b1205ea1570dbbea28b2ea35d251655ff800b892b204f47f938780472f3a39cf",
-          "match": true
+          "actual_sha256": "d7bf0d7b66040970d1540f8dca48d5bd6c49fbefaf3eb3d1e43c9bbc1bc69fc0",
+          "match": false
         },
         {
           "member": "lambda_function.py",
           "expected_sha256": "abc40a0c22910c7e452c1e412dbc47988dc2b950ca48cd58e59f87c28b8ab3db",
-          "actual_sha256": "abc40a0c22910c7e452c1e412dbc47988dc2b950ca48cd58e59f87c28b8ab3db",
-          "match": true
+          "actual_sha256": "12176d075138ec8463b9ef21198e02e025f2ecd2b2e2be3236989fe49bece5db",
+          "match": false
         },
         {
           "member": "output_schema.json",
           "expected_sha256": "a52b46f33add507c84851d1abde536408a5092240e281fa64d872cfe5f560b39",
-          "actual_sha256": "a52b46f33add507c84851d1abde536408a5092240e281fa64d872cfe5f560b39",
-          "match": true
+          "actual_sha256": "697d11029d5124212ae5853e9664151c348d558a16cbec9564e55c991da13186",
+          "match": false
         },
         {
           "member": "risk_board.py",
           "expected_sha256": "46d7bed810a66da4b00ae884e5ba3988bca6cf1cfdc9d12aabe4b10a96a34bb9",
-          "actual_sha256": "46d7bed810a66da4b00ae884e5ba3988bca6cf1cfdc9d12aabe4b10a96a34bb9",
-          "match": true
+          "actual_sha256": "5377425d30ad99b698d71aa68f0a2c4fb5a0ccc2bf91d34fbb85847926daefce",
+          "match": false
         },
         {
           "member": "scoring.py",
           "expected_sha256": "6d7dbe931672783f89d71303921bbd77f69284a3ac15287c1ed44f56bd13bec4",
-          "actual_sha256": "6d7dbe931672783f89d71303921bbd77f69284a3ac15287c1ed44f56bd13bec4",
-          "match": true
+          "actual_sha256": "cdbd34c5e251cae565c7f4f83fb2634198c2409409e8585050b85f16245db3a8",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "7",
-      "code_sha256": "0BkrW2/6696PfLvS3ZkPy34srRaawML5O/mhMaY/zWc=",
+      "pass": false,
+      "version": "14",
+      "code_sha256": "9OoubG4weg3p/lsiUUjqHIGpmptJw7QoXI9q8lhLiNA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:22:49.000+0000",
+      "last_modified": "2026-10-07T21:14:15.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "7",
+      "alias_primary_version": "14",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -5327,20 +5413,20 @@
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5351,16 +5437,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Q6EPBeXAi7FQR8B/9GrgPfaaaHruGY8CpBZ/ho5wsW4=",
+      "code_sha256": "xobU/0ZCt+aQtSZ6kyfOl5IhNMl98EFGiVuODc4/YbM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T16:30:49.000+0000",
+      "last_modified": "2026-10-01T21:01:01.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5378,8 +5464,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "dae4df8c2a69082dcc2b264efab74355aedf147113ab14d47888e230e6314a3a",
-          "actual_sha256": "dae4df8c2a69082dcc2b264efab74355aedf147113ab14d47888e230e6314a3a",
-          "match": true
+          "actual_sha256": "95f6efe85128ac24c35cdf4b255a56295e234f21b0194a493c9f5c67d353680a",
+          "match": false
         },
         {
           "member": "output_schema.json",
@@ -5390,8 +5476,8 @@
         {
           "member": "risk_engine.py",
           "expected_sha256": "3da5b6c04d18a28470182a7a1a7aebc9366dbc36be80895948c44cfc512fbb40",
-          "actual_sha256": "3da5b6c04d18a28470182a7a1a7aebc9366dbc36be80895948c44cfc512fbb40",
-          "match": true
+          "actual_sha256": "b45f57dd601ddaed05041a66c47058827e318b0e901c443901b49e1b57591348",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -5400,14 +5486,14 @@
           "match": true
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "FI+hxzmHajalgfUy0L5UMpGGaMf1RsYJWxU2mUSQPis=",
+      "pass": false,
+      "version": "7",
+      "code_sha256": "Ie9dPH7PVLSUqy2FgjotEhs+OFDedg9Dui0jWZzlJDA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:23:25.000+0000",
+      "last_modified": "2026-10-07T21:14:59.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "7",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -5432,8 +5518,8 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5442,12 +5528,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "g3B8iMy7EN6snjgZrQIMwysYQrCWi5/diiORfckn6d4=",
+      "code_sha256": "bk8oDxH4GK096goSrJo0t6f9Z3QOhgbKw5HdDZQrsoU=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:23:54.000+0000",
+      "last_modified": "2026-09-19T04:56:40.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5465,8 +5551,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b27eda727a7dc759ced5538b08d6aba0f094ae02226b88f9640fb1cc72d995a8",
-          "actual_sha256": "b27eda727a7dc759ced5538b08d6aba0f094ae02226b88f9640fb1cc72d995a8",
-          "match": true
+          "actual_sha256": "6b0a93de50e231e6bb5ae12b38899df4c989f503fdfdc33c9f9a70a2d66b3620",
+          "match": false
         },
         {
           "member": "donor_contract.py",
@@ -5477,8 +5563,8 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5489,16 +5575,22 @@
         {
           "member": "system_events.py",
           "expected_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "actual_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
+          "actual_sha256": "f835e9f44e23b2c598b5d3b6ac6968f20cc9a3541da8472f45680c67ef39ae75",
+          "match": false
+        },
+        {
+          "member": "wl_fusion.py",
+          "expected_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "actual_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "K/hsIP3+HaF/0GabKVGTOD4hwlfmhnSo5qDZMqm43Gw=",
+      "code_sha256": "mYIxIkBKgDI52T/5iYzUlLFBkbme5h8FhGNLKfUoWo8=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:24:18.000+0000",
+      "last_modified": "2026-10-07T17:28:33.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5510,8 +5602,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "70a7bf95dedead35ca924210720c0bffbd956ad3301f50deba13fb1c2e8f1f69",
-          "actual_sha256": "70a7bf95dedead35ca924210720c0bffbd956ad3301f50deba13fb1c2e8f1f69",
-          "match": true
+          "actual_sha256": "9a350c5a6333f80faa6025168ecf1e7836ada372757efc87c91955e45314d2bb",
+          "match": false
         },
         {
           "member": "donor_contract.py",
@@ -5522,8 +5614,8 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5532,12 +5624,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "DiYO7bzs2RCetAcnuo20uDzxzkHwFdUVd5OQcDmy52w=",
+      "code_sha256": "OEBhrPmLeqHGHploXxMHK/HXdcUPQMcECXtBGDgTdck=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:24:33.000+0000",
+      "last_modified": "2026-09-19T06:44:28.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5570,8 +5662,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "bd83942629e0567c605a1c1d1a69cf3d23fbe8396ab00704b9f75575398373a7",
-          "actual_sha256": "bd83942629e0567c605a1c1d1a69cf3d23fbe8396ab00704b9f75575398373a7",
-          "match": true
+          "actual_sha256": "a7cdb394d57ae9c81d32d017c502d61fbfa1a807c3907693ef4dbe05dbdecd24",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5582,8 +5674,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -5592,12 +5684,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "eGBl6cnY/ivTnDZKaN2agUV1/8msEqag+F6/Sd/lb+c=",
+      "code_sha256": "YXE2HtIMZrilsehWd58gBuWRBODMsN0YyokwkciHWEI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:28:12.000+0000",
+      "last_modified": "2026-09-30T20:03:54.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5609,19 +5701,27 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "74b6d8c86e790e67d15f83138fab97bd01882facbb9f20a6652c169110db2dd7",
-          "actual_sha256": "74b6d8c86e790e67d15f83138fab97bd01882facbb9f20a6652c169110db2dd7",
-          "match": true
+          "actual_sha256": "ddfd00c4e229819858e21d65e12c7eb7c5ee8c23734aa808e6d57f08fa2448f1",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "jqdsI6aXGbdfr5Ig8S3m+0udi6i32SgJbo4wfnQwWEE=",
+      "code_sha256": "AUsH2nFJddNn66T6FgP5/Q5E27KvEBjl9SnGJhjLiaA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:25:18.000+0000",
+      "last_modified": "2026-09-21T21:15:48.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "MemorySize",
+          "expected": 256,
+          "observed": 512
+        }
+      ]
     },
     "justhodl-master-allocator": {
       "function": "justhodl-master-allocator",
@@ -5630,8 +5730,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "61184a0b56b9ef5d05ab7099f6ac7a949011b9e1e08b1f5a59469bd0b3db475c",
-          "actual_sha256": "61184a0b56b9ef5d05ab7099f6ac7a949011b9e1e08b1f5a59469bd0b3db475c",
-          "match": true
+          "actual_sha256": "f4b1965439dfe3029722fb6cc96fe970a13c075c7014855c933b748925cd769b",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5642,8 +5742,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -5652,12 +5752,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "+uSN4BzYXRLSYQQtb85jM3VDyIrpHVdJQcH1WGYVqdc=",
+      "code_sha256": "liQ9sn60zZKthkWXJ+SDf4X/Xl7lWkn1+IXFFh3IqZU=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:28:39.000+0000",
+      "last_modified": "2026-09-26T15:17:37.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5669,8 +5769,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "72dfc4281ceabc36c44f4499e3d7db858c970ede0aa49bdf50a288e9a386b1c9",
-          "actual_sha256": "72dfc4281ceabc36c44f4499e3d7db858c970ede0aa49bdf50a288e9a386b1c9",
-          "match": true
+          "actual_sha256": "472562226f1fb5976ea0ba4b65bfb89dc1e4b4c7c9ec2a7f5df6a114df5b2b65",
+          "match": false
         },
         {
           "member": "engine_trust.py",
@@ -5681,16 +5781,22 @@
         {
           "member": "system_events.py",
           "expected_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "actual_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
+          "actual_sha256": "f835e9f44e23b2c598b5d3b6ac6968f20cc9a3541da8472f45680c67ef39ae75",
+          "match": false
+        },
+        {
+          "member": "wl_fusion.py",
+          "expected_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "actual_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "b4P8fgWsOeqxnvLrlmYKgIVxoNGMzYAjIMttmY1w3ZY=",
+      "code_sha256": "K/+johW9sUFR44Zf9+GlcDIkIWeUIDfvkNtMyT+ekCI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:26:01.000+0000",
+      "last_modified": "2026-10-07T23:01:23.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5702,8 +5808,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "2aadda19ac5394c1a7133c8195cdf33bb3a1bebd9f99594998f3dfbc209ed8cc",
-          "actual_sha256": "2aadda19ac5394c1a7133c8195cdf33bb3a1bebd9f99594998f3dfbc209ed8cc",
-          "match": true
+          "actual_sha256": "3b790488537719031ddcb8808a2bbcb3c171d801fce9198ad0d571c81c40fd2b",
+          "match": false
         },
         {
           "member": "_fred_shim.py",
@@ -5726,14 +5832,14 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5742,15 +5848,29 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Jgx2TtFGyfa0DJSZBF9dkGcbor1XOv8lSH0v7vWmvzo=",
+      "code_sha256": "eGsbvX+ZDcBaGj7noxKzmjKkM111i5YwaCDYf0gXVNc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:29:02.000+0000",
+      "last_modified": "2026-10-08T21:45:55.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout",
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 120,
+          "observed": 300
+        },
+        {
+          "field": "MemorySize",
+          "expected": 256,
+          "observed": 1536
+        }
+      ]
     },
     "justhodl-my-brief": {
       "function": "justhodl-my-brief",
@@ -5759,32 +5879,32 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "aa6e148ea078f510c51b15651b889f29eb69c19df3808341972d027068a1445c",
-          "actual_sha256": "aa6e148ea078f510c51b15651b889f29eb69c19df3808341972d027068a1445c",
-          "match": true
+          "actual_sha256": "053bd2f9b942f70ed2d06379b65a9841a2dbd3c18f5a8137842263e357d81e1d",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "claude_compat.py",
           "expected_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "actual_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "match": true
+          "actual_sha256": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5795,8 +5915,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -5805,12 +5925,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "I4CY96l3xpbdUBTqGpBjKRSo8cx8Ae6R3OzkkG2IrKw=",
+      "code_sha256": "cN29hkZWbbunGhCnx1qUjAXLUs5eWjynp5acwIYRPXU=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:04.000+0000",
+      "last_modified": "2026-10-01T21:02:24.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5828,14 +5948,14 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5846,8 +5966,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -5856,12 +5976,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "msaB6XBYDeFerfAV5yMUvF58c8gdxSTn2dtgHiOLuGw=",
+      "code_sha256": "ACY24cs56lMBfQbIO0W5+WgglDfWNXV3xGQvQx94qYQ=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:12.000+0000",
+      "last_modified": "2026-10-01T21:04:10.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5873,16 +5993,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "fde79c999e245260b87e1543170c6e3bc8dfcaf82e722c68e83e76f826b576b7",
-          "actual_sha256": "ccaf685a64bc5fc5f0275bbc5f3a22d21e00b88576fc0739ae029af2bd5f2ee2",
+          "actual_sha256": "471fc34e6e2c82fbff59e82a15a152a413400cb4796530dfc85e817c92ef8de8",
           "match": false
         }
       ],
       "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Gpa6F+1Nd3+ZIbGX0hGV9MNxVneMyyBbkJQbnn+wpfo=",
+      "code_sha256": "OmmFBUxlFtUFaPMUKp8BMbFUYCRzCaVfUWKy7OCnnqw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-11T21:01:18.000+0000",
+      "last_modified": "2026-10-02T00:10:57.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5933,8 +6053,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "e5f75781e53c644863a8be172a89980f1056cb89683b824bb06b8fce1b2d1d33",
-          "actual_sha256": "e5f75781e53c644863a8be172a89980f1056cb89683b824bb06b8fce1b2d1d33",
-          "match": true
+          "actual_sha256": "ac2c9f662e1cbbe1156c1d1165cf0b6cbf0c7334b008497165c327fe6a7f291f",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -5943,12 +6063,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "fpmClvV2tNJHAUy2OyiwdEmSKmD6qhRrJehxt0OF4Vs=",
+      "code_sha256": "NWJ7TP211OCCVb/roqYNHrLtCoUr/gg9yhuXNitqqTI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:28:01.000+0000",
+      "last_modified": "2026-09-28T01:12:04.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -5960,8 +6080,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "2a44061d31c72088aa4fb46191eb9c37c80b65f75e8c6c435833071eac062c5c",
-          "actual_sha256": "2a44061d31c72088aa4fb46191eb9c37c80b65f75e8c6c435833071eac062c5c",
-          "match": true
+          "actual_sha256": "f585da26160dc034106c64eaddba930b736eb6747d41817bfaf836b40bfe9c8c",
+          "match": false
         },
         {
           "member": "_sentry_lite.py",
@@ -5978,19 +6098,27 @@
         {
           "member": "system_events.py",
           "expected_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "actual_sha256": "b2afc3096e0665bb8bb18e07c6fe884ca75602117dd9ca90d470aa6ead60234a",
-          "match": true
+          "actual_sha256": "f835e9f44e23b2c598b5d3b6ac6968f20cc9a3541da8472f45680c67ef39ae75",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Rw6MU69e28En0QGSxuCNSq/c1g9YOkEe0q7rDXkVsII=",
+      "code_sha256": "MUjmFpiL6LWgnM7uKfUynvd8UIseYWdp4iEOK8ynEOk=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:28:24.000+0000",
+      "last_modified": "2026-10-08T17:31:58.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 300,
+          "observed": 900
+        }
+      ]
     },
     "justhodl-page-ai-commentary": {
       "function": "justhodl-page-ai-commentary",
@@ -5999,32 +6127,32 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "52cf004a943a4ab3d800b58890e0c20d24403cc2b61cd7a97893a6f6e3761f26",
-          "actual_sha256": "52cf004a943a4ab3d800b58890e0c20d24403cc2b61cd7a97893a6f6e3761f26",
-          "match": true
+          "actual_sha256": "6c01f73d1b666981e477734d71b624b7b55e17221efecb3f6aadb0599fc3603c",
+          "match": false
         },
         {
           "member": "anthropic_shim.py",
           "expected_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "actual_sha256": "d930c942c9678bcf3d2887733ecaf459158c30f212d63f6c961f9e7a41fd604c",
-          "match": true
+          "actual_sha256": "ec7225a9b2e074684163de36d60ca6fd023701d3624c0869a8b902bf4c41bdd1",
+          "match": false
         },
         {
           "member": "claude_compat.py",
           "expected_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "actual_sha256": "f1195a6a4173454be12c6b0cac89bfa393a969a806becab838c2731d6cdd5101",
-          "match": true
+          "actual_sha256": "4a7eb44454cfab04be7e1877c0bb37c68f2cf9728cf11c180358528cd2353c40",
+          "match": false
         },
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6035,8 +6163,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -6045,12 +6173,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "NMfilLb1w14pvycWzqZv/P/bVWCM981rYTaigTEJwio=",
+      "code_sha256": "M/RnAVBcSuRFiwpCim/wiPtEvQuyN43r4+Dn6jpO6kk=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:30:17.000+0000",
+      "last_modified": "2026-10-01T21:05:06.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6074,8 +6202,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -6086,16 +6214,16 @@
         {
           "member": "series_source.py",
           "expected_sha256": "55b33466a6a97cd2ab16cc9f5c5324a3d92d048257ac3caa618457fe34ed3550",
-          "actual_sha256": "55b33466a6a97cd2ab16cc9f5c5324a3d92d048257ac3caa618457fe34ed3550",
-          "match": true
+          "actual_sha256": "f431029f47c78274d91870fc75211a2f69fe1395536bb77610d0734fc7748fe9",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "0tqOVu+EpG1Wrbr2KYfqFi18QcjWBjm7uM/pOidc2MU=",
+      "code_sha256": "uQdgZh1X6TU+VxxYOOTC4+NIDJ+9dzRJlR8ElmPRkFw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:16.000+0000",
+      "last_modified": "2026-09-20T13:31:48.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6107,8 +6235,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "f18301db4d11490cbcd91512bd1fd49bb743c2221352473f4eb6d98c37a4660b",
-          "actual_sha256": "f18301db4d11490cbcd91512bd1fd49bb743c2221352473f4eb6d98c37a4660b",
-          "match": true
+          "actual_sha256": "427dfbe72cdc07b71866eabbb07dce3752703e7b789c8176310533d477b12678",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6119,16 +6247,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "D3vmZ/LXcScNrRWbzaBWCXWbBQZDUtwRYWrsQNrZG0g=",
+      "code_sha256": "oN7l9pxLjhnbTQrOhYbFkHBR8et83JZlz6sLkacWVwY=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:45.000+0000",
+      "last_modified": "2026-09-25T03:30:28.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6140,16 +6268,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf",
-          "actual_sha256": "037f69b384d360728a91661504dccdd279981ac3537fa8a8d3d3928fab5718cf",
-          "match": true
+          "actual_sha256": "7e33636ca01bbd98923a68fbc5d1ae88024a5a6ccbae1efa59be6d51fd3db658",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "tA2TVIR0t+z4pwkA7wkE0VEw/3gFFSXR2LCj26LrOdI=",
+      "code_sha256": "IHV5A/ZKbajIIdKa4z46AXvrpIuusZAsTf1TsAEXEDw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T04:58:05.000+0000",
+      "last_modified": "2026-09-30T15:29:51.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6173,16 +6301,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "jldT/TEy8FB0hty/OJvUEbj36RJUrwJlyEmmtp84xZI=",
+      "code_sha256": "1A9Siptkv4WLqbwhtbPvpWWlj0XgN6wu32Iul5t/ZNM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:36.000+0000",
+      "last_modified": "2026-09-11T23:28:28.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6194,8 +6322,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b417b73df38da58c94442892318c353484ddb896f997022a55462a35dc79f129",
-          "actual_sha256": "b417b73df38da58c94442892318c353484ddb896f997022a55462a35dc79f129",
-          "match": true
+          "actual_sha256": "a9409c576621a029c26739a999aaf734ea4c771ef2bc697467a861d0a07e4bf3",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6206,16 +6334,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "G22Fet22+gcOjt7SzHctuMon+uqKzfNpxPVgZuZhWVQ=",
+      "code_sha256": "PO9ogE0CaUZ+0LSjlkDsqmcajM5Sd2GT3kjKzMe4IBo=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:28.000+0000",
+      "last_modified": "2026-10-07T21:15:57.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6227,8 +6355,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "ff58245ed1cd7b0c1a7353574c69e892c648f42c20390bc87ce1c7b253848b51",
-          "actual_sha256": "ff58245ed1cd7b0c1a7353574c69e892c648f42c20390bc87ce1c7b253848b51",
-          "match": true
+          "actual_sha256": "0030f6acccaac882da1d817e33dc63c8f97a209e909998e232f1658eb20ed0af",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6239,16 +6367,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "bv/VowvQfszUiMANQMiIuUQQJmsscFrfGDhZKuK4NAs=",
+      "code_sha256": "KAEIvZynr/J/J4kZ/3V31j9l6WIz0siO5gSIREybRlw=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:32.000+0000",
+      "last_modified": "2026-09-18T18:04:25.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6260,8 +6388,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "779c4d72588c245bd2d40860a663f931e0d6ededc5342d582fa32643a3c16ada",
-          "actual_sha256": "779c4d72588c245bd2d40860a663f931e0d6ededc5342d582fa32643a3c16ada",
-          "match": true
+          "actual_sha256": "9c42106433e3ac89ee8ac535838c10755a5b5bd0a9a9f76148e4cf6a66c570ec",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6272,18 +6400,18 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "4",
-      "code_sha256": "49ysYSRk1rpJpv3I/dqnLLuFBVgzttqFKyvIOOB80VA=",
+      "pass": false,
+      "version": "15",
+      "code_sha256": "50s3yAY3al5CsdsVQpWr8aBGVBbbT0ezJ0KSCazkK+4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:24.000+0000",
+      "last_modified": "2026-09-30T15:30:22.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "4",
+      "alias_primary_version": "15",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -6296,8 +6424,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b12e714292210671ce213e3198e4fc3a0bb30965873a17bc2b5af0f52c5d7159",
-          "actual_sha256": "b12e714292210671ce213e3198e4fc3a0bb30965873a17bc2b5af0f52c5d7159",
-          "match": true
+          "actual_sha256": "5ffa4e991572f0eb49cd326312b7dd17ca6b2bcebe75dab50dee369c669f67f9",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6308,8 +6436,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -6318,12 +6446,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "WHksnhbvcRGlTHsXXgve9BmQYiuGhy7M5bKmgqHUmuY=",
+      "code_sha256": "PvHj9WctOF3Fus0ARFYYwO5TZfQJmSXBFZgeF1YPO9w=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:33:25.000+0000",
+      "last_modified": "2026-09-29T22:45:33.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6335,8 +6463,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "d491ffa94605e31c19c792370cadc179076ded73e622b3c721170b760386a779",
-          "actual_sha256": "d491ffa94605e31c19c792370cadc179076ded73e622b3c721170b760386a779",
-          "match": true
+          "actual_sha256": "00b83caeb2dea08f76fc8110663614e5e2cc688a547149d4d9970118cc4ae8c0",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6347,8 +6475,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -6357,12 +6485,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "dgavZCZPPmQojLXeAgaAxTguoz+AIOL5NUHZGxv9WEw=",
+      "code_sha256": "oCrtLixiy21/jsrc2esYT2Nisrm/AVPpaL0gmxQOXqc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T17:04:24.000+0000",
+      "last_modified": "2026-10-09T23:59:54.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6386,18 +6514,18 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "fNplWBo7/oNY/RdlpETRxlYtI/qgCky0mRVf0sEiVeM=",
+      "pass": false,
+      "version": "3",
+      "code_sha256": "JJEwNKCCPI3N/Hg7Nz8MC9pwCECGtS7ZeuiGds36YPU=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:34:14.000+0000",
+      "last_modified": "2026-09-11T23:31:21.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "3",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -6410,8 +6538,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "53f412bcf78edc6395a288f10604d535c5d8bb830c8bb6a17ccfc4b5e6591209",
-          "actual_sha256": "53f412bcf78edc6395a288f10604d535c5d8bb830c8bb6a17ccfc4b5e6591209",
-          "match": true
+          "actual_sha256": "23c0eaf97234be1bdf5b86e37f5b64fb3fadeb3e06998e7e351fe706aea843c2",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6420,12 +6548,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "s3x3Z+M+ZN9hbiBn8p+haOGNUd4gF8CX8ck5CHYw/FM=",
+      "code_sha256": "DrZ/4qCODAo0RpEmjQpPefXPZCDteTOHjgk20K2X8kc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:33:16.000+0000",
+      "last_modified": "2026-09-27T17:04:05.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6437,16 +6565,22 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "a9b580de1dfa9250736006c075c1ca2aa9b135e33847ae4c7951966652752a3a",
-          "actual_sha256": "a9b580de1dfa9250736006c075c1ca2aa9b135e33847ae4c7951966652752a3a",
+          "actual_sha256": "b3bb3179c39f8e770cdd4feba1f89221f8cd587bdc99b0cebe654a14783467cb",
+          "match": false
+        },
+        {
+          "member": "wl_fusion.py",
+          "expected_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
+          "actual_sha256": "cb8e7c62fc5c82287b274fc27c302c82658c89766c039a742a4ff610b99a3764",
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "YOV+hgGXdXBZUfP8urJLBNHjUWEQqwdZdjryAxq4D2o=",
+      "code_sha256": "45A/NBnQlX9r1Q0126VzL/jnG784VoH/RSk4lbGSils=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:33:40.000+0000",
+      "last_modified": "2026-09-25T05:09:35.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6458,16 +6592,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "f937e4a3e980155435e62ce3a8a74687d1ff70ce6f2b4f747874d2e2578c8bc9",
-          "actual_sha256": "f937e4a3e980155435e62ce3a8a74687d1ff70ce6f2b4f747874d2e2578c8bc9",
-          "match": true
+          "actual_sha256": "e15188ce71fb13a7c5d8deae4b2ba02adedc28fd157dddaac11c4078929d633a",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "+Eq2IMNMAHCK6wa4Vz7QTqYQ0Fe0sb5J3Ylup9U47Mc=",
+      "code_sha256": "DNnWn9AdZVWStoo5onv4tfIAGgW4RBsIsoSHNVaXH4E=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:34:53.000+0000",
+      "last_modified": "2026-09-26T15:18:32.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6491,16 +6625,16 @@
         {
           "member": "macro_donor_inputs.py",
           "expected_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "actual_sha256": "c8b468a4a89e642d24bbb3c60b03556caed715abd921c904b5c6249e231c9b8a",
-          "match": true
+          "actual_sha256": "6f7d265aa022438e5c88f47643ded549592a01ba54a62a24f2875087f227b95a",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "k4vyG3XIwRPEg2JY72OE3wXcJeWJaR0h2bQRgVaCEP4=",
+      "code_sha256": "invZ8FoRTp7qyL08pWqsJmIOMIuAAyBbfsPF/L8IA5k=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:34:04.000+0000",
+      "last_modified": "2026-09-19T04:57:45.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6536,14 +6670,14 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "4039b6d46d221567277885b158cdd99dbbc91b05bfec27e102291c8a6ec3f6d9",
-          "actual_sha256": "4039b6d46d221567277885b158cdd99dbbc91b05bfec27e102291c8a6ec3f6d9",
-          "match": true
+          "actual_sha256": "068cce4f6438e81cf2989df6829054c0bef284ce323195ff6eb534d766932f34",
+          "match": false
         },
         {
           "member": "equity_enrich.py",
           "expected_sha256": "e5c40c0025c1295fb62339f237ef6059fdff012620b8135f9ba02cc6c25d3f28",
-          "actual_sha256": "e5c40c0025c1295fb62339f237ef6059fdff012620b8135f9ba02cc6c25d3f28",
-          "match": true
+          "actual_sha256": "cfbae657aa42cc4b62e15821b7c5014e46dbc8d3f53cce51b26c1d78a6b50735",
+          "match": false
         },
         {
           "member": "finviz.py",
@@ -6554,14 +6688,14 @@
         {
           "member": "llm_cost.py",
           "expected_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "actual_sha256": "d16f02d98afe010e24deb9d145a551b3491f276c893fd414a9136c9421d1300d",
-          "match": true
+          "actual_sha256": "b929fe17aa3f42f8f4f96584f6dadcb78740ea141ca70ef2b4cddd6ee9635e84",
+          "match": false
         },
         {
           "member": "llm_router.py",
           "expected_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "actual_sha256": "d443ad467b10983edb5665e6ff60bd6ecdfb3ed01aa484399233e4938a53f8df",
-          "match": true
+          "actual_sha256": "e46303f7cdff7264d59ca3cf51c870a175fffe610ba46a3d5cafe93eee43ab33",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6570,12 +6704,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "SRajkTORaubqiEs9+YQ76Y9Xa7Te0cvqmXAepTGPrHI=",
+      "code_sha256": "FuTJELYPHEHio9+qLqqUlJGHfh9vducnXeKUHFo4rO0=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:49:30.000+0000",
+      "last_modified": "2026-10-01T21:42:44.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6593,8 +6727,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "f214a19ddba8ccec844e771e3c4c0c10767d3b88f05342b74f3aedbb1debe7df",
-          "actual_sha256": "f214a19ddba8ccec844e771e3c4c0c10767d3b88f05342b74f3aedbb1debe7df",
-          "match": true
+          "actual_sha256": "b6a7d4676e5c1398658bf159a2722f50be20a8656e48dfe2cd4d335f8b563bd6",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -6603,14 +6737,14 @@
           "match": true
         }
       ],
-      "pass": true,
-      "version": "2",
-      "code_sha256": "qzSNic1Qg+OptdIf8Y9UpgU3Ovh3rF1pBXC/05PjZTE=",
+      "pass": false,
+      "version": "10",
+      "code_sha256": "y/LDPvazLcj5ALzAqQtEit9rLkMjZl4naupZSqdbS+A=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:49:55.000+0000",
+      "last_modified": "2026-09-25T23:24:42.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "2",
+      "alias_primary_version": "10",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -6641,18 +6775,18 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
-      "version": "5",
-      "code_sha256": "ROajj0BmJiB7ySDbW69kVklWEDQu5O5hxhhkVi1JYkI=",
+      "pass": false,
+      "version": "6",
+      "code_sha256": "YiQy0qeZKERCdl0CTNwjAhsDzlCmPbiKtkQBjf7wEh4=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:27:40.000+0000",
+      "last_modified": "2026-09-11T23:32:40.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "alias_primary_version": "5",
+      "alias_primary_version": "6",
       "alias_additional_versions": [],
       "alias_verified": true,
       "configuration_mismatches": [],
@@ -6725,19 +6859,33 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "d8c30ba40d104ecbfeb2de9aac95e84ec8c5b7ac5b359703e59591ab28dd01f8",
-          "actual_sha256": "d8c30ba40d104ecbfeb2de9aac95e84ec8c5b7ac5b359703e59591ab28dd01f8",
-          "match": true
+          "actual_sha256": "400b27c232b5762c2870812d58dca4f9f3adbc4640423b146029cdb35ac79f1f",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Aj7kb4d58N5VALHOscCd+dstDTymaCVVrIICOm+TJ18=",
+      "code_sha256": "KYEVMlN8AZEnGrFAZwwWIkBHabBtmMIW3aeFTKLNu5M=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:51:01.000+0000",
+      "last_modified": "2026-09-21T05:07:10.000+0000",
       "handler": "lambda_function.lambda_handler",
-      "configuration_mismatches": [],
-      "configuration_differences": []
+      "configuration_mismatches": [
+        "Timeout",
+        "MemorySize"
+      ],
+      "configuration_differences": [
+        {
+          "field": "Timeout",
+          "expected": 120,
+          "observed": 300
+        },
+        {
+          "field": "MemorySize",
+          "expected": 512,
+          "observed": 2048
+        }
+      ]
     },
     "justhodl-sector-rotation": {
       "function": "justhodl-sector-rotation",
@@ -6746,8 +6894,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "4e6f4bf47824ddb6971eb2622e8ac29a7f1fa918927a262a2e44daa6af011bb8",
-          "actual_sha256": "4e6f4bf47824ddb6971eb2622e8ac29a7f1fa918927a262a2e44daa6af011bb8",
-          "match": true
+          "actual_sha256": "f54fad7630b5eb1b55f3353e84953143948fc07f01520cdbae99878d6424232f",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -6774,12 +6922,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Rb14+ro4n6pZj332ahEt6Bt4EJF2DLi9DeV67wpg+l8=",
+      "code_sha256": "FoY5TCFw8NDaN7TFvek12KYOqJeDSBVSWE1WumPUX7A=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:51:28.000+0000",
+      "last_modified": "2026-09-21T03:47:52.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6791,8 +6939,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "bc2c59ec8a911eb1a66febab8f4c21fdb5113ed5c9c69088664dcec3b1d0b06f",
-          "actual_sha256": "bc2c59ec8a911eb1a66febab8f4c21fdb5113ed5c9c69088664dcec3b1d0b06f",
-          "match": true
+          "actual_sha256": "570f68ab5ad828e20ef4c2ec74552df59add7d2a82cc91ff0d4480a8f7661d68",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -6831,12 +6979,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "lWtmJXLPR2jcuNRI8Qug9VyoCyPuG0W1SMyCAE8/WyM=",
+      "code_sha256": "3sTncEZsAG2z3wznt1bTPICJupm43nhLFqddSNJObkQ=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:51:55.000+0000",
+      "last_modified": "2026-10-01T21:18:27.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6878,8 +7026,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "proposed_book_risk.py",
@@ -6894,12 +7042,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "UmGwwlahX605+D0hQCCB/gcPfrCk8m2Z6rXKZk/5JU8=",
+      "code_sha256": "wLV3uR3FMKwntaVuamNeU7wmBHXjiNvtf2ylEgNS1sM=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:44:23.000+0000",
+      "last_modified": "2026-09-11T23:33:02.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6923,8 +7071,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -6933,12 +7081,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "amvPivfzcqcVAdOmDwNJK34ujVxJq9hGr5NQpKzlozs=",
+      "code_sha256": "qjlHIEUAKf25hbfWHXhdJDPQ1GWM6H0mMc9wQRC+n2I=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:44:45.000+0000",
+      "last_modified": "2026-09-11T23:33:26.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -6950,8 +7098,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5b5bdd5086f62c879c9ab436cac84ae7316ab17db620768e80a4065739795e2d",
-          "actual_sha256": "5b5bdd5086f62c879c9ab436cac84ae7316ab17db620768e80a4065739795e2d",
-          "match": true
+          "actual_sha256": "91de4b2c962819ab4bd40e6461a321914c298d47cd6cb7c713e5c48781aebec5",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -6984,12 +7132,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "W2r4zNLO4xUIGdsGlm0aZyeoV1V4mQ/x6+L5OANP3Bo=",
+      "code_sha256": "C4tZ4ipMaHxc9sFuqIl2eFXOvAB9UfHhHeNdDfq8xYg=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:52:36.000+0000",
+      "last_modified": "2026-09-25T09:01:16.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7001,8 +7149,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "787153e387bddf53ff88bfb52ced5c2ed2f9c7f304f50d4bdb9ab1b9e28aca80",
-          "actual_sha256": "787153e387bddf53ff88bfb52ced5c2ed2f9c7f304f50d4bdb9ab1b9e28aca80",
-          "match": true
+          "actual_sha256": "3fe950d457352d9a2c07cd3d395b9dcb5580fbb29b99d545ca29b645cbde5ee9",
+          "match": false
         },
         {
           "member": "evidence_weights.py",
@@ -7025,16 +7173,16 @@
         {
           "member": "signals_emit.py",
           "expected_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
-          "actual_sha256": "0d456b9231fde0479a6594f64d94c29ce7e0c32feeb7056fddb12c3703144199",
-          "match": true
+          "actual_sha256": "4aad4d81f5855bbcc0f1ce314c24fe50f0aa765c7e1b78001c4168bcb2cab0c2",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "nghIA4sceBgvSehPPvHdRMLSLZmzv+1NYVRDRkW+T/0=",
+      "code_sha256": "x1MkDx204IqoB1I5hUC6cES1kx8HhXS6gR7XhsJXnwI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:13:26.000+0000",
+      "last_modified": "2026-10-02T13:22:21.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7079,8 +7227,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "b65ef62225a800cb06631bc842f48df50ba452b2a686dd1c905b4ed5ec943cb6",
-          "actual_sha256": "b65ef62225a800cb06631bc842f48df50ba452b2a686dd1c905b4ed5ec943cb6",
-          "match": true
+          "actual_sha256": "f9b78667cde7ce47e2d0a816c07f1431db59b2aa83a7e3dbf861a115be5b5ac7",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -7119,12 +7267,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "MQrQDRojMdI03Ba/s/bDCI8L2ewNcFYaM5Ris0FptGA=",
+      "code_sha256": "KJl8KEsR/g1MRsEyVrgu4dyOm+ubeNavir3A4KezXYY=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:53:50.000+0000",
+      "last_modified": "2026-09-30T20:41:04.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7157,8 +7305,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "a7157a620e21577040c7145811e88ee6611f3d9fd91806591cc15c82f7cdbf9f",
-          "actual_sha256": "a7157a620e21577040c7145811e88ee6611f3d9fd91806591cc15c82f7cdbf9f",
-          "match": true
+          "actual_sha256": "6eb2bf63da6629453551e990abe2d5f97f5b99de5daabf126b3db8802e6c7fe5",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7167,12 +7315,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "cOVmdF06k1kgTXgE8+G4atU5jwaxsE8GvFf7sgTnlzQ=",
+      "code_sha256": "S64gVbHWkkKR7ErAw0l+OHwB/bNLNr4Jid9yDOlJW1c=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:45:07.000+0000",
+      "last_modified": "2026-10-01T21:19:21.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7184,16 +7332,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "af145438e7a84ceaa3d946898c3f77190efa1c9e8cc6f2b1bf51cca06211817d",
-          "actual_sha256": "af145438e7a84ceaa3d946898c3f77190efa1c9e8cc6f2b1bf51cca06211817d",
-          "match": true
+          "actual_sha256": "8a77321ca7bada683b0401a3832088754cb9628cd557bb0f845100d1a6e122ab",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "paHrUSgBKyj2Kv3PwEaYMxxAyC4zSKbvrS387U4w22I=",
+      "code_sha256": "2YHcLozP6MMSkuxGjL4EYR6C8x14atI+YqgPUnWu6aI=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:45:34.000+0000",
+      "last_modified": "2026-10-01T21:19:52.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7205,8 +7353,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "5d4f3a74cd5b7e0b849c7921681eb2a33ca7f0163a9ce253045f36848d4576c1",
-          "actual_sha256": "5d4f3a74cd5b7e0b849c7921681eb2a33ca7f0163a9ce253045f36848d4576c1",
-          "match": true
+          "actual_sha256": "9175170c08d7615c9bdc844987a281eca9bd712c638161eb005f4388dff4d3eb",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7215,12 +7363,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "bdmQKjrp+lKSJhGpHu3v6MQpcaT+v7AKkDySYaCyx9Q=",
+      "code_sha256": "v9D7cHHPVZTnjf+VPe0YE+8MkDeXTLPLc47324kNkzk=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:46:00.000+0000",
+      "last_modified": "2026-10-01T21:20:22.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7259,8 +7407,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "427c9dac4a3d95e8a4682ccf92f9c0fa836a4d639a65bd46236dd4b5a9e3d1a8",
-          "actual_sha256": "427c9dac4a3d95e8a4682ccf92f9c0fa836a4d639a65bd46236dd4b5a9e3d1a8",
-          "match": true
+          "actual_sha256": "8c7ed4c945661b1dfffc1bfeeacdea536c67e8551c6c10770df7e5606c3cfa38",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7269,12 +7417,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "mGm63obU0san9X7u++sTjp6mjEUnJJCF2CwX1EME9Mo=",
+      "code_sha256": "9NjExPJibgzQ6xsg4uvY5E4osV8ltD+wacu+wn9P99Y=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:46:46.000+0000",
+      "last_modified": "2026-09-28T02:29:28.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7298,16 +7446,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "gSANO2aP6D7uzUnKE3v8dBaTbGXdXY2hCMWaz0wojFA=",
+      "code_sha256": "gwLlPEZ4QgsepnU/5UcOoPnCJG891SeHCgF8GN6OO+I=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:28:08.000+0000",
+      "last_modified": "2026-09-11T23:33:42.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7340,8 +7488,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "4af131c3096c51cc54a3ae99ce64d09ae567b66b596635505036134bb350f220",
-          "actual_sha256": "4af131c3096c51cc54a3ae99ce64d09ae567b66b596635505036134bb350f220",
-          "match": true
+          "actual_sha256": "a038d6a0f83bf7d49025147f58a0b6de4d1c13e5544761360f4a81184f051b4e",
+          "match": false
         },
         {
           "member": "capital_contract.py",
@@ -7374,12 +7522,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "LzqFsh7bHpElzxhrOMMBbNk+u8vwzej9ylOmmVKwBrk=",
+      "code_sha256": "F2r/eIMlrVTtdOYYGMWzr9spe10CNvx8juWTAr/IE0Y=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:55:48.000+0000",
+      "last_modified": "2026-09-25T07:12:48.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7391,8 +7539,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "dc6de93eae1078630e9eecda1b068350aee70e5ba10d1d84a173f7b5df034208",
-          "actual_sha256": "dc6de93eae1078630e9eecda1b068350aee70e5ba10d1d84a173f7b5df034208",
-          "match": true
+          "actual_sha256": "9a1d1157efe1a97f8d72ddc88a6017fb4a08d4813a47d9826dcb8062af3717be",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7403,8 +7551,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -7413,12 +7561,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "2r+Zk+knwdEf3LiP2B6h1AQRc08mczMhlUK40Jd7vNU=",
+      "code_sha256": "Qc1SA/12gcjaRxRU3v9W5DrSHSBo9CGtUnqEslQfWhc=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:47:28.000+0000",
+      "last_modified": "2026-09-20T06:30:17.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7442,8 +7590,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -7452,12 +7600,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "Pyer6am5he5GoyBK0VddaUsD7FYxw213zLU+/qUXovc=",
+      "code_sha256": "CGggwvryU5xQ6c0nFQBPYNmMv1q1gZ+CRMJhVWrWcTE=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:47:51.000+0000",
+      "last_modified": "2026-09-11T23:34:30.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7469,8 +7617,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "d4a7aeefddd2e2e1ec76ea64c6c1d93fc5f3bd3aef881b67f94e985bf85ba504",
-          "actual_sha256": "d4a7aeefddd2e2e1ec76ea64c6c1d93fc5f3bd3aef881b67f94e985bf85ba504",
-          "match": true
+          "actual_sha256": "a50f52426c512eb3199c81c8735544c5e244b59ecbde0dad1f64cdcd43337340",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7479,12 +7627,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "j8H3Dl2ZR/gSkYcAreuWFbPKJp9aG6cIii3Uj1U79vs=",
+      "code_sha256": "MVjtYbPXgWcfBBCJEpIl9BumgYJgK8l82latnbnsV6M=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:48:14.000+0000",
+      "last_modified": "2026-10-01T21:20:50.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7508,8 +7656,8 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         },
         {
           "member": "public_brain_projection.py",
@@ -7518,12 +7666,12 @@
           "match": true
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "mtXJceSFGMQcuD59dMmpR/aXXEMPfccOkuDvrIck7EM=",
+      "code_sha256": "qgE63AsgodIoAtsyylsiU/9CqVUoL/gjs4uyfGHAo7M=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:28:04.000+0000",
+      "last_modified": "2026-09-11T23:34:47.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7547,16 +7695,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "zNv4Aklb2UdEipZIBVaxBYD3+nDoE17aQf18oylcwn8=",
+      "code_sha256": "MnnHFM8qWNAjB6xbmXDEWk52Q8nRUcizn6GdbejMwqg=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T13:28:01.000+0000",
+      "last_modified": "2026-09-11T23:35:03.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7589,8 +7737,8 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "42dc49d923ed57f368509c3b619239e991987c2d8c715378157e950139123f88",
-          "actual_sha256": "42dc49d923ed57f368509c3b619239e991987c2d8c715378157e950139123f88",
-          "match": true
+          "actual_sha256": "ed06ad74758d6ec100607513737b969983c2a7ba010dbc14ec61896253be457d",
+          "match": false
         },
         {
           "member": "managed_secret.py",
@@ -7601,16 +7749,16 @@
         {
           "member": "private_artifact.py",
           "expected_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "actual_sha256": "aae34f3959cf8d2e79647b0b7038f449ff59f0614450e586bfcc13828c96259b",
-          "match": true
+          "actual_sha256": "52d5a7c3176b977a0870dcfe35909d598eff434d7a438cdf403fb65dcdc001ba",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "jUpAn+8VGlFyDp8okBTudPMzckHmhIlrITER1qtds/w=",
+      "code_sha256": "LF+4KEU5B1Dn93SXtzs1cl4JAv4gS4edxR+Z4iEv9nA=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T12:48:59.000+0000",
+      "last_modified": "2026-09-25T06:38:02.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7661,16 +7809,16 @@
         {
           "member": "lambda_function.py",
           "expected_sha256": "de5ecada43e852584fd15ce125df0e942370cf995c66e0439a16623c0c5667c3",
-          "actual_sha256": "de5ecada43e852584fd15ce125df0e942370cf995c66e0439a16623c0c5667c3",
-          "match": true
+          "actual_sha256": "824f82d54e59b7fe4a10bd92bcb474dd4287abd3a8354085a817896a387a14e7",
+          "match": false
         }
       ],
-      "pass": true,
+      "pass": false,
       "version": "$LATEST",
-      "code_sha256": "StK08ilmnchpaii4njgsPGs6NOxoF702tmlInzLLhE0=",
+      "code_sha256": "ubA+FVqXbT24CDfo8StLHVGAUIhih2ZyLsZM2c3vNTk=",
       "state": "Active",
       "update_status": "Successful",
-      "last_modified": "2026-09-09T05:58:55.000+0000",
+      "last_modified": "2026-09-21T01:36:52.000+0000",
       "handler": "lambda_function.lambda_handler",
       "configuration_mismatches": [],
       "configuration_differences": []
@@ -7710,7 +7858,7 @@
     "receipt_checkout_sha": "2f567b8331cb3552da584dd1ff50b4e7aa46115d",
     "privacy_epoch": "privacy-5230-48c8b1c47dba40ef811c53157e2c88e3"
   },
-  "checker_checkout_sha": "17a7e8288d62002b1602644bd0d3d8842694fa58",
-  "workflow_run_id": "34657176485",
-  "finished_at": "2026-09-11T23:18:26.218301+00:00"
+  "checker_checkout_sha": "cebbac60ec68c6b4daa677e570419c7ed66fad54",
+  "workflow_run_id": "39476277449",
+  "finished_at": "2026-10-20T18:43:00.410856+00:00"
 }
