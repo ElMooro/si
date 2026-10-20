@@ -45,7 +45,8 @@ each (the $50 cap and the anomaly sentinel cover them like any engine); otherwis
 Three pieces live and proven: (1) a sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every
 write to the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone
 but the **root user** - if you ever need to remove something from it, that is a console action as root, by design;
-backfill of the existing 1.28 M objects runs as S3 Batch Replication job `de1a80a2-...` (ops 6576 reports progress);
+backfill of the existing 1.28 M objects: re-created on 2026-10-22 from a current-versions-only manifest (the
+S3-generated one would have copied the loop's old versions too; that job was cancelled before it moved anything);
 (2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule); (3) the governor's
 storage fuse (v1.5.0). The daily S3 Inventory lands in the private bucket within 48 h; it is the check that the
 573k storm copies of the audit key and the `data/` storm copies have been expired by the new rule - if S3 is slow
