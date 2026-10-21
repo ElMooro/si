@@ -86,15 +86,20 @@ test('eight-entry warehouse capacity evicts the least recently used packet and a
 });
 test('equity resolution terminates and named exchanges cannot inherit unqualified macro aliases',()=>{
  const c=engine(setup());for(const id of ['AAPL','NYSE:DGS10','NASDAQ:US10Y','NYSE:GOLD']){assert.equal(c.observationId(id),false);assert.equal(c.resolveSym(id).engine,'equity');}
- assert.equal(c.resolveSym('NYSE:DGS10').ticker,'DGS10');for(const id of ['DGS10','US10Y','TVC:US10Y','TVC:US02Y','FRED:DGS10','NYFED:invented','ECB:invented'])assert.equal(c.observationId(id),true,id);
+ assert.equal(c.resolveSym('NYSE:DGS10').ticker,'DGS10');for(const id of ['DGS10','TVC:US02Y','US02Y','TVC:US20Y','FRED:DGS10','NYFED:invented','ECB:invented'])assert.equal(c.observationId(id),true,id);
+ // 2026-10-21: the market yield symbols are market quotes, not FRED measurements - CBOE's yield indices (live) for 10y/5y/30y, Treasury's own par curve for 2y/20y.
+ for(const [id,want] of [['US10Y','^TNX'],['TVC:US10Y','^TNX'],['US05Y','^FVX'],['TVC:US30Y','^TYX']]){const r=c.resolveSym(id);assert.equal(r.engine,'equity',id);assert.equal(r.ticker,want,id);assert.equal(c.observationId(id),false,id);}
+ for(const [id,want] of [['TVC:US02Y','ustpar:2Y'],['US2Y','ustpar:2Y'],['TVC:US20Y','ustpar:20Y']]){const r=c.resolveSym(id);assert.equal(r.engine,'series',id);assert.equal(r.raw,want,id);}
+ assert.equal(c.resolveSym('FRED:DGS2').yahoo,'DGS2');
 });
 test('general scalar charts retain exact evidence and never write into the unused market bar cache',async()=>{
  const h=setup(),c=engine(h);for(const id of ['FRED:invented','NYFED:invented','ECB:invented'])for(const tf of ['1d','1w','2w','1M']){const bars=await c.klines(id,tf);assert.ok(bars.length);const e=c.barEvidence.get(bars);assert.equal(e.symbol,id);assert.equal(e.observations.requested_id,id);assert.equal(e.observations.calls_eligible,false);}
  assert.deepEqual(Object.keys(c.barCache),[]);assert.equal(h.requests.length,3);
 });
 test('explicit legacy aliases retain both requested and canonical IDs with full source evidence',async()=>{
- const h=setup(),c=engine(h),bars=await c.klines('TVC:US10Y','1d'),e=c.barEvidence.get(bars).observations;
- assert.equal(h.requests[0].id,'FRED:DGS10');assert.equal(e.requested_id,'TVC:US10Y');assert.equal(e.selected_id,'FRED:DGS10');assert.equal(e.chart_alias.resolved,'FRED:DGS10');assert.equal(e.identity_resolution.requested,'FRED:DGS10');
+ // 2026-10-21: the 2-year is the legacy alias that still resolves to a measurement (Treasury's par curve); the 10-year is a market quote now (^TNX).
+ const h=setup(),c=engine(h),bars=await c.klines('TVC:US02Y','1d'),e=c.barEvidence.get(bars).observations;
+ assert.equal(h.requests[0].id,'ustpar:2Y');assert.equal(e.requested_id,'TVC:US02Y');assert.equal(e.selected_id,'ustpar:2Y');assert.equal(e.chart_alias.resolved,'ustpar:2Y');assert.equal(e.identity_resolution.requested,'ustpar:2Y');
 });
 test('missing catalog/parser cannot turn a warehouse measurement into an exchange ticker',async()=>{
  for(const missing of ['catalog','parser']){const h=setup(),c=engine(h);if(missing==='catalog')c.JHChartCatalog=undefined;else c.JHObservationSeries=undefined;

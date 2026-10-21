@@ -1,0 +1,14 @@
+[
+ {
+  "before": "      \"US10Y\":\"FRED:DGS10\",\"TVC:US10Y\":\"FRED:DGS10\",\"DGS10\":\"FRED:DGS10\",\"US10\":\"FRED:DGS10\",\n      \"US02Y\":\"FRED:DGS2\",\"TVC:US02Y\":\"FRED:DGS2\",\"DGS2\":\"FRED:DGS2\",\"US2Y\":\"FRED:DGS2\",\n      \"US05Y\":\"FRED:DGS5\",\"DGS5\":\"FRED:DGS5\",\"US5Y\":\"FRED:DGS5\",\n      \"US30Y\":\"FRED:DGS30\",\"TVC:US30Y\":\"FRED:DGS30\",\"DGS30\":\"FRED:DGS30\",",
+  "after": "      /* 2026-10-21 (Khalid: \"why is us10y 2 days old\"): the market yield symbols route to a market source - CBOE's yield indices\n         through Yahoo (^TNX 10y, ^FVX 5y, ^TYX 30y; live, OHLC) or Treasury's own par curve where no index exists (2y, 20y) -\n         not to FRED, whose H.15 copy prints the next business day. FRED:DGS* stays FRED when asked for by name. */\n      \"US10Y\":\"^TNX\",\"TVC:US10Y\":\"^TNX\",\"DGS10\":\"FRED:DGS10\",\"US10\":\"^TNX\",\n      \"US02Y\":\"ustpar:2Y\",\"TVC:US02Y\":\"ustpar:2Y\",\"DGS2\":\"FRED:DGS2\",\"US2Y\":\"ustpar:2Y\",\n      \"US05Y\":\"^FVX\",\"TVC:US05Y\":\"^FVX\",\"DGS5\":\"FRED:DGS5\",\"US5Y\":\"^FVX\",\n      \"US30Y\":\"^TYX\",\"TVC:US30Y\":\"^TYX\",\"DGS30\":\"FRED:DGS30\",\n      \"US20Y\":\"ustpar:20Y\",\"TVC:US20Y\":\"ustpar:20Y\","
+ },
+ {
+  "before": "    if(venue===\"TVC\" && ticker===\"US10Y\") { venue=\"FRED\"; ticker=\"DGS10\"; s=\"FRED:DGS10\"; }",
+  "after": "    if(venue===\"TVC\" && ticker===\"US10Y\") { venue=\"\"; ticker=\"^TNX\"; s=\"^TNX\"; }"
+ },
+ {
+  "before": "    if(ALIAS[s]) s=ALIAS[s];\n    if(s.indexOf(\":\")>=0){ venue=s.split(\":\")[0]; ticker=s.split(\":\").pop(); }",
+  "after": "    if(ALIAS[s]) s=ALIAS[s];\n    if(/^ustpar:/i.test(s)) return {raw:s, venue:\"ustpar\", ticker:s, yahoo:s.split(\":\").pop(), engine:\"series\"}; /* Treasury par tenors are warehouse scalars (2026-10-21) */\n    if(s.indexOf(\":\")>=0){ venue=s.split(\":\")[0]; ticker=s.split(\":\").pop(); }"
+ }
+]

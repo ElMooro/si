@@ -1,11 +1,11 @@
 """ops 6602 - READ-ONLY browser probe: what does chart.html show for the 10-year now?  (Khalid, 2026-10-21 13:30 ET:
 "why is us10y 2 days old" - the inspector showed TVC:US10Y routed to FRED:DGS10, whose newest observation was Monday.)
 
-The engine change (jh-chart-engine.js, 2026-10-21): for the Treasury tenors the bar chain now asks Yahoo's live index
-(^TNX, ^FVX, ^TYX) first on daily spans, then the TradingView bank, the banked Yahoo copy, Treasury's own par curve
-(ustpar:<tenor>, the series FRED's H.15 mirrors a day later) and FRED last; DGS2 no longer borrows ^IRX (the 13-week
-bill).  Headless Chrome loads the served chart for TVC:US10Y and FRED:DGS10 and reads the quote HUD, the status line
-(source + bar count) and the detail pane; the newest bar must be today's session.  Also reads the three sources
+The engine change (jh-chart-engine.js + jh-chart-tvwatch.js, 2026-10-21): the market yield symbols route to market
+sources - US10Y/TVC:US10Y -> ^TNX, US05Y -> ^FVX, US30Y -> ^TYX (CBOE yield indices through Yahoo, live, asked before
+the banked copy), US02Y/US20Y -> Treasury's own par curve (ustpar, the series FRED's H.15 mirrors a day later); FRED:DGS*
+stays FRED when asked for by name.  Headless Chrome loads the served chart for TVC:US10Y, US10Y (must show today's
+session), TVC:US02Y and FRED:DGS10 (reported) and reads the quote HUD, status line and detail pane.  Also reads the three sources
 directly through the worker (/yf-ohlc live, /series ustpar:10Y, /series FRED:DGS10) and reports each one's last date.
 """
 from datetime import datetime, timezone
@@ -79,7 +79,7 @@ def main():
         html = urllib.request.urlopen(urllib.request.Request(BASE + "/chart.html?nocache=%d" % int(time.time()), headers={"User-Agent": "justhodl-ops/6602", "Cache-Control": "no-cache"}), timeout=30).read().decode("utf-8", "replace")
         m = re.search(r'src="(/jh-chart-engine\.js(?:\?v=[A-Za-z0-9._-]+)?)"', html)
         js = urllib.request.urlopen(urllib.request.Request(BASE + (m.group(1) if m else "/jh-chart-engine.js"), headers={"User-Agent": "justhodl-ops/6602", "Cache-Control": "no-cache"}), timeout=30).read().decode("utf-8", "replace")
-        carries = "ustpar:10Y" in js and "nowarehouse=1" in js
+        carries = '"TVC:US10Y":"^TNX"' in js and "nowarehouse=1" in js and "ustpar:2Y" in js
         r.log("served chart.html references %s; that engine carries the US-yield route change: %s" % (m.group(1) if m else None, carries))
         if not carries:
             r.fail("the served engine does not carry the change yet (Pages deploy pending?)")
@@ -88,7 +88,9 @@ def main():
         ok_all = True
         with sync_playwright() as p:
             browser = launch(p, r.log)
-            for sym in ("TVC:US10Y", "FRED:DGS10", "US10Y"):
+            from datetime import timedelta
+            expect = {"TVC:US10Y": today, "US10Y": today, "TVC:US02Y": None, "FRED:DGS10": None}  # None = report only (ustpar T-1 before 18:30 ET; FRED is FRED by name)
+            for sym in ("TVC:US10Y", "US10Y", "TVC:US02Y", "FRED:DGS10"):
                 ctx = browser.new_context(viewport={"width": 1600, "height": 1000}, user_agent="Mozilla/5.0 (X11; Linux x86_64) justhodl-ops/6602")
                 ctx.add_init_script("try { sessionStorage.setItem('jh-autohide-session', '0'); } catch (e) {}")
                 page = ctx.new_page()
@@ -103,10 +105,11 @@ def main():
                 dates = re.findall(r"20\d\d-\d\d-\d\d", (snap.get("quote") or "") + " " + (snap.get("detail") or ""))
                 newest = max(dates) if dates else None
                 src = snap.get("stat") or ""
-                good = newest == today
+                want = expect.get(sym)
+                good = (newest == want) if want else True
                 ok_all = ok_all and good
-                r.log("[%s] newest bar date %s (today %s) -> %s | quote %r | stat %r" % (sym, newest, today, "OK" if good else "STALE", (snap.get("quote") or "")[:200], src[:160]))
-                r.kv(symbol=sym, newest_bar=newest, today=today, verdict="OK" if good else "STALE", stat=src[:120].replace("|", "/"))
+                r.log("[%s] newest bar date %s (today %s, expected %s) -> %s | quote %r | stat %r" % (sym, newest, today, want or "report only", "OK" if good else "STALE", (snap.get("quote") or "")[:220], src[:160]))
+                r.kv(symbol=sym, newest_bar=newest, today=today, verdict=("OK" if good else "STALE") if want else "reported", stat=src[:120].replace("|", "/"))
                 page.screenshot(path="/tmp/us10y-%s.png" % sym.replace(":", "_"))
                 ctx.close()
             browser.close()

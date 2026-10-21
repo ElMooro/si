@@ -496,7 +496,7 @@
       return idx[bare] || "";
     }
     if (venue === "TVC") {
-      var tv = { US10Y: "FRED:DGS10", US02Y: "FRED:DGS2", US05Y: "FRED:DGS5", US30Y: "FRED:DGS30", VIX: "^VIX", DXY: "DX-Y.NYB", GOLD: "GC=F", USOIL: "CL=F", SPX: "^GSPC" };
+      var tv = { US10Y: "^TNX", US02Y: "ustpar:2Y", US05Y: "^FVX", US20Y: "ustpar:20Y", US30Y: "^TYX", VIX: "^VIX", DXY: "DX-Y.NYB", GOLD: "GC=F", USOIL: "CL=F", SPX: "^GSPC" }; /* 2026-10-21: market yields -> market sources, not FRED's next-day copy */
       return tv[bare] || "";
     }
     if (/^(BINANCE|COINBASE|BITSTAMP|KRAKEN|BYBIT|CRYPTO):/.test(u)) {
@@ -518,7 +518,7 @@
     var fut = { ES: "ES=F", NQ: "NQ=F", YM: "YM=F", RTY: "RTY=F", CL: "CL=F", GC: "GC=F", SI: "SI=F", NG: "NG=F", ZN: "ZN=F", ZB: "ZB=F", ZF: "ZF=F", ZT: "ZT=F", HG: "HG=F", "6E": "6E=F", "6J": "6J=F", "6B": "6B=F", "6A": "6A=F" };
     var fm = /^([A-Z0-9]{1,3})1!$/.exec(bare);
     if (fm && fut[fm[1]] && /^(CME|CME_MINI|CBOT|NYMEX|COMEX):/.test(u)) return fut[fm[1]];
-    var alias = { VIX: "^VIX", DXY: "DX-Y.NYB", GOLD: "GC=F", USOIL: "CL=F", WTI: "CL=F", SPX: "^GSPC", NDX: "^NDX", RUT: "^RUT", US10Y: "FRED:DGS10", US02Y: "FRED:DGS2", US30Y: "FRED:DGS30", BTCUSD: "BTC-USD", ETHUSD: "ETH-USD", BTC: "BTC-USD", ETH: "ETH-USD" };
+    var alias = { VIX: "^VIX", DXY: "DX-Y.NYB", GOLD: "GC=F", USOIL: "CL=F", WTI: "CL=F", SPX: "^GSPC", NDX: "^NDX", RUT: "^RUT", US10Y: "^TNX", US02Y: "ustpar:2Y", US30Y: "^TYX", BTCUSD: "BTC-USD", ETHUSD: "ETH-USD", BTC: "BTC-USD", ETH: "ETH-USD" };
     if (!venue && alias[u]) return alias[u];
     if (!venue && /^[A-Z][A-Z0-9.-]{0,11}$/.test(u)) return u;
     return "";

@@ -348,10 +348,14 @@
     }
     var s=orig.toUpperCase(), venue="", ticker=s;
     var ALIAS={
-      "US10Y":"FRED:DGS10","TVC:US10Y":"FRED:DGS10","DGS10":"FRED:DGS10","US10":"FRED:DGS10",
-      "US02Y":"FRED:DGS2","TVC:US02Y":"FRED:DGS2","DGS2":"FRED:DGS2","US2Y":"FRED:DGS2",
-      "US05Y":"FRED:DGS5","DGS5":"FRED:DGS5","US5Y":"FRED:DGS5",
-      "US30Y":"FRED:DGS30","TVC:US30Y":"FRED:DGS30","DGS30":"FRED:DGS30",
+      /* 2026-10-21 (Khalid: "why is us10y 2 days old"): the market yield symbols route to a market source - CBOE's yield indices
+         through Yahoo (^TNX 10y, ^FVX 5y, ^TYX 30y; live, OHLC) or Treasury's own par curve where no index exists (2y, 20y) -
+         not to FRED, whose H.15 copy prints the next business day. FRED:DGS* stays FRED when asked for by name. */
+      "US10Y":"^TNX","TVC:US10Y":"^TNX","DGS10":"FRED:DGS10","US10":"^TNX",
+      "US02Y":"ustpar:2Y","TVC:US02Y":"ustpar:2Y","DGS2":"FRED:DGS2","US2Y":"ustpar:2Y",
+      "US05Y":"^FVX","TVC:US05Y":"^FVX","DGS5":"FRED:DGS5","US5Y":"^FVX",
+      "US30Y":"^TYX","TVC:US30Y":"^TYX","DGS30":"FRED:DGS30",
+      "US20Y":"ustpar:20Y","TVC:US20Y":"ustpar:20Y",
       "T10Y2Y":"FRED:T10Y2Y","US10Y2Y":"FRED:T10Y2Y",
       "VIX":"^VIX","TVC:VIX":"^VIX","CBOE:VIX":"^VIX",
       "DXY":"DX-Y.NYB","TVC:DXY":"DX-Y.NYB",
@@ -360,6 +364,7 @@
       "SPX":"^GSPC","SP500":"^GSPC","NDX":"^NDX","RUT":"^RUT"
     };
     if(ALIAS[s]) s=ALIAS[s];
+    if(/^ustpar:/i.test(s)) return {raw:s, venue:"ustpar", ticker:s, yahoo:s.split(":").pop(), engine:"series"}; /* Treasury par tenors are warehouse scalars (2026-10-21) */
     if(s.indexOf(":")>=0){ venue=s.split(":")[0]; ticker=s.split(":").pop(); }
     else ticker=s;
     if(ALIAS[ticker] && ALIAS[ticker]!==s && (!venue || venue==="TVC")){
@@ -379,7 +384,7 @@
     if(venue==="CBOE" && ticker==="VIX") ticker="^VIX";
     if(venue==="TVC" && (ticker==="DXY"||ticker==="DXYUSD")) ticker="DX-Y.NYB";
     if(venue==="TVC" && ticker==="SPX") ticker="^GSPC";
-    if(venue==="TVC" && ticker==="US10Y") { venue="FRED"; ticker="DGS10"; s="FRED:DGS10"; }
+    if(venue==="TVC" && ticker==="US10Y") { venue=""; ticker="^TNX"; s="^TNX"; }
     if(ticker==="BTCUSD") ticker="BTCUSDT";
     if(ticker==="ETHUSD") ticker="ETHUSDT";
     if(venue==="FRED"){

@@ -1,0 +1,10 @@
+[
+ {
+  "before": "      var tv = { US10Y: \"FRED:DGS10\", US02Y: \"FRED:DGS2\", US05Y: \"FRED:DGS5\", US30Y: \"FRED:DGS30\", VIX: \"^VIX\", DXY: \"DX-Y.NYB\", GOLD: \"GC=F\", USOIL: \"CL=F\", SPX: \"^GSPC\" };",
+  "after": "      var tv = { US10Y: \"^TNX\", US02Y: \"ustpar:2Y\", US05Y: \"^FVX\", US20Y: \"ustpar:20Y\", US30Y: \"^TYX\", VIX: \"^VIX\", DXY: \"DX-Y.NYB\", GOLD: \"GC=F\", USOIL: \"CL=F\", SPX: \"^GSPC\" }; /* 2026-10-21: market yields -> market sources, not FRED's next-day copy */"
+ },
+ {
+  "before": "US10Y: \"FRED:DGS10\", US02Y: \"FRED:DGS2\", US30Y: \"FRED:DGS30\", BTCUSD: \"BTC-USD\"",
+  "after": "US10Y: \"^TNX\", US02Y: \"ustpar:2Y\", US30Y: \"^TYX\", BTCUSD: \"BTC-USD\""
+ }
+]

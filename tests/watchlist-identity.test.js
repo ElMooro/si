@@ -31,7 +31,10 @@ test('retained/loading/unavailable frame qualification is explicit',()=>{const c
 test('pending candidate map cannot replay a stale click',()=>{const c=harness();c.symMapReady=0;c.loadSymMap=()=>{throw Error('No queued click');};c.openSym('TVC:GOLD');c.openSym('FRED:DGS10');assert.deepEqual(c.loads,['GC=F','FRED:DGS10']);});
 test('missing native handler leaves input and chart unchanged',()=>{const c=harness();c.q.onkeydown=null;c.openSym('AAPL');assert.deepEqual(c.loads,[]);assert.equal(c.q.value,'');assert.equal(c.chartSelection.handoff,null);});
 
-test('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previous,id));});
+// 2026-10-21: chartSymbol's market-yield routes moved to market sources (US10Y -> ^TNX, US02Y -> ustpar:2Y, US05Y -> ^FVX, US20Y -> ustpar:20Y, US30Y -> ^TYX; FRED's H.15 copy prints the next business day),
+// ledgered in tests/fixtures/chart-macro-line/tvwatch-us10y-route.edits.json. The helpers stay byte identical once that one ledgered edit is re-applied to the predecessor.
+const yieldRoutes=JSON.parse(read('tests/fixtures/chart-macro-line/tvwatch-us10y-route.edits.json'));let previousRouted=previous;for(const e of yieldRoutes){assert.equal(previousRouted.split(e.before).length,2,'yield route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}
+test('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});
 
 test("native market supplemental histories are explicit, including successful primary lookups",()=>{const c=harness(),r=c.chartRoute("BINANCE:BTCUSDT");r.frame=r.handoff;const text=c.chartRouteText(r,{symbol:r.frame,source:"invented+yahoo"},[{}]);assert.match(text,/fallback\/supplemental lookup: BTC-USD/);assert.match(text,/supplementary Yahoo data, including after a successful primary lookup/);assert.match(text,/BTC\/USDT/);assert.match(text,/BTC\/USD/);});
 

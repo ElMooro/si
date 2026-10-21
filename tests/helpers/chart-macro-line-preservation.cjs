@@ -195,7 +195,55 @@ function peelUs10yHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-10-21 (b): peel the yield-symbol routing (US10Y -> ^TNX, US02Y -> ustpar:2Y, US05Y -> ^FVX, US30Y -> ^TYX) in the engine and the watchlist, and the chart.html cache-bust.
+function peelUs10yRouteEngine(raw,file){
+ const AFTER='1ba274bde055ce27c49db0bef12b30cec64539d675126c9caa2a5b0589b2ff15';
+ const BEFORE='032822eebe43777ccd2539654b18271a31f382e0cbc215cc8813101998fcecc4';
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/engine-us10y-route.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'jh-chart-engine.js us10y route: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelUs10yRouteWatch(raw,file){
+ const AFTER='d7dd68f586c33aca02605eec9ed8bd4ef8ecdc067fcb699005e854e67609a55a';
+ const BEFORE='36b2ff12f5dd54835fe3593e8e6eba4a42453293e3ea4177e86c05053ecd7f1f';
+ if(file!=='jh-chart-tvwatch.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/tvwatch-us10y-route.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'jh-chart-tvwatch.js us10y route: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvwatch.js');
+ return raw;
+}
+function peelUs10yRouteHtml(raw,file){
+ const AFTER='14859a21c9f35de0881f18be9a8c7a856fec364b12d2e97eef48936e0571db6d';
+ const BEFORE='2acc793b989d8cc26247abd58fc97341ca92df6e9ba0e171aec2cd089f0620ee';
+ const FROM='&cds=20261015&us10y=20261021b"';
+ const TO='&cds=20261015&us10y=20261021"';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'chart.html us10y route cache');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function peelUs10yRouteIdentityTest(raw,file){
+ const AFTER='e3e2ee96066b0f6cb89e5f35b309a967cf6897d32ec5420c9d0c51331bf5b86a';
+ const BEFORE='dce7c0e2efb8a808f034cc5c5bd928f67e7eb2a4c11f1ebee752847ce0fbc6c5';
+ if(file!=='tests/watchlist-identity.test.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/identity-test-us10y-route.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'watchlist-identity test us10y route');raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'tests/watchlist-identity.test.js');
+ return raw;
+}
+function peelUs10yRouteObsTest(raw,file){
+ const AFTER='6907c99d3352c781623d8683dcfdcc0609fced425a22d83d352d1b1afe262367';
+ const BEFORE='6c82a92f11ff9408cfbdc81e941635a29e66a3e5d79c6795fb135458e1fe56ce';
+ if(file!=='tests/warehouse-observations.test.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/warehouse-observations-test-us10y-route.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'warehouse-observations test us10y route');raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'tests/warehouse-observations.test.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
