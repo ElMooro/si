@@ -6,7 +6,25 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0. Confirm the AWS alert email (1 click) - re-sent 2026-10-20; no longer the only channel
+### 0h. Pipeline order - dry run clean, say "go" to apply (docs/ops/PIPELINE_ORDER.md)
+
+Readers fire after their writers. ops 6584 (2026-10-21 02:39 UTC) walked the live account against
+`config/pipeline-order-plan.json`: **82 retimes ready, nothing drifted, nothing missing**, the late tick creatable.
+What changes when you say go (ops 6585): 82 triggers move LATER by 31 min on average (max 67), each inside its own
+session window (6 cross a window end by at most 30 min); three daily-morn engines that read other daily-morn
+engines - `justhodl-morning-brief-tg`, `justhodl-nobrainer-rationale`, `justhodl-sector-earnings-diffusion` - run
+from a late tick at 11:15 UTC; 22 same-minute races -> 0; 116 "reads yesterday's file" edges -> 32; mean input age
+10.95 h -> 9.96 h. Nothing moves earlier, nothing is disabled or deleted; every trigger's previous definition is
+backed up to `s3://justhodl-ops-private-857687956942/backups/pipeline-order/<stamp>/`. 23 triggers are listed as
+left alone (they would need more than an hour or a window change) - a second pass can take them later.
+
+### 0. Confirm the AWS alert email (1 click) - fleet-alerts CONFIRMED 2026-10-21; the governor topic still needs one
+
+ops 6582 (2026-10-21 02:10 UTC) found the `justhodl-fleet-alerts` e-mail subscription **confirmed**. It then
+subscribed the same address to the governor's own topic `justhodl-spend-governor` (the runaway alarms' notices):
+a second **"AWS Notification - Subscription Confirmation"** e-mail is waiting for your click (link lives 3 days; if
+it has expired, tell Claude and it is re-sent). The address is never written anywhere by Claude - the runner copies
+it from your AWS Budget's e-mail subscriber.
 
 The October 16 confirmation link was never clicked and expired, so **no e-mail alerts reached you during the
 $2,800 month**. On 2026-10-20 (ops 6558) a fresh e-mail titled **"AWS Notification - Subscription Confirmation"**
@@ -59,8 +77,11 @@ governor's issues, fixes what the gates allow, and files "Daily health run <date
 Three pieces live and proven: (1) a sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every
 write to the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone
 but the **root user** - if you ever need to remove something from it, that is a console action as root, by design;
-backfill of the existing 1.28 M objects: re-created on 2026-10-22 from a current-versions-only manifest (the
-S3-generated one would have copied the loop's old versions too; that job was cancelled before it moved anything);
+backfill of the existing 1.28 M objects: **running since 2026-10-21 02:21 UTC** - ops 6583 listed the live bucket
+itself (1,282,031 current objects, 18,765 of them pre-versioning "null" versions) and started S3 Batch Replication
+job `523b902a` from that manifest, current versions only (the S3-generated manifest would have copied the loop's
+old versions too; that job was cancelled before it moved anything); ops 6576 reads its progress, the Oct 22
+scheduled task re-checks;
 (2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule); (3) the governor's
 storage fuse (v1.5.0). The daily S3 Inventory lands in the private bucket within 48 h; it is the check that the
 573k storm copies of the audit key and the `data/` storm copies have been expired by the new rule - if S3 is slow

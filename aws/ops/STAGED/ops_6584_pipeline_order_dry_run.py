@@ -1,9 +1,9 @@
 """ops 6584 - pipeline order, DRY RUN (reads only; computes every change, writes nothing).
 
 Khalid, 2026-10-20: "the pipeline-order retime (dry run first, this week)".  Readers fire after their writers:
-plan config/pipeline-order-plan.json (scripts/pipeline_order.py), 81 retimes of at most an hour inside each
-trigger's own session window, three daily-morn members moved to a late tick a quarter hour later, 20 same-minute
-races removed, 85 of 116 "reads yesterday's file" edges fixed.  See scripts/pipeline_rollout.py for the order of
+plan config/pipeline-order-plan.json (scripts/pipeline_order.py), 82 retimes of about an hour at most inside each
+trigger's own session window, three daily-morn members moved to a late tick a quarter hour later, 22 same-minute
+races removed, 84 of 116 "reads yesterday's file" edges fixed.  See scripts/pipeline_rollout.py for the order of
 operations; nothing is disabled, deleted or moved earlier.
 """
 from pathlib import Path

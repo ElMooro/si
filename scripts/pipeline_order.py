@@ -20,7 +20,8 @@ This planner moves readers LATER - never earlier - with these rules:
     plan creates
   * edges inside a strongly connected component (A reads B, B reads A) are feedback with a one-day lag by design and
     are not ordering constraints
-  * margin(writer) = 2 x its mean duration + 3 min, clamped 5..--margin-cap min, from the ops 6546 account data
+  * margin(writer) = 2 x its mean duration (never more than its timeout; the timeout when no run is on record) + 3 min,
+    clamped 5..--margin-cap min, from the ops 6546 account data
   * no trigger moves more than --max-move minutes (60); a move that would need more is left alone and listed
   * a moved reader is somebody's writer: the loop runs to a fixed point, and a writer whose own readers could not
     follow (pinned, capped) is kept in place rather than made to feed them yesterday's file - no edge gets worse
@@ -81,27 +82,34 @@ def fn_of(arn):
 
 
 def runtimes(repo):
-    """{fn: mean duration ms} from the ops 6546 account snapshot (Duration / Invocations over its window)."""
+    """{fn: (mean duration s or None, timeout s or None)} from the ops 6546 account snapshot (Duration / Invocations
+    over its window; the configured timeout is the hard bound of one run)."""
     path = repo / "aws/ops/reports/latest/ops_6546_cost_audit_data.md"
     if not path.exists():
         return {}
     t = path.read_text(encoding="utf-8")
     b = "".join(re.findall(r"^[A-Za-z0-9+/=]+$", t, re.M))
-    daily = json.loads(gzip.decompress(base64.b64decode(b))).get("lambda_daily") or {}
+    d = json.loads(gzip.decompress(base64.b64decode(b)))
+    daily, cfg = d.get("lambda_daily") or {}, d.get("lambda") or {}
     out = {}
+    for fn, c in cfg.items():
+        out[fn] = (None, c.get("timeout"))
     for key, days in daily.items():
         fn, metric = key.rsplit("|", 1)
         if metric != "Duration":
             continue
         inv = sum((daily.get(fn + "|Invocations") or {}).values())
         if inv:
-            out[fn] = sum(days.values()) / inv
+            out[fn] = (sum(days.values()) / inv / 1000.0, out.get(fn, (None, None))[1])
     return out
 
 
 def margin_for(fn, rt, cap_min):
-    ms = rt.get(fn, 60000.0)
-    return int(min(cap_min, max(5, round((2 * ms / 1000.0 + 180) / 60.0))))
+    """Minutes a reader waits after its writer's start: twice the writer's mean run (never more than its timeout; the
+    timeout itself when no run is on record) plus 3 min, clamped 5..cap_min."""
+    mean_s, timeout_s = rt.get(fn, (None, None))
+    run_s = min(2 * mean_s, timeout_s or 2 * mean_s) if mean_s is not None else (timeout_s or 60.0)
+    return int(min(cap_min, max(5, round((run_s + 180) / 60.0))))
 
 
 def bucket(g, mg, stale_min):
@@ -367,7 +375,7 @@ def build(repo, margin_cap=30, stale_min=60, grace_min=30, max_move=60):
                "moves_by_window": dict(Counter(a["window"] for a in actions)),
                "before": before, "after": after,
                "rules": {"stale_min": stale_min, "grace_min": grace_min, "max_move_min": max_move, "margin_cap_min": margin_cap, "slot_max": SLOT_MAX, "late_step_min": LATE_STEP_MIN},
-               "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations (%d functions known)" % len(rt)}
+               "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations + lambda timeout (%d functions known)" % len(rt)}
     plan = {"version": "pipeline-order.v1", "rule": "readers fire after their writers: no reader inside a writer's margin, none within %d min before it" % stale_min,
             "summary": summary, "actions": actions, "late_ticks": late_ticks, "tick_moves": tick_moves, "left_alone": capped,
             "kept_in_place": {triggers[i]["name"]: freeze_why[i] for i in sorted(frozen)}, "unresolved_regressions": unresolved,
