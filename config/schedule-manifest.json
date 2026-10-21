@@ -1360,7 +1360,7 @@
    ]
   },
   {
-   "expr": "cron(21 22 * * ? *)",
+   "expr": "cron(50 22 * * ? *)",
    "kind": "events",
    "name": "industry-rotation-daily",
    "state": "ENABLED",
@@ -2186,7 +2186,7 @@
    ]
   },
   {
-   "expr": "cron(5 16 * * ? *)",
+   "expr": "cron(1 17 * * ? *)",
    "kind": "events",
    "name": "justhodl-attention-confluence-daily",
    "state": "ENABLED",
@@ -2326,7 +2326,7 @@
    ]
   },
   {
-   "expr": "cron(53 22 * * ? *)",
+   "expr": "cron(35 23 * * ? *)",
    "kind": "events",
    "name": "justhodl-best-setups-hourly",
    "state": "ENABLED",
@@ -2760,7 +2760,7 @@
    ]
   },
   {
-   "expr": "cron(50 12 * * ? *)",
+   "expr": "cron(35 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-confluence-meta-daily",
    "state": "ENABLED",
@@ -4006,7 +4006,7 @@
    ]
   },
   {
-   "expr": "cron(20 14 * * ? *)",
+   "expr": "cron(36 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-flow-confluence-daily",
    "state": "ENABLED",
@@ -4062,7 +4062,7 @@
    ]
   },
   {
-   "expr": "cron(5 22 ? * MON-FRI *)",
+   "expr": "cron(5 23 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-forced-selling-bounce-sched",
    "state": "ENABLED",
@@ -4971,7 +4971,7 @@
    ]
   },
   {
-   "expr": "cron(21 14 * * ? *)",
+   "expr": "cron(35 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-nowcast-desk-daily",
    "state": "ENABLED",
@@ -5601,7 +5601,7 @@
    ]
   },
   {
-   "expr": "cron(25 13 * * ? *)",
+   "expr": "cron(19 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-prepump-alerts-router-30min",
    "state": "ENABLED",
@@ -6556,7 +6556,7 @@
    ]
   },
   {
-   "expr": "cron(58 22 ? * MON-FRI *)",
+   "expr": "cron(40 23 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-stock-xray-daily",
    "state": "ENABLED",
@@ -9397,6 +9397,21 @@
    ]
   },
   {
+   "expr": "cron(0/5 9-16 ? * MON-FRI *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "jhk-tick-session-5min",
+   "state": "ENABLED",
+   "timezone": "America/New_York",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-scheduler",
+     "input": "{\"tick\": \"session-5min\"}",
+     "path": null
+    }
+   ]
+  },
+  {
    "expr": "cron(30 8 ? * MON *)",
    "group": "default",
    "kind": "scheduler",
@@ -9637,7 +9652,7 @@
    ]
   },
   {
-   "expr": "cron(6 13 ? * MON-FRI *)",
+   "expr": "cron(51 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-desk-buyback",
@@ -9892,7 +9907,7 @@
    ]
   },
   {
-   "expr": "cron(35 13 ? * MON-FRI *)",
+   "expr": "cron(56 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-bond-warroom-after-auction",
@@ -10342,7 +10357,7 @@
    ]
   },
   {
-   "expr": "cron(6 22 * * ? *)",
+   "expr": "cron(50 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-corr-break-trades-2h",
@@ -11437,7 +11452,7 @@
    ]
   },
   {
-   "expr": "cron(35 11 * * ? *)",
+   "expr": "cron(5 12 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-industry-boom-daily",
@@ -11632,7 +11647,7 @@
    ]
   },
   {
-   "expr": "cron(10 22 * * ? *)",
+   "expr": "cron(5 23 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-katlin-permission-refresh",
@@ -13027,7 +13042,7 @@
    ]
   },
   {
-   "expr": "cron(41 13 ? * SAT *)",
+   "expr": "cron(36 14 ? * SAT *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-spx-beaters-weekly",
@@ -13327,7 +13342,7 @@
    ]
   },
   {
-   "expr": "cron(5 21 * * ? *)",
+   "expr": "cron(5 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-titles",

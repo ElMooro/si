@@ -30,13 +30,26 @@ def minute_of(expr):
 
 def main():
     cw, logs = boto3.client("cloudwatch", region_name=REGION, config=CFG), boto3.client("logs", region_name=REGION, config=CFG)
-    plan = json.loads((ROOT / "config/pipeline-order-plan.json").read_text(encoding="utf-8"))
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import pipeline_order as po
+    plans = [json.loads(p.read_text(encoding="utf-8")) for p in po.plan_paths(ROOT)]
+    plans = [p for p in plans if p.get("applied")]
+    latest = {}                                                   # the last applied plan's action wins per trigger
+    for p in plans:
+        for a in p["actions"]:
+            latest[(a["kind"], a["name"])] = a
+    plan = {"actions": list(latest.values()), "late_ticks": {}, "tick_moves": {}, "intraday_lane": None}
+    for p in plans:
+        plan["late_ticks"].update(p["late_ticks"])
+        plan["tick_moves"].update(p["tick_moves"])
+        if p.get("intraday_lane"):
+            plan["intraday_lane"] = p["intraday_lane"]
     now = datetime.now(timezone.utc)
     day0 = now.replace(hour=0, minute=0, second=0, microsecond=0)
     with report("ops_6586_pipeline_order_first_light") as r:
         r.heading("ops 6586 - pipeline order, first light: did the retimed triggers fire at their new minutes?")
         # one get_metric_data per batch of functions: Invocations + Errors, 60 s period, today
-        fns = sorted({fn for a in plan["actions"] for fn in a["functions"]} | {fn for fn in plan["tick_moves"]})
+        fns = sorted({fn for a in plan["actions"] for fn in a["functions"]} | {fn for fn in plan["tick_moves"]} | set((plan.get("intraday_lane") or {}).get("members", [])))
         series = {}
         queries = []
         for i, fn in enumerate(fns):
@@ -106,13 +119,33 @@ def main():
             ok = all(v > 0 for v in members.values()) and any("ok=%d" % len(lt["members"]) in ln for ln in lines)
             lt_ok[name] = ok
             r.log("late tick %s: members invoked after %s: %s; scheduler log: %s" % (name, lt["expr"], json.dumps(members), lines[:3]))
-        r.kv(due=due, fired_new=fired_new, fired_old=fired_old, errors=len(errors), late_ticks_ok=sum(1 for v in lt_ok.values() if v), late_ticks_checked=len(lt_ok))
-        if due and fired_new >= 0.9 * due and not fired_old and all(lt_ok.values()):
+        # the intraday lane: members invoked at least every 10 minutes through the session so far (New York time)
+        lane_ok, lane_note = None, ""
+        lane = plan.get("intraday_lane")
+        if lane:
+            from zoneinfo import ZoneInfo
+            ny = now.astimezone(ZoneInfo("America/New_York"))
+            if ny.weekday() < 5 and ny.hour >= 10:
+                start = ny.replace(hour=9, minute=0, second=0, microsecond=0)
+                end = min(ny, ny.replace(hour=17, minute=0, second=0, microsecond=0))
+                m0 = start.astimezone(timezone.utc); m1 = end.astimezone(timezone.utc)
+                sm0, sm1 = m0.hour * 60 + m0.minute, m1.hour * 60 + m1.minute
+                expected = max(1, int((m1 - m0).total_seconds() // 300))
+                got = {fn: count(fn, "Invocations", sm0, sm1) for fn in lane["members"]}
+                errs = {fn: count(fn, "Errors", sm0, sm1) for fn in lane["members"]}
+                lane_ok = all(v >= 0.8 * expected for v in got.values()) and all(v <= 0.1 * expected for v in errs.values())
+                lane_note = "expected ~%d runs each since 09:00 NY; invocations %s; errors %s" % (expected, json.dumps(got), json.dumps({k: v for k, v in errs.items() if v}))
+                r.log("intraday lane: %s -> %s" % (lane_note, "ok" if lane_ok else "NOT AS PLANNED"))
+            else:
+                r.log("intraday lane: not in a session window yet (%s NY)" % ny.strftime("%a %H:%M"))
+        r.kv(due=due, fired_new=fired_new, fired_old=fired_old, errors=len(errors), late_ticks_ok=sum(1 for v in lt_ok.values() if v), late_ticks_checked=len(lt_ok),
+             lane=("ok" if lane_ok else "not as planned") if lane_ok is not None else "n/a")
+        if due and fired_new >= 0.9 * due and not fired_old and all(lt_ok.values()) and lane_ok is not False:
             r.ok("first light: %d/%d retimed triggers fired at their new minutes, none at the old, late tick(s) fired" % (fired_new, due))
         elif not due and not lt_ok:
             r.ok("nothing due yet today - rerun after the new minutes have passed")
         else:
-            r.fail("timetable not confirmed: %d/%d fired at the new minute, %d at the old, late ticks %s" % (fired_new, due, fired_old, lt_ok))
+            r.fail("timetable not confirmed: %d/%d fired at the new minute, %d at the old, late ticks %s, lane %s" % (fired_new, due, fired_old, lt_ok, lane_note or "n/a"))
             raise SystemExit(1)
 
 

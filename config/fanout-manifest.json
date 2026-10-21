@@ -87,6 +87,20 @@
    "justhodl-morning-brief-tg",
    "justhodl-nobrainer-rationale",
    "justhodl-sector-earnings-diffusion"
+  ],
+  "session-5min": [
+   "justhodl-edge-engine",
+   "justhodl-implied-prob",
+   "justhodl-intraday-pulse",
+   "justhodl-market-map",
+   "justhodl-opex-calendar",
+   "justhodl-options-analytics",
+   "justhodl-options-gamma",
+   "justhodl-polygon-futures-curves",
+   "justhodl-polygon-fx-regime",
+   "justhodl-risk-regime",
+   "justhodl-tail-risk",
+   "justhodl-trade-ticket-monitor"
   ]
  },
  "disabled": [],
@@ -630,6 +644,90 @@
    "ticks": [
     "daily-morn"
    ]
+  },
+  "justhodl-edge-engine": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-implied-prob": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-intraday-pulse": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-market-map": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-opex-calendar": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-options-analytics": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-options-gamma": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-polygon-futures-curves": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-polygon-fx-regime": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-risk-regime": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-tail-risk": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
+  },
+  "justhodl-trade-ticket-monitor": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
   }
  },
  "doctrine": "This is the fan-out router's manifest. config/schedule-manifest.json is the declarative rules/schedules snapshot and must never be written here.",
@@ -706,5 +804,29 @@
    "justhodl-nobrainer-rationale": "daily-morn-late",
    "justhodl-sector-earnings-diffusion": "daily-morn-late"
   }
+ },
+ "intraday_lane_2026_10_21": {
+  "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier.",
+  "schedule": {
+   "expr": "cron(0/5 9-16 ? * MON-FRI *)",
+   "group": "default",
+   "kind": "sched",
+   "name": "jhk-tick-session-5min",
+   "timezone": "America/New_York"
+  },
+  "members": [
+   "justhodl-edge-engine",
+   "justhodl-implied-prob",
+   "justhodl-intraday-pulse",
+   "justhodl-market-map",
+   "justhodl-opex-calendar",
+   "justhodl-options-analytics",
+   "justhodl-options-gamma",
+   "justhodl-polygon-futures-curves",
+   "justhodl-polygon-fx-regime",
+   "justhodl-risk-regime",
+   "justhodl-tail-risk",
+   "justhodl-trade-ticket-monitor"
+  ]
  }
 }
