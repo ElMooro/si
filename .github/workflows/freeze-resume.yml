@@ -53,7 +53,9 @@ jobs:
         run: |
           set -uo pipefail
           # the 11 scheduled jobs that touch AWS, switched off 2026-10-19
-          FROZEN="capital-structure-source-refresh.yml factory-code-exam.yml factory-exam.yml factory-market-exam.yml factory-official-prints.yml factory-reasoning-exam.yml market-bank-refresh.yml market-bank-seed.yml section-registry.yml statement-source-refresh.yml watchlist-insights.yml"
+          # 2026-10-20 (Khalid: "stop sagemaker for now"): the five factory-* workflows are NOT resumed on Nov 1 - the factory
+          # stays off until Khalid turns it back on (ops 6578 sealed SageMaker; see docs/ops/RUNAWAY_GUARDRAILS.md).
+          FROZEN="capital-structure-source-refresh.yml market-bank-refresh.yml market-bank-seed.yml section-registry.yml statement-source-refresh.yml watchlist-insights.yml"
           if [ "$EVENT" = "schedule" ]; then
             MODE=resume
             if [ "$(date -u +%Y-%m)" != "2026-11" ]; then echo "Only for the 2026-11-01 resume; nothing to do."; exit 0; fi
