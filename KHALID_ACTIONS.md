@@ -6,6 +6,16 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) waits for the census
+
+The 12 light Polygon feeds refresh every 5 minutes 09:00-16:55 New York time, Monday-Friday (one Scheduler schedule,
+exempt from the once-a-day rule by name; the $50 cap and the anomaly sentinel unchanged; ~$1-2/month). First session
+is today; ops 6586 checks it at 23:35 UTC. Pass 3 (pullers after their provider's publication time, no more than 2
+FRED / ECB / SEC pulls on one minute, FMP bursts 19 -> 4) is computed (131 moves, docs/ops/PIPELINE_ORDER.md); the
+freshness census re-runs 2026-10-22 01:30 UTC once every engine has run after the thaw, then the dry run, then the
+apply - you will get the numbers first. Note: the stocks tape is 15-minute delayed on the current Massive/Polygon plan;
+real-time needs Stocks Advanced ($199/month) - your call, nothing changes until you say so.
+
 ### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 
 Readers fire after their writers. ops 6584 (dry run, 02:49 UTC) found 82 retimes ready and nothing drifted; Khalid

@@ -201,3 +201,195 @@ config.json crons, schedule + fan-out manifests, plan marked applied; deploy gat
 trigger due so far fired at its new minute and not at the old one, that the late tick invoked its three members after
 11:15 UTC (scheduler log `tick=daily-morn-late ok=3`), and that no retimed function errored in its new window.
 Scheduled for 12:05 and 23:35 UTC on 2026-10-21; results are appended here.
+
+## Pass 2 - the Polygon intraday lane (applied by ops 6589, 2026-10-21 04:22 UTC)
+
+Khalid, 2026-10-21 23:56 ET: "Polygon should keep refreshing my data so I get fresh data during market hours Monday
+through Friday." `config/intraday-lane.json`:
+
+* **One EventBridge Scheduler schedule** `jhk-tick-session-5min`, `cron(0/5 9-16 ? * MON-FRI *)` in
+  **America/New_York** (so it follows the clock change), target `justhodl-scheduler` with `{"tick": "session-5min"}`:
+  96 fan-outs a day, 09:00-16:55 ET, Monday-Friday.
+* **12 members** - the light Polygon feeds on live snapshot / quote endpoints (0.2-12 s runs): `justhodl-intraday-pulse`
+  (built for a 60-second cadence; its market-hours guard is 13:30-20:00 UTC, i.e. EDT - after the clock change it skips
+  the last session hour until the engine is taught New York time), `trade-ticket-monitor` (alerts once per level per
+  day), `options-gamma` (index dealer gamma), `options-analytics` (per-name live greeks), `opex-calendar` (0DTE
+  pinning; alerts only on state transitions), `market-map` (heat map), `risk-regime` (alerts only on a regime shift),
+  `tail-risk`, `implied-prob`, `polygon-fx-regime`, `edge-engine`, `polygon-futures-curves`. Each member keeps its
+  own daily trigger (the pre-market / post-close consolidation run). Not in the lane, with reasons in the config:
+  dealer-gex, market-internals, polygon-options-flow (heavy end-of-day research jobs), tape-reader, options-flow-scanner,
+  money-flow-state, crypto-etf-flows, portfolio-snapshot (end-of-day data), vol-regime (FRED).
+* **Guardrails**: exempt from the once-a-day floor by name in `config/cadence-floor.json` (deploy gate) and in the
+  governor's `control.json` `cadence_exempt` (the daily cadence sentinel; previous copy backed up); the $50/engine cap
+  and the anomaly sentinel (200 invocations or $1 per hourly window; the lane is 12 invocations and ~$0.005 per
+  window per engine) apply unchanged. Cost ~$1-2 of Lambda a month for the whole lane. Latency: the stocks tape is
+  15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier ($199/month).
+* The pass also carried 16 second-iteration order moves (readers that pass 1 could not bring all the way within an
+  hour of their original time; 14-60 min): `industry-rotation-daily` 22:21 -> 22:50, `justhodl-attention-confluence-daily` 16:05 -> 17:01, `justhodl-best-setups-hourly` 22:53 -> 23:35, `justhodl-confluence-meta-daily` 12:50 -> 13:35, `justhodl-flow-confluence-daily` 14:20 -> 14:36, `justhodl-forced-selling-bounce-sched` 22:05 -> 23:05, `justhodl-nowcast-desk-daily` 14:21 -> 14:35, `justhodl-prepump-alerts-router-30min` 13:25 -> 14:19, `justhodl-stock-xray-daily` 22:58 -> 23:40, `justhodl-auction-desk-buyback` 13:06 -> 13:51, `justhodl-bond-warroom-after-auction` 13:35 -> 13:56, `justhodl-corr-break-trades-2h` 22:06 -> 22:50, `justhodl-industry-boom-daily` 11:35 -> 12:05, `justhodl-katlin-permission-refresh` 22:10 -> 23:05, `justhodl-spx-beaters-weekly` 13:41 -> 14:36, `justhodl-symdir-titles` 21:05 -> 22:05.
+* Apply report `aws/ops/reports/latest/ops_6589_pipeline_order_pass2_apply.md`: 16 retimed, lane schedule created and
+  ENABLED, control.json exemption added and read back, both S3 manifests equal the repo, 18 planned triggers live as
+  planned, 0 cadence violators. Backups `s3://justhodl-ops-private-857687956942/backups/pipeline-order/20261021T042127Z/`.
+  First light: ops 6586 at 23:35 UTC checks every member was invoked ~96 times through the session with no errors.
+
+## Pass 3 - providers as pinned writers + no bursts (plan ready: config/pipeline-order-plan-3.json; dry run after the census)
+
+Khalid, 2026-10-21: "the biggest freshness win costs nothing ... treat each provider as a pinned writer at its
+publication time - dry run first, after a one-off census confirms the arithmetic" and "be careful not to pull all
+FRED and ECB data at once and other gov so that you don't get blocked by API rate limit."
+
+`config/provider-publication.json` holds the publication times (winter UTC, so they hold all year) and the per-provider
+slot caps. The FRED pullers are split by what they pull (`scripts/provider_map.py` reads every engine's source):
+**162 engines pull at least one daily H.15 series** (rates, yields, FX, commodities) - they are freshest in the US
+morning, where yesterday's close is in, so only the evening print (21:15 UTC) aligns them; **21 engines pull only
+macro releases** - they move after 08:30 ET (13:30 UTC + 30 min). Moving a mixed engine from 09:00 to 14:00 would have
+made its rates a day older every morning to make its releases fresher a few days a month, so it is not done.
+
+Computed from the state after pass 2 (rebuilt after the census; `--check` keeps it honest):
+
+| | before | after |
+|---|---|---|
+| pullers firing before the latest print inside their window | 49 | 2 (FINRA, left alone: listed) |
+| busiest minute, FMP / FRED / ECB / Polygon / SEC | 19 / 5 / 4 / 7 / 3 | 4 / 2 / 2 / 4 / 2 (= the caps) |
+| minutes over a provider's cap | 25 | 0 |
+| triggers moved | | 131 (42 to catch a print, 57 to spread a burst, 39 readers following) |
+| move size | | mean 31 min, max 303 (two macro-only FRED pullers from 09:00 to 14:03) |
+| daily-morn | 23 members at 11:00 | 17 at 11:00, 6 at 11:15 (daily-morn-late), 3 at 11:30 (daily-morn-late2, new); no late tick starts more than 4 FMP pullers |
+| left alone | | 12 triggers (would need a window change or more than the cap) |
+
+### Pass 3 moves
+
+| window | trigger | move (UTC) | min | why | after |
+|---|---|---|---|---|---|
+| overnight | `justhodl-cusip-map-rebuild-hourly` | 01:28 -> 03:30 | 122 | print | SEC EDGAR's print |
+| overnight | `justhodl-sec-13f-daily` | 01:52 -> 03:30 | 98 | print | SEC EDGAR's print |
+| post-close | `bond-trace-daily` (MON-FRI) | 21:00 -> 23:31 | 151 | print | FINRA's print, FRED's print |
+| post-close | `cds-proxy-tri-daily` (MON-FRI) | 21:00 -> 21:46 | 46 | print | FRED's print |
+| post-close | `commodity-curves-sched` (MON-FRI) | 21:00 -> 21:48 | 48 | print | FRED's print |
+| post-close | `vix-curve-sched` (MON-FRI) | 21:00 -> 22:01 | 61 | print | Cboe's print |
+| post-close | `justhodl-market-tape-5min` | 21:11 -> 21:51 | 40 | print | FRED's print |
+| post-close | `justhodl-put-call-extreme-daily` | 21:15 -> 21:52 | 37 | print | FRED's print |
+| post-close | `justhodl-eurodollar-stress-2h` | 21:16 -> 21:48 | 32 | print | FRED's print |
+| post-close | `justhodl-spx-ma-daily` (MON-FRI) | 21:16 -> 21:56 | 40 | order | market-tape |
+| post-close | `justhodl-fifx-vol-daily` (MON-FRI) | 21:20 -> 21:51 | 31 | print | FRED's print |
+| post-close | `justhodl-master-allocator-3h` | 21:21 -> 21:53 | 32 | order | eurodollar-stress |
+| post-close | `justhodl-regime-conditional-router-2h` | 21:26 -> 21:58 | 32 | order | eurodollar-stress, master-allocator |
+| post-close | `justhodl-breadth-thrust-sched` | 21:30 -> 21:47 | 17 | print | FRED's print |
+| post-close | `justhodl-vix9d-vix-inversion-daily` | 21:30 -> 21:31 | 1 | burst | FMP (burst) |
+| post-close | `fomc-reaction-daily` | 21:35 -> 21:46 | 11 | print | FRED's print |
+| post-close | `justhodl-repo-market-daily` | 21:35 -> 21:52 | 17 | print | FRED's print |
+| post-close | `justhodl-dark-pool-daily` (MON-FRI) | 21:40 -> 23:31 | 111 | print | FINRA's print |
+| post-close | `justhodl-risk-ratios-daily` | 21:40 -> 21:53 | 13 | print | FRED's print |
+| post-close | `justhodl-edge-6h` | 21:41 -> 21:47 | 6 | print | FRED's print |
+| post-close | `justhodl-credit-composite-daily` | 21:42 -> 21:49 | 7 | print | FRED's print |
+| post-close | `treasury-rehypo-daily` (MON-FRI) | 21:42 -> 23:32 | 110 | print | FRED's print, OFR's print |
+| post-close | `justhodl-sp500-daily` (MON-FRI) | 21:45 -> 22:04 | 19 | order | spx-ma |
+| post-close | `buzz-velocity-4x-daily` | 22:00 -> 22:01 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-backtest-harness-daily` | 22:00 -> 22:01 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-cot-tracker-weekly` (FRI) | 22:00 -> 22:02 | 2 | burst | FMP (burst) |
+| post-close | `liquidity-profile-fri` (FRI) | 22:00 -> 22:03 | 3 | burst | Polygon/Massive (burst) |
+| post-close | `justhodl-52wk-quality-breakout-daily` | 22:00 -> 22:02 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-breadth-divergence-daily` | 22:00 -> 22:02 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-earnings-iv-crush-daily` | 22:00 -> 22:02 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-gf-value-daily` | 22:00 -> 22:03 | 3 | burst | FMP (burst) |
+| post-close | `justhodl-lockup-expiration-daily` | 22:00 -> 22:03 | 3 | burst | FMP (burst) |
+| post-close | `justhodl-vvix-vov-regime-daily` | 22:00 -> 22:03 | 3 | burst | FMP (burst) |
+| post-close | `justhodl-symdir-titles` | 22:05 -> 23:32 | 87 | order+print | provider-catalog, OFR's print |
+| post-close | `risk-regime-sched` | 22:06 -> 22:08 | 2 | order | breadth-divergence, vvix-vov-regime |
+| post-close | `rotation-dashboard-sched` | 22:11 -> 22:13 | 2 | order | risk-regime |
+| post-close | `justhodl-symdir-ustbank` (MON-FRI) | 22:29 -> 23:33 | 64 | print | OFR's print |
+| post-close | `justhodl-event-study-cadence` (MON-FRI) | 22:30 -> 22:32 | 2 | burst | FRED (burst) |
+| post-close | `justhodl-cef-discount-daily` | 22:30 -> 22:31 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-failed-pattern-reversal-daily` | 22:30 -> 22:31 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-ipo-pipeline-daily` | 22:30 -> 22:31 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-skew-tail-hedging-daily` | 22:30 -> 22:31 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-vrp-daily` | 22:30 -> 22:32 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-symdir-fredfresh` | 22:44 -> 23:31 | 47 | print | OFR's print |
+| post-close | `justhodl-resilience-daily` (MON-FRI) | 22:45 -> 23:37 | 52 | order | dark-pool |
+| post-close | `industry-rotation-daily` | 22:50 -> 23:42 | 52 | order | dark-pool, resilience |
+| post-close | `justhodl-phase-detector-daily` | 22:50 -> 23:42 | 52 | order | dark-pool, resilience |
+| post-close | `justhodl-forced-selling-bounce-sched` (MON-FRI) | 23:05 -> 23:56 | 51 | order | predictability |
+| post-close | `justhodl-katlin-permission-refresh` | 23:05 -> 23:51 | 46 | order | dark-pool, industry-rotation, sympathetic-momentum, sympathetic-momentum |
+| post-close | `justhodl-pairs-arb-daily` | 23:30 -> 23:31 | 1 | burst | FMP (burst) |
+| post-close | `justhodl-rating-change-cluster-daily` | 23:30 -> 23:32 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-squeeze-pretrigger-daily` | 23:30 -> 23:32 | 2 | burst | FMP (burst) |
+| post-close | `justhodl-starmine-daily` | 23:30 -> 23:33 | 3 | burst | FMP (burst) |
+| post-close | `justhodl-sympathetic-momentum-daily` | 23:30 -> 23:33 | 3 | burst | FMP (burst) |
+| post-close | `justhodl-best-setups-hourly` | 23:35 -> 23:42 | 7 | order | resilience |
+| post-close | `justhodl-global-flow-desk-daily` (MON-FRI) | 23:35 -> 23:37 | 2 | order | dark-pool |
+| post-close | `justhodl-sector-capital-fusion-sched` (MON-FRI) | 23:35 -> 23:37 | 2 | order | dark-pool |
+| post-close | `justhodl-stock-xray-daily` (MON-FRI) | 23:40 -> 00:35 | 55 | order | equity-confluence, resilience |
+| post-close | `conviction-engine-3h` | 23:45 -> 23:47 | 2 | order | best-setups |
+| post-close | `alpha-compass-3h` | 23:50 -> 23:52 | 2 | order | conviction-engine |
+| pre-market | `justhodl-official-pulse-weekly` | 09:00 -> 14:03 | 303 | print | FRED macro's print |
+| pre-market | `justhodl-provider-window-sentinel-weekly` (SUN) | 09:00 -> 14:03 | 303 | print | FRED macro's print |
+| pre-market | `justhodl-bis-crossborder-weekly` (MON) | 09:40 -> 10:31 | 51 | print | BIS/IMF/WB/OECD's print |
+| pre-market | `justhodl-asia-leads-daily` | 10:20 -> 14:01 | 221 | print | FRED macro's print |
+| pre-market | `construction-housing-daily` | 11:00 -> 11:01 | 1 | burst | FMP (burst) |
+| pre-market | `ecb-detail-daily` | 11:00 -> 11:01 | 1 | burst | FMP (burst) |
+| pre-market | `forward-orders-daily` | 11:00 -> 11:01 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-edge-discovery-weekly` (SUN) | 11:00 -> 11:03 | 3 | burst | Polygon/Massive (burst) |
+| pre-market | `justhodl-opex-calendar-daily` | 11:00 -> 11:01 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-political-intel-daily` | 11:00 -> 11:02 | 2 | burst | FMP (burst) |
+| pre-market | `justhodl-research-backtest-daily` | 11:00 -> 11:02 | 2 | burst | FMP (burst) |
+| pre-market | `macro-calendar-daily` | 11:00 -> 11:02 | 2 | burst | FMP (burst) |
+| pre-market | `news-wire-15m` | 11:00 -> 11:02 | 2 | burst | FMP (burst) |
+| pre-market | `smart-money-13f-weekly` (MON) | 11:00 -> 11:03 | 3 | burst | SEC EDGAR (burst) |
+| pre-market | `justhodl-econ-calendar-daily` | 11:00 -> 11:03 | 3 | burst | FMP (burst) |
+| pre-market | `justhodl-warm-bridge-hourly` | 11:27 -> 14:06 | 159 | order+print | usgov-direct, BEA's print, BLS's print, NY Fed's print |
+| pre-market | `justhodl-blackout-daily` | 11:30 -> 11:31 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-earnings-tracker-6h` | 11:30 -> 11:31 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-crisis-canaries-daily` | 11:40 -> 13:32 | 112 | print | NY Fed's print |
+| pre-market | `justhodl-freight-pulse-daily` | 11:50 -> 14:02 | 132 | print | FRED macro's print |
+| pre-market | `symbol-resolver-daily` | 11:50 -> 14:06 | 136 | print | FRED macro's print |
+| pre-market | `eurodollar-plumbing-daily` | 12:00 -> 12:02 | 2 | burst | FRED (burst) |
+| pre-market | `justhodl-estimate-revisions-daily` | 12:00 -> 12:01 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-gbc-daily` | 12:00 -> 12:01 | 1 | burst | FMP (burst) |
+| pre-market | `yen-carry-daily` | 12:00 -> 12:02 | 2 | burst | FMP (burst) |
+| pre-market | `justhodl-sec-filing-diff-daily` | 12:00 -> 12:01 | 1 | burst | SEC EDGAR (burst) |
+| pre-market | `justhodl-industry-boom-daily` | 12:05 -> 12:06 | 1 | order | estimate-revisions |
+| pre-market | `macro-attribution-daily` | 12:05 -> 14:04 | 119 | print | FRED macro's print |
+| pre-market | `justhodl-liquidity-inflection-daily` | 12:06 -> 12:08 | 2 | order | eurodollar-plumbing |
+| pre-market | `sovereign-stress-daily` | 12:06 -> 12:08 | 2 | order | eurodollar-plumbing |
+| pre-market | `systemic-stress-daily` | 12:06 -> 12:08 | 2 | order | eurodollar-plumbing |
+| pre-market | `risk-gate-daily` | 12:06 -> 12:09 | 3 | burst+order | eurodollar-plumbing, FRED (burst) |
+| pre-market | `justhodl-kb-matcher-daily` | 12:11 -> 12:13 | 2 | order | liquidity-inflection |
+| pre-market | `indicator-bus-daily` | 12:15 -> 14:01 | 106 | print | FRED macro's print |
+| pre-market | `justhodl-boom-stage-daily` | 12:30 -> 14:07 | 97 | order+print | asia-leads, freight-pulse, FRED macro's print |
+| pre-market | `fed-collateral-daily` | 12:40 -> 13:31 | 51 | print | NY Fed's print |
+| pre-market | `justhodl-usgov-direct-daily` | 12:40 -> 14:01 | 81 | print | BEA's print, BLS's print |
+| pre-market | `justhodl-bottleneck-boom-daily` | 12:45 -> 13:31 | 46 | print | NY Fed's print |
+| pre-market | `justhodl-trade-nowcast-daily` | 12:50 -> 14:04 | 74 | print | FRED macro's print |
+| pre-market | `justhodl-index-inclusion-weekly` (MON) | 13:00 -> 13:01 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-vintage-fred-daily` | 13:00 -> 13:02 | 2 | burst | FRED (burst) |
+| pre-market | `leadlag-graph-daily` | 13:00 -> 13:01 | 1 | burst | FMP (burst) |
+| pre-market | `fundamentals-engine-sched` (MON-FRI) | 13:00 -> 13:01 | 1 | burst | FMP (burst) |
+| pre-market | `justhodl-peer-comparison-daily` | 13:00 -> 13:01 | 1 | burst | FMP (burst) |
+| pre-market | `fx-intelligence-sched` | 13:30 -> 13:31 | 1 | burst | FRED (burst) |
+| pre-market | `justhodl-confluence-meta-daily` | 13:35 -> 14:35 | 60, crosses | order | ai-brief-router, bottleneck-boom |
+| pre-market | `intraday-arm-daily` (MON-FRI) | 13:40 -> 14:06 | 26 | order | indicator-bus |
+| pre-market | `justhodl-import-canary-daily` | 13:40 -> 14:01 | 21 | print | Census's print |
+| pre-market | `justhodl-symdir-codelists` (MON-FRI) | 13:46 -> 14:11 | 25 | order+print | symbol-resolver, BLS's print |
+| pre-market | `justhodl-symdir-fredupdates` (MON-FRI) | 13:46 -> 14:12 | 26 | order+print | symbol-resolver, BLS's print |
+| pre-market | `justhodl-symdir-warm` (MON-FRI) | 13:46 -> 14:13 | 27 | order+print | symbol-resolver, BLS's print |
+| pre-market | `justhodl-auction-desk-buyback` (MON-FRI) | 13:51 -> 14:18 | 27 | order | symdir, symdir, symdir, symdir, symdir, symdir |
+| pre-market | `justhodl-bond-warroom-after-auction` (MON-FRI) | 13:56 -> 14:23 | 27 | order | auction-desk, auction-desk |
+| pre-market | `opportunity-engine-daily` | 14:00 -> 14:03 | 3 | burst | FMP (burst) |
+| pre-market | `sellside-views-mwf` (MON,WED,FRI) | 14:00 -> 14:04 | 4 | burst | FMP (burst) |
+| pre-market | `theme-second-wave-daily` | 14:00 -> 14:05 | 5 | burst | FMP (burst) |
+| pre-market | `earnings-nlp-sched` (MON-FRI) | 14:00 -> 14:05 | 5 | burst | FMP (burst) |
+| session | `justhodl-rv-iv-scanner-daily` | 14:30 -> 14:31 | 1 | burst | FRED (burst) |
+| session | `justhodl-smart-money-holdings-daily` | 14:30 -> 14:31 | 1 | burst | FMP (burst) |
+| session | `justhodl-ecb-derived-daily` | 14:40 -> 15:30 | 50 | print | ECB's print |
+| session | `justhodl-supply-chain-linkage-daily` | 15:00 -> 15:01 | 1 | burst | FMP (burst) |
+| session | `justhodl-theme-classifier-6h` | 15:00 -> 15:01 | 1 | burst | FMP (burst) |
+| session | `justhodl-report-research-hourly` | 15:02 -> 15:31 | 29 | print | ECB's print |
+| session | `justhodl-crisis-plumbing-refresh` | 15:13 -> 15:42 | 29 | order | daily-report-v3 |
+| session | `brief-compiler-plumbing-6h` | 15:20 -> 15:43 | 23 | order | daily-report-v3 |
+| session | `stress-scenarios-sched` | 15:25 -> 15:42 | 17 | order | daily-report-v3 |
+| session | `crisis-composite-hourly` | 15:36 -> 15:47 | 11 | order | crisis-plumbing, daily-report-v3 |
+| session | `capitulation-3h` | 15:45 -> 15:52 | 7 | order | crisis-composite, crisis-composite |
+| session | `justhodl-signal-backtest-daily` | 16:00 -> 16:01 | 1 | burst | FMP (burst) |
+| session | `divergence-v2-2hourly` | 17:00 -> 17:01 | 1 | burst | FRED (burst) |
+| session | `justhodl-master-ranker-weekday-close` (MON-FRI) | 17:05 -> 17:06 | 1 | order | divergence-engine-v2 |
+
+Late ticks after pass 3: daily-morn-late 11:15 = justhodl-khalid-metrics, justhodl-momentum-breakout, justhodl-morning-brief-tg, justhodl-nobrainer-rationale, justhodl-pre-pump-detector, justhodl-revenue-acceleration; daily-morn-late2 11:30 = justhodl-sector-earnings-diffusion, justhodl-theme-rotation-engine, justhodl-volatility-squeeze-hunter.

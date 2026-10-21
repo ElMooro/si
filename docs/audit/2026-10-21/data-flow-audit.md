@@ -286,3 +286,18 @@ keep an intraday lane from becoming October's loop.
   were not on the fetched page - the inventory's $29/$29 are from 2026-09-15.
 * Not measured from here: actual S3 file ages, version churn of identical rewrites, provider rate-limit incidents,
   the provider invoices. Each is a read-only ops script away.
+
+## 8. Decisions (Khalid, 2026-10-20 23:56 ET) and what followed
+
+* **Do suggestion 1** (release-aligned pull times), dry run first after a one-off census: census ops 6587 ran at
+  04:03 UTC but the fleet had been frozen until 00:30 UTC, so 645 of 671 files still dated from the freeze - it is
+  re-run on 2026-10-22 01:30 UTC after every window has fired once; the pass-3 plan (131 moves) is computed and
+  waits for it (docs/ops/PIPELINE_ORDER.md, pass 3).
+* **Polygon keeps refreshing during market hours Mon-Fri**: done the same night (ops 6589, pass 2): 12 light feeds
+  every 5 minutes 09:00-16:55 New York time through one Scheduler schedule, exempt by name, caps unchanged.
+* **Never pull all of FRED / ECB / government sources at once**: per-provider slot caps in
+  `config/provider-publication.json` (FRED 2 a minute, ECB / SEC / NY Fed / Treasury / OFR 2, statistics offices 1,
+  FMP / Polygon 4); pass 3 spreads 57 triggers and packs the daily-morn tick so no late tick starts more than 4 FMP
+  pullers; the busiest FMP minute goes from 19 pullers to 4.
+* Not approved, still open: cadence by source class (weekly for monthly sources), pull-once-read-many, write-only-if-
+  changed, retiring the Yahoo pulls, the LLM voices.
