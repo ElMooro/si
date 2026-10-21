@@ -29,6 +29,24 @@ that incident; together they cover loops the event bus never sees.
 * **Backstops:** the old `justhodl-guard-lambda-concurrency` alarm went to ALARM at 09:18 that morning and the
   hourly fuse would have held both functions by ~11:07 (~$40); the $30 daily budget e-mails within the day.
 
+## Layer 0 - what cannot start at all (sealed IAM denies, 2026-10-20, ops 6578/6579)
+
+Three managed policies that deny their own detachment, deletion and editing to every principal except the account
+root user (lifting one is a console action by Khalid as root: IAM -> Policies -> detach / delete):
+
+| Policy | Attached to | Denies |
+|---|---|---|
+| `justhodl-deny-rogue-compute` | the runner group `justhodl-runner-ecr` and all 14 Lambda execution roles | launching anything that bills by the hour or by the call outside what the platform uses: SageMaker create/start/update-endpoint/invoke, EC2 run/start/volumes/NAT/EIP/spot/purchases, RDS/Redshift/EMR/EKS/ECS/OpenSearch/ElastiCache/Kinesis/MSK/MQ/Glue creates, Athena queries, Bedrock calls, Lambda provisioned concurrency, CloudFront, DynamoDB table mode changes, Marketplace subscriptions, Savings Plans, IAM user / access-key creation |
+| `justhodl-deny-fleet-self-modify` | the 13 Lambda execution roles other than the governor's | an engine may not create or rewrite functions, event-source mappings, roles or policies, un-throttle itself, pass roles, assume roles, or touch bucket-level settings, budgets or topics (rules, schedules and permissions stay allowed: schedule-liveness and backend-agent repair them, the cadence floor contains them) |
+| `justhodl-deny-runner-escape` | the runner group | no role assumption, no leaving or re-shaping its own group, no trust-policy edits |
+
+Proven by IAM simulation (ops 6578/6579): the runner and the generic `lambda-execution-role` get explicitDeny on the
+sealed actions and stay allowed on everything the platform needs (deploys, S3, EventBridge, concurrency, SSM, Budgets).
+SageMaker itself is at zero (ops 6578): the three endpoints deleted (configurations saved under
+`backups/sagemaker/`), the factory's switches off (`factory/control/gearb.json` enabled=false, `inference.json`
+enabled=false, `ai/policy.json` daily_budget_usd=0), the seven factory GitHub workflows disabled and removed from the
+Nov 1 resume list. Turning the factory back on is Khalid's call and needs the root user to lift the first policy.
+
 ## Layer 1 - deploy gate
 
 `python3 scripts/event_graph.py` builds the trigger graph statically:

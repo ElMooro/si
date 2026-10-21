@@ -40,6 +40,20 @@ Claude "release the coordinator and the miss-calibrator" and it runs
 whatever was last written. Say "schedule tape-truth and industry-case daily" and Claude adds one daily schedule
 each (the $50 cap and the anomaly sentinel cover them like any engine); otherwise they stay as they are.
 
+### 0g. SageMaker stopped and the account sealed - DONE 2026-10-20 (root-only to undo)
+
+SageMaker is at zero (three endpoints deleted, configurations saved; factory switches off; the seven factory
+workflows disabled and kept out of the Nov 1 resume). Three sealed IAM deny policies now make it impossible for the
+runner or any engine to launch SageMaker, EC2, RDS, Bedrock, EMR and the other by-the-hour services, to mint
+credentials, or for an engine to rewrite functions (docs/ops/RUNAWAY_GUARDRAILS.md, Layer 0). **To bring the factory
+back one day**: sign in as the root user, IAM -> Policies -> `justhodl-deny-rogue-compute` -> detach from the
+group `justhodl-runner-ecr` and the role `lambda-execution-role`; then tell Claude to re-enable the factory switches
+and workflows. Nothing else in the system can lift it, by design.
+
+The fleet was thawed on 2026-10-21 00:30 UTC under the full guardrails (ops 6581: stage NORMAL, the five CAP holds
+kept, the stage machine asleep until the Nov 1 rollover). A daily Claude health run (06:13 CT) now triages the
+governor's issues, fixes what the gates allow, and files "Daily health run <date>" as a GitHub issue.
+
 ### 0f. Bucket: "keep my data, stop the balloon" - DONE 2026-10-20 (docs/ops/WAREHOUSE_ARCHIVE.md)
 
 Three pieces live and proven: (1) a sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every

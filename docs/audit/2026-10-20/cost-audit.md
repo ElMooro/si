@@ -179,3 +179,11 @@ switch per engine, the hourly runaway fuses and the anomaly sentinel. The two Oc
 unless released. The number is a projection from measured per-engine costs, not a bill; the first full once-a-day
 month is November, and the governor's `meter` records the actual Lambda spend per engine as it accrues.
 
+### Evening update (2026-10-21 00:45 UTC)
+
+SageMaker is off and sealed (ops 6578): the factory's $20/day sub-budget no longer competes with the $600 cap - the
+projection's $1.05/day SageMaker line and the $0.70/day owned endpoint are gone (-$1.75/day, about -$53/month), so the
+November projection is about **$6.50/day = $195 per 30-day month**, band $185-225. The fleet was thawed at 00:30 UTC
+under every brake (ops 6581); the remaining October days run at the once-a-day rate instead of frozen (~+$5/day),
+October still closes near $2,900.
+
