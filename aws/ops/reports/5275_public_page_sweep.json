@@ -1,16 +1,19 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "ed9804548bacbbf34fd4bcf79ac9c5fe951788fd",
-  "observed_at": "2026-10-21T16:36:28.179833+00:00",
-  "ok": true,
+  "observed_at": "2026-10-21T16:43:49.622258+00:00",
+  "ok": false,
   "routes_checked": 615,
-  "verified_routes": 615,
-  "failed_routes": [],
+  "verified_routes": 613,
+  "failed_routes": [
+    "alpha-scoreboard.html",
+    "harvest-monitor.html"
+  ],
   "source_equivalent_builds": {
     "ed9804548bacbbf34fd4bcf79ac9c5fe951788fd": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 614,
+  "embedded_inspection_routes": 612,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -258,13 +261,12 @@
     },
     {
       "route": "alpha-scoreboard.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ed9804548bacbbf34fd4bcf79ac9c5fe951788fd",
-      "inspector_present": true,
-      "bytes_read": 72343,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "alpha/index.html",
@@ -2988,13 +2990,12 @@
     },
     {
       "route": "harvest-monitor.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "ed9804548bacbbf34fd4bcf79ac9c5fe951788fd",
-      "inspector_present": true,
-      "bytes_read": 6967,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": 503,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "HTTPError",
+      "product_source_matches_release": false
     },
     {
       "route": "health.html",
@@ -6168,7 +6169,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39635090880,
+  "deployment_run_id": 39635115130,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-21T16:36:28.186187+00:00"
+  "check_finished_at": "2026-10-21T16:43:49.630795+00:00"
 }
