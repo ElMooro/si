@@ -5,17 +5,25 @@
  *   left edge   → drawing tools
  *   right edge  → watchlist + panel rail
  *   bottom edge → bottom panels + status bar
- * Pin (📌 button on the top sheet, or Shift+H) turns auto-hide off and restores the classic layout. Preference is kept
- * in localStorage "jh-autohide" ("1" default on, "0" pinned). Elements are moved, never re-created, so every engine
- * handler and id stays intact; turning auto-hide off puts each element back exactly where it was. */
+ * Pin (📌 button on the top sheet, or Shift+H) turns auto-hide off and restores the classic layout for THIS tab only
+ * (sessionStorage "jh-autohide-session"); every fresh load starts full-page again. (Until 2026-10-21 the pin lived in
+ * localStorage, so one accidental Shift+H kept the bars on for ever - Khalid: "they are supposed to disappear".)
+ * Hiding is position-based: a sheet closes HIDE_MS after the pointer is clearly away from it, whether or not the
+ * browser ever fired mouseenter/mouseleave for it (a sheet that appears under a resting pointer never gets those).
+ * Elements are moved, never re-created, so every engine handler and id stays intact; turning auto-hide off puts
+ * each element back exactly where it was. */
 (function (root) {
   "use strict";
   if (root.JHAutoHide) return;
-  var doc = root.document, KEY = "jh-autohide", EDGE = 6, HIDE_MS = 380;
+  var doc = root.document, KEY = "jh-autohide", SKEY = "jh-autohide-session", EDGE = 6, HIDE_MS = 380, NEAR = 24;
   var TOP_IDS = ["tabbar", "tfbar", "favs", "chgbar", "quote", "etfhud", "volhud"];
   var on = false, built = false, homes = [], sheets = {}, timers = {}, hover = {};
-  function pref() { try { return localStorage.getItem(KEY) !== "0"; } catch (e) { return true; } }
-  function savePref(v) { try { localStorage.setItem(KEY, v ? "1" : "0"); } catch (e) {} }
+  function pref() {
+    try { if (sessionStorage.getItem(SKEY) === "0") return false; } catch (e) {}
+    try { localStorage.removeItem(KEY); } catch (e) {}   // the old persistent pin is retired (2026-10-21)
+    return true;
+  }
+  function savePref(v) { try { sessionStorage.setItem(SKEY, v ? "1" : "0"); } catch (e) {} }
   function desktop() { try { return !root.matchMedia("(pointer:coarse)").matches && root.innerWidth >= 760; } catch (e) { return true; } } // touch screens keep the classic layout
   function css() {
     if (doc.getElementById("jh-ah-css")) return;
@@ -101,13 +109,28 @@
     });
     built = true; return true;
   }
+  function atEdge(k, x, y, W, H) {
+    return (k === "top" && y <= EDGE) || (k === "left" && x <= EDGE) || (k === "right" && x >= W - EDGE) || (k === "bot" && y >= H - EDGE);
+  }
+  function near(s, x, y) {
+    var r = s.getBoundingClientRect();
+    return x >= r.left - NEAR && x <= r.right + NEAR && y >= r.top - NEAR && y <= r.bottom + NEAR;
+  }
   function onMove(e) {
     if (!on) return;
     var x = e.clientX, y = e.clientY, W = root.innerWidth, H = root.innerHeight;
-    if (y <= EDGE) show("top", true);
-    if (x <= EDGE) show("left", true);
-    if (x >= W - EDGE) show("right", true);
-    if (y >= H - EDGE) show("bot", true);
+    Object.keys(sheets).forEach(function (k) {
+      var s = sheets[k];
+      if (atEdge(k, x, y, W, H)) { hover[k] = true; show(k, true); return; }
+      if (!s.classList.contains("show")) return;
+      // open sheet: the pointer decides (mouseenter/mouseleave are not dispatched for a sheet that slid in under it)
+      hover[k] = near(s, x, y);
+      if (hover[k]) clearTimeout(timers[k]); else show(k, false);
+    });
+  }
+  function onLeaveWindow() {
+    if (!on) return;
+    Object.keys(sheets).forEach(function (k) { hover[k] = false; show(k, false); });
   }
   function set(v) {
     v = !!v && desktop();
@@ -140,6 +163,8 @@
   function init() {
     if (!el("app") || !el("tfbar")) { setTimeout(init, 200); return; }
     doc.addEventListener("mousemove", onMove, { passive: true });
+    doc.addEventListener("mouseleave", onLeaveWindow);
+    root.addEventListener("blur", onLeaveWindow);
     doc.addEventListener("keydown", function (e) {
       if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "H" || e.key === "h")) {
         var t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t && t.isContentEditable) return;

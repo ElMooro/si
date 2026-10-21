@@ -6,7 +6,7 @@
   "memory": 1024,
   "timeout": 600,
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "TV chart-bar puller (Khalid: 'TradingView has all ICE data since inception'). Server-side WebSocket client authenticating with the SSM session already used by tv-notes-crawler \u2014 no browser, no extensi | v1.1 universe pull/refresh (ops 5124)",
+  "description": "TradingView chart-bar bank (server-side WebSocket, SSM session): universe pull/refresh (v1.1 ops 5124) + v1.2 mode=polygon-append (2026-10-21): Polygon grouped-daily appends the US sessions TradingView refuses, 09:30 ET stamps, append-only.",
   "eventbridge_rules": [
     "justhodl-tv-bars-hourly"
   ],

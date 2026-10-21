@@ -3,6 +3,7 @@
 // 2026-10-13: peel the Correlation Matrix heatmap hook in jh-chart-tvrail.js before the census hash.
 // 2026-10-14: peel the Auction tab (engine button, rail meta, chart.html cache) before that census.
 // 2026-10-14: peel the heatmap cache-bust so the auction census still sees the prior bytes.
+// 2026-10-21: peel the auto-hide cache-bust (session pin, position-based hiding) before the CDS census.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-macro-line/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const EVR_TAG='<script src="/jh-chart-evr.js?v=20261012evr"></script>\n';
@@ -148,7 +149,32 @@ function peelCdsRail(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-10-21: peel the auto-hide cache-bust (jh-chart-autohide.js v=20261021-ah2: session-scoped pin, position-based hiding) before the CDS census.
+function peelAutohideHtml(raw,file){
+ const AFTER='8267de4a5c4158ca0b2803fc854f20f83c5f0615bedce8bb04f27787106e5543';
+ const BEFORE='43e361e7de3e46fd7c557a7e1b6cf3063a85c3a6c86af812de15adb40c89e5e9';
+ const FROM='<script src="/jh-chart-autohide.js?v=20261021-ah2"></script>';
+ const TO='<script src="/jh-chart-autohide.js?v=20261005-ah1"></script>';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'chart.html auto-hide cache');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+// 2026-10-21: peel justhodl-tv-bars v1.2 (mode=polygon-append: Polygon grouped-daily appends the US sessions TradingView refuses) before the market-repair census.
+function peelPolygonAppend(raw,file){
+ const AFTER='ff6912c56bffc9c232277c9b29e9fff0e746868c07f059c7bd7a694389b5fbb6';
+ const BEFORE='c5f612fb59f9fe7a60b22f1f211ebfdd685cfd4e597612104996f83f1103311c';
+ const HANDLER='    if event.get("mode") == "polygon-append":\n        return polygon_append(event, context)\n';
+ if(file!=='aws/lambdas/justhodl-tv-bars/source/lambda_function.py'||hash(raw)!==AFTER)return raw;
+ const BLOCK=fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/tv-bars-polygon-append.block.txt'),'utf8');
+ assert.equal(raw.split(BLOCK).length,2,'tv-bars polygon-append block');
+ assert.equal(raw.split(HANDLER).length,2,'tv-bars polygon-append handler');
+ raw=raw.replace(BLOCK,'').replace(HANDLER,'');
+ assert.equal(hash(raw),BEFORE,'aws/lambdas/justhodl-tv-bars/source/lambda_function.py');
+ return raw;
+}
+function normalize(raw,file){raw=peelAutohideHtml(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

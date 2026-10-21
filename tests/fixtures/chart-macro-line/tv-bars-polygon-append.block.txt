@@ -1,0 +1,208 @@
+# ---------------------------------------------------------------------------------------------------------------------
+# v1.2 (2026-10-21, Khalid: "do Polygon US append"): mode=polygon-append.  TradingView has refused the websocket
+# handshake since ~2026-10-12 and this engine's rule is "no fallback on a refusal", so the bank's US names stopped at
+# the last session TradingView served (288 of 309 at 2026-10-19).  Polygon (licensed, the fleet's paid tape) appends
+# the sessions the bank is missing: ONE grouped-daily call per missing session date (every US stock/ETF in one
+# response), split-adjusted, bars stamped at the session open 09:30 America/New_York exactly like the TradingView
+# and Yahoo rows already banked, written through merged_document (per-bar producer label "polygon-aggs:daily-adjusted",
+# append-only: dates the bank already holds are never touched).  Only completed sessions are banked (today's only
+# after 16:15 ET).  Paced to stay inside the Basic plan's 5 calls/minute.
+# ---------------------------------------------------------------------------------------------------------------------
+POLY_SRC = "polygon-aggs:daily-adjusted"
+POLY_US_NS = {"US", "NASDAQ", "NYSE", "AMEX", "NYSEARCA", "BATS", "CBOE"}
+POLY_TICKER_RE = re.compile(r"^[A-Z][A-Z0-9]{0,5}([.\-][A-Z]{1,2})?$")
+POLY_MAX_DATES = int(os.environ.get("POLY_MAX_DATES", "15"))
+POLY_CALL_GAP_S = float(os.environ.get("POLY_CALL_GAP_S", "13"))   # <= 4.6 calls/min (Polygon Basic allows 5)
+
+
+def _ny_offset_seconds(d):
+    """UTC offset of America/New_York on date d (zoneinfo when the runtime has tzdata, else the US DST rule)."""
+    try:
+        from zoneinfo import ZoneInfo
+        from datetime import datetime as _dt
+        return int(_dt(d.year, d.month, d.day, 12, tzinfo=ZoneInfo("America/New_York")).utcoffset().total_seconds())
+    except Exception:
+        from datetime import date as _date, timedelta as _td
+        mar = _date(d.year, 3, 1)
+        dst_start = mar + _td(days=(6 - mar.weekday()) % 7 + 7)      # second Sunday of March
+        nov = _date(d.year, 11, 1)
+        dst_end = nov + _td(days=(6 - nov.weekday()) % 7)            # first Sunday of November
+        return -4 * 3600 if dst_start <= d < dst_end else -5 * 3600
+
+
+def session_open_ts(d):
+    """Bank convention: a daily bar is stamped at the regular-session open, 09:30 America/New_York (TradingView/Yahoo rows)."""
+    from datetime import datetime as _dt
+    return int(_dt(d.year, d.month, d.day, 9, 30, tzinfo=timezone.utc).timestamp()) - _ny_offset_seconds(d)
+
+
+def ny_now():
+    from datetime import timedelta as _td
+    now = datetime.now(timezone.utc)
+    return now + _td(seconds=_ny_offset_seconds(now.date()))
+
+
+def last_completed_session(now_ny=None):
+    """Most recent weekday whose regular session has closed (16:00 ET + 15 min settle). Holidays are detected by an empty
+    grouped-daily answer, not by a calendar."""
+    from datetime import timedelta as _td
+    n = now_ny or ny_now()
+    d = n.date()
+    if n.hour * 60 + n.minute < 16 * 60 + 15:
+        d = d - _td(days=1)
+    while d.weekday() >= 5:
+        d = d - _td(days=1)
+    return d
+
+
+def polygon_grouped(day, key):
+    """Every US stock/ETF daily bar for one date: {ticker: [ts, o, h, l, c, v]} (split-adjusted). [] on a holiday."""
+    import urllib.request
+    url = "https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/%s?adjusted=true&apiKey=%s" % (day.isoformat(), key)
+    req = urllib.request.Request(url, headers={"User-Agent": "justhodl-tv-bars/1.2"})
+    try:
+        with urllib.request.urlopen(req, timeout=40) as r:
+            doc = json.loads(r.read(64 * 1024 * 1024).decode("utf-8", "ignore"))
+    except Exception as e:
+        stop_on_denial(e, "Polygon")
+        raise
+    if doc.get("status") not in ("OK", "DELAYED"):
+        raise RuntimeError("polygon grouped %s: status %s" % (day, doc.get("status")))
+    ts = session_open_ts(day)
+    out = {}
+    for row in doc.get("results") or []:
+        t = row.get("T")
+        if not isinstance(t, str):
+            continue
+        cand = [ts, row.get("o"), row.get("h"), row.get("l"), row.get("c"), row.get("v")]
+        if valid_bar(cand):
+            out[t.upper()] = cand
+    return out
+
+
+def poly_ticker(sym):
+    """'US:BRK.B' / 'NYSE:BRK.B' -> 'BRK.B'; None for anything that is not a plain US listing (futures, funds, FX...)."""
+    if ":" not in str(sym):
+        return None
+    ns, tk = str(sym).split(":", 1)
+    tk = tk.strip().upper()
+    if ns.upper() not in POLY_US_NS or not POLY_TICKER_RE.match(tk):
+        return None
+    return tk
+
+
+def polygon_append(event, context):
+    """mode=polygon-append: append the sessions missing from each banked US name from Polygon grouped daily aggregates."""
+    from datetime import date as _date, timedelta as _td
+    from managed_secret import managed_secret
+    key = managed_secret(("POLYGON_KEY", "POLYGON_API_KEY", "POLY_KEY"), ("/justhodl/polygon/api-key",))
+    if not key:
+        raise RuntimeError("no Polygon key (env POLYGON_KEY or SSM /justhodl/polygon/api-key)")
+    idx = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    syms = idx.get("symbols") or {}
+    last_ok = last_completed_session()
+    if event.get("through"):
+        last_ok = min(last_ok, _date.fromisoformat(event["through"]))
+    # which names need which dates; a name whose bank ends before the window (POLY_MAX_DATES sessions) is left for a
+    # wider pull or TradingView rather than given a hole, and never drives daily full-window fetches
+    window_start = last_ok
+    n_sessions = 1
+    while n_sessions < POLY_MAX_DATES:
+        window_start = window_start - _td(days=1)
+        if window_start.weekday() < 5:
+            n_sessions += 1
+    todo, too_old = {}, 0
+    for sym, meta in syms.items():
+        tk = poly_ticker(sym)
+        if not tk or not isinstance(meta, dict) or not meta.get("key"):
+            continue
+        last = (meta.get("last") or "")[:10]
+        try:
+            last_d = _date.fromisoformat(last) if last else None
+        except ValueError:
+            last_d = None
+        if last_d is not None and last_d >= last_ok:
+            continue
+        if last_d is None or last_d < window_start - _td(days=3):
+            too_old += 1
+            continue
+        todo[sym] = (tk, last_d)
+    if event.get("symbols"):
+        todo = {k: v for k, v in todo.items() if k in set(event["symbols"])}
+    if not todo:
+        return {"ok": True, "mode": "polygon-append", "through": last_ok.isoformat(), "symbols": 0, "dates": [], "gap_older_than_window": too_old, "note": "every US name inside the window is current"}
+    oldest = min(v[1] for v in todo.values())
+    dates = []
+    d = last_ok
+    while d > oldest and len(dates) < POLY_MAX_DATES:
+        if d.weekday() < 5:
+            dates.append(d)
+        d = d - _td(days=1)
+    dates.sort()
+    grouped, calls, holidays = {}, 0, []
+    t_last = 0.0
+    for day in dates:
+        if context and context.get_remaining_time_in_millis() < 120000:
+            break
+        wait = t_last + POLY_CALL_GAP_S - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        t_last = time.monotonic()
+        rows = polygon_grouped(day, key)
+        calls += 1
+        if rows:
+            grouped[day] = rows
+        else:
+            holidays.append(day.isoformat())
+    done = fail = skipped = 0
+    appended_rows = 0
+    per_sym = {}
+    first_fetched = min(dates) if dates else None
+    for sym, (tk, last_d) in sorted(todo.items()):
+        if context and context.get_remaining_time_in_millis() < 25000:
+            break
+        # never leave a hole: the fetched window must reach the first session after the bank's last bar
+        nxt = last_d + _td(days=1)
+        while nxt.weekday() >= 5:
+            nxt = nxt + _td(days=1)
+        if first_fetched is None or nxt < first_fetched:
+            too_old += 1
+            continue
+        rows = [grouped[day][tk] for day in sorted(grouped) if day > last_d and tk in grouped[day]]
+        if not rows:
+            skipped += 1
+            continue
+        try:
+            key_s3 = syms[sym]["key"]
+            old = read_bank(s3, BUCKET, key_s3)
+            if not old:
+                skipped += 1
+                continue
+            have = {r[0] for r in old.get("bars", [])}
+            rows = [r for r in rows if r[0] not in have]
+            if not rows:
+                skipped += 1
+                continue
+            doc = merged_document(old, rows, old.get("symbol") or sym, old.get("tv_symbol") or sym, POLY_SRC)
+            s3.put_object(Bucket=BUCKET, Key=key_s3, Body=gzip.compress(json.dumps(doc).encode()),
+                          ContentType="application/gzip", CacheControl="public, max-age=900")
+            syms[sym] = {"key": key_s3, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "as_of": doc["as_of"]}
+            per_sym[sym] = {"appended": len(rows), "last": doc["last_date"]}
+            appended_rows += len(rows)
+            done += 1
+        except Exception as e:
+            idx.setdefault("failures", {})[sym] = {"err": ("polygon-append: " + str(e))[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+            fail += 1
+    cur = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    cur.setdefault("symbols", {}).update({k: syms[k] for k in per_sym})
+    cur.setdefault("failures", {}).update({k: v for k, v in (idx.get("failures") or {}).items() if str(v.get("err", "")).startswith("polygon-append")})
+    cur["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    cur["n_symbols"] = len(cur["symbols"])
+    cur["polygon_append"] = {"at": cur["updated_at"], "through": last_ok.isoformat(), "dates": [x.isoformat() for x in sorted(grouped)], "holidays_or_unavailable": holidays,
+                            "calls": calls, "symbols_needing": len(todo), "appended_symbols": done, "appended_rows": appended_rows, "failed": fail, "skipped": skipped,
+                            "gap_older_than_window": too_old}
+    s3.put_object(Bucket=BUCKET, Key=UNIV_IDX_KEY, Body=json.dumps(cur, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    return {"ok": True, "mode": "polygon-append", **cur["polygon_append"], "sample": dict(list(per_sym.items())[:5])}
+
+
