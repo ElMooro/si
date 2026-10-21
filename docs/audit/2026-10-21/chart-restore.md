@@ -17,7 +17,7 @@ data-proxy worker -> `justhodl-symdir` Function URL (`/warehouse-ohlc`) -> `data
 | 1 | chart blank: quote HUD empty, watchlist "Unavailable", "No matching valid dated chart frame"; 1,790 x 502 on `/ohlc` + `/yf-ohlc`, 429 on `/series` | ops 6558 (2026-10-20) capped the 102 heavy public URL functions at reserved concurrency 2; symdir (6 GB) is one; a page fans out dozens of bar requests | symdir 2 -> 30 (ops 6598; runbook layer-3 rule); re-probe: `AAPL 342.94 -0.52 (-0.15%)`, 11,549 bars, 0 x 502 |
 | 2 | 33 of 82 bound outputs STALE (freeze Oct 16-21), 10 writers not run since the thaw | post-close engines fire after 21:00 UTC | one on-demand run each: cryptoquant, dix, gf-value, etf-global-desk, squeeze-pretrigger refreshed 14:26-14:30 UTC; dark-pool refused a same-day re-attempt (tonight's run stands); options-confluence / brief-compiler fire this afternoon |
 | 3 | `data/fmp-ratios.json` DEAD (one-off ops 5576 harvest 2026-09-15, 40 names) - Valuation / Financials desks and `fmp_book.try_harvest` (238 engines) served it as current | no writer | new engine `justhodl-fmp-ratios` (daily 22:38 UTC): core 40 + TV-banked US names + S&P 500, ~12 req/s throttle, last-good merge, fail-closed on a bad key; first run 506 names / 0 errors / 2.0 MB; `fmp_book.row('AAPL')` as_of 2026-10-21 |
-| 4 | bar bank frozen at 2026-10-19 (288 of 309 names) | TradingView websocket handshake refused (HTTP 400) since ~Oct 12; `justhodl-tv-bars` refuses to fall back on a refusal | Khalid's decision (KHALID_ACTIONS 0k): re-auth TV / Yahoo fallback / Polygon US append |
+| 4 | bar bank frozen at 2026-10-19 (288 of 309 names) | TradingView websocket handshake refused (HTTP 400) since ~Oct 12; `justhodl-tv-bars` refuses to fall back on a refusal | Khalid chose the Polygon US append: tv-bars v1.2 `mode=polygon-append`, schedule 22:52 UTC Mon-Fri (ops 6600); first run 288 names -> Oct 20, worker serves it |
 | 5 | `justhodl-estimate-revisions` 16 errors / 16 runs | Benzinga calendar via Polygon answers unauthorized since Oct 10 | subscription question (Khalid) |
 | 6 | `justhodl-share-flows` 7/7 errors, output from Sep 26 | upstream GitHub job `capital-structure-source-refresh.yml` fails at "plan" daily since Oct 8 | other lane's producer; reported |
 | 7 | `justhodl-earnings-pead` 3 errors, output Oct 15 | "No selected universe; preserve previous publication" | reported |
@@ -35,3 +35,14 @@ inside the plan.
   the chart gets busier, set `engine_caps["justhodl-symdir"]` in control.json (Khalid's call).
 * The anomaly sentinel: a heavy chart session can push symdir past 200 invocations in an hour; its baseline is in
   the hundreds per hour on busy days, so a single session should not strike.
+
+## Follow-up the same day (Khalid 11:52 ET)
+* **Polygon US append** (tv-bars v1.2, ops 6600): one grouped-daily call per missing session; 09:30 ET stamps; append-only,
+  no holes (a name whose bank ends before the 15-session window is left alone and counted); fail-closed on a Polygon
+  denial; paced <= 4.6 calls/min. First run 16:40-16:44 UTC: 11 calls, 288 names appended, 0 failed; AAPL bank
+  n 11,725 last 2026-10-20 (labels ... polygon-aggs:daily-adjusted); `/ohlc` AAPL last bar 2026-10-20 close 339.50.
+* **Auto-hide** (jh-chart-autohide.js v=20261021-ah2, ops 6601): persistent pin retired (session-scoped), position-based
+  hiding, hide on window leave. Live probe: fresh and old-pin profiles both hidden on load; top/right/left/bottom edges
+  reveal and hide; "reveal then jump away" hides. Preservation ledger: `peelAutohideHtml`, `peelPolygonAppend` in
+  tests/helpers/chart-macro-line-preservation.cjs (+ fixture tv-bars-polygon-append.block.txt); 4,876 JS tests and
+  1,161 deployment tests green.

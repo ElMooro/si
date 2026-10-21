@@ -6,7 +6,7 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0k. chart.html - BACK 2026-10-21 14:39 UTC (docs/audit/2026-10-21/chart-restore.md); one decision left to you
+### 0k. chart.html - BACK 2026-10-21 14:39 UTC; bar bank on Polygon 16:44 UTC; auto-hide fixed 16:47 UTC (docs/audit/2026-10-21/chart-restore.md)
 
 * **What was wrong**: every desk opened but the chart was blank - every bar request goes data-proxy worker ->
   `justhodl-symdir` Function URL, and the 2026-10-20 flood caps (ops 6558) put symdir at reserved concurrency 2; a
@@ -21,14 +21,21 @@ This file tracks items that require **your direct action** (registration, creden
   2026-09-15 one-off harvest, so the Valuation / Financials desks AND `fmp_book` (the FMP cache 238 engines read
   first) served five-week-old ratios. First run 15:08-15:15 UTC: 506 names (core 40 + S&P 500 + the names you opened
   on the chart), 0 errors, AAPL P/E 39.2 as of today.
-* **DECIDE - the bar bank is frozen at 2026-10-19**: `justhodl-tv-bars` refreshes the warehouse from TradingView's
-  chart socket; TradingView has refused the websocket handshake (HTTP 400) since ~Oct 12, and the engine's rule is
-  "no fallback attempted" on a refusal (provider identity doctrine), so 288 of 309 banked names stopped at Monday's
-  bar - the chart shows Oct 19 on Oct 21. Options: (a) you re-capture the TradingView session with the extension
-  (SSM `/justhodl/tradingview/sessionid` is from 2026-07-07) - cheapest, lasts until TV changes again; (b) let the
-  nightly refresh fall back to Yahoo on a refusal (labelled `yahoo-chart`, append-only; ~10 lines in tv-bars);
-  (c) append US daily bars from Polygon (paid, licensed) and keep TradingView for non-US - the professional fix,
-  a new refresh mode. I will not change the engine without your word.
+* **Bar bank - DONE 2026-10-21 16:44 UTC (your call: Polygon US append)**: `justhodl-tv-bars` v1.2 `mode=polygon-append`
+  - one Polygon grouped-daily call per missing session (every US stock/ETF in one answer, split-adjusted), bars stamped
+  09:30 ET exactly like the TradingView rows, append-only, never a hole, per-bar label `polygon-aggs:daily-adjusted`.
+  Schedule `justhodl-tv-bars-polygon-append` 22:52 UTC Mon-Fri (declared; ops 6600). First run: 288 names advanced
+  from Oct 19 to Oct 20 (11 calls, 0 failures); the worker's `/ohlc` for AAPL now ends 2026-10-20 close 339.50.
+  Tonight's run adds Oct 21. The TradingView path is untouched (it takes over again whenever TV answers); 2 names
+  with gaps older than 15 sessions and the 14 non-US-namespace names at Oct 2-4 wait for TradingView.
+* **Top and side bars - FIXED 2026-10-21 16:47 UTC** (`jh-chart-autohide.js` v=20261021-ah2): the 📌 / Shift+H pin was
+  stored for ever, so once pressed the bars stayed on at every load; and a bar that slid in under a resting pointer
+  never got a mouse-leave, so it stuck open. The pin now lasts one tab session and hiding is position-based. Proved
+  on the live page (ops 6601): hidden on load, each edge reveals its bar, hidden again ~0.4 s after the pointer
+  leaves - in a fresh profile and in one carrying the old pin.
+* **Next, on your word**: a live bar on chart.html during the session - the worker already serves Polygon's forming
+  session (`/ohlc?...&tail=1`), the chart engine just never asks for it; ~15 lines in jh-chart-engine.js. Caveat: on
+  the Polygon Basic plan (end-of-day only) the tail stays empty until the close.
 * **Also found, yours to decide** (details in the audit doc): `justhodl-estimate-revisions` fails every run since
   Oct 10 - its Benzinga earnings calendar (`api.polygon.io/benzinga/v1/earnings`) answers unauthorized (not in the
   Polygon plan?); `justhodl-share-flows` fails since Sep 26 because the GitHub job
