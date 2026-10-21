@@ -65,16 +65,21 @@ def main():
     W, H = 1600, 1000
     with report("ops_6601_chart_autohide_probe") as r:
         r.heading("ops 6601 - chart.html auto-hide probe (headless Chrome on the runner, read-only)")
-        req = urllib.request.Request("%s/jh-chart-autohide.js?v=20261021-ah2&nocache=%d" % (BASE, int(time.time())), headers={"User-Agent": "justhodl-ops/6601", "Cache-Control": "no-cache"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            js = resp.read().decode("utf-8", errors="replace")
-        served_new = "jh-autohide-session" in js and "function near(" in js
+        # Pages stamps every asset reference with a content hash (scripts/stamp_assets.py), so read the src the served
+        # page actually carries and fetch exactly that
+        import re as _re
         req2 = urllib.request.Request("%s/chart.html?nocache=%d" % (BASE, int(time.time())), headers={"User-Agent": "justhodl-ops/6601", "Cache-Control": "no-cache"})
         with urllib.request.urlopen(req2, timeout=30) as resp:
             html = resp.read().decode("utf-8", errors="replace")
-        page_new = "jh-chart-autohide.js?v=20261021-ah2" in html
-        r.log("served jh-chart-autohide.js carries the fix: %s; served chart.html references v=20261021-ah2: %s" % (served_new, page_new))
-        if not (served_new and page_new):
+        m = _re.search(r'src="(/jh-chart-autohide\.js(?:\?v=[A-Za-z0-9._-]+)?)"', html)
+        build = _re.search(r'meta-jh-build-commit"?\s*content="([0-9a-f]+)"', html) or _re.search(r'build-commit[^0-9a-f]*([0-9a-f]{12,40})', html)
+        src = m.group(1) if m else None
+        req = urllib.request.Request("%s%s" % (BASE, src or "/jh-chart-autohide.js"), headers={"User-Agent": "justhodl-ops/6601", "Cache-Control": "no-cache"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            js = resp.read().decode("utf-8", errors="replace")
+        served_new = "jh-autohide-session" in js and "function near(" in js
+        r.log("served chart.html (build %s) references %s; that file carries the fix: %s" % ((build.group(1)[:8] if build else "?"), src, served_new))
+        if not (src and served_new):
             r.fail("the served site does not carry the auto-hide fix yet (Pages deploy pending?)")
             raise SystemExit(1)
         sync_playwright = ensure_playwright(r.log)
