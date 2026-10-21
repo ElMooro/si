@@ -202,6 +202,27 @@ trigger due so far fired at its new minute and not at the old one, that the late
 11:15 UTC (scheduler log `tick=daily-morn-late ok=3`), and that no retimed function errored in its new window.
 Scheduled for 12:05 and 23:35 UTC on 2026-10-21; results are appended here.
 
+### First light - results (2026-10-21)
+
+* **12:05 UTC (morning pass)**: 7 of 7 retimed triggers due by then fired at their new minute; late tick
+  `daily-morn-late` `ok=3 err=0`, its three members ran after 11:15 UTC.
+* **23:35 UTC (evening pass, ops 6586 run 39694431317)**: 75 retimed triggers due; **72 fired at their new minute**;
+  3 did not - and those three are the only enabled schedules whose `ScheduleExpressionTimezone` is America/New_York
+  (`justhodl-auction-desk-buyback`, `justhodl-bond-warroom-after-auction`, `justhodl-master-ranker-weekday-close`).
+  The planner had read their crons as UTC: 12:10 New York (16:10 UTC) was taken for 12:10 UTC and "moved" after a
+  13:46 UTC writer it already followed. Each fired once today at the moved New York time (17:51 / 17:56 / 21:05 UTC) -
+  after its writers, so no data ran early - and **ops 6603 restored the three original expressions** (12:10, 13:35,
+  16:15 New York; timezone, target, role, input, retry untouched; backups under `backups/pipeline-order/20261021T234220Z/`;
+  manifest repo + S3 declare the restored times). The plans record the reversal (`reverted` in plan 1 and plan 2).
+  **Fix**: `scripts/pipeline_order.py` now converts a schedule's cron through its zone (`tz_offset_min`, `utc_minute`),
+  plans in UTC and writes the cron back in the schedule's own zone (`timezone` on every action); ops 6586 checks the
+  same way; `tests/deployment/test_pipeline_order.py` pins it. Pass 3 was rebuilt with the fix (still pending the census).
+* **Intraday lane**: 12 of 12 members invoked ~96-97 times through the session, 0 errors on 11 of them;
+  `justhodl-polygon-futures-curves` invoked 196 times with 98 errors - one failed attempt plus one automatic retry per
+  tick (`RuntimeError: Native futures research failed; inspect retained request evidence`, ~0.2 s, 134 MB) - the retry
+  succeeds, so the feed is current but every tick costs two runs and 98 logged errors a day. To be read with the full
+  traceback at the 2026-10-22 13:20 UTC alarm re-check (engine change = Khalid's go).
+
 ## Pass 2 - the Polygon intraday lane (applied by ops 6589, 2026-10-21 04:22 UTC)
 
 Khalid, 2026-10-21 23:56 ET: "Polygon should keep refreshing my data so I get fresh data during market hours Monday
