@@ -6,17 +6,20 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0h. Pipeline order - dry run clean, say "go" to apply (docs/ops/PIPELINE_ORDER.md)
+### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 
-Readers fire after their writers. ops 6584 (2026-10-21 02:39 UTC) walked the live account against
-`config/pipeline-order-plan.json`: **82 retimes ready, nothing drifted, nothing missing**, the late tick creatable.
-What changes when you say go (ops 6585): 82 triggers move LATER by 31 min on average (max 67), each inside its own
+Readers fire after their writers. ops 6584 (dry run, 02:49 UTC) found 82 retimes ready and nothing drifted; Khalid
+said go at 22:56 ET; **ops 6585 applied it at 02:59 UTC**: 82 triggers retimed, the late tick live, both S3 manifests
+equal the repo, 0 cadence-floor violators, every planned trigger read back at its new time. What changed: 82
+triggers moved LATER by 31 min on average (max 67), each inside its own
 session window (6 cross a window end by at most 30 min); three daily-morn engines that read other daily-morn
 engines - `justhodl-morning-brief-tg`, `justhodl-nobrainer-rationale`, `justhodl-sector-earnings-diffusion` - run
 from a late tick at 11:15 UTC; 22 same-minute races -> 0; 116 "reads yesterday's file" edges -> 32; mean input age
 10.95 h -> 9.96 h. Nothing moves earlier, nothing is disabled or deleted; every trigger's previous definition is
 backed up to `s3://justhodl-ops-private-857687956942/backups/pipeline-order/<stamp>/`. 23 triggers are listed as
-left alone (they would need more than an hour or a window change) - a second pass can take them later.
+left alone (they would need more than an hour or a window change) - a second pass can take them later. Proof of the
+new timetable: ops 6586 (read-only "first light") runs at 12:05 and 23:35 UTC on Oct 21 and checks that each retimed
+trigger fired at its new minute and the late tick invoked its three members.
 
 ### 0. Confirm the AWS alert email (1 click) - fleet-alerts CONFIRMED 2026-10-21; the governor topic still needs one
 

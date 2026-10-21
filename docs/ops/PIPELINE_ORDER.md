@@ -1,7 +1,7 @@
 # Pipeline order - readers fire after their writers
 
-Khalid, 2026-10-20: "the pipeline-order retime (dry run first, this week)". Dry run ops 6584 clean on 2026-10-21;
-apply = ops 6585 on Khalid's go.
+Khalid, 2026-10-20: "the pipeline-order retime (dry run first, this week)". Dry run ops 6584 clean on 2026-10-21
+02:49 UTC; Khalid: "go" (22:56 ET); **applied by ops 6585 at 02:59 UTC** (see the end of this page).
 
 ## Why
 
@@ -185,3 +185,19 @@ gate (`tests/deployment/test_pipeline_order.py`) then checks the repo declares e
 `aws/ops/reports/latest/ops_6584_pipeline_order_dry_run.md`: 1,028 trigger records (588 scheduled rules on the
 default bus, 434 schedules), **81 would apply, 0 already, 0 drift, 0 missing, 0 failed**; late tick creatable
 (parent `jhk-tick-daily-morn` ENABLED at 11:00, target the scheduler; role allowed); both S3 manifests computed.
+
+## Applied (ops 6585, 2026-10-21 02:59 UTC)
+
+`aws/ops/reports/latest/ops_6585_pipeline_order_apply.md`: 82 retimes applied (canary first, then 81 in parallel,
+each precondition-checked, 0 drift, 0 failed), `jhk-tick-daily-morn-late` created (Scheduler, ENABLED, target the
+scheduler with `{"tick": "daily-morn-late"}`, role `justhodl-scheduler-role`), both S3 manifests uploaded and equal
+to the committed repo files (previous copies backed up), after-snapshot: 83 planned triggers live as planned, 0 not,
+0 enabled triggers able to fire more than once a day. Backups:
+`s3://justhodl-ops-private-857687956942/backups/pipeline-order/20261021T025804Z/` (every rule / schedule definition
+as it was, `manifest/` the two S3 manifests, `after-snapshot.json`). Repo side committed first (396cad5e): 45 engine
+config.json crons, schedule + fan-out manifests, plan marked applied; deploy gate 1,156 tests green.
+
+**First light**: ops 6586 (read-only) checks, from CloudWatch Invocations at 60 s resolution, that every retimed
+trigger due so far fired at its new minute and not at the old one, that the late tick invoked its three members after
+11:15 UTC (scheduler log `tick=daily-morn-late ok=3`), and that no retimed function errored in its new window.
+Scheduled for 12:05 and 23:35 UTC on 2026-10-21; results are appended here.
