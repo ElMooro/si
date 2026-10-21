@@ -1,16 +1,18 @@
 {
   "schema_version": "public-page-html-audit.v1",
   "expected_product_release": "9a530e9b37dbd1e459ea39280ef48a11763a26c2",
-  "observed_at": "2026-10-21T17:53:07.768434+00:00",
-  "ok": true,
+  "observed_at": "2026-10-21T18:00:20.258449+00:00",
+  "ok": false,
   "routes_checked": 615,
-  "verified_routes": 615,
-  "failed_routes": [],
+  "verified_routes": 614,
+  "failed_routes": [
+    "risk-gate.html"
+  ],
   "source_equivalent_builds": {
     "9a530e9b37dbd1e459ea39280ef48a11763a26c2": true
   },
   "scope": "PUBLIC_HTML_HTTP_BUILD_AND_INSPECTION_ENTRY_ONLY",
-  "embedded_inspection_routes": 614,
+  "embedded_inspection_routes": 613,
   "standalone_inspection_routes": 1,
   "runtime_api_payloads_requested": 0,
   "browser_interaction_claim": false,
@@ -4808,13 +4810,12 @@
     },
     {
       "route": "risk-gate.html",
-      "status": "HTML_VERIFIED",
-      "http_status": 200,
-      "build_sha": "9a530e9b37dbd1e459ea39280ef48a11763a26c2",
-      "inspector_present": true,
-      "bytes_read": 15364,
-      "inspection_mode": "embedded",
-      "product_source_matches_release": true
+      "status": "UNAVAILABLE",
+      "http_status": null,
+      "build_sha": null,
+      "inspector_present": false,
+      "error_type": "URLError",
+      "product_source_matches_release": false
     },
     {
       "route": "risk-monitor.html",
@@ -6168,7 +6169,7 @@
     }
   ],
   "operation": 5275,
-  "deployment_run_id": 39646865817,
+  "deployment_run_id": 39646864897,
   "aws_sdk_calls": 0,
-  "check_finished_at": "2026-10-21T17:53:07.777195+00:00"
+  "check_finished_at": "2026-10-21T18:00:20.267338+00:00"
 }
