@@ -17,7 +17,8 @@ from ops_report import report  # noqa: E402
 REGION, ACCOUNT = "us-east-1", "857687956942"
 LIVE, PRIVATE = "justhodl-dashboard-live", "justhodl-ops-private-%s" % ACCOUNT
 ARCHIVE = "justhodl-warehouse-archive-%s" % ACCOUNT
-DESC = "ops 6575 warehouse archive backfill (%s -> %s)" % (LIVE, ARCHIVE)
+DESCS = {"ops 6575 warehouse archive backfill (%s -> %s)" % (LIVE, ARCHIVE),                       # cancelled (every version)
+         "ops 6583 warehouse archive backfill, current versions only (%s -> %s)" % (LIVE, ARCHIVE)}  # the real one
 LIVE_CURRENT = 1281312
 STORM_KEYS = ["data/miss-calibrator-proposals.json"]
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120, max_pool_connections=40)
@@ -28,9 +29,9 @@ def c(name):
 
 
 def job_status(s3c):
-    for status in (["Active", "Preparing", "Ready", "Suspended", "New", "Completing"], ["Complete", "Failed", "Cancelled"]):
+    for status in (["Active", "Preparing", "Ready", "Suspended", "New", "Completing"], ["Complete", "Failed"], ["Cancelled"]):
         for j in s3c.list_jobs(AccountId=ACCOUNT, JobStatuses=status).get("Jobs", []):
-            if (j.get("Description") or "") == DESC:
+            if (j.get("Description") or "") in DESCS:
                 d = s3c.describe_job(AccountId=ACCOUNT, JobId=j["JobId"])["Job"]
                 p = d.get("ProgressSummary") or {}
                 return {"job": j["JobId"], "status": d.get("Status"), "total": p.get("TotalNumberOfTasks"), "succeeded": p.get("NumberOfTasksSucceeded"),

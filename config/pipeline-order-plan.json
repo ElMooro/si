@@ -1,0 +1,3471 @@
+{
+ "actions": [
+  {
+   "after": {
+    "expr": "cron(36 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1426,
+     "writer": "justhodl-beneish"
+    }
+   ],
+   "functions": [
+    "justhodl-ai-rerating-radar"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 21,
+   "name": "ai-rerating-radar-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:15 -> 14:36 UTC (pre-market), fires after justhodl-beneish",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(11 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-research-papers"
+    },
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-stock-valuations"
+    },
+    {
+     "gap_before_min": 1422,
+     "writer": "justhodl-stress-index"
+    }
+   ],
+   "functions": [
+    "justhodl-alert-sentinel"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 26,
+   "name": "alert-sentinel-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:45 -> 15:11 UTC (session), fires after justhodl-research-papers, justhodl-stock-valuations, justhodl-stress-index",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(50 14 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-best-ideas"
+    }
+   ],
+   "functions": [
+    "justhodl-convexity-scorer"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 50,
+   "name": "convexity-scorer-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:00 -> 14:50 UTC (pre-market), fires after justhodl-best-ideas",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(36 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 15 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-canary-grid"
+    }
+   ],
+   "functions": [
+    "justhodl-crisis-composite"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 21,
+   "name": "crisis-composite-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 15:15 -> 15:36 UTC (session), fires after justhodl-canary-grid",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(5 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-cb-injection"
+    }
+   ],
+   "functions": [
+    "justhodl-euro-fragmentation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 45,
+   "name": "euro-fragmentation-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:20 -> 13:05 UTC (pre-market), fires after justhodl-cb-injection",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(21 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-dark-pool"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-etf-fund-flows"
+    },
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-finviz-groups"
+    }
+   ],
+   "functions": [
+    "justhodl-industry-rotation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 46,
+   "name": "industry-rotation-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:35 -> 22:21 UTC (post-close), fires after justhodl-dark-pool, justhodl-etf-fund-flows, justhodl-finviz-groups",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(40 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 13 ? * MON-FRI *)",
+    "input_sha": "f123c54030f3990a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-upside-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-intraday-pulse"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 15,
+   "name": "intraday-arm-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:25 -> 13:40 UTC (pre-market), fires after justhodl-upside-radar",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(21 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(13 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1438,
+     "writer": "justhodl-indicator-bus"
+    }
+   ],
+   "functions": [
+    "justhodl-intraday-pulse"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 8,
+   "name": "intraday-pulse-minute",
+   "op": "retime",
+   "reason": "pipeline order: 12:13 -> 12:21 UTC (pre-market), fires after justhodl-indicator-bus",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(3 15 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 3,
+     "writer": "justhodl-bank-stress"
+    }
+   ],
+   "functions": [
+    "justhodl-stress-index"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 2,
+   "name": "jsi-6h",
+   "op": "retime",
+   "reason": "pipeline order: 15:03 -> 15:05 UTC (session), fires after justhodl-bank-stress",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(46 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 * * ? *)",
+    "input_sha": "ea4c33452c69e59c",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-portfolio-snapshot"
+    }
+   ],
+   "functions": [
+    "justhodl-ai-brief-router"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 46,
+   "name": "justhodl-alerts-digest-close-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:00 -> 21:46 UTC (post-close), fires after justhodl-portfolio-snapshot",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(26 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-debate-engine"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-debate-engine"
+    }
+   ],
+   "functions": [
+    "justhodl-alpha-daily-brief"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 56,
+   "name": "justhodl-alpha-daily-brief",
+   "op": "retime",
+   "reason": "pipeline order: 11:30 -> 12:26 UTC (pre-market), fires after justhodl-debate-engine, justhodl-debate-engine",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 16 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 15 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-13f-positions"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-smart-money-cluster"
+    }
+   ],
+   "functions": [
+    "justhodl-attention-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 55,
+   "name": "justhodl-attention-confluence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 15:10 -> 16:05 UTC (session), fires after justhodl-13f-positions, justhodl-smart-money-cluster",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(54 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-capital-flow-radar"
+    },
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-earnings-confluence"
+    },
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-resilience"
+    },
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-rotation-dashboard"
+    },
+    {
+     "gap_before_min": 1,
+     "writer": "justhodl-wl-fusion"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-wl-fusion"
+    }
+   ],
+   "functions": [
+    "justhodl-best-setups"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 44,
+   "name": "justhodl-best-setups-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 22:10 -> 22:54 UTC (post-close), fires after justhodl-capital-flow-radar, justhodl-earnings-confluence, justhodl-resilience, justhodl-rotation-dashboard, justhodl-wl-fusion, justhodl-wl-fusion",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(55 15 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 15 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-etf-true-flows"
+    }
+   ],
+   "functions": [
+    "justhodl-bond-desk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 40,
+   "name": "justhodl-bond-desk-daily",
+   "op": "retime",
+   "reason": "pipeline order: 15:15 -> 15:55 UTC (session), fires after justhodl-etf-true-flows",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(25 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1,
+     "writer": "justhodl-beneish"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-options-confluence"
+    }
+   ],
+   "functions": [
+    "justhodl-boom-radar"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 55,
+   "name": "justhodl-boom-radar-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:30 -> 15:25 UTC (session), fires after justhodl-beneish, justhodl-options-confluence",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(40 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-share-flows"
+    }
+   ],
+   "functions": [
+    "justhodl-buyback-engine"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 10,
+   "name": "justhodl-buyback-engine-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:30 -> 13:40 UTC (pre-market), fires after justhodl-share-flows",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(16 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-polygon-fx-regime"
+    }
+   ],
+   "functions": [
+    "justhodl-carry-surface"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 16,
+   "name": "justhodl-carry-surface-sched",
+   "op": "retime",
+   "reason": "pipeline order: 13:00 -> 13:16 UTC (pre-market), fires after justhodl-polygon-fx-regime",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(50 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-ai-brief-router"
+    },
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-alert-backtester"
+    },
+    {
+     "gap_before_min": 1409,
+     "writer": "justhodl-apex-fusion"
+    },
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-bottleneck-boom"
+    }
+   ],
+   "functions": [
+    "justhodl-confluence-meta"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 60,
+   "name": "justhodl-confluence-meta-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:50 -> 12:50 UTC (pre-market), fires after justhodl-ai-brief-router, justhodl-alert-backtester, justhodl-apex-fusion, justhodl-bottleneck-boom",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(13 15 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(54 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1432,
+     "writer": "justhodl-daily-report-v3"
+    }
+   ],
+   "functions": [
+    "justhodl-crisis-plumbing"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 19,
+   "name": "justhodl-crisis-plumbing-refresh",
+   "op": "retime",
+   "reason": "pipeline order: 14:54 -> 15:13 UTC (session), fires after justhodl-daily-report-v3",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(21 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-indicator-bus"
+    }
+   ],
+   "functions": [
+    "justhodl-debate-engine"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 6,
+   "name": "justhodl-debate-engine-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:15 -> 12:21 UTC (pre-market), fires after justhodl-indicator-bus",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(20 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-bond-vol"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-insider-cluster-scanner"
+    }
+   ],
+   "functions": [
+    "justhodl-flow-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 55,
+   "name": "justhodl-flow-confluence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:25 -> 14:20 UTC (pre-market), fires after justhodl-bond-vol, justhodl-insider-cluster-scanner",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 22 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 21 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-breadth-divergence"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-breadth-thrust"
+    },
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-put-call-extreme"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-vix9d-vix-inversion"
+    }
+   ],
+   "functions": [
+    "justhodl-forced-selling-bounce"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 60,
+   "name": "justhodl-forced-selling-bounce-sched",
+   "op": "retime",
+   "reason": "pipeline order: 21:05 -> 22:05 UTC (post-close), fires after justhodl-breadth-divergence, justhodl-breadth-thrust, justhodl-put-call-extreme, justhodl-vix9d-vix-inversion",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 23 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-money-flow-state"
+    }
+   ],
+   "functions": [
+    "justhodl-global-flow-desk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 45,
+   "name": "justhodl-global-flow-desk-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:50 -> 23:35 UTC (post-close), fires after justhodl-money-flow-state",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(55 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-insider-cluster-scanner"
+    }
+   ],
+   "functions": [
+    "justhodl-history-snapshotter"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 50,
+   "name": "justhodl-history-snapshotter-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:05 -> 13:55 UTC (pre-market), fires after justhodl-insider-cluster-scanner",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(54 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-gdelt-buzz"
+    }
+   ],
+   "functions": [
+    "justhodl-hot-stocks-digest"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 24,
+   "name": "justhodl-hot-stocks-digest-am",
+   "op": "retime",
+   "reason": "pipeline order: 12:30 -> 12:54 UTC (pre-market), fires after justhodl-gdelt-buzz",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(11 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1434,
+     "writer": "justhodl-liquidity-inflection"
+    }
+   ],
+   "functions": [
+    "justhodl-kb-matcher"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 11,
+   "name": "justhodl-kb-matcher-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:00 -> 12:11 UTC (pre-market), fires after justhodl-liquidity-inflection",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 11 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-eurodollar-plumbing"
+    }
+   ],
+   "functions": [
+    "justhodl-liquidity-inflection"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 51,
+   "name": "justhodl-liquidity-inflection-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:15 -> 12:06 UTC (pre-market), fires after justhodl-eurodollar-plumbing",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(21 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-bond-vol"
+    }
+   ],
+   "functions": [
+    "justhodl-my-brief"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 51,
+   "name": "justhodl-my-brief-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:30 -> 14:21 UTC (pre-market), fires after justhodl-bond-vol",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(35 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(27 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1437,
+     "writer": "justhodl-dislocation-detector"
+    }
+   ],
+   "functions": [
+    "justhodl-narrative-vs-tape"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 8,
+   "name": "justhodl-narrative-vs-tape-4h",
+   "op": "retime",
+   "reason": "pipeline order: 14:27 -> 14:35 UTC (pre-market), fires after justhodl-dislocation-detector",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(21 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "bea-economic-agent"
+    },
+    {
+     "gap_before_min": 1410,
+     "writer": "bls-labor-agent"
+    }
+   ],
+   "functions": [
+    "justhodl-nowcast-desk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 51,
+   "name": "justhodl-nowcast-desk-daily",
+   "op": "retime",
+   "reason": "pipeline order: 13:30 -> 14:21 UTC (pre-market), fires after bea-economic-agent, bls-labor-agent",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(36 21 ? * THU,FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 21 ? * THU,FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-settlement-fails"
+    }
+   ],
+   "functions": [
+    "justhodl-nyfed-pd"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 6,
+   "name": "justhodl-nyfed-pd-weekly",
+   "op": "retime",
+   "reason": "pipeline order: 21:30 -> 21:36 UTC (post-close), fires after justhodl-settlement-fails",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(21 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-bond-vol"
+    }
+   ],
+   "functions": [
+    "justhodl-plumbing-aggregator"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 21,
+   "name": "justhodl-plumbing-aggregator-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 14:00 -> 14:21 UTC (pre-market), fires after justhodl-bond-vol",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(25 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-polygon-futures-curves"
+    },
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-polygon-fx-regime"
+    }
+   ],
+   "functions": [
+    "justhodl-prepump-alerts-router"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 55,
+   "name": "justhodl-prepump-alerts-router-30min",
+   "op": "retime",
+   "reason": "pipeline order: 12:30 -> 13:25 UTC (pre-market), fires after justhodl-polygon-futures-curves, justhodl-polygon-fx-regime",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(13 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(38 21 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1411,
+     "writer": "justhodl-tradingview"
+    }
+   ],
+   "functions": [
+    "justhodl-provider-catalog"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 35,
+   "name": "justhodl-provider-catalog-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 21:38 -> 22:13 UTC (post-close), fires after justhodl-tradingview",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-capital-flow-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-rebalance-radar"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 30,
+   "name": "justhodl-rebalance-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:05 -> 22:35 UTC (post-close), fires after justhodl-capital-flow-radar",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 23 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(55 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-chart-patterns"
+    },
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-money-flow-state"
+    }
+   ],
+   "functions": [
+    "justhodl-sector-capital-fusion"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 40,
+   "name": "justhodl-sector-capital-fusion-sched",
+   "op": "retime",
+   "reason": "pipeline order: 22:55 -> 23:35 UTC (post-close), fires after justhodl-chart-patterns, justhodl-money-flow-state",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(5 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-etf-fund-flows"
+    }
+   ],
+   "functions": [
+    "justhodl-sector-emergence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 5,
+   "name": "justhodl-sector-emergence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:00 -> 22:05 UTC (post-close), fires after justhodl-etf-fund-flows",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(7 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 * * ? *)",
+    "input_sha": "e0d883fae9a39e64",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1394,
+     "writer": "justhodl-ai-brief-router"
+    },
+    {
+     "gap_before_min": 1,
+     "writer": "justhodl-correlation-breaks"
+    },
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-crypto-cot"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-crypto-etf-flows"
+    },
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-crypto-exchange-flows"
+    },
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-cryptoquant"
+    },
+    {
+     "gap_before_min": 1399,
+     "writer": "justhodl-edge-engine"
+    }
+   ],
+   "functions": [
+    "justhodl-signal-logger"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 67,
+   "name": "justhodl-signal-logger-6h",
+   "op": "retime",
+   "reason": "pipeline order: 21:00 -> 22:07 UTC (post-close), fires after justhodl-ai-brief-router, justhodl-correlation-breaks, justhodl-crypto-cot, justhodl-crypto-etf-flows, justhodl-crypto-exchange-flows, justhodl-cryptoquant, justhodl-edge-engine",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-ai-brief-router"
+    }
+   ],
+   "functions": [
+    "justhodl-sizing-engine"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 25,
+   "name": "justhodl-sizing-engine-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:10 -> 14:35 UTC (pre-market), fires after justhodl-ai-brief-router",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(59 22 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1,
+     "writer": "justhodl-best-setups"
+    },
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-best-setups"
+    },
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-resilience"
+    }
+   ],
+   "functions": [
+    "justhodl-stock-xray"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 29,
+   "name": "justhodl-stock-xray-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:30 -> 22:59 UTC (post-close), fires after justhodl-best-setups, justhodl-best-setups, justhodl-resilience",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(53 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-etf-constituents"
+    }
+   ],
+   "functions": [
+    "justhodl-theme-cascade-backtest"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 8,
+   "name": "justhodl-theme-cascade-backtest-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:45 -> 22:53 UTC (post-close), fires after justhodl-etf-constituents",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 18 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 18 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-velocity-acceleration"
+    }
+   ],
+   "functions": [
+    "justhodl-theme-cascade"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 15,
+   "name": "justhodl-theme-cascade-twice-per-hour",
+   "op": "retime",
+   "reason": "pipeline order: 18:20 -> 18:35 UTC (session), fires after justhodl-velocity-acceleration",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(16 14 ? * SUN *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * SUN *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-index-recon"
+    }
+   ],
+   "functions": [
+    "justhodl-weekly-ai-review"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 16,
+   "name": "justhodl-weekly-ai-review-sunday",
+   "op": "retime",
+   "reason": "pipeline order: 14:00 -> 14:16 UTC (pre-market), fires after justhodl-index-recon",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(53 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-etf-constituents"
+    },
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-rebalance-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-macro-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 38,
+   "name": "macro-confluence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:15 -> 22:53 UTC (post-close), fires after justhodl-etf-constituents, justhodl-rebalance-radar",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(50 14 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 14 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-best-ideas"
+    }
+   ],
+   "functions": [
+    "justhodl-premortem-engine"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 50,
+   "name": "premortem-engine-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:00 -> 14:50 UTC (pre-market), fires after justhodl-best-ideas",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 12 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12 ? * * *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-eurodollar-plumbing"
+    }
+   ],
+   "functions": [
+    "justhodl-sovereign-stress"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 6,
+   "name": "sovereign-stress-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:00 -> 12:06 UTC (pre-market), fires after justhodl-eurodollar-plumbing",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-eurodollar-plumbing"
+    }
+   ],
+   "functions": [
+    "justhodl-systemic-stress"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 6,
+   "name": "systemic-stress-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:00 -> 12:06 UTC (pre-market), fires after justhodl-eurodollar-plumbing",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(57 10 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 10 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-cq-feed"
+    }
+   ],
+   "functions": [
+    "justhodl-coinbase-premium"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 22,
+   "name": "coinbase-premium-sched",
+   "op": "retime",
+   "reason": "pipeline order: 10:35 -> 10:57 UTC (pre-market), fires after justhodl-cq-feed",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(1 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 11 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-tradingview"
+    }
+   ],
+   "functions": [
+    "justhodl-gov-sources"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 11,
+   "name": "gov-sources-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:50 -> 12:01 UTC (pre-market), fires after justhodl-tradingview",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(50 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 22 * * ? *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-cross-asset-rv"
+    }
+   ],
+   "functions": [
+    "justhodl-asset-compass"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 35,
+   "name": "justhodl-asset-compass-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:15 -> 22:50 UTC (post-close), fires after justhodl-cross-asset-rv",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(5 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 12 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-symdir"
+    }
+   ],
+   "functions": [
+    "justhodl-auction-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 55,
+   "name": "justhodl-auction-desk-buyback",
+   "op": "retime",
+   "reason": "pipeline order: 12:10 -> 13:05 UTC (pre-market), fires after justhodl-symdir",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(16 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 22 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-readthrough"
+    }
+   ],
+   "functions": [
+    "justhodl-catalyst-chain"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 1,
+   "name": "justhodl-catalyst-chain-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:15 -> 22:16 UTC (post-close), fires after justhodl-readthrough",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(6 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-correlation-breaks"
+    }
+   ],
+   "functions": [
+    "justhodl-correlation-break-trade-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 51,
+   "name": "justhodl-corr-break-trades-2h",
+   "op": "retime",
+   "reason": "pipeline order: 21:15 -> 22:06 UTC (post-close), fires after justhodl-correlation-breaks",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(42 21 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(40 21 ? * * *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-nyfed-pd"
+    }
+   ],
+   "functions": [
+    "justhodl-credit-composite"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 2,
+   "name": "justhodl-credit-composite-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:40 -> 21:42 UTC (post-close), fires after justhodl-nyfed-pd",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 11 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 10 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-backlog"
+    },
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-eps-revision-velocity"
+    }
+   ],
+   "functions": [
+    "justhodl-industry-boom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 45,
+   "name": "justhodl-industry-boom-daily",
+   "op": "retime",
+   "reason": "pipeline order: 10:50 -> 11:35 UTC (pre-market), fires after justhodl-backlog, justhodl-eps-revision-velocity",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(10 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(17 21 * * ? *)",
+    "input_sha": "876173fbf3263324",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1407,
+     "writer": "justhodl-accumulation-radar"
+    },
+    {
+     "gap_before_min": 1407,
+     "writer": "justhodl-crypto-etf-flows"
+    },
+    {
+     "gap_before_min": 1402,
+     "writer": "justhodl-crypto-exchange-flows"
+    },
+    {
+     "gap_before_min": 1417,
+     "writer": "justhodl-dark-pool"
+    },
+    {
+     "gap_before_min": 1392,
+     "writer": "justhodl-deal-scanner"
+    },
+    {
+     "gap_before_min": 1397,
+     "writer": "justhodl-etf-fund-flows"
+    },
+    {
+     "gap_before_min": 1397,
+     "writer": "justhodl-finviz-universe"
+    },
+    {
+     "gap_before_min": 1422,
+     "writer": "justhodl-floor-audit"
+    },
+    {
+     "gap_before_min": 1422,
+     "writer": "justhodl-tail-risk"
+    }
+   ],
+   "functions": [
+    "justhodl-katlin"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 53,
+   "name": "justhodl-katlin-permission-refresh",
+   "op": "retime",
+   "reason": "pipeline order: 21:17 -> 22:10 UTC (post-close), fires after justhodl-accumulation-radar, justhodl-crypto-etf-flows, justhodl-crypto-exchange-flows, justhodl-dark-pool, justhodl-deal-scanner, justhodl-etf-fund-flows, justhodl-finviz-universe, justhodl-floor-audit, justhodl-tail-risk",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(7 5 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 4 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-symbol-dictionary"
+    }
+   ],
+   "functions": [
+    "justhodl-liq-indicators"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 57,
+   "name": "justhodl-liq-indicators",
+   "op": "retime",
+   "reason": "pipeline order: 04:10 -> 05:07 UTC (overnight), fires after justhodl-symbol-dictionary",
+   "window": "overnight"
+  },
+  {
+   "after": {
+    "expr": "cron(21 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-eurodollar-stress"
+    }
+   ],
+   "functions": [
+    "justhodl-master-allocator"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 1,
+   "name": "justhodl-master-allocator-3h",
+   "op": "retime",
+   "reason": "pipeline order: 21:20 -> 21:21 UTC (post-close), fires after justhodl-eurodollar-stress",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(5 17 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 16 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1434,
+     "writer": "justhodl-13f-positions"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-divergence-engine-v2"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-future-intelligence"
+    },
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-smart-money-cluster"
+    }
+   ],
+   "functions": [
+    "justhodl-master-ranker"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 50,
+   "name": "justhodl-master-ranker-weekday-close",
+   "op": "retime",
+   "reason": "pipeline order: 16:15 -> 17:05 UTC (session), fires after justhodl-13f-positions, justhodl-divergence-engine-v2, justhodl-future-intelligence, justhodl-smart-money-cluster",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(49 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 9 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1421,
+     "writer": "justhodl-convergence-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-momentum-leaders"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 24,
+   "name": "justhodl-momentum-leaders-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 09:25 -> 09:49 UTC (pre-market), fires after justhodl-convergence-radar",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(50 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-resilience"
+    }
+   ],
+   "functions": [
+    "justhodl-phase-detector"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 40,
+   "name": "justhodl-phase-detector-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:10 -> 22:50 UTC (post-close), fires after justhodl-resilience",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(1 22 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(45 21 ? * * *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-short-book"
+    },
+    {
+     "gap_before_min": 1439,
+     "writer": "justhodl-short-book"
+    }
+   ],
+   "functions": [
+    "justhodl-proven-portfolio"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 16,
+   "name": "justhodl-proven-portfolio-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:45 -> 22:01 UTC (post-close), fires after justhodl-short-book, justhodl-short-book",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(11 22 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-supply-chain-graph"
+    },
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-supply-chain-graph"
+    }
+   ],
+   "functions": [
+    "justhodl-readthrough"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 51,
+   "name": "justhodl-readthrough-sched",
+   "op": "retime",
+   "reason": "pipeline order: 21:20 -> 22:11 UTC (post-close), fires after justhodl-supply-chain-graph, justhodl-supply-chain-graph",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(26 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1424,
+     "writer": "justhodl-eurodollar-stress"
+    },
+    {
+     "gap_before_min": 1419,
+     "writer": "justhodl-master-allocator"
+    }
+   ],
+   "functions": [
+    "justhodl-regime-conditional-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 26,
+   "name": "justhodl-regime-conditional-router-2h",
+   "op": "retime",
+   "reason": "pipeline order: 21:00 -> 21:26 UTC (post-close), fires after justhodl-eurodollar-stress, justhodl-master-allocator",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(56 21 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 21 ? * * *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 0,
+     "writer": "justhodl-accumulation-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-short-book"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 6,
+   "name": "justhodl-short-book-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:50 -> 21:56 UTC (post-close), fires after justhodl-accumulation-radar",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(41 13 ? * SAT *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * SAT *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-share-flows"
+    }
+   ],
+   "functions": [
+    "justhodl-spx-beaters"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 41,
+   "name": "justhodl-spx-beaters-weekly",
+   "op": "retime",
+   "reason": "pipeline order: 13:00 -> 13:41 UTC (pre-market), fires after justhodl-share-flows",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(16 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-market-tape"
+    }
+   ],
+   "functions": [
+    "justhodl-spx-ma"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 1,
+   "name": "justhodl-spx-ma-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:15 -> 21:16 UTC (post-close), fires after justhodl-market-tape",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(6 22 ? * * *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(55 21 ? * * *)",
+    "input_sha": "bf8b904fe7374ad8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1435,
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "functions": [
+    "justhodl-supply-chain-graph"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 11,
+   "name": "justhodl-supply-chain-graph-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:55 -> 22:06 UTC (post-close), fires after justhodl-finviz-universe",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(46 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "input_sha": "b4bf76241d4d37cf",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-sdmx-walker"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 46,
+   "name": "justhodl-symdir-codelists",
+   "op": "retime",
+   "reason": "pipeline order: 13:00 -> 13:46 UTC (pre-market), fires after justhodl-sdmx-walker",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(46 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "input_sha": "bc96ff474659b767",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-sdmx-walker"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 46,
+   "name": "justhodl-symdir-fredupdates",
+   "op": "retime",
+   "reason": "pipeline order: 13:00 -> 13:46 UTC (pre-market), fires after justhodl-sdmx-walker",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 21 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(38 20 * * ? *)",
+    "input_sha": "bd01777c53e6445b",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1418,
+     "writer": "justhodl-vix-curve"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 27,
+   "name": "justhodl-symdir-titles",
+   "op": "retime",
+   "reason": "pipeline order: 20:38 -> 21:05 UTC (session), fires after justhodl-vix-curve",
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(29 22 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 21 ? * MON-FRI *)",
+    "input_sha": "f314aa30ce508340",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-finviz-universe"
+    },
+    {
+     "gap_before_min": 1432,
+     "writer": "justhodl-provider-catalog"
+    },
+    {
+     "gap_before_min": 1433,
+     "writer": "justhodl-provider-catalog"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 59,
+   "name": "justhodl-symdir-ustbank",
+   "op": "retime",
+   "reason": "pipeline order: 21:30 -> 22:29 UTC (post-close), fires after justhodl-finviz-universe, justhodl-provider-catalog, justhodl-provider-catalog",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(46 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 13 ? * MON-FRI *)",
+    "input_sha": "d847fe36b85755f8",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-sdmx-walker"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 46,
+   "name": "justhodl-symdir-warm",
+   "op": "retime",
+   "reason": "pipeline order: 13:00 -> 13:46 UTC (pre-market), fires after justhodl-sdmx-walker",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(49 9 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 9 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1401,
+     "writer": "justhodl-convergence-radar"
+    }
+   ],
+   "functions": [
+    "justhodl-ticker-deep-research"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 44,
+   "name": "justhodl-ticker-deep-research-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 09:05 -> 09:49 UTC (pre-market), fires after justhodl-convergence-radar",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 11 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 5,
+     "writer": "justhodl-eurodollar-plumbing"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-freight-pulse"
+    },
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-portwatch"
+    },
+    {
+     "gap_before_min": 1410,
+     "writer": "justhodl-tradingview"
+    },
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-yen-carry"
+    }
+   ],
+   "functions": [
+    "justhodl-risk-gate"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 61,
+   "name": "risk-gate-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:05 -> 12:06 UTC (pre-market), fires after justhodl-eurodollar-plumbing, justhodl-freight-pulse, justhodl-portwatch, justhodl-tradingview, justhodl-yen-carry",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-breadth-divergence"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-correlation-breaks"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-crypto-liquidity"
+    },
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-repo-market"
+    },
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-settlement-fails"
+    },
+    {
+     "gap_before_min": 1420,
+     "writer": "justhodl-tail-risk"
+    },
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-vix9d-vix-inversion"
+    },
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-vvix-vov-regime"
+    }
+   ],
+   "functions": [
+    "justhodl-risk-regime"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 51,
+   "name": "risk-regime-sched",
+   "op": "retime",
+   "reason": "pipeline order: 21:15 -> 22:06 UTC (post-close), fires after justhodl-breadth-divergence, justhodl-correlation-breaks, justhodl-crypto-liquidity, justhodl-repo-market, justhodl-settlement-fails, justhodl-tail-risk, justhodl-vix9d-vix-inversion, justhodl-vvix-vov-regime",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(11 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 22 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-risk-regime"
+    }
+   ],
+   "functions": [
+    "justhodl-rotation-dashboard"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 1,
+   "name": "rotation-dashboard-sched",
+   "op": "retime",
+   "reason": "pipeline order: 22:10 -> 22:11 UTC (post-close), fires after justhodl-risk-regime",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(7 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(15 21 * * ? *)",
+    "input_sha": "70eac8778287687c",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1395,
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "functions": [
+    "justhodl-tradingview"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 52,
+   "name": "tradingview-native-price-rotation",
+   "op": "retime",
+   "reason": "pipeline order: 21:15 -> 22:07 UTC (post-close), fires after justhodl-finviz-universe",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(55 11 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 11 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-cot-feed"
+    },
+    {
+     "gap_before_min": 1425,
+     "writer": "justhodl-symbol-resolver"
+    }
+   ],
+   "functions": [
+    "justhodl-tradingview"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 20,
+   "name": "tradingview-vault-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:35 -> 11:55 UTC (pre-market), fires after justhodl-cot-feed, justhodl-symbol-resolver",
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(42 21 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(40 21 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 4,
+     "writer": "justhodl-nyfed-pd"
+    }
+   ],
+   "functions": [
+    "justhodl-treasury-rehypo"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 2,
+   "name": "treasury-rehypo-daily",
+   "op": "retime",
+   "reason": "pipeline order: 21:40 -> 21:42 UTC (post-close), fires after justhodl-nyfed-pd",
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(49 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 22 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 5,
+     "writer": "justhodl-wl-engines"
+    }
+   ],
+   "functions": [
+    "justhodl-wl-fusion"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 14,
+   "name": "wl-fusion-sched",
+   "op": "retime",
+   "reason": "pipeline order: 22:35 -> 22:49 UTC (post-close), fires after justhodl-wl-engines",
+   "window": "post-close"
+  }
+ ],
+ "fanout_removals": {},
+ "kept_in_place": {},
+ "late_ticks": {
+  "daily-morn-late": {
+   "expr": "cron(15 11 * * ? *)",
+   "from_tick": "daily-morn",
+   "group": "default",
+   "kind": "sched",
+   "members": [
+    "justhodl-morning-brief-tg",
+    "justhodl-nobrainer-rationale",
+    "justhodl-sector-earnings-diffusion"
+   ],
+   "minute": 675,
+   "name": "jhk-tick-daily-morn-late"
+  }
+ },
+ "left_alone": {
+  "finviz-signals-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1380,
+     "would_need": "22:05",
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "window": "post-close"
+  },
+  "industry-rotation-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1416,
+     "would_need": "22:50",
+     "writer": "justhodl-resilience"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-alerts-digest-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1380,
+     "would_need": "10:05",
+     "writer": "justhodl-episode-reference"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-attention-confluence-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1424,
+     "would_need": "16:32",
+     "writer": "justhodl-13f-positions"
+    },
+    {
+     "gap_min": 1390,
+     "would_need": "17:00",
+     "writer": "justhodl-smart-money-cluster"
+    }
+   ],
+   "window": "session"
+  },
+  "justhodl-auction-desk-buyback": {
+   "left_alone": [
+    {
+     "gap_min": 1399,
+     "would_need": "13:51",
+     "writer": "justhodl-symdir"
+    },
+    {
+     "gap_min": 1399,
+     "would_need": "13:51",
+     "writer": "justhodl-symdir"
+    },
+    {
+     "gap_min": 1399,
+     "would_need": "13:51",
+     "writer": "justhodl-symdir"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-best-setups-hourly": {
+   "left_alone": [
+    {
+     "gap_min": 1404,
+     "would_need": "23:35",
+     "writer": "justhodl-insider-sell-cluster"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-bond-vol-hourly": {
+   "left_alone": [
+    {
+     "gap_min": 1393,
+     "would_need": "15:13",
+     "writer": "justhodl-daily-report-v3"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-canary-warroom-hourly": {
+   "left_alone": [
+    {
+     "gap_min": 1402,
+     "would_need": "21:33",
+     "writer": "justhodl-factor-regime"
+    }
+   ],
+   "window": "session"
+  },
+  "justhodl-confluence-meta-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1414,
+     "would_need": "13:26",
+     "writer": "justhodl-carry-surface"
+    },
+    {
+     "gap_min": 1400,
+     "would_need": "13:35",
+     "writer": "justhodl-vol-surface"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-corr-break-trades-2h": {
+   "left_alone": [
+    {
+     "gap_min": 1401,
+     "would_need": "22:50",
+     "writer": "justhodl-cross-asset-rv"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-flow-confluence-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1431,
+     "would_need": "14:36",
+     "writer": "justhodl-beneish"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-forced-selling-bounce-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1385,
+     "would_need": "23:05",
+     "writer": "justhodl-market-extremes"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-industry-boom-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1415,
+     "would_need": "12:05",
+     "writer": "justhodl-estimate-revisions"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-katlin-permission-refresh": {
+   "left_alone": [
+    {
+     "gap_min": 1390,
+     "would_need": "23:05",
+     "writer": "justhodl-fedwatch-rate-probability"
+    },
+    {
+     "gap_min": 1429,
+     "would_need": "22:29",
+     "writer": "justhodl-industry-rotation"
+    },
+    {
+     "gap_min": 1405,
+     "would_need": "22:53",
+     "writer": "justhodl-etf-constituents"
+    },
+    {
+     "gap_min": 1390,
+     "would_need": "23:05",
+     "writer": "justhodl-stealth-accumulation"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-liquidity-inflection-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1386,
+     "would_need": "13:09",
+     "writer": "justhodl-vintage-fred"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-nowcast-desk-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1431,
+     "would_need": "14:35",
+     "writer": "census-economic-agent"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-prepump-alerts-router-30min": {
+   "left_alone": [
+    {
+     "gap_min": 1405,
+     "would_need": "14:05",
+     "writer": "justhodl-catalyst-classifier"
+    },
+    {
+     "gap_min": 1391,
+     "would_need": "14:19",
+     "writer": "justhodl-divcut-warning"
+    },
+    {
+     "gap_min": 1415,
+     "would_need": "13:55",
+     "writer": "justhodl-insider-cluster-scanner"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-signal-logger-6h": {
+   "left_alone": [
+    {
+     "gap_min": 1380,
+     "would_need": "22:05",
+     "writer": "justhodl-correlation-breaks"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-spx-beaters-weekly": {
+   "left_alone": [
+    {
+     "gap_min": 1392,
+     "would_need": "14:36",
+     "writer": "justhodl-beneish"
+    },
+    {
+     "gap_min": 1403,
+     "would_need": "14:23",
+     "writer": "justhodl-earnings-quality"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-symdir-titles": {
+   "left_alone": [
+    {
+     "gap_min": 1385,
+     "would_need": "22:05",
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "window": "session"
+  },
+  "khalid-adaptive-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1398,
+     "would_need": "15:13",
+     "writer": "justhodl-daily-report-v3"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "risk-gate-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1381,
+     "would_need": "13:10",
+     "writer": "justhodl-euro-fragmentation"
+    }
+   ],
+   "window": "pre-market"
+  }
+ },
+ "margins": {
+  "bea-economic-agent": 5,
+  "bls-labor-agent": 5,
+  "census-economic-agent": 5,
+  "cftc-futures-positioning-agent": 5,
+  "eia-energy-agent": 5,
+  "justhodl-13f-positions": 11,
+  "justhodl-13f-price-divergence": 5,
+  "justhodl-52wk-quality-breakout": 5,
+  "justhodl-ab-test": 5,
+  "justhodl-accumulation-radar": 5,
+  "justhodl-activity-nowcast": 5,
+  "justhodl-ai-brief": 5,
+  "justhodl-ai-brief-router": 5,
+  "justhodl-ai-infra-stack": 5,
+  "justhodl-ai-rerating-radar": 5,
+  "justhodl-air-cargo": 5,
+  "justhodl-alert-backtester": 5,
+  "justhodl-alert-sentinel": 5,
+  "justhodl-allocator": 5,
+  "justhodl-alpha-compass": 5,
+  "justhodl-alpha-confluence": 5,
+  "justhodl-alpha-score": 5,
+  "justhodl-altseason": 5,
+  "justhodl-analyst-actions": 5,
+  "justhodl-analyst-consensus": 5,
+  "justhodl-anomaly-detector": 5,
+  "justhodl-apac-flows": 5,
+  "justhodl-apac-leadlag": 10,
+  "justhodl-apex-fusion": 5,
+  "justhodl-asia-leads": 5,
+  "justhodl-asset-compass": 5,
+  "justhodl-asymmetric-hunter": 5,
+  "justhodl-attention-confluence": 5,
+  "justhodl-auction-crisis-detector": 5,
+  "justhodl-auction-desk": 5,
+  "justhodl-auction-grader": 5,
+  "justhodl-backfill-orchestrator": 5,
+  "justhodl-backlog": 5,
+  "justhodl-backtest-engine": 5,
+  "justhodl-bagger-engine": 14,
+  "justhodl-bank-stress": 5,
+  "justhodl-beneish": 7,
+  "justhodl-benzinga-earnings": 5,
+  "justhodl-best-ideas": 5,
+  "justhodl-best-setups": 5,
+  "justhodl-beta-laggard": 5,
+  "justhodl-bis-crossborder": 5,
+  "justhodl-bis-gleif": 5,
+  "justhodl-blackswan-watch": 8,
+  "justhodl-boj-detail": 5,
+  "justhodl-boj-full": 5,
+  "justhodl-bond-regime-detector": 5,
+  "justhodl-bond-vol": 5,
+  "justhodl-bond-warroom": 5,
+  "justhodl-boom-radar": 5,
+  "justhodl-boom-stage": 5,
+  "justhodl-bottleneck-boom": 5,
+  "justhodl-breadth-divergence": 5,
+  "justhodl-breadth-thrust": 5,
+  "justhodl-buyback-engine": 5,
+  "justhodl-buyback-scanner": 5,
+  "justhodl-buzz-velocity": 8,
+  "justhodl-calibration-fleet": 5,
+  "justhodl-calibration-snapshotter": 5,
+  "justhodl-calibrator": 6,
+  "justhodl-canary-grid": 6,
+  "justhodl-canary-macro": 5,
+  "justhodl-capex-pulse": 5,
+  "justhodl-capital-flow": 5,
+  "justhodl-capital-flow-radar": 5,
+  "justhodl-capital-inflows": 5,
+  "justhodl-capitulation": 5,
+  "justhodl-carry-surface": 10,
+  "justhodl-cascade-recalibrator": 5,
+  "justhodl-cascade-validator": 5,
+  "justhodl-catalyst-calendar": 5,
+  "justhodl-catalyst-classifier": 5,
+  "justhodl-catalyst-clusters": 5,
+  "justhodl-catalyst-skew-premove": 5,
+  "justhodl-cb-injection": 5,
+  "justhodl-cb-stance": 5,
+  "justhodl-cboe-options-chain": 5,
+  "justhodl-cds-monitor": 5,
+  "justhodl-cds-proxy": 6,
+  "justhodl-census-us": 5,
+  "justhodl-cftc-deep-view": 5,
+  "justhodl-chart-patterns": 5,
+  "justhodl-china-liquidity": 6,
+  "justhodl-ciss-stress": 8,
+  "justhodl-coinbase-premium": 5,
+  "justhodl-comeback-screener": 5,
+  "justhodl-commodity-curves": 5,
+  "justhodl-compound-aggregator": 5,
+  "justhodl-congress-alpha": 5,
+  "justhodl-congress-direct": 5,
+  "justhodl-consensus-bottom": 5,
+  "justhodl-construction-housing": 6,
+  "justhodl-consumer-pulse": 5,
+  "justhodl-convergence-radar": 5,
+  "justhodl-convexity-scorer": 5,
+  "justhodl-conviction-engine": 5,
+  "justhodl-corporate-actions": 10,
+  "justhodl-correlation-breaks": 5,
+  "justhodl-correlation-surface": 5,
+  "justhodl-cot-extremes-scanner": 5,
+  "justhodl-cot-feed": 5,
+  "justhodl-cq-feed": 7,
+  "justhodl-credit-before-equity": 5,
+  "justhodl-credit-composite": 5,
+  "justhodl-credit-equity-divergence": 5,
+  "justhodl-credit-stress": 5,
+  "justhodl-crisis-canaries": 5,
+  "justhodl-crisis-composite": 5,
+  "justhodl-crisis-knowledge-base": 5,
+  "justhodl-crisis-plumbing": 5,
+  "justhodl-cro-digest": 5,
+  "justhodl-cross-asset-confirm": 5,
+  "justhodl-cross-asset-regime": 5,
+  "justhodl-cross-asset-rv": 5,
+  "justhodl-crypto-basis": 5,
+  "justhodl-crypto-confluence": 5,
+  "justhodl-crypto-cot": 5,
+  "justhodl-crypto-cycle-risk": 5,
+  "justhodl-crypto-dvol": 5,
+  "justhodl-crypto-etf-flows": 5,
+  "justhodl-crypto-exchange-flows": 5,
+  "justhodl-crypto-funding": 5,
+  "justhodl-crypto-gex": 5,
+  "justhodl-crypto-liquidity": 5,
+  "justhodl-crypto-ma200": 5,
+  "justhodl-crypto-miners": 5,
+  "justhodl-crypto-narratives": 5,
+  "justhodl-crypto-options-surface": 5,
+  "justhodl-crypto-scorecard": 5,
+  "justhodl-crypto-stablecoin-peg": 5,
+  "justhodl-cryptoquant": 8,
+  "justhodl-cusip-map-rebuild": 5,
+  "justhodl-cycle-features": 5,
+  "justhodl-daily-report-v3": 11,
+  "justhodl-dark-pool": 6,
+  "justhodl-deal-scanner": 5,
+  "justhodl-dealer-gex": 6,
+  "justhodl-debate-engine": 5,
+  "justhodl-deep-value-overlap": 5,
+  "justhodl-deep-value-screener": 5,
+  "justhodl-desk-allocator": 5,
+  "justhodl-desk-returns": 5,
+  "justhodl-dislocation-detector": 5,
+  "justhodl-divcut-warning": 5,
+  "justhodl-divergence-engine-v2": 5,
+  "justhodl-divergence-interpreter": 5,
+  "justhodl-divergence-scanner": 5,
+  "justhodl-dix": 5,
+  "justhodl-dollar-radar": 5,
+  "justhodl-early-movers": 5,
+  "justhodl-earnings-blackout": 5,
+  "justhodl-earnings-cascade": 5,
+  "justhodl-earnings-confluence": 5,
+  "justhodl-earnings-iv-crush": 5,
+  "justhodl-earnings-nlp": 5,
+  "justhodl-earnings-pead": 5,
+  "justhodl-earnings-quality": 5,
+  "justhodl-earnings-sentiment": 5,
+  "justhodl-earnings-tracker": 5,
+  "justhodl-earnings-whisper": 5,
+  "justhodl-ecb-deep": 9,
+  "justhodl-ecb-derived": 6,
+  "justhodl-ecb-detail": 5,
+  "justhodl-edge-engine": 5,
+  "justhodl-engine-fusion": 5,
+  "justhodl-engine-leaderboard": 6,
+  "justhodl-engine-signal-map": 5,
+  "justhodl-engine-trust": 5,
+  "justhodl-episode-reference": 5,
+  "justhodl-eps-revision-velocity": 5,
+  "justhodl-equity-confluence": 5,
+  "justhodl-estimate-revisions": 5,
+  "justhodl-etf-constituents": 8,
+  "justhodl-etf-flows": 5,
+  "justhodl-etf-fund-flows": 5,
+  "justhodl-etf-issuer-holdings": 8,
+  "justhodl-etf-true-flows": 10,
+  "justhodl-euro-fragmentation": 5,
+  "justhodl-eurodollar-plumbing": 6,
+  "justhodl-eurodollar-stress": 5,
+  "justhodl-eva-spread": 8,
+  "justhodl-event-study": 5,
+  "justhodl-executive-intel": 6,
+  "justhodl-factor-regime": 5,
+  "justhodl-factor-returns": 5,
+  "justhodl-factor-risk": 5,
+  "justhodl-families-feed": 5,
+  "justhodl-fed-nlp": 5,
+  "justhodl-fed-speak": 5,
+  "justhodl-fedwatch-rate-probability": 5,
+  "justhodl-feed-catalog": 19,
+  "justhodl-feed-registry": 5,
+  "justhodl-fifx-vol-migration": 9,
+  "justhodl-financial-secretary": 5,
+  "justhodl-finra-short": 5,
+  "justhodl-finviz-groups": 5,
+  "justhodl-finviz-news": 5,
+  "justhodl-finviz-universe": 5,
+  "justhodl-firm-book": 5,
+  "justhodl-firm-risk-board": 5,
+  "justhodl-firm-stress": 5,
+  "justhodl-floor-audit": 6,
+  "justhodl-flow-anomaly-detector": 5,
+  "justhodl-flow-confluence": 5,
+  "justhodl-flow-lookthrough": 9,
+  "justhodl-fomc-reaction": 5,
+  "justhodl-foreign-flows": 6,
+  "justhodl-forensic-screen": 5,
+  "justhodl-forward-orders": 5,
+  "justhodl-forward-returns": 5,
+  "justhodl-freight-pulse": 5,
+  "justhodl-fundamentals-engine": 5,
+  "justhodl-funding-plumbing": 5,
+  "justhodl-future-intelligence": 5,
+  "justhodl-gdelt-buzz": 9,
+  "justhodl-gdelt-full": 5,
+  "justhodl-gdelt-sentiment": 5,
+  "justhodl-geopolitical-risk": 5,
+  "justhodl-gf-value": 5,
+  "justhodl-global-business-cycle": 5,
+  "justhodl-global-expansion": 5,
+  "justhodl-global-flows": 5,
+  "justhodl-global-liquidity": 5,
+  "justhodl-global-macro": 5,
+  "justhodl-global-recession": 5,
+  "justhodl-global-sovereign": 5,
+  "justhodl-global-stress": 5,
+  "justhodl-global-tide": 5,
+  "justhodl-gold-equity-rotation": 5,
+  "justhodl-hedge-planner": 5,
+  "justhodl-hiring-velocity": 7,
+  "justhodl-historical-analogs": 5,
+  "justhodl-hkma-monitor": 5,
+  "justhodl-hot-money": 5,
+  "justhodl-house-ptr-extract": 5,
+  "justhodl-hyperliquid-perps": 5,
+  "justhodl-ignition": 5,
+  "justhodl-impact-graph": 5,
+  "justhodl-import-canary": 7,
+  "justhodl-index-inclusion": 5,
+  "justhodl-index-recon": 5,
+  "justhodl-indicator-bus": 5,
+  "justhodl-industry-boom": 5,
+  "justhodl-industry-rotation": 8,
+  "justhodl-insider-aggregate": 5,
+  "justhodl-insider-buyback-confluence": 5,
+  "justhodl-insider-buys-enriched": 5,
+  "justhodl-insider-cluster-scanner": 5,
+  "justhodl-insider-industry-cluster": 5,
+  "justhodl-insider-radar": 5,
+  "justhodl-insider-sell-cluster": 5,
+  "justhodl-insider-trades": 5,
+  "justhodl-jhsignal-bridge": 5,
+  "justhodl-khalid-metrics": 5,
+  "justhodl-khalid-risk": 5,
+  "justhodl-lambda-inventory": 11,
+  "justhodl-leading-markets": 5,
+  "justhodl-liquidity-agent": 5,
+  "justhodl-liquidity-capacity": 5,
+  "justhodl-liquidity-credit-engine": 5,
+  "justhodl-liquidity-inflection": 5,
+  "justhodl-liquidity-pulse": 5,
+  "justhodl-live-pulse": 5,
+  "justhodl-llm-cost-dashboard": 5,
+  "justhodl-ma-reversion": 5,
+  "justhodl-ma200-reclaim": 5,
+  "justhodl-macro-attribution": 5,
+  "justhodl-macro-leads": 5,
+  "justhodl-macro-nowcast": 5,
+  "justhodl-macro-regime": 5,
+  "justhodl-macro-surprise": 5,
+  "justhodl-magic-formula": 5,
+  "justhodl-magnitude-distributions": 6,
+  "justhodl-market-extremes": 5,
+  "justhodl-market-internals": 5,
+  "justhodl-market-map": 5,
+  "justhodl-market-tape": 5,
+  "justhodl-massive-signals": 5,
+  "justhodl-master-allocator": 5,
+  "justhodl-master-ranker": 5,
+  "justhodl-mean-reversion": 5,
+  "justhodl-merger-arb": 5,
+  "justhodl-merger-arb-risk": 5,
+  "justhodl-microcap-float-squeeze": 5,
+  "justhodl-miss-detector": 5,
+  "justhodl-momentum-breakout": 5,
+  "justhodl-momentum-leaders": 5,
+  "justhodl-momentum-scanner": 5,
+  "justhodl-money-flow-state": 5,
+  "justhodl-morning-brief-tg": 5,
+  "justhodl-move-index": 5,
+  "justhodl-naaim": 5,
+  "justhodl-narrative-vs-tape": 5,
+  "justhodl-near-miss-monitor": 5,
+  "justhodl-news-velocity": 25,
+  "justhodl-news-wire": 5,
+  "justhodl-nobrainer-rationale": 5,
+  "justhodl-notes-intel": 5,
+  "justhodl-nowcast-desk": 5,
+  "justhodl-nyfed-full-history": 5,
+  "justhodl-nyfed-pd": 6,
+  "justhodl-nyfed-repo-deep": 5,
+  "justhodl-oecd-cli": 5,
+  "justhodl-official-pulse": 5,
+  "justhodl-onchain-ratios": 5,
+  "justhodl-opportunities-research": 5,
+  "justhodl-opportunity-engine": 5,
+  "justhodl-options-analytics": 5,
+  "justhodl-options-confluence": 5,
+  "justhodl-options-flow": 5,
+  "justhodl-options-flow-scanner": 5,
+  "justhodl-options-gamma": 5,
+  "justhodl-pairs-arb": 5,
+  "justhodl-pairs-scanner": 5,
+  "justhodl-pead-detector": 5,
+  "justhodl-peer-comparison": 5,
+  "justhodl-peru-copper": 5,
+  "justhodl-phase-detector": 5,
+  "justhodl-playbook-engine": 5,
+  "justhodl-plumbing-aggregator": 5,
+  "justhodl-plumbing-composite": 5,
+  "justhodl-pm-decision": 5,
+  "justhodl-pnl-attribution": 5,
+  "justhodl-pnl-tracker": 5,
+  "justhodl-political-ai-investigation": 5,
+  "justhodl-political-intel": 5,
+  "justhodl-political-stocks": 5,
+  "justhodl-political-trades": 5,
+  "justhodl-polygon-futures-curves": 5,
+  "justhodl-polygon-fx-regime": 5,
+  "justhodl-polygon-options-flow": 13,
+  "justhodl-port-cargo": 6,
+  "justhodl-portfolio-risk": 5,
+  "justhodl-portfolio-snapshot": 5,
+  "justhodl-portwatch": 7,
+  "justhodl-position-sizer-v2": 5,
+  "justhodl-pre-pump-detector": 5,
+  "justhodl-predictability": 6,
+  "justhodl-prediction-snapshotter": 5,
+  "justhodl-premortem-engine": 5,
+  "justhodl-prepump-alerts-router": 5,
+  "justhodl-proven-portfolio": 5,
+  "justhodl-provider-catalog": 16,
+  "justhodl-pump-positioning": 5,
+  "justhodl-put-call-extreme": 5,
+  "justhodl-rating-change-cluster": 5,
+  "justhodl-readthrough": 5,
+  "justhodl-rebalance-radar": 5,
+  "justhodl-regime-composite": 5,
+  "justhodl-regime-conditional-router": 5,
+  "justhodl-regime-conditional-trust": 5,
+  "justhodl-regime-engine": 5,
+  "justhodl-regime-map": 5,
+  "justhodl-regime-playbook": 5,
+  "justhodl-repo": 15,
+  "justhodl-repo-lending": 5,
+  "justhodl-repo-market": 5,
+  "justhodl-repo-monitor": 6,
+  "justhodl-research-papers": 5,
+  "justhodl-resilience": 5,
+  "justhodl-retail-sentiment": 5,
+  "justhodl-revenue-acceleration": 5,
+  "justhodl-reversal-radar": 5,
+  "justhodl-risk-gate": 5,
+  "justhodl-risk-monitor": 5,
+  "justhodl-risk-radar": 5,
+  "justhodl-risk-ratios": 5,
+  "justhodl-risk-regime": 5,
+  "justhodl-risk-sizer": 5,
+  "justhodl-rotation-chain": 5,
+  "justhodl-rotation-dashboard": 5,
+  "justhodl-rotation-radar": 5,
+  "justhodl-scarcity-radar": 5,
+  "justhodl-sdmx-walker": 5,
+  "justhodl-sec-10kq": 5,
+  "justhodl-sec-13f": 5,
+  "justhodl-sec-8k-enrich": 5,
+  "justhodl-sec-filings-intel": 5,
+  "justhodl-sector-flow-state": 5,
+  "justhodl-sector-rotation": 5,
+  "justhodl-sector-tilt": 5,
+  "justhodl-self-improvement": 5,
+  "justhodl-settlement-fails": 5,
+  "justhodl-share-flows": 5,
+  "justhodl-short-book": 5,
+  "justhodl-short-interest": 8,
+  "justhodl-short-pressure": 5,
+  "justhodl-signal-backtest": 5,
+  "justhodl-signal-board": 5,
+  "justhodl-signal-fabric": 5,
+  "justhodl-signal-halflife": 5,
+  "justhodl-signal-optimizer": 6,
+  "justhodl-signal-orthogonality": 5,
+  "justhodl-signal-portfolio": 5,
+  "justhodl-signal-scorecard": 5,
+  "justhodl-singapore-nodx": 5,
+  "justhodl-sizing-engine": 5,
+  "justhodl-skew-tail-hedging": 5,
+  "justhodl-smart-beta": 5,
+  "justhodl-smart-money-13f": 5,
+  "justhodl-smart-money-cluster": 5,
+  "justhodl-smart-money-holdings": 5,
+  "justhodl-sovereign-fiscal": 5,
+  "justhodl-sovereign-stress": 11,
+  "justhodl-sp500": 5,
+  "justhodl-spinoff-desk": 5,
+  "justhodl-spx-beaters": 5,
+  "justhodl-spx-history": 5,
+  "justhodl-spx-ma": 5,
+  "justhodl-squeeze-fuel": 6,
+  "justhodl-squeeze-pretrigger": 5,
+  "justhodl-stablecoin-flow": 5,
+  "justhodl-starmine": 5,
+  "justhodl-stealth-accumulation": 5,
+  "justhodl-stock-screener": 7,
+  "justhodl-stock-valuations": 5,
+  "justhodl-stock-xray": 5,
+  "justhodl-stocktwits": 5,
+  "justhodl-strategist": 7,
+  "justhodl-strategy-portfolio": 5,
+  "justhodl-stress-index": 5,
+  "justhodl-stress-scenarios": 5,
+  "justhodl-structural-pre-signals": 5,
+  "justhodl-supply-chain-graph": 5,
+  "justhodl-supply-chain-linkage": 5,
+  "justhodl-supply-inflection-scanner": 5,
+  "justhodl-symbol-dictionary": 7,
+  "justhodl-symbol-feed": 9,
+  "justhodl-symbol-resolver": 5,
+  "justhodl-symbology-master": 5,
+  "justhodl-symdir": 5,
+  "justhodl-sympathetic-momentum": 5,
+  "justhodl-systemic-stress": 5,
+  "justhodl-tail-hedge": 5,
+  "justhodl-tail-risk": 5,
+  "justhodl-taiwan-moea": 5,
+  "justhodl-talent-migration": 5,
+  "justhodl-te-fred-mirror": 7,
+  "justhodl-term-premium": 5,
+  "justhodl-theme-cascade": 5,
+  "justhodl-theme-classifier": 5,
+  "justhodl-theme-detector": 5,
+  "justhodl-theme-rotation": 5,
+  "justhodl-theme-rotation-engine": 5,
+  "justhodl-theme-tier-classifier": 5,
+  "justhodl-tic-flows": 5,
+  "justhodl-ticker-360": 20,
+  "justhodl-ticker-trends": 6,
+  "justhodl-ticket-ai-rationale": 5,
+  "justhodl-trade-ticket-monitor": 5,
+  "justhodl-trade-tickets": 5,
+  "justhodl-tradingview": 6,
+  "justhodl-treasury-fiscal-full": 5,
+  "justhodl-treasury-noise": 5,
+  "justhodl-treasury-rehypo": 5,
+  "justhodl-trend-engine": 5,
+  "justhodl-tv-notes-crawler": 5,
+  "justhodl-tv-workbench": 5,
+  "justhodl-universe-builder": 5,
+  "justhodl-universe-discovery": 5,
+  "justhodl-upside-radar": 5,
+  "justhodl-us-cycle": 5,
+  "justhodl-us10y-sentinel": 5,
+  "justhodl-usd-funding": 5,
+  "justhodl-usgov-direct": 5,
+  "justhodl-valuations-agent": 5,
+  "justhodl-velocity-acceleration": 5,
+  "justhodl-vintage-fred": 9,
+  "justhodl-vix-backwardation-trigger": 5,
+  "justhodl-vix-curve": 5,
+  "justhodl-vix9d-vix-inversion": 5,
+  "justhodl-vol-radar": 5,
+  "justhodl-vol-regime": 5,
+  "justhodl-vol-surface": 5,
+  "justhodl-vol-target-unwind": 5,
+  "justhodl-volatility-squeeze-hunter": 5,
+  "justhodl-vrp": 5,
+  "justhodl-vvix-vov-regime": 5,
+  "justhodl-warm-bridge": 5,
+  "justhodl-watchlist-debate": 5,
+  "justhodl-whales": 5,
+  "justhodl-whats-changed": 5,
+  "justhodl-wl-engines": 19,
+  "justhodl-wl-fusion": 5,
+  "justhodl-worldbank-full": 13,
+  "justhodl-xbrl-fundamentals": 30,
+  "justhodl-yen-carry": 5,
+  "justhodl-yield-curve": 5
+ },
+ "rule": "readers fire after their writers: no reader inside a writer's margin, none within 60 min before it",
+ "summary": {
+  "after": {
+   "buckets": {
+    "1-6h": 531,
+    "12-22h": 816,
+    "6-12h": 456,
+    "<1h": 283,
+    "stale": 31
+   },
+   "edges": 2117,
+   "mean_input_age_h": 9.96,
+   "median_input_age_h": 9.25
+  },
+  "before": {
+   "buckets": {
+    "1-6h": 521,
+    "12-22h": 829,
+    "6-12h": 453,
+    "<1h": 178,
+    "race": 20,
+    "stale": 116
+   },
+   "edges": 2117,
+   "mean_input_age_h": 10.95,
+   "median_input_age_h": 10.5
+  },
+  "edges": 2117,
+  "feedback_edges_ignored": 229,
+  "left_alone_edges": 32,
+  "left_alone_triggers": 22,
+  "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations (886 functions known)",
+  "movable": 731,
+  "move_minutes": {
+   "16-60": 56,
+   "<=15": 23,
+   ">60": 2,
+   "max": 67,
+   "mean": 31.7
+  },
+  "moved_tick_members": 3,
+  "moved_triggers": 81,
+  "moves_by_window": {
+   "overnight": 1,
+   "post-close": 33,
+   "pre-market": 37,
+   "session": 10
+  },
+  "moves_crossing_window_end": 6,
+  "new_ticks": 1,
+  "pinned": 50,
+  "rules": {
+   "grace_min": 30,
+   "late_step_min": 15,
+   "margin_cap_min": 30,
+   "max_move_min": 60,
+   "slot_max": 4,
+   "stale_min": 60
+  },
+  "tick_members": 60,
+  "triggers": 781,
+  "unresolved_regressions": 0,
+  "writers_kept_in_place": 0
+ },
+ "tick_moves": {
+  "justhodl-morning-brief-tg": {
+   "from": "daily-morn",
+   "minute": 675,
+   "reads_in_tick": [
+    "justhodl-fed-speak"
+   ],
+   "to": "daily-morn-late"
+  },
+  "justhodl-nobrainer-rationale": {
+   "from": "daily-morn",
+   "minute": 675,
+   "reads_in_tick": [
+    "justhodl-asymmetric-hunter",
+    "justhodl-deep-value-screener",
+    "justhodl-eps-revision-velocity"
+   ],
+   "to": "daily-morn-late"
+  },
+  "justhodl-sector-earnings-diffusion": {
+   "from": "daily-morn",
+   "minute": 675,
+   "reads_in_tick": [
+    "justhodl-eps-revision-velocity"
+   ],
+   "to": "daily-morn-late"
+  }
+ },
+ "unresolved_regressions": [],
+ "version": "pipeline-order.v1"
+}
