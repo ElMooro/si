@@ -1494,7 +1494,7 @@
   },
   {
    "after": {
-    "expr": "cron(30 3 * * ? *)",
+    "expr": "cron(31 3 * * ? *)",
     "state": "ENABLED"
    },
    "before": {
@@ -1515,10 +1515,10 @@
    ],
    "group": null,
    "kind": "rule",
-   "move_min": 98,
+   "move_min": 99,
    "name": "justhodl-sec-13f-daily",
    "op": "retime",
-   "reason": "pipeline order: 01:52 -> 03:30 UTC (overnight), after SEC EDGAR's print",
+   "reason": "pipeline order: 01:52 -> 03:31 UTC (overnight), after SEC EDGAR's print",
    "why": [
     "print"
    ],
@@ -4481,14 +4481,14 @@
   "justhodl-master-allocator-3h": {
    "left_alone": [
     {
-     "gap_min": 1383,
-     "would_need": "22:55",
-     "writer": "justhodl-asset-compass"
-    },
-    {
      "gap_min": 1388,
      "would_need": "22:50",
      "writer": "justhodl-gold-equity-rotation"
+    },
+    {
+     "gap_min": 1383,
+     "would_need": "22:55",
+     "writer": "justhodl-asset-compass"
     }
    ],
    "window": "post-close"
@@ -4498,12 +4498,12 @@
     {
      "gap_min": 1380,
      "would_need": "18:11",
-     "writer": "justhodl-universe-builder"
+     "writer": "justhodl-sector-tilt"
     },
     {
      "gap_min": 1380,
      "would_need": "18:11",
-     "writer": "justhodl-sector-tilt"
+     "writer": "justhodl-universe-builder"
     }
    ],
    "window": "session"
@@ -4612,6 +4612,7 @@
   "justhodl-cb-injection": 5,
   "justhodl-cb-stance": 5,
   "justhodl-cboe-options-chain": 5,
+  "justhodl-cds-desk": 6,
   "justhodl-cds-monitor": 5,
   "justhodl-cds-proxy": 5,
   "justhodl-census-us": 5,
@@ -5044,27 +5045,27 @@
  "summary": {
   "after": {
    "buckets": {
-    "1-6h": 553,
-    "12-22h": 827,
-    "6-12h": 451,
-    "<1h": 268,
+    "1-6h": 555,
+    "12-22h": 840,
+    "6-12h": 458,
+    "<1h": 269,
     "stale": 18
    },
-   "edges": 2117,
-   "mean_input_age_h": 9.89,
-   "median_input_age_h": 9.37
+   "edges": 2140,
+   "mean_input_age_h": 9.92,
+   "median_input_age_h": 9.42
   },
   "before": {
    "buckets": {
-    "1-6h": 551,
-    "12-22h": 818,
-    "6-12h": 453,
-    "<1h": 277,
+    "1-6h": 554,
+    "12-22h": 830,
+    "6-12h": 460,
+    "<1h": 278,
     "stale": 18
    },
-   "edges": 2117,
-   "mean_input_age_h": 9.81,
-   "median_input_age_h": 9.18
+   "edges": 2140,
+   "mean_input_age_h": 9.83,
+   "median_input_age_h": 9.23
   },
   "bursts_after": {
    "BEA": {
@@ -5214,14 +5215,14 @@
     "minutes_over_cap": 1
    }
   },
-  "edges": 2117,
+  "edges": 2140,
   "feedback_edges_ignored": 229,
   "intraday_lane_members": 12,
   "late_ticks": 2,
   "left_alone_edges": 14,
   "left_alone_triggers": 12,
   "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations + lambda timeout (926 functions known)",
-  "movable": 731,
+  "movable": 750,
   "move_minutes": {
    "16-60": 35,
    "<=15": 76,
@@ -5245,7 +5246,7 @@
   "moves_crossing_window_end": 1,
   "new_ticks": 1,
   "pass": 3,
-  "pinned": 50,
+  "pinned": 51,
   "providers_after": {
    "BEA": {
     "after_the_print": 3,
@@ -5268,7 +5269,7 @@
     "before_it": 0
    },
    "ECB": {
-    "after_the_print": 5,
+    "after_the_print": 6,
     "before_it": 0
    },
    "EIA": {
@@ -5330,7 +5331,7 @@
     "before_it": 1
    },
    "ECB": {
-    "after_the_print": 3,
+    "after_the_print": 4,
     "before_it": 2
    },
    "EIA": {
@@ -5402,7 +5403,7 @@
    "stale_min": 60
   },
   "tick_members": 60,
-  "triggers": 781,
+  "triggers": 801,
   "unresolved_regressions": 0,
   "writers_kept_in_place": 0
  },
