@@ -1,0 +1,22 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FMP EOD/TTM book data/fmp-ratios.json (chart Valuation/Financials desks + fmp_book for the fleet): daily post-close harvest of the chart universe (core 40 + TradingView-banked US names + S&P 500), last-good merge. Replaces the one-off ops 5576 harvest.",
+  "inherit_env": [
+    {"from_function": "justhodl-earnings-quality", "keys": ["FMP_KEY"]}
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_RATIOS_MAX": "700"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fmp-ratios-daily",
+    "cron": "cron(38 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "FMP EOD/TTM book refresh, daily 22:38 UTC (after FMP's EOD prints)"
+  }
+}
