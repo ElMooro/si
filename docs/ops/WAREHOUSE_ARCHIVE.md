@@ -31,8 +31,12 @@ inputs); explicit history lives in its own prefixes as current objects.
 * **Backfill** of the 1.28 M objects that existed before the rule: S3 Batch Replication. The first job
   (`de1a80a2-...`, S3-generated manifest) was cancelled while still preparing (ops 6577): AWS replicates *every
   eligible version* from a generated manifest, which would have carried the loop's 573k old copies into Standard-IA
-  at 30 days' minimum charge each. The job is re-created from a user-supplied manifest of CURRENT versions only
-  (built from the daily S3 Inventory: IsLatest, no delete markers), scheduled for 2026-10-22; ~$14 once.
+  at 30 days' minimum charge each. **Done 2026-10-21 (ops 6583):** the live bucket was listed by the runner itself
+  (`ListObjectVersions` per prefix without a delimiter, `HeadObject` for the 1,243 top-level files - the delimiter
+  walk is the pagination trap of ops 6569/6570), 1,282,031 current objects (18,765 pre-versioning "null" version
+  ids, accepted by the job) written as a CSV manifest to the private bucket, job `523b902a-5e7f-4ade-bf38-8c92eddcc947`
+  created from it; 25 minutes later (ops 6576, 02:47 UTC) 1,229,048 of 1,282,030 tasks had succeeded, 0 failed, and
+  the archive held 1,281,180 current objects / 433.1 GB = the live census. ~$14 once.
 * Cost: ~434 GB in Standard-IA (128 KB minimum per object) ≈ $6-7/month + ~$3-5/month of replication PUTs for the
   daily writes ≈ **$10-12/month**.
 * Restoring from the archive: copy the object (or prefix) back with `aws s3 cp s3://justhodl-warehouse-archive-.../<key>
