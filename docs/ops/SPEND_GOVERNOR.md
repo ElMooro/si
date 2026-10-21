@@ -186,3 +186,13 @@ nothing.  Actions: `storage_check` (dry by default: evaluate and report, record 
 Get/PutBucketVersioning on the live bucket only).  State: `state.storage` {day, days (30), warn_days, trip_days,
 versioning, s3_usd, last}.  The weekly ~140 GB Monday write (census 2026-10-20) sits under the warn line by design.
 
+## v1.5.1 (2026-10-20) - per-service daily spend lines
+
+The same daily Cost Explorer call (by SERVICE) now checks every service against a line: S3 `s3_usd_day_alert` ($10),
+`svc_alert_sagemaker` ($2), `svc_alert_cloudwatch` ($4), `svc_alert_dynamodb` ($2), `svc_alert_ec2` ($1),
+`svc_alert_lambda` ($15), `svc_alert_transfer` ($3), anything else `svc_alert_other` ($5); tax and credits are skipped.
+Any breach -> one notice a day + event `service-spend` (an issue for Khalid). State: `state.storage.svc_usd` (14 days).
+This is the slow second check (a day late) behind the hourly Lambda fuses; it is the one that sees SageMaker, EC2,
+DynamoDB, CloudWatch or a brand-new service start to bill - the classes the sealed IAM denies (ops 6578/6579) are
+meant to make impossible in the first place.
+

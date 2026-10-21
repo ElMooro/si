@@ -122,6 +122,8 @@ class FakeCE:
             if GroupBy and GroupBy[0].get("Key") == "SERVICE":
                 item["Groups"] = [{"Keys": ["Amazon Simple Storage Service"], "Metrics": {"UnblendedCost": {"Amount": str(self.s3_usd.get(d.isoformat(), 1.0))}}},
                                   {"Keys": ["AWS Lambda"], "Metrics": {"UnblendedCost": {"Amount": "4"}}}]
+                item["Groups"] += [{"Keys": [k], "Metrics": {"UnblendedCost": {"Amount": str(v)}}}
+                                   for k, v in getattr(self, "services", {}).get(d.isoformat(), {}).items()]
             elif GroupBy:
                 item["Groups"] = [{"Keys": ["TimedStorage-ByteHrs"], "Metrics": {"UnblendedCost": {"Amount": "1.5"}}},
                                   {"Keys": ["Lambda-GB-Second"], "Metrics": {"UnblendedCost": {"Amount": "9"}}}]
@@ -1143,13 +1145,22 @@ def test_storage_check_waits_for_the_metric_and_runs_once_a_day():
     gov.now_utc = lambda: PINNED
 
 
-def test_storage_s3_spend_alert_once_a_day():
+def test_storage_service_spend_alert_once_a_day():
     w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1001.0}, {})
     w["ce"].s3_usd = {"2026-10-19": 12.25}
+    w["ce"].services = {"2026-10-19": {"Amazon SageMaker": 7.5, "Amazon DynamoDB": 0.3}}
     at("2026-10-20T06:30:00")
     s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
-    check(s["s3_usd_yesterday"] == 12.25 and any("S3 spend" in m["Subject"] for m in w["sns"].sent) and any("-s3-spend.json" in k for k in w["s3"].objects),
-          "S3 service cost above $10 a day is reported with an event")
+    over = {x[0]: x[1] for x in s["services_over_line"]}
+    check(s["s3_usd_yesterday"] == 12.25 and over == {"Amazon Simple Storage Service": 12.25, "Amazon SageMaker": 7.5},
+          "S3 over $10 and SageMaker over $2 are the services over their lines (%s)" % json.dumps(s["services_over_line"]))
+    check(any("service spend" in m["Subject"] for m in w["sns"].sent) and any("-service-spend.json" in k for k in w["s3"].objects), "reported with an event")
+    n = len(w["sns"].sent)
+    gov.lambda_handler({"action": "storage_check", "dry": False}, Context())
+    check(len(w["sns"].sent) == n, "once a day")
+    cfg = core.merged_cfg(None)
+    check(sf.service_breaches({"AWS Lambda": 3.0, "Tax": 50.0, "Amazon Route 53": 6.0}, cfg) == [("Amazon Route 53", 6.0, 5.0)],
+          "unknown services use the 'other' line, tax is skipped, Lambda under its line")
     gov.now_utc = lambda: PINNED
 
 

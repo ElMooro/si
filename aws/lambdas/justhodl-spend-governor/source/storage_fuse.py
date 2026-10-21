@@ -89,3 +89,38 @@ def due(state_storage, now, after_hour):
 
 def utc_day(dt):
     return dt.astimezone(timezone.utc).strftime("%Y-%m-%d")
+
+
+SERVICE_KEYS = {
+    "Amazon Simple Storage Service": "s3", "Amazon SageMaker": "sagemaker", "AmazonCloudWatch": "cloudwatch",
+    "Amazon DynamoDB": "dynamodb", "Amazon Elastic Compute Cloud - Compute": "ec2", "AWS Lambda": "lambda",
+    "AWS Data Transfer": "transfer",
+}
+
+
+def service_usd_by_day(groups_by_day):
+    """{day: [(service, usd), ...]} -> {day: {service: usd}} (services with a non-zero line)."""
+    out = {}
+    for day, groups in groups_by_day.items():
+        row = {}
+        for svc, usd in groups:
+            v = float(usd)
+            if v:
+                row[svc] = round(row.get(svc, 0.0) + v, 4)
+        if row:
+            out[day] = row
+    return out
+
+
+def service_breaches(row, cfg):
+    """[(service, usd, line)] for every service of one day over its line (s3 uses s3_usd_day_alert; unknown services
+    use svc_alert_other; Tax and credits are skipped)."""
+    out = []
+    for svc, usd in sorted((row or {}).items(), key=lambda kv: -kv[1]):
+        if svc.lower() in ("tax", "refund", "credit") or usd <= 0:
+            continue
+        key = SERVICE_KEYS.get(svc)
+        line = cfg["s3_usd_day_alert"] if key == "s3" else cfg.get("svc_alert_" + key, cfg["svc_alert_other"]) if key else cfg["svc_alert_other"]
+        if usd >= line:
+            out.append((svc, usd, line))
+    return out

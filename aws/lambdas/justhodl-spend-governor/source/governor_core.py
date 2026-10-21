@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -87,6 +87,10 @@ DEFAULTS = {
     "storage_hold_top": 1.0,           # writers held on a trip; a second strike holds 3 and suspends versioning
     "storage_after_hour": 5.0,         # UTC hour after which the previous day's S3 metrics are expected
     "s3_usd_day_alert": 10.0,          # yesterday's S3 service cost (Cost Explorer) that is reported
+    # v1.5.1 per-service daily lines (Cost Explorer by SERVICE, one $0.01 call a day): any service over its line is
+    # reported the next morning - the slow second check behind the hourly Lambda fuses
+    "svc_alert_sagemaker": 2.0, "svc_alert_cloudwatch": 4.0, "svc_alert_dynamodb": 2.0, "svc_alert_ec2": 1.0,
+    "svc_alert_lambda": 15.0, "svc_alert_transfer": 3.0, "svc_alert_other": 5.0,
 }
 
 PERSISTENT_USAGE_PATTERNS = (

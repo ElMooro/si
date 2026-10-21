@@ -1096,14 +1096,14 @@ def read_bucket_days(bucket, now):
     return sf.storage_days(points)
 
 
-def s3_spend_yesterday(now):
-    """Cost Explorer by SERVICE for the last 3 days ($0.01) -> {day: S3 usd}."""
+def service_spend(now):
+    """Cost Explorer by SERVICE for the last 3 days ($0.01) -> {day: {service: usd}}."""
     groups = {}
     for r in _ce_pages(TimePeriod={"Start": (now - timedelta(days=3)).date().isoformat(), "End": now.date().isoformat()},
                        Granularity="DAILY", Metrics=["UnblendedCost"], GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}]):
         for t in r["ResultsByTime"]:
             groups[t["TimePeriod"]["Start"]] = [(g["Keys"][0], g["Metrics"]["UnblendedCost"]["Amount"]) for g in t.get("Groups", [])]
-    return sf.s3_usd_by_day(groups)
+    return sf.service_usd_by_day(groups)
 
 
 def storage_check(ctx, state, cfg, now, enforce, force=False, dry=False):
@@ -1165,20 +1165,25 @@ def storage_check(ctx, state, cfg, now, enforce, force=False, dry=False):
                      dict(a, bucket=LIVE_BUCKET, held=held, counts=counts, versioning=versioning, enforce=enforce), now)
         out.update({"held": held, "counts": counts, "versioning": versioning})
     try:
-        usd = s3_spend_yesterday(now)
-        st.setdefault("s3_usd", {}).update(usd)
-        for old in sorted(st["s3_usd"])[:-14]:
-            del st["s3_usd"][old]
-        y = usd.get(yday, 0.0)
-        out["s3_usd_yesterday"] = y
-        if y >= cfg["s3_usd_day_alert"] and st.get("s3_spend_day") != now.date().isoformat():
-            st["s3_spend_day"] = now.date().isoformat()
-            notify("JustHodl S3 spend: $%.2f on %s" % (y, yday), ["S3 service cost by day: %s" % json.dumps(dict(sorted(st["s3_usd"].items())[-7:])),
-                                                                 "Storage, requests and egress together. Runbook: docs/ops/SPEND_GOVERNOR.md."], "enforce" if enforce else "monitor")
-            record_event("s3-spend", {"day": yday, "usd": y, "by_day": st["s3_usd"]}, now)
+        svc = service_spend(now)
+        st.setdefault("svc_usd", {}).update(svc)
+        for old in sorted(st["svc_usd"])[:-14]:
+            del st["svc_usd"][old]
+        st["s3_usd"] = {d: v.get(sf.S3_SERVICE, 0.0) for d, v in st["svc_usd"].items()}
+        row = svc.get(yday) or {}
+        out["s3_usd_yesterday"] = row.get(sf.S3_SERVICE, 0.0)
+        over = sf.service_breaches(row, cfg)
+        out["services_over_line"] = [(s, u, l) for s, u, l in over]
+        if over and st.get("svc_spend_day") != now.date().isoformat():
+            st["svc_spend_day"] = now.date().isoformat()
+            notify("JustHodl service spend on %s: %s" % (yday, ", ".join("%s $%.2f (line $%.0f)" % x for x in over[:4])),
+                   ["Every service over its daily line yesterday: %s" % json.dumps(over),
+                    "All services yesterday: %s" % json.dumps(dict(sorted(row.items(), key=lambda kv: -kv[1])[:10])),
+                    "Lines: control.json thresholds svc_alert_<service>; runbook docs/ops/SPEND_GOVERNOR.md."], "enforce" if enforce else "monitor")
+            record_event("service-spend", {"day": yday, "over": over, "services": row}, now)
     except Exception as e:  # noqa: BLE001 - the cost line is informational
-        ctx.log("s3 spend read failed: %s" % lv.err_code(e))
-        out["s3_usd_error"] = lv.err_code(e)
+        ctx.log("service spend read failed: %s" % lv.err_code(e))
+        out["svc_usd_error"] = lv.err_code(e)
     return out
 
 
@@ -1453,7 +1458,7 @@ def action_status(event, context):
             "anomaly_held": sorted((e["id"], e.get("release_after")) for e in (state.get("ledger") or {}).values() if e.get("stage") == "ANOM"),
             "anomalies": {k: v for k, v in (state.get("anomalies") or {}).items() if k != "last"},
             "meter": {k: v for k, v in (state.get("meter") or {}).items() if k not in ("mtd", "rate")},
-            "storage": {k: v for k, v in (state.get("storage") or {}).items() if k in ("day", "last", "versioning", "warn_days", "trip_days", "s3_usd")}}
+            "storage": {k: v for k, v in (state.get("storage") or {}).items() if k in ("day", "last", "versioning", "warn_days", "trip_days", "s3_usd", "svc_usd")}}
 
 
 def action_plan(event, context):
