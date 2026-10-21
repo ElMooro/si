@@ -12,7 +12,7 @@
   "description": "Bond Desk research: exact dated issuer ETF cohorts with explicit missingness and replay. Legacy regional/analog context remains unqualified; WAIT, no portfolio authority.",
   "schedule": {
     "name": "justhodl-bond-desk-daily",
-    "expression": "cron(15 15 ? * MON-FRI *)",
+    "expression": "cron(55 15 ? * MON-FRI *)",
     "description": "Daily 15:15 UTC after flows+FRED refresh"
   }
 }

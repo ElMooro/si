@@ -16,7 +16,7 @@
   },
   "schedule": {
     "rule_name": "convexity-scorer-daily",
-    "cron": "cron(0 14 ? * MON-FRI *)",
+    "cron": "cron(50 14 ? * MON-FRI *)",
     "description": "Weekdays 14 UTC \u2014 score every candidate's gamma exposure"
   }
 }

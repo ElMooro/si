@@ -12,7 +12,7 @@
   "description": "Macro/sector-rotation confluence — missing sibling to 12 per-ticker confluence engines. Scores each sector on 4 independent families (stock-quadrant, sector posture, rotation-dashboard, rebalance-radar); flags 3+/4 agreement with evidence + Telegram alert.",
   "schedule": {
     "rule_name": "macro-confluence-daily",
-    "cron": "cron(15 22 * * ? *)",
+    "cron": "cron(53 22 * * ? *)",
     "description": "Daily 22:15 UTC — 15 min after etf-fund-flows/rebalance-radar/sector-flow-state settle"
   }
 }

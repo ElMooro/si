@@ -12,7 +12,7 @@
   "description": "Original NY Fed dealer research: 70 retained identities, exact same-date sums, definition conflicts, original-source replay and explicit abstention.",
   "schedule": {
     "name": "justhodl-nyfed-pd-weekly",
-    "expression": "cron(30 21 ? * THU,FRI *)",
+    "expression": "cron(36 21 ? * THU,FRI *)",
     "description": "PD stats publish Thursdays ~16:15 ET for prior Wednesday"
   }
 }

@@ -24,7 +24,7 @@
   },
   "schedule": {
     "rule_name": "premortem-engine-daily",
-    "cron": "cron(0 14 ? * MON-FRI *)",
+    "cron": "cron(50 14 ? * MON-FRI *)",
     "description": "Weekdays 14 UTC \u2014 generate kill theses for top-conviction ideas (after best-ideas runs at 13 UTC)"
   }
 }

@@ -18,7 +18,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-screen-builder-universe-daily",
-    "cron": "cron(0 14 * * ? *)",
+    "cron": "cron(8 14 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Screen Builder universe build daily 14 UTC",

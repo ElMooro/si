@@ -8,7 +8,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-momentum-leaders-hourly",
-    "cron": "cron(25 9 * * ? *)",
+    "cron": "cron(49 9 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Momentum leaders hourly at :25"

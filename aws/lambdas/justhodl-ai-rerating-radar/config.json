@@ -10,7 +10,7 @@
   "description": "AI Re-Rating Radar: finds AI-infra names with high forward growth on a low multiple (cross-sectional EV/Sales-vs-growth residual) that haven't priced in AI-driven growth — before they re-rate. Value-trap guarded, small/mid tilted.",
   "schedule": {
     "rule_name": "ai-rerating-radar-daily",
-    "cron": "cron(15 14 * * ? *)",
+    "cron": "cron(36 14 * * ? *)",
     "description": "Daily AI re-rating scan at 14:15 UTC"
   }
 }

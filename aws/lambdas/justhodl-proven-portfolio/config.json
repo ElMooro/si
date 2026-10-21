@@ -4,6 +4,6 @@
   "memory": 512,
   "env": {"S3_BUCKET": "justhodl-dashboard-live"},
   "schedule": {"scheduler_name": "justhodl-proven-portfolio-daily",
-               "cron": "cron(45 21 ? * * *)",
+               "cron": "cron(1 22 ? * * *)",
                "description": "Daily 21:45 UTC, after the 21:29 outcome-checker"}
 }

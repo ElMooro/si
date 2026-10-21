@@ -1,7 +1,7 @@
 {
  "doctrine": [
   "This manifest is the SOURCE OF TRUTH for every scheduled invocation in the account.",
-  "To add, change or remove a schedule: edit this file, upload it to s3://justhodl-dashboard-live/config/schedule-manifest.json, then run the reconciler in enforce mode. Do NOT call put_rule from ops scripts \u2014 that is how 90 double-fire targets and a five-way duplicate accumulated.",
+  "To add, change or remove a schedule: edit this file, upload it to s3://justhodl-dashboard-live/config/schedule-manifest.json, then run the reconciler in enforce mode. Do NOT call put_rule from ops scripts — that is how 90 double-fire targets and a five-way duplicate accumulated.",
   "Mode lives in SSM /justhodl/schedules/mode (audit|enforce) and takes effect without a redeploy.",
   "Enforcement DISABLES undeclared rules; it never deletes."
  ],
@@ -38,7 +38,7 @@
    ]
   },
   {
-   "expr": "cron(15 14 * * ? *)",
+   "expr": "cron(36 14 * * ? *)",
    "kind": "events",
    "name": "ai-rerating-radar-daily",
    "state": "ENABLED",
@@ -52,7 +52,7 @@
    ]
   },
   {
-   "expr": "cron(45 14 * * ? *)",
+   "expr": "cron(11 15 * * ? *)",
    "kind": "events",
    "name": "alert-sentinel-daily",
    "state": "ENABLED",
@@ -618,7 +618,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 ? * MON-FRI *)",
+   "expr": "cron(50 14 ? * MON-FRI *)",
    "kind": "events",
    "name": "convexity-scorer-daily",
    "state": "ENABLED",
@@ -660,7 +660,7 @@
    ]
   },
   {
-   "expr": "cron(15 15 * * ? *)",
+   "expr": "cron(36 15 * * ? *)",
    "kind": "events",
    "name": "crisis-composite-hourly",
    "state": "ENABLED",
@@ -968,7 +968,7 @@
    ]
   },
   {
-   "expr": "cron(20 12 * * ? *)",
+   "expr": "cron(5 13 * * ? *)",
    "kind": "events",
    "name": "euro-fragmentation-daily",
    "state": "ENABLED",
@@ -1360,7 +1360,7 @@
    ]
   },
   {
-   "expr": "cron(35 21 * * ? *)",
+   "expr": "cron(21 22 * * ? *)",
    "kind": "events",
    "name": "industry-rotation-daily",
    "state": "ENABLED",
@@ -1402,7 +1402,7 @@
    ]
   },
   {
-   "expr": "cron(25 13 ? * MON-FRI *)",
+   "expr": "cron(40 13 ? * MON-FRI *)",
    "kind": "events",
    "name": "intraday-arm-daily",
    "state": "ENABLED",
@@ -1416,7 +1416,7 @@
    ]
   },
   {
-   "expr": "cron(13 12 * * ? *)",
+   "expr": "cron(21 12 * * ? *)",
    "kind": "events",
    "name": "intraday-pulse-minute",
    "state": "ENABLED",
@@ -1808,7 +1808,7 @@
    ]
   },
   {
-   "expr": "cron(3 15 * * ? *)",
+   "expr": "cron(5 15 * * ? *)",
    "kind": "events",
    "name": "jsi-6h",
    "state": "ENABLED",
@@ -1976,7 +1976,7 @@
    ]
   },
   {
-   "expr": "cron(0 21 * * ? *)",
+   "expr": "cron(46 21 * * ? *)",
    "kind": "events",
    "name": "justhodl-alerts-digest-close-daily",
    "state": "ENABLED",
@@ -2032,7 +2032,7 @@
    ]
   },
   {
-   "expr": "cron(30 11 * * ? *)",
+   "expr": "cron(26 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-alpha-daily-brief",
    "state": "ENABLED",
@@ -2186,7 +2186,7 @@
    ]
   },
   {
-   "expr": "cron(10 15 * * ? *)",
+   "expr": "cron(5 16 * * ? *)",
    "kind": "events",
    "name": "justhodl-attention-confluence-daily",
    "state": "ENABLED",
@@ -2326,7 +2326,7 @@
    ]
   },
   {
-   "expr": "cron(10 22 * * ? *)",
+   "expr": "cron(53 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-best-setups-hourly",
    "state": "ENABLED",
@@ -2368,7 +2368,7 @@
    ]
   },
   {
-   "expr": "cron(15 15 ? * MON-FRI *)",
+   "expr": "cron(55 15 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-bond-desk-daily",
    "state": "ENABLED",
@@ -2396,7 +2396,7 @@
    ]
   },
   {
-   "expr": "cron(30 14 * * ? *)",
+   "expr": "cron(25 15 * * ? *)",
    "kind": "events",
    "name": "justhodl-boom-radar-daily",
    "state": "ENABLED",
@@ -2480,7 +2480,7 @@
    ]
   },
   {
-   "expr": "cron(30 13 * * ? *)",
+   "expr": "cron(40 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-buyback-engine-daily",
    "state": "ENABLED",
@@ -2620,7 +2620,7 @@
    ]
   },
   {
-   "expr": "cron(0 13 * * ? *)",
+   "expr": "cron(16 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-carry-surface-sched",
    "state": "ENABLED",
@@ -2760,7 +2760,7 @@
    ]
   },
   {
-   "expr": "cron(50 11 * * ? *)",
+   "expr": "cron(50 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-confluence-meta-daily",
    "state": "ENABLED",
@@ -2914,7 +2914,7 @@
    ]
   },
   {
-   "expr": "cron(54 14 * * ? *)",
+   "expr": "cron(13 15 * * ? *)",
    "kind": "events",
    "name": "justhodl-crisis-plumbing-refresh",
    "state": "ENABLED",
@@ -3306,7 +3306,7 @@
    ]
   },
   {
-   "expr": "cron(15 12 * * ? *)",
+   "expr": "cron(21 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-debate-engine-daily",
    "state": "ENABLED",
@@ -4006,7 +4006,7 @@
    ]
   },
   {
-   "expr": "cron(25 13 * * ? *)",
+   "expr": "cron(20 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-flow-confluence-daily",
    "state": "ENABLED",
@@ -4062,7 +4062,7 @@
    ]
   },
   {
-   "expr": "cron(5 21 ? * MON-FRI *)",
+   "expr": "cron(5 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-forced-selling-bounce-sched",
    "state": "ENABLED",
@@ -4222,7 +4222,7 @@
    ]
   },
   {
-   "expr": "cron(50 22 ? * MON-FRI *)",
+   "expr": "cron(35 23 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-global-flow-desk-daily",
    "state": "ENABLED",
@@ -4334,7 +4334,7 @@
    ]
   },
   {
-   "expr": "cron(30 12 * * ? *)",
+   "expr": "cron(54 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-hot-stocks-digest-am",
    "state": "ENABLED",
@@ -4600,7 +4600,7 @@
    ]
   },
   {
-   "expr": "cron(0 12 * * ? *)",
+   "expr": "cron(11 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-kb-matcher-daily",
    "state": "ENABLED",
@@ -4684,7 +4684,7 @@
    ]
   },
   {
-   "expr": "cron(15 11 * * ? *)",
+   "expr": "cron(6 12 * * ? *)",
    "kind": "events",
    "name": "justhodl-liquidity-inflection-daily",
    "state": "ENABLED",
@@ -4929,7 +4929,7 @@
    ]
   },
   {
-   "expr": "cron(30 13 * * ? *)",
+   "expr": "cron(21 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-my-brief-daily",
    "state": "ENABLED",
@@ -4957,7 +4957,7 @@
    ]
   },
   {
-   "expr": "cron(27 14 * * ? *)",
+   "expr": "cron(35 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-narrative-vs-tape-4h",
    "state": "ENABLED",
@@ -4971,7 +4971,7 @@
    ]
   },
   {
-   "expr": "cron(30 13 * * ? *)",
+   "expr": "cron(21 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-nowcast-desk-daily",
    "state": "ENABLED",
@@ -5055,7 +5055,7 @@
    ]
   },
   {
-   "expr": "cron(30 21 ? * THU,FRI *)",
+   "expr": "cron(36 21 ? * THU,FRI *)",
    "kind": "events",
    "name": "justhodl-nyfed-pd-weekly",
    "state": "ENABLED",
@@ -5363,7 +5363,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 * * ? *)",
+   "expr": "cron(21 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-plumbing-aggregator-hourly",
    "state": "ENABLED",
@@ -5601,7 +5601,7 @@
    ]
   },
   {
-   "expr": "cron(30 12 * * ? *)",
+   "expr": "cron(25 13 * * ? *)",
    "kind": "events",
    "name": "justhodl-prepump-alerts-router-30min",
    "state": "ENABLED",
@@ -5671,7 +5671,7 @@
    ]
   },
   {
-   "expr": "cron(38 21 * * ? *)",
+   "expr": "cron(13 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-provider-catalog-hourly",
    "state": "ENABLED",
@@ -5685,7 +5685,7 @@
    ]
   },
   {
-   "expr": "cron(5 22 * * ? *)",
+   "expr": "cron(35 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-rebalance-daily",
    "state": "ENABLED",
@@ -6118,7 +6118,7 @@
    ]
   },
   {
-   "expr": "cron(55 22 ? * MON-FRI *)",
+   "expr": "cron(35 23 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-sector-capital-fusion-sched",
    "state": "ENABLED",
@@ -6132,7 +6132,7 @@
    ]
   },
   {
-   "expr": "cron(0 22 * * ? *)",
+   "expr": "cron(5 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-sector-emergence-daily",
    "state": "ENABLED",
@@ -6374,7 +6374,7 @@
    ]
   },
   {
-   "expr": "cron(0 21 * * ? *)",
+   "expr": "cron(7 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-signal-logger-6h",
    "state": "ENABLED",
@@ -6416,7 +6416,7 @@
    ]
   },
   {
-   "expr": "cron(10 14 * * ? *)",
+   "expr": "cron(35 14 * * ? *)",
    "kind": "events",
    "name": "justhodl-sizing-engine-daily",
    "state": "ENABLED",
@@ -6556,7 +6556,7 @@
    ]
   },
   {
-   "expr": "cron(30 22 ? * MON-FRI *)",
+   "expr": "cron(58 22 ? * MON-FRI *)",
    "kind": "events",
    "name": "justhodl-stock-xray-daily",
    "state": "ENABLED",
@@ -6710,7 +6710,7 @@
    ]
   },
   {
-   "expr": "cron(45 22 * * ? *)",
+   "expr": "cron(53 22 * * ? *)",
    "kind": "events",
    "name": "justhodl-theme-cascade-backtest-daily",
    "state": "ENABLED",
@@ -6724,7 +6724,7 @@
    ]
   },
   {
-   "expr": "cron(20 18 * * ? *)",
+   "expr": "cron(35 18 * * ? *)",
    "kind": "events",
    "name": "justhodl-theme-cascade-twice-per-hour",
    "state": "ENABLED",
@@ -7158,7 +7158,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 ? * SUN *)",
+   "expr": "cron(16 14 ? * SUN *)",
    "kind": "events",
    "name": "justhodl-weekly-ai-review-sunday",
    "state": "ENABLED",
@@ -7298,7 +7298,7 @@
    ]
   },
   {
-   "expr": "cron(15 22 * * ? *)",
+   "expr": "cron(53 22 * * ? *)",
    "kind": "events",
    "name": "macro-confluence-daily",
    "state": "ENABLED",
@@ -7620,7 +7620,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 ? * MON-FRI *)",
+   "expr": "cron(50 14 ? * MON-FRI *)",
    "kind": "events",
    "name": "premortem-engine-daily",
    "state": "ENABLED",
@@ -7900,7 +7900,7 @@
    ]
   },
   {
-   "expr": "cron(0 12 ? * * *)",
+   "expr": "cron(6 12 ? * * *)",
    "kind": "events",
    "name": "sovereign-stress-daily",
    "state": "ENABLED",
@@ -7998,7 +7998,7 @@
    ]
   },
   {
-   "expr": "cron(0 12 * * ? *)",
+   "expr": "cron(6 12 * * ? *)",
    "kind": "events",
    "name": "systemic-stress-daily",
    "state": "ENABLED",
@@ -8542,7 +8542,7 @@
    ]
   },
   {
-   "expr": "cron(35 10 * * ? *)",
+   "expr": "cron(57 10 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "coinbase-premium-sched",
@@ -9292,7 +9292,7 @@
    ]
   },
   {
-   "expr": "cron(50 11 * * ? *)",
+   "expr": "cron(1 12 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "gov-sources-daily",
@@ -9377,6 +9377,21 @@
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-inventory-drawdown",
      "input": null,
+     "path": null
+    }
+   ]
+  },
+  {
+   "expr": "cron(15 11 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "jhk-tick-daily-morn-late",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-scheduler",
+     "input": "{\"tick\": \"daily-morn-late\"}",
      "path": null
     }
    ]
@@ -9592,7 +9607,7 @@
    ]
   },
   {
-   "expr": "cron(15 22 * * ? *)",
+   "expr": "cron(50 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-asset-compass-daily",
@@ -9622,7 +9637,7 @@
    ]
   },
   {
-   "expr": "cron(10 12 ? * MON-FRI *)",
+   "expr": "cron(6 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-auction-desk-buyback",
@@ -10087,7 +10102,7 @@
    ]
   },
   {
-   "expr": "cron(15 22 * * ? *)",
+   "expr": "cron(16 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-catalyst-chain-daily",
@@ -10327,7 +10342,7 @@
    ]
   },
   {
-   "expr": "cron(15 21 * * ? *)",
+   "expr": "cron(6 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-corr-break-trades-2h",
@@ -10342,7 +10357,7 @@
    ]
   },
   {
-   "expr": "cron(40 21 ? * * *)",
+   "expr": "cron(42 21 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-credit-composite-daily",
@@ -11422,7 +11437,7 @@
    ]
   },
   {
-   "expr": "cron(50 10 * * ? *)",
+   "expr": "cron(35 11 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-industry-boom-daily",
@@ -11617,7 +11632,7 @@
    ]
   },
   {
-   "expr": "cron(17 21 * * ? *)",
+   "expr": "cron(10 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-katlin-permission-refresh",
@@ -11677,7 +11692,7 @@
    ]
   },
   {
-   "expr": "cron(10 4 * * ? *)",
+   "expr": "cron(7 5 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-liq-indicators",
@@ -11767,7 +11782,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 ? * SUN *)",
+   "expr": "cron(8 14 ? * SUN *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ma-target-predictor-weekly",
@@ -11857,7 +11872,7 @@
    ]
   },
   {
-   "expr": "cron(20 21 * * ? *)",
+   "expr": "cron(21 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-master-allocator-3h",
@@ -11872,7 +11887,7 @@
    ]
   },
   {
-   "expr": "cron(15 16 ? * MON-FRI *)",
+   "expr": "cron(5 17 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-master-ranker-weekday-close",
@@ -11932,7 +11947,7 @@
    ]
   },
   {
-   "expr": "cron(25 9 * * ? *)",
+   "expr": "cron(49 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-momentum-leaders-hourly",
@@ -12172,7 +12187,7 @@
    ]
   },
   {
-   "expr": "cron(10 22 * * ? *)",
+   "expr": "cron(50 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-phase-detector-daily",
@@ -12397,7 +12412,7 @@
    ]
   },
   {
-   "expr": "cron(45 21 ? * * *)",
+   "expr": "cron(1 22 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-proven-portfolio-daily",
@@ -12562,7 +12577,7 @@
    ]
   },
   {
-   "expr": "cron(20 21 ? * MON-FRI *)",
+   "expr": "cron(11 22 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-readthrough-sched",
@@ -12592,7 +12607,7 @@
    ]
   },
   {
-   "expr": "cron(0 21 * * ? *)",
+   "expr": "cron(26 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-regime-conditional-router-2h",
@@ -12727,7 +12742,7 @@
    ]
   },
   {
-   "expr": "cron(0 14 * * ? *)",
+   "expr": "cron(8 14 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-screen-builder-universe-daily",
@@ -12862,7 +12877,7 @@
    ]
   },
   {
-   "expr": "cron(50 21 ? * * *)",
+   "expr": "cron(56 21 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-short-book-daily",
@@ -13012,7 +13027,7 @@
    ]
   },
   {
-   "expr": "cron(0 13 ? * SAT *)",
+   "expr": "cron(41 13 ? * SAT *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-spx-beaters-weekly",
@@ -13027,7 +13042,7 @@
    ]
   },
   {
-   "expr": "cron(15 21 ? * MON-FRI *)",
+   "expr": "cron(16 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-spx-ma-daily",
@@ -13207,7 +13222,7 @@
    ]
   },
   {
-   "expr": "cron(55 21 ? * * *)",
+   "expr": "cron(6 22 ? * * *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-supply-chain-graph-daily",
@@ -13267,7 +13282,7 @@
    ]
   },
   {
-   "expr": "cron(0 13 ? * MON-FRI *)",
+   "expr": "cron(46 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-codelists",
@@ -13297,7 +13312,7 @@
    ]
   },
   {
-   "expr": "cron(0 13 ? * MON-FRI *)",
+   "expr": "cron(46 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-fredupdates",
@@ -13312,7 +13327,7 @@
    ]
   },
   {
-   "expr": "cron(38 20 * * ? *)",
+   "expr": "cron(5 21 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-titles",
@@ -13327,7 +13342,7 @@
    ]
   },
   {
-   "expr": "cron(30 21 ? * MON-FRI *)",
+   "expr": "cron(29 22 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-ustbank",
@@ -13342,7 +13357,7 @@
    ]
   },
   {
-   "expr": "cron(0 13 ? * MON-FRI *)",
+   "expr": "cron(46 13 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-symdir-warm",
@@ -13462,7 +13477,7 @@
    ]
   },
   {
-   "expr": "cron(5 9 * * ? *)",
+   "expr": "cron(49 9 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "justhodl-ticker-deep-research-hourly",
@@ -14092,7 +14107,7 @@
    ]
   },
   {
-   "expr": "cron(5 11 * * ? *)",
+   "expr": "cron(6 12 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "risk-gate-daily",
@@ -14107,7 +14122,7 @@
    ]
   },
   {
-   "expr": "cron(15 21 * * ? *)",
+   "expr": "cron(6 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "risk-regime-sched",
@@ -14122,7 +14137,7 @@
    ]
   },
   {
-   "expr": "cron(10 22 * * ? *)",
+   "expr": "cron(11 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "rotation-dashboard-sched",
@@ -14347,7 +14362,7 @@
    ]
   },
   {
-   "expr": "cron(15 21 * * ? *)",
+   "expr": "cron(7 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "tradingview-native-price-rotation",
@@ -14362,7 +14377,7 @@
    ]
   },
   {
-   "expr": "cron(35 11 * * ? *)",
+   "expr": "cron(55 11 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "tradingview-vault-daily",
@@ -14377,7 +14392,7 @@
    ]
   },
   {
-   "expr": "cron(40 21 ? * MON-FRI *)",
+   "expr": "cron(42 21 ? * MON-FRI *)",
    "group": "default",
    "kind": "scheduler",
    "name": "treasury-rehypo-daily",
@@ -14437,7 +14452,7 @@
    ]
   },
   {
-   "expr": "cron(35 22 * * ? *)",
+   "expr": "cron(48 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
    "name": "wl-fusion-sched",

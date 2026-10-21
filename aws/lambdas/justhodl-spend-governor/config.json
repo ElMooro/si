@@ -17,7 +17,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-spend-governor-tick",
-    "cron": "cron(7 * * * ? *)",
+    "cron": "cron(7 6 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Hourly spend-cap tick (ops 6522)",

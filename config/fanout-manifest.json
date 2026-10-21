@@ -17,14 +17,11 @@
    "justhodl-khalid-metrics",
    "justhodl-momentum-breakout",
    "justhodl-momentum-scanner",
-   "justhodl-morning-brief-tg",
    "justhodl-narrative-density-tracker",
-   "justhodl-nobrainer-rationale",
    "justhodl-position-sizer-v2",
    "justhodl-pre-pump-detector",
    "justhodl-revenue-acceleration",
    "justhodl-risk-sizer",
-   "justhodl-sector-earnings-diffusion",
    "justhodl-theme-rotation-engine",
    "justhodl-volatility-squeeze-hunter",
    "permanent-market-intelligence",
@@ -85,6 +82,11 @@
   ],
   "daily-07utc": [
    "justhodl-supply-inflection-scanner"
+  ],
+  "daily-morn-late": [
+   "justhodl-morning-brief-tg",
+   "justhodl-nobrainer-rationale",
+   "justhodl-sector-earnings-diffusion"
   ]
  },
  "disabled": [],
@@ -356,7 +358,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-narrative-density-tracker": {
@@ -374,7 +376,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-nobrainer-tracker": {
@@ -473,7 +475,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-sector-tilt": {
@@ -689,5 +691,20 @@
    "ofrapi",
    "ultimate-multi-agent"
   ]
+ },
+ "pipeline_order_2026_10_20": {
+  "why": "Khalid, 2026-10-20: readers fire after their writers. A member of a tick that reads files written by other members of the same tick (fired in parallel) runs from the tick's late twin a quarter hour later.",
+  "late_ticks": {
+   "daily-morn-late": {
+    "schedule": "jhk-tick-daily-morn-late",
+    "expr": "cron(15 11 * * ? *)",
+    "from_tick": "daily-morn"
+   }
+  },
+  "moved": {
+   "justhodl-morning-brief-tg": "daily-morn-late",
+   "justhodl-nobrainer-rationale": "daily-morn-late",
+   "justhodl-sector-earnings-diffusion": "daily-morn-late"
+  }
  }
 }
