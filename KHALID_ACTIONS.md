@@ -6,6 +6,26 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0j. This morning's alerts (2026-10-21 08:07-08:17 CT) - what they were, what was done
+
+* **ANOMALY e-mail, `justhodl-wl-series-api` held**: the Lightpanda/1.0 crawler looped over forensic / bottom / why /
+  share-flows pages (~1.3 pages a second) and every page view fired the nav drawer's `?diag=1` telemetry beacon
+  (ops 3276) at that Function URL - 9,480 invocations in 8 h, none of them real series requests. The beacon is gone
+  from the served site (Pages run 39607928969), the hold was released at 13:32 UTC (ops 6595; reserved concurrency
+  back to 2). The sentinel did exactly what it should; the crawler is already denied at the bucket (ops 6549) and its
+  page reads come from the edge cache.
+* **justhodl-schedule-drift (21)**: 21 live triggers were never declared in config/schedule-manifest.json (four
+  "residual cost control" rules, fifteen 2026-10-09 risk / CDS-desk schedules, the governor's tick, the disabled
+  katlin rule). Declared (ops 6593/6594, repo + S3); the alarm clears at the reconciler's next 07:30 UTC run.
+* **justhodl-contract-sev1 (46) and justhodl-integrity-new-defects (263)**: freeze aftermath for the most part
+  (719 STALE sev-2 files, 38 ROW_COLLAPSE sev-1 = engines that ran on four-day-old inputs, 170 engines with errors,
+  58 concurrency drops from the thaw). Re-checked 2026-10-22 13:20 UTC after one full cycle. Already real and yours
+  to decide: the two LLM-status mismatches (the voices run against exhausted Anthropic credits / a 429-ing GLM -
+  this is also the `justhodl-llm-providers-down` alarm), four engines that hit their timeout on every run
+  (analytics-snapshot 456/600 s, causality-scanner 558/600 s, imf-full 850/850 s, outcome-checker 736/900 s - a
+  timeout raise or a split, engine changes), and 20 orphan rules targeting functions deleted on Oct 20 (harmless;
+  proposal: disable them).
+
 ### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) waits for the census
 
 The 12 light Polygon feeds refresh every 5 minutes 09:00-16:55 New York time, Monday-Friday (one Scheduler schedule,
