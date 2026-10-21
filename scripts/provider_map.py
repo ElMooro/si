@@ -48,6 +48,13 @@ PROVIDERS = [
     ("own edge", r"justhodl\.ai|justhodl-data-proxy"),
 ]
 NON_DATA = {"LLM", "Telegram", "own edge"}
+# FRED series that print every business day (H.15 rates and yields, FX, commodities, spreads, market indexes): an
+# engine that pulls any of these is freshest in the US morning (yesterday's close is in); an engine that pulls none
+# of them pulls monthly / weekly releases and is freshest after 08:30 ET.  Labelled "FRED" vs "FRED macro".
+FRED_DAILY = re.compile(r"\b(DGS\d+(?:MO)?|DFF|SOFR\w*|EFFR|OBFR|IORB|DPRIME|DTB\d+\w*|T10Y2Y|T10Y3M|T10YIE|T5YIE|T5YIFR|DFII\d+|VIXCLS|"
+                        r"DCOIL\w+|DEX\w+|DTWEX\w+|BAML\w+|NASDAQCOM|SP500|DJIA|WILL5000\w*|DHHNGSP|RRPONT\w+|DPCREDIT|DCPF3M|DCPN3M|DCPD3M|"
+                        r"AAA10Y|BAA10Y|DAAA|DBAA|THREEFY\w+|TEDRATE|GOLDAMGBD\w+|RIFSPP\w+|DGORDER|USD\dMTD156N|DEXSZUS|DSWP\d+|DCPF\dM|"
+                        r"DFEDTAR\w*|DGS\d+\b)\b")
 
 
 def provider_of(host):
@@ -81,6 +88,11 @@ def build(repo=ROOT):
         for m in imports:
             hosts |= shared.get(m, set())
         provs = sorted({pv for pv in (provider_of(h) for h in hosts) if pv})
+        if "FRED" in provs:
+            text = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in sorted(src.rglob("*.py")))
+            text += "\n".join((repo / "aws/shared" / (m + ".py")).read_text(encoding="utf-8", errors="ignore") for m in imports if m in shared)
+            if not FRED_DAILY.search(text):
+                provs = sorted(set(provs) - {"FRED"} | {"FRED macro"})
         out[fn] = provs
     return out
 

@@ -1,0 +1,31 @@
+{
+ "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier.",
+ "tick": "session-5min",
+ "schedule": {"name": "jhk-tick-session-5min", "kind": "sched", "group": "default", "expr": "cron(0/5 9-16 ? * MON-FRI *)", "timezone": "America/New_York"},
+ "cadence_floor_reason": "Khalid 2026-10-21: Polygon feeds refresh during market hours Mon-Fri. One Scheduler schedule fans 12 light engines (live snapshot endpoints, 0.2-12 s runs) out every 5 min 09:00-16:55 New York time (~96 firings a day, ~$1-2 a month in total); every engine's own trigger stays daily; the $50/engine cap and the anomaly sentinel apply unchanged.",
+ "members": [
+  "justhodl-intraday-pulse",
+  "justhodl-trade-ticket-monitor",
+  "justhodl-options-gamma",
+  "justhodl-options-analytics",
+  "justhodl-opex-calendar",
+  "justhodl-market-map",
+  "justhodl-risk-regime",
+  "justhodl-tail-risk",
+  "justhodl-implied-prob",
+  "justhodl-polygon-fx-regime",
+  "justhodl-edge-engine",
+  "justhodl-polygon-futures-curves"
+ ],
+ "not_in_the_lane": {
+  "justhodl-dealer-gex": "129 s x 2 GB per run: $7/month at 5 min, $35 at 1 min - needs an incremental rebuild first",
+  "justhodl-market-internals": "120 s x 3 GB grouped-daily breadth: end-of-day data",
+  "justhodl-polygon-options-flow": "439 s x 4 GB option-chain research: end-of-day",
+  "justhodl-tape-reader": "daily aggregate statistics from grouped-daily bars: end-of-day data",
+  "justhodl-options-flow-scanner": "daily contract lists and daily option bars: end-of-day",
+  "justhodl-money-flow-state": "grouped-daily sector flows: end-of-day",
+  "justhodl-crypto-etf-flows": "daily creations / redemptions: end-of-day",
+  "justhodl-portfolio-snapshot": "previous-day closes: end-of-day",
+  "justhodl-vol-regime": "FRED VIX family: daily"
+ }
+}

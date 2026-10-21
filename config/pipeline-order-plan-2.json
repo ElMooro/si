@@ -1,0 +1,1324 @@
+{
+ "actions": [
+  {
+   "after": {
+    "expr": "cron(50 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(21 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1416,
+     "writer": "justhodl-resilience"
+    }
+   ],
+   "functions": [
+    "justhodl-industry-rotation"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 29,
+   "name": "industry-rotation-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:21 -> 22:50 UTC (post-close), after justhodl-resilience",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(1 17 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 16 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1424,
+     "writer": "justhodl-13f-positions"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-smart-money-cluster"
+    }
+   ],
+   "functions": [
+    "justhodl-attention-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 56,
+   "name": "justhodl-attention-confluence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 16:05 -> 17:01 UTC (session), after justhodl-13f-positions, justhodl-smart-money-cluster",
+   "why": [
+    "order"
+   ],
+   "window": "session"
+  },
+  {
+   "after": {
+    "expr": "cron(35 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(53 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1403,
+     "writer": "justhodl-insider-sell-cluster"
+    }
+   ],
+   "functions": [
+    "justhodl-best-setups"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 42,
+   "name": "justhodl-best-setups-hourly",
+   "op": "retime",
+   "reason": "pipeline order: 22:53 -> 23:35 UTC (post-close), after justhodl-insider-sell-cluster",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 13 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(50 12 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1414,
+     "writer": "justhodl-carry-surface"
+    },
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-vol-surface"
+    }
+   ],
+   "functions": [
+    "justhodl-confluence-meta"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 45,
+   "name": "justhodl-confluence-meta-daily",
+   "op": "retime",
+   "reason": "pipeline order: 12:50 -> 13:35 UTC (pre-market), after justhodl-carry-surface, justhodl-vol-surface",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(36 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1431,
+     "writer": "justhodl-beneish"
+    }
+   ],
+   "functions": [
+    "justhodl-flow-confluence"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 16,
+   "name": "justhodl-flow-confluence-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:20 -> 14:36 UTC (pre-market), after justhodl-beneish",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 23 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-market-extremes"
+    }
+   ],
+   "functions": [
+    "justhodl-forced-selling-bounce"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 60,
+   "name": "justhodl-forced-selling-bounce-sched",
+   "op": "retime",
+   "reason": "pipeline order: 22:05 -> 23:05 UTC (post-close), after justhodl-market-extremes",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(35 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(21 14 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1431,
+     "writer": "census-economic-agent"
+    }
+   ],
+   "functions": [
+    "justhodl-nowcast-desk"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 14,
+   "name": "justhodl-nowcast-desk-daily",
+   "op": "retime",
+   "reason": "pipeline order: 14:21 -> 14:35 UTC (pre-market), after census-economic-agent",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(19 14 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(25 13 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-catalyst-classifier"
+    },
+    {
+     "gap_before_min": 1391,
+     "writer": "justhodl-divcut-warning"
+    },
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-insider-cluster-scanner"
+    }
+   ],
+   "functions": [
+    "justhodl-prepump-alerts-router"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 54,
+   "name": "justhodl-prepump-alerts-router-30min",
+   "op": "retime",
+   "reason": "pipeline order: 13:25 -> 14:19 UTC (pre-market), after justhodl-catalyst-classifier, justhodl-divcut-warning, justhodl-insider-cluster-scanner",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(40 23 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(58 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1403,
+     "writer": "justhodl-best-setups"
+    }
+   ],
+   "functions": [
+    "justhodl-stock-xray"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 42,
+   "name": "justhodl-stock-xray-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:58 -> 23:40 UTC (post-close), after justhodl-best-setups",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(51 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(6 13 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-symdir"
+    }
+   ],
+   "functions": [
+    "justhodl-auction-desk"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 45,
+   "name": "justhodl-auction-desk-buyback",
+   "op": "retime",
+   "reason": "pipeline order: 13:06 -> 13:51 UTC (pre-market), after justhodl-symdir",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(56 13 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 13 ? * MON-FRI *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1424,
+     "writer": "justhodl-auction-desk"
+    }
+   ],
+   "functions": [
+    "justhodl-bond-warroom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 21,
+   "name": "justhodl-bond-warroom-after-auction",
+   "op": "retime",
+   "reason": "pipeline order: 13:35 -> 13:56 UTC (pre-market), after justhodl-auction-desk",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(50 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(6 22 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1401,
+     "writer": "justhodl-cross-asset-rv"
+    }
+   ],
+   "functions": [
+    "justhodl-correlation-break-trade-router"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 44,
+   "name": "justhodl-corr-break-trades-2h",
+   "op": "retime",
+   "reason": "pipeline order: 22:06 -> 22:50 UTC (post-close), after justhodl-cross-asset-rv",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(5 12 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(35 11 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1415,
+     "writer": "justhodl-estimate-revisions"
+    }
+   ],
+   "functions": [
+    "justhodl-industry-boom"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 30,
+   "name": "justhodl-industry-boom-daily",
+   "op": "retime",
+   "reason": "pipeline order: 11:35 -> 12:05 UTC (pre-market), after justhodl-estimate-revisions",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(10 22 * * ? *)",
+    "input_sha": "876173fbf3263324",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1405,
+     "writer": "justhodl-etf-constituents"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-fedwatch-rate-probability"
+    },
+    {
+     "gap_before_min": 1400,
+     "writer": "justhodl-industry-rotation"
+    },
+    {
+     "gap_before_min": 1390,
+     "writer": "justhodl-stealth-accumulation"
+    }
+   ],
+   "functions": [
+    "justhodl-katlin"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 55,
+   "name": "justhodl-katlin-permission-refresh",
+   "op": "retime",
+   "reason": "pipeline order: 22:10 -> 23:05 UTC (post-close), after justhodl-etf-constituents, justhodl-fedwatch-rate-probability, justhodl-industry-rotation, justhodl-stealth-accumulation",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(36 14 ? * SAT *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(41 13 ? * SAT *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": true,
+   "drivers": [
+    {
+     "gap_before_min": 1392,
+     "writer": "justhodl-beneish"
+    },
+    {
+     "gap_before_min": 1403,
+     "writer": "justhodl-earnings-quality"
+    }
+   ],
+   "functions": [
+    "justhodl-spx-beaters"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 55,
+   "name": "justhodl-spx-beaters-weekly",
+   "op": "retime",
+   "reason": "pipeline order: 13:41 -> 14:36 UTC (pre-market), after justhodl-beneish, justhodl-earnings-quality",
+   "why": [
+    "order"
+   ],
+   "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(5 22 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(5 21 * * ? *)",
+    "input_sha": "bd01777c53e6445b",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1385,
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "functions": [
+    "justhodl-symdir"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 60,
+   "name": "justhodl-symdir-titles",
+   "op": "retime",
+   "reason": "pipeline order: 21:05 -> 22:05 UTC (post-close), after justhodl-finviz-universe",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
+  }
+ ],
+ "fanout_removals": {},
+ "intraday_lane": {
+  "already_in_manifest": false,
+  "cadence_floor_reason": "Khalid 2026-10-21: Polygon feeds refresh during market hours Mon-Fri. One Scheduler schedule fans 12 light engines (live snapshot endpoints, 0.2-12 s runs) out every 5 min 09:00-16:55 New York time (~96 firings a day, ~$1-2 a month in total); every engine's own trigger stays daily; the $50/engine cap and the anomaly sentinel apply unchanged.",
+  "exempt_in_floor": false,
+  "members": [
+   "justhodl-edge-engine",
+   "justhodl-implied-prob",
+   "justhodl-intraday-pulse",
+   "justhodl-market-map",
+   "justhodl-opex-calendar",
+   "justhodl-options-analytics",
+   "justhodl-options-gamma",
+   "justhodl-polygon-futures-curves",
+   "justhodl-polygon-fx-regime",
+   "justhodl-risk-regime",
+   "justhodl-tail-risk",
+   "justhodl-trade-ticket-monitor"
+  ],
+  "not_in_the_lane": {
+   "justhodl-crypto-etf-flows": "daily creations / redemptions: end-of-day",
+   "justhodl-dealer-gex": "129 s x 2 GB per run: $7/month at 5 min, $35 at 1 min - needs an incremental rebuild first",
+   "justhodl-market-internals": "120 s x 3 GB grouped-daily breadth: end-of-day data",
+   "justhodl-money-flow-state": "grouped-daily sector flows: end-of-day",
+   "justhodl-options-flow-scanner": "daily contract lists and daily option bars: end-of-day",
+   "justhodl-polygon-options-flow": "439 s x 4 GB option-chain research: end-of-day",
+   "justhodl-portfolio-snapshot": "previous-day closes: end-of-day",
+   "justhodl-tape-reader": "daily aggregate statistics from grouped-daily bars: end-of-day data",
+   "justhodl-vol-regime": "FRED VIX family: daily"
+  },
+  "schedule": {
+   "expr": "cron(0/5 9-16 ? * MON-FRI *)",
+   "group": "default",
+   "kind": "sched",
+   "name": "jhk-tick-session-5min",
+   "timezone": "America/New_York"
+  },
+  "schedule_in_manifest": false,
+  "tick": "session-5min",
+  "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier."
+ },
+ "kept_in_place": {},
+ "late_ticks": {
+  "daily-morn-late": {
+   "current_expr": "cron(15 11 * * ? *)",
+   "exists": true,
+   "expr": "cron(15 11 * * ? *)",
+   "from_tick": "daily-morn",
+   "group": "default",
+   "kind": "sched",
+   "members": [
+    "justhodl-morning-brief-tg",
+    "justhodl-nobrainer-rationale",
+    "justhodl-sector-earnings-diffusion"
+   ],
+   "minute": 675,
+   "name": "jhk-tick-daily-morn-late"
+  }
+ },
+ "left_alone": {
+  "finviz-signals-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1380,
+     "would_need": "22:05",
+     "writer": "justhodl-finviz-universe"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-alerts-digest-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1380,
+     "would_need": "10:05",
+     "writer": "justhodl-episode-reference"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-bond-vol-hourly": {
+   "left_alone": [
+    {
+     "gap_min": 1393,
+     "would_need": "15:13",
+     "writer": "justhodl-daily-report-v3"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-canary-warroom-hourly": {
+   "left_alone": [
+    {
+     "gap_min": 1402,
+     "would_need": "21:33",
+     "writer": "justhodl-factor-regime"
+    }
+   ],
+   "window": "session"
+  },
+  "justhodl-confluence-meta-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1385,
+     "would_need": "14:35",
+     "writer": "justhodl-ai-brief-router"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-forced-selling-bounce-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1395,
+     "would_need": "23:56",
+     "writer": "justhodl-predictability"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-history-snapshotter-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1395,
+     "would_need": "14:08",
+     "writer": "justhodl-insider-cluster-scanner"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-katlin-permission-refresh": {
+   "left_alone": [
+    {
+     "gap_min": 1415,
+     "would_need": "23:35",
+     "writer": "justhodl-sympathetic-momentum"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-liquidity-inflection-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1386,
+     "would_need": "13:09",
+     "writer": "justhodl-vintage-fred"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-prepump-alerts-router-30min": {
+   "left_alone": [
+    {
+     "gap_min": 1394,
+     "would_need": "15:10",
+     "writer": "justhodl-ticket-ai-rationale"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "justhodl-stock-xray-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1390,
+     "would_need": "00:35",
+     "writer": "justhodl-equity-confluence"
+    }
+   ],
+   "window": "post-close"
+  },
+  "justhodl-symdir-titles": {
+   "left_alone": [
+    {
+     "gap_min": 1432,
+     "would_need": "22:29",
+     "writer": "justhodl-provider-catalog"
+    }
+   ],
+   "window": "post-close"
+  },
+  "khalid-adaptive-sched": {
+   "left_alone": [
+    {
+     "gap_min": 1398,
+     "would_need": "15:13",
+     "writer": "justhodl-daily-report-v3"
+    }
+   ],
+   "window": "pre-market"
+  },
+  "risk-gate-daily": {
+   "left_alone": [
+    {
+     "gap_min": 1381,
+     "would_need": "13:10",
+     "writer": "justhodl-euro-fragmentation"
+    }
+   ],
+   "window": "pre-market"
+  }
+ },
+ "margins": {
+  "bea-economic-agent": 5,
+  "bls-labor-agent": 5,
+  "census-economic-agent": 5,
+  "cftc-futures-positioning-agent": 5,
+  "eia-energy-agent": 5,
+  "justhodl-13f-positions": 11,
+  "justhodl-13f-price-divergence": 5,
+  "justhodl-52wk-quality-breakout": 5,
+  "justhodl-ab-test": 5,
+  "justhodl-accumulation-radar": 5,
+  "justhodl-activity-nowcast": 5,
+  "justhodl-ai-brief": 5,
+  "justhodl-ai-brief-router": 5,
+  "justhodl-ai-infra-stack": 5,
+  "justhodl-ai-rerating-radar": 5,
+  "justhodl-air-cargo": 5,
+  "justhodl-alert-backtester": 5,
+  "justhodl-alert-sentinel": 5,
+  "justhodl-allocator": 5,
+  "justhodl-alpha-compass": 5,
+  "justhodl-alpha-confluence": 5,
+  "justhodl-alpha-score": 5,
+  "justhodl-altseason": 5,
+  "justhodl-analyst-actions": 5,
+  "justhodl-analyst-consensus": 5,
+  "justhodl-anomaly-detector": 5,
+  "justhodl-apac-flows": 5,
+  "justhodl-apac-leadlag": 10,
+  "justhodl-apex-fusion": 5,
+  "justhodl-asia-leads": 5,
+  "justhodl-asset-compass": 5,
+  "justhodl-asymmetric-hunter": 5,
+  "justhodl-attention-confluence": 5,
+  "justhodl-auction-crisis-detector": 5,
+  "justhodl-auction-desk": 5,
+  "justhodl-auction-grader": 5,
+  "justhodl-backfill-orchestrator": 5,
+  "justhodl-backlog": 5,
+  "justhodl-backtest-engine": 5,
+  "justhodl-bagger-engine": 14,
+  "justhodl-bank-stress": 5,
+  "justhodl-beneish": 7,
+  "justhodl-benzinga-earnings": 5,
+  "justhodl-best-ideas": 5,
+  "justhodl-best-setups": 5,
+  "justhodl-beta-laggard": 5,
+  "justhodl-bis-crossborder": 5,
+  "justhodl-bis-gleif": 5,
+  "justhodl-blackswan-watch": 8,
+  "justhodl-boj-detail": 5,
+  "justhodl-boj-full": 5,
+  "justhodl-bond-regime-detector": 5,
+  "justhodl-bond-vol": 5,
+  "justhodl-bond-warroom": 5,
+  "justhodl-boom-radar": 5,
+  "justhodl-boom-stage": 5,
+  "justhodl-bottleneck-boom": 5,
+  "justhodl-breadth-divergence": 5,
+  "justhodl-breadth-thrust": 5,
+  "justhodl-buyback-engine": 5,
+  "justhodl-buyback-scanner": 5,
+  "justhodl-buzz-velocity": 8,
+  "justhodl-calibration-fleet": 5,
+  "justhodl-calibration-snapshotter": 5,
+  "justhodl-calibrator": 6,
+  "justhodl-canary-grid": 6,
+  "justhodl-canary-macro": 5,
+  "justhodl-capex-pulse": 5,
+  "justhodl-capital-flow": 5,
+  "justhodl-capital-flow-radar": 5,
+  "justhodl-capital-inflows": 5,
+  "justhodl-capitulation": 5,
+  "justhodl-carry-surface": 10,
+  "justhodl-cascade-recalibrator": 5,
+  "justhodl-cascade-validator": 5,
+  "justhodl-catalyst-calendar": 5,
+  "justhodl-catalyst-classifier": 5,
+  "justhodl-catalyst-clusters": 5,
+  "justhodl-catalyst-skew-premove": 5,
+  "justhodl-cb-injection": 5,
+  "justhodl-cb-stance": 5,
+  "justhodl-cboe-options-chain": 5,
+  "justhodl-cds-monitor": 5,
+  "justhodl-cds-proxy": 5,
+  "justhodl-census-us": 5,
+  "justhodl-cftc-deep-view": 5,
+  "justhodl-chart-patterns": 5,
+  "justhodl-china-liquidity": 5,
+  "justhodl-ciss-stress": 8,
+  "justhodl-coinbase-premium": 5,
+  "justhodl-comeback-screener": 5,
+  "justhodl-commodity-curves": 5,
+  "justhodl-compound-aggregator": 5,
+  "justhodl-congress-alpha": 5,
+  "justhodl-congress-direct": 5,
+  "justhodl-consensus-bottom": 5,
+  "justhodl-construction-housing": 5,
+  "justhodl-consumer-pulse": 5,
+  "justhodl-convergence-radar": 5,
+  "justhodl-convexity-scorer": 5,
+  "justhodl-conviction-engine": 5,
+  "justhodl-corporate-actions": 8,
+  "justhodl-correlation-breaks": 5,
+  "justhodl-correlation-surface": 5,
+  "justhodl-cot-extremes-scanner": 5,
+  "justhodl-cot-feed": 5,
+  "justhodl-cq-feed": 7,
+  "justhodl-credit-before-equity": 5,
+  "justhodl-credit-composite": 5,
+  "justhodl-credit-equity-divergence": 5,
+  "justhodl-credit-stress": 5,
+  "justhodl-crisis-canaries": 5,
+  "justhodl-crisis-composite": 5,
+  "justhodl-crisis-knowledge-base": 5,
+  "justhodl-crisis-plumbing": 5,
+  "justhodl-cro-digest": 5,
+  "justhodl-cross-asset-confirm": 5,
+  "justhodl-cross-asset-regime": 5,
+  "justhodl-cross-asset-rv": 5,
+  "justhodl-crypto-basis": 5,
+  "justhodl-crypto-confluence": 5,
+  "justhodl-crypto-cot": 5,
+  "justhodl-crypto-cycle-risk": 5,
+  "justhodl-crypto-dvol": 5,
+  "justhodl-crypto-etf-flows": 5,
+  "justhodl-crypto-exchange-flows": 5,
+  "justhodl-crypto-funding": 5,
+  "justhodl-crypto-gex": 5,
+  "justhodl-crypto-liquidity": 5,
+  "justhodl-crypto-ma200": 5,
+  "justhodl-crypto-miners": 5,
+  "justhodl-crypto-narratives": 5,
+  "justhodl-crypto-options-surface": 5,
+  "justhodl-crypto-scorecard": 5,
+  "justhodl-crypto-stablecoin-peg": 5,
+  "justhodl-cryptoquant": 8,
+  "justhodl-cusip-map-rebuild": 5,
+  "justhodl-cycle-features": 5,
+  "justhodl-daily-report-v3": 11,
+  "justhodl-dark-pool": 6,
+  "justhodl-deal-scanner": 5,
+  "justhodl-dealer-gex": 6,
+  "justhodl-debate-engine": 5,
+  "justhodl-deep-value-overlap": 5,
+  "justhodl-deep-value-screener": 5,
+  "justhodl-desk-allocator": 5,
+  "justhodl-desk-returns": 5,
+  "justhodl-dislocation-detector": 5,
+  "justhodl-divcut-warning": 5,
+  "justhodl-divergence-engine-v2": 5,
+  "justhodl-divergence-interpreter": 5,
+  "justhodl-divergence-scanner": 5,
+  "justhodl-dix": 5,
+  "justhodl-dollar-radar": 5,
+  "justhodl-early-movers": 5,
+  "justhodl-earnings-blackout": 5,
+  "justhodl-earnings-cascade": 5,
+  "justhodl-earnings-confluence": 5,
+  "justhodl-earnings-iv-crush": 5,
+  "justhodl-earnings-nlp": 5,
+  "justhodl-earnings-pead": 5,
+  "justhodl-earnings-quality": 5,
+  "justhodl-earnings-sentiment": 5,
+  "justhodl-earnings-tracker": 5,
+  "justhodl-earnings-whisper": 5,
+  "justhodl-ecb-deep": 9,
+  "justhodl-ecb-derived": 6,
+  "justhodl-ecb-detail": 5,
+  "justhodl-edge-engine": 5,
+  "justhodl-engine-fusion": 5,
+  "justhodl-engine-leaderboard": 6,
+  "justhodl-engine-signal-map": 5,
+  "justhodl-engine-trust": 5,
+  "justhodl-episode-reference": 5,
+  "justhodl-eps-revision-velocity": 5,
+  "justhodl-equity-confluence": 5,
+  "justhodl-estimate-revisions": 5,
+  "justhodl-etf-constituents": 8,
+  "justhodl-etf-flows": 5,
+  "justhodl-etf-fund-flows": 5,
+  "justhodl-etf-issuer-holdings": 8,
+  "justhodl-etf-true-flows": 10,
+  "justhodl-euro-fragmentation": 5,
+  "justhodl-eurodollar-plumbing": 6,
+  "justhodl-eurodollar-stress": 5,
+  "justhodl-eva-spread": 8,
+  "justhodl-event-study": 5,
+  "justhodl-executive-intel": 6,
+  "justhodl-factor-regime": 5,
+  "justhodl-factor-returns": 5,
+  "justhodl-factor-risk": 5,
+  "justhodl-families-feed": 5,
+  "justhodl-fed-nlp": 5,
+  "justhodl-fed-speak": 5,
+  "justhodl-fedwatch-rate-probability": 5,
+  "justhodl-feed-catalog": 17,
+  "justhodl-feed-registry": 5,
+  "justhodl-fifx-vol-migration": 9,
+  "justhodl-financial-secretary": 5,
+  "justhodl-finra-short": 5,
+  "justhodl-finviz-groups": 5,
+  "justhodl-finviz-news": 5,
+  "justhodl-finviz-universe": 5,
+  "justhodl-firm-book": 5,
+  "justhodl-firm-risk-board": 5,
+  "justhodl-firm-stress": 5,
+  "justhodl-floor-audit": 6,
+  "justhodl-flow-anomaly-detector": 5,
+  "justhodl-flow-confluence": 5,
+  "justhodl-flow-lookthrough": 9,
+  "justhodl-fomc-reaction": 5,
+  "justhodl-foreign-flows": 6,
+  "justhodl-forensic-screen": 5,
+  "justhodl-forward-orders": 5,
+  "justhodl-forward-returns": 5,
+  "justhodl-freight-pulse": 5,
+  "justhodl-fundamentals-engine": 5,
+  "justhodl-funding-plumbing": 5,
+  "justhodl-future-intelligence": 5,
+  "justhodl-gdelt-buzz": 9,
+  "justhodl-gdelt-full": 5,
+  "justhodl-gdelt-sentiment": 5,
+  "justhodl-geopolitical-risk": 5,
+  "justhodl-gf-value": 5,
+  "justhodl-global-business-cycle": 5,
+  "justhodl-global-expansion": 5,
+  "justhodl-global-flows": 5,
+  "justhodl-global-liquidity": 5,
+  "justhodl-global-macro": 5,
+  "justhodl-global-recession": 5,
+  "justhodl-global-sovereign": 5,
+  "justhodl-global-stress": 5,
+  "justhodl-global-tide": 5,
+  "justhodl-gold-equity-rotation": 5,
+  "justhodl-hedge-planner": 5,
+  "justhodl-hiring-velocity": 7,
+  "justhodl-historical-analogs": 5,
+  "justhodl-hkma-monitor": 5,
+  "justhodl-hot-money": 5,
+  "justhodl-house-ptr-extract": 5,
+  "justhodl-hyperliquid-perps": 5,
+  "justhodl-ignition": 5,
+  "justhodl-impact-graph": 5,
+  "justhodl-import-canary": 7,
+  "justhodl-index-inclusion": 5,
+  "justhodl-index-recon": 5,
+  "justhodl-indicator-bus": 5,
+  "justhodl-industry-boom": 5,
+  "justhodl-industry-rotation": 8,
+  "justhodl-insider-aggregate": 5,
+  "justhodl-insider-buyback-confluence": 5,
+  "justhodl-insider-buys-enriched": 5,
+  "justhodl-insider-cluster-scanner": 18,
+  "justhodl-insider-industry-cluster": 5,
+  "justhodl-insider-radar": 5,
+  "justhodl-insider-sell-cluster": 5,
+  "justhodl-insider-trades": 5,
+  "justhodl-jhsignal-bridge": 5,
+  "justhodl-khalid-metrics": 5,
+  "justhodl-khalid-risk": 5,
+  "justhodl-lambda-inventory": 8,
+  "justhodl-leading-markets": 5,
+  "justhodl-liquidity-agent": 5,
+  "justhodl-liquidity-capacity": 5,
+  "justhodl-liquidity-credit-engine": 5,
+  "justhodl-liquidity-inflection": 5,
+  "justhodl-liquidity-pulse": 5,
+  "justhodl-live-pulse": 5,
+  "justhodl-llm-cost-dashboard": 5,
+  "justhodl-ma-reversion": 5,
+  "justhodl-ma200-reclaim": 5,
+  "justhodl-macro-attribution": 5,
+  "justhodl-macro-leads": 5,
+  "justhodl-macro-nowcast": 5,
+  "justhodl-macro-regime": 5,
+  "justhodl-macro-surprise": 5,
+  "justhodl-magic-formula": 5,
+  "justhodl-magnitude-distributions": 6,
+  "justhodl-market-extremes": 5,
+  "justhodl-market-internals": 5,
+  "justhodl-market-map": 5,
+  "justhodl-market-tape": 5,
+  "justhodl-massive-signals": 5,
+  "justhodl-master-allocator": 5,
+  "justhodl-master-ranker": 5,
+  "justhodl-mean-reversion": 5,
+  "justhodl-merger-arb": 5,
+  "justhodl-merger-arb-risk": 5,
+  "justhodl-microcap-float-squeeze": 5,
+  "justhodl-miss-detector": 5,
+  "justhodl-momentum-breakout": 5,
+  "justhodl-momentum-leaders": 5,
+  "justhodl-momentum-scanner": 5,
+  "justhodl-money-flow-state": 5,
+  "justhodl-morning-brief-tg": 5,
+  "justhodl-move-index": 5,
+  "justhodl-naaim": 5,
+  "justhodl-narrative-vs-tape": 5,
+  "justhodl-near-miss-monitor": 5,
+  "justhodl-news-velocity": 18,
+  "justhodl-news-wire": 5,
+  "justhodl-nobrainer-rationale": 5,
+  "justhodl-notes-intel": 5,
+  "justhodl-nowcast-desk": 5,
+  "justhodl-nyfed-full-history": 5,
+  "justhodl-nyfed-pd": 6,
+  "justhodl-nyfed-repo-deep": 5,
+  "justhodl-oecd-cli": 5,
+  "justhodl-official-pulse": 5,
+  "justhodl-onchain-ratios": 5,
+  "justhodl-opportunities-research": 5,
+  "justhodl-opportunity-engine": 5,
+  "justhodl-options-analytics": 5,
+  "justhodl-options-confluence": 5,
+  "justhodl-options-flow": 5,
+  "justhodl-options-flow-scanner": 5,
+  "justhodl-options-gamma": 5,
+  "justhodl-pairs-arb": 5,
+  "justhodl-pairs-scanner": 5,
+  "justhodl-pead-detector": 5,
+  "justhodl-peer-comparison": 5,
+  "justhodl-peru-copper": 5,
+  "justhodl-phase-detector": 5,
+  "justhodl-playbook-engine": 5,
+  "justhodl-plumbing-aggregator": 5,
+  "justhodl-plumbing-composite": 5,
+  "justhodl-pm-decision": 5,
+  "justhodl-pnl-attribution": 5,
+  "justhodl-pnl-tracker": 5,
+  "justhodl-political-ai-investigation": 5,
+  "justhodl-political-intel": 5,
+  "justhodl-political-stocks": 5,
+  "justhodl-political-trades": 5,
+  "justhodl-polygon-futures-curves": 5,
+  "justhodl-polygon-fx-regime": 5,
+  "justhodl-polygon-options-flow": 13,
+  "justhodl-port-cargo": 6,
+  "justhodl-portfolio-risk": 5,
+  "justhodl-portfolio-snapshot": 5,
+  "justhodl-portwatch": 7,
+  "justhodl-position-sizer-v2": 5,
+  "justhodl-pre-pump-detector": 5,
+  "justhodl-predictability": 6,
+  "justhodl-prediction-snapshotter": 5,
+  "justhodl-premortem-engine": 5,
+  "justhodl-prepump-alerts-router": 5,
+  "justhodl-proven-portfolio": 5,
+  "justhodl-provider-catalog": 16,
+  "justhodl-pump-positioning": 5,
+  "justhodl-put-call-extreme": 5,
+  "justhodl-rating-change-cluster": 5,
+  "justhodl-readthrough": 5,
+  "justhodl-rebalance-radar": 5,
+  "justhodl-regime-composite": 5,
+  "justhodl-regime-conditional-router": 5,
+  "justhodl-regime-conditional-trust": 5,
+  "justhodl-regime-engine": 5,
+  "justhodl-regime-map": 5,
+  "justhodl-regime-playbook": 5,
+  "justhodl-repo": 15,
+  "justhodl-repo-lending": 5,
+  "justhodl-repo-market": 5,
+  "justhodl-repo-monitor": 6,
+  "justhodl-research-papers": 5,
+  "justhodl-resilience": 5,
+  "justhodl-retail-sentiment": 5,
+  "justhodl-revenue-acceleration": 5,
+  "justhodl-reversal-radar": 5,
+  "justhodl-risk-gate": 5,
+  "justhodl-risk-monitor": 5,
+  "justhodl-risk-radar": 5,
+  "justhodl-risk-ratios": 5,
+  "justhodl-risk-regime": 5,
+  "justhodl-risk-sizer": 5,
+  "justhodl-rotation-chain": 5,
+  "justhodl-rotation-dashboard": 5,
+  "justhodl-rotation-radar": 5,
+  "justhodl-scarcity-radar": 5,
+  "justhodl-sdmx-walker": 5,
+  "justhodl-sec-10kq": 5,
+  "justhodl-sec-13f": 5,
+  "justhodl-sec-8k-enrich": 5,
+  "justhodl-sec-filings-intel": 5,
+  "justhodl-sector-flow-state": 5,
+  "justhodl-sector-rotation": 5,
+  "justhodl-sector-tilt": 5,
+  "justhodl-self-improvement": 5,
+  "justhodl-settlement-fails": 5,
+  "justhodl-share-flows": 5,
+  "justhodl-short-book": 5,
+  "justhodl-short-interest": 8,
+  "justhodl-short-pressure": 5,
+  "justhodl-signal-backtest": 5,
+  "justhodl-signal-board": 5,
+  "justhodl-signal-fabric": 5,
+  "justhodl-signal-halflife": 5,
+  "justhodl-signal-optimizer": 6,
+  "justhodl-signal-orthogonality": 5,
+  "justhodl-signal-portfolio": 5,
+  "justhodl-signal-scorecard": 5,
+  "justhodl-singapore-nodx": 5,
+  "justhodl-sizing-engine": 5,
+  "justhodl-skew-tail-hedging": 5,
+  "justhodl-smart-beta": 5,
+  "justhodl-smart-money-13f": 5,
+  "justhodl-smart-money-cluster": 5,
+  "justhodl-smart-money-holdings": 5,
+  "justhodl-sovereign-fiscal": 5,
+  "justhodl-sovereign-stress": 11,
+  "justhodl-sp500": 5,
+  "justhodl-spinoff-desk": 5,
+  "justhodl-spx-beaters": 5,
+  "justhodl-spx-history": 5,
+  "justhodl-spx-ma": 5,
+  "justhodl-squeeze-fuel": 6,
+  "justhodl-squeeze-pretrigger": 5,
+  "justhodl-stablecoin-flow": 5,
+  "justhodl-starmine": 5,
+  "justhodl-stealth-accumulation": 5,
+  "justhodl-stock-screener": 7,
+  "justhodl-stock-valuations": 5,
+  "justhodl-stock-xray": 5,
+  "justhodl-stocktwits": 5,
+  "justhodl-strategist": 7,
+  "justhodl-strategy-portfolio": 5,
+  "justhodl-stress-index": 5,
+  "justhodl-stress-scenarios": 5,
+  "justhodl-structural-pre-signals": 5,
+  "justhodl-supply-chain-graph": 5,
+  "justhodl-supply-chain-linkage": 5,
+  "justhodl-supply-inflection-scanner": 5,
+  "justhodl-symbol-dictionary": 7,
+  "justhodl-symbol-feed": 8,
+  "justhodl-symbol-resolver": 5,
+  "justhodl-symbology-master": 5,
+  "justhodl-symdir": 5,
+  "justhodl-sympathetic-momentum": 5,
+  "justhodl-systemic-stress": 5,
+  "justhodl-tail-hedge": 5,
+  "justhodl-tail-risk": 5,
+  "justhodl-taiwan-moea": 5,
+  "justhodl-talent-migration": 5,
+  "justhodl-te-fred-mirror": 7,
+  "justhodl-term-premium": 5,
+  "justhodl-theme-cascade": 5,
+  "justhodl-theme-classifier": 5,
+  "justhodl-theme-detector": 5,
+  "justhodl-theme-rotation": 5,
+  "justhodl-theme-rotation-engine": 5,
+  "justhodl-theme-tier-classifier": 5,
+  "justhodl-tic-flows": 5,
+  "justhodl-ticker-360": 13,
+  "justhodl-ticker-trends": 6,
+  "justhodl-ticket-ai-rationale": 5,
+  "justhodl-trade-ticket-monitor": 5,
+  "justhodl-trade-tickets": 5,
+  "justhodl-tradingview": 6,
+  "justhodl-treasury-fiscal-full": 5,
+  "justhodl-treasury-noise": 5,
+  "justhodl-treasury-rehypo": 5,
+  "justhodl-trend-engine": 5,
+  "justhodl-tv-notes-crawler": 5,
+  "justhodl-tv-workbench": 5,
+  "justhodl-universe-builder": 5,
+  "justhodl-universe-discovery": 5,
+  "justhodl-upside-radar": 5,
+  "justhodl-us-cycle": 5,
+  "justhodl-us10y-sentinel": 5,
+  "justhodl-usd-funding": 5,
+  "justhodl-usgov-direct": 5,
+  "justhodl-valuations-agent": 5,
+  "justhodl-velocity-acceleration": 5,
+  "justhodl-vintage-fred": 9,
+  "justhodl-vix-backwardation-trigger": 5,
+  "justhodl-vix-curve": 5,
+  "justhodl-vix9d-vix-inversion": 5,
+  "justhodl-vol-radar": 5,
+  "justhodl-vol-regime": 5,
+  "justhodl-vol-surface": 5,
+  "justhodl-vol-target-unwind": 5,
+  "justhodl-volatility-squeeze-hunter": 5,
+  "justhodl-vrp": 5,
+  "justhodl-vvix-vov-regime": 5,
+  "justhodl-warm-bridge": 5,
+  "justhodl-watchlist-debate": 5,
+  "justhodl-whales": 5,
+  "justhodl-whats-changed": 5,
+  "justhodl-wl-engines": 18,
+  "justhodl-wl-fusion": 5,
+  "justhodl-worldbank-full": 13,
+  "justhodl-xbrl-fundamentals": 18,
+  "justhodl-yen-carry": 5,
+  "justhodl-yield-curve": 5
+ },
+ "pass": 2,
+ "rule": "readers fire after their writers: no reader inside a writer's margin, none within 60 min before it",
+ "summary": {
+  "after": {
+   "buckets": {
+    "1-6h": 551,
+    "12-22h": 818,
+    "6-12h": 453,
+    "<1h": 277,
+    "stale": 18
+   },
+   "edges": 2117,
+   "mean_input_age_h": 9.81,
+   "median_input_age_h": 9.18
+  },
+  "before": {
+   "buckets": {
+    "1-6h": 529,
+    "12-22h": 816,
+    "6-12h": 456,
+    "<1h": 284,
+    "stale": 32
+   },
+   "edges": 2117,
+   "mean_input_age_h": 9.96,
+   "median_input_age_h": 9.25
+  },
+  "bursts_after": {},
+  "bursts_before": {},
+  "edges": 2117,
+  "feedback_edges_ignored": 229,
+  "intraday_lane_members": 12,
+  "late_ticks": 1,
+  "left_alone_edges": 14,
+  "left_alone_triggers": 14,
+  "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations + lambda timeout (926 functions known)",
+  "movable": 731,
+  "move_minutes": {
+   "16-60": 15,
+   "<=15": 1,
+   ">60": 0,
+   "max": 60,
+   "mean": 41.8
+  },
+  "moved_tick_members": 0,
+  "moved_triggers": 16,
+  "moves_by_why": {
+   "order": 16
+  },
+  "moves_by_window": {
+   "post-close": 7,
+   "pre-market": 8,
+   "session": 1
+  },
+  "moves_crossing_window_end": 3,
+  "new_ticks": 0,
+  "pass": 2,
+  "pinned": 50,
+  "providers_after": {},
+  "providers_before": {},
+  "rules": {
+   "grace_min": 30,
+   "late_step_min": 15,
+   "margin_cap_min": 30,
+   "max_move_min": 60,
+   "only_lane": true,
+   "provider_margin_min": null,
+   "provider_max_move_min": null,
+   "provider_slot_max": {},
+   "slot_max": 4,
+   "stale_min": 60
+  },
+  "tick_members": 60,
+  "triggers": 781,
+  "unresolved_regressions": 0,
+  "writers_kept_in_place": 0
+ },
+ "tick_moves": {},
+ "unresolved_regressions": [],
+ "version": "pipeline-order.v2"
+}

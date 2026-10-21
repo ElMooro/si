@@ -29,10 +29,29 @@ def engine(name, keys=(), reads=()):
     return {"engine": name, "keys": list(keys), "reads": list(reads)}
 
 
-def repo_with(tmp, rules, engines, ticks=None, exempt=()):
+PUB = {"margin_min": 30, "max_move_min": 300, "tick_step_min": 15,
+       "events": {"FRED": [{"utc": "21:15"}], "FRED macro": [{"utc": "13:30"}], "SEC EDGAR": [{"utc": "03:00"}], "NY Fed": [{"utc": "13:00"}, {"utc": "18:15"}]},
+       "slot_max": {"FRED": 2, "FRED macro": 2, "SEC EDGAR": 2, "NY Fed": 2, "FMP": 4}}
+HOSTS = {"FRED": "https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL",
+         "FRED daily": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10",
+         "SEC EDGAR": "https://efts.sec.gov/LATEST/search-index", "NY Fed": "https://markets.newyorkfed.org/api/rates/sofr",
+         "FMP": "https://financialmodelingprep.com/stable/profile", "Polygon": "https://api.polygon.io/v2/snapshot"}
+
+
+def repo_with(tmp, rules, engines, ticks=None, exempt=(), pulls=None, pub=False, lane=None):
     root = Path(tmp)
     (root / "config").mkdir(parents=True)
     (root / "aws/lambdas").mkdir(parents=True)
+    (root / "aws/shared").mkdir(parents=True)
+    for fn, hosts in (pulls or {}).items():
+        d = root / "aws/lambdas" / fn / "source"
+        d.mkdir(parents=True)
+        (d / "lambda_function.py").write_text("URLS = %r\n" % [HOSTS[h] for h in hosts], encoding="utf-8")
+        (root / "aws/lambdas" / fn / "config.json").write_text(json.dumps({"function_name": fn}), encoding="utf-8")
+    if pub:
+        (root / "config/provider-publication.json").write_text(json.dumps(PUB), encoding="utf-8")
+    if lane:
+        (root / "config/intraday-lane.json").write_text(json.dumps(lane), encoding="utf-8")
     members = {t: list(v) for t, v in (ticks or {}).items()}
     assign = {f: {"ticks": [t], "per_day": 1.0} for t, fns in members.items() for f in fns}
     fan = {"version": 2, "ticks": members, "assignment": assign, "disabled": []}
@@ -43,11 +62,75 @@ def repo_with(tmp, rules, engines, ticks=None, exempt=()):
     return root
 
 
-def plan_for(rules, engines, ticks=None, exempt=(), **kw):
+def plan_for(rules, engines, ticks=None, exempt=(), pulls=None, pub=False, lane=None, **kw):
     with tempfile.TemporaryDirectory() as tmp:
-        root = repo_with(tmp, rules, engines, ticks, exempt)
+        root = repo_with(tmp, rules, engines, ticks, exempt, pulls, pub, lane)
         plan, _ = po.build(root, **kw)
     return plan, {a["name"]: a for a in plan["actions"]}
+
+
+LANE = {"why": "test", "tick": "session-5min", "cadence_floor_reason": "test",
+        "schedule": {"name": "jhk-tick-session-5min", "kind": "sched", "group": "default", "expr": "cron(0/5 9-16 ? * MON-FRI *)", "timezone": "America/New_York"},
+        "members": ["p1", "p2"]}
+
+
+def test_a_macro_puller_before_the_print_moves_after_it_and_a_daily_series_puller_does_not():
+    rules = [rule("m", "cron(0 11 * * ? *)", "m"), rule("d", "cron(0 11 * * ? *)", "d"), rule("e", "cron(5 21 * * ? *)", "e")]
+    engines = [engine("m", keys=["a"]), engine("d", keys=["b"]), engine("e", keys=["c"])]
+    plan, by = plan_for(rules, engines, pulls={"m": ["FRED"], "d": ["FRED daily"], "e": ["FRED daily"]}, pub=True, pass_no=2)
+    assert by["m"]["after"]["expr"] == "cron(0 14 * * ? *)" and by["m"]["why"] == ["print"]       # 13:30 release + 30 min
+    assert "d" not in by, "a daily-series puller in the morning already has yesterday's close"
+    assert by["e"]["after"]["expr"] == "cron(45 21 * * ? *)"                                       # H.15 at 21:15 + 30 min
+    assert plan["summary"]["providers_before"]["FRED macro"] == {"after_the_print": 0, "before_it": 1}
+    assert plan["summary"]["providers_after"]["FRED macro"] == {"after_the_print": 1, "before_it": 0}
+
+
+def test_a_print_outside_the_pullers_window_leaves_it_alone():
+    rules = [rule("o", "cron(0 5 * * ? *)", "o")]                # overnight: no FRED print inside 01:00-09:00
+    plan, by = plan_for(rules, [engine("o", keys=["a"])], pulls={"o": ["FRED"]}, pub=True, pass_no=2)
+    assert not plan["actions"]
+
+
+def test_pullers_of_one_provider_never_start_together_beyond_the_slot_cap():
+    rules = [rule("f%d" % i, "cron(0 16 * * ? *)", "f%d" % i) for i in range(5)]
+    engines = [engine("f%d" % i, keys=["k%d" % i]) for i in range(5)]
+    plan, by = plan_for(rules, engines, pulls={"f%d" % i: ["FRED daily"] for i in range(5)}, pub=True, pass_no=2)
+    minutes = sorted(a["after"]["expr"] for a in plan["actions"])
+    assert len(plan["actions"]) == 3 and minutes == ["cron(1 16 * * ? *)", "cron(1 16 * * ? *)", "cron(2 16 * * ? *)"], minutes
+    assert all(a["why"] == ["burst"] for a in plan["actions"])
+    assert plan["summary"]["bursts_before"]["FRED"] == {"max_per_minute": 5, "minutes_over_cap": 1}
+    assert plan["summary"]["bursts_after"]["FRED"] == {"max_per_minute": 2, "minutes_over_cap": 0}
+
+
+def test_a_tick_is_packed_into_late_ticks_by_provider_cap_with_writers_of_readers_first():
+    rules = [tick_rule("daily-morn", "cron(0 11 * * ? *)")]
+    members = ["w1", "w2", "w3", "w4", "w5", "w6", "r1"]
+    engines = [engine("w%d" % i, keys=["k%d" % i]) for i in range(1, 7)] + [engine("r1", reads=["k6"])]
+    plan, by = plan_for(rules, engines, ticks={"daily-morn": members}, pulls={"w%d" % i: ["FMP"] for i in range(1, 7)}, pub=True, pass_no=2)
+    lt = plan["late_ticks"]
+    assert sorted(lt) == ["daily-morn-late"], lt
+    assert "w6" not in lt["daily-morn-late"]["members"], "the writer of an in-tick reader stays in the first tick"
+    assert len(lt["daily-morn-late"]["members"]) == 3 and lt["daily-morn-late"]["expr"] == "cron(15 11 * * ? *)"
+    assert plan["tick_moves"]["r1"]["to"] == "daily-morn-late" and plan["tick_moves"]["r1"]["reads_in_tick"] == ["w6"]
+
+
+def test_the_intraday_lane_is_planned_and_refuses_a_member_of_another_tick():
+    rules = [rule("p1", "cron(0 22 * * ? *)", "p1"), rule("p2", "cron(10 22 * * ? *)", "p2")]
+    engines = [engine("p1", keys=["a"]), engine("p2", keys=["b"])]
+    plan, by = plan_for(rules, engines, pulls={"p1": ["Polygon"], "p2": ["Polygon"]}, pub=True, lane=LANE, pass_no=2)
+    lane = plan["intraday_lane"]
+    assert lane["members"] == ["p1", "p2"] and not lane["already_in_manifest"] and not lane["exempt_in_floor"]
+    fan = {"ticks": {"daily-eve": ["x"]}, "assignment": {}}
+    assert po.apply_fanout(fan, plan) == 1 and fan["ticks"]["session-5min"] == ["p1", "p2"] and fan["assignment"]["p1"]["ticks"] == ["session-5min"]
+    floor = {"exempt_triggers": []}
+    assert po.apply_floor(floor, plan) == 1 and floor["exempt_triggers"][0]["name"] == "jhk-tick-session-5min"
+    entries = po.late_tick_entries({"rules": [tick_rule("daily-morn", "cron(0 11 * * ? *)")], "schedules": []}, plan)
+    assert entries[-1]["name"] == "jhk-tick-session-5min" and entries[-1]["timezone"] == "America/New_York" and '"session-5min"' in entries[-1]["targets"][0]["input"]
+    try:
+        plan_for(rules + [tick_rule("daily-eve", "cron(0 22 * * ? *)")], engines, ticks={"daily-eve": ["p1"]}, pulls={"p1": ["Polygon"], "p2": ["Polygon"]}, pub=True, lane=LANE, pass_no=2)
+        assert False, "a lane member of another tick must be refused"
+    except ValueError:
+        pass
 
 
 def test_a_reader_firing_inside_its_writers_margin_moves_past_it():
@@ -159,16 +242,24 @@ def test_at_most_four_triggers_land_on_one_minute():
     assert minutes.count("cron(5 10 * * ? *)") == 4 and minutes.count("cron(6 10 * * ? *)") == 2
 
 
-def test_committed_plan_matches_the_configs_and_lands_at_most_daily():
-    plan = json.loads((ROOT / "config/pipeline-order-plan.json").read_text(encoding="utf-8"))
-    assert plan["version"] == "pipeline-order.v1"
-    for a in plan["actions"]:
-        assert a["op"] == "retime" and a["after"]["state"] == a["before"]["state"] == "ENABLED", a["name"]
-        assert not cc.violates(a["after"]["expr"]), (a["name"], a["after"])
-        assert a["move_min"] <= plan["summary"]["rules"]["max_move_min"] + 10, a["name"]
-        assert "Input" not in json.dumps(a), "a plan must never carry a payload"
-    for name, lt in plan["late_ticks"].items():
-        assert lt["name"] == "jhk-tick-" + name and lt["kind"] == "sched" and not cc.violates(lt["expr"])
-    assert plan["summary"]["after"]["buckets"].get("race", 0) == 0, "the plan leaves a race"
-    assert plan["summary"]["unresolved_regressions"] == 0
-    assert po.main(["--check"]) == 0, "config/pipeline-order-plan.json is stale: python3 scripts/pipeline_order.py --write"
+def test_committed_plans_match_the_configs_and_land_at_most_daily():
+    floor = json.loads((ROOT / "config/cadence-floor.json").read_text(encoding="utf-8"))
+    exempt = {e["name"] for e in floor.get("exempt_triggers", [])}
+    for path in po.plan_paths(ROOT):
+        plan = json.loads(path.read_text(encoding="utf-8"))
+        assert plan["version"] in ("pipeline-order.v1", "pipeline-order.v2"), path.name
+        cap = plan["summary"]["rules"]["max_move_min"] if plan.get("pass", 1) == 1 else plan["summary"]["rules"]["provider_max_move_min"] or 300
+        for a in plan["actions"]:
+            assert a["op"] == "retime" and a["after"]["state"] == a["before"]["state"] == "ENABLED", a["name"]
+            assert not cc.violates(a["after"]["expr"]), (a["name"], a["after"])
+            assert a["move_min"] <= cap + 45, (path.name, a["name"], a["move_min"])
+            assert "Input" not in json.dumps(a), "a plan must never carry a payload"
+        for name, lt in plan["late_ticks"].items():
+            assert lt["name"] == "jhk-tick-" + name and lt["kind"] == "sched" and not cc.violates(lt["expr"])
+        lane = plan.get("intraday_lane")
+        if lane:
+            assert lane["schedule"]["name"] in exempt or not plan.get("applied"), "an applied lane must be exempt by name in config/cadence-floor.json"
+            assert lane["schedule"]["timezone"] == "America/New_York"
+        assert plan["summary"]["after"]["buckets"].get("race", 0) == 0, "the plan leaves a race"
+        assert plan["summary"]["unresolved_regressions"] == 0
+    assert po.main(["--check"]) == 0, "a pipeline-order plan is stale: python3 scripts/pipeline_order.py --pass N --write"

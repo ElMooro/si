@@ -1,0 +1,34 @@
+{
+ "why": "Khalid, 2026-10-21: a puller that runs before its source publishes for the day shows yesterday's print for a whole day; each provider is a pinned writer that fires at its publication time, and its pullers move later inside their own window (scripts/pipeline_order.py, pass 3). Pulls of one provider are spread so that no more than slot_max of them start on the same minute (rate limits: FRED 120 req/min per key, ECB/SEC/government portals throttle bursts, the 14:00 UTC FMP 429 storm of 2026-09-15).",
+ "time_note": "UTC times are the winter ones (EST / CET), so they hold all year: in summer the print is an hour earlier and the margin grows from 30 to 90 minutes.",
+ "margin_min": 30,
+ "max_move_min": 300,
+ "tick_step_min": 15,
+ "events": {
+  "FRED": [{"utc": "21:15", "what": "H.15 daily rates, yields, FX, commodities (16:15 ET): an engine that pulls any daily series is freshest in the US morning, so only the evening print aligns it"}],
+  "FRED macro": [{"utc": "13:30", "what": "08:30 ET economic releases (payrolls, CPI, claims ...) posted to FRED within minutes: engines that pull no daily series"}],
+  "BLS": [{"utc": "13:30", "what": "08:30 ET releases"}],
+  "BEA": [{"utc": "13:30", "what": "08:30 ET releases"}],
+  "Census": [{"utc": "13:30", "what": "08:30 / 10:00 ET releases"}],
+  "NY Fed": [{"utc": "13:00", "what": "SOFR and reference rates 08:00 ET"}, {"utc": "18:15", "what": "reverse repo operation results 13:15 ET"}],
+  "Treasury": [{"utc": "18:00", "what": "auction results 13:00 ET"}, {"utc": "21:00", "what": "Daily Treasury Statement 16:00 ET"}],
+  "SEC EDGAR": [{"utc": "03:00", "what": "filings accepted until 22:00 ET; the day's index is complete after"}],
+  "ECB": [{"utc": "15:00", "what": "euro reference rates 16:00 CET"}],
+  "Eurostat": [{"utc": "10:00", "what": "11:00 CET releases"}],
+  "BIS/IMF/WB/OECD": [{"utc": "10:00", "what": "European-morning statistical releases"}],
+  "OFR": [{"utc": "23:00", "what": "Financial Stress Index, US evening"}],
+  "Cboe": [{"utc": "21:30", "what": "end-of-day index and settlement values (16:15 ET)"}],
+  "FINRA": [{"utc": "23:00", "what": "Reg SHO daily short volume files, US evening"}],
+  "EIA": [{"utc": "15:30", "what": "weekly petroleum (Wed) and natural gas (Thu) 10:30 ET"}]
+ },
+ "slot_max": {
+  "FRED": 2, "FRED macro": 2, "ECB": 2, "SEC EDGAR": 2, "NY Fed": 2, "Treasury": 2, "OFR": 2, "Cboe": 2, "FINRA": 2, "EIA": 1,
+  "BLS": 1, "BEA": 1, "Census": 1, "Eurostat": 1, "BIS/IMF/WB/OECD": 1, "CFTC": 1,
+  "FMP": 4, "Polygon/Massive": 4
+ },
+ "not_aligned": {
+  "FMP": "no fixed daily print (statements and calendars update through the day; end-of-day prices in the evening) - spread only",
+  "Polygon/Massive": "end-of-day aggregates land after the close; the intraday lane (config/intraday-lane.json) is the freshness path - spread only",
+  "CFTC": "weekly (Friday 15:30 ET); a daily puller gets the new file on its first run after Friday evening"
+ }
+}

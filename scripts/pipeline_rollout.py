@@ -35,6 +35,7 @@ PRIVATE = "justhodl-ops-private-%s" % ACCOUNT
 LIVE = "justhodl-dashboard-live"
 SCHEDULER_ARN = "arn:aws:lambda:%s:%s:function:%s" % (REGION, ACCOUNT, po.SCHEDULER_FN)
 PLAN = ROOT / "config/pipeline-order-plan.json"
+CONTROL_KEY = "spend-governor/control.json"
 
 
 def template_schedule(scheduler, snap):
@@ -62,6 +63,9 @@ def late_tick_state(events, scheduler, iam, plan, snap, log):
     tmpl = template_schedule(scheduler, snap)
     role = (tmpl or {}).get("Target", {}).get("RoleArn")
     allowed = role_may_invoke(iam, role) if role else False
+    log("invoke role for new schedules: %s (template %s, may invoke the scheduler: %s)" % (role, (tmpl or {}).get("Name"), allowed))
+    if allowed is not True:
+        role = None
     out = {}
     for name, lt in sorted(plan["late_ticks"].items()):
         try:
@@ -81,10 +85,10 @@ def late_tick_state(events, scheduler, iam, plan, snap, log):
     return out, role
 
 
-def create_late_tick(scheduler, name, lt, role, store, log):
-    kw = {"Name": lt["name"], "GroupName": lt["group"], "ScheduleExpression": lt["expr"], "ScheduleExpressionTimezone": "UTC",
+def create_late_tick(scheduler, name, lt, role, store, log, timezone="UTC", description=None):
+    kw = {"Name": lt["name"], "GroupName": lt["group"], "ScheduleExpression": lt["expr"], "ScheduleExpressionTimezone": timezone,
           "FlexibleTimeWindow": {"Mode": "OFF"}, "State": "ENABLED",
-          "Description": "pipeline order (ops 6585): members of %s that read other members run a quarter hour later" % lt["from_tick"],
+          "Description": description or "pipeline order: members of %s that read other members, or more of one provider than its slot cap, run a quarter hour later" % lt.get("from_tick"),
           "Target": {"Arn": SCHEDULER_ARN, "RoleArn": role, "Input": json.dumps({"tick": name})}}
     try:
         ca.retrying(lambda: scheduler.create_schedule(**kw), tries=8)
@@ -137,7 +141,34 @@ def manifest_edits(s3, plan, snap, log):
     return out
 
 
-def run(r, dry_run, workers=4):
+def control_exempt(s3, store, name, dry_run, log):
+    """The governor's cadence sentinel exempts "sched:<name>" through control.json cadence_exempt (private bucket)."""
+    key = "sched:" + name
+    try:
+        raw = s3.get_object(Bucket=PRIVATE, Key=CONTROL_KEY)["Body"].read().decode("utf-8")
+        control = json.loads(raw)
+    except Exception as e:  # noqa: BLE001
+        if ca.code_of(e) != "NoSuchKey":
+            raise
+        raw, control = "", {}
+    have = list(control.get("cadence_exempt") or [])
+    if key in have:
+        log("control.json cadence_exempt already lists %s" % key)
+        return "already"
+    if dry_run:
+        log("control.json cadence_exempt would get %s (now: %s)" % (key, have))
+        return "would_add"
+    store.put("control.json", {"text": raw})
+    control["cadence_exempt"] = have + [key]
+    s3.put_object(Bucket=PRIVATE, Key=CONTROL_KEY, Body=json.dumps(control, indent=1).encode("utf-8"), ContentType="application/json", ServerSideEncryption="AES256")
+    back = json.loads(s3.get_object(Bucket=PRIVATE, Key=CONTROL_KEY)["Body"].read())
+    if key not in (back.get("cadence_exempt") or []):
+        raise RuntimeError("control.json read-back lacks %s" % key)
+    log("control.json cadence_exempt += %s (previous copy backed up)" % key)
+    return "added"
+
+
+def run(r, dry_run, workers=4, plan_path=None):
     import boto3
     from botocore.config import Config
     cfg = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=60, max_pool_connections=30)
@@ -147,18 +178,25 @@ def run(r, dry_run, workers=4):
     s3 = boto3.client("s3", region_name=REGION, config=cfg)
     stamp = ca.stamp()
     store = ca.Store(s3, PRIVATE, "backups/pipeline-order/%s" % stamp)
-    plan = json.loads(PLAN.read_text(encoding="utf-8"))
+    plan_path = plan_path or po.plan_paths(ROOT)[-1]
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
     floor = json.loads((ROOT / "config/cadence-floor.json").read_text(encoding="utf-8"))
     exempt = floor.get("exempt_triggers", [])
+    lane = plan.get("intraday_lane")
+    if lane and not dry_run and lane["schedule"]["name"] not in {e["name"] for e in exempt}:
+        r.fail("the lane schedule is not exempt in config/cadence-floor.json: run --apply-repo and commit before the apply")
+        raise SystemExit(1)
     s = plan["summary"]
-    r.heading("ops %s - pipeline order: %s" % ("6585 apply" if not dry_run else "6584 DRY RUN", plan["rule"][:100]))
-    r.kv(actions=len(plan["actions"]), late_ticks=len(plan["late_ticks"]), tick_members_moved=s["moved_tick_members"],
+    r.heading("%s - pipeline order pass %s: %s" % ("APPLY" if not dry_run else "DRY RUN", plan.get("pass", 1), plan["rule"][:110]))
+    r.kv(plan=plan_path.name, actions=len(plan["actions"]), moves_by_why=json.dumps(s.get("moves_by_why")), late_ticks=len(plan["late_ticks"]),
+         new_ticks=s.get("new_ticks"), tick_members_moved=s["moved_tick_members"], lane_members=s.get("intraday_lane_members", 0),
          races_before=s["before"]["buckets"].get("race", 0), races_after=s["after"]["buckets"].get("race", 0),
          stale_before=s["before"]["buckets"].get("stale", 0), stale_after=s["after"]["buckets"].get("stale", 0),
-         mean_input_age_h="%s -> %s" % (s["before"]["mean_input_age_h"], s["after"]["mean_input_age_h"]),
+         pullers_before_their_print="%d -> %d" % (sum(v["before_it"] for v in (s.get("providers_before") or {}).values()), sum(v["before_it"] for v in (s.get("providers_after") or {}).values())),
+         provider_minutes_over_cap="%d -> %d" % (sum(v["minutes_over_cap"] for v in (s.get("bursts_before") or {}).values()), sum(v["minutes_over_cap"] for v in (s.get("bursts_after") or {}).values())),
          max_move_min=s["move_minutes"]["max"], dry_run=dry_run, backups="s3://%s/backups/pipeline-order/%s/" % (PRIVATE, stamp))
     if po.main(["--check"]) != 0:
-        r.fail("config/pipeline-order-plan.json is not what the committed configs produce; rebuild it")
+        r.fail("a committed pipeline-order plan is not what the configs produce; rebuild it")
         raise SystemExit(1)
 
     r.section("1. live snapshot")
@@ -186,7 +224,8 @@ def run(r, dry_run, workers=4):
     for name, st in lts.items():
         if not st["parent_present"] or not st["parent_target_is_scheduler"] or st["parent_state"] != "ENABLED":
             lt_problems.append("%s: parent tick rule not as expected" % name)
-        if st["present"] and (st["live"] != plan["late_ticks"][name]["expr"] or st["live_state"] != "ENABLED" or st["live_target_fn"] != po.SCHEDULER_FN):
+        lt = plan["late_ticks"][name]
+        if st["present"] and (st["live"] not in (lt["expr"], lt.get("current_expr")) or st["live_state"] != "ENABLED" or st["live_target_fn"] != po.SCHEDULER_FN):
             lt_problems.append("%s: schedule %s exists with a different definition" % (name, st["schedule"]))
         if not st["role"] or st["role_may_invoke_scheduler"] is not True:
             lt_problems.append("%s: no proven invoke role for the Scheduler (template %s, role %s, allowed %s)" % (name, st["template_schedule"], st["role"], st["role_may_invoke_scheduler"]))
@@ -195,11 +234,34 @@ def run(r, dry_run, workers=4):
     if not dry_run and not lt_problems:
         for name, lt in sorted(plan["late_ticks"].items()):
             if lts[name]["present"]:
-                r.log("late tick %s already in place" % name)
+                r.log("late tick %s already in place%s" % (name, " (its retime is in the actions)" if lts[name]["live"] != lt["expr"] else ""))
                 continue
             if not create_late_tick(scheduler, name, lt, role, store, r.log):
                 r.fail("late tick %s not as planned" % name)
                 raise SystemExit(1)
+    if lane:
+        r.section("3b. intraday lane")
+        sdef = dict(lane["schedule"], from_tick=None)
+        try:
+            live = ca.retrying(lambda: scheduler.get_schedule(Name=sdef["name"], GroupName=sdef["group"]))
+        except Exception as e:  # noqa: BLE001
+            if ca.code_of(e) != "ResourceNotFoundException":
+                raise
+            live = None
+        r.log("lane schedule %s: %s" % (sdef["name"], "present (%s %s %s)" % (live.get("ScheduleExpression"), live.get("ScheduleExpressionTimezone"), live.get("State")) if live else "absent"))
+        if live and (live.get("ScheduleExpression") != sdef["expr"] or live.get("ScheduleExpressionTimezone") != sdef["timezone"] or live.get("State") != "ENABLED"
+                     or ca.fn_name(live["Target"].get("Arn")) != po.SCHEDULER_FN):
+            lt_problems.append("lane schedule exists with a different definition")
+            r.warn(lt_problems[-1])
+        if not live and not role:
+            lt_problems.append("lane: no proven invoke role for the Scheduler")
+            r.warn(lt_problems[-1])
+        if not dry_run and not lt_problems and not live:
+            if not create_late_tick(scheduler, lane["tick"], sdef, role, store, r.log, timezone=sdef["timezone"],
+                                    description="intraday lane: the light Polygon feeds every 5 min 09:00-16:55 New York time, Mon-Fri (config/intraday-lane.json)"):
+                r.fail("lane schedule not as planned")
+                raise SystemExit(1)
+        r.log("governor cadence exemption: %s" % control_exempt(s3, store, sdef["name"], dry_run, r.log))
 
     r.section("4. S3 manifests")
     edits = manifest_edits(s3, plan, snap, r.log)
@@ -233,8 +295,15 @@ def run(r, dry_run, workers=4):
     for lt in plan["late_ticks"].values():
         if live.get((lt["kind"], lt["name"])) != (lt["expr"], "ENABLED"):
             wrong.append((lt["kind"], lt["name"], live.get((lt["kind"], lt["name"]))))
+    if lane:
+        sdef = lane["schedule"]
+        if live.get((sdef["kind"], sdef["name"])) != (sdef["expr"], "ENABLED"):
+            wrong.append((sdef["kind"], sdef["name"], live.get((sdef["kind"], sdef["name"]))))
+        control = json.loads(s3.get_object(Bucket=PRIVATE, Key=CONTROL_KEY)["Body"].read())
+        if "sched:" + sdef["name"] not in (control.get("cadence_exempt") or []):
+            wrong.append(("control.json", "cadence_exempt", None))
     bad = ca.violations(after, exempt)
-    r.kv(planned_triggers_live_as_planned=len(plan["actions"]) + len(plan["late_ticks"]) - len(wrong), not_as_planned=len(wrong),
+    r.kv(planned_triggers_live_as_planned=len(plan["actions"]) + len(plan["late_ticks"]) + (1 if lane else 0) - len(wrong), not_as_planned=len(wrong),
          enabled_violators_after=len(bad), enabled_violators_before=len(before_bad))
     for w in wrong[:20]:
         r.warn("not at its planned expression: %s %s live=%s" % w)
@@ -244,4 +313,5 @@ def run(r, dry_run, workers=4):
     if wrong or bad or summary.get("failed"):
         r.fail("rollout incomplete: %d not as planned, %d violators, %d failed writes" % (len(wrong), len(bad), summary.get("failed", 0)))
         raise SystemExit(1)
-    r.ok("pipeline order applied: %d triggers retimed, %d late tick(s) live, cadence floor intact" % (summary.get("applied", 0) + summary.get("already", 0), len(plan["late_ticks"])))
+    r.ok("pipeline order pass %s applied: %d triggers retimed, %d late tick(s) live%s, cadence floor intact" % (
+        plan.get("pass", 1), summary.get("applied", 0) + summary.get("already", 0), len(plan["late_ticks"]), ", the intraday lane live" if lane else ""))

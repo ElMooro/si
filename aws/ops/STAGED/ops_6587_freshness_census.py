@@ -141,7 +141,7 @@ def main():
         lag = min(((lm.hour * 60 + lm.minute - m) % 1440) for m in mins)
         row = dict(engine=fn, providers=dp, key=k, size=h.get("ContentLength", 0), last_modified=lm.isoformat(), age_h=round((now - lm).total_seconds() / 3600, 1),
                    trigger_min=mins, lag_after_trigger_min=lag, on_schedule=lag <= 45)
-        if row["size"] <= MAX_GET and k.endswith(".json") and row["age_h"] <= 72:
+        if row["size"] <= MAX_GET and k.endswith(".json") and row["age_h"] <= 48:
             try:
                 body = s3.get_object(Bucket=LIVE, Key=k)["Body"].read()
                 doc = json.loads(body)
@@ -164,18 +164,19 @@ def main():
         ok = [x for x in rows if "err" not in x]
         r.log("HEAD ok %d, missing/err %d (%s)" % (len(ok), len(rows) - len(ok), json.dumps(sorted({x["err"] for x in rows if "err" in x}))))
         r.section("per provider")
-        r.log("| provider | engines | files | written on schedule (<=45 min after trigger) | written in the last 2 days | data age at write: median d | a day old or more |")
+        r.log("| provider | engines | files | written in the last 2 days | of those, within 45 min of the trigger | data age at write: median d | a day old or more |")
         summary = {}
         for p in ALIGNED:
             px = [x for x in ok if p in x["providers"]]
             if not px:
                 continue
-            ages = [x["data_age_days"] for x in px if x.get("data_age_days") is not None and 0 <= x["data_age_days"] <= 60]
-            summary[p] = dict(engines=len({x["engine"] for x in px}), files=len(px), on_schedule=sum(1 for x in px if x["on_schedule"]),
-                              recent=sum(1 for x in px if x["age_h"] <= 48), dated=len(ages), median_age=(statistics.median(ages) if ages else None),
-                              day_old=sum(1 for a in ages if a >= 1))
+            recent = [x for x in px if x["age_h"] <= 48]
+            ages = [x["data_age_days"] for x in recent if x.get("data_age_days") is not None and 0 <= x["data_age_days"] <= 60]
+            summary[p] = dict(engines=len({x["engine"] for x in px}), files=len(px), recent=len(recent), on_schedule=sum(1 for x in recent if x["on_schedule"]),
+                              dated=len(ages), median_age=(statistics.median(ages) if ages else None), day_old=sum(1 for a in ages if a >= 1))
             s = summary[p]
-            r.log("| %s | %d | %d | %d | %d | %s (of %d dated) | %d |" % (p, s["engines"], s["files"], s["on_schedule"], s["recent"], s["median_age"], s["dated"], s["day_old"]))
+            r.log("| %s | %d | %d | %d | %d | %s (of %d dated) | %d |" % (p, s["engines"], s["files"], s["recent"], s["on_schedule"], s["median_age"], s["dated"], s["day_old"]))
+        r.log("note: the fleet was frozen 2026-10-17 .. 10-21 00:30 UTC; a file is representative only once its engine has run after the thaw (age <= 48 h)")
         stale_engines = sorted({x["engine"] for x in ok if x["age_h"] > 48})
         r.log("files not written in the last 2 days: %d (engines: %s%s)" % (sum(1 for x in ok if x["age_h"] > 48), ", ".join(stale_engines[:25]), " ..." if len(stale_engines) > 25 else ""))
         off = sorted({x["engine"] for x in ok if x["age_h"] <= 48 and not x["on_schedule"]})
