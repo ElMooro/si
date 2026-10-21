@@ -384,14 +384,15 @@
     if(ticker==="ETHUSD") ticker="ETHUSDT";
     if(venue==="FRED"){
       var FRED_MKT={
-        DGS10:{ yahoo:"^TNX", tv:"TVC:US10Y" },
-        DGS2:{ yahoo:"^IRX", tv:"TVC:US02Y" },
-        DGS5:{ yahoo:"^FVX", tv:"TVC:US05Y" },
-        DGS20:{ tv:"TVC:US20Y" },
-        DGS30:{ yahoo:"^TYX", tv:"TVC:US30Y" }
+        DGS10:{ yahoo:"^TNX", tv:"TVC:US10Y", ust:"ustpar:10Y" },
+        DGS2:{ tv:"TVC:US02Y", ust:"ustpar:2Y" },
+        DGS5:{ yahoo:"^FVX", tv:"TVC:US05Y", ust:"ustpar:5Y" },
+        DGS20:{ tv:"TVC:US20Y", ust:"ustpar:20Y" },
+        DGS30:{ yahoo:"^TYX", tv:"TVC:US30Y", ust:"ustpar:30Y" }
       };
+      /* 2026-10-21: ^IRX is the 13-week bill, never the 2-year; ust = Treasury's own par curve (the series FRED's H.15 mirrors a day later). */
       var mkt=FRED_MKT[ticker]||{};
-      return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null};
+      return {raw:"FRED:"+ticker, venue:"FRED", ticker:"FRED:"+ticker, yahoo:mkt.yahoo||ticker, engine:"fred", tv:mkt.tv||null, ust:mkt.ust||null};
     }
     if(venue==="CQ" || venue==="CISS" || venue==="DESK" || venue==="DATA" || venue==="CQSNAP" || venue==="CQARM" || venue==="CQDOC"){
       return {raw:s, venue:venue, ticker:s, yahoo:ticker, engine:venue.toLowerCase()};
@@ -2096,12 +2097,19 @@
     ];
     if(/^\^/.test(String(ys||"")) || /^\^/.test(String(t||""))){
       urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range="+yRange+"&interval="+yInt);
+      /* 2026-10-21: an index (^TNX, ^VIX, ^GSPC...) asks Yahoo itself first on daily spans - the banked copy only refreshes overnight and was days old */
+      if(/^(1d|1wk|1mo)$/.test(yInt)) urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range="+yRange+"&interval="+yInt+"&nowarehouse=1");
     }
     if(rs.engine==="fred" || rs.engine==="series" || /^FRED:/i.test(rs.raw) || (window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(rs.raw))){
       var fid=rs.raw;
       urls.unshift(PROXY+"/series?id="+encodeURIComponent(fid));
+      /* 2026-10-21 (Khalid: "why is us10y 2 days old"): FRED's H.15 prints a Treasury yield the NEXT business day at 16:15 ET, so FRED:DGS10 is
+         always one session behind and two before that afternoon. Order for the Treasury tenors: Yahoo's live index (^TNX...) first on daily spans,
+         then the TradingView bank, the banked Yahoo copy, Treasury's own par curve (ustpar, the series FRED mirrors), FRED last. */
+      if(rs.ust) urls.unshift(PROXY+"/series?id="+encodeURIComponent(rs.ust));
       if(rs.yahoo && /^\^/.test(rs.yahoo)) urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(rs.yahoo)+"&range="+sp[3]+"&interval="+sp[2]);
       if(rs.tv) urls.unshift(PROXY+"/series?id="+encodeURIComponent(rs.tv));
+      if(rs.yahoo && /^\^/.test(rs.yahoo) && /^(1d|1wk|1mo)$/.test(sp[2])) urls.unshift(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(rs.yahoo)+"&range="+sp[3]+"&interval="+sp[2]+"&nowarehouse=1");
     }
     for(var i=0;i<urls.length;i++){
       try{

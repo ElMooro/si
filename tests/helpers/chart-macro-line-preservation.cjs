@@ -174,7 +174,28 @@ function peelPolygonAppend(raw,file){
  assert.equal(hash(raw),BEFORE,'aws/lambdas/justhodl-tv-bars/source/lambda_function.py');
  return raw;
 }
-function normalize(raw,file){raw=peelAutohideHtml(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-10-21: peel the US-yield route change (Yahoo live index first, Treasury par before FRED, no ^IRX for the 2-year) in jh-chart-engine.js and its cache-bust in chart.html.
+function peelUs10yEngine(raw,file){
+ const AFTER='032822eebe43777ccd2539654b18271a31f382e0cbc215cc8813101998fcecc4';
+ const BEFORE='7754e62723a02db9a310408d0ab2e1becdd25da18322190a076f4512c3c5ae3c';
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/engine-us10y-live.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'jh-chart-engine.js us10y: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelUs10yHtml(raw,file){
+ const AFTER='2acc793b989d8cc26247abd58fc97341ca92df6e9ba0e171aec2cd089f0620ee';
+ const BEFORE='8267de4a5c4158ca0b2803fc854f20f83c5f0615bedce8bb04f27787106e5543';
+ const FROM='&cds=20261015&us10y=20261021"';
+ const TO='&cds=20261015"';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'chart.html us10y cache');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
