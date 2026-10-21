@@ -234,6 +234,37 @@ def test_weekday_crons_keep_their_days():
     assert by["r"]["after"]["expr"] == "cron(35 10 ? * MON-FRI *)"
 
 
+def sched(name, expr, fn, timezone="UTC"):
+    return {"expr": expr, "kind": "scheduler", "name": name, "group": "default", "state": "ENABLED", "timezone": timezone,
+            "targets": [{"arn": ARN % fn, "input": "{}", "path": None}]}
+
+
+def plan_for_schedules(schedules, rules, engines, **kw):
+    with tempfile.TemporaryDirectory() as tmp:
+        root = repo_with(tmp, rules, engines)
+        m = json.loads((root / "config/schedule-manifest.json").read_text(encoding="utf-8"))
+        m["schedules"] = schedules
+        (root / "config/schedule-manifest.json").write_text(json.dumps(m, indent=1) + "\n", encoding="utf-8")
+        plan, _ = po.build(root, **kw)
+    return plan, {a["name"]: a for a in plan["actions"]}
+
+
+def test_a_new_york_schedule_is_read_in_utc_and_written_back_in_its_own_zone():
+    # 2026-10-21 first light: 12:10 New York (16:10 UTC in October) was read as 12:10 UTC and "moved" after a 13:46 UTC writer.
+    off = po.tz_offset_min("America/New_York")
+    assert off in (240, 300)
+    w = rule("w", "cron(46 13 * * ? *)", "w")
+    plan, by = plan_for_schedules([sched("r", "cron(10 12 ? * MON-FRI *)", "r", "America/New_York")], [w], [engine("w", keys=["x"]), engine("r", reads=["x"])])
+    assert not plan["actions"], "already after its writer in UTC terms"
+    # a New York reader that really is before its writer moves, and the cron it gets is in New York time
+    plan, by = plan_for_schedules([sched("r", "cron(0 9 ? * MON-FRI *)", "r", "America/New_York")], [w], [engine("w", keys=["x"]), engine("r", reads=["x"])])
+    a = by["r"]
+    assert a["timezone"] == "America/New_York"
+    assert po.utc_minute(a["after"]["expr"], "America/New_York") > 13 * 60 + 46
+    assert po.utc_minute(a["after"]["expr"], "America/New_York") - (13 * 60 + 46) <= 35
+    assert "[America/New_York cron]" in a["reason"]
+
+
 def test_at_most_four_triggers_land_on_one_minute():
     rules = [rule("w", "cron(0 10 * * ? *)", "w")] + [rule("r%d" % i, "cron(10 9 * * ? *)", "r%d" % i) for i in range(6)]
     engines = [engine("w", keys=["x"])] + [engine("r%d" % i, reads=["x"]) for i in range(6)]

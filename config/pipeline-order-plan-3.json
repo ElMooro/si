@@ -27,6 +27,7 @@
    "name": "alpha-compass-3h",
    "op": "retime",
    "reason": "pipeline order: 23:50 -> 23:52 UTC (post-close), after justhodl-conviction-engine",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -63,6 +64,7 @@
    "name": "bond-trace-daily",
    "op": "retime",
    "reason": "pipeline order: 21:00 -> 23:31 UTC (post-close), after FINRA's print, FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -95,6 +97,7 @@
    "name": "buzz-velocity-4x-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:01 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -131,6 +134,7 @@
    "name": "capitulation-3h",
    "op": "retime",
    "reason": "pipeline order: 15:45 -> 15:52 UTC (session), after justhodl-crisis-composite, justhodl-crisis-composite",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -163,6 +167,7 @@
    "name": "cds-proxy-tri-daily",
    "op": "retime",
    "reason": "pipeline order: 21:00 -> 21:46 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -195,6 +200,7 @@
    "name": "construction-housing-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -227,6 +233,7 @@
    "name": "conviction-engine-3h",
    "op": "retime",
    "reason": "pipeline order: 23:45 -> 23:47 UTC (post-close), after justhodl-best-setups",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -263,6 +270,7 @@
    "name": "crisis-composite-hourly",
    "op": "retime",
    "reason": "pipeline order: 15:36 -> 15:47 UTC (session), after justhodl-crisis-plumbing, justhodl-daily-report-v3",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -295,6 +303,7 @@
    "name": "divergence-v2-2hourly",
    "op": "retime",
    "reason": "pipeline order: 17:00 -> 17:01 UTC (session), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -327,6 +336,7 @@
    "name": "ecb-detail-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -359,6 +369,7 @@
    "name": "eurodollar-plumbing-daily",
    "op": "retime",
    "reason": "pipeline order: 12:00 -> 12:02 UTC (pre-market), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -391,6 +402,7 @@
    "name": "fed-collateral-daily",
    "op": "retime",
    "reason": "pipeline order: 12:40 -> 13:31 UTC (pre-market), after NY Fed's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -423,6 +435,7 @@
    "name": "fomc-reaction-daily",
    "op": "retime",
    "reason": "pipeline order: 21:35 -> 21:46 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -455,6 +468,7 @@
    "name": "forward-orders-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -491,6 +505,7 @@
    "name": "industry-rotation-daily",
    "op": "retime",
    "reason": "pipeline order: 22:50 -> 23:42 UTC (post-close), after justhodl-dark-pool, justhodl-resilience",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -523,6 +538,7 @@
    "name": "intraday-arm-daily",
    "op": "retime",
    "reason": "pipeline order: 13:40 -> 14:06 UTC (pre-market), after justhodl-indicator-bus",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -555,6 +571,7 @@
    "name": "justhodl-backtest-harness-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:01 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -587,6 +604,7 @@
    "name": "justhodl-best-setups-hourly",
    "op": "retime",
    "reason": "pipeline order: 23:35 -> 23:42 UTC (post-close), after justhodl-resilience",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -619,6 +637,7 @@
    "name": "justhodl-blackout-daily",
    "op": "retime",
    "reason": "pipeline order: 11:30 -> 11:31 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -651,6 +670,7 @@
    "name": "justhodl-bottleneck-boom-daily",
    "op": "retime",
    "reason": "pipeline order: 12:45 -> 13:31 UTC (pre-market), after NY Fed's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -683,6 +703,7 @@
    "name": "justhodl-breadth-thrust-sched",
    "op": "retime",
    "reason": "pipeline order: 21:30 -> 21:47 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -719,6 +740,7 @@
    "name": "justhodl-confluence-meta-daily",
    "op": "retime",
    "reason": "pipeline order: 13:35 -> 14:35 UTC (pre-market), after justhodl-ai-brief-router, justhodl-bottleneck-boom",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -751,6 +773,7 @@
    "name": "justhodl-cot-tracker-weekly",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -783,6 +806,7 @@
    "name": "justhodl-crisis-canaries-daily",
    "op": "retime",
    "reason": "pipeline order: 11:40 -> 13:32 UTC (pre-market), after NY Fed's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -815,6 +839,7 @@
    "name": "justhodl-crisis-plumbing-refresh",
    "op": "retime",
    "reason": "pipeline order: 15:13 -> 15:42 UTC (session), after justhodl-daily-report-v3",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -847,6 +872,7 @@
    "name": "justhodl-cusip-map-rebuild-hourly",
    "op": "retime",
    "reason": "pipeline order: 01:28 -> 03:30 UTC (overnight), after SEC EDGAR's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -879,6 +905,7 @@
    "name": "justhodl-dark-pool-daily",
    "op": "retime",
    "reason": "pipeline order: 21:40 -> 23:31 UTC (post-close), after FINRA's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -911,6 +938,7 @@
    "name": "justhodl-earnings-tracker-6h",
    "op": "retime",
    "reason": "pipeline order: 11:30 -> 11:31 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -943,6 +971,7 @@
    "name": "justhodl-ecb-derived-daily",
    "op": "retime",
    "reason": "pipeline order: 14:40 -> 15:30 UTC (session), after ECB's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -975,6 +1004,7 @@
    "name": "justhodl-edge-6h",
    "op": "retime",
    "reason": "pipeline order: 21:41 -> 21:47 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -1007,6 +1037,7 @@
    "name": "justhodl-edge-discovery-weekly",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:03 UTC (pre-market), after Polygon/Massive (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1039,6 +1070,7 @@
    "name": "justhodl-estimate-revisions-daily",
    "op": "retime",
    "reason": "pipeline order: 12:00 -> 12:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1071,6 +1103,7 @@
    "name": "justhodl-eurodollar-stress-2h",
    "op": "retime",
    "reason": "pipeline order: 21:16 -> 21:48 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -1103,6 +1136,7 @@
    "name": "justhodl-event-study-cadence",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:32 UTC (post-close), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1135,6 +1169,7 @@
    "name": "justhodl-forced-selling-bounce-sched",
    "op": "retime",
    "reason": "pipeline order: 23:05 -> 23:56 UTC (post-close), after justhodl-predictability",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1167,6 +1202,7 @@
    "name": "justhodl-gbc-daily",
    "op": "retime",
    "reason": "pipeline order: 12:00 -> 12:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1199,6 +1235,7 @@
    "name": "justhodl-global-flow-desk-daily",
    "op": "retime",
    "reason": "pipeline order: 23:35 -> 23:37 UTC (post-close), after justhodl-dark-pool",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1231,6 +1268,7 @@
    "name": "justhodl-import-canary-daily",
    "op": "retime",
    "reason": "pipeline order: 13:40 -> 14:01 UTC (pre-market), after Census's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -1263,6 +1301,7 @@
    "name": "justhodl-index-inclusion-weekly",
    "op": "retime",
    "reason": "pipeline order: 13:00 -> 13:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1295,6 +1334,7 @@
    "name": "justhodl-kb-matcher-daily",
    "op": "retime",
    "reason": "pipeline order: 12:11 -> 12:13 UTC (pre-market), after justhodl-liquidity-inflection",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1327,6 +1367,7 @@
    "name": "justhodl-liquidity-inflection-daily",
    "op": "retime",
    "reason": "pipeline order: 12:06 -> 12:08 UTC (pre-market), after justhodl-eurodollar-plumbing",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1359,6 +1400,7 @@
    "name": "justhodl-opex-calendar-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1391,6 +1433,7 @@
    "name": "justhodl-political-intel-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:02 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1423,6 +1466,7 @@
    "name": "justhodl-research-backtest-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:02 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1455,6 +1499,7 @@
    "name": "justhodl-resilience-daily",
    "op": "retime",
    "reason": "pipeline order: 22:45 -> 23:37 UTC (post-close), after justhodl-dark-pool",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1487,6 +1532,7 @@
    "name": "justhodl-rv-iv-scanner-daily",
    "op": "retime",
    "reason": "pipeline order: 14:30 -> 14:31 UTC (session), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1519,6 +1565,7 @@
    "name": "justhodl-sec-13f-daily",
    "op": "retime",
    "reason": "pipeline order: 01:52 -> 03:31 UTC (overnight), after SEC EDGAR's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -1551,6 +1598,7 @@
    "name": "justhodl-sector-capital-fusion-sched",
    "op": "retime",
    "reason": "pipeline order: 23:35 -> 23:37 UTC (post-close), after justhodl-dark-pool",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1583,6 +1631,7 @@
    "name": "justhodl-signal-backtest-daily",
    "op": "retime",
    "reason": "pipeline order: 16:00 -> 16:01 UTC (session), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1615,6 +1664,7 @@
    "name": "justhodl-smart-money-holdings-daily",
    "op": "retime",
    "reason": "pipeline order: 14:30 -> 14:31 UTC (session), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1651,6 +1701,7 @@
    "name": "justhodl-stock-xray-daily",
    "op": "retime",
    "reason": "pipeline order: 23:40 -> 00:35 UTC (post-close), after justhodl-equity-confluence, justhodl-resilience",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -1687,6 +1738,7 @@
    "name": "justhodl-usgov-direct-daily",
    "op": "retime",
    "reason": "pipeline order: 12:40 -> 14:01 UTC (pre-market), after BEA's print, BLS's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -1719,6 +1771,7 @@
    "name": "justhodl-vintage-fred-daily",
    "op": "retime",
    "reason": "pipeline order: 13:00 -> 13:02 UTC (pre-market), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1763,6 +1816,7 @@
    "name": "justhodl-warm-bridge-hourly",
    "op": "retime",
    "reason": "pipeline order: 11:27 -> 14:06 UTC (pre-market), after justhodl-usgov-direct, BEA's print, BLS's print, NY Fed's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -1796,6 +1850,7 @@
    "name": "leadlag-graph-daily",
    "op": "retime",
    "reason": "pipeline order: 13:00 -> 13:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1828,6 +1883,7 @@
    "name": "liquidity-profile-fri",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:03 UTC (post-close), after Polygon/Massive (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1860,6 +1916,7 @@
    "name": "macro-calendar-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:02 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1892,6 +1949,7 @@
    "name": "news-wire-15m",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:02 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1924,6 +1982,7 @@
    "name": "opportunity-engine-daily",
    "op": "retime",
    "reason": "pipeline order: 14:00 -> 14:03 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1956,6 +2015,7 @@
    "name": "sellside-views-mwf",
    "op": "retime",
    "reason": "pipeline order: 14:00 -> 14:04 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -1988,6 +2048,7 @@
    "name": "smart-money-13f-weekly",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:03 UTC (pre-market), after SEC EDGAR (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2020,6 +2081,7 @@
    "name": "sovereign-stress-daily",
    "op": "retime",
    "reason": "pipeline order: 12:06 -> 12:08 UTC (pre-market), after justhodl-eurodollar-plumbing",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -2052,6 +2114,7 @@
    "name": "systemic-stress-daily",
    "op": "retime",
    "reason": "pipeline order: 12:06 -> 12:08 UTC (pre-market), after justhodl-eurodollar-plumbing",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -2084,6 +2147,7 @@
    "name": "theme-second-wave-daily",
    "op": "retime",
    "reason": "pipeline order: 14:00 -> 14:05 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2116,10 +2180,44 @@
    "name": "yen-carry-daily",
    "op": "retime",
    "reason": "pipeline order: 12:00 -> 12:02 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
    "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(15 16 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 16 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1430,
+     "writer": "justhodl-auction-desk"
+    }
+   ],
+   "functions": [
+    "justhodl-auction-grader"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 15,
+   "name": "auction-grader-sched",
+   "op": "retime",
+   "reason": "pipeline order: 16:00 -> 16:15 UTC (session), after justhodl-auction-desk",
+   "timezone": "UTC",
+   "why": [
+    "order"
+   ],
+   "window": "session"
   },
   {
    "after": {
@@ -2148,6 +2246,7 @@
    "name": "brief-compiler-plumbing-6h",
    "op": "retime",
    "reason": "pipeline order: 15:20 -> 15:43 UTC (session), after justhodl-daily-report-v3",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -2180,6 +2279,7 @@
    "name": "commodity-curves-sched",
    "op": "retime",
    "reason": "pipeline order: 21:00 -> 21:48 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2212,6 +2312,7 @@
    "name": "earnings-nlp-sched",
    "op": "retime",
    "reason": "pipeline order: 14:00 -> 14:05 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2244,6 +2345,7 @@
    "name": "fundamentals-engine-sched",
    "op": "retime",
    "reason": "pipeline order: 13:00 -> 13:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2276,6 +2378,7 @@
    "name": "fx-intelligence-sched",
    "op": "retime",
    "reason": "pipeline order: 13:30 -> 13:31 UTC (pre-market), after FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2308,6 +2411,7 @@
    "name": "indicator-bus-daily",
    "op": "retime",
    "reason": "pipeline order: 12:15 -> 14:01 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2340,6 +2444,7 @@
    "name": "justhodl-52wk-quality-breakout-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2372,6 +2477,7 @@
    "name": "justhodl-asia-leads-daily",
    "op": "retime",
    "reason": "pipeline order: 10:20 -> 14:01 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2379,11 +2485,11 @@
   },
   {
    "after": {
-    "expr": "cron(18 14 ? * MON-FRI *)",
+    "expr": "cron(30 14 ? * MON-FRI *)",
     "state": "ENABLED"
    },
    "before": {
-    "expr": "cron(51 13 ? * MON-FRI *)",
+    "expr": "cron(10 12 ? * MON-FRI *)",
     "input_sha": "44136fa355b3678a",
     "state": "ENABLED"
    },
@@ -2391,28 +2497,8 @@
    "crosses_window_end": false,
    "drivers": [
     {
-     "gap_before_min": 0,
-     "writer": "justhodl-symdir"
-    },
-    {
-     "gap_before_min": 1426,
-     "writer": "justhodl-symdir"
-    },
-    {
-     "gap_before_min": 1427,
-     "writer": "justhodl-symdir"
-    },
-    {
-     "gap_before_min": 1428,
-     "writer": "justhodl-symdir"
-    },
-    {
-     "gap_before_min": 1438,
-     "writer": "justhodl-symdir"
-    },
-    {
-     "gap_before_min": 1439,
-     "writer": "justhodl-symdir"
+     "gap_before_min": 1330,
+     "writer": "provider:Treasury"
     }
    ],
    "functions": [
@@ -2420,14 +2506,15 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 27,
+   "move_min": 140,
    "name": "justhodl-auction-desk-buyback",
    "op": "retime",
-   "reason": "pipeline order: 13:51 -> 14:18 UTC (pre-market), after justhodl-symdir, justhodl-symdir, justhodl-symdir, justhodl-symdir, justhodl-symdir, justhodl-symdir",
+   "reason": "pipeline order: 16:10 -> 18:30 UTC [America/New_York cron] (session), after Treasury's print",
+   "timezone": "America/New_York",
    "why": [
-    "order"
+    "print"
    ],
-   "window": "pre-market"
+   "window": "session"
   },
   {
    "after": {
@@ -2456,6 +2543,7 @@
    "name": "justhodl-bis-crossborder-weekly",
    "op": "retime",
    "reason": "pipeline order: 09:40 -> 10:31 UTC (pre-market), after BIS/IMF/WB/OECD's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2463,11 +2551,11 @@
   },
   {
    "after": {
-    "expr": "cron(23 14 ? * MON-FRI *)",
+    "expr": "cron(35 14 ? * MON-FRI *)",
     "state": "ENABLED"
    },
    "before": {
-    "expr": "cron(56 13 ? * MON-FRI *)",
+    "expr": "cron(35 13 ? * MON-FRI *)",
     "input_sha": "44136fa355b3678a",
     "state": "ENABLED"
    },
@@ -2475,12 +2563,12 @@
    "crosses_window_end": false,
    "drivers": [
     {
-     "gap_before_min": 1425,
+     "gap_before_min": 1385,
      "writer": "justhodl-auction-desk"
     },
     {
-     "gap_before_min": 1438,
-     "writer": "justhodl-auction-desk"
+     "gap_before_min": 1415,
+     "writer": "provider:Treasury"
     }
    ],
    "functions": [
@@ -2488,14 +2576,16 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 27,
+   "move_min": 60,
    "name": "justhodl-bond-warroom-after-auction",
    "op": "retime",
-   "reason": "pipeline order: 13:56 -> 14:23 UTC (pre-market), after justhodl-auction-desk, justhodl-auction-desk",
+   "reason": "pipeline order: 17:35 -> 18:35 UTC [America/New_York cron] (session), after justhodl-auction-desk, Treasury's print",
+   "timezone": "America/New_York",
    "why": [
-    "order"
+    "order",
+    "print"
    ],
-   "window": "pre-market"
+   "window": "session"
   },
   {
    "after": {
@@ -2532,6 +2622,7 @@
    "name": "justhodl-boom-stage-daily",
    "op": "retime",
    "reason": "pipeline order: 12:30 -> 14:07 UTC (pre-market), after justhodl-asia-leads, justhodl-freight-pulse, FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -2565,6 +2656,7 @@
    "name": "justhodl-breadth-divergence-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2597,6 +2689,7 @@
    "name": "justhodl-cef-discount-daily",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2629,6 +2722,7 @@
    "name": "justhodl-credit-composite-daily",
    "op": "retime",
    "reason": "pipeline order: 21:42 -> 21:49 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2661,6 +2755,7 @@
    "name": "justhodl-earnings-iv-crush-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2693,6 +2788,7 @@
    "name": "justhodl-econ-calendar-daily",
    "op": "retime",
    "reason": "pipeline order: 11:00 -> 11:03 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2725,6 +2821,7 @@
    "name": "justhodl-failed-pattern-reversal-daily",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2757,6 +2854,7 @@
    "name": "justhodl-fifx-vol-daily",
    "op": "retime",
    "reason": "pipeline order: 21:20 -> 21:51 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2789,6 +2887,7 @@
    "name": "justhodl-freight-pulse-daily",
    "op": "retime",
    "reason": "pipeline order: 11:50 -> 14:02 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -2821,6 +2920,7 @@
    "name": "justhodl-gf-value-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:03 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2853,6 +2953,7 @@
    "name": "justhodl-industry-boom-daily",
    "op": "retime",
    "reason": "pipeline order: 12:05 -> 12:06 UTC (pre-market), after justhodl-estimate-revisions",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -2885,6 +2986,7 @@
    "name": "justhodl-ipo-pipeline-daily",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2929,6 +3031,7 @@
    "name": "justhodl-katlin-permission-refresh",
    "op": "retime",
    "reason": "pipeline order: 23:05 -> 23:51 UTC (post-close), after justhodl-dark-pool, justhodl-industry-rotation, justhodl-sympathetic-momentum, justhodl-sympathetic-momentum",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -2961,6 +3064,7 @@
    "name": "justhodl-lockup-expiration-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:03 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -2993,6 +3097,7 @@
    "name": "justhodl-market-tape-5min",
    "op": "retime",
    "reason": "pipeline order: 21:11 -> 21:51 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3025,6 +3130,7 @@
    "name": "justhodl-master-allocator-3h",
    "op": "retime",
    "reason": "pipeline order: 21:21 -> 21:53 UTC (post-close), after justhodl-eurodollar-stress",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -3032,11 +3138,11 @@
   },
   {
    "after": {
-    "expr": "cron(6 17 ? * MON-FRI *)",
+    "expr": "cron(40 16 ? * MON-FRI *)",
     "state": "ENABLED"
    },
    "before": {
-    "expr": "cron(5 17 ? * MON-FRI *)",
+    "expr": "cron(15 16 ? * MON-FRI *)",
     "input_sha": "44136fa355b3678a",
     "state": "ENABLED"
    },
@@ -3044,8 +3150,8 @@
    "crosses_window_end": false,
    "drivers": [
     {
-     "gap_before_min": 4,
-     "writer": "justhodl-divergence-engine-v2"
+     "gap_before_min": 1420,
+     "writer": "justhodl-cross-asset-regime"
     }
    ],
    "functions": [
@@ -3053,10 +3159,11 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 1,
+   "move_min": 25,
    "name": "justhodl-master-ranker-weekday-close",
    "op": "retime",
-   "reason": "pipeline order: 17:05 -> 17:06 UTC (session), after justhodl-divergence-engine-v2",
+   "reason": "pipeline order: 20:15 -> 20:40 UTC [America/New_York cron] (session), after justhodl-cross-asset-regime",
+   "timezone": "America/New_York",
    "why": [
     "order"
    ],
@@ -3089,6 +3196,7 @@
    "name": "justhodl-official-pulse-weekly",
    "op": "retime",
    "reason": "pipeline order: 09:00 -> 14:03 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3121,6 +3229,7 @@
    "name": "justhodl-pairs-arb-daily",
    "op": "retime",
    "reason": "pipeline order: 23:30 -> 23:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3153,6 +3262,7 @@
    "name": "justhodl-peer-comparison-daily",
    "op": "retime",
    "reason": "pipeline order: 13:00 -> 13:01 UTC (pre-market), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3189,6 +3299,7 @@
    "name": "justhodl-phase-detector-daily",
    "op": "retime",
    "reason": "pipeline order: 22:50 -> 23:42 UTC (post-close), after justhodl-dark-pool, justhodl-resilience",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -3221,6 +3332,7 @@
    "name": "justhodl-provider-window-sentinel-weekly",
    "op": "retime",
    "reason": "pipeline order: 09:00 -> 14:03 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3253,6 +3365,7 @@
    "name": "justhodl-put-call-extreme-daily",
    "op": "retime",
    "reason": "pipeline order: 21:15 -> 21:52 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3285,6 +3398,7 @@
    "name": "justhodl-rating-change-cluster-daily",
    "op": "retime",
    "reason": "pipeline order: 23:30 -> 23:32 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3321,6 +3435,7 @@
    "name": "justhodl-regime-conditional-router-2h",
    "op": "retime",
    "reason": "pipeline order: 21:26 -> 21:58 UTC (post-close), after justhodl-eurodollar-stress, justhodl-master-allocator",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -3353,6 +3468,7 @@
    "name": "justhodl-repo-market-daily",
    "op": "retime",
    "reason": "pipeline order: 21:35 -> 21:52 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3385,6 +3501,7 @@
    "name": "justhodl-report-research-hourly",
    "op": "retime",
    "reason": "pipeline order: 15:02 -> 15:31 UTC (session), after ECB's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3417,6 +3534,7 @@
    "name": "justhodl-risk-ratios-daily",
    "op": "retime",
    "reason": "pipeline order: 21:40 -> 21:53 UTC (post-close), after FRED's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3449,6 +3567,7 @@
    "name": "justhodl-sec-filing-diff-daily",
    "op": "retime",
    "reason": "pipeline order: 12:00 -> 12:01 UTC (pre-market), after SEC EDGAR (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3481,6 +3600,7 @@
    "name": "justhodl-skew-tail-hedging-daily",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3513,6 +3633,7 @@
    "name": "justhodl-sp500-daily",
    "op": "retime",
    "reason": "pipeline order: 21:45 -> 22:04 UTC (post-close), after justhodl-spx-ma",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -3545,6 +3666,7 @@
    "name": "justhodl-spx-ma-daily",
    "op": "retime",
    "reason": "pipeline order: 21:16 -> 21:56 UTC (post-close), after justhodl-market-tape",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -3577,6 +3699,7 @@
    "name": "justhodl-squeeze-pretrigger-daily",
    "op": "retime",
    "reason": "pipeline order: 23:30 -> 23:32 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3609,6 +3732,7 @@
    "name": "justhodl-starmine-daily",
    "op": "retime",
    "reason": "pipeline order: 23:30 -> 23:33 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3641,6 +3765,7 @@
    "name": "justhodl-supply-chain-linkage-daily",
    "op": "retime",
    "reason": "pipeline order: 15:00 -> 15:01 UTC (session), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3677,6 +3802,7 @@
    "name": "justhodl-symdir-codelists",
    "op": "retime",
    "reason": "pipeline order: 13:46 -> 14:11 UTC (pre-market), after justhodl-symbol-resolver, BLS's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -3710,6 +3836,7 @@
    "name": "justhodl-symdir-fredfresh",
    "op": "retime",
    "reason": "pipeline order: 22:44 -> 23:31 UTC (post-close), after OFR's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3746,6 +3873,7 @@
    "name": "justhodl-symdir-fredupdates",
    "op": "retime",
    "reason": "pipeline order: 13:46 -> 14:12 UTC (pre-market), after justhodl-symbol-resolver, BLS's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -3783,6 +3911,7 @@
    "name": "justhodl-symdir-titles",
    "op": "retime",
    "reason": "pipeline order: 22:05 -> 23:32 UTC (post-close), after justhodl-provider-catalog, OFR's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -3816,6 +3945,7 @@
    "name": "justhodl-symdir-ustbank",
    "op": "retime",
    "reason": "pipeline order: 22:29 -> 23:33 UTC (post-close), after OFR's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3852,6 +3982,7 @@
    "name": "justhodl-symdir-warm",
    "op": "retime",
    "reason": "pipeline order: 13:46 -> 14:13 UTC (pre-market), after justhodl-symbol-resolver, BLS's print",
+   "timezone": "UTC",
    "why": [
     "order",
     "print"
@@ -3885,6 +4016,7 @@
    "name": "justhodl-sympathetic-momentum-daily",
    "op": "retime",
    "reason": "pipeline order: 23:30 -> 23:33 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3917,6 +4049,7 @@
    "name": "justhodl-theme-classifier-6h",
    "op": "retime",
    "reason": "pipeline order: 15:00 -> 15:01 UTC (session), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -3949,6 +4082,7 @@
    "name": "justhodl-trade-nowcast-daily",
    "op": "retime",
    "reason": "pipeline order: 12:50 -> 14:04 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -3981,6 +4115,7 @@
    "name": "justhodl-vix9d-vix-inversion-daily",
    "op": "retime",
    "reason": "pipeline order: 21:30 -> 21:31 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -4013,6 +4148,7 @@
    "name": "justhodl-vrp-daily",
    "op": "retime",
    "reason": "pipeline order: 22:30 -> 22:32 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -4045,6 +4181,7 @@
    "name": "justhodl-vvix-vov-regime-daily",
    "op": "retime",
    "reason": "pipeline order: 22:00 -> 22:03 UTC (post-close), after FMP (burst)",
+   "timezone": "UTC",
    "why": [
     "burst"
    ],
@@ -4077,6 +4214,7 @@
    "name": "macro-attribution-daily",
    "op": "retime",
    "reason": "pipeline order: 12:05 -> 14:04 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -4113,6 +4251,7 @@
    "name": "risk-gate-daily",
    "op": "retime",
    "reason": "pipeline order: 12:06 -> 12:09 UTC (pre-market), after justhodl-eurodollar-plumbing, FRED (burst)",
+   "timezone": "UTC",
    "why": [
     "burst",
     "order"
@@ -4150,6 +4289,7 @@
    "name": "risk-regime-sched",
    "op": "retime",
    "reason": "pipeline order: 22:06 -> 22:08 UTC (post-close), after justhodl-breadth-divergence, justhodl-vvix-vov-regime",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -4182,6 +4322,7 @@
    "name": "rotation-dashboard-sched",
    "op": "retime",
    "reason": "pipeline order: 22:11 -> 22:13 UTC (post-close), after justhodl-risk-regime",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -4214,6 +4355,7 @@
    "name": "stress-scenarios-sched",
    "op": "retime",
    "reason": "pipeline order: 15:25 -> 15:42 UTC (session), after justhodl-daily-report-v3",
+   "timezone": "UTC",
    "why": [
     "order"
    ],
@@ -4246,6 +4388,7 @@
    "name": "symbol-resolver-daily",
    "op": "retime",
    "reason": "pipeline order: 11:50 -> 14:06 UTC (pre-market), after FRED macro's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -4282,6 +4425,7 @@
    "name": "treasury-rehypo-daily",
    "op": "retime",
    "reason": "pipeline order: 21:42 -> 23:32 UTC (post-close), after FRED's print, OFR's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -4314,6 +4458,7 @@
    "name": "vix-curve-sched",
    "op": "retime",
    "reason": "pipeline order: 21:00 -> 22:01 UTC (post-close), after Cboe's print",
+   "timezone": "UTC",
    "why": [
     "print"
    ],
@@ -4496,14 +4641,19 @@
   "justhodl-master-ranker-weekday-close": {
    "left_alone": [
     {
-     "gap_min": 1380,
-     "would_need": "18:11",
-     "writer": "justhodl-sector-tilt"
+     "gap_min": 1405,
+     "would_need": "21:20",
+     "writer": "justhodl-sector-flow-state"
     },
     {
      "gap_min": 1380,
-     "would_need": "18:11",
-     "writer": "justhodl-universe-builder"
+     "would_need": "21:46",
+     "writer": "justhodl-squeeze-fuel"
+    },
+    {
+     "gap_min": 1405,
+     "would_need": "21:20",
+     "writer": "justhodl-compound-aggregator"
     }
    ],
    "window": "session"
@@ -5045,27 +5195,27 @@
  "summary": {
   "after": {
    "buckets": {
-    "1-6h": 555,
-    "12-22h": 840,
-    "6-12h": 458,
-    "<1h": 269,
-    "stale": 18
+    "1-6h": 559,
+    "12-22h": 836,
+    "6-12h": 462,
+    "<1h": 265,
+    "stale": 19
    },
-   "edges": 2140,
+   "edges": 2141,
    "mean_input_age_h": 9.92,
-   "median_input_age_h": 9.42
+   "median_input_age_h": 9.43
   },
   "before": {
    "buckets": {
-    "1-6h": 554,
-    "12-22h": 830,
-    "6-12h": 460,
-    "<1h": 278,
-    "stale": 18
+    "1-6h": 566,
+    "12-22h": 824,
+    "6-12h": 458,
+    "<1h": 271,
+    "stale": 22
    },
-   "edges": 2140,
-   "mean_input_age_h": 9.83,
-   "median_input_age_h": 9.23
+   "edges": 2141,
+   "mean_input_age_h": 9.84,
+   "median_input_age_h": 9.25
   },
   "bursts_after": {
    "BEA": {
@@ -5215,33 +5365,33 @@
     "minutes_over_cap": 1
    }
   },
-  "edges": 2140,
+  "edges": 2141,
   "feedback_edges_ignored": 229,
   "intraday_lane_members": 12,
   "late_ticks": 2,
-  "left_alone_edges": 14,
+  "left_alone_edges": 15,
   "left_alone_triggers": 12,
   "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations + lambda timeout (926 functions known)",
-  "movable": 750,
+  "movable": 752,
   "move_minutes": {
    "16-60": 35,
    "<=15": 76,
-   ">60": 20,
+   ">60": 21,
    "max": 303,
-   "mean": 31.4
+   "mean": 32.6
   },
   "moved_tick_members": 7,
-  "moved_triggers": 131,
+  "moved_triggers": 132,
   "moves_by_why": {
    "burst": 57,
    "order": 39,
-   "print": 42
+   "print": 44
   },
   "moves_by_window": {
    "overnight": 2,
    "post-close": 58,
-   "pre-market": 57,
-   "session": 14
+   "pre-market": 55,
+   "session": 17
   },
   "moves_crossing_window_end": 1,
   "new_ticks": 1,
@@ -5269,7 +5419,7 @@
     "before_it": 0
    },
    "ECB": {
-    "after_the_print": 6,
+    "after_the_print": 7,
     "before_it": 0
    },
    "EIA": {
@@ -5305,7 +5455,7 @@
     "before_it": 0
    },
    "Treasury": {
-    "after_the_print": 8,
+    "after_the_print": 10,
     "before_it": 0
    }
   },
@@ -5331,7 +5481,7 @@
     "before_it": 1
    },
    "ECB": {
-    "after_the_print": 4,
+    "after_the_print": 5,
     "before_it": 2
    },
    "EIA": {
@@ -5368,7 +5518,7 @@
    },
    "Treasury": {
     "after_the_print": 8,
-    "before_it": 0
+    "before_it": 2
    }
   },
   "rules": {
@@ -5403,7 +5553,7 @@
    "stale_min": 60
   },
   "tick_members": 60,
-  "triggers": 801,
+  "triggers": 803,
   "unresolved_regressions": 0,
   "writers_kept_in_place": 0
  },

@@ -71,6 +71,27 @@ def minute_of(expr):
     return int(m.group(2)) * 60 + int(m.group(1)) if m else None
 
 
+def tz_offset_min(tz_name, when=None):
+    """Minutes to ADD to a schedule's local cron minute to get UTC (America/New_York in October: +240). A Scheduler
+    schedule carries ScheduleExpressionTimezone; the manifest records it as "timezone". Computed for `when` (now by
+    default) - a plan written in EDT is re-checked by --check after the clocks change. 2026-10-21: three New York
+    schedules (auction-desk-buyback, bond-warroom-after-auction, master-ranker-weekday-close) were moved by a UTC
+    reading of their New York crons; this is the fix."""
+    if not tz_name or tz_name == "UTC":
+        return 0
+    try:
+        from zoneinfo import ZoneInfo
+        when = when or datetime.now(timezone.utc)
+        return -int(when.astimezone(ZoneInfo(tz_name)).utcoffset().total_seconds() // 60)
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def utc_minute(expr, tz_name):
+    m = minute_of(expr)
+    return None if m is None else (m + tz_offset_min(tz_name)) % 1440
+
+
 def with_minute(expr, minute):
     m = CRON.match(expr)
     return "cron(%d %d %s %s %s %s)" % (minute % 60, (minute // 60) % 24, m.group(3), m.group(4), m.group(5), m.group(6))
@@ -197,7 +218,8 @@ def build(repo, margin_cap=30, stale_min=60, grace_min=30, max_move=60, pass_no=
         for e in sched.get(sec, []):
             if e.get("state") != "ENABLED":
                 continue
-            minute = minute_of(e.get("expr"))
+            minute = utc_minute(e.get("expr"), e.get("timezone"))          # the plan thinks in UTC; the cron stays in its own zone
+            tz_off = tz_offset_min(e.get("timezone"))
             targets = e.get("targets") or []
             fns = sorted({fn_of(t.get("arn")) for t in targets if fn_of(t.get("arn"))})
             if SCHEDULER_FN in fns:
@@ -212,6 +234,7 @@ def build(repo, margin_cap=30, stale_min=60, grace_min=30, max_move=60, pass_no=
             pinned = minute is None or e["name"] in exempt_names
             idx = len(triggers)
             triggers.append({"kind": kind, "name": e["name"], "bus": e.get("bus"), "group": e.get("group"), "expr": e["expr"], "state": e["state"],
+                             "timezone": e.get("timezone") or "UTC", "tz_off": tz_off,
                              "input": "".join(t.get("input") or "" for t in targets), "functions": fns, "minute": minute, "orig": minute,
                              "pinned": pinned, "why_pinned": "exempt" if e["name"] in exempt_names else ("not a daily cron" if minute is None else "")})
             if minute is not None:
@@ -510,11 +533,12 @@ def build(repo, margin_cap=30, stale_min=60, grace_min=30, max_move=60, pass_no=
         kinds = sorted({("print" if is_prov(w) and g else "burst" if is_prov(w) else "order") for w, g in why})
         actions.append({"kind": t["kind"], "name": t["name"], "bus": t.get("bus"), "group": t.get("group"), "functions": t["functions"], "op": "retime",
                         "before": {"expr": t["expr"], "state": t["state"], "input_sha": hashlib.sha256(t["input"].encode()).hexdigest()[:16]},
-                        "after": {"expr": with_minute(t["expr"], t["minute"]), "state": t["state"]},
+                        "after": {"expr": with_minute(t["expr"], (t["minute"] - t.get("tz_off", 0)) % 1440), "state": t["state"]},
+                        "timezone": t.get("timezone", "UTC"),
                         "move_min": (t["minute"] - t["orig"]) % 1440, "window": wname, "crosses_window_end": axis(t["minute"], wname, wa) >= wb,
                         "drivers": [{"writer": w, "gap_before_min": g} for w, g in why], "why": kinds,
-                        "reason": "pipeline order: %s -> %s UTC (%s), %s" % (
-                            hhmm(t["orig"]), hhmm(t["minute"]), wname,
+                        "reason": "pipeline order: %s -> %s UTC%s (%s), %s" % (
+                            hhmm(t["orig"]), hhmm(t["minute"]), (" [%s cron]" % t["timezone"]) if t.get("tz_off") else "", wname,
                             "after " + ", ".join(w.replace(PROVIDER, "") + ("'s print" if is_prov(w) and g else " (burst)" if is_prov(w) else "") for w, g in why) if why else "fires after its writers")})
     for name, lt in late_ticks.items():                           # an existing late tick whose minute changed is a retime
         if lt["exists"] and lt["current_expr"] and lt["current_expr"] != lt["expr"]:

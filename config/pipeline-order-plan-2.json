@@ -306,70 +306,6 @@
   },
   {
    "after": {
-    "expr": "cron(51 13 ? * MON-FRI *)",
-    "state": "ENABLED"
-   },
-   "before": {
-    "expr": "cron(6 13 ? * MON-FRI *)",
-    "input_sha": "44136fa355b3678a",
-    "state": "ENABLED"
-   },
-   "bus": null,
-   "crosses_window_end": false,
-   "drivers": [
-    {
-     "gap_before_min": 1400,
-     "writer": "justhodl-symdir"
-    }
-   ],
-   "functions": [
-    "justhodl-auction-desk"
-   ],
-   "group": "default",
-   "kind": "sched",
-   "move_min": 45,
-   "name": "justhodl-auction-desk-buyback",
-   "op": "retime",
-   "reason": "pipeline order: 13:06 -> 13:51 UTC (pre-market), after justhodl-symdir",
-   "why": [
-    "order"
-   ],
-   "window": "pre-market"
-  },
-  {
-   "after": {
-    "expr": "cron(56 13 ? * MON-FRI *)",
-    "state": "ENABLED"
-   },
-   "before": {
-    "expr": "cron(35 13 ? * MON-FRI *)",
-    "input_sha": "44136fa355b3678a",
-    "state": "ENABLED"
-   },
-   "bus": null,
-   "crosses_window_end": false,
-   "drivers": [
-    {
-     "gap_before_min": 1424,
-     "writer": "justhodl-auction-desk"
-    }
-   ],
-   "functions": [
-    "justhodl-bond-warroom"
-   ],
-   "group": "default",
-   "kind": "sched",
-   "move_min": 21,
-   "name": "justhodl-bond-warroom-after-auction",
-   "op": "retime",
-   "reason": "pipeline order: 13:35 -> 13:56 UTC (pre-market), after justhodl-auction-desk",
-   "why": [
-    "order"
-   ],
-   "window": "pre-market"
-  },
-  {
-   "after": {
     "expr": "cron(50 22 * * ? *)",
     "state": "ENABLED"
    },
@@ -1333,5 +1269,25 @@
  },
  "tick_moves": {},
  "unresolved_regressions": [],
- "version": "pipeline-order.v2"
+ "version": "pipeline-order.v2",
+ "reverted": [
+  {
+   "name": "justhodl-auction-desk-buyback",
+   "kind": "sched",
+   "timezone": "America/New_York",
+   "before": "cron(6 13 ? * MON-FRI *)",
+   "after": "cron(51 13 ? * MON-FRI *)",
+   "restored_to": "cron(10 12 ? * MON-FRI *)",
+   "why": "2026-10-21 first light (evening): the plan read this New York cron as UTC; with the right clock the trigger already fired after its writers, so the original time is restored (ops 6603)"
+  },
+  {
+   "name": "justhodl-bond-warroom-after-auction",
+   "kind": "sched",
+   "timezone": "America/New_York",
+   "before": "cron(35 13 ? * MON-FRI *)",
+   "after": "cron(56 13 ? * MON-FRI *)",
+   "restored_to": "cron(35 13 ? * MON-FRI *)",
+   "why": "2026-10-21 first light (evening): the plan read this New York cron as UTC; with the right clock the trigger already fired after its writers, so the original time is restored (ops 6603)"
+  }
+ ]
 }

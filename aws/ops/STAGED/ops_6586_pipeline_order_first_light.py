@@ -23,9 +23,18 @@ CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=1
 CRON = re.compile(r"^cron\((\d{1,2}) (\d{1,2}) ")
 
 
-def minute_of(expr):
+def minute_of(expr, tz_name="UTC"):
+    """UTC minute of a daily cron; a schedule in another zone (manifest "timezone") is shifted by that zone's offset today
+    (2026-10-21 evening pass: three America/New_York schedules were judged on their cron digits as if UTC)."""
     m = CRON.match(expr)
-    return int(m.group(2)) * 60 + int(m.group(1))
+    minute = int(m.group(2)) * 60 + int(m.group(1))
+    if tz_name and tz_name != "UTC":
+        try:
+            from zoneinfo import ZoneInfo
+            minute = (minute - int(datetime.now(timezone.utc).astimezone(ZoneInfo(tz_name)).utcoffset().total_seconds() // 60)) % 1440
+        except Exception:  # noqa: BLE001
+            pass
+    return minute
 
 
 def main():
@@ -77,7 +86,8 @@ def main():
 
         due, fired_new, fired_old, errors, missing = 0, 0, 0, [], []
         for a in plan["actions"]:
-            new_m, old_m = minute_of(a["after"]["expr"]), minute_of(a["before"]["expr"])
+            tz = a.get("timezone") or "UTC"
+            new_m, old_m = minute_of(a["after"]["expr"], tz), minute_of(a["before"]["expr"], tz)
             if new_m + 6 > now.hour * 60 + now.minute:
                 continue                                           # not due yet today
             dow = a["after"]["expr"].split(" ")[4]

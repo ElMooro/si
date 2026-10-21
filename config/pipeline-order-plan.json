@@ -1547,35 +1547,6 @@
   },
   {
    "after": {
-    "expr": "cron(6 13 ? * MON-FRI *)",
-    "state": "ENABLED"
-   },
-   "before": {
-    "expr": "cron(10 12 ? * MON-FRI *)",
-    "input_sha": "44136fa355b3678a",
-    "state": "ENABLED"
-   },
-   "bus": null,
-   "crosses_window_end": false,
-   "drivers": [
-    {
-     "gap_before_min": 1390,
-     "writer": "justhodl-symdir"
-    }
-   ],
-   "functions": [
-    "justhodl-auction-desk"
-   ],
-   "group": "default",
-   "kind": "sched",
-   "move_min": 56,
-   "name": "justhodl-auction-desk-buyback",
-   "op": "retime",
-   "reason": "pipeline order: 12:10 -> 13:06 UTC (pre-market), fires after justhodl-symdir",
-   "window": "pre-market"
-  },
-  {
-   "after": {
     "expr": "cron(16 22 * * ? *)",
     "state": "ENABLED"
    },
@@ -1841,47 +1812,6 @@
    "op": "retime",
    "reason": "pipeline order: 21:20 -> 21:21 UTC (post-close), fires after justhodl-eurodollar-stress",
    "window": "post-close"
-  },
-  {
-   "after": {
-    "expr": "cron(5 17 ? * MON-FRI *)",
-    "state": "ENABLED"
-   },
-   "before": {
-    "expr": "cron(15 16 ? * MON-FRI *)",
-    "input_sha": "44136fa355b3678a",
-    "state": "ENABLED"
-   },
-   "bus": null,
-   "crosses_window_end": false,
-   "drivers": [
-    {
-     "gap_before_min": 1434,
-     "writer": "justhodl-13f-positions"
-    },
-    {
-     "gap_before_min": 1395,
-     "writer": "justhodl-divergence-engine-v2"
-    },
-    {
-     "gap_before_min": 1415,
-     "writer": "justhodl-future-intelligence"
-    },
-    {
-     "gap_before_min": 1400,
-     "writer": "justhodl-smart-money-cluster"
-    }
-   ],
-   "functions": [
-    "justhodl-master-ranker"
-   ],
-   "group": "default",
-   "kind": "sched",
-   "move_min": 50,
-   "name": "justhodl-master-ranker-weekday-close",
-   "op": "retime",
-   "reason": "pipeline order: 16:15 -> 17:05 UTC (session), fires after justhodl-13f-positions, justhodl-divergence-engine-v2, justhodl-future-intelligence, justhodl-smart-money-cluster",
-   "window": "session"
   },
   {
    "after": {
@@ -3518,5 +3448,25 @@
   }
  },
  "unresolved_regressions": [],
- "version": "pipeline-order.v1"
+ "version": "pipeline-order.v1",
+ "reverted": [
+  {
+   "name": "justhodl-auction-desk-buyback",
+   "kind": "sched",
+   "timezone": "America/New_York",
+   "before": "cron(10 12 ? * MON-FRI *)",
+   "after": "cron(6 13 ? * MON-FRI *)",
+   "restored_to": "cron(10 12 ? * MON-FRI *)",
+   "why": "2026-10-21 first light (evening): the plan read this New York cron as UTC; with the right clock the trigger already fired after its writers, so the original time is restored (ops 6603)"
+  },
+  {
+   "name": "justhodl-master-ranker-weekday-close",
+   "kind": "sched",
+   "timezone": "America/New_York",
+   "before": "cron(15 16 ? * MON-FRI *)",
+   "after": "cron(5 17 ? * MON-FRI *)",
+   "restored_to": "cron(15 16 ? * MON-FRI *)",
+   "why": "2026-10-21 first light (evening): the plan read this New York cron as UTC; with the right clock the trigger already fired after its writers, so the original time is restored (ops 6603)"
+  }
+ ]
 }
