@@ -33,6 +33,17 @@ This file tracks items that require **your direct action** (registration, creden
   never got a mouse-leave, so it stuck open. The pin now lasts one tab session and hiding is position-based. Proved
   on the live page (ops 6601): hidden on load, each edge reveals its bar, hidden again ~0.4 s after the pointer
   leaves - in a fresh profile and in one carrying the old pin.
+* **"Why is US10Y 2 days old" - FIXED 2026-10-21 19:10 UTC** (ops 6602 live probe): the chart routed TVC:US10Y to FRED:DGS10,
+  and FRED's H.15 prints each day's Treasury yield the NEXT business day at 16:15 ET - so at 13:30 ET on a Wednesday
+  FRED's newest print is Monday's; the two fresher routes (TradingView bank, banked Yahoo copy) were both dead with
+  the TradingView refusal. Now the market yield symbols route to market sources: US10Y/TVC:US10Y -> ^TNX, US05Y ->
+  ^FVX, US30Y -> ^TYX (CBOE yield indices through Yahoo, asked live before any banked copy - candles with bodies, as
+  you set up on Sep 14), US02Y/US20Y -> Treasury's own par curve (ustpar, the exact series FRED mirrors a day later;
+  T-1 until Treasury's 15:30-17:00 ET post, then same-day after the 22:29 UTC bank run). FRED:DGS* stays FRED when
+  you ask for it by name. Proof on the live page: TVC:US10Y `5.13 +0.01 (0.20%) O 5.10 H 5.13 L 5.08 C 5.13` for
+  2026-10-21 (source yahoo); US02Y 4.79 for 2026-10-20 (Treasury); FRED:DGS10 5.15 for 2026-10-19 (FRED, by design).
+  The watchlist's US10Y row now carries the same live route. Two doctrine tests that pinned "US10Y is a FRED alias"
+  were updated and ledgered (tests/fixtures/chart-macro-line/*us10y*).
 * **Next, on your word**: a live bar on chart.html during the session - the worker already serves Polygon's forming
   session (`/ohlc?...&tail=1`), the chart engine just never asks for it; ~15 lines in jh-chart-engine.js. Caveat: on
   the Polygon Basic plan (end-of-day only) the tail stays empty until the close.

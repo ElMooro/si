@@ -46,3 +46,13 @@ inside the plan.
   reveal and hide; "reveal then jump away" hides. Preservation ledger: `peelAutohideHtml`, `peelPolygonAppend` in
   tests/helpers/chart-macro-line-preservation.cjs (+ fixture tv-bars-polygon-append.block.txt); 4,876 JS tests and
   1,161 deployment tests green.
+
+## US10Y "2 days old" (Khalid 13:30 ET; ops 6602)
+Route TVC:US10Y -> FRED:DGS10 = the Fed's H.15 copy of the Treasury yield, printed the next business day at 16:15 ET
+(T-2 intraday, T-1 after). Fix: market yield symbols -> market sources (^TNX/^FVX/^TYX live via Yahoo, asked before the
+banked copy; US02Y/US20Y -> ustpar, Treasury's own daily par curve); FRED:DGS* by name stays FRED; DGS2 no longer borrows
+^IRX (13-week bill). jh-chart-engine.js (resolveSym ALIAS, FRED_MKT ust, klines live-first for ^ indices and the TVC alias
+bypass of the banked TradingView copy) + jh-chart-tvwatch.js (chartSymbol routes). Live probe 19:10 UTC: TVC:US10Y and
+US10Y show 2026-10-21 (5.13, source yahoo); TVC:US02Y 2026-10-20 (Treasury); FRED:DGS10 2026-10-19 (FRED). Ledger:
+peelUs10y* in tests/helpers/chart-macro-line-preservation.cjs with edit fixtures; tests/warehouse-observations.test.js and
+tests/watchlist-identity.test.js updated for the new routes (both ledgered). 4,876 JS tests green.
