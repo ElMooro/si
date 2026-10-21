@@ -197,7 +197,7 @@ function peelUs10yHtml(raw,file){
 }
 // 2026-10-21 (b): peel the yield-symbol routing (US10Y -> ^TNX, US02Y -> ustpar:2Y, US05Y -> ^FVX, US30Y -> ^TYX) in the engine and the watchlist, and the chart.html cache-bust.
 function peelUs10yRouteEngine(raw,file){
- const AFTER='1ba274bde055ce27c49db0bef12b30cec64539d675126c9caa2a5b0589b2ff15';
+ const AFTER='c689e7bb0cf37fe011e6812170c0a5c8ca85b8749f38d148978c3f30f5b81b23';
  const BEFORE='032822eebe43777ccd2539654b18271a31f382e0cbc215cc8813101998fcecc4';
  if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
  const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/engine-us10y-route.edits.json'),'utf8'));
@@ -215,9 +215,9 @@ function peelUs10yRouteWatch(raw,file){
  return raw;
 }
 function peelUs10yRouteHtml(raw,file){
- const AFTER='14859a21c9f35de0881f18be9a8c7a856fec364b12d2e97eef48936e0571db6d';
+ const AFTER='543cc410c98d1b75f252c3f18b8d359d744c57b408fcdc86e16aec8a27016b05';
  const BEFORE='2acc793b989d8cc26247abd58fc97341ca92df6e9ba0e171aec2cd089f0620ee';
- const FROM='&cds=20261015&us10y=20261021b"';
+ const FROM='&cds=20261015&us10y=20261021c"';
  const TO='&cds=20261015&us10y=20261021"';
  if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
  assert.equal(raw.split(FROM).length,2,'chart.html us10y route cache');

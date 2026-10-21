@@ -2057,7 +2057,7 @@
     }
     // Preserve the complete exchange id. This endpoint reports daily OHLC;
     // observations without OHLC cannot be manufactured into market candles.
-    if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){
+    if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym)) && !(/^TVC:/i.test(String(sym)) && /^\^/.test(String(rs.raw||"")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2 */
       var seriesUrl=PROXY+"/series?id="+encodeURIComponent(sym),tvRaw=null;
       try{
         if(!/^(1d|2d|3d|5d|1w|2w|1M|3M)$/.test(sp[0]))return [];

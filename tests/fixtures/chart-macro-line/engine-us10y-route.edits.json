@@ -10,5 +10,9 @@
  {
   "before": "    if(ALIAS[s]) s=ALIAS[s];\n    if(s.indexOf(\":\")>=0){ venue=s.split(\":\")[0]; ticker=s.split(\":\").pop(); }",
   "after": "    if(ALIAS[s]) s=ALIAS[s];\n    if(/^ustpar:/i.test(s)) return {raw:s, venue:\"ustpar\", ticker:s, yahoo:s.split(\":\").pop(), engine:\"series\"}; /* Treasury par tenors are warehouse scalars (2026-10-21) */\n    if(s.indexOf(\":\")>=0){ venue=s.split(\":\")[0]; ticker=s.split(\":\").pop(); }"
+ },
+ {
+  "before": "    if(String(sym).indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym))){\n      var seriesUrl=PROXY+\"/series?id=\"+encodeURIComponent(sym),tvRaw=null;",
+  "after": "    if(String(sym).indexOf(\":\")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym)) && !(/^TVC:/i.test(String(sym)) && /^\\^/.test(String(rs.raw||\"\")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2 */\n      var seriesUrl=PROXY+\"/series?id=\"+encodeURIComponent(sym),tvRaw=null;"
  }
 ]
