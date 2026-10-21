@@ -41,13 +41,10 @@ print(json.dumps({"n": len(entries), "fusion": "justhodl-jh-fusion" in entries, 
   assert.equal(out.asof, null, "registry unreachable -> no as_of, no crash");
 });
 
-test("nav-drawer diag beacon is fire-and-forget (no-cors) so it cannot raise a CORS error on every page", () => {
+test("nav-drawer sends no beacon to a Lambda URL (ops 6592: every page view was an invocation; a crawler tripped the anomaly sentinel)", () => {
   const js = read("jh-nav-drawer.js");
-  const i = js.indexOf("?diag=1");
-  assert.ok(i > 0);
-  const call = js.slice(i, i + 260);
-  assert.match(call, /mode:'no-cors'|mode:"no-cors"/);
-  assert.match(call, /keepalive:true/);
+  assert.equal(js.indexOf("?diag=1"), -1, "the ops 3276 diag beacon must stay removed");
+  assert.equal(js.indexOf("lambda-url.us-east-1.on.aws"), -1, "the nav drawer must not call a Function URL on page load");
 });
 
 test("static dependency map builder runs and separates referenced-by-code from loaded/displayed", () => {

@@ -542,7 +542,7 @@
     });
 
     try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.update();});});}catch(e){}
-    try{if(!sessionStorage.getItem('jh_diag_3276')){sessionStorage.setItem('jh_diag_3276','1');var fv=0;try{fv=(JSON.parse(localStorage.getItem('jh_favs')||'[]')||[]).length;}catch(e){}var sw='none';try{sw=(navigator.serviceWorker&&navigator.serviceWorker.controller)?'yes':'none';}catch(e){}fetch('https://nu4umjskc25osscrbmqh3o2gte0utlkx.lambda-url.us-east-1.on.aws/?diag=1&page='+encodeURIComponent(location.pathname)+'&favs='+fv+'&sw='+sw+'&v=3276',{keepalive:true,mode:'no-cors'}).catch(function(){});}}catch(e){}
+    /* ops 6592 (2026-10-21): the ops 3276 diag beacon (one Lambda URL call per page view per session) is gone - a crawler without session storage fired it ~5,000 times an hour and tripped the anomaly sentinel on justhodl-wl-series-api; telemetry belongs at the edge, not on a Function URL. */
     fetch("/nav-manifest.json?v="+Math.floor(Date.now()/36e5)) /* ops 3272: hourly bust — stale CDN hid new pages+stars */.then(function (r) { return r.ok ? r.json() : null; })
       .then(function (m) { if (m) render(m); })
       .catch(function () {});
