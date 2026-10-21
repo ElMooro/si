@@ -6,6 +6,37 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0k. chart.html - BACK 2026-10-21 14:39 UTC (docs/audit/2026-10-21/chart-restore.md); one decision left to you
+
+* **What was wrong**: every desk opened but the chart was blank - every bar request goes data-proxy worker ->
+  `justhodl-symdir` Function URL, and the 2026-10-20 flood caps (ops 6558) put symdir at reserved concurrency 2; a
+  chart page fires dozens of bar requests at once, so past the second one the URL answered 429 and the worker 502
+  (1,790 in a four-minute probe). Fixed by the runbook's own rule - that one function raised to 30 (ops 6598,
+  bounded: ~$0.36/hour per concurrent copy under a flood, fuse and runaway alarms unchanged). Proof: the live
+  headless-Chrome probe (ops 6597, 14:39 UTC) shows `AAPL 342.94 -0.52 (-0.15%)`, 11,549 bars, detail populated,
+  zero 502s; all 22 desk buttons open their desks.
+* **Engines behind the chart refreshed**: 5 freeze-stale writers re-run once (on-chain, DIX, GF value, ETF desk,
+  squeeze); dark-pool refused a second attempt for the day ("request already attempted") - its 21:40 UTC run
+  stands. New engine **`justhodl-fmp-ratios`** (daily 22:38 UTC): `data/fmp-ratios.json` had no writer since the
+  2026-09-15 one-off harvest, so the Valuation / Financials desks AND `fmp_book` (the FMP cache 238 engines read
+  first) served five-week-old ratios. First run 15:08-15:15 UTC: 506 names (core 40 + S&P 500 + the names you opened
+  on the chart), 0 errors, AAPL P/E 39.2 as of today.
+* **DECIDE - the bar bank is frozen at 2026-10-19**: `justhodl-tv-bars` refreshes the warehouse from TradingView's
+  chart socket; TradingView has refused the websocket handshake (HTTP 400) since ~Oct 12, and the engine's rule is
+  "no fallback attempted" on a refusal (provider identity doctrine), so 288 of 309 banked names stopped at Monday's
+  bar - the chart shows Oct 19 on Oct 21. Options: (a) you re-capture the TradingView session with the extension
+  (SSM `/justhodl/tradingview/sessionid` is from 2026-07-07) - cheapest, lasts until TV changes again; (b) let the
+  nightly refresh fall back to Yahoo on a refusal (labelled `yahoo-chart`, append-only; ~10 lines in tv-bars);
+  (c) append US daily bars from Polygon (paid, licensed) and keep TradingView for non-US - the professional fix,
+  a new refresh mode. I will not change the engine without your word.
+* **Also found, yours to decide** (details in the audit doc): `justhodl-estimate-revisions` fails every run since
+  Oct 10 - its Benzinga earnings calendar (`api.polygon.io/benzinga/v1/earnings`) answers unauthorized (not in the
+  Polygon plan?); `justhodl-share-flows` fails since Sep 26 because the GitHub job
+  `capital-structure-source-refresh.yml` has failed at its "plan" step every day since Oct 8 (another lane's
+  producer); `justhodl-earnings-pead` fails on "no selected universe". The chart's page code still hammers four
+  dead fallbacks (`/api/klines`, `/api/yahoo`, `/api/trades`, `/data/series/*.json`: 1,500 wasted requests per
+  session) and calls the edgar-insiders Function URL directly (404s) - page cleanups I can do on your go.
+
 ### 0j. This morning's alerts (2026-10-21 08:07-08:17 CT) - what they were, what was done
 
 * **ANOMALY e-mail, `justhodl-wl-series-api` held**: the Lightpanda/1.0 crawler looped over forensic / bottom / why /

@@ -15,7 +15,7 @@ What it does
   1. Universe, in priority order, deduplicated, capped (FMP_RATIOS_MAX, default 700):
        a. the 40 core names of the original harvest (never dropped);
        b. the US-listed names Khalid has actually opened on the chart - data/warm/tv-bars/universe/_index.json
-          (NASDAQ: / NYSE: / AMEX: ... symbols banked by justhodl-tv-bars);
+          (US: / NASDAQ: / NYSE: / AMEX: ... symbols banked by justhodl-tv-bars);
        c. the S&P 500 constituents (FMP /stable/sp500-constituent).
   2. One equity_enrich.fetch_financials(ticker) per name (the same ~10 /stable calls the original harvest made:
      profile, income statement, cash flow, ratios-ttm, earnings, balance sheet, segmentation, insiders, price
@@ -60,7 +60,7 @@ MIN_GAP_S = float(os.environ.get("FMP_RATIOS_MIN_GAP_S", "0.08") or 0.08)   # ~1
 RESERVE_MS = 75_000                                                          # stop submitting new names with this much time left
 CORE = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK-B", "JPM", "LLY", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "JNJ", "ABBV",
         "TSM", "ASML", "NFLX", "CRM", "AMD", "ORCL", "ADBE", "KO", "PEP", "WMT", "MRK", "BAC", "CVX", "LIN", "TMO", "MCD", "ACN", "CSCO", "ABT", "GE"]
-US_EXCHANGES = {"NASDAQ", "NYSE", "AMEX", "NYSEARCA", "BATS", "CBOE"}
+US_EXCHANGES = {"US", "NASDAQ", "NYSE", "AMEX", "NYSEARCA", "BATS", "CBOE"}  # "US:" is the bank's own namespace for US listings (288 of 309 names)
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9]{0,5}([.\-][A-Z]{1,2})?$")
 
 _gate = threading.Lock()
