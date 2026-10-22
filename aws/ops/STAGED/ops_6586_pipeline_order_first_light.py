@@ -84,7 +84,7 @@ def main():
             """Sum of a function's metric over today's minutes [m0, m1)."""
             return sum(v for ts, v in series.get(ids[fn] + metric[0].lower(), []) if m0 <= ts.hour * 60 + ts.minute < m1)
 
-        due, fired_new, fired_old, errors, missing = 0, 0, 0, [], []
+        due, fired_new, fired_old, errors, missing, old_hits = 0, 0, 0, [], [], []
         for a in plan["actions"]:
             tz = a.get("timezone") or "UTC"
             new_m, old_m = minute_of(a["after"]["expr"], tz), minute_of(a["before"]["expr"], tz)
@@ -98,6 +98,8 @@ def main():
             got_old = any(count(fn, "Invocations", old_m, old_m + 3) > 0 for fn in a["functions"]) if abs(new_m - old_m) > 6 else False
             fired_new += got_new
             fired_old += got_old
+            if got_old:
+                old_hits.append((a["name"], a["before"]["expr"]))
             if not got_new:
                 missing.append((a["name"], a["after"]["expr"]))
             for fn in a["functions"]:
@@ -105,6 +107,8 @@ def main():
                 if e:
                     errors.append((fn, int(e)))
         r.log("retimed triggers due so far today: %d; fired at the new minute: %d; still fired at the old minute: %d" % (due, fired_new, fired_old))
+        for name, expr in old_hits:
+            r.warn("still fired at its OLD minute today: %s %s (expected only when the apply came after that minute)" % (name, expr))
         for name, expr in missing[:20]:
             r.warn("no invocation in the 6 min from its new time: %s %s" % (name, expr))
         for fn, e in errors[:20]:
