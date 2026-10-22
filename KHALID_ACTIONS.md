@@ -75,7 +75,7 @@ This file tracks items that require **your direct action** (registration, creden
   timeout raise or a split, engine changes), and 20 orphan rules targeting functions deleted on Oct 20 (harmless;
   proposal: disable them).
 
-### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) - census done, dry run clean, APPLYING 2026-10-22 ~01:50 UTC
+### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) - APPLIED 2026-10-22 01:51 UTC (ops 6605)
 
 The 12 light Polygon feeds refresh every 5 minutes 09:00-16:55 New York time, Monday-Friday (one Scheduler schedule,
 exempt from the once-a-day rule by name; the $50 cap and the anomaly sentinel unchanged; ~$1-2/month). First session
@@ -90,8 +90,10 @@ NY Fed 8/20, Cboe 5/17, each cluster before its provider's print, so the arithme
 later than assumed: 17:30 ET). Dry run ops 6604 at 01:44 UTC: 135 retimes, 0 drift - pullers before their print 51 -> 2
 (the two session-window FINRA readers, by design), provider minutes over the per-minute cap 36 -> 0 (FMP's busiest minute
 19 -> 4, FRED 5 -> 2, ECB 4 -> 2, SEC 3 -> 2), stale reader-writer edges 22 -> 19, mean move 33 min, max 303. Nothing
-faster than daily; no caps, budgets, IAM, lifecycle or archive touched. Apply = ops 6605 (one engine runs twice on apply
-day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). Tomorrow's morning check reads the first light.
+faster than daily; no caps, budgets, IAM, lifecycle or archive touched. Applied by ops 6605 at 01:51 UTC: 135 triggers retimed, the
+11:30 UTC late tick created, both S3 manifests equal the repo, 138 planned triggers read back as planned, 0 not as planned
+(one engine runs twice on apply day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). First light: the 13:20 UTC
+check reads the morning half, a 23:58 UTC check the evening half - you get both in a few lines.
 
 ### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 

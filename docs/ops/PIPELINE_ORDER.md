@@ -252,7 +252,7 @@ through Friday." `config/intraday-lane.json`:
   planned, 0 cadence violators. Backups `s3://justhodl-ops-private-857687956942/backups/pipeline-order/20261021T042127Z/`.
   First light: ops 6586 at 23:35 UTC checks every member was invoked ~96 times through the session with no errors.
 
-## Pass 3 - providers as pinned writers + no bursts (census 2026-10-22 01:36 UTC; dry run ops 6604 clean 01:44 UTC; apply ops 6605)
+## Pass 3 - providers as pinned writers + no bursts (census 2026-10-22 01:36 UTC; dry run ops 6604 clean 01:44 UTC; APPLIED by ops 6605 at 01:51 UTC)
 
 Khalid, 2026-10-21: "the biggest freshness win costs nothing ... treat each provider as a pinned writer at its
 publication time - dry run first, after a one-off census confirms the arithmetic" and "be careful not to pull all
@@ -295,6 +295,17 @@ retimes ready, 0 drift, 0 missing; late ticks: daily-morn-late present at 11:15,
 manifests would change (7 fan-out members move, 135 entries retimed, 1 schedule entry added). Applied at ~01:50 UTC,
 exactly one trigger fires twice on the day of the apply (`justhodl-cusip-map-rebuild-hourly`: 01:28 had run, 03:30
 runs again after the SEC print) and `justhodl-stock-xray-daily` skips its 23:40 run for the 00:35 one the next morning.
+
+**Applied (ops 6605, 2026-10-22 01:51 UTC, `aws/ops/reports/latest/ops_6605_pipeline_order_pass3_apply.md`):** 135
+triggers retimed (one canary first, then 134; every definition backed up to
+`s3://justhodl-ops-private-857687956942/backups/pipeline-order/20261022T015100Z/` before the write, read back after);
+`jhk-tick-daily-morn-late2` created ENABLED at 11:30 UTC on the proven invoke role (daily-morn-late already in place);
+the lane schedule and its cadence exemption untouched; `config/fanout-manifest.json` and `config/schedule-manifest.json`
+on S3 now equal the committed files (previous copies backed up). Verification snapshot: 588 rules, 439 schedules, 138
+planned triggers live as planned (135 retimes + 2 late ticks + the lane), 0 not as planned, 0 enabled triggers able to
+fire more than once a day. First light: the morning half (03:30 SEC-print moves, the 11:00-13:02 burst spreads, the two
+late ticks) is read by the 13:20 UTC check with `ops_6586_pipeline_order_first_light.py` (it reads every applied plan);
+the evening half (post-close moves, the three New York-zone schedules at 14:30 / 14:35 / 16:40 ET) at 23:58 UTC.
 
 ### Pass 3 moves
 
