@@ -748,7 +748,7 @@
   },
   {
    "after": {
-    "expr": "cron(2 22 ? * FRI *)",
+    "expr": "cron(1 22 ? * FRI *)",
     "state": "ENABLED"
    },
    "before": {
@@ -769,10 +769,10 @@
    ],
    "group": null,
    "kind": "rule",
-   "move_min": 2,
+   "move_min": 1,
    "name": "justhodl-cot-tracker-weekly",
    "op": "retime",
-   "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
+   "reason": "pipeline order: 22:00 -> 22:01 UTC (post-close), after FMP (burst)",
    "timezone": "UTC",
    "why": [
     "burst"
@@ -811,6 +811,39 @@
     "print"
    ],
    "window": "pre-market"
+  },
+  {
+   "after": {
+    "expr": "cron(6 23 ? * MON-FRI *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(20 22 ? * MON-FRI *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1399,
+     "writer": "justhodl-vix-curve"
+    }
+   ],
+   "functions": [
+    "justhodl-crisis-knowledge-base"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 46,
+   "name": "justhodl-crisis-knowledge-base-cadence",
+   "op": "retime",
+   "reason": "pipeline order: 22:20 -> 23:06 UTC (post-close), after justhodl-vix-curve",
+   "timezone": "UTC",
+   "why": [
+    "order"
+   ],
+   "window": "post-close"
   },
   {
    "after": {
@@ -1139,6 +1172,39 @@
    "timezone": "UTC",
    "why": [
     "burst"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(11 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(30 22 * * ? *)",
+    "input_sha": "e3b0c44298fc1c14",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1404,
+     "writer": "justhodl-crisis-knowledge-base"
+    }
+   ],
+   "functions": [
+    "justhodl-flows-ai-analysis"
+   ],
+   "group": null,
+   "kind": "rule",
+   "move_min": 41,
+   "name": "justhodl-flows-ai-analysis-daily",
+   "op": "retime",
+   "reason": "pipeline order: 22:30 -> 23:11 UTC (post-close), after justhodl-crisis-knowledge-base",
+   "timezone": "UTC",
+   "why": [
+    "order"
    ],
    "window": "post-close"
   },
@@ -2895,7 +2961,7 @@
   },
   {
    "after": {
-    "expr": "cron(3 22 * * ? *)",
+    "expr": "cron(2 22 * * ? *)",
     "state": "ENABLED"
    },
    "before": {
@@ -2916,10 +2982,10 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 3,
+   "move_min": 2,
    "name": "justhodl-gf-value-daily",
    "op": "retime",
-   "reason": "pipeline order: 22:00 -> 22:03 UTC (post-close), after FMP (burst)",
+   "reason": "pipeline order: 22:00 -> 22:02 UTC (post-close), after FMP (burst)",
    "timezone": "UTC",
    "why": [
     "burst"
@@ -3067,6 +3133,39 @@
    "timezone": "UTC",
    "why": [
     "burst"
+   ],
+   "window": "post-close"
+  },
+  {
+   "after": {
+    "expr": "cron(11 23 * * ? *)",
+    "state": "ENABLED"
+   },
+   "before": {
+    "expr": "cron(0 23 * * ? *)",
+    "input_sha": "44136fa355b3678a",
+    "state": "ENABLED"
+   },
+   "bus": null,
+   "crosses_window_end": false,
+   "drivers": [
+    {
+     "gap_before_min": 1434,
+     "writer": "justhodl-vrp"
+    }
+   ],
+   "functions": [
+    "justhodl-market-extremes"
+   ],
+   "group": "default",
+   "kind": "sched",
+   "move_min": 11,
+   "name": "justhodl-market-extremes-daily",
+   "op": "retime",
+   "reason": "pipeline order: 23:00 -> 23:11 UTC (post-close), after justhodl-vrp",
+   "timezone": "UTC",
+   "why": [
+    "order"
    ],
    "window": "post-close"
   },
@@ -3608,7 +3707,7 @@
   },
   {
    "after": {
-    "expr": "cron(4 22 ? * MON-FRI *)",
+    "expr": "cron(3 22 ? * MON-FRI *)",
     "state": "ENABLED"
    },
    "before": {
@@ -3629,10 +3728,10 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 19,
+   "move_min": 18,
    "name": "justhodl-sp500-daily",
    "op": "retime",
-   "reason": "pipeline order: 21:45 -> 22:04 UTC (post-close), after justhodl-spx-ma",
+   "reason": "pipeline order: 21:45 -> 22:03 UTC (post-close), after justhodl-spx-ma",
    "timezone": "UTC",
    "why": [
     "order"
@@ -4123,7 +4222,7 @@
   },
   {
    "after": {
-    "expr": "cron(32 22 * * ? *)",
+    "expr": "cron(6 23 * * ? *)",
     "state": "ENABLED"
    },
    "before": {
@@ -4135,6 +4234,10 @@
    "crosses_window_end": false,
    "drivers": [
     {
+     "gap_before_min": 1411,
+     "writer": "justhodl-vix-curve"
+    },
+    {
      "gap_before_min": 0,
      "writer": "provider:FMP"
     }
@@ -4144,13 +4247,14 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 2,
+   "move_min": 36,
    "name": "justhodl-vrp-daily",
    "op": "retime",
-   "reason": "pipeline order: 22:30 -> 22:32 UTC (post-close), after FMP (burst)",
+   "reason": "pipeline order: 22:30 -> 23:06 UTC (post-close), after justhodl-vix-curve, FMP (burst)",
    "timezone": "UTC",
    "why": [
-    "burst"
+    "burst",
+    "order"
    ],
    "window": "post-close"
   },
@@ -4433,7 +4537,7 @@
   },
   {
    "after": {
-    "expr": "cron(1 22 ? * MON-FRI *)",
+    "expr": "cron(1 23 ? * MON-FRI *)",
     "state": "ENABLED"
    },
    "before": {
@@ -4445,7 +4549,7 @@
    "crosses_window_end": false,
    "drivers": [
     {
-     "gap_before_min": 1410,
+     "gap_before_min": 1350,
      "writer": "provider:Cboe"
     }
    ],
@@ -4454,10 +4558,10 @@
    ],
    "group": "default",
    "kind": "sched",
-   "move_min": 61,
+   "move_min": 121,
    "name": "vix-curve-sched",
    "op": "retime",
-   "reason": "pipeline order: 21:00 -> 22:01 UTC (post-close), after Cboe's print",
+   "reason": "pipeline order: 21:00 -> 23:01 UTC (post-close), after Cboe's print",
    "timezone": "UTC",
    "why": [
     "print"
@@ -4626,14 +4730,14 @@
   "justhodl-master-allocator-3h": {
    "left_alone": [
     {
-     "gap_min": 1388,
-     "would_need": "22:50",
-     "writer": "justhodl-gold-equity-rotation"
-    },
-    {
      "gap_min": 1383,
      "would_need": "22:55",
      "writer": "justhodl-asset-compass"
+    },
+    {
+     "gap_min": 1388,
+     "would_need": "22:50",
+     "writer": "justhodl-gold-equity-rotation"
     }
    ],
    "window": "post-close"
@@ -5195,14 +5299,14 @@
  "summary": {
   "after": {
    "buckets": {
-    "1-6h": 559,
+    "1-6h": 554,
     "12-22h": 836,
-    "6-12h": 462,
-    "<1h": 265,
+    "6-12h": 461,
+    "<1h": 271,
     "stale": 19
    },
    "edges": 2141,
-   "mean_input_age_h": 9.92,
+   "mean_input_age_h": 9.91,
    "median_input_age_h": 9.43
   },
   "before": {
@@ -5374,22 +5478,22 @@
   "margin_source": "aws/ops/reports/latest/ops_6546_cost_audit_data.md lambda_daily Duration/Invocations + lambda timeout (926 functions known)",
   "movable": 752,
   "move_minutes": {
-   "16-60": 35,
+   "16-60": 38,
    "<=15": 76,
    ">60": 21,
    "max": 303,
-   "mean": 32.6
+   "mean": 33.3
   },
   "moved_tick_members": 7,
-  "moved_triggers": 132,
+  "moved_triggers": 135,
   "moves_by_why": {
    "burst": 57,
-   "order": 39,
+   "order": 43,
    "print": 44
   },
   "moves_by_window": {
    "overnight": 2,
-   "post-close": 58,
+   "post-close": 61,
    "pre-market": 55,
    "session": 17
   },
