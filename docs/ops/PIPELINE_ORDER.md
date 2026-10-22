@@ -307,6 +307,13 @@ fire more than once a day. First light: the morning half (03:30 SEC-print moves,
 late ticks) is read by the 13:20 UTC check with `ops_6586_pipeline_order_first_light.py` (it reads every applied plan);
 the evening half (post-close moves, the three New York-zone schedules at 14:30 / 14:35 / 16:40 ET) at 23:58 UTC.
 
+**First light, morning half (ops 6586 at 13:30 UTC, 2026-10-22):** 41 retimed triggers due by then - 40 fired at their
+new minute and not at the old one; the 41st is `justhodl-stock-xray-daily`, whose new 00:35 slot had passed before the
+apply (it fires 2026-10-23 00:35). Both late ticks fired: daily-morn-late 6/6 members at 11:15, daily-morn-late2 3/3 at
+11:30 (`[scheduler] tick=daily-morn-late ok=6 err=0`, `tick=daily-morn-late2 ok=3 err=0`). The only old-minute firing
+was cusip-map-rebuild's 01:28 run from before the apply. Errors in a new window: estimate-revisions 3 (the known
+Benzinga 401), research-backtest 2 (read at the evening check). Evening half: 23:58 UTC.
+
 ### Pass 3 moves
 
 | window | trigger | move (UTC; ET where the cron is New York time) | min | why | after |
