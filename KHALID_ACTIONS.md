@@ -6,7 +6,7 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0l. The 13:20 UTC alarm re-check - two of three DONE on "continue" (2026-10-22 16:47 UTC); the LLM voices remain yours
+### 0l. The 13:20 UTC alarm re-check - all three DONE (2026-10-22 17:37 UTC): futures-curves fixed, orphans were alias targets, policy A applied
 
 1. **futures-curves - FIXED and publishing again** (commit 4b55630f, ops 6614). Root cause: Massive now allows about
    5 futures requests a minute on your key (the first 5 catalog calls answer 200, the rest 429 with an empty body; the
@@ -22,8 +22,16 @@ This file tracks items that require **your direct action** (registration, creden
    7 days, public-archive-index 104, fleet-freshness-monitor 64 ...). Nothing was disabled. fleet-integrity v1.2.1 is
    alias-aware; its re-run reports D4 = 0 (new defects 269 -> 248: D8 errors 174, D7 concurrency 57, D2 timeout-clipped
    7, D14 unscanned 6, D6 never-ran 4 - the integrity alarm stays red on those until they are worked).
-3. **The LLM voices are dead** (`justhodl-llm-providers-down` ALARM since 08:44 UTC; Anthropic credits exhausted, GLM
-   answering 429) - new credits or a different voice is your call.
+3. **LLM voices - policy A, your word at 13:22 ET: keep the no-paid-AI policy ($0) and make the monitoring honest.**
+   The facts first: both providers answered 200 to this morning's health ping (keys valid, credit present); the alarm
+   was red only because the ping runs once a day and the alarm expected a reading every hour. Done (ops 6615):
+   `justhodl-llm-providers-down` now evaluates one datapoint per 24 h, missing data is not a failure - it fires only
+   when `ProvidersUp` < 1 (definition backed up under backups/alarms/20261022T173528Z/); the contract gate accepts
+   `llm_status: "unavailable"` as the declared no-paid state for ka-analysis / khalid-analysis (commit f48075f0), so
+   those two sev1 rows are gone - sev1 55 -> 44 (ROW_COLLAPSE 33, MISSING_KEYS 11: bond-trace, correlation-breaks, esi,
+   gap-est-snapshots, global-m2, katlin, liquidity-inflection-decisive-call, muni-ratio, put-call-extreme, sloos,
+   taiwan-moea - the pre-freeze set, next piece of work). Pages keep saying "offline (deterministic desk read)".
+   Reopen only if you want a voice back (option B: one voice under a daily dollar ceiling).
 Cleared by itself: `justhodl-schedule-drift` (OK since 07:31, 0 undeclared); wl-series-api released and quiet. Still
 red and known: contract-sev1 (55 sev1 - 41 ROW_COLLAPSE, 12 MISSING_KEYS, 2 llm_status; STALE sev2 falling 719 -> 292).
 
