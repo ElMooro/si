@@ -18,8 +18,9 @@ REGION, ACCOUNT = "us-east-1", "857687956942"
 LIVE, PRIVATE = "justhodl-dashboard-live", "justhodl-ops-private-%s" % ACCOUNT
 ARCHIVE = "justhodl-warehouse-archive-%s" % ACCOUNT
 DESCS = {"ops 6575 warehouse archive backfill (%s -> %s)" % (LIVE, ARCHIVE),                       # cancelled (every version)
-         "ops 6583 warehouse archive backfill, current versions only (%s -> %s)" % (LIVE, ARCHIVE)}  # the real one
-LIVE_CURRENT = 1281312
+         "ops 6583 warehouse archive backfill, current versions only (%s -> %s)" % (LIVE, ARCHIVE),  # 1.28 M objects (truncated listing)
+         "ops 6612 warehouse archive backfill #2 from the S3 Inventory, current versions only (%s -> %s)" % (LIVE, ARCHIVE)}  # the remainder
+LIVE_CURRENT = 3381373   # the live bucket's own S3 Inventory, 2026-10-21T01:00Z (ops 6610); the 1,281,312 census was truncated on data/
 STORM_KEYS = ["data/miss-calibrator-proposals.json"]
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120, max_pool_connections=40)
 
@@ -29,14 +30,21 @@ def c(name):
 
 
 def job_status(s3c):
+    """The newest backfill job (active first), plus every other matching job under "others"."""
+    found = []
     for status in (["Active", "Preparing", "Ready", "Suspended", "New", "Completing"], ["Complete", "Failed"], ["Cancelled"]):
         for j in s3c.list_jobs(AccountId=ACCOUNT, JobStatuses=status).get("Jobs", []):
             if (j.get("Description") or "") in DESCS:
                 d = s3c.describe_job(AccountId=ACCOUNT, JobId=j["JobId"])["Job"]
                 p = d.get("ProgressSummary") or {}
-                return {"job": j["JobId"], "status": d.get("Status"), "total": p.get("TotalNumberOfTasks"), "succeeded": p.get("NumberOfTasksSucceeded"),
-                        "failed": p.get("NumberOfTasksFailed"), "failure": [(f.get("FailureCode"), (f.get("FailureReason") or "")[:160]) for f in (d.get("FailureReasons") or [])]}
-    return {"job": None}
+                found.append({"job": j["JobId"], "desc": (j.get("Description") or "")[:40], "status": d.get("Status"), "total": p.get("TotalNumberOfTasks"),
+                              "succeeded": p.get("NumberOfTasksSucceeded"), "failed": p.get("NumberOfTasksFailed"),
+                              "failure": [(f.get("FailureCode"), (f.get("FailureReason") or "")[:160]) for f in (d.get("FailureReasons") or [])]})
+    if not found:
+        return {"job": None}
+    first = dict(found[0])
+    first["others"] = found[1:]
+    return first
 
 
 def count_archive(s3, budget_s=900):

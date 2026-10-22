@@ -186,20 +186,26 @@ The fleet was thawed on 2026-10-21 00:30 UTC under the full guardrails (ops 6581
 kept, the stage machine asleep until the Nov 1 rollover). A daily Claude health run (06:13 CT) now triages the
 governor's issues, fixes what the gates allow, and files "Daily health run <date>" as a GitHub issue.
 
-### 0f. Bucket: "keep my data, stop the balloon" - DONE 2026-10-20 (docs/ops/WAREHOUSE_ARCHIVE.md)
+### 0f. Bucket: "keep my data, stop the balloon" - the archive is only 38% full; backfill #2 waits for your go (2026-10-22)
 
-Three pieces live and proven: (1) a sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every
-write to the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone
-but the **root user** - if you ever need to remove something from it, that is a console action as root, by design;
-backfill of the existing 1.28 M objects: **running since 2026-10-21 02:21 UTC** - ops 6583 listed the live bucket
-itself (1,282,031 current objects, 18,765 of them pre-versioning "null" versions) and started S3 Batch Replication
-job `523b902a` from that manifest, current versions only (the S3-generated manifest would have copied the loop's
-old versions too; that job was cancelled before it moved anything); ops 6576 reads its progress, the Oct 22
-scheduled task re-checks;
-(2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule); (3) the governor's
-storage fuse (v1.5.0). The daily S3 Inventory lands in the private bucket within 48 h; it is the check that the
-573k storm copies of the audit key and the `data/` storm copies have been expired by the new rule - if S3 is slow
-about it, Claude will propose a one-time manual purge of those old copies (never of a current file).
+Three pieces live: (1) the sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every write to
+the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone but the
+**root user**. The backfill job 523b902a finished 2026-10-22 with 1,282,030 / 1,282,030 succeeded, 0 failed - **but
+its manifest came from a truncated listing**: the live bucket's own S3 Inventory (2026-10-21) counts **3.38 M current
+objects / 1,023 GB**, not the 1.28 M / 434 GB of the census, and the archive holds 1.33 M of them (439 GB). Missing
+almost entirely: `data/providers/` (1.14 M objects, 294 GB - the series page store) and `data/warm/` (779 k, 207 GB -
+the warm bank), plus `data/series-cache/`, `data/statement-research/`, `data/price-observations/`, `data/symdir/`,
+`data/research-*`, `data/raw/`, `data/vintage-research/`, `data/xbrl-raw/` (ops 6611: 38% of a 3,073-key sample of
+current objects is in the archive). **Say go** and ops 6612 runs backfill #2 from the inventory itself (~2.05 M
+objects / ~584 GB, once ≈ $23; the archive then costs ≈ $13/month of Standard-IA instead of ≈ $6 - the "$10-12/month"
+you were told becomes ≈ $18-20/month). Until then the archive protects the research stores, the audit evidence and
+everything under the prefixes the listing reached, not the warehouse pages or the warm bank.
+(2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule) - the inventory of
+2026-10-21 still lists 8.4 M old copies (7.2 M of data/miss-calibrator-proposals.json, 573 k of the audit key), but
+they are already expired and unbilled (the bucket bills ~1.03 TB = its current objects); S3 removes them from the
+listings asynchronously, so **no manual purge** - the proposal is withdrawn; the daily inventory is the check that the
+count rule trims the rest (student-state.json 46 k, crypto-intel.json 11 k, factory/ 18 k ...) to 10.
+(3) the governor's storage fuse (v1.5.0). Details: docs/ops/WAREHOUSE_ARCHIVE.md.
 
 ### 0c. Site egress - DONE 2026-10-20 (worker routing live)
 
