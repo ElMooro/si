@@ -148,15 +148,19 @@ def main():
         day0 = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
         due_cut = now - timedelta(minutes=GRACE_MIN)
         cut_min = due_cut.hour * 60 + due_cut.minute if due_cut.date() == today else -1
-        minute, tick_min, skipped = {}, {}, {"rate": 0, "monthly": 0, "weekly-not-today": 0}
+        minute, tick_min, skipped, no_minute = {}, {}, {"rate": 0, "monthly": 0, "weekly-not-today": 0, "no-single-minute": 0}, []
         for sec in ("rules", "schedules"):
             for e in sched[sec]:
                 if e.get("state") != "ENABLED":
                     continue
                 ok, kind = due_today(e.get("expr"), today)
                 m = po.minute_of(e.get("expr"))
-                if not ok or m is None:
+                if not ok:
                     skipped["weekly-not-today" if kind == "weekly" else kind] += 1
+                    continue
+                if m is None:                       # e.g. cron(0/5 9-16 ...) - the intraday lane; not a once-a-day slot
+                    skipped["no-single-minute"] += 1
+                    no_minute.append("%s %s" % (e.get("name"), e.get("expr")))
                     continue
                 fns = sorted({po.fn_of(t.get("arn")) for t in e.get("targets") or [] if po.fn_of(t.get("arn"))})
                 if "justhodl-scheduler" in fns:
@@ -176,6 +180,8 @@ def main():
         targets = [(fn, k) for fn in sorted(due) if keys.get(fn) for k in keys[fn][:2]]
         r.log("daily schedules assessed: %d engines; due today before %s UTC: %d (with declared json outputs: %d, files %d); skipped %s" % (
             len(minute), due_cut.strftime("%H:%M"), len(due), len({fn for fn, _ in targets}), len(targets), json.dumps(skipped)))
+        if no_minute:
+            r.log("schedules without a single daily minute (not assessed): %s" % "; ".join(no_minute[:10]))
 
         def head(t):
             fn, k = t
