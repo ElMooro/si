@@ -30,7 +30,7 @@ REGION, ACCOUNT = "us-east-1", "857687956942"
 LIVE, PRIVATE = "justhodl-dashboard-live", "justhodl-ops-private-%s" % ACCOUNT
 ALARM = "justhodl-llm-providers-down"
 GATE = "justhodl-contract-gate"
-DISPATCHED_AT = datetime(2026, 10, 22, 17, 50, 0, tzinfo=timezone.utc)   # the deploy dispatch for the overlay change
+DISPATCHED_AT = datetime(2026, 10, 22, 17, 30, 0, tzinfo=timezone.utc)   # the deploy dispatch for the overlay change
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=600)
 KEEP = ("AlarmName", "AlarmDescription", "ActionsEnabled", "OKActions", "AlarmActions", "InsufficientDataActions", "MetricName", "Namespace",
         "Statistic", "ExtendedStatistic", "Dimensions", "Unit", "Threshold", "ComparisonOperator", "Tags", "ThresholdMetricId", "EvaluateLowSampleCountPercentile")
