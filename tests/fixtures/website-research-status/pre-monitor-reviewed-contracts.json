@@ -318,7 +318,10 @@
           "engine": "justhodl-ka-metrics",
           "schema_version": "macro-analysis.v1",
           "input_artifact": "data/ka-metrics.json",
-          "llm_status": "available"
+          "llm_status": [
+            "available",
+            "unavailable"
+          ]
         },
         "rows_path": null,
         "min_rows": 0,
@@ -328,7 +331,7 @@
         "timestamp_field": "generated",
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
-        "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
+        "review_note": "Generated retains the actual observation age; llm_status must be declared as available or unavailable - unavailable is the standing no-paid-AI policy (Khalid, 2026-09-18; reaffirmed 2026-10-22), not a defect; a missing or undeclared status and any schema/owner mismatch remain findings."
       }
     },
     "data/khalid-metrics.json": {
@@ -393,7 +396,10 @@
           "engine": "justhodl-khalid-metrics",
           "schema_version": "macro-analysis.v1",
           "input_artifact": "data/khalid-metrics.json",
-          "llm_status": "available"
+          "llm_status": [
+            "available",
+            "unavailable"
+          ]
         },
         "rows_path": null,
         "min_rows": 0,
@@ -403,7 +409,7 @@
         "timestamp_field": "generated",
         "source_contract": "namespace-audit-2026-09-09.v1",
         "coverage_policy": "STRUCTURE_ONLY_NO_CALIBRATED_ROW_FLOOR",
-        "review_note": "Generated retains the actual observation age; an unavailable LLM or schema mismatch remains a finding."
+        "review_note": "Generated retains the actual observation age; llm_status must be declared as available or unavailable - unavailable is the standing no-paid-AI policy (Khalid, 2026-09-18; reaffirmed 2026-10-22), not a defect; a missing or undeclared status and any schema/owner mismatch remain findings."
       }
     },
     "data/tv-sources.json": {

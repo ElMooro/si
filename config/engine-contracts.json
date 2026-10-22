@@ -22834,7 +22834,10 @@
     "engine": "justhodl-ka-metrics",
     "schema_version": "macro-analysis.v1",
     "input_artifact": "data/ka-metrics.json",
-    "llm_status": "available"
+    "llm_status": [
+     "available",
+     "unavailable"
+    ]
    },
    "rows_path": null,
    "min_rows": 0,
@@ -23089,7 +23092,10 @@
     "engine": "justhodl-khalid-metrics",
     "schema_version": "macro-analysis.v1",
     "input_artifact": "data/khalid-metrics.json",
-    "llm_status": "available"
+    "llm_status": [
+     "available",
+     "unavailable"
+    ]
    },
    "rows_path": null,
    "min_rows": 0,

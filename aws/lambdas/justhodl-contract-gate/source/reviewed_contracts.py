@@ -94,6 +94,11 @@ def validate_fields(document, contract):
             errors.append(("FIELD_TYPE", "source contract type mismatch: " + field))
     for field, expected in contract.get("required_values", {}).items():
         actual = _field(document, field)
-        if type(actual) is not type(expected) or actual != expected:
+        if isinstance(expected, list):
+            # an allowed set: every member is a declared state the writer may truthfully publish
+            # (2026-10-22: llm_status "unavailable" is the standing no-paid-AI policy, not a defect)
+            if not any(type(actual) is type(option) and actual == option for option in expected):
+                errors.append(("FIELD_VALUE", "source contract identity/status mismatch: " + field))
+        elif type(actual) is not type(expected) or actual != expected:
             errors.append(("FIELD_VALUE", "source contract identity/status mismatch: " + field))
     return errors

@@ -77,8 +77,10 @@ def test_analysis_owner_and_input_artifact_cannot_be_replaced_by_other_engine():
     for short in ('ka','khalid'):
         key='data/'+short+'-analysis.json';doc={'engine':'justhodl-'+short+'-metrics','schema_version':'macro-analysis.v1','input_artifact':'data/'+short+'-metrics.json','input_generated':'2026-09-09T12:00:00Z','llm_status':'available','generated':'2026-09-09T12:01:00Z'}
         assert not reviewed.validate_fields(doc,contract(key))
-        for name,value in (('engine','other'),('input_artifact','data/other-metrics.json'),('llm_status','unavailable')):
+        for name,value in (('engine','other'),('input_artifact','data/other-metrics.json'),('llm_status','degraded'),('llm_status',None),('llm_status',True)):
             changed=copy.deepcopy(doc);changed[name]=value;assert reviewed.validate_fields(changed,contract(key))
+        declared=copy.deepcopy(doc);declared['llm_status']='unavailable'   # the standing no-paid-AI policy is a declared state, not a defect (2026-10-22)
+        assert not reviewed.validate_fields(declared,contract(key))
 
 
 def test_actual_source_map_projection_passes_while_legacy_private_landing_does_not():
