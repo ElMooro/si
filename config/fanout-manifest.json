@@ -93,7 +93,6 @@
    "justhodl-opex-calendar",
    "justhodl-options-analytics",
    "justhodl-options-gamma",
-   "justhodl-polygon-futures-curves",
    "justhodl-polygon-fx-regime",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
@@ -696,13 +695,6 @@
     "session-5min"
    ]
   },
-  "justhodl-polygon-futures-curves": {
-   "fired_hours": [],
-   "per_day": 0.0,
-   "ticks": [
-    "session-5min"
-   ]
-  },
   "justhodl-polygon-fx-regime": {
    "fired_hours": [],
    "per_day": 0.0,
@@ -833,11 +825,13 @@
    "justhodl-opex-calendar",
    "justhodl-options-analytics",
    "justhodl-options-gamma",
-   "justhodl-polygon-futures-curves",
    "justhodl-polygon-fx-regime",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
    "justhodl-trade-ticket-monitor"
-  ]
+  ],
+  "removed_2026_10_22": {
+   "justhodl-polygon-futures-curves": "removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
+  }
  }
 }

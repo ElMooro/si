@@ -2,13 +2,18 @@
 from collections import Counter
 from datetime import date
 from threading import Lock
-import re, time, urllib.request, urllib.error, urllib.parse
+import os, re, time, urllib.request, urllib.error, urllib.parse
 from option_snapshot_capture import decode, bounded, NoRedirect, now, sha, numeric_state
 
 CONTRACT = 'futures-source-capture.v1'
 PRODUCTS = {'ES':'XCME','NQ':'XCME','CL':'XNYM','GC':'XCEC','SI':'XCEC','HG':'XCEC','NG':'XNYM'}
 MAX_PAGES = 4
 MAX_PAGE_BYTES = 4*1024*1024
+# Massive/Polygon allows about five futures requests a minute on this plan (reproduced 2026-10-22, ops 6609: the first
+# five catalog calls answer 200, the rest 429 with an empty body).  Live requests are paced across every thread.
+PACE_S = float(os.environ.get('FUTURES_REQUEST_PACE_S', '12.5') or 12.5)
+_PACE_LOCK = Lock()
+_LAST_REQUEST = [0.0]
 
 
 class Budget:
@@ -73,6 +78,13 @@ def request(url,scope,secret,deadline,retain,budget,opener=None):
     if not isinstance(secret,str) or not secret:raise ValueError('Existing managed provider configuration required')
     if canonical(url,scope)!=url:raise ValueError('Canonical futures request required')
     if time.monotonic()>=deadline:return {'status':'time_budget','acquired_at':now(),'http_status':None,'original':None},None
+    if opener is None:                                   # the live provider path is paced to its limit
+        with _PACE_LOCK:
+            wait=_LAST_REQUEST[0]+PACE_S-time.monotonic()
+            if wait>0:
+                if time.monotonic()+wait>=deadline:return {'status':'time_budget','acquired_at':now(),'http_status':None,'original':None},None
+                time.sleep(wait)
+            _LAST_REQUEST[0]=time.monotonic()
     budget.request();status=None
     req=urllib.request.Request(url+'&apiKey='+urllib.parse.quote(secret,safe=''),headers={
         'User-Agent':'JustHodl-Futures-Original-Research/1.0','Accept':'application/json','Accept-Encoding':'identity'})
@@ -83,6 +95,8 @@ def request(url,scope,secret,deadline,retain,budget,opener=None):
     except (OSError,ValueError,TimeoutError):
         return {'status':'transport_or_body_failure','acquired_at':now(),'http_status':status,'original':None},None
     if secret.encode() in raw:raise ValueError('Credential reflection refused before retention')
+    if status==429 or not raw:                           # a rate limit or an empty body is a provider failure: nothing to retain
+        return {'status':'provider_rate_limited' if status==429 else 'provider_empty_body','acquired_at':now(),'http_status':status,'original':None},None
     budget.received(len(raw))
     return {'status':'received','acquired_at':now(),'http_status':status,'original':retain(raw)},raw
 

@@ -13,6 +13,7 @@ import option_snapshot_capture as primitives
 
 COMPILERS=(primitives,capture,calendar,model,sys.modules[__name__])
 POST_CAPTURE_RESERVE_SECONDS=45
+MAX_RUN_SECONDS=840   # was 90: the paced collection (about 5 provider requests a minute, 2026-10-22) needs up to ~9 minutes
 now=capture.now
 
 
@@ -251,7 +252,7 @@ def conditional(client,bucket,key,packet,read,publish=None):
 
 def run(client,bucket,request_id,execution_id,credential='',remaining_seconds=90,recover_run=None,publish=None,publish_current=True):
     if not isinstance(execution_id,str) or not execution_id:raise ValueError('Durable futures execution identity required')
-    key=request_key(request_id);end=time.monotonic()+max(1,min(90,remaining_seconds))
+    key=request_key(request_id);end=time.monotonic()+max(1,min(MAX_RUN_SECONDS,remaining_seconds))
     status={'contract':'futures-original-request.v1','request_id':request_id,'execution_id':execution_id,
         'started_at':now(),'status':'running','phase':'preserve','publish_current':publish_current}
     try:status_write(client,bucket,key,status,IfNoneMatch='*')

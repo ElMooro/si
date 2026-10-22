@@ -52,8 +52,8 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.config import Config
 
-VERSION = "1.2.0"
-MARKER = "fleet-integrity v1.2.0 ops4245 handler-aware"
+VERSION = "1.2.1"
+MARKER = "fleet-integrity v1.2.1 alias-aware schedule map"
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -610,6 +610,15 @@ def collect_metrics(names):
     return out
 
 
+def _fn_of(arn):
+    """Function name of a Lambda ARN, alias- or version-qualified or not.
+    arn.split(":")[-1] returned "live" for ...:function:<name>:live, so every
+    trigger targeting an alias was reported as an orphan of a function named
+    "live" (20 false D4 rows, 2026-10-22)."""
+    m = re.search(r":function:([^:/]+)", arn or "")
+    return m.group(1) if m else (arn or "").split(":")[-1]
+
+
 def schedule_map():
     """fn -> [(kind, rule, expr, state)] plus orphans and duplicate
     targets, gathered in ONE pass so the page and the reconciler agree."""
@@ -631,10 +640,10 @@ def schedule_map():
                                      sort_keys=True)
                     if sig in sigs:
                         dupes.append({"rule": r["Name"],
-                                      "fn": arn.split(":")[-1]})
+                                      "fn": _fn_of(arn)})
                     sigs.add(sig)
                     if r.get("ScheduleExpression"):
-                        wired.setdefault(arn.split(":")[-1], []).append(
+                        wired.setdefault(_fn_of(arn), []).append(
                             {"kind": "events", "rule": r["Name"],
                              "expr": r["ScheduleExpression"],
                              "state": r.get("State")})
@@ -651,7 +660,7 @@ def schedule_map():
                 arn = (d.get("Target", {}) or {}).get("Arn", "") or ""
                 if ":function:" not in arn:
                     continue
-                wired.setdefault(arn.split(":")[-1], []).append(
+                wired.setdefault(_fn_of(arn), []).append(
                     {"kind": "scheduler", "rule": s_["Name"],
                      "expr": d.get("ScheduleExpression"),
                      "state": d.get("State"), "group": g})

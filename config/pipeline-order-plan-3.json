@@ -4594,7 +4594,6 @@
    "justhodl-opex-calendar",
    "justhodl-options-analytics",
    "justhodl-options-gamma",
-   "justhodl-polygon-futures-curves",
    "justhodl-polygon-fx-regime",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
@@ -4620,7 +4619,10 @@
   },
   "schedule_in_manifest": true,
   "tick": "session-5min",
-  "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier."
+  "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier.",
+  "removed": {
+   "justhodl-polygon-futures-curves": "2026-10-22: removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
+  }
  },
  "kept_in_place": {},
  "late_ticks": {
@@ -5483,7 +5485,7 @@
   },
   "edges": 2141,
   "feedback_edges_ignored": 229,
-  "intraday_lane_members": 12,
+  "intraday_lane_members": 11,
   "late_ticks": 2,
   "left_alone_edges": 15,
   "left_alone_triggers": 12,
