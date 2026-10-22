@@ -75,15 +75,23 @@ This file tracks items that require **your direct action** (registration, creden
   timeout raise or a split, engine changes), and 20 orphan rules targeting functions deleted on Oct 20 (harmless;
   proposal: disable them).
 
-### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) waits for the census
+### 0i. Polygon intraday lane - LIVE since 2026-10-21 04:22 UTC; pass 3 (providers' prints, no bursts) - census done, dry run clean, APPLYING 2026-10-22 ~01:50 UTC
 
 The 12 light Polygon feeds refresh every 5 minutes 09:00-16:55 New York time, Monday-Friday (one Scheduler schedule,
 exempt from the once-a-day rule by name; the $50 cap and the anomaly sentinel unchanged; ~$1-2/month). First session
-is today; ops 6586 checks it at 23:35 UTC. Pass 3 (pullers after their provider's publication time, no more than 2
-FRED / ECB / SEC pulls on one minute, FMP bursts 19 -> 4) is computed (131 moves, docs/ops/PIPELINE_ORDER.md); the
-freshness census re-runs 2026-10-22 01:30 UTC once every engine has run after the thaw, then the dry run, then the
-apply - you will get the numbers first. Note: the stocks tape is 15-minute delayed on the current Massive/Polygon plan;
-real-time needs Stocks Advanced ($199/month) - your call, nothing changes until you say so.
+2026-10-21: every member invoked ~96 times; `justhodl-polygon-futures-curves` failed and retried on every tick (its
+traceback is read at the 13:20 UTC check - an engine change needs your go). Note: the stocks tape is 15-minute delayed
+on the current Massive/Polygon plan; real-time needs Stocks Advanced ($199/month) - your call, nothing changes until
+you say so.
+
+**Pass 3** (docs/ops/PIPELINE_ORDER.md "Pass 3"): the census re-ran at 01:36 UTC once every daily engine had run after
+the thaw - files a day old or more at their engine's run: FRED 43/101, FMP 46/146, Polygon 29/73, ECB 8/19, SEC 5/18,
+NY Fed 8/20, Cboe 5/17, each cluster before its provider's print, so the arithmetic holds; one correction (Cboe prints
+later than assumed: 17:30 ET). Dry run ops 6604 at 01:44 UTC: 135 retimes, 0 drift - pullers before their print 51 -> 2
+(the two session-window FINRA readers, by design), provider minutes over the per-minute cap 36 -> 0 (FMP's busiest minute
+19 -> 4, FRED 5 -> 2, ECB 4 -> 2, SEC 3 -> 2), stale reader-writer edges 22 -> 19, mean move 33 min, max 303. Nothing
+faster than daily; no caps, budgets, IAM, lifecycle or archive touched. Apply = ops 6605 (one engine runs twice on apply
+day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). Tomorrow's morning check reads the first light.
 
 ### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 

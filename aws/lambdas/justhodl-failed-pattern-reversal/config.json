@@ -11,7 +11,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-failed-pattern-reversal-daily",
-    "cron": "cron(30 22 * * ? *)",
+    "cron": "cron(31 22 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Failed pattern reversal scan daily 22:30 UTC"

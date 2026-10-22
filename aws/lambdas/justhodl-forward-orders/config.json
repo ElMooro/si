@@ -10,7 +10,7 @@
   "description": "Forward-revenue intelligence: RPO + contracts + book-to-bill. Pulls SEC XBRL companyfacts for backlog data + NewsAPI for contract announcements.",
   "schedule": {
     "rule_name": "forward-orders-daily",
-    "cron": "cron(0 11 * * ? *)",
+    "cron": "cron(1 11 * * ? *)",
     "description": "Forward orders engine — daily at 11 UTC (after market open, before US market open)"
   }
 }

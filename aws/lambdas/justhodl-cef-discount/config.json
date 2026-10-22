@@ -11,7 +11,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-cef-discount-daily",
-    "cron": "cron(30 22 * * ? *)",
+    "cron": "cron(31 22 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "CEF discount mean-rev scanner daily 22:30 UTC"

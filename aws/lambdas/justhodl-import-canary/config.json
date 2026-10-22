@@ -14,7 +14,7 @@
   ],
   "schedule": {
     "rule_name": "justhodl-import-canary-daily",
-    "cron": "cron(40 13 * * ? *)",
+    "cron": "cron(1 14 * * ? *)",
     "description": "Import canary — daily 13:40 UTC (Census releases monthly ~2mo lag; daily poll catches release day)"
   }
 }

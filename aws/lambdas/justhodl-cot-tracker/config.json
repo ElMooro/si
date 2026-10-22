@@ -13,7 +13,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-cot-tracker-weekly",
-    "cron": "cron(0 22 ? * FRI *)",
+    "cron": "cron(1 22 ? * FRI *)",
     "description": "CFTC publishes COT data Fridays at 3:30PM ET (~7:30PM UTC). Run at 22:00 UTC to catch latest."
   }
 }

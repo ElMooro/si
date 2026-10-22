@@ -11,7 +11,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-squeeze-pretrigger-daily",
-    "cron": "cron(30 23 * * ? *)",
+    "cron": "cron(32 23 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Short squeeze pre-trigger scan daily 23:30 UTC"

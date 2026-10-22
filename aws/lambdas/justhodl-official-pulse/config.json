@@ -6,7 +6,7 @@
   "description": "Original H.4.1 Wednesday custody and foreign reverse-repo balances. Exact archive, canonical distribution checks, calendar-week changes and immutable replay. Monitor only; no trade authority.",
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-official-pulse-weekly",
-    "cron": "cron(0 9 * * ? *)",
+    "cron": "cron(3 14 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Daily source and release-calendar check of weekly original H41 balances; monitor only"

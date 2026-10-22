@@ -10,7 +10,7 @@
   "description": "Institutional congressional + executive trade tracker — Quiver-free, conviction-scored by committee jurisdiction",
   "environment_keys": [],
   "schedule": {
-    "expression": "cron(0 11 * * ? *)",
+    "expression": "cron(2 11 * * ? *)",
     "name": "justhodl-political-intel-daily",
     "description": "Daily 6AM ET — refresh congressional + executive trade intelligence"
   }

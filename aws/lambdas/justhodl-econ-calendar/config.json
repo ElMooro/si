@@ -13,7 +13,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-econ-calendar-daily",
-    "cron": "cron(0 11 * * ? *)",
+    "cron": "cron(3 11 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Forward economic release calendar - daily 11:00 UTC via Amazon EventBridge Scheduler, ahead of the morning intelligence briefs so they can reference the day schedule."

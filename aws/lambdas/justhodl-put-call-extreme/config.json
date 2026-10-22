@@ -14,7 +14,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-put-call-extreme-daily",
-    "cron": "cron(15 21 * * ? *)",
+    "cron": "cron(52 21 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Sentiment Extreme Composite daily 21:15 UTC"

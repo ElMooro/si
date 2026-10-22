@@ -14,16 +14,10 @@
    "justhodl-email-reports-v2",
    "justhodl-eps-revision-velocity",
    "justhodl-fed-speak",
-   "justhodl-khalid-metrics",
-   "justhodl-momentum-breakout",
    "justhodl-momentum-scanner",
    "justhodl-narrative-density-tracker",
    "justhodl-position-sizer-v2",
-   "justhodl-pre-pump-detector",
-   "justhodl-revenue-acceleration",
    "justhodl-risk-sizer",
-   "justhodl-theme-rotation-engine",
-   "justhodl-volatility-squeeze-hunter",
    "permanent-market-intelligence",
    "scrapeMacroData",
    "treasury-auto-updater"
@@ -86,7 +80,10 @@
   "daily-morn-late": [
    "justhodl-morning-brief-tg",
    "justhodl-nobrainer-rationale",
-   "justhodl-sector-earnings-diffusion"
+   "justhodl-khalid-metrics",
+   "justhodl-momentum-breakout",
+   "justhodl-pre-pump-detector",
+   "justhodl-revenue-acceleration"
   ],
   "session-5min": [
    "justhodl-edge-engine",
@@ -101,6 +98,11 @@
    "justhodl-risk-regime",
    "justhodl-tail-risk",
    "justhodl-trade-ticket-monitor"
+  ],
+  "daily-morn-late2": [
+   "justhodl-sector-earnings-diffusion",
+   "justhodl-theme-rotation-engine",
+   "justhodl-volatility-squeeze-hunter"
   ]
  },
  "disabled": [],
@@ -318,7 +320,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-market-interpreter": {
@@ -354,7 +356,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-momentum-scanner": {
@@ -444,7 +446,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-regime-composite": {
@@ -471,7 +473,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late"
    ]
   },
   "justhodl-risk-sizer": {
@@ -489,7 +491,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn-late"
+    "daily-morn-late2"
    ]
   },
   "justhodl-sector-tilt": {
@@ -561,7 +563,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late2"
    ]
   },
   "justhodl-theme-tier-classifier": {
@@ -597,7 +599,7 @@
    ],
    "per_day": 1.0,
    "ticks": [
-    "daily-morn"
+    "daily-morn-late2"
    ]
   },
   "justhodl-watchlist-debate": {
@@ -791,18 +793,27 @@
   ]
  },
  "pipeline_order_2026_10_20": {
-  "why": "Khalid, 2026-10-20: readers fire after their writers. A member of a tick that reads files written by other members of the same tick (fired in parallel) runs from the tick's late twin a quarter hour later.",
+  "why": "Khalid, 2026-10-20/21: readers fire after their writers; a member of a tick that reads files written by other members of the same tick (fired in parallel) runs from a late twin a quarter hour later, and a tick never starts more than the provider slot cap of pullers of one provider (config/provider-publication.json).",
   "late_ticks": {
    "daily-morn-late": {
     "schedule": "jhk-tick-daily-morn-late",
     "expr": "cron(15 11 * * ? *)",
     "from_tick": "daily-morn"
+   },
+   "daily-morn-late2": {
+    "schedule": "jhk-tick-daily-morn-late2",
+    "expr": "cron(30 11 * * ? *)",
+    "from_tick": "daily-morn"
    }
   },
   "moved": {
-   "justhodl-morning-brief-tg": "daily-morn-late",
-   "justhodl-nobrainer-rationale": "daily-morn-late",
-   "justhodl-sector-earnings-diffusion": "daily-morn-late"
+   "justhodl-khalid-metrics": "daily-morn-late",
+   "justhodl-momentum-breakout": "daily-morn-late",
+   "justhodl-pre-pump-detector": "daily-morn-late",
+   "justhodl-revenue-acceleration": "daily-morn-late",
+   "justhodl-sector-earnings-diffusion": "daily-morn-late2",
+   "justhodl-theme-rotation-engine": "daily-morn-late2",
+   "justhodl-volatility-squeeze-hunter": "daily-morn-late2"
   }
  },
  "intraday_lane_2026_10_21": {

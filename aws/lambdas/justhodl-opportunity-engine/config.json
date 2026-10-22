@@ -13,7 +13,7 @@
   "environment": {},
   "schedule": {
     "rule_name": "opportunity-engine-daily",
-    "cron": "cron(0 14 * * ? *)",
+    "cron": "cron(3 14 * * ? *)",
     "description": "Retail Opportunity engine \u2014 daily 14:00 UTC, after screener/fundamentals/mean-reversion refresh"
   }
 }

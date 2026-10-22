@@ -14,7 +14,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-ipo-pipeline-daily",
-    "cron": "cron(30 22 * * ? *)",
+    "cron": "cron(31 22 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "IPO Pipeline Tracker daily 22:30 UTC"

@@ -12,7 +12,7 @@
   "description": "Offshore dollar funding monitor covering money markets, bank funding, credit, swap backstops, settlement fails, FX strain and country hubs; publishes plumbing health and research posture.",
   "schedule": {
     "rule_name": "eurodollar-plumbing-daily",
-    "cron": "cron(0 12 * * ? *)",
+    "cron": "cron(2 12 * * ? *)",
     "description": "Eurodollar funding plumbing daily 12:00 UTC"
   }
 }

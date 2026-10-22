@@ -12,7 +12,7 @@
   "description": "Buyback-blackout share of S&P 500 market cap (street proxy T-30/T+2) + 6-week forward curve + reporting intensity. The corporate-bid switch.",
   "schedule": {
     "name": "justhodl-blackout-daily",
-    "expression": "cron(30 11 * * ? *)",
+    "expression": "cron(31 11 * * ? *)",
     "description": "Daily 11:30 UTC after calendar refresh"
   }
 }

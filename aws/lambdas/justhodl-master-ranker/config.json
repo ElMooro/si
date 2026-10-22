@@ -2,7 +2,7 @@
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-master-ranker-weekday-close",
     "group_name": "default",
-    "cron": "cron(5 17 ? * MON-FRI *)",
+    "cron": "cron(40 16 ? * MON-FRI *)",
     "timezone": "America/New_York",
     "state": "ENABLED",
     "flexible_time_window": {

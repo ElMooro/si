@@ -13,7 +13,7 @@
   "environment": {},
   "schedule": {
     "name": "justhodl-dark-pool-daily",
-    "expression": "cron(40 21 ? * MON-FRI *)",
+    "expression": "cron(31 23 ? * MON-FRI *)",
     "description": "Daily: fuse regsho daily tape + refresh weekly ATS when FINRA publishes"
   }
 }

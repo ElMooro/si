@@ -14,7 +14,7 @@
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-gf-value-daily",
-    "cron": "cron(0 22 * * ? *)",
+    "cron": "cron(2 22 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "GF Value Composite Fair Value daily 22:00 UTC"

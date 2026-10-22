@@ -9,7 +9,7 @@
   "env": {"S3_BUCKET": "justhodl-dashboard-live"},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-lockup-expiration-daily",
-    "cron": "cron(0 22 * * ? *)",
+    "cron": "cron(3 22 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "IPO lockup expiration scan daily 22 UTC"

@@ -11,7 +11,7 @@
     },
     "eventbridge_scheduler": {
         "schedule_name": "justhodl-breadth-divergence-daily",
-        "cron": "cron(0 22 * * ? *)",
+        "cron": "cron(2 22 * * ? *)",
         "timezone": "UTC",
         "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
         "description": "Breadth divergence daily 22 UTC"
