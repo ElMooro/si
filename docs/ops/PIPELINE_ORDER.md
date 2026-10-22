@@ -231,7 +231,7 @@ through Friday." `config/intraday-lane.json`:
 * **One EventBridge Scheduler schedule** `jhk-tick-session-5min`, `cron(0/5 9-16 ? * MON-FRI *)` in
   **America/New_York** (so it follows the clock change), target `justhodl-scheduler` with `{"tick": "session-5min"}`:
   96 fan-outs a day, 09:00-16:55 ET, Monday-Friday.
-* **12 members** - the light Polygon feeds on live snapshot / quote endpoints (0.2-12 s runs): `justhodl-intraday-pulse`
+* **12 members** (11 since 2026-10-22: `justhodl-polygon-futures-curves` left - Massive allows ~5 futures requests a minute, so its run is paced to ~9 minutes and cannot repeat every 5; its daily 13:00 UTC run stays) - the light Polygon feeds on live snapshot / quote endpoints (0.2-12 s runs): `justhodl-intraday-pulse`
   (built for a 60-second cadence; its market-hours guard is 13:30-20:00 UTC, i.e. EDT - after the clock change it skips
   the last session hour until the engine is taught New York time), `trade-ticket-monitor` (alerts once per level per
   day), `options-gamma` (index dealer gamma), `options-analytics` (per-name live greeks), `opex-calendar` (0DTE

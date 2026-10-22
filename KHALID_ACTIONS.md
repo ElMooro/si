@@ -6,27 +6,26 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0l. Three decisions from the 2026-10-22 13:20 UTC alarm re-check (ops 6609, read-only; issue #122)
+### 0l. The 13:20 UTC alarm re-check - two of three DONE on "continue" (2026-10-22 16:47 UTC); the LLM voices remain yours
 
-1. **futures-curves is broken by a provider rate limit, not by code drift.** Reproduced outside the engine: the first 5
-   of its 21 catalog requests answer 200, the other 16 answer HTTP 429 with an empty body - Massive/Polygon now allows
-   about 5 futures requests a minute on your key (since Oct 10/11; the function is unchanged since Sep 21). The empty
-   429 body slips past the transport check and dies in evidence retention (`immutable`: `0 < len(raw)`) - that is the
-   hidden ValueError. Say go for: (a) the engine fix - an empty body / 429 becomes a provider failure, and the run is
-   paced to the limit (42 requests ~ 9 min; the engine's own 90 s budget rises with it) or the catalog calls trimmed
-   to weekly; (b) taking `justhodl-polygon-futures-curves` out of `config/intraday-lane.json` until then (the lane
-   fails 96x a day for it). Also worth a look in the Massive dashboard: whether your plan is meant to include futures
-   at full rate.
-2. **20 orphan rules** target functions that no longer exist (katlin-*, khalid-*, fleet-freshness-*,
-   engine-fusion-hourly, backtest-engine-6h, calibration-snapshotter-weekly ...): they fire into nothing and keep the
-   integrity alarm red. Say go to disable them (rules kept, state DISABLED, backed up first).
-3. **The LLM voices are dead** (`justhodl-llm-providers-down` ALARM since 08:44 UTC, no datapoints; Anthropic credits
-   exhausted, GLM answering 429) - new credits or a different voice is your call.
-Cleared by itself: `justhodl-schedule-drift` (OK since 07:31, 0 undeclared); wl-series-api released and quiet (0
-invocations in 24 h). Still red and known: contract-sev1 (55 sev1 - 41 ROW_COLLAPSE, 12 MISSING_KEYS, 2 llm_status;
-STALE sev2 falling 719 -> 292 as engines run again), integrity-new-defects (269: D8 errors 176, D7 concurrency 57, D4
-orphans 20, D2 timeout-clipped 6 - analytics-snapshot, causality-scanner, earnings-whisper, imf-full,
-opportunity-screener, outcome-checker).
+1. **futures-curves - FIXED and publishing again** (commit 4b55630f, ops 6614). Root cause: Massive now allows about
+   5 futures requests a minute on your key (the first 5 catalog calls answer 200, the rest 429 with an empty body; the
+   empty body died in evidence retention as the hidden ValueError, every run since Oct 11). Now: live requests paced
+   to the limit (12.5 s apart), 429 / empty body = provider failure (never retained), run budget 840 s, Lambda timeout
+   900 s. First paced run: complete - 46 requests in ~9.5 min, 42/42 datasets, 7 products, 21 contracts, published;
+   `data/futures-research.json` regenerated 16:45 UTC, the first time since Oct 10. The engine left the 5-minute lane
+   (11 members now; a 9-minute run cannot repeat every 5 minutes) - its daily 13:00 UTC run covers the feed. Still
+   worth a look in the Massive dashboard: whether your plan is meant to include futures at a higher rate (then the pace
+   can come down). Issue #122 closed.
+2. **The "20 orphan rules" were not orphans** - justhodl-fleet-integrity read `...:function:<name>:live` targets as a
+   function named "live" (ops 6613 resolved all 20: the functions and aliases exist and run - katlin 102 invocations in
+   7 days, public-archive-index 104, fleet-freshness-monitor 64 ...). Nothing was disabled. fleet-integrity v1.2.1 is
+   alias-aware; its re-run reports D4 = 0 (new defects 269 -> 248: D8 errors 174, D7 concurrency 57, D2 timeout-clipped
+   7, D14 unscanned 6, D6 never-ran 4 - the integrity alarm stays red on those until they are worked).
+3. **The LLM voices are dead** (`justhodl-llm-providers-down` ALARM since 08:44 UTC; Anthropic credits exhausted, GLM
+   answering 429) - new credits or a different voice is your call.
+Cleared by itself: `justhodl-schedule-drift` (OK since 07:31, 0 undeclared); wl-series-api released and quiet. Still
+red and known: contract-sev1 (55 sev1 - 41 ROW_COLLAPSE, 12 MISSING_KEYS, 2 llm_status; STALE sev2 falling 719 -> 292).
 
 ### 0k. chart.html - BACK 2026-10-21 14:39 UTC; bar bank on Polygon 16:44 UTC; auto-hide fixed 16:47 UTC (docs/audit/2026-10-21/chart-restore.md)
 
