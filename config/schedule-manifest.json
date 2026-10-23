@@ -1,7 +1,7 @@
 {
  "doctrine": [
   "This manifest is the SOURCE OF TRUTH for every scheduled invocation in the account.",
-  "To add, change or remove a schedule: edit this file, upload it to s3://justhodl-dashboard-live/config/schedule-manifest.json, then run the reconciler in enforce mode. Do NOT call put_rule from ops scripts — that is how 90 double-fire targets and a five-way duplicate accumulated.",
+  "To add, change or remove a schedule: edit this file, upload it to s3://justhodl-dashboard-live/config/schedule-manifest.json, then run the reconciler in enforce mode. Do NOT call put_rule from ops scripts \u2014 that is how 90 double-fire targets and a five-way duplicate accumulated.",
   "Mode lives in SSM /justhodl/schedules/mode (audit|enforce) and takes effect without a redeploy.",
   "Enforcement DISABLES undeclared rules; it never deletes."
  ],
@@ -11231,6 +11231,21 @@
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-floor-audit",
+     "input": "{}",
+     "path": null
+    }
+   ]
+  },
+  {
+   "expr": "cron(13 23 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-fmp-bank-daily",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-fmp-bank",
      "input": "{}",
      "path": null
     }

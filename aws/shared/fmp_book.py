@@ -130,13 +130,38 @@ def path_head(path):
     return p.split("/")[0].split("?")[0]
 
 
+def _wants_history(head, qs):
+    """A quarter or a deep limit asks for history the TTM harvest cannot honestly answer (audit 2026-10-23: the book
+    was answering period=quarter with one TTM row)."""
+    q = str(qs or "").lower()
+    if "period=quarter" in q or "period=q" in q:
+        return True
+    for part in q.split("&"):
+        if part.startswith("limit="):
+            try:
+                return int(part.split("=", 1)[1]) > 3 and head not in ("ratios-ttm", "key-metrics-ttm", "income-statement-ttm")
+            except ValueError:
+                return False
+    return False
+
+
 def try_harvest(path, qs=""):
-    """Return FMP-shaped payload if this path+symbol is in the harvest, else None."""
+    """Return FMP-shaped payload for this path+symbol: the FMP bank (full history, verbatim bulk rows) first, then the
+    TTM harvest for the single-row shapes it can honestly answer, else None (caller goes live)."""
     head = path_head(path)
+    try:
+        import fmp_bank
+        hit = fmp_bank.try_bank(head, qs if "symbol=" in str(qs or "") else "symbol=%s&%s" % (symbol_from(path, qs) or "", qs or ""))
+        if hit:
+            return hit
+    except Exception:
+        pass
     if head not in HARVEST_PATHS:
         return None
     tk = symbol_from(path, qs)
     if not tk:
+        return None
+    if _wants_history(head, qs):
         return None
     r = row(tk)
     if not r:

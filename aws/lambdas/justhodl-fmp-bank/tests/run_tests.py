@@ -1,0 +1,173 @@
+"""justhodl-fmp-bank offline tests: a fake FMP server + in-memory S3, no network, no AWS.
+
+Run: python3 aws/lambdas/justhodl-fmp-bank/tests/run_tests.py
+"""
+import gzip
+import io
+import json
+import os
+import sys
+import types
+import urllib.error
+import urllib.parse
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "..", "source")
+SHARED = os.path.join(HERE, "..", "..", "..", "shared")
+sys.path[:0] = [SRC, SHARED]
+os.environ["FMP_KEY"] = "test-key-not-real"
+os.environ["FMP_BANK_BUDGET_S"] = "600"
+os.environ["FMP_BANK_PACE_S"] = "0"
+os.environ["FMP_EOD_FLOOR"] = "2026-10-15"
+os.environ["FMP_YEAR_FLOOR"] = "2025"
+
+
+class S3Stub:
+    def __init__(self):
+        self.store = {}
+        self.puts = 0
+
+    def get_object(self, Bucket, Key):
+        if Key not in self.store:
+            raise KeyError(Key)
+        return {"Body": io.BytesIO(self.store[Key])}
+
+    def put_object(self, Bucket, Key, Body, **kw):
+        self.store[Key] = Body.read() if hasattr(Body, "read") else Body
+        self.puts += 1
+
+
+class FakeFMP:
+    """Serves CSV for known endpoints; 404 for unknown; configurable 403/429."""
+
+    def __init__(self):
+        self.calls = []
+        self.serve_403 = False
+        self.rate_limit_once = set()
+        self.unknown = {"peers-bulk"}                      # pretend the plan does not serve this one
+
+    def __call__(self, req, timeout=0):
+        url = req.full_url if hasattr(req, "full_url") else req
+        self.calls.append(url)
+        path = urllib.parse.urlparse(url).path.rsplit("/", 1)[-1]
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(url).query))
+        assert q.get("apikey") == "test-key-not-real"
+        if self.serve_403:
+            raise urllib.error.HTTPError(url, 403, "Forbidden", {}, io.BytesIO(b"{}"))
+        if path in self.unknown:
+            raise urllib.error.HTTPError(url, 404, "Not Found", {}, io.BytesIO(b"{}"))
+        if path in self.rate_limit_once:
+            self.rate_limit_once.discard(path)
+            raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b"{}"))
+        if path == "profile-bulk" and q.get("part") != "0":
+            body = b"[]"                                   # parts beyond 0 are empty
+        elif path == "etf-holder-bulk" and q.get("part") != "0":
+            body = b"[]"
+        elif path == "eod-bulk":
+            if q["date"] == "2026-10-16":
+                body = b""                                 # a holiday-like empty day
+            else:
+                body = ("symbol,date,open,low,high,close,adjClose,volume\nAAPL,%s,1,1,1,1,1,100\nMSFT,%s,2,2,2,2,2,200\n" % (q["date"], q["date"])).encode()
+        elif path.endswith("-bulk"):
+            body = ("symbol,date,period,x\nAAPL,2025-09-30,%s,1\nMSFT,2025-09-30,%s,2\n" % (q.get("period", "annual"), q.get("period", "annual"))).encode()
+        else:
+            raise urllib.error.HTTPError(url, 404, "Not Found", {}, io.BytesIO(b"{}"))
+        resp = io.BytesIO(body)
+        resp.__enter__ = lambda s=resp: s
+        resp.__exit__ = lambda s=resp, *a: None
+        return resp
+
+
+def boot():
+    import boto3
+    s3 = S3Stub()
+    boto3.client = lambda *a, **k: s3
+    import urllib.request as ur
+    fake = FakeFMP()
+    ur.urlopen = fake
+    for m in list(sys.modules):
+        if m == "lambda_function":
+            del sys.modules[m]
+    import lambda_function as lf
+    lf.s3 = s3
+    return lf, s3, fake
+
+
+def test_full_cycle():
+    lf, s3, fake = boot()
+    out = lf.lambda_handler({}, None)
+    assert out["key_status"] == "ok", out
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    cat = json.loads(s3.store[lf.CATALOG_KEY])
+    assert "peers-bulk" in cat["not_served"], cat["not_served"]
+    assert cat["endpoints"]["peers-bulk"]["last_verdict"] == "http404"
+    assert "rating-bulk" in cat["served"]
+    latest = s3.store[lf.ROOT + "rating-bulk/latest.csv.gz"]
+    assert gzip.decompress(latest).startswith(b"symbol,date")
+    assert lf.ROOT + "profile-bulk/part-0/latest.csv.gz" in s3.store
+    assert lf.ROOT + "income-statement-bulk/2026/Q1.csv.gz" in s3.store
+    assert lf.ROOT + "income-statement-bulk/2025/annual.csv.gz" in s3.store
+    assert lf.ROOT + "earnings-surprises-bulk/2026/year.csv.gz" in s3.store
+    eod_keys = [k for k in s3.store if "/eod-bulk/" in k]
+    assert any(k.endswith("2026-10-15.csv.gz") for k in eod_keys), eod_keys
+    assert not any("2026-10-16" in k or "2026-10-17" in k or "2026-10-18" in k for k in eod_keys), eod_keys   # empty day, weekend
+    assert man["objects"] == len([k for k in s3.store if k.endswith(".csv.gz")]), (man["objects"], len(s3.store))
+    assert man["bytes"] == sum(len(v) for k, v in s3.store.items() if k.endswith(".csv.gz"))
+    assert man["pages"] == man["objects"] and man["pages_bytes"] == man["bytes"]
+    assert man["phase"] == "STEADY", man
+    assert out["dated_pending"] == 0
+    return lf, s3, fake
+
+
+def test_unchanged_snapshot_not_rewritten():
+    lf, s3, fake = test_full_cycle()
+    puts = s3.puts
+    objects = json.loads(s3.store[lf.MANIFEST_KEY])["objects"]
+    lf.lambda_handler({"only": ["snapshot"]}, None)
+    cat = json.loads(s3.store[lf.CATALOG_KEY])
+    assert cat["endpoints"]["rating-bulk"]["changed"] is False
+    assert json.loads(s3.store[lf.MANIFEST_KEY])["objects"] == objects
+    assert s3.puts - puts <= 4, "only state (lease + final), manifest, catalog should be rewritten"
+
+
+def test_forbidden_key_stops_and_is_visible():
+    lf, s3, fake = boot()
+    fake.serve_403 = True
+    out = lf.lambda_handler({}, None)
+    assert out["key_status"] == "unauthorized", out
+    assert not [k for k in s3.store if k.endswith(".csv.gz")]
+    assert json.loads(s3.store[lf.MANIFEST_KEY])["key_status"] == "unauthorized"
+
+
+def test_429_retried():
+    lf, s3, fake = boot()
+    fake.rate_limit_once.add("rating-bulk")
+    out = lf.lambda_handler({"only": ["snapshot"]}, None)
+    assert out["run"]["retries"] >= 1
+    assert lf.ROOT + "rating-bulk/latest.csv.gz" in s3.store
+
+
+def test_lease_and_budget():
+    lf, s3, fake = boot()
+    s3.store[lf.STATE_KEY] = json.dumps({"lease_until": 9e12}).encode()
+    assert lf.lambda_handler({}, None).get("skipped") == "lease_held"
+    lf, s3, fake = boot()
+    lf.BUDGET_S = 30                                       # below the guard thresholds -> every step stops cleanly
+    out = lf.lambda_handler({}, None)
+    assert out["phase"] == "BACKFILL" and len(out["run"]["steps"]) == 1 and not out["run"]["steps"][0]["complete"], out
+
+
+def test_count_rows_rejects_json_error_bodies():
+    lf, s3, fake = boot()
+    open(lf.TMP, "wb").write(b'{"Error Message": "x"}')
+    assert lf._count_rows(lf.TMP) == 0
+    open(lf.TMP, "wb").write(b"a,b\n1,2\n3,4\n")
+    assert lf._count_rows(lf.TMP) == 2
+
+
+if __name__ == "__main__":
+    tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    for t in tests:
+        t()
+        print("ok", t.__name__)
+    print("%d tests passed" % len(tests))

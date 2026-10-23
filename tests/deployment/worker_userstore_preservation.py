@@ -30,7 +30,20 @@ def peel_edge_revalidate(raw, file):
     assert hashlib.sha256(raw.encode()).hexdigest() == t['before_sha256'], file
     return raw
 
+def peel_crawler_gate(raw, file):
+    """ops 6628 (2026-10-23): crawler gate; same peel as the .cjs helper's crawler-gate block.  The JS chain was taught
+    at 14261948e, this one was not, so every Lambda deploy failed preflight until this peel (same trap as ops 6551)."""
+    t = json.loads((R/'tests/fixtures/worker-crawler-gate/transition.json').read_bytes())
+    if file != t['path'] or hashlib.sha256(raw.encode()).hexdigest() != t['after_sha256']:
+        return raw
+    for e in reversed(t['replacements']):
+        assert raw.count(e['after']) == 1, "crawler gate hunk"
+        raw = raw.replace(e['after'], e['before'], 1)
+    assert hashlib.sha256(raw.encode()).hexdigest() == t['before_sha256'], file
+    return raw
+
 def normalize(raw,file):
+    raw = peel_crawler_gate(raw, file)
     raw = peel_edge_revalidate(raw, file)
     raw = peel_heat_range(raw, file)
     t=json.loads((R/'tests/fixtures/worker-userstore/transition.json').read_bytes())['entries'].get(file)
