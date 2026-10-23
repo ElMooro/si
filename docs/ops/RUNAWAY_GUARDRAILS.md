@@ -158,8 +158,13 @@ Dry run any time: `{"action":"fast_fuse"}` (same path as an alarm).
   **Disabled by Khalid on 2026-10-19 (ops 6544)**: noncurrent versions now accumulate again (S3 storage went from
   $0.64 to $1.13 a day in the frozen window and keeps growing); the bucket-size alarm is the only backstop.
 * S3 egress: the governor e-mails once a day when the previous day's data-transfer-out exceeds $5 (~55 GB).
-  Crawlers (Lightpanda) are denied by bucket policy (ops 6549); the Worker keeps a revalidated edge copy of the
-  large publications (ops 6551), so the site no longer re-reads them from S3 on every request.
+  Crawlers (Lightpanda, ops 6549; Applebot, ops 6626 - its renderer pulled 10-30 GB/day of why.html's data files
+  straight from S3) are denied by the bucket statement `DenyAbusiveScrapersByUserAgent`; the Worker keeps a
+  revalidated edge copy of the large publications (ops 6551), so the site no longer re-reads them from S3 on every request.
+* CloudWatch Logs ingestion: `justhodl-logs-ingestion-2gb-hour` (> 2 GiB in an hour, account-wide; ops 6580) watches the
+  account-level metric `AWS/Logs IncomingBytes` since ops 6627 (2026-10-23). As a Metrics Insights query over every log
+  group it billed $0.10 per log group per month (~$19/month); the account metric is the same sum ($0.10/month).
+  Prefer a standard alarm on an account-level metric over a Metrics Insights alarm whenever one exists.
 
 ## Alerts reach Khalid by
 

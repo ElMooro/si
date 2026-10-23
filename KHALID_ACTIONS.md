@@ -6,6 +6,26 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, four decisions open (docs/audit/2026-10-23/aws-bill-oct22.md)
+
+* **Oct 22 = $32.55 = $25.09 one-time + $7.46 normal.** The one-time part is archive backfill #2 (your "continue"):
+  2,086,159 replication writes into Standard-IA $20.99, Batch Operations $2.34, reading IA copies $1.76. Job finished
+  (2,086,159 / 2,086,159, 0 failed); it does not recur.
+* **October so far: $1,097.93 net** = usage $2,869.72 - AWS credits $1,783.38 (posted on the Oct 12-16 loop days) +
+  Business Support+ $11.58.
+* **Fixed today:** (1) Apple's crawler (Applebot, 17.166.x = *.applebot.apple.com) was rendering why.html ~6,000 times a
+  day and downloading its eleven data files straight from S3: 10.2 GB on Oct 22, a 30 GB/day pace on Oct 23
+  ($0.9-2.7/day). Denied at the bucket (ops 6626), proven: Applebot 403, Safari/Googlebot 200, all 51 public probes
+  unchanged. (2) The log-ingestion alarm cost ~$19/month as a Metrics Insights query; same alarm now on the
+  account-level metric, $0.10/month (ops 6627, equivalence proven hour by hour).
+* **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
+  egress stays at today's pace).
+* **Your decisions (one word each; nothing changed yet):** (a) keep or cancel **AWS Business Support+** ($29/month minimum,
+  9% of gross charges before credits; ask AWS or check the Bills page whether October's fee is 9% of the whole month,
+  up to ~$264, before Oct 31); (b) **archive replication**: keep continuous (~$45/month all-in, measured) or replicate
+  on a schedule; (c) refuse `/data/*` to crawlers at the **Worker** too; (d) **cleanup** of 9 unused Secrets Manager
+  secrets, two stopped 2025 EC2 instances' disks and ~22 alarms for retired systems (~$7/month).
+
 ### 0l. The 13:20 UTC alarm re-check - all three DONE (2026-10-22 17:37 UTC): futures-curves fixed, orphans were alias targets, policy A applied
 
 1. **futures-curves - FIXED and publishing again** (commit 4b55630f, ops 6614). Root cause: Massive now allows about

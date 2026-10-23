@@ -67,8 +67,12 @@ inputs); explicit history lives in its own prefixes as current objects.
   sample of current objects was found 100% present (ops 6611). The archive is a complete copy.** Trap recorded twice:
   `ListObjectsV2(Prefix="data/", Delimiter="/")` must be paginated - the unpaginated first page truncated both the
   ops 6583 manifest and ops 6576's own count (fixed 2026-10-23).
-* Cost: ~434 GB in Standard-IA (128 KB minimum per object) ≈ $6-7/month + ~$3-5/month of replication PUTs for the
-  daily writes ≈ **$10-12/month**.
+* Cost (design estimate): ~434 GB in Standard-IA (128 KB minimum per object) ≈ $6-7/month + ~$3-5/month of replication PUTs for the
+  daily writes ≈ **$10-12/month**. **Measured 2026-10-23 (ops 6622, Cost Explorer):** the fleet writes ~84 k objects a
+  day (`Requests-Tier1` PutObject 83,556 on Oct 22) and every one is replicated as a Standard-IA PUT ($0.01 per 1,000)
+  = **$0.84/day ≈ $25/month** of replication writes; storage at the full 1,032 GB ≈ $13-15/month; replaced copies are
+  billed for Standard-IA's 30-day minimum (~$5/month, estimate). The never-erase copy costs **~$45/month** in all.
+  The two backfills cost $14.35 (Oct 21) and $25.09 (Oct 22) once. Options are in docs/audit/2026-10-23/aws-bill-oct22.md.
 * Restoring from the archive: copy the object (or prefix) back with `aws s3 cp s3://justhodl-warehouse-archive-.../<key>
   s3://justhodl-dashboard-live/<key>` from the runner (an ops script); every file is there under the same key, in
   Standard-IA (retrieval $0.01/GB).
