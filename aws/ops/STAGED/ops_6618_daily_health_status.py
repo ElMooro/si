@@ -255,7 +255,9 @@ def main():
 
         r.section("governor guardrail self-check and dead-man alarms (read-only)")
         r.log("guardrail check (state.guardrails): %s" % json.dumps(state.get("guardrails"), default=str)[:1200])
-        r.log("storage days (state, last 4): %s" % json.dumps(((state.get("storage") or {}).get("days") or [])[-4:], default=str)[:2000])
+        days = (state.get("storage") or {}).get("days") or {}
+        last4 = sorted(days.items())[-4:] if isinstance(days, dict) else list(days)[-4:]
+        r.log("storage days (state, last 4): %s" % json.dumps(last4, default=str)[:2000])
         alarm_states = {}
         try:
             names = ["justhodl-spend-governor-heartbeat", "justhodl-spend-governor-errors", "justhodl-runaway-concurrency",
